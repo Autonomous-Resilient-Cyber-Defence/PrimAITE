@@ -1,11 +1,11 @@
-.. _training:
+﻿.. _session:
 
-Running a PrimAITE Training Session
-===================================
+Running a PrimAITE Training or Evaluation Session
+=================================================
 
-A PrimAITE training session will usually be associated with a "Training Use Case Profile". This document will present:
+The application will determine whether a Training or Evaluation session is being executed via the 'sessionType' value in the config_mail.yaml file. A PrimAITE session will usually be associated with a "Use Case Profile"; this document will present:
 
-* The Use Case name, default number of steps in a training episode and default number of episodes in a training session. The number of steps and episodes can be modified in the configuration files
+* The Use Case name, default number of steps in an episode and default number of episodes in a session. The number of steps and episodes can be modified in the configuration files
 * The system laydown being modelled
 * The objectives of the mission (steady-state), the red agent and the blue agent (in a defensive role)
 * The green agent pattern-of-life profile
@@ -40,7 +40,7 @@ Where:
 * *MyAgent* is the user created agent
 * *environment* is the PrimAITE environment
 * *max_steps* is the number of steps in an episode, as defined in the config_[name].yaml file
-* *num_episodes* is the number of episodes in the training session, as defined in the config_main.yaml file
+* *num_episodes* is the number of episodes in the session, as defined in the config_main.yaml file
 * the *.learn()* function should be defined in the user created agent
 * the *env.close()* function is defined within PrimAITE
 * the *save_agent()* assumes that a *save()* function has been defined in the user created agent. If not, this line can be ommitted (although it is encouraged, since it will allow the agent to be saved and ported)
@@ -76,13 +76,13 @@ environment is reset between episodes. Note that the example below should not be
         if done == True:​
             break
 
-**Running the training session**
+**Running the session**
  
-In order to execute a training session, carry out the following steps:
+In order to execute a session, carry out the following steps:
 
 1. Navigate to "[Install directory]\\PRIMAITE\\PRIMAITE\\” 
 2. Start a console window (type “CMD” in path window, or start a console window first and navigate to “[Install Directory]\\PRIMAITE\\PRIMAITE\\”) 
 3. Type “python main.py” 
-4. Training will start with an output indicating the current episode, and average reward value for the episode 
+4. The session will start with an output indicating the current episode, and average reward value for the episode 
 
  

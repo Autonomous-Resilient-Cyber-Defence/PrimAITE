@@ -130,8 +130,7 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
                 for node in path_node_list:
                     if node.get_state() != HARDWARE_STATE.ON:
                         path_valid = False
-
-                
+              
                 if path_valid:
                     if _VERBOSE:
                         print("Applying IER to link(s)")
@@ -203,35 +202,65 @@ def apply_red_agent_node_pol(nodes, iers, node_pol, step):
     for key, node_instruction in node_pol.items():
         start_step = node_instruction.get_start_step()
         stop_step = node_instruction.get_end_step()
-        node_id = node_instruction.get_node_id()
-        node_pol_type = node_instruction.get_node_pol_type()
+        target_node_id = node_instruction.get_target_node_id()
+        initiator = node_instruction.get_initiator()
+        pol_type = node_instruction.get_pol_type()
         service_name = node_instruction.get_service_name()
         state = node_instruction.get_state()
-        is_entry_node = node_instruction.get_is_entry_node()
+        source_node_id = node_instruction.get_source_node_id()
+        source_node_service_name = node_instruction.get_source_node_service()
+        source_node_service_state_value = node_instruction.get_source_node_service_state()
+
+        passed_checks = False
 
         if step >= start_step and step <= stop_step:
             # continue -------------------------- 
-            node = nodes[node_id]
+            target_node = nodes[target_node_id]
 
-            # for the red agent, either:
-            # 1. the node has to be an entry node, or
-            # 2. there is a red IER relevant to that service entering the node with a running status of True
-            red_ier_incoming = is_red_ier_incoming(node, iers, node_pol_type)
-            if is_entry_node or red_ier_incoming:
-                if node_pol_type == NODE_POL_TYPE.OPERATING:
-                    # Change operating state
-                    node.set_state(state)
-                elif node_pol_type == NODE_POL_TYPE.OS:
-                    # Change OS state
-                    if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
-                        node.set_os_state(state)
+            # Based the action taken on the initiator type
+            if initiator == NODE_POL_INITIATOR.DIRECT:
+                # No conditions required, just apply the change
+                passed_checks = True
+            elif initiator == NODE_POL_INITIATOR.IER:
+                # Need to check there is a red IER incoming
+                passed_checks = is_red_ier_incoming(target_node, iers, pol_type)
+            elif initiator == NODE_POL_INITIATOR.SERVICE:
+                # Need to check the condition of a service on another node
+                source_node = nodes[source_node_id]
+                if source_node.has_service(source_node_service_name):
+                    if source_node.get_service_state(source_node_service_name) == SOFTWARE_STATE[source_node_service_state_value]:
+                        passed_checks = True
+                    else:
+                        # Do nothing, no matching state value
+                        pass
                 else:
-                    # Change a service state
-                    if isinstance(node, ServiceNode):
-                        node.set_service_state(service_name, state)
+                    # Do nothing, service not on this node
+                    pass
             else:
                 if _VERBOSE:
-                    print("Node Red Agent PoL not allowed - not entry node, or running IER not present")
+                    print("Node Red Agent PoL not allowed - misconfiguration")
+
+            # Only apply the PoL if the checks have passed (based on the initiator type)
+            if passed_checks:
+                # Apply the change
+                if pol_type == NODE_POL_TYPE.OPERATING:
+                    # Change operating state
+                    target_node.set_state(state)
+                elif pol_type == NODE_POL_TYPE.OS:
+                    # Change OS state
+                    if isinstance(target_node, ActiveNode) or isinstance(target_node, ServiceNode):
+                        target_node.set_os_state(state)
+                elif pol_type == NODE_POL_TYPE.SERVICE:
+                    # Change a service state
+                    if isinstance(target_node, ServiceNode):
+                        target_node.set_service_state(service_name, state)
+                else:
+                    # Change the file system status
+                    if isinstance(target_node, ActiveNode) or isinstance(target_node, ServiceNode):
+                        target_node.set_file_system_state(state)
+            else:
+                if _VERBOSE:
+                        print("Node Red Agent PoL not allowed - did not pass checks")
         else:
             # PoL is not valid in this time step
             pass
@@ -242,8 +271,8 @@ def is_red_ier_incoming(node, iers, node_pol_type):
 
     for ier_key, ier_value in iers.items():     
         if ier_value.get_is_running() and ier_value.get_dest_node_id() == node_id:
-            if node_pol_type == NODE_POL_TYPE.OPERATING or node_pol_type == NODE_POL_TYPE.OS:
-                # It's looking to change operating state or O/S state, so valid 
+            if node_pol_type == NODE_POL_TYPE.OPERATING or node_pol_type == NODE_POL_TYPE.OS or node_pol_type == NODE_POL_TYPE.FILE:
+                # It's looking to change operating state, file system or O/S state, so valid 
                 return True
             elif node_pol_type == NODE_POL_TYPE.SERVICE:
                 # Check if the service is present on the node and running

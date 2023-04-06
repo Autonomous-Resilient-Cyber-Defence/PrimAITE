@@ -59,6 +59,16 @@ class NODE_POL_TYPE(Enum):
     OPERATING = 1
     OS = 2
     SERVICE = 3
+    FILE = 4
+
+class NODE_POL_INITIATOR(Enum):
+    """
+    Node Pattern of Life initiator enumeration
+    """
+
+    DIRECT = 1
+    IER = 2
+    SERVICE = 3
 
 class PROTOCOL(Enum):
     """
@@ -82,3 +92,13 @@ class ACTION_TYPE(Enum):
     NODE = 0
     ACL = 1
 
+class FILE_SYSTEM_STATE(Enum):
+    """
+    File System State
+    """
+
+    GOOD = 1
+    CORRUPT = 2
+    DESTROYED = 3
+    REPAIRING = 4
+    RESTORING = 5

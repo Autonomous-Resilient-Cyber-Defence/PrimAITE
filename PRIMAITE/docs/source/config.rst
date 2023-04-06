@@ -5,8 +5,8 @@ The Config Files Explained
 
 PrimAITE uses two configuration files for its operation:
 
-* config_main.yaml - used to define the top-level settings of the PrimAITE environment, and the training session that is to be run.
-* config_[name].yaml - used to define the low-level settings of a training session, including the network laydown, green / red agent information exchange requirements (IERSs), Access Control Rules, Action Space type, and the number of steps in each episode.
+* config_main.yaml - used to define the top-level settings of the PrimAITE environment, and the session that is to be run.
+* config_[name].yaml - used to define the low-level settings of a session, including the network laydown, green / red agent information exchange requirements (IERSs), Access Control Rules, Action Space type, and the number of steps in each episode.
 
 config_main.yaml:
 *****************
@@ -17,7 +17,7 @@ The config_main.yaml file consists of the following attributes:
 
 * **agentIdentifier** [enum]
 
-   This identifies the agent to use for the training session. Select from one of the following:
+   This identifies the agent to use for the session. Select from one of the following:
 
    * GENERIC - Where a user developed agent is to be used
    * STABLE_BASELINES3_PPO - Use a SB3 PPO agent
@@ -25,15 +25,27 @@ The config_main.yaml file consists of the following attributes:
 
 * **numEpisodes** [int]
 
-   This defines the number of episodes that the agent will train over. Each episode consists of a number of steps (with step number defined in the config_[name].yaml file)
+   This defines the number of episodes that the agent will train or be evaluated over. Each episode consists of a number of steps (with step number defined in the config_[name].yaml file)
 
 * **timeDelay** [int]
 
-   The time delay (in milliseconds) to take between each step when training a GENERIC agent
+   The time delay (in milliseconds) to take between each step when running a GENERIC agent session
 
 * **configFilename** [filename]
 
-   The name of the config_[name].yaml file to use for this training session
+   The name of the config_[name].yaml file to use for this session
+
+* **sessionType** [text]
+
+   Type of session to be run (TRAINING or EVALUATION)
+
+* **loadAgent** [bool]
+
+   Determine whether to load an agent from file
+
+* **agentLoadFile** [text]
+
+   File path and file name of agent if you're loading one in
 
 * **observationSpaceHighValue** [int]
 
@@ -69,6 +81,10 @@ The config_main.yaml file consists of the following attributes:
     
    The score to give when the node should be off, but is resetting
 
+* **Node Operating State [resetting]** [int]
+    
+   The score to give when the node is resetting
+
 * **Node Operating System or Service State [goodShouldBePatching]** [int]
     
    The score to give when the state should be patching, but is good
@@ -92,6 +108,10 @@ The config_main.yaml file consists of the following attributes:
 * **Node Operating System or Service State [patchingShouldBeOverwhelmed]** [int]
     
    The score to give when the state should be overwhelmed, but is patching
+
+* **Node Operating System or Service State [patching]** [int]
+    
+   The score to give when the state is patching
 
 * **Node Operating System or Service State [compromisedShouldBeGood]** [int]
     
@@ -125,6 +145,106 @@ The config_main.yaml file consists of the following attributes:
     
    The score to give when the state is overwhelmed
 
+* **Node File System State [goodShouldBeRepairing]** [int]
+
+    The score to give when the state should be repairing, but is good
+
+* **Node File System State [goodShouldBeRestoring]** [int]
+
+    The score to give when the state should be restoring, but is good
+
+* **Node File System State [goodShouldBeCorrupt]** [int]
+
+    The score to give when the state should be corrupt, but is good
+
+* **Node File System State [goodShouldBeDestroyed]** [int]
+
+    The score to give when the state should be destroyed, but is good
+
+* **Node File System State [repairingShouldBeGood]** [int]
+
+    The score to give when the state should be good, but is repairing
+
+* **Node File System State [repairingShouldBeRestoring]** [int]
+
+    The score to give when the state should be restoring, but is repairing
+
+* **Node File System State [repairingShouldBeCorrupt]** [int]
+
+    The score to give when the state should be corrupt, but is repairing
+
+* **Node File System State [repairingShouldBeDestroyed]** [int]
+
+    The score to give when the state should be destroyed, but is repairing
+
+* **Node File System State [repairing]** [int]
+
+    The score to give when the state is repairing
+
+* **Node File System State [restoringShouldBeGood]** [int]
+
+    The score to give when the state should be good, but is restoring
+
+* **Node File System State [restoringShouldBeRepairing]** [int]
+
+    The score to give when the state should be repairing, but is restoring
+
+* **Node File System State [restoringShouldBeCorrupt]** [int]
+
+    The score to give when the state should be corrupt, but is restoring
+
+* **Node File System State [restoringShouldBeDestroyed]** [int]
+
+    The score to give when the state should be destroyed, but is restoring
+
+* **Node File System State [restoring]** [int]
+
+    The score to give when the state is restoring
+
+* **Node File System State [corruptShouldBeGood]** [int]
+
+    The score to give when the state should be good, but is corrupt
+
+* **Node File System State [corruptShouldBeRepairing]** [int]
+
+    The score to give when the state should be repairing, but is corrupt
+
+* **Node File System State [corruptShouldBeRestoring]** [int]
+
+    The score to give when the state should be restoring, but is corrupt
+
+* **Node File System State [corruptShouldBeDestroyed]** [int]
+
+    The score to give when the state should be destroyed, but is corrupt
+
+* **Node File System State [corrupt]** [int]
+
+    The score to give when the state is corrupt
+
+* **Node File System State [destroyedShouldBeGood]** [int]
+
+    The score to give when the state should be good, but is destroyed
+
+* **Node File System State [destroyedShouldBeRepairing]** [int]
+
+    The score to give when the state should be repairing, but is destroyed
+
+* **Node File System State [destroyedShouldBeRestoring]** [int]
+
+    The score to give when the state should be restoring, but is destroyed
+
+* **Node File System State [destroyedShouldBeCorrupt]** [int]
+
+    The score to give when the state should be corrupt, but is destroyed
+
+* **Node File System State [destroyed]** [int]
+
+    The score to give when the state is destroyed
+
+* **Node File System State [scanning]** [int]
+
+    The score to give when the state is scanning
+
 * **IER Status [redIerRunning]** [int]
     
    The score to give when a red agent IER is permitted to run
@@ -147,6 +267,18 @@ The config_main.yaml file consists of the following attributes:
    
    The number of steps to take when patching a service
 
+* **fileSystemRepairingLimit** [int]: 
+
+   The number of steps to take when repairing the file system
+
+* **fileSystemRestoringLimit** [int]
+
+   The number of steps to take when restoring the file system
+
+* **fileSystemScanningLimit** [int]
+
+   The number of steps to take when scanning the file system
+
 config_[name].yaml:
 *******************
 
@@ -154,19 +286,19 @@ The config_[name].yaml file consists of the following attributes:
 
 * **itemType: ACTIONS** [enum]
    
-   Determines whether a NODE or ACL action space format is adopted for the training session
+   Determines whether a NODE or ACL action space format is adopted for the session
 
 * **itemType: STEPS** [int]
     
-   Determines the number of steps to run in each episode of the training session
+   Determines the number of steps to run in each episode of the session
 
 * **itemType: PORTS** [int]
    
-   Provides a list of ports modelled in this training session
+   Provides a list of ports modelled in this session
 
 * **itemType: SERVICES** [freetext]
    
-   Provides a list of services modelled in this training session
+   Provides a list of services modelled in this session
 
 * **itemType: NODE**
     
@@ -180,6 +312,7 @@ The config_[name].yaml file consists of the following attributes:
      * **hardwareState** [enum]: The initial hardware state of the node. Can be one of ON, OFF or RESETTING
      * **ipAddress** [IP address]: The IP address of the component in format xxx.xxx.xxx.xxx
      * **softwareState** [enum]: The intial state of the node operating system. Can be GOOD, PATCHING or COMPROMISED
+     * **fileSystemState** [enum]: The initial state of the node file system. Can be GOOD, CORRUPT, DESTROYED, REPAIRING or RESTORING
      * **services**: For each service associated with the node:
 
         * **name** [freetext]: Free-text name of the service, but must match one of the services defined for the system in the services list
@@ -231,7 +364,7 @@ The config_[name].yaml file consists of the following attributes:
       * **id** [int]: Unique ID for this YAML item
       * **startStep** [int]: The start step (in the episode) for this PoL to begin
       * **endStep** [int]: Not currently used. Default to same as start step
-      * **node** [int]: The ID of the node to apply the PoL to
+      * **nodeId** [int]: The ID of the node to apply the PoL to
       * **type** [enum]: The type of PoL to apply. Can be one of OPERATING, OS or SERVICE
       * **protocol** [freetext]: The protocol to be affected if SERVICE type is chosen. Must match a value in the services list
       * **state** [enuum]: The state to apply to the node (which represents the PoL change). Can be one of ON, OFF or RESETTING (for node state) or GOOD, PATCHING or COMPROMISED (for operating system state) or GOOD, PATCHING, COMPROMISED or OVERWHELMED (for service state)
@@ -243,11 +376,14 @@ The config_[name].yaml file consists of the following attributes:
       * **id** [int]: Unique ID for this YAML item
       * **startStep** [int]: The start step (in the episode) for this PoL to begin
       * **endStep** [int]: Not currently used. Default to same as start step
-      * **node** [int]: The ID of the node to apply the PoL to
+      * **targetNodeId** [int]: The ID of the node to apply the PoL to
+      * **initiator** [enum]: What initiates the PoL. Can be DIRECT, IER or SERVICE
       * **type** [enum]: The type of PoL to apply. Can be one of OPERATING, OS or SERVICE
       * **protocol** [freetext]: The protocol to be affected if SERVICE type is chosen. Must match a value in the services list
-      * **state** [enum]: The state to apply to the node (which represents the PoL change). Can be one of ON, OFF or RESETTING (for node state) or GOOD, PATCHING or COMPROMISED (for operating system state) or GOOD, PATCHING, COMPROMISED or OVERWHELMED (for service state)
-      * **isEntryNode** [bool]: Defines whether the node affected is an entry node to the system
+      * **state** [enum]: The state to apply to the node (which represents the PoL change). Can be one of ON, OFF or RESETTING (for node state) or GOOD, PATCHING or COMPROMISED (for operating system state) or GOOD, PATCHING, COMPROMISED or OVERWHELMED (for service state) or GOOD, CORRUPT, DESTROYED, REPAIRING or RESTORING (for file system state)
+      * **sourceNodeId** [int] The ID of the source node containing the service to check (used for SERVICE initiator)
+      * **sourceNodeService** [freetext]: The service on the source node to check (used for SERVICE initiator). Must match a value in the services list for this node
+      * **sourceNodeServiceState** [enum]: The state of the source node service to check (used for SERVICE initiator). Can be one of GOOD, PATCHING, COMPROMISED or OVERWHELMED
 
 * **itemType: ACL_RULE**
      
