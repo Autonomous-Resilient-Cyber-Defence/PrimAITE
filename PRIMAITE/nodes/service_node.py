@@ -11,7 +11,7 @@ class ServiceNode(ActiveNode):
     ServiceNode class
     """
 
-    def __init__(self, _id, _name, _type, _priority, _state, _ip_address, _os_state, _config_values):
+    def __init__(self, _id, _name, _type, _priority, _state, _ip_address, _os_state, _file_system_state, _config_values):
         """
         Init
 
@@ -23,9 +23,10 @@ class ServiceNode(ActiveNode):
             _state: The state of the node
             _ipAddress: The IP address of the node
             _osState: The operating system state of the node
+            _file_system_state: The file system state of the node
         """
 
-        super().__init__(_id, _name, _type, _priority, _state, _ip_address, _os_state, _config_values)
+        super().__init__(_id, _name, _type, _priority, _state, _ip_address, _os_state, _file_system_state, _config_values)
         self.services = {}
 
     def add_service(self, _service):

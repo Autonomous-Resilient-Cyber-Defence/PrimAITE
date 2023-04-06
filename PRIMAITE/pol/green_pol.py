@@ -216,11 +216,15 @@ def apply_node_pol(nodes, node_pol, step):
                 # Don't allow PoL to fix something that is compromised. Only the Blue agent can do this
                 if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
                     node.set_os_state_if_not_compromised(state)
-            else:
+            elif node_pol_type == NODE_POL_TYPE.SERVICE:
                 # Change a service state
                 # Don't allow PoL to fix something that is compromised. Only the Blue agent can do this
                 if isinstance(node, ServiceNode):
                     node.set_service_state_if_not_compromised(service_name, state)
+            else:
+                # Change the file system status
+                if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
+                    node.set_file_system_state_if_not_compromised(state)
         else:
             # PoL is not valid in this time step
             pass

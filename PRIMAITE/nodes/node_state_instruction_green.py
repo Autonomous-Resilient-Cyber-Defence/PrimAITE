@@ -1,14 +1,14 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """
-Defines node behaviour for PoL
+Defines node behaviour for Green PoL
 """
 
-class NodeStateInstruction(object):
+class NodeStateInstructionGreen(object):
     """
     The Node State Instruction class
     """
 
-    def __init__(self, _id, _start_step, _end_step, _node_id, _node_pol_type, _service_name, _state, _is_entry_node=False):
+    def __init__(self, _id, _start_step, _end_step, _node_id, _node_pol_type, _service_name, _state):
         """
         Init
 
@@ -20,7 +20,6 @@ class NodeStateInstruction(object):
             _node_pol_type: The pattern of life type
             _service_name: The service name
             _state: The state (node or service)
-            _is_entry_node: Indicator for entry node (default = False)
         """
 
         self.id = _id
@@ -30,7 +29,6 @@ class NodeStateInstruction(object):
         self.node_pol_type = _node_pol_type
         self.service_name = _service_name # Not used when not a service instruction
         self.state = _state     
-        self.is_entry_node = _is_entry_node
 
     def get_start_step(self):
         """
@@ -91,14 +89,4 @@ class NodeStateInstruction(object):
         """
 
         return self.state
-
-    def get_is_entry_node(self):
-        """
-        Informs of entry node
-
-        Returns:
-             True if entry node
-        """
-
-        return self.is_entry_node
         

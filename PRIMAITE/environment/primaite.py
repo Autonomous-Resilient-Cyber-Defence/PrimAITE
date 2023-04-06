@@ -18,7 +18,8 @@ from datetime import datetime
 from common.enums import *
 from links.link import Link
 from pol.ier import IER
-from nodes.node_state_instruction import NodeStateInstruction
+from nodes.node_state_instruction_green import NodeStateInstructionGreen
+from nodes.node_state_instruction_red import NodeStateInstructionRed
 from pol.green_pol import apply_iers, apply_node_pol
 from pol.red_agent_pol import apply_red_agent_iers, apply_red_agent_node_pol
 from nodes.active_node import ActiveNode
@@ -35,8 +36,8 @@ class PRIMAITE(Env):
     """
 
     # Observation / Action Space contants
-    OBSERVATION_SPACE_FIXED_PARAMETERS = 3
-    ACTION_SPACE_NODE_PROPERTY_VALUES = 4
+    OBSERVATION_SPACE_FIXED_PARAMETERS = 4
+    ACTION_SPACE_NODE_PROPERTY_VALUES = 5
     ACTION_SPACE_NODE_ACTION_VALUES = 4
     ACTION_SPACE_ACL_ACTION_VALUES = 3
     ACTION_SPACE_ACL_PERMISSION_VALUES = 2
@@ -184,6 +185,7 @@ class PRIMAITE(Env):
         # - node ID                  |      link ID
         # - operating state          |      N/A
         # - operating system state   |      N/A
+        # - file system state        |      N/A
         # - service A state          |      service A loading
         # - service B state          |      service B loading
         # - service C state          |      service C loading
@@ -194,7 +196,7 @@ class PRIMAITE(Env):
 
         # Calculate the number of items that need to be included in the observation space
         num_items = self.num_links + self.num_nodes
-        # Set the number of observation parameters, being # of services plus id, operating sytem system and O/S state (i.e. 3)
+        # Set the number of observation parameters, being # of services plus id, operating state, file system state and O/S state (i.e. 4)
         self.num_observation_parameters = self.num_services + self.OBSERVATION_SPACE_FIXED_PARAMETERS
         # Define the observation shape
         self.observation_shape = (num_items, self.num_observation_parameters)
@@ -211,8 +213,8 @@ class PRIMAITE(Env):
             logging.info("Action space type NODE selected")
             # Terms (for node action space):
             # [0, num nodes] - node ID (0 = nothing, node ID)
-            # [0, 3] - what property it's acting on (0 = nothing, state, o/s state, service state)
-            # [0, 3] - action on property (0 = nothing, On, Off, Reset / Patch)
+            # [0, 4] - what property it's acting on (0 = nothing, state, o/s state, service state, file system state)
+            # [0, 3] - action on property (0 = nothing, On / Scan, Off / Repair, Reset / Patch / Restore)
             # [0, num services] - resolves to service ID (0 = nothing, resolves to service)
             self.action_space = spaces.MultiDiscrete([self.num_nodes, self.ACTION_SPACE_NODE_PROPERTY_VALUES, self.ACTION_SPACE_NODE_ACTION_VALUES, self.num_services])
         else:
@@ -225,7 +227,7 @@ class PRIMAITE(Env):
             # [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
             # [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
             self.action_space = spaces.MultiDiscrete([self.ACTION_SPACE_ACL_ACTION_VALUES, self.ACTION_SPACE_ACL_PERMISSION_VALUES, self.num_nodes + 1, self.num_nodes + 1, self.num_services + 1, self.num_ports + 1])
-
+            
         # Set up a csv to store the results of the training
         try:
             now = datetime.now() # current date and time
@@ -314,13 +316,13 @@ class PRIMAITE(Env):
         self.apply_time_based_updates()
 
         # 2. Apply PoL
-        apply_node_pol(self.nodes, self.node_pol, self.step_count)                                  # Node PoL
-        apply_iers(self.network, self.nodes, self.links, self.green_iers, self.acl, self.step_count)     # Network PoL  
+        apply_node_pol(self.nodes, self.node_pol, self.step_count)                                          # Node PoL
+        apply_iers(self.network, self.nodes, self.links, self.green_iers, self.acl, self.step_count)        # Network PoL  
         # Take snapshots of nodes and links
         self.nodes_post_pol = copy.deepcopy(self.nodes)
         self.links_post_pol = copy.deepcopy(self.links) 
         # Reference
-        apply_node_pol(self.nodes_reference, self.node_pol, self.step_count)                                                       # Node PoL
+        apply_node_pol(self.nodes_reference, self.node_pol, self.step_count)                                                            # Node PoL
         apply_iers(self.network_reference, self.nodes_reference, self.links_reference, self.green_iers, self.acl, self.step_count)      # Network PoL  
 
         # 3. Implement Red Action      
@@ -349,6 +351,9 @@ class PRIMAITE(Env):
         self.total_reward += reward
         if self.step_count == self.episode_steps:
             self.average_reward = self.total_reward / self.step_count
+            if self.config_values.session_type == "EVALUATION":
+                # For evaluation, need to trigger the done value = True when step count is reached in order to prevent neverending episode
+                done = True
             print("Average reward: " + str(self.average_reward)) 
         # Load the reward into the transaction
         transaction.set_reward(reward)
@@ -471,6 +476,26 @@ class PRIMAITE(Env):
             else:
                 # Node is not of Service Type
                 return
+        elif node_property == 4:
+            # This is an action on a node file system state
+            if isinstance(node, ActiveNode):
+                if property_action == 0:
+                    # Do nothing
+                    return
+                elif property_action == 1:
+                    # Scan
+                    node.start_file_system_scan()
+                elif property_action == 2:
+                    # Repair
+                    # You cannot repair a destroyed file system - it needs restoring
+                    if node.get_file_system_state_actual() != FILE_SYSTEM_STATE.DESTROYED:
+                        node.set_file_system_state(FILE_SYSTEM_STATE.REPAIRING)
+                elif property_action == 3:
+                    # Restore
+                    node.set_file_system_state(FILE_SYSTEM_STATE.RESTORING)
+            else:
+                # Node is not of Active Type
+                return
         else:
             return
 
@@ -549,6 +574,7 @@ class PRIMAITE(Env):
             else:
                 pass
             if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
+                node.update_file_system_state()
                 if node.get_os_state() == SOFTWARE_STATE.PATCHING:
                     node.update_os_patching_status()
                 else:
@@ -566,6 +592,7 @@ class PRIMAITE(Env):
             else:
                 pass
             if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
+                node.update_file_system_state()
                 if node.get_os_state() == SOFTWARE_STATE.PATCHING:
                     node.update_os_patching_status()
                 else:
@@ -590,9 +617,11 @@ class PRIMAITE(Env):
             self.env_obs[item_index][1] = node.get_state().value
             if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
                 self.env_obs[item_index][2] = node.get_os_state().value
+                self.env_obs[item_index][3] = node.get_file_system_state_observed().value
             else:
                 self.env_obs[item_index][2] = 0
-            service_index = 3
+                self.env_obs[item_index][3] = 0                
+            service_index = 4
             if isinstance(node, ServiceNode):              
                 for service in self.services_list:
                     if node.has_service(service):
@@ -612,10 +641,11 @@ class PRIMAITE(Env):
             self.env_obs[item_index][0] = int(link.get_id())
             self.env_obs[item_index][1] = 0
             self.env_obs[item_index][2] = 0
+            self.env_obs[item_index][3] = 0
             protocol_list = link.get_protocol_list()
             protocol_index = 0
             for protocol in protocol_list:
-                self.env_obs[item_index][protocol_index + 3] = protocol.get_load()
+                self.env_obs[item_index][protocol_index + 4] = protocol.get_load()
                 protocol_index += 1
             item_index += 1
 
@@ -684,15 +714,17 @@ class PRIMAITE(Env):
         if node_base_type == "PASSIVE":
             node = PassiveNode(node_id, node_name, node_type, node_priority, node_hardware_state, self.config_values)
         elif node_base_type == "ACTIVE":
-            # Active nodes have IP address and operating system state
+            # Active nodes have IP address, operating system state and file system state
             node_ip_address = item["ipAddress"]
             node_software_state = SOFTWARE_STATE[item["softwareState"]]
-            node = ActiveNode(node_id, node_name, node_type, node_priority, node_hardware_state, node_ip_address, node_software_state, self.config_values)
+            node_file_system_state = FILE_SYSTEM_STATE[item["fileSystemState"]]
+            node = ActiveNode(node_id, node_name, node_type, node_priority, node_hardware_state, node_ip_address, node_software_state, node_file_system_state, self.config_values)
         elif node_base_type == "SERVICE":
-            # Service nodes have IP address, operating system state and list of services
+            # Service nodes have IP address, operating system state, file system state and list of services
             node_ip_address = item["ipAddress"]
             node_software_state = SOFTWARE_STATE[item["softwareState"]]
-            node = ServiceNode(node_id, node_name, node_type, node_priority, node_hardware_state, node_ip_address, node_software_state, self.config_values)
+            node_file_system_state = FILE_SYSTEM_STATE[item["fileSystemState"]]
+            node = ServiceNode(node_id, node_name, node_type, node_priority, node_hardware_state, node_ip_address, node_software_state, node_file_system_state, self.config_values)
             node_services = item["services"]
             for service in node_services:
                 service_protocol = service["name"]
@@ -804,17 +836,21 @@ class PRIMAITE(Env):
         pol_id = item["id"]
         pol_start_step = item["startStep"]
         pol_end_step = item["endStep"]
-        pol_node = item["node"]
-        pol_type = NODE_POL_TYPE[item["type"]]
-        pol_protocol = item["protocol"]
+        pol_node = item["nodeId"]
+        pol_type = NODE_POL_TYPE[item["type"]]  
 
-        # State depends on whether this is Operating, O/S or Service PoL type
+        # State depends on whether this is Operating, O/S, file system or Service PoL type
         if pol_type == NODE_POL_TYPE.OPERATING:
             pol_state = HARDWARE_STATE[item["state"]]
+            pol_protocol = ""
+        elif pol_type == NODE_POL_TYPE.FILE:
+            pol_state = FILE_SYSTEM_STATE[item["state"]]
+            pol_protocol = ""
         else:
+            pol_protocol = item["protocol"]
             pol_state = SOFTWARE_STATE[item["state"]]
 
-        self.node_pol[pol_id] = NodeStateInstruction(pol_id, pol_start_step, pol_end_step, pol_node, pol_type, pol_protocol, pol_state)
+        self.node_pol[pol_id] = NodeStateInstructionGreen(pol_id, pol_start_step, pol_end_step, pol_node, pol_type, pol_protocol, pol_state)
 
     def create_red_pol(self, item):
         """
@@ -827,19 +863,24 @@ class PRIMAITE(Env):
         pol_id = item["id"]
         pol_start_step = item["startStep"]
         pol_end_step = item["endStep"]
-        pol_node = item["node"]
+        pol_target_node_id = item["targetNodeId"]
+        pol_initiator = NODE_POL_INITIATOR[item["initiator"]]
         pol_type = NODE_POL_TYPE[item["type"]]
         pol_protocol = item["protocol"]
 
-        # State depends on whether this is Operating, O/S or Service PoL type
+        # State depends on whether this is Operating, O/S, file system or Service PoL type
         if pol_type == NODE_POL_TYPE.OPERATING:
             pol_state = HARDWARE_STATE[item["state"]]
+        elif pol_type == NODE_POL_TYPE.FILE:
+            pol_state = FILE_SYSTEM_STATE[item["state"]]
         else:
             pol_state = SOFTWARE_STATE[item["state"]]
 
-        pol_is_entry_node = item["isEntryNode"]
+        pol_source_node_id = item["sourceNodeId"]
+        pol_source_node_service = item["sourceNodeService"]
+        pol_source_node_service_state = item["sourceNodeServiceState"]
 
-        self.red_node_pol[pol_id] = NodeStateInstruction(pol_id, pol_start_step, pol_end_step, pol_node, pol_type, pol_protocol, pol_state, pol_is_entry_node)
+        self.red_node_pol[pol_id] = NodeStateInstructionRed(pol_id, pol_start_step, pol_end_step, pol_target_node_id, pol_initiator, pol_type, pol_protocol, pol_state, pol_source_node_id, pol_source_node_service, pol_source_node_service_state)
 
     def create_acl_rule(self, item):
         """
@@ -961,13 +1002,19 @@ class PRIMAITE(Env):
         if node_base_type == "ACTIVE":
             # Active nodes have operating system state
             node_software_state = SOFTWARE_STATE[item["softwareState"]]
+            node_file_system_state = FILE_SYSTEM_STATE[item["fileSystemState"]]
             node.set_os_state(node_software_state)
             node_ref.set_os_state(node_software_state)
+            node.set_file_system_state(node_file_system_state)
+            node_ref.set_file_system_state(node_file_system_state)
         elif node_base_type == "SERVICE":
             # Service nodes have operating system state and list of services
             node_software_state = SOFTWARE_STATE[item["softwareState"]]
+            node_file_system_state = FILE_SYSTEM_STATE[item["fileSystemState"]]
             node.set_os_state(node_software_state)
             node_ref.set_os_state(node_software_state)
+            node.set_file_system_state(node_file_system_state)
+            node_ref.set_file_system_state(node_file_system_state)
             # Update service states
             node_services = item["services"]
             for service in node_services:
