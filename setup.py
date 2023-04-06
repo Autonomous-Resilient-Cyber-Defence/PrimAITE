@@ -11,7 +11,7 @@ setup(
     url="https://github.com/qtsl/PrimAITE",
     description="A primary-level simulation tool",
     python_requires=">=3.7",
-    version="1.0.0",
+    version="1.1.0",
     install_requires=[
         "gym==0.21.0",
         "matplotlib==3.6.2",
