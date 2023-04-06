@@ -1,4 +1,4 @@
-.. _about:
+﻿.. _about:
 
 About PrimAITE
 ==============
@@ -11,7 +11,7 @@ PrimAITE provides the following features:
 * A flexible network / system laydown based on the Python networkx framework​
 * Nodes and links (edges) host Python classes in order to present attributes and methods (and hence, a more representative model of a platform / system)​
 * A ‘green agent’ Information Exchange Requirement (IER) function allows the representation of traffic (protocols and loading) on any / all links. Application of IERs is based on the status of node operating systems and services​
-* A ‘green agent’ node Pattern-of-Life (PoL) function allows the representation of core behaviours on nodes (e.g. Operating state, Operating System state, Service state)​
+* A ‘green agent’ node Pattern-of-Life (PoL) function allows the representation of core behaviours on nodes (e.g. Operating state, Operating System state, Service state, File System state)​
 * An Access Control List (ACL) function, mimicking the behaviour of a network firewall, is applied across the model, following standard ACL rule format (e.g. DENY/ALLOW, source IP, destination IP, protocol and port). Application of IERs adheres to any ACL restrictions​
 * Presents an OpenAI Gym interface to the environment, allowing integration with any OpenAI Gym compliant defensive agents ​
 * Red agent activity based on ‘red’ IERs and ‘red’ PoL
@@ -37,6 +37,7 @@ Active Nodes also have the following attributes (Class: Active Node):​
 
 * IP Address​
 * Operating System State (GOOD, PATCHING, COMPROMISED - enumeration)​
+* File System State (GOOD, CORRUPT, DESTROYED, REPAIRING, RESTORING - enumeration)
 
 Service Nodes also have the following attributes (Class: Service Node)​:
 
@@ -114,6 +115,14 @@ The status changes that can be made to a node are as follows:
       * PATCHING - when a status of patching is entered, the node will automatically exit this state after a number of steps (as defined by the osPatchingDuration configuration item) after which it returns to a GOOD state
       * COMPROMISED
 
+   * File System State:
+
+      * GOOD
+      * CORRUPT (can be resolved by repair or restore)
+      * DESTROYED (can be resolved by restore only)
+      * REPAIRING - when a status of repairing is entered, the node will automatically exit this state after a number of steps (as defined by the fileSystemRepairingLimit configuration item) after which it returns to a GOOD state
+      * RESTORING - when a status of repairing is entered, the node will automatically exit this state after a number of steps (as defined by the fileSystemRestoringLimit configuration item) after which it returns to a GOOD state
+
 * Service Nodes only:
 
    * Service State (for any associated service):
@@ -122,6 +131,20 @@ The status changes that can be made to a node are as follows:
       * PATCHING - when a status of patching is entered, the service will automatically exit this state after a number of steps (as defined by the servicePatchingDuration configuration item) after which it returns to a GOOD state
       * COMPROMISED
       * OVERWHELMED
+
+Red agent pattern-of-life has an additional feature not found in the green pattern-of-life. This is the ability to influence the state of the attributes of a node via a number of different conditions:
+
+   * DIRECT:
+
+   The pattern-of-life described by the configuration file item will be applied regardless of any other conditions in the network. This is particularly useful for direct red agent entry into the network.
+
+   * IER:
+
+   The pattern-of-life described by the configuration file item will be applied to the service on the node, only if there is an IER of the same protocol / service type incoming at the specified timestep.
+
+   * SERVICE:
+
+   The pattern-of-life described by the configuration file item will be applied to the node based on the state of a service. The service can either be on the same node, or a different node within the network.
 
 Access Control List modelling
 *****************************
@@ -162,22 +185,24 @@ Observation Spaces
 
 The OpenAI Gym observation space provides the status of all nodes and links across the whole system:​
 
-* Nodes (in terms of operating state, operating system state, and services state) ​
+* Nodes (in terms of operating state, operating system state, file system state and services state) ​
 * Links (in terms of current loading for each service/protocol)
 
 An example observation space is provided below:
 
 .. list-table:: Observation Space example
-   :widths: 25 25 25 25 25 25
+   :widths: 25 25 25 25 25 25 25
    :header-rows: 1
 
    * - 
      - ID
      - Operating State
      - O/S State
+     - File System State
      - Service / Protocol A
      - Service / Protocol B
    * - Node A
+     - 1
      - 1
      - 1
      - 1
@@ -189,32 +214,37 @@ An example observation space is provided below:
      - 3
      - 1
      - 1
+     - 1
    * - Node C
      - 3
      - 2
+     - 1
      - 1
      - 3
      - 2
    * - Link 1
      - 5
-     - 1
-     - 1
+     - 0
+     - 0
+     - 0
      - 0
      - 10000
    * - Link 2
      - 6
-     - 1
-     - 1
+     - 0
+     - 0
+     - 0
      - 0
      - 10000
    * - Link 3
      - 7
-     - 1
-     - 1
      - 0
+     - 0
+     - 0
+     - 5000
      - 0
 
-The observation space is a 6 x 5 Box type (OpenAI Gym Space) in this example. This is made up from the node and link information detailed below.
+The observation space is a 6 x 6 Box type (OpenAI Gym Space) in this example. This is made up from the node and link information detailed below.
 
 For the nodes, the following values are represented:
 
@@ -237,6 +267,14 @@ For the nodes, the following values are represented:
     * 2 = PATCHING
     * 3 = COMPROMISED
     * 4 = OVERWHELMED
+
+ * File System State:
+
+    * 1 = GOOD
+    * 2 = CORRUPT
+    * 3 = DESTROYED
+    * 4 = REPAIRING
+    * 5 = RESTORING
 
 (Note that each service available in the network is provided as a column, although not all nodes may utilise all services)
 
@@ -262,8 +300,8 @@ The choice of action space used during a training session is determined in the c
 The agent is able to influence the status of nodes by switching them off, resetting, or patching operating systems and services. In this instance, the action space is an OpenAI Gym multidiscrete type, as follows:
 
  * [0, num nodes] - Node ID (0 = nothing, node ID)
- * [0, 3] - What property it's acting on (0 = nothing, 1 = state, 2 = O/S state, 3 = service state)
- * [0, 3] - Action on property (0 = nothing, 1 = on, 2 = off, 3 = reset / patch)
+ * [0, 4] - What property it's acting on (0 = nothing, 1 = state, 2 = O/S state, 3 = service state, 4 = file system state)
+ * [0, 3] - Action on property (0 = nothing, 1 = on / scan, 2 = off / repair, 3 = reset / patch / restore)
  * [0, num services] - Resolves to service ID (0 = nothing, resolves to service)
 
 **Access Control List**
@@ -305,4 +343,3 @@ The PrimAITE project has an ambition to include the following enhancements in fu
 * Integration with a suitable standardised framework to allow multi-agent integration
 * Integration with external threat emulation tools, either using off-line data, or integrating at runtime
 * Provision of data such that agents can construct alternative observation spaces (as an alternative to the default PrimAITE observation space)
-* Introduction of a testing phase (post training) to evaluate the effectiveness of the training

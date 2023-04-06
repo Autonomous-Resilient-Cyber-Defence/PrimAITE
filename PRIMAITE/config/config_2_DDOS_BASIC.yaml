@@ -1,5 +1,5 @@
 - itemType: ACTIONS
-  type: ACL
+  type: NODE
 - itemType: STEPS
   steps: 128
 - itemType: PORTS
@@ -17,6 +17,7 @@
   hardwareState: 'ON'
   ipAddress: 192.168.10.11
   softwareState: GOOD
+  fileSystemState: GOOD
   services:
   - name: TCP
     port: '80'
@@ -30,6 +31,7 @@
   hardwareState: 'ON'
   ipAddress: 192.168.10.12
   softwareState: GOOD
+  fileSystemState: GOOD
   services:
   - name: TCP
     port: '80'
@@ -43,6 +45,7 @@
   hardwareState: 'ON'
   ipAddress: 192.168.10.13
   softwareState: GOOD
+  fileSystemState: GOOD
   services:
   - name: TCP
     port: '80'
@@ -56,6 +59,7 @@
   hardwareState: 'ON'
   ipAddress: 192.168.20.14
   softwareState: GOOD
+  fileSystemState: GOOD
   services:
   - name: TCP
     port: '80'
@@ -69,6 +73,7 @@
   hardwareState: 'ON'
   ipAddress: 192.168.1.2
   softwareState: GOOD
+  fileSystemState: GOOD
 - itemType: NODE
   id: '6'
   name: IDS
@@ -78,6 +83,7 @@
   hardwareState: 'ON'
   ipAddress: 192.168.1.4
   softwareState: GOOD
+  fileSystemState: GOOD
   services:
   - name: TCP
     port: '80'
@@ -91,6 +97,7 @@
   hardwareState: 'ON'
   ipAddress: 192.168.1.3
   softwareState: GOOD
+  fileSystemState: GOOD
 - itemType: NODE
   id: '8'
   name: LOP1
@@ -100,6 +107,7 @@
   hardwareState: 'ON'
   ipAddress: 192.168.1.12
   softwareState: GOOD
+  fileSystemState: GOOD
   services:
   - name: TCP
     port: '80'
@@ -113,6 +121,7 @@
   hardwareState: 'ON'
   ipAddress: 192.168.10.14
   softwareState: GOOD
+  fileSystemState: GOOD
   services:
   - name: TCP
     port: '80'
@@ -126,6 +135,7 @@
   hardwareState: 'ON'
   ipAddress: 192.168.20.15
   softwareState: GOOD
+  fileSystemState: GOOD
   services:
   - name: TCP
     port: '80'
@@ -260,52 +270,65 @@
   port: 80
 - itemType: ACL_RULE
   id: '29'
+  permission: ALLOW
+  source: 192.168.10.14
+  destination: 192.168.10.13
+  protocol: TCP
+  port: 80
+- itemType: ACL_RULE
+  id: '30'
   permission: DENY
   source: 192.168.10.11
   destination: 192.168.20.15
   protocol: TCP
   port: 80
 - itemType: ACL_RULE
-  id: '30'
+  id: '31'
   permission: DENY
   source: 192.168.10.12
   destination: 192.168.20.15
   protocol: TCP
   port: 80
 - itemType: ACL_RULE
-  id: '31'
+  id: '32'
   permission: DENY
   source: 192.168.10.13
   destination: 192.168.20.15
   protocol: TCP
   port: 80
 - itemType: ACL_RULE
-  id: '32'
+  id: '33'
   permission: DENY
   source: 192.168.20.14
   destination: 192.168.10.14
   protocol: TCP
   port: 80
 - itemType: RED_POL
-  id: '33'
-  startStep: 20
-  endStep: 20
-  node: '1'
-  type: SERVICE
-  protocol: TCP
-  state: COMPROMISED
-  isEntryNode: true
-- itemType: RED_POL
   id: '34'
   startStep: 20
   endStep: 20
-  node: '2'
+  targetNodeId: '1'
+  initiator: DIRECT
   type: SERVICE
   protocol: TCP
   state: COMPROMISED
-  isEntryNode: true
-- itemType: RED_IER
+  sourceNodeId: NA
+  sourceNodeService: NA
+  sourceNodeServiceState: NA
+- itemType: RED_POL
   id: '35'
+  startStep: 20
+  endStep: 20
+  targetNodeId: '2'
+  initiator: DIRECT
+  type: SERVICE
+  protocol: TCP
+  state: COMPROMISED
+  sourceNodeId: NA
+  sourceNodeService: NA
+  sourceNodeServiceState: NA
+- itemType: RED_IER
+  id: '36'
   startStep: 30
   endStep: 128
   load: 440000000
@@ -315,7 +338,7 @@
   destination: '9'
   missionCriticality: 0
 - itemType: RED_IER
-  id: '36'
+  id: '37'
   startStep: 30
   endStep: 128
   load: 440000000
@@ -325,11 +348,14 @@
   destination: '9'
   missionCriticality: 0
 - itemType: RED_POL
-  id: '37'
+  id: '38'
   startStep: 30
   endStep: 30
-  node: '9'
+  targetNodeId: '9'
+  initiator: IER
   type: SERVICE
   protocol: TCP
   state: OVERWHELMED
-  isEntryNode: false
+  sourceNodeId: NA
+  sourceNodeService: NA
+  sourceNodeServiceState: NA

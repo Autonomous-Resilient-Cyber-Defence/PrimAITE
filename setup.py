@@ -14,14 +14,13 @@ setup(
     version="1.0.0",
     install_requires=[
         "gym==0.21.0",
-        "matplotlib == 3.5.2",
-        "networkx == 2.6.3",
-        "numpy == 1.21.1",
-        "stable_baselines3 == 1.6.0",
-        "pandas == 1.1.5",
-        "pyyaml == 6.0",
-        "typing-extensions == 4.2.0",
-        "torch == 1.12.0"
+        "matplotlib==3.6.2",
+        "networkx==2.8.8",
+        "numpy==1.23.5",
+        "stable_baselines3==1.6.2",
+        # Required for older versions of Gym that aren't compliant with
+        # Setuptools>=67.
+        "setuptools==66"
     ],
     packages=find_packages()
 )
