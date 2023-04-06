@@ -16,9 +16,9 @@ Logging can be found in the *[Install Directory]\\PRIMAITE\\PRIMAITE\\logs* dire
 
 **Outputs - Results**
 
-PrimAITE automatically creates two sets of results from each training session, and stores them in the *Results* folder:
+PrimAITE automatically creates two sets of results from each session, and stores them in the *Results* folder:
 
-* Average reward per episode - a csv file listing the average reward for each episode of the training session. This provides an indication of the change, over a training session, of the reward value
+* Average reward per episode - a csv file listing the average reward for each episode of the session. This provides, for example, an indication of the change over a training session of the reward value
 * All transactions - a csv file listing the following values for every step of every episode:
 
 	* Timestamp
@@ -31,11 +31,11 @@ PrimAITE automatically creates two sets of results from each training session, a
 
 **Outputs - Diagrams**
 
-For each training run, PrimAITE automatically creates a visual of the system / network laydown configuration, and stores it in the *Diagrams* folder.
+For each session, PrimAITE automatically creates a visualisation of the system / network laydown configuration, and stores it in the *Diagrams* folder.
 
 **Outputs - Saved agents**
 
-For each training run, assuming the agent being trained implements the *save()* function and this function is called by the code, PrimAITE automatically saves the agent state and stores it in the *agents* folder.
+For each training session, assuming the agent being trained implements the *save()* function and this function is called by the code, PrimAITE automatically saves the agent state and stores it in the *agents* folder.
 
 **Logging**
 
