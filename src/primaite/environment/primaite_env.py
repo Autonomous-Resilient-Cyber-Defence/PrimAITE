@@ -343,10 +343,16 @@ class Primaite(Env):
         # Load the action space into the transaction
         transaction.set_action_space(copy.deepcopy(action))
 
-        # 1. Perform any time-based activities (e.g. a component moving from patching to good)
+        # 1. Implement Blue Action
+        self.interpret_action_and_apply(action)
+        # Take snapshots of nodes and links
+        self.nodes_post_blue = copy.deepcopy(self.nodes)
+        self.links_post_blue = copy.deepcopy(self.links)
+
+        # 2. Perform any time-based activities (e.g. a component moving from patching to good)
         self.apply_time_based_updates()
 
-        # 2. Apply PoL
+        # 3. Apply PoL
         apply_node_pol(self.nodes, self.node_pol, self.step_count)  # Node PoL
         apply_iers(
             self.network,
@@ -370,7 +376,7 @@ class Primaite(Env):
             self.step_count,
         )  # Network PoL
 
-        # 3. Implement Red Action
+        # 4. Implement Red Action
         apply_red_agent_iers(
             self.network,
             self.nodes,
@@ -386,35 +392,7 @@ class Primaite(Env):
         self.nodes_post_red = copy.deepcopy(self.nodes)
         self.links_post_red = copy.deepcopy(self.links)
 
-        # 4. Implement Blue Action
-        self.interpret_action_and_apply(action)
-
-        # 5. Reapply normal and Red agent IER PoL, as we need to see what
-        # effect the blue agent action has had (if any) on link status
-        # Need to clear traffic on all links first
-        for link_key, link_value in self.links.items():
-            link_value.clear_traffic()
-        apply_iers(
-            self.network,
-            self.nodes,
-            self.links,
-            self.green_iers,
-            self.acl,
-            self.step_count,
-        )
-        apply_red_agent_iers(
-            self.network,
-            self.nodes,
-            self.links,
-            self.red_iers,
-            self.acl,
-            self.step_count,
-        )
-        # Take snapshots of nodes and links
-        self.nodes_post_blue = copy.deepcopy(self.nodes)
-        self.links_post_blue = copy.deepcopy(self.links)
-
-        # 6. Calculate reward signal (for RL)
+        # 5. Calculate reward signal (for RL)
         reward = calculate_reward_function(
             self.nodes_post_pol,
             self.nodes_post_blue,
@@ -433,18 +411,18 @@ class Primaite(Env):
                 # step count is reached in order to prevent neverending episode
                 done = True
             print("Average reward: " + str(self.average_reward))
-        # Load the reward into the transaction
+            # Load the reward into the transaction
         transaction.set_reward(reward)
 
-        # 7. Output Verbose
+        # 6. Output Verbose
         # self.output_link_status()
 
-        # 8. Update env_obs
+        # 7. Update env_obs
         self.update_environent_obs()
         # Load the new observation space into the transaction
         transaction.set_obs_space_post(copy.deepcopy(self.env_obs))
 
-        # 9. Add the transaction to the list of transactions
+        # 8. Add the transaction to the list of transactions
         self.transaction_list.append(copy.deepcopy(transaction))
 
         # Return
