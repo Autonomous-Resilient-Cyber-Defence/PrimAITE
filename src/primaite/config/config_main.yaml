@@ -7,7 +7,7 @@
 # "GENERIC"
 agentIdentifier: STABLE_BASELINES3_A2C
 # Number of episodes to run per session
-numEpisodes: 10000
+numEpisodes: 10
 # Time delay between steps (for generic agents)
 timeDelay: 10
 # Filename of the scenario / laydown

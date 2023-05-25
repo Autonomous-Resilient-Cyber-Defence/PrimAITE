@@ -55,6 +55,7 @@ dev = [
     "pytest-cov==4.0.0",
     "pytest-flake8==1.1.1",
     "pip-licenses==4.3.0",
+    "pre-commit==2.20.0",
     "wheel==0.38.4",
     "build==0.10.0"
 ]

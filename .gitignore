@@ -1,6 +1,8 @@
 # PrimAITE Package
-PRIMAITE/outputs
-PRIMAITE/outputs/*
+src/primaite/outputs
+src/primaite/outputs/*
+src/primaite/logs
+src/primaite/logs/*
 TestResults
 
 # Byte-compiled / optimized / DLL files
