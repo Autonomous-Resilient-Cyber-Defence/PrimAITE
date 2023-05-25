@@ -1,16 +1,22 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
-"""
-Defines node behaviour for Green PoL
-"""
+"""Defines node behaviour for Green PoL."""
+
 
 class NodeStateInstructionGreen(object):
-    """
-    The Node State Instruction class
-    """
+    """The Node State Instruction class."""
 
-    def __init__(self, _id, _start_step, _end_step, _node_id, _node_pol_type, _service_name, _state):
+    def __init__(
+        self,
+        _id,
+        _start_step,
+        _end_step,
+        _node_id,
+        _node_pol_type,
+        _service_name,
+        _state,
+    ):
         """
-        Init
+        Init.
 
         Args:
             _id: The node state instruction id
@@ -21,72 +27,64 @@ class NodeStateInstructionGreen(object):
             _service_name: The service name
             _state: The state (node or service)
         """
-
         self.id = _id
         self.start_step = _start_step
         self.end_step = _end_step
         self.node_id = _node_id
         self.node_pol_type = _node_pol_type
-        self.service_name = _service_name # Not used when not a service instruction
-        self.state = _state     
+        self.service_name = _service_name  # Not used when not a service instruction
+        self.state = _state
 
     def get_start_step(self):
         """
-        Gets the start step
+        Gets the start step.
 
         Returns:
              The start step
         """
-
         return self.start_step
 
     def get_end_step(self):
         """
-        Gets the end step
+        Gets the end step.
 
         Returns:
              The end step
         """
-
         return self.end_step
 
     def get_node_id(self):
         """
-        Gets the node ID
+        Gets the node ID.
 
         Returns:
              The node ID
         """
-
         return self.node_id
 
     def get_node_pol_type(self):
         """
-        Gets the node pattern of life type (enum)
+        Gets the node pattern of life type (enum).
 
         Returns:
              The node pattern of life type (enum)
         """
-
         return self.node_pol_type
 
     def get_service_name(self):
         """
-        Gets the service name
+        Gets the service name.
 
         Returns:
              The service name
         """
-
         return self.service_name
 
     def get_state(self):
         """
-        Gets the state (node or service)
+        Gets the state (node or service).
 
         Returns:
              The state (node or service)
         """
-
         return self.state
-        

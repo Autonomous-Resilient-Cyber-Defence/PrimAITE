@@ -4,14 +4,14 @@
   steps: 256
 - itemType: PORTS
   portsList:
-  - port: '80'
-  - port: '1433'
-  - port: '53'
+    - port: '80'
+    - port: '1433'
+    - port: '53'
 - itemType: SERVICES
   serviceList:
-  - name: TCP
-  - name: TCP_SQL
-  - name: UDP
+    - name: TCP
+    - name: TCP_SQL
+    - name: UDP
 - itemType: NODE
   id: '1'
   name: CLIENT_1
@@ -23,12 +23,12 @@
   softwareState: GOOD
   fileSystemState: GOOD
   services:
-  - name: TCP
-    port: '80'
-    state: GOOD
-  - name: UDP
-    port: '53'
-    state: GOOD
+    - name: TCP
+      port: '80'
+      state: GOOD
+    - name: UDP
+      port: '53'
+      state: GOOD
 - itemType: NODE
   id: '2'
   name: CLIENT_2
@@ -40,9 +40,9 @@
   softwareState: GOOD
   fileSystemState: GOOD
   services:
-  - name: TCP
-    port: '80'
-    state: GOOD
+    - name: TCP
+      port: '80'
+      state: GOOD
 - itemType: NODE
   id: '3'
   name: SWITCH_1
@@ -64,12 +64,12 @@
   softwareState: GOOD
   fileSystemState: GOOD
   services:
-  - name: TCP
-    port: '80'
-    state: GOOD
-  - name: UDP
-    port: '53'
-    state: GOOD
+    - name: TCP
+      port: '80'
+      state: GOOD
+    - name: UDP
+      port: '53'
+      state: GOOD
 - itemType: NODE
   id: '5'
   name: MANAGEMENT_CONSOLE
@@ -81,12 +81,12 @@
   softwareState: GOOD
   fileSystemState: GOOD
   services:
-  - name: TCP
-    port: '80'
-    state: GOOD
-  - name: UDP
-    port: '53'
-    state: GOOD
+    - name: TCP
+      port: '80'
+      state: GOOD
+    - name: UDP
+      port: '53'
+      state: GOOD
 - itemType: NODE
   id: '6'
   name: SWITCH_2
@@ -108,12 +108,12 @@
   softwareState: GOOD
   fileSystemState: GOOD
   services:
-  - name: TCP
-    port: '80'
-    state: GOOD
-  - name: TCP_SQL
-    port: '1433'
-    state: GOOD
+    - name: TCP
+      port: '80'
+      state: GOOD
+    - name: TCP_SQL
+      port: '1433'
+      state: GOOD
 - itemType: NODE
   id: '8'
   name: DATABASE_SERVER
@@ -125,15 +125,15 @@
   softwareState: GOOD
   fileSystemState: GOOD
   services:
-  - name: TCP
-    port: '80'
-    state: GOOD
-  - name: TCP_SQL
-    port: '1433'
-    state: GOOD
-  - name: UDP
-    port: '53'
-    state: GOOD
+    - name: TCP
+      port: '80'
+      state: GOOD
+    - name: TCP_SQL
+      port: '1433'
+      state: GOOD
+    - name: UDP
+      port: '53'
+      state: GOOD
 - itemType: NODE
   id: '9'
   name: BACKUP_SERVER
@@ -145,9 +145,9 @@
   softwareState: GOOD
   fileSystemState: GOOD
   services:
-  - name: TCP
-    port: '80'
-    state: GOOD
+    - name: TCP
+      port: '80'
+      state: GOOD
 - itemType: LINK
   id: '10'
   name: LINK_1
@@ -529,5 +529,5 @@
   protocol: TCP
   state: OVERWHELMED
   sourceNodeId: '8'
-  sourceNodeService: TCP_SQL 
+  sourceNodeService: TCP_SQL
   sourceNodeServiceState: COMPROMISED

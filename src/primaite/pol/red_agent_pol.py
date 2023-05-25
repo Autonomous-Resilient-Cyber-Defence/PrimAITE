@@ -1,19 +1,24 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
-"""
-Implements Pattern of Life on the network (nodes and links) resulting from the red agent attack
-"""
+"""Implements POL on the network (nodes and links) resulting from the red agent attack."""
 
 from networkx import shortest_path
 
-from primaite.common.enums import *
+from primaite.common.enums import (
+    HARDWARE_STATE,
+    NODE_POL_INITIATOR,
+    NODE_POL_TYPE,
+    SOFTWARE_STATE,
+    TYPE,
+)
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.service_node import ServiceNode
 
 _VERBOSE = False
 
+
 def apply_red_agent_iers(network, nodes, links, iers, acl, step):
     """
-    Applies IERs to the links (link pattern of life) resulting from red agent attack
+    Applies IERs to the links (link POL) resulting from red agent attack.
 
     Args:
         network: The network modelled in the environment
@@ -21,9 +26,8 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
         links: The links within the environment
         iers: The red agent IERs to apply to the links
         acl: The Access Control List
-        step: The step number
+        step: The step number.
     """
-
     # Go through each IER and check the conditions for it being applied
     # If everything is in place, apply the IER protocol load to the relevant links
     for ier_key, ier_value in iers.items():
@@ -35,7 +39,7 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
         source_node_id = ier_value.get_source_node_id()
         dest_node_id = ier_value.get_dest_node_id()
 
-        # Need to set the running status to false first for all IERs 
+        # Need to set the running status to false first for all IERs
         ier_value.set_is_running(False)
 
         source_valid = True
@@ -43,8 +47,8 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
         acl_block = False
 
         if step >= start_step and step <= stop_step:
-            # continue --------------------------           
-                
+            # continue --------------------------
+
             # Get the source and destination node for this link
             source_node = nodes[source_node_id]
             dest_node = nodes[dest_node_id]
@@ -66,7 +70,10 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
                 if source_node.get_state() == HARDWARE_STATE.ON:
                     if source_node.has_service(protocol):
                         # Red agents IERs can only be valid if the source service is in a compromised state
-                        if source_node.get_service_state(protocol) == SOFTWARE_STATE.COMPROMISED:
+                        if (
+                            source_node.get_service_state(protocol)
+                            == SOFTWARE_STATE.COMPROMISED
+                        ):
                             source_valid = True
                         else:
                             source_valid = False
@@ -77,7 +84,6 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
                 else:
                     # Do nothing - IER no longer valid
                     source_valid = False
-
 
             # 2. Check the dest node situation
             if dest_node.get_type() == TYPE.SWITCH:
@@ -105,10 +111,21 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
                     dest_valid = False
 
             # 3. Check that the ACL doesn't block it
-            acl_block = acl.is_blocked(source_node.get_ip_address(), dest_node.get_ip_address(), protocol, port)
+            acl_block = acl.is_blocked(
+                source_node.get_ip_address(), dest_node.get_ip_address(), protocol, port
+            )
             if acl_block:
                 if _VERBOSE:
-                    print("ACL block on source: " + source_node.get_ip_address() + ", dest: " + dest_node.get_ip_address() + ", protocol: " + protocol + ", port: " + port)
+                    print(
+                        "ACL block on source: "
+                        + source_node.get_ip_address()
+                        + ", dest: "
+                        + dest_node.get_ip_address()
+                        + ", protocol: "
+                        + protocol
+                        + ", port: "
+                        + port
+                    )
             else:
                 if _VERBOSE:
                     print("No ACL block")
@@ -130,7 +147,7 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
                 for node in path_node_list:
                     if node.get_state() != HARDWARE_STATE.ON:
                         path_valid = False
-              
+
                 if path_valid:
                     if _VERBOSE:
                         print("Applying IER to link(s)")
@@ -140,8 +157,10 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
                     # Check that the link capacity is not exceeded by the new load
                     while count < path_node_list_length - 1:
                         # Get the link between the next two nodes
-                        edge_dict = network.get_edge_data(path_node_list[count], path_node_list[count+1])
-                        link_id = edge_dict[0].get('id')
+                        edge_dict = network.get_edge_data(
+                            path_node_list[count], path_node_list[count + 1]
+                        )
+                        link_id = edge_dict[0].get("id")
                         link = links[link_id]
                         # Check whether the new load exceeds the bandwidth
                         if (link.get_current_load() + load) > link.get_bandwidth():
@@ -149,7 +168,7 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
                             if _VERBOSE:
                                 print("Link capacity exceeded")
                             pass
-                        count+=1
+                        count += 1
 
                     # Check whether the link capacity for any links on this path have been exceeded
                     if link_capacity_exceeded == False:
@@ -157,12 +176,14 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
                         count = 0
                         while count < path_node_list_length - 1:
                             # Get the link between the next two nodes
-                            edge_dict = network.get_edge_data(path_node_list[count], path_node_list[count+1])
-                            link_id = edge_dict[0].get('id')
+                            edge_dict = network.get_edge_data(
+                                path_node_list[count], path_node_list[count + 1]
+                            )
+                            link_id = edge_dict[0].get("id")
                             link = links[link_id]
                             # Add the load from this IER
                             link.add_protocol_load(protocol, load)
-                            count+=1
+                            count += 1
                         # This IER is now valid, so set it to running
                         ier_value.set_is_running(True)
                         if _VERBOSE:
@@ -172,7 +193,7 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
                     if _VERBOSE:
                         print("Path not valid - one or more nodes not operational")
                     pass
-                
+
             else:
                 if _VERBOSE:
                     print("Red IER was NOT allowed to run in step " + str(step))
@@ -185,20 +206,20 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
 
     pass
 
+
 def apply_red_agent_node_pol(nodes, iers, node_pol, step):
     """
-    Applies node pattern of life
+    Applies node pattern of life.
 
     Args:
         nodes: The nodes within the environment
         iers: The red agent IERs
         node_pol: The red agent node pattern of life to apply
-        step: The step number
+        step: The step number.
     """
-
     if _VERBOSE:
         print("Applying Node Red Agent PoL")
-    
+
     for key, node_instruction in node_pol.items():
         start_step = node_instruction.get_start_step()
         stop_step = node_instruction.get_end_step()
@@ -209,12 +230,14 @@ def apply_red_agent_node_pol(nodes, iers, node_pol, step):
         state = node_instruction.get_state()
         source_node_id = node_instruction.get_source_node_id()
         source_node_service_name = node_instruction.get_source_node_service()
-        source_node_service_state_value = node_instruction.get_source_node_service_state()
+        source_node_service_state_value = (
+            node_instruction.get_source_node_service_state()
+        )
 
         passed_checks = False
 
         if step >= start_step and step <= stop_step:
-            # continue -------------------------- 
+            # continue --------------------------
             target_node = nodes[target_node_id]
 
             # Based the action taken on the initiator type
@@ -228,7 +251,10 @@ def apply_red_agent_node_pol(nodes, iers, node_pol, step):
                 # Need to check the condition of a service on another node
                 source_node = nodes[source_node_id]
                 if source_node.has_service(source_node_service_name):
-                    if source_node.get_service_state(source_node_service_name) == SOFTWARE_STATE[source_node_service_state_value]:
+                    if (
+                        source_node.get_service_state(source_node_service_name)
+                        == SOFTWARE_STATE[source_node_service_state_value]
+                    ):
                         passed_checks = True
                     else:
                         # Do nothing, no matching state value
@@ -248,7 +274,9 @@ def apply_red_agent_node_pol(nodes, iers, node_pol, step):
                     target_node.set_state(state)
                 elif pol_type == NODE_POL_TYPE.OS:
                     # Change OS state
-                    if isinstance(target_node, ActiveNode) or isinstance(target_node, ServiceNode):
+                    if isinstance(target_node, ActiveNode) or isinstance(
+                        target_node, ServiceNode
+                    ):
                         target_node.set_os_state(state)
                 elif pol_type == NODE_POL_TYPE.SERVICE:
                     # Change a service state
@@ -256,23 +284,34 @@ def apply_red_agent_node_pol(nodes, iers, node_pol, step):
                         target_node.set_service_state(service_name, state)
                 else:
                     # Change the file system status
-                    if isinstance(target_node, ActiveNode) or isinstance(target_node, ServiceNode):
+                    if isinstance(target_node, ActiveNode) or isinstance(
+                        target_node, ServiceNode
+                    ):
                         target_node.set_file_system_state(state)
             else:
                 if _VERBOSE:
-                        print("Node Red Agent PoL not allowed - did not pass checks")
+                    print("Node Red Agent PoL not allowed - did not pass checks")
         else:
             # PoL is not valid in this time step
             pass
 
-def is_red_ier_incoming(node, iers, node_pol_type):
 
+def is_red_ier_incoming(node, iers, node_pol_type):
+    """
+    Checks if the RED IER is incoming.
+
+    TODO: Write more descriptive docstring with params and returns.
+    """
     node_id = node.get_id()
 
-    for ier_key, ier_value in iers.items():     
+    for ier_key, ier_value in iers.items():
         if ier_value.get_is_running() and ier_value.get_dest_node_id() == node_id:
-            if node_pol_type == NODE_POL_TYPE.OPERATING or node_pol_type == NODE_POL_TYPE.OS or node_pol_type == NODE_POL_TYPE.FILE:
-                # It's looking to change operating state, file system or O/S state, so valid 
+            if (
+                node_pol_type == NODE_POL_TYPE.OPERATING
+                or node_pol_type == NODE_POL_TYPE.OS
+                or node_pol_type == NODE_POL_TYPE.FILE
+            ):
+                # It's looking to change operating state, file system or O/S state, so valid
                 return True
             elif node_pol_type == NODE_POL_TYPE.SERVICE:
                 # Check if the service is present on the node and running
@@ -297,5 +336,3 @@ def is_red_ier_incoming(node, iers, node_pol_type):
         else:
             # The IER destination is not this node, or the IER is not running
             return False
-            
-

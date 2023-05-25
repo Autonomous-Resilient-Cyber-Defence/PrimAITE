@@ -21,18 +21,18 @@ agentLoadFile: C:\[Path]\[agent_saved_filename.zip]
 
 # Environment config values
 # The high value for the observation space
-observationSpaceHighValue: 1000000000                   
+observationSpaceHighValue: 1000000000
 
 # Reward values
 # Generic
-allOk: 0 
+allOk: 0
 # Node Operating State
 offShouldBeOn: -10
 offShouldBeResetting: -5
 onShouldBeOff: -2
 onShouldBeResetting: -5
 resettingShouldBeOn: -5
-resettingShouldBeOff: -2 
+resettingShouldBeOff: -2
 resetting: -3
 # Node O/S or Service State
 goodShouldBePatching: 2
@@ -45,7 +45,7 @@ patching: -3
 compromisedShouldBeGood: -20
 compromisedShouldBePatching: -20
 compromisedShouldBeOverwhelmed: -20
-compromised: -20     
+compromised: -20
 overwhelmedShouldBeGood: -20
 overwhelmedShouldBePatching: -20
 overwhelmedShouldBeCompromised: -20
@@ -62,7 +62,7 @@ repairingShouldBeDestroyed: 0
 repairing: -3
 restoringShouldBeGood: -10
 restoringShouldBeRepairing: -2
-restoringShouldBeCorrupt: 1     
+restoringShouldBeCorrupt: 1
 restoringShouldBeDestroyed: 2
 restoring: -6
 corruptShouldBeGood: -10
