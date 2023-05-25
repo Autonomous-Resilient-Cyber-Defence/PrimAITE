@@ -346,11 +346,10 @@ class Primaite(Env):
         # 1. Implement Blue Action
         self.interpret_action_and_apply(action)
         # Take snapshots of nodes and links
-        self.nodes_post_red = copy.deepcopy(self.nodes)
-        self.links_post_red = copy.deepcopy(self.links)
+        self.nodes_post_blue = copy.deepcopy(self.nodes)
+        self.links_post_blue = copy.deepcopy(self.links)
 
-        # 2. Perform any time-based activities (e.g. a component moving from
-        # patching to good)
+        # 2. Perform any time-based activities (e.g. a component moving from patching to good)
         self.apply_time_based_updates()
 
         # 3. Apply PoL
@@ -389,6 +388,9 @@ class Primaite(Env):
         apply_red_agent_node_pol(
             self.nodes, self.red_iers, self.red_node_pol, self.step_count
         )
+        # Take snapshots of nodes and links
+        self.nodes_post_red = copy.deepcopy(self.nodes)
+        self.links_post_red = copy.deepcopy(self.links)
 
         # 5. Calculate reward signal (for RL)
         reward = calculate_reward_function(
@@ -409,7 +411,7 @@ class Primaite(Env):
                 # step count is reached in order to prevent neverending episode
                 done = True
             print("Average reward: " + str(self.average_reward))
-        # Load the reward into the transaction
+            # Load the reward into the transaction
         transaction.set_reward(reward)
 
         # 6. Output Verbose
