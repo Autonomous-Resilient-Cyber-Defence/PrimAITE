@@ -1,18 +1,15 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
-"""
-The Passive Node class (i.e. an actuator)
-"""
+"""The Passive Node class (i.e. an actuator)."""
 
 from primaite.nodes.node import Node
 
+
 class PassiveNode(Node):
-    """
-    The Passive Node class
-    """
+    """The Passive Node class."""
 
     def __init__(self, _id, _name, _type, _priority, _state, _config_values):
         """
-        Init
+        Init.
 
         Args:
             _id: The node id
@@ -21,17 +18,15 @@ class PassiveNode(Node):
             _priority: The priority of the node
             _state: The state of the node
         """
-
         # Pass through to Super for now
         super().__init__(_id, _name, _type, _priority, _state, _config_values)
 
     def get_ip_address(self):
         """
-        Gets the node IP address
+        Gets the node IP address.
 
         Returns:
              The node IP address
         """
-
         # No concept of IP address for passive nodes for now
         return ""

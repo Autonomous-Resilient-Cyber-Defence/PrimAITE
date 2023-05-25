@@ -105,7 +105,7 @@ The status changes that can be made to a node are as follows:
 
       * ON
       * OFF
-      * RESETTING - when a status of resetting is entered, the node will automatically exit this state after a number of steps (as defined by the nodeResetDuration configuration item) after which it returns to an ON state 
+      * RESETTING - when a status of resetting is entered, the node will automatically exit this state after a number of steps (as defined by the nodeResetDuration configuration item) after which it returns to an ON state
 
 * Active Nodes and Service Nodes:
 
@@ -194,7 +194,7 @@ An example observation space is provided below:
    :widths: 25 25 25 25 25 25 25
    :header-rows: 1
 
-   * - 
+   * -
      - ID
      - Operating State
      - O/S State
@@ -326,8 +326,8 @@ A reward value is presented back to the blue agent on the conclusion of every st
 
 **Node and service status**
 
-On every step, the status of each node is compared against both a reference environment (simulating the situation if the red and blue agents had not impacted the environment) 
-and the before and after state of the environment. If the comparison against the reference environment shows no difference, then the score provided is "AllOK". If there is a 
+On every step, the status of each node is compared against both a reference environment (simulating the situation if the red and blue agents had not impacted the environment)
+and the before and after state of the environment. If the comparison against the reference environment shows no difference, then the score provided is "AllOK". If there is a
 difference with respect to the reference environment, the before and after states are compared, and a score determined. See :ref:`config` for details of reward values.
 
 **IER status**

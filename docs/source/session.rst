@@ -24,7 +24,7 @@ Integrating a blue agent with PrimAITE requires some modification of the code wi
 * Stable Baselines 3 PPO (run_stable_baselines3_ppo)
 * Stable Baselines 3 A2C (run_stable_baselines3_a2c)
 
-The selection of which agent type to use is made via the config_main.yaml file. In order to train a user generated agent, 
+The selection of which agent type to use is made via the config_main.yaml file. In order to train a user generated agent,
 the run_generic function should be selected, and should be modified (typically) to be:
 
 .. code:: python
@@ -46,7 +46,7 @@ Where:
 * the *save_agent()* assumes that a *save()* function has been defined in the user created agent. If not, this line can be ommitted (although it is encouraged, since it will allow the agent to be saved and ported)
 
 The code below provides a suggested format for the learn() function within the user created agent.
-It's important to include the *self.environment.reset()* call within the episode loop in order that the 
+It's important to include the *self.environment.reset()* call within the episode loop in order that the
 environment is reset between episodes. Note that the example below should not be considered exhaustive.
 
 .. code:: python
@@ -58,7 +58,7 @@ environment is reset between episodes. Note that the example below should not be
     # reset the environment​
     self.environment.reset()​
     done = False​
-    
+
     for step in range(max_steps):​
         # calculate the action​
         action = ...
@@ -77,12 +77,10 @@ environment is reset between episodes. Note that the example below should not be
             break
 
 **Running the session**
- 
+
 In order to execute a session, carry out the following steps:
 
 1. Navigate to "[Install directory]\\Primaite\\Primaite\\”
 2. Start a console window (type “CMD” in path window, or start a console window first and navigate to “[Install Directory]\\Primaite\\Primaite\\”)
-3. Type “python main.py” 
-4. The session will start with an output indicating the current episode, and average reward value for the episode 
-
- 
+3. Type “python main.py”
+4. The session will start with an output indicating the current episode, and average reward value for the episode

@@ -4,10 +4,10 @@
   steps: 128
 - itemType: PORTS
   portsList:
-  - port: '80'
+    - port: '80'
 - itemType: SERVICES
   serviceList:
-  - name: TCP
+    - name: TCP
 - itemType: NODE
   id: '1'
   name: PC1
@@ -19,9 +19,9 @@
   softwareState: GOOD
   fileSystemState: GOOD
   services:
-  - name: TCP
-    port: '80'
-    state: GOOD
+    - name: TCP
+      port: '80'
+      state: GOOD
 - itemType: NODE
   id: '2'
   name: SERVER
@@ -33,9 +33,9 @@
   softwareState: GOOD
   fileSystemState: GOOD
   services:
-  - name: TCP
-    port: '80'
-    state: GOOD
+    - name: TCP
+      port: '80'
+      state: GOOD
 - itemType: NODE
   id: '3'
   name: PC2
@@ -47,9 +47,9 @@
   softwareState: GOOD
   fileSystemState: GOOD
   services:
-  - name: TCP
-    port: '80'
-    state: GOOD
+    - name: TCP
+      port: '80'
+      state: GOOD
 - itemType: NODE
   id: '4'
   name: SWITCH1

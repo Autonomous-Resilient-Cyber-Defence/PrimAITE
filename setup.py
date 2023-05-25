@@ -10,6 +10,7 @@ class bdist_wheel(_bdist_wheel):  # noqa
         # Source: https://stackoverflow.com/a/45150383
         self.root_is_pure = False
 
+
 setup(
     cmdclass={
         "bdist_wheel": bdist_wheel,
