@@ -9,11 +9,11 @@ Welcome to PrimAITE's documentation
 What is PrimAITE?
 ------------------------
 
-PrimAITE (Primary-level AI Training Environment) is a simulation environment for training AI under the ARCD programme​. It incorporates the functionality required of a Primary-level environment, as specified in the Dstl ARCD Training Environment Matrix document:​
+PrimAITE (Primary-level AI Training Environment) is a simulation environment for training AI under the ARCD programme. It incorporates the functionality required of a Primary-level environment, as specified in the Dstl ARCD Training Environment Matrix document:​
 
-* The ability to model a relevant platform / system context; 
-* The ability to model key characteristics of a platform / system by representing connections, IP addresses, ports, traffic loading, operating systems, file system, services and processes; 
-* Operates at machine-speed to enable fast training cycles. 
+* The ability to model a relevant platform / system context;
+* The ability to model key characteristics of a platform / system by representing connections, IP addresses, ports, traffic loading, operating systems, file system, services and processes;
+* Operates at machine-speed to enable fast training cycles.
 
 PrimAITE aims to evolve into an ARCD environment that could be used as the follow-on from Reception level approaches (e.g. YAWNING TITAN), and help bridge the Sim-to-Real gap into Secondary level environments (e.g. IMAGINARY YAK)​.
 
@@ -35,8 +35,8 @@ The best place to start is :ref:`about`
    :maxdepth: 8
    :caption: Contents:
 
-   about
-   dependencies
-   config
-   session
-   results
+   source/about
+   source/dependencies
+   source/config
+   source/session
+   source/results
