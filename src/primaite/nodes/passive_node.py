@@ -1,32 +1,44 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """The Passive Node class (i.e. an actuator)."""
-
+from primaite.common.config_values_main import ConfigValuesMain
+from primaite.common.enums import HardwareState, NodeType, Priority
 from primaite.nodes.node import Node
 
 
 class PassiveNode(Node):
     """The Passive Node class."""
 
-    def __init__(self, _id, _name, _type, _priority, _state, _config_values):
+    def __init__(
+        self,
+        node_id: str,
+        name: str,
+        node_type: NodeType,
+        priority: Priority,
+        hardware_state: HardwareState,
+        config_values: ConfigValuesMain,
+    ):
         """
         Init.
 
-        Args:
-            _id: The node id
-            _name: The name of the node
-            _type: The type of the node
-            _priority: The priority of the node
-            _state: The state of the node
+        :param node_id: The node id.
+        :param name: The name of the node.
+        :param node_type: The type of the node.
+        :param priority: The priority of the node.
+        :param hardware_state: The state of the node.
+        :param config_values: Config values.
         """
         # Pass through to Super for now
-        super().__init__(_id, _name, _type, _priority, _state, _config_values)
+        super().__init__(
+            node_id, name, node_type, priority, hardware_state, config_values
+        )
 
-    def get_ip_address(self):
+    @property
+    def ip_address(self) -> str:
         """
-        Gets the node IP address.
+        Gets the node IP address as an empty string.
 
-        Returns:
-             The node IP address
+        No concept of IP address for passive nodes for now.
+
+        :return: The node IP address.
         """
-        # No concept of IP address for passive nodes for now
         return ""

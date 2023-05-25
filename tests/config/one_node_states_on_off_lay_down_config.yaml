@@ -9,15 +9,15 @@
   serviceList:
   - name: ftp
 - itemType: NODE
-  id: '1'
+  node_id: '1'
   name: node
-  baseType: SERVICE
-  nodeType: COMPUTER
+  node_class: SERVICE
+  node_type: COMPUTER
   priority: P1
-  hardwareState: 'ON'
-  ipAddress: 192.168.0.1
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.0.1
+  software_state: GOOD
+  file_system_state: GOOD
   services:
   - name: ftp
     port: '21'

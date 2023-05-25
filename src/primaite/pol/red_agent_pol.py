@@ -1,22 +1,35 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Implements POL on the network (nodes and links) resulting from the red agent attack."""
+from typing import Dict
 
-from networkx import shortest_path
+from networkx import MultiGraph, shortest_path
 
+from primaite.acl.access_control_list import AccessControlList
+from primaite.common.custom_typing import NodeType
 from primaite.common.enums import (
-    HARDWARE_STATE,
-    NODE_POL_INITIATOR,
-    NODE_POL_TYPE,
-    SOFTWARE_STATE,
-    TYPE,
+    HardwareState,
+    NodePOLInitiator,
+    NodePOLType,
+    NodeType,
+    SoftwareState,
 )
+from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
+from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.service_node import ServiceNode
+from primaite.pol.ier import IER
 
 _VERBOSE = False
 
 
-def apply_red_agent_iers(network, nodes, links, iers, acl, step):
+def apply_red_agent_iers(
+    network: MultiGraph,
+    nodes: Dict[str, NodeType],
+    links: Dict[str, Link],
+    iers: Dict[str, IER],
+    acl: AccessControlList,
+    step: int,
+):
     """
     Applies IERs to the links (link POL) resulting from red agent attack.
 
@@ -54,25 +67,25 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
             dest_node = nodes[dest_node_id]
 
             # 1. Check the source node situation
-            if source_node.get_type() == TYPE.SWITCH:
+            if source_node.node_type == NodeType.SWITCH:
                 # It's a switch
-                if source_node.get_state() == HARDWARE_STATE.ON:
+                if source_node.hardware_state == HardwareState.ON:
                     source_valid = True
                 else:
                     # IER no longer valid
                     source_valid = False
-            elif source_node.get_type() == TYPE.ACTUATOR:
+            elif source_node.node_type == NodeType.ACTUATOR:
                 # It's an actuator
                 # TO DO
                 pass
             else:
                 # It's not a switch or an actuator (so active node)
-                if source_node.get_state() == HARDWARE_STATE.ON:
+                if source_node.hardware_state == HardwareState.ON:
                     if source_node.has_service(protocol):
                         # Red agents IERs can only be valid if the source service is in a compromised state
                         if (
                             source_node.get_service_state(protocol)
-                            == SOFTWARE_STATE.COMPROMISED
+                            == SoftwareState.COMPROMISED
                         ):
                             source_valid = True
                         else:
@@ -86,19 +99,19 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
                     source_valid = False
 
             # 2. Check the dest node situation
-            if dest_node.get_type() == TYPE.SWITCH:
+            if dest_node.node_type == NodeType.SWITCH:
                 # It's a switch
-                if dest_node.get_state() == HARDWARE_STATE.ON:
+                if dest_node.hardware_state == HardwareState.ON:
                     dest_valid = True
                 else:
                     # IER no longer valid
                     dest_valid = False
-            elif dest_node.get_type() == TYPE.ACTUATOR:
+            elif dest_node.node_type == NodeType.ACTUATOR:
                 # It's an actuator
                 pass
             else:
                 # It's not a switch or an actuator (so active node)
-                if dest_node.get_state() == HARDWARE_STATE.ON:
+                if dest_node.hardware_state == HardwareState.ON:
                     if dest_node.has_service(protocol):
                         # We don't care what state the destination service is in for an IER
                         dest_valid = True
@@ -112,15 +125,15 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
 
             # 3. Check that the ACL doesn't block it
             acl_block = acl.is_blocked(
-                source_node.get_ip_address(), dest_node.get_ip_address(), protocol, port
+                source_node.ip_address, dest_node.ip_address, protocol, port
             )
             if acl_block:
                 if _VERBOSE:
                     print(
                         "ACL block on source: "
-                        + source_node.get_ip_address()
+                        + source_node.ip_address
                         + ", dest: "
-                        + dest_node.get_ip_address()
+                        + dest_node.ip_address
                         + ", protocol: "
                         + protocol
                         + ", port: "
@@ -145,7 +158,7 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
                 # We might have a switch in the path, so check all nodes are operational
                 # We're assuming here that red agents can get past switches that are patching
                 for node in path_node_list:
-                    if node.get_state() != HARDWARE_STATE.ON:
+                    if node.hardware_state != HardwareState.ON:
                         path_valid = False
 
                 if path_valid:
@@ -207,7 +220,12 @@ def apply_red_agent_iers(network, nodes, links, iers, acl, step):
     pass
 
 
-def apply_red_agent_node_pol(nodes, iers, node_pol, step):
+def apply_red_agent_node_pol(
+    nodes: NodeType,
+    iers: Dict[str, IER],
+    node_pol: Dict[str, NodeStateInstructionRed],
+    step: int,
+):
     """
     Applies node pattern of life.
 
@@ -238,22 +256,22 @@ def apply_red_agent_node_pol(nodes, iers, node_pol, step):
 
         if step >= start_step and step <= stop_step:
             # continue --------------------------
-            target_node = nodes[target_node_id]
+            target_node: NodeType = nodes[target_node_id]
 
             # Based the action taken on the initiator type
-            if initiator == NODE_POL_INITIATOR.DIRECT:
+            if initiator == NodePOLInitiator.DIRECT:
                 # No conditions required, just apply the change
                 passed_checks = True
-            elif initiator == NODE_POL_INITIATOR.IER:
+            elif initiator == NodePOLInitiator.IER:
                 # Need to check there is a red IER incoming
                 passed_checks = is_red_ier_incoming(target_node, iers, pol_type)
-            elif initiator == NODE_POL_INITIATOR.SERVICE:
+            elif initiator == NodePOLInitiator.SERVICE:
                 # Need to check the condition of a service on another node
                 source_node = nodes[source_node_id]
                 if source_node.has_service(source_node_service_name):
                     if (
                         source_node.get_service_state(source_node_service_name)
-                        == SOFTWARE_STATE[source_node_service_state_value]
+                        == SoftwareState[source_node_service_state_value]
                     ):
                         passed_checks = True
                     else:
@@ -269,16 +287,16 @@ def apply_red_agent_node_pol(nodes, iers, node_pol, step):
             # Only apply the PoL if the checks have passed (based on the initiator type)
             if passed_checks:
                 # Apply the change
-                if pol_type == NODE_POL_TYPE.OPERATING:
-                    # Change operating state
-                    target_node.set_state(state)
-                elif pol_type == NODE_POL_TYPE.OS:
+                if pol_type == NodePOLType.OPERATING:
+                    # Change hardware state
+                    target_node.hardware_state = state
+                elif pol_type == NodePOLType.OS:
                     # Change OS state
                     if isinstance(target_node, ActiveNode) or isinstance(
                         target_node, ServiceNode
                     ):
-                        target_node.set_os_state(state)
-                elif pol_type == NODE_POL_TYPE.SERVICE:
+                        target_node.software_state = state
+                elif pol_type == NodePOLType.SERVICE:
                     # Change a service state
                     if isinstance(target_node, ServiceNode):
                         target_node.set_service_state(service_name, state)
@@ -302,18 +320,18 @@ def is_red_ier_incoming(node, iers, node_pol_type):
 
     TODO: Write more descriptive docstring with params and returns.
     """
-    node_id = node.get_id()
+    node_id = node.node_id
 
     for ier_key, ier_value in iers.items():
         if ier_value.get_is_running() and ier_value.get_dest_node_id() == node_id:
             if (
-                node_pol_type == NODE_POL_TYPE.OPERATING
-                or node_pol_type == NODE_POL_TYPE.OS
-                or node_pol_type == NODE_POL_TYPE.FILE
+                node_pol_type == NodePOLType.OPERATING
+                or node_pol_type == NodePOLType.OS
+                or node_pol_type == NodePOLType.FILE
             ):
-                # It's looking to change operating state, file system or O/S state, so valid
+                # It's looking to change hardware state, file system or SoftwareState, so valid
                 return True
-            elif node_pol_type == NODE_POL_TYPE.SERVICE:
+            elif node_pol_type == NodePOLType.SERVICE:
                 # Check if the service is present on the node and running
                 ier_protocol = ier_value.get_protocol()
                 if isinstance(node, ServiceNode):

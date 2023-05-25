@@ -6,6 +6,7 @@ import csv
 import logging
 import os.path
 from datetime import datetime
+from typing import Dict
 
 import networkx as nx
 import numpy as np
@@ -14,20 +15,22 @@ from gym import Env, spaces
 from matplotlib import pyplot as plt
 
 from primaite.acl.access_control_list import AccessControlList
+from primaite.common.custom_typing import NodeType
 from primaite.common.enums import (
-    ACTION_TYPE,
-    FILE_SYSTEM_STATE,
-    HARDWARE_STATE,
-    NODE_POL_INITIATOR,
-    NODE_POL_TYPE,
-    PRIORITY,
-    SOFTWARE_STATE,
-    TYPE,
+    ActionType,
+    FileSystemState,
+    HardwareState,
+    NodePOLInitiator,
+    NodePOLType,
+    NodeType,
+    Priority,
+    SoftwareState,
 )
 from primaite.common.service import Service
 from primaite.environment.reward import calculate_reward_function
 from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
+from primaite.nodes.node import Node
 from primaite.nodes.node_state_instruction_green import NodeStateInstructionGreen
 from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.passive_node import PassiveNode
@@ -77,19 +80,19 @@ class Primaite(Env):
         self.agent_identifier = self.config_values.agent_identifier
 
         # Create a dictionary to hold all the nodes
-        self.nodes = {}
+        self.nodes: Dict[str, NodeType] = {}
 
         # Create a dictionary to hold a reference set of nodes
-        self.nodes_reference = {}
+        self.nodes_reference: Dict[str, NodeType] = {}
 
         # Create a dictionary to hold all the links
-        self.links = {}
+        self.links: Dict[str, Link] = {}
 
         # Create a dictionary to hold a reference set of links
-        self.links_reference = {}
+        self.links_reference: Dict[str, Link] = {}
 
         # Create a dictionary to hold all the green IERs (this will come from an external source)
-        self.green_iers = {}
+        self.green_iers: Dict[str, IER] = {}
 
         # Create a dictionary to hold all the node PoLs (this will come from an external source)
         self.node_pol = {}
@@ -190,8 +193,8 @@ class Primaite(Env):
         # For each item, we send:
         # - [For Nodes]              |      [For Links]
         # - node ID                  |      link ID
-        # - operating state          |      N/A
-        # - operating system state   |      N/A
+        # - hardware state           |      N/A
+        # - Software State           |      N/A
         # - file system state        |      N/A
         # - service A state          |      service A loading
         # - service B state          |      service B loading
@@ -205,7 +208,7 @@ class Primaite(Env):
         # observation space
         num_items = self.num_links + self.num_nodes
         # Set the number of observation parameters, being # of services plus id,
-        # operating state, file system state and O/S state (i.e. 4)
+        # hardware state, file system state and SoftwareState (i.e. 4)
         self.num_observation_parameters = (
             self.num_services + self.OBSERVATION_SPACE_FIXED_PARAMETERS
         )
@@ -222,13 +225,13 @@ class Primaite(Env):
         self.env_obs = np.zeros(self.observation_shape, dtype=np.int64)
 
         # Define Action Space - depends on action space type (Node or ACL)
-        if self.action_type == ACTION_TYPE.NODE:
+        if self.action_type == ActionType.NODE:
             _LOGGER.info("Action space type NODE selected")
             # Terms (for node action space):
             # [0, num nodes] - node ID (0 = nothing, node ID)
-            # [0, 4] - what property it's acting on (0 = nothing, state, o/s state, service state, file system state)
-            # [0, 3] - action on property (0 = nothing, On / Scan, Off / Repair, Reset / Patch / Restore)
-            # [0, num services] - resolves to service ID (0 = nothing, resolves to service)
+            # [0, 4] - what property it's acting on (0 = nothing, state, SoftwareState, service state, file system state) # noqa
+            # [0, 3] - action on property (0 = nothing, On / Scan, Off / Repair, Reset / Patch / Restore) # noqa
+            # [0, num services] - resolves to service ID (0 = nothing, resolves to service) # noqa
             self.action_space = spaces.MultiDiscrete(
                 [
                     self.num_nodes,
@@ -402,7 +405,7 @@ class Primaite(Env):
             self.step_count,
             self.config_values,
         )
-        print(f"    Step {self.step_count} Reward: {str(reward)}")
+        # print(f"    Step {self.step_count} Reward: {str(reward)}")
         self.total_reward += reward
         if self.step_count == self.episode_steps:
             self.average_reward = self.total_reward / self.step_count
@@ -441,7 +444,7 @@ class Primaite(Env):
         """Output the link status of all links to the console."""
         for link_key, link_value in self.links.items():
             print("Link ID: " + link_value.get_id())
-            for protocol in link_value.get_protocol_list():
+            for protocol in link_value.protocol_list:
                 print(
                     "    Protocol: "
                     + protocol.get_name().name
@@ -457,7 +460,7 @@ class Primaite(Env):
             _action: The action space from the agent
         """
         # At the moment, actions are only affecting nodes
-        if self.action_type == ACTION_TYPE.NODE:
+        if self.action_type == ActionType.NODE:
             self.apply_actions_to_nodes(_action)
         else:
             self.apply_actions_to_acl(_action)
@@ -484,32 +487,32 @@ class Primaite(Env):
             # This is the do nothing action
             return
         elif node_property == 1:
-            # This is an action on the node Operating State
+            # This is an action on the node Hardware State
             if property_action == 0:
                 # Do nothing
                 return
             elif property_action == 1:
                 # Turn on (only applicable if it's OFF, not if it's patching)
-                if node.get_state() == HARDWARE_STATE.OFF:
+                if node.hardware_state == HardwareState.OFF:
                     node.turn_on()
             elif property_action == 2:
                 # Turn off
                 node.turn_off()
             elif property_action == 3:
                 # Reset (only applicable if it's ON)
-                if node.get_state() == HARDWARE_STATE.ON:
+                if node.hardware_state == HardwareState.ON:
                     node.reset()
             else:
                 return
         elif node_property == 2:
             if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
-                # This is an action on the node Operating System State
+                # This is an action on the node Software State
                 if property_action == 0:
                     # Do nothing
                     return
                 elif property_action == 1:
                     # Patch (valid action if it's good or compromised)
-                    node.set_os_state(SOFTWARE_STATE.PATCHING)
+                    node.software_state = SoftwareState.PATCHING
             else:
                 # Node is not of Active or Service Type
                 return
@@ -523,7 +526,7 @@ class Primaite(Env):
                 elif property_action == 1:
                     # Patch (valid action if it's good or compromised)
                     node.set_service_state(
-                        self.services_list[service_index], SOFTWARE_STATE.PATCHING
+                        self.services_list[service_index], SoftwareState.PATCHING
                     )
             else:
                 # Node is not of Service Type
@@ -540,14 +543,11 @@ class Primaite(Env):
                 elif property_action == 2:
                     # Repair
                     # You cannot repair a destroyed file system - it needs restoring
-                    if (
-                        node.get_file_system_state_actual()
-                        != FILE_SYSTEM_STATE.DESTROYED
-                    ):
-                        node.set_file_system_state(FILE_SYSTEM_STATE.REPAIRING)
+                    if node.file_system_state_actual != FileSystemState.DESTROYED:
+                        node.set_file_system_state(FileSystemState.REPAIRING)
                 elif property_action == 3:
                     # Restore
-                    node.set_file_system_state(FILE_SYSTEM_STATE.RESTORING)
+                    node.set_file_system_state(FileSystemState.RESTORING)
             else:
                 # Node is not of Active Type
                 return
@@ -584,7 +584,7 @@ class Primaite(Env):
             else:
                 node = list(self.nodes.values())[action_source_ip - 1]
                 if isinstance(node, ServiceNode) or isinstance(node, ActiveNode):
-                    acl_rule_source = node.get_ip_address()
+                    acl_rule_source = node.ip_address
                 else:
                     return
             # Destination IP value
@@ -593,7 +593,7 @@ class Primaite(Env):
             else:
                 node = list(self.nodes.values())[action_destination_ip - 1]
                 if isinstance(node, ServiceNode) or isinstance(node, ActiveNode):
-                    acl_rule_destination = node.get_ip_address()
+                    acl_rule_destination = node.ip_address
                 else:
                     return
             # Protocol value
@@ -636,13 +636,13 @@ class Primaite(Env):
         e.g. reset / patching status
         """
         for node_key, node in self.nodes.items():
-            if node.get_state() == HARDWARE_STATE.RESETTING:
+            if node.hardware_state == HardwareState.RESETTING:
                 node.update_resetting_status()
             else:
                 pass
             if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
                 node.update_file_system_state()
-                if node.get_os_state() == SOFTWARE_STATE.PATCHING:
+                if node.software_state == SoftwareState.PATCHING:
                     node.update_os_patching_status()
                 else:
                     pass
@@ -654,13 +654,13 @@ class Primaite(Env):
                 pass
 
         for node_key, node in self.nodes_reference.items():
-            if node.get_state() == HARDWARE_STATE.RESETTING:
+            if node.hardware_state == HardwareState.RESETTING:
                 node.update_resetting_status()
             else:
                 pass
             if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
                 node.update_file_system_state()
-                if node.get_os_state() == SOFTWARE_STATE.PATCHING:
+                if node.software_state == SoftwareState.PATCHING:
                     node.update_os_patching_status()
                 else:
                     pass
@@ -677,13 +677,11 @@ class Primaite(Env):
 
         # Do nodes first
         for node_key, node in self.nodes.items():
-            self.env_obs[item_index][0] = int(node.get_id())
-            self.env_obs[item_index][1] = node.get_state().value
+            self.env_obs[item_index][0] = int(node.node_id)
+            self.env_obs[item_index][1] = node.hardware_state.value
             if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
-                self.env_obs[item_index][2] = node.get_os_state().value
-                self.env_obs[item_index][
-                    3
-                ] = node.get_file_system_state_observed().value
+                self.env_obs[item_index][2] = node.software_state.value
+                self.env_obs[item_index][3] = node.file_system_state_observed.value
             else:
                 self.env_obs[item_index][2] = 0
                 self.env_obs[item_index][3] = 0
@@ -768,14 +766,14 @@ class Primaite(Env):
             item: A config data item
         """
         # All nodes have these parameters
-        node_id = item["id"]
+        node_id = item["node_id"]
         node_name = item["name"]
-        node_base_type = item["baseType"]
-        node_type = TYPE[item["nodeType"]]
-        node_priority = PRIORITY[item["priority"]]
-        node_hardware_state = HARDWARE_STATE[item["hardwareState"]]
+        node_class = item["node_class"]
+        node_type = NodeType[item["node_type"]]
+        node_priority = Priority[item["priority"]]
+        node_hardware_state = HardwareState[item["hardware_state"]]
 
-        if node_base_type == "PASSIVE":
+        if node_class == "PASSIVE":
             node = PassiveNode(
                 node_id,
                 node_name,
@@ -784,11 +782,11 @@ class Primaite(Env):
                 node_hardware_state,
                 self.config_values,
             )
-        elif node_base_type == "ACTIVE":
-            # Active nodes have IP address, operating system state and file system state
-            node_ip_address = item["ipAddress"]
-            node_software_state = SOFTWARE_STATE[item["softwareState"]]
-            node_file_system_state = FILE_SYSTEM_STATE[item["fileSystemState"]]
+        elif node_class == "ACTIVE":
+            # Active nodes have IP address, Software State and file system state
+            node_ip_address = item["ip_address"]
+            node_software_state = SoftwareState[item["software_state"]]
+            node_file_system_state = FileSystemState[item["file_system_state"]]
             node = ActiveNode(
                 node_id,
                 node_name,
@@ -800,11 +798,11 @@ class Primaite(Env):
                 node_file_system_state,
                 self.config_values,
             )
-        elif node_base_type == "SERVICE":
-            # Service nodes have IP address, operating system state, file system state and list of services
-            node_ip_address = item["ipAddress"]
-            node_software_state = SOFTWARE_STATE[item["softwareState"]]
-            node_file_system_state = FILE_SYSTEM_STATE[item["fileSystemState"]]
+        elif node_class == "SERVICE":
+            # Service nodes have IP address, Software State, file system state and list of services
+            node_ip_address = item["ip_address"]
+            node_software_state = SoftwareState[item["software_state"]]
+            node_file_system_state = FileSystemState[item["file_system_state"]]
             node = ServiceNode(
                 node_id,
                 node_name,
@@ -820,7 +818,7 @@ class Primaite(Env):
             for service in node_services:
                 service_protocol = service["name"]
                 service_port = service["port"]
-                service_state = SOFTWARE_STATE[service["state"]]
+                service_state = SoftwareState[service["state"]]
                 node.add_service(Service(service_protocol, service_port, service_state))
         else:
             # Bad formatting
@@ -841,7 +839,7 @@ class Primaite(Env):
         # Add node to network (reference)
         self.network_reference.add_nodes_from([node_ref])
 
-    def create_link(self, item):
+    def create_link(self, item: Dict):
         """
         Creates a link from config data.
 
@@ -854,8 +852,8 @@ class Primaite(Env):
         link_source = item["source"]
         link_destination = item["destination"]
 
-        source_node = self.nodes[link_source]
-        dest_node = self.nodes[link_destination]
+        source_node: Node = self.nodes[link_source]
+        dest_node: Node = self.nodes[link_destination]
 
         # Add link to network
         self.network.add_edge(source_node, dest_node, id=link_name)
@@ -864,14 +862,14 @@ class Primaite(Env):
         self.links[link_name] = Link(
             link_id,
             link_bandwidth,
-            source_node.get_name(),
-            dest_node.get_name(),
+            source_node.name,
+            dest_node.name,
             self.services_list,
         )
 
         # Reference
-        source_node_ref = self.nodes_reference[link_source]
-        dest_node_ref = self.nodes_reference[link_destination]
+        source_node_ref: Node = self.nodes_reference[link_source]
+        dest_node_ref: Node = self.nodes_reference[link_destination]
 
         # Add link to network (reference)
         self.network_reference.add_edge(source_node_ref, dest_node_ref, id=link_name)
@@ -880,8 +878,8 @@ class Primaite(Env):
         self.links_reference[link_name] = Link(
             link_id,
             link_bandwidth,
-            source_node_ref.get_name(),
-            dest_node_ref.get_name(),
+            source_node_ref.name,
+            dest_node_ref.name,
             self.services_list,
         )
 
@@ -956,18 +954,18 @@ class Primaite(Env):
         pol_start_step = item["startStep"]
         pol_end_step = item["endStep"]
         pol_node = item["nodeId"]
-        pol_type = NODE_POL_TYPE[item["type"]]
+        pol_type = NodePOLType[item["type"]]
 
-        # State depends on whether this is Operating, O/S, file system or Service PoL type
-        if pol_type == NODE_POL_TYPE.OPERATING:
-            pol_state = HARDWARE_STATE[item["state"]]
+        # State depends on whether this is Operating, Software, file system or Service PoL type
+        if pol_type == NodePOLType.OPERATING:
+            pol_state = HardwareState[item["state"]]
             pol_protocol = ""
-        elif pol_type == NODE_POL_TYPE.FILE:
-            pol_state = FILE_SYSTEM_STATE[item["state"]]
+        elif pol_type == NodePOLType.FILE:
+            pol_state = FileSystemState[item["state"]]
             pol_protocol = ""
         else:
             pol_protocol = item["protocol"]
-            pol_state = SOFTWARE_STATE[item["state"]]
+            pol_state = SoftwareState[item["state"]]
 
         self.node_pol[pol_id] = NodeStateInstructionGreen(
             pol_id,
@@ -990,17 +988,17 @@ class Primaite(Env):
         pol_start_step = item["startStep"]
         pol_end_step = item["endStep"]
         pol_target_node_id = item["targetNodeId"]
-        pol_initiator = NODE_POL_INITIATOR[item["initiator"]]
-        pol_type = NODE_POL_TYPE[item["type"]]
+        pol_initiator = NodePOLInitiator[item["initiator"]]
+        pol_type = NodePOLType[item["type"]]
         pol_protocol = item["protocol"]
 
-        # State depends on whether this is Operating, O/S, file system or Service PoL type
-        if pol_type == NODE_POL_TYPE.OPERATING:
-            pol_state = HARDWARE_STATE[item["state"]]
-        elif pol_type == NODE_POL_TYPE.FILE:
-            pol_state = FILE_SYSTEM_STATE[item["state"]]
+        # State depends on whether this is Operating, Software, file system or Service PoL type
+        if pol_type == NodePOLType.OPERATING:
+            pol_state = HardwareState[item["state"]]
+        elif pol_type == NodePOLType.FILE:
+            pol_state = FileSystemState[item["state"]]
         else:
-            pol_state = SOFTWARE_STATE[item["state"]]
+            pol_state = SoftwareState[item["state"]]
 
         pol_source_node_id = item["sourceNodeId"]
         pol_source_node_service = item["sourceNodeService"]
@@ -1080,7 +1078,7 @@ class Primaite(Env):
         Args:
             item: A config data item representing action info
         """
-        self.action_type = ACTION_TYPE[action_info["type"]]
+        self.action_type = ActionType[action_info["type"]]
 
     def get_steps_info(self, steps_info):
         """
@@ -1126,38 +1124,38 @@ class Primaite(Env):
             item: A config data item
         """
         # All nodes have these parameters
-        node_id = item["id"]
-        node_base_type = item["baseType"]
-        node_hardware_state = HARDWARE_STATE[item["hardwareState"]]
+        node_id = item["node_id"]
+        node_class = item["node_class"]
+        node_hardware_state: HardwareState = HardwareState[item["hardware_state"]]
 
-        node = self.nodes[node_id]
+        node: NodeType = self.nodes[node_id]
         node_ref = self.nodes_reference[node_id]
 
         # Reset the hardware state (common for all node types)
-        node.set_state(node_hardware_state)
-        node_ref.set_state(node_hardware_state)
+        node.hardware_state = node_hardware_state
+        node_ref.hardware_state = node_hardware_state
 
-        if node_base_type == "ACTIVE":
-            # Active nodes have operating system state
-            node_software_state = SOFTWARE_STATE[item["softwareState"]]
-            node_file_system_state = FILE_SYSTEM_STATE[item["fileSystemState"]]
-            node.set_os_state(node_software_state)
-            node_ref.set_os_state(node_software_state)
+        if node_class == "ACTIVE":
+            # Active nodes have Software State
+            node_software_state = SoftwareState[item["software_state"]]
+            node_file_system_state = FileSystemState[item["file_system_state"]]
+            node.software_state = node_software_state
+            node_ref.software_state = node_software_state
             node.set_file_system_state(node_file_system_state)
             node_ref.set_file_system_state(node_file_system_state)
-        elif node_base_type == "SERVICE":
-            # Service nodes have operating system state and list of services
-            node_software_state = SOFTWARE_STATE[item["softwareState"]]
-            node_file_system_state = FILE_SYSTEM_STATE[item["fileSystemState"]]
-            node.set_os_state(node_software_state)
-            node_ref.set_os_state(node_software_state)
+        elif node_class == "SERVICE":
+            # Service nodes have Software State and list of services
+            node_software_state = SoftwareState[item["software_state"]]
+            node_file_system_state = FileSystemState[item["file_system_state"]]
+            node.software_state = node_software_state
+            node_ref.software_state = node_software_state
             node.set_file_system_state(node_file_system_state)
             node_ref.set_file_system_state(node_file_system_state)
             # Update service states
             node_services = item["services"]
             for service in node_services:
                 service_protocol = service["name"]
-                service_state = SOFTWARE_STATE[service["state"]]
+                service_state = SoftwareState[service["state"]]
                 # Update node service state
                 node.set_service_state(service_protocol, service_state)
                 # Update reference node service state

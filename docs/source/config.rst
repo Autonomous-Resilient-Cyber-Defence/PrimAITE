@@ -57,31 +57,31 @@ The config_main.yaml file consists of the following attributes:
 
    The score to give when the current situation (for a given component) is no different from that expected in the baseline (i.e. as though no blue or red agent actions had been undertaken)
 
-* **Node Operating State [offShouldBeOn]** [int]
+* **Node Hardware State [offShouldBeOn]** [int]
 
    The score to give when the node should be on, but is off
 
-* **Node Operating State [offShouldBeResetting]** [int]
+* **Node Hardware State [offShouldBeResetting]** [int]
 
    The score to give when the node should be resetting, but is off
 
-* **Node Operating State [onShouldBeOff]** [int]
+* **Node Hardware State [onShouldBeOff]** [int]
 
    The score to give when the node should be off, but is on
 
-* **Node Operating State [onShouldBeResetting]** [int]
+* **Node Hardware State [onShouldBeResetting]** [int]
 
    The score to give when the node should be resetting, but is on
 
-* **Node Operating State [resettingShouldBeOn]** [int]
+* **Node Hardware State [resettingShouldBeOn]** [int]
 
    The score to give when the node should be on, but is resetting
 
-* **Node Operating State [resettingShouldBeOff]** [int]
+* **Node Hardware State [resettingShouldBeOff]** [int]
 
    The score to give when the node should be off, but is resetting
 
-* **Node Operating State [resetting]** [int]
+* **Node Hardware State [resetting]** [int]
 
    The score to give when the node is resetting
 
@@ -261,7 +261,7 @@ The config_main.yaml file consists of the following attributes:
 
 * **nodeResetDuration** [int]
 
-   The number of steps to take when resetting a node's operating state
+   The number of steps to take when resetting a node's hardware state
 
 * **servicePatchingDuration** [int]
 
@@ -306,13 +306,13 @@ The config_[name].yaml file consists of the following attributes:
 
      * **id** [int]: Unique ID for this YAML item
      * **name** [freetext]: Human-readable name of the component
-     * **baseType** [enum]: Relates to the base type of the node. Can be SERVICE, ACTIVE or PASSIVE. PASSIVE nodes do not have an operating system or services. ACTIVE nodes have an operating system, but no services. SERVICE nodes have both an operating system and one or more services
-     * **nodeType** [enum]: Relates to the component type. Can be one of CCTV, SWITCH, COMPUTER, LINK, MONITOR, PRINTER, LOP, RTU, ACTUATOR or SERVER
+     * **node_class** [enum]: Relates to the base type of the node. Can be SERVICE, ACTIVE or PASSIVE. PASSIVE nodes do not have an operating system or services. ACTIVE nodes have an operating system, but no services. SERVICE nodes have both an operating system and one or more services
+     * **node_type** [enum]: Relates to the component type. Can be one of CCTV, SWITCH, COMPUTER, LINK, MONITOR, PRINTER, LOP, RTU, ACTUATOR or SERVER
      * **priority** [enum]: Provides a priority for each node. Can be one of P1, P2, P3, P4 or P5 (which P1 being the highest)
-     * **hardwareState** [enum]: The initial hardware state of the node. Can be one of ON, OFF or RESETTING
-     * **ipAddress** [IP address]: The IP address of the component in format xxx.xxx.xxx.xxx
-     * **softwareState** [enum]: The intial state of the node operating system. Can be GOOD, PATCHING or COMPROMISED
-     * **fileSystemState** [enum]: The initial state of the node file system. Can be GOOD, CORRUPT, DESTROYED, REPAIRING or RESTORING
+     * **hardware_state** [enum]: The initial hardware state of the node. Can be one of ON, OFF or RESETTING
+     * **ip_address** [IP address]: The IP address of the component in format xxx.xxx.xxx.xxx
+     * **software_state** [enum]: The intial state of the node operating system. Can be GOOD, PATCHING or COMPROMISED
+     * **file_system_state** [enum]: The initial state of the node file system. Can be GOOD, CORRUPT, DESTROYED, REPAIRING or RESTORING
      * **services**: For each service associated with the node:
 
         * **name** [freetext]: Free-text name of the service, but must match one of the services defined for the system in the services list
@@ -367,7 +367,7 @@ The config_[name].yaml file consists of the following attributes:
       * **nodeId** [int]: The ID of the node to apply the PoL to
       * **type** [enum]: The type of PoL to apply. Can be one of OPERATING, OS or SERVICE
       * **protocol** [freetext]: The protocol to be affected if SERVICE type is chosen. Must match a value in the services list
-      * **state** [enuum]: The state to apply to the node (which represents the PoL change). Can be one of ON, OFF or RESETTING (for node state) or GOOD, PATCHING or COMPROMISED (for operating system state) or GOOD, PATCHING, COMPROMISED or OVERWHELMED (for service state)
+      * **state** [enuum]: The state to apply to the node (which represents the PoL change). Can be one of ON, OFF or RESETTING (for node state) or GOOD, PATCHING or COMPROMISED (for Software State) or GOOD, PATCHING, COMPROMISED or OVERWHELMED (for service state)
 
 * **itemType: RED_POL**
 
@@ -380,7 +380,7 @@ The config_[name].yaml file consists of the following attributes:
       * **initiator** [enum]: What initiates the PoL. Can be DIRECT, IER or SERVICE
       * **type** [enum]: The type of PoL to apply. Can be one of OPERATING, OS or SERVICE
       * **protocol** [freetext]: The protocol to be affected if SERVICE type is chosen. Must match a value in the services list
-      * **state** [enum]: The state to apply to the node (which represents the PoL change). Can be one of ON, OFF or RESETTING (for node state) or GOOD, PATCHING or COMPROMISED (for operating system state) or GOOD, PATCHING, COMPROMISED or OVERWHELMED (for service state) or GOOD, CORRUPT, DESTROYED, REPAIRING or RESTORING (for file system state)
+      * **state** [enum]: The state to apply to the node (which represents the PoL change). Can be one of ON, OFF or RESETTING (for node state) or GOOD, PATCHING or COMPROMISED (for Software State) or GOOD, PATCHING, COMPROMISED or OVERWHELMED (for service state) or GOOD, CORRUPT, DESTROYED, REPAIRING or RESTORING (for file system state)
       * **sourceNodeId** [int] The ID of the source node containing the service to check (used for SERVICE initiator)
       * **sourceNodeService** [freetext]: The service on the source node to check (used for SERVICE initiator). Must match a value in the services list for this node
       * **sourceNodeServiceState** [enum]: The state of the source node service to check (used for SERVICE initiator). Can be one of GOOD, PATCHING, COMPROMISED or OVERWHELMED

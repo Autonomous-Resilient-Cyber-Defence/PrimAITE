@@ -1,5 +1,6 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """The link class."""
+from typing import List
 
 from primaite.common.protocol import Protocol
 
@@ -22,7 +23,7 @@ class Link(object):
         self.bandwidth = _bandwidth
         self.source_node_name = _source_node_name
         self.dest_node_name = _dest_node_name
-        self.protocol_list = []
+        self.protocol_list: List[Protocol] = []
 
         # Add the default protocols
         for protocol_name in _services:

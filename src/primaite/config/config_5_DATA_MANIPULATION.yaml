@@ -13,15 +13,15 @@
     - name: TCP_SQL
     - name: UDP
 - itemType: NODE
-  id: '1'
+  node_id: '1'
   name: CLIENT_1
-  baseType: SERVICE
-  nodeType: COMPUTER
+  node_class: SERVICE
+  node_type: COMPUTER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.10.11
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.10.11
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
@@ -30,39 +30,39 @@
       port: '53'
       state: GOOD
 - itemType: NODE
-  id: '2'
+  node_id: '2'
   name: CLIENT_2
-  baseType: SERVICE
-  nodeType: COMPUTER
+  node_class: SERVICE
+  node_type: COMPUTER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.10.12
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.10.12
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
       state: GOOD
 - itemType: NODE
-  id: '3'
+  node_id: '3'
   name: SWITCH_1
-  baseType: ACTIVE
-  nodeType: SWITCH
+  node_class: ACTIVE
+  node_type: SWITCH
   priority: P2
-  hardwareState: 'ON'
-  ipAddress: 192.168.10.1
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.10.1
+  software_state: GOOD
+  file_system_state: GOOD
 - itemType: NODE
-  id: '4'
+  node_id: '4'
   name: SECURITY_SUITE
-  baseType: SERVICE
-  nodeType: SERVER
+  node_class: SERVICE
+  node_type: SERVER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.1.10
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.1.10
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
@@ -71,15 +71,15 @@
       port: '53'
       state: GOOD
 - itemType: NODE
-  id: '5'
+  node_id: '5'
   name: MANAGEMENT_CONSOLE
-  baseType: SERVICE
-  nodeType: SERVER
+  node_class: SERVICE
+  node_type: SERVER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.1.12
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.1.12
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
@@ -88,25 +88,25 @@
       port: '53'
       state: GOOD
 - itemType: NODE
-  id: '6'
+  node_id: '6'
   name: SWITCH_2
-  baseType: ACTIVE
-  nodeType: SWITCH
+  node_class: ACTIVE
+  node_type: SWITCH
   priority: P2
-  hardwareState: 'ON'
-  ipAddress: 192.168.2.1
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.2.1
+  software_state: GOOD
+  file_system_state: GOOD
 - itemType: NODE
-  id: '7'
+  node_id: '7'
   name: WEB_SERVER
-  baseType: SERVICE
-  nodeType: SERVER
+  node_class: SERVICE
+  node_type: SERVER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.2.10
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.2.10
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
@@ -115,15 +115,15 @@
       port: '1433'
       state: GOOD
 - itemType: NODE
-  id: '8'
+  node_id: '8'
   name: DATABASE_SERVER
-  baseType: SERVICE
-  nodeType: SERVER
+  node_class: SERVICE
+  node_type: SERVER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.2.14
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.2.14
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
@@ -135,15 +135,15 @@
       port: '53'
       state: GOOD
 - itemType: NODE
-  id: '9'
+  node_id: '9'
   name: BACKUP_SERVER
-  baseType: SERVICE
-  nodeType: SERVER
+  node_class: SERVICE
+  node_type: SERVER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.2.16
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.2.16
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
