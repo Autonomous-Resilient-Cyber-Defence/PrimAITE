@@ -1,26 +1,17 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
-"""
-Setup
-"""
+from setuptools import setup
+from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
 
-from setuptools import find_packages, setup
+
+class bdist_wheel(_bdist_wheel):  # noqa
+    def finalize_options(self):  # noqa
+        super().finalize_options()
+        # forces whee to be platform and Python version specific
+        # Source: https://stackoverflow.com/a/45150383
+        self.root_is_pure = False
 
 setup(
-    name="primaite",
-    maintainer="QinetiQ Training and Simulation Ltd",
-    url="https://github.com/qtsl/PrimAITE",
-    description="A primary-level simulation tool",
-    python_requires=">=3.7",
-    version="1.1.0",
-    install_requires=[
-        "gym==0.21.0",
-        "matplotlib==3.6.2",
-        "networkx==2.8.8",
-        "numpy==1.23.5",
-        "stable_baselines3==1.6.2",
-        # Required for older versions of Gym that aren't compliant with
-        # Setuptools>=67.
-        "setuptools==66"
-    ],
-    packages=find_packages()
+    cmdclass={
+        "bdist_wheel": bdist_wheel,
+    }
 )
