@@ -1,7 +1,12 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """A Service Node (i.e. not an actuator)."""
-from primaite.common.enums import SOFTWARE_STATE
+import logging
+from typing import Final
+
+from primaite.common.enums import HARDWARE_STATE, SOFTWARE_STATE
 from primaite.nodes.active_node import ActiveNode
+
+_LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
 
 class ServiceNode(ActiveNode):
@@ -119,24 +124,34 @@ class ServiceNode(ActiveNode):
             _protocol: The service (protocol)
             _state: The state value
         """
-        for service_key, service_value in self.services.items():
-            if service_key == _protocol:
-                # Can't set to compromised if you're in a patching state
-                if (
-                    _state == SOFTWARE_STATE.COMPROMISED
-                    and service_value.get_state() != SOFTWARE_STATE.PATCHING
-                ) or _state != SOFTWARE_STATE.COMPROMISED:
-                    service_value.set_state(_state)
-                else:
-                    # Do nothing
-                    pass
-                if _state == SOFTWARE_STATE.PATCHING:
-                    service_value.patching_count = (
-                        self.config_values.service_patching_duration
-                    )
-                else:
-                    # Do nothing
-                    pass
+        if self.operating_state != HARDWARE_STATE.OFF:
+            for service_key, service_value in self.services.items():
+                if service_key == _protocol:
+                    # Can't set to compromised if you're in a patching state
+                    if (
+                        _state == SOFTWARE_STATE.COMPROMISED
+                        and service_value.get_state() != SOFTWARE_STATE.PATCHING
+                    ) or _state != SOFTWARE_STATE.COMPROMISED:
+                        service_value.set_state(_state)
+                    else:
+                        # Do nothing
+                        pass
+                    if _state == SOFTWARE_STATE.PATCHING:
+                        service_value.patching_count = (
+                            self.config_values.service_patching_duration
+                        )
+                    else:
+                        # Do nothing
+                        pass
+        else:
+            _LOGGER.info(
+                f"The Nodes operating state is OFF so the state of a service "
+                f"cannot be changed. "
+                f"Node:{self.id}, "
+                f"Node Operating State:{self.operating_state}, "
+                f"Node Service Protocol:{_protocol}, "
+                f"Node Service State: {_state}"
+            )
 
     def set_service_state_if_not_compromised(self, _protocol, _state):
         """
@@ -146,14 +161,24 @@ class ServiceNode(ActiveNode):
             _protocol: The service (protocol)
             _state: The state value
         """
-        for service_key, service_value in self.services.items():
-            if service_key == _protocol:
-                if service_value.get_state() != SOFTWARE_STATE.COMPROMISED:
-                    service_value.set_state(_state)
-                    if _state == SOFTWARE_STATE.PATCHING:
-                        service_value.patching_count = (
-                            self.config_values.service_patching_duration
-                        )
+        if self.operating_state != HARDWARE_STATE.OFF:
+            for service_key, service_value in self.services.items():
+                if service_key == _protocol:
+                    if service_value.get_state() != SOFTWARE_STATE.COMPROMISED:
+                        service_value.set_state(_state)
+                        if _state == SOFTWARE_STATE.PATCHING:
+                            service_value.patching_count = (
+                                self.config_values.service_patching_duration
+                            )
+        else:
+            _LOGGER.info(
+                f"The Nodes operating state is OFF so the state of a service "
+                f"cannot be changed. "
+                f"Node:{self.id}, "
+                f"Node Operating State:{self.operating_state}, "
+                f"Node Service Protocol:{_protocol}, "
+                f"Node Service State:{_state}"
+            )
 
     def get_service_state(self, _protocol):
         """

@@ -1,7 +1,12 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """An Active Node (i.e. not an actuator)."""
-from primaite.common.enums import FILE_SYSTEM_STATE, SOFTWARE_STATE
+import logging
+from typing import Final
+
+from primaite.common.enums import FILE_SYSTEM_STATE, HARDWARE_STATE, SOFTWARE_STATE
 from primaite.nodes.node import Node
+
+_LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
 
 class ActiveNode(Node):
@@ -70,9 +75,18 @@ class ActiveNode(Node):
         Args:
             _os_state: Operating system state
         """
-        self.os_state = _os_state
-        if _os_state == SOFTWARE_STATE.PATCHING:
-            self.patching_count = self.config_values.os_patching_duration
+        if self.operating_state != HARDWARE_STATE.OFF:
+            self.os_state = _os_state
+            if _os_state == SOFTWARE_STATE.PATCHING:
+                self.patching_count = self.config_values.os_patching_duration
+        else:
+            _LOGGER.info(
+                f"The Nodes operating state is OFF so OS State cannot be "
+                f"changed. "
+                f"Node:{self.id}, "
+                f"Node Operating State:{self.operating_state}, "
+                f"Node Operating System State:{self.os_state}"
+            )
 
     def set_os_state_if_not_compromised(self, _os_state):
         """
@@ -81,10 +95,18 @@ class ActiveNode(Node):
         Args:
             _os_state: Operating system state
         """
-        if self.os_state != SOFTWARE_STATE.COMPROMISED:
-            self.os_state = _os_state
-            if _os_state == SOFTWARE_STATE.PATCHING:
-                self.patching_count = self.config_values.os_patching_duration
+        if self.operating_state != HARDWARE_STATE.OFF:
+            if self.os_state != SOFTWARE_STATE.COMPROMISED:
+                self.os_state = _os_state
+                if _os_state == SOFTWARE_STATE.PATCHING:
+                    self.patching_count = self.config_values.os_patching_duration
+        else:
+            _LOGGER.info(
+                f"The Nodes operating state is OFF so OS State cannot be changed."
+                f"Node:{self.id}, "
+                f"Node Operating State:{self.operating_state}, "
+                f"Node Operating System State:{self.os_state}",
+            )
 
     def get_os_state(self):
         """
@@ -109,34 +131,7 @@ class ActiveNode(Node):
         Args:
             _file_system_state: File system state
         """
-        self.file_system_state_actual = _file_system_state
-
-        if _file_system_state == FILE_SYSTEM_STATE.REPAIRING:
-            self.file_system_action_count = (
-                self.config_values.file_system_repairing_limit
-            )
-            self.file_system_state_observed = FILE_SYSTEM_STATE.REPAIRING
-        elif _file_system_state == FILE_SYSTEM_STATE.RESTORING:
-            self.file_system_action_count = (
-                self.config_values.file_system_restoring_limit
-            )
-            self.file_system_state_observed = FILE_SYSTEM_STATE.RESTORING
-        elif _file_system_state == FILE_SYSTEM_STATE.GOOD:
-            self.file_system_state_observed = FILE_SYSTEM_STATE.GOOD
-
-    def set_file_system_state_if_not_compromised(self, _file_system_state):
-        """
-        Sets the file system state (actual and observed) if not in a compromised state.
-
-        Use for green PoL to prevent it overturning a compromised state
-
-        Args:
-            _file_system_state: File system state
-        """
-        if (
-            self.file_system_state_actual != FILE_SYSTEM_STATE.CORRUPT
-            and self.file_system_state_actual != FILE_SYSTEM_STATE.DESTROYED
-        ):
+        if self.operating_state != HARDWARE_STATE.OFF:
             self.file_system_state_actual = _file_system_state
 
             if _file_system_state == FILE_SYSTEM_STATE.REPAIRING:
@@ -151,6 +146,51 @@ class ActiveNode(Node):
                 self.file_system_state_observed = FILE_SYSTEM_STATE.RESTORING
             elif _file_system_state == FILE_SYSTEM_STATE.GOOD:
                 self.file_system_state_observed = FILE_SYSTEM_STATE.GOOD
+        else:
+            _LOGGER.info(
+                f"The Nodes operating state is OFF so File System State "
+                f"cannot be changed. "
+                f"Node:{self.id}, "
+                f"Node Operating State:{self.operating_state}, "
+                f"Node File System State:{self.file_system_state_actual}",
+            )
+
+    def set_file_system_state_if_not_compromised(self, _file_system_state):
+        """
+        Sets the file system state (actual and observed) if not in a compromised state.
+
+        Use for green PoL to prevent it overturning a compromised state
+
+        Args:
+            _file_system_state: File system state
+        """
+        if self.operating_state != HARDWARE_STATE.OFF:
+            if (
+                self.file_system_state_actual != FILE_SYSTEM_STATE.CORRUPT
+                and self.file_system_state_actual != FILE_SYSTEM_STATE.DESTROYED
+            ):
+                self.file_system_state_actual = _file_system_state
+
+                if _file_system_state == FILE_SYSTEM_STATE.REPAIRING:
+                    self.file_system_action_count = (
+                        self.config_values.file_system_repairing_limit
+                    )
+                    self.file_system_state_observed = FILE_SYSTEM_STATE.REPAIRING
+                elif _file_system_state == FILE_SYSTEM_STATE.RESTORING:
+                    self.file_system_action_count = (
+                        self.config_values.file_system_restoring_limit
+                    )
+                    self.file_system_state_observed = FILE_SYSTEM_STATE.RESTORING
+                elif _file_system_state == FILE_SYSTEM_STATE.GOOD:
+                    self.file_system_state_observed = FILE_SYSTEM_STATE.GOOD
+        else:
+            _LOGGER.info(
+                f"The Nodes operating state is OFF so File System State (if not "
+                f"compromised) cannot be changed. "
+                f"Node:{self.id}, "
+                f"Node Operating State:{self.operating_state}, "
+                f"Node File System State:{self.file_system_state_actual}",
+            )
 
     def get_file_system_state_actual(self):
         """
@@ -185,7 +225,7 @@ class ActiveNode(Node):
         return self.file_system_scanning
 
     def update_file_system_state(self):
-        """Updates file system status based on scanning / restore / repair cycle."""
+        """Updates file system status based on scanning/restore/repair cycle."""
         # Deprecate both the action count (for restoring or reparing) and the scanning count
         self.file_system_action_count -= 1
         self.file_system_scanning_count -= 1
