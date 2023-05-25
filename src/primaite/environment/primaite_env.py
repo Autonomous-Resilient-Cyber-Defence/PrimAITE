@@ -37,6 +37,8 @@ from primaite.pol.ier import IER
 from primaite.pol.red_agent_pol import apply_red_agent_iers, apply_red_agent_node_pol
 from primaite.transactions.transaction import Transaction
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class Primaite(Env):
     """PRIMmary AI Training Evironment (Primaite) class."""
@@ -145,14 +147,12 @@ class Primaite(Env):
 
         # Open the config file and build the environment laydown
         try:
-            self.config_file = open(
-                "config/" + self.config_values.config_filename_use_case, "r"
-            )
+            self.config_file = open(self.config_values.config_filename_use_case, "r")
             self.config_data = yaml.safe_load(self.config_file)
             self.load_config()
         except Exception:
-            logging.error("Could not load the environment configuration")
-            logging.error("Exception occured", exc_info=True)
+            _LOGGER.error("Could not load the environment configuration")
+            _LOGGER.error("Exception occured", exc_info=True)
 
         # Store the node objects as node attributes
         # (This is so we can access them as objects)
@@ -180,8 +180,8 @@ class Primaite(Env):
             plt.savefig(filename, format="PNG")
             plt.clf()
         except Exception:
-            logging.error("Could not save network diagram")
-            logging.error("Exception occured", exc_info=True)
+            _LOGGER.error("Could not save network diagram")
+            _LOGGER.error("Exception occured", exc_info=True)
             print("Could not save network diagram")
 
         # Define Observation Space
@@ -223,7 +223,7 @@ class Primaite(Env):
 
         # Define Action Space - depends on action space type (Node or ACL)
         if self.action_type == ACTION_TYPE.NODE:
-            logging.info("Action space type NODE selected")
+            _LOGGER.info("Action space type NODE selected")
             # Terms (for node action space):
             # [0, num nodes] - node ID (0 = nothing, node ID)
             # [0, 4] - what property it's acting on (0 = nothing, state, o/s state, service state, file system state)
@@ -238,7 +238,7 @@ class Primaite(Env):
                 ]
             )
         else:
-            logging.info("Action space type ACL selected")
+            _LOGGER.info("Action space type ACL selected")
             # Terms (for ACL action space):
             # [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
             # [0, 1] - Permission (0 = DENY, 1 = ALLOW)
@@ -273,10 +273,10 @@ class Primaite(Env):
             self.csv_writer = csv.writer(self.csv_file)
             self.csv_writer.writerow(header)
         except Exception:
-            logging.error(
+            _LOGGER.error(
                 "Could not create csv file to hold average reward per episode"
             )
-            logging.error("Exception occured", exc_info=True)
+            _LOGGER.error("Exception occured", exc_info=True)
 
     def reset(self):
         """
@@ -322,7 +322,7 @@ class Primaite(Env):
              step_info: Additional information relating to this step
         """
         if self.step_count == 0:
-            print("Episode: " + str(self.episode_count) + " running")
+            print(f"Episode: {str(self.episode_count)}")
 
         # TEMP
         done = False
@@ -402,7 +402,7 @@ class Primaite(Env):
             self.step_count,
             self.config_values,
         )
-        # print("Step reward: " + str(reward))
+        print(f"    Step {self.step_count} Reward: {str(reward)}")
         self.total_reward += reward
         if self.step_count == self.episode_steps:
             self.average_reward = self.total_reward / self.step_count
@@ -410,7 +410,7 @@ class Primaite(Env):
                 # For evaluation, need to trigger the done value = True when
                 # step count is reached in order to prevent neverending episode
                 done = True
-            print("Average reward: " + str(self.average_reward))
+            print(f"  Average Reward: {str(self.average_reward)}")
             # Load the reward into the transaction
         transaction.set_reward(reward)
 
@@ -757,7 +757,7 @@ class Primaite(Env):
                 # Do nothing (bad formatting)
                 pass
 
-        logging.info("Environment configuration loaded")
+        _LOGGER.info("Environment configuration loaded")
         print("Environment configuration loaded")
 
     def create_node(self, item):
@@ -1090,7 +1090,7 @@ class Primaite(Env):
             item: A config data item representing steps info
         """
         self.episode_steps = int(steps_info["steps"])
-        logging.info("Training episodes have " + str(self.episode_steps) + " steps")
+        _LOGGER.info("Training episodes have " + str(self.episode_steps) + " steps")
 
     def reset_environment(self):
         """
