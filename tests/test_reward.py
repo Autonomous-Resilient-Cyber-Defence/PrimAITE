@@ -19,7 +19,7 @@ def test_rewards_are_being_penalised_at_each_step_function():
         File System State: goodShouldBeCorrupt = 5 (between Steps 1 & 3)
         Hardware State: onShouldBeOff = -2 (between Steps 4 & 6)
         Service State: goodShouldBeCompromised = 5 (between Steps 7 & 9)
-        Operating System State (Software State): goodShouldBeCompromised = 5 (between Steps 10 & 12)
+        Software State (Software State): goodShouldBeCompromised = 5 (between Steps 10 & 12)
 
     Total Reward: -2 - 2 + 5 + 5 + 5 + 5 + 5 + 5 = 26
     Step Count: 13

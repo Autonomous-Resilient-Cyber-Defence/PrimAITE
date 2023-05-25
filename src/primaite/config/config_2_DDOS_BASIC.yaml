@@ -9,133 +9,133 @@
   serviceList:
     - name: TCP
 - itemType: NODE
-  id: '1'
+  node_id: '1'
   name: PC1
-  baseType: SERVICE
-  nodeType: COMPUTER
+  node_class: SERVICE
+  node_type: COMPUTER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.10.11
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.10.11
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
       state: GOOD
 - itemType: NODE
-  id: '2'
+  node_id: '2'
   name: PC2
-  baseType: SERVICE
-  nodeType: COMPUTER
+  node_class: SERVICE
+  node_type: COMPUTER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.10.12
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.10.12
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
       state: GOOD
 - itemType: NODE
-  id: '3'
+  node_id: '3'
   name: PC3
-  baseType: SERVICE
-  nodeType: COMPUTER
+  node_class: SERVICE
+  node_type: COMPUTER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.10.13
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.10.13
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
       state: GOOD
 - itemType: NODE
-  id: '4'
+  node_id: '4'
   name: PC4
-  baseType: SERVICE
-  nodeType: COMPUTER
+  node_class: SERVICE
+  node_type: COMPUTER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.20.14
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.20.14
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
       state: GOOD
 - itemType: NODE
-  id: '5'
+  node_id: '5'
   name: SWITCH1
-  baseType: ACTIVE
-  nodeType: SWITCH
+  node_class: ACTIVE
+  node_type: SWITCH
   priority: P2
-  hardwareState: 'ON'
-  ipAddress: 192.168.1.2
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.1.2
+  software_state: GOOD
+  file_system_state: GOOD
 - itemType: NODE
-  id: '6'
+  node_id: '6'
   name: IDS
-  baseType: SERVICE
-  nodeType: SERVER
+  node_class: SERVICE
+  node_type: SERVER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.1.4
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.1.4
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
       state: GOOD
 - itemType: NODE
-  id: '7'
+  node_id: '7'
   name: SWITCH2
-  baseType: ACTIVE
-  nodeType: SWITCH
+  node_class: ACTIVE
+  node_type: SWITCH
   priority: P2
-  hardwareState: 'ON'
-  ipAddress: 192.168.1.3
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.1.3
+  software_state: GOOD
+  file_system_state: GOOD
 - itemType: NODE
-  id: '8'
+  node_id: '8'
   name: LOP1
-  baseType: SERVICE
-  nodeType: LOP
+  node_class: SERVICE
+  node_type: LOP
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.1.12
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.1.12
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
       state: GOOD
 - itemType: NODE
-  id: '9'
+  node_id: '9'
   name: SERVER1
-  baseType: SERVICE
-  nodeType: SERVER
+  node_class: SERVICE
+  node_type: SERVER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.10.14
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.10.14
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'
       state: GOOD
 - itemType: NODE
-  id: '10'
+  node_id: '10'
   name: SERVER2
-  baseType: SERVICE
-  nodeType: SERVER
+  node_class: SERVICE
+  node_type: SERVER
   priority: P5
-  hardwareState: 'ON'
-  ipAddress: 192.168.20.15
-  softwareState: GOOD
-  fileSystemState: GOOD
+  hardware_state: 'ON'
+  ip_address: 192.168.20.15
+  software_state: GOOD
+  file_system_state: GOOD
   services:
     - name: TCP
       port: '80'

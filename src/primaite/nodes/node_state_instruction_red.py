@@ -1,5 +1,6 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Defines node behaviour for Green PoL."""
+from primaite.common.enums import NodePOLType
 
 
 class NodeStateInstructionRed(object):
@@ -12,7 +13,7 @@ class NodeStateInstructionRed(object):
         _end_step,
         _target_node_id,
         _pol_initiator,
-        _pol_type,
+        _pol_type: NodePOLType,
         pol_protocol,
         _pol_state,
         _pol_source_node_id,
@@ -40,7 +41,7 @@ class NodeStateInstructionRed(object):
         self.end_step = _end_step
         self.target_node_id = _target_node_id
         self.initiator = _pol_initiator
-        self.pol_type = _pol_type
+        self.pol_type: NodePOLType = _pol_type
         self.service_name = pol_protocol  # Not used when not a service instruction
         self.state = _pol_state
         self.source_node_id = _pol_source_node_id
@@ -83,7 +84,7 @@ class NodeStateInstructionRed(object):
         """
         return self.initiator
 
-    def get_pol_type(self):
+    def get_pol_type(self) -> NodePOLType:
         """
         Gets the node pattern of life type (enum).
 
