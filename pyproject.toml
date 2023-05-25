@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "primaite"
+description = "PrimAITE (Primary-level AI Training Environment) is a simulation environment for training AI under the ARCD programme."
+authors = [{name="QinetiQ Training and Simulation Ltd"}]
+license = {text = "GFX"}
+requires-python = ">=3.8"
+dynamic = ["version", "readme"]
+classifiers = [
+    "License :: GFX",
+    "Development Status :: 4 - Beta",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3 :: Only",
+]
+
+dependencies = [
+    "gym==0.21.0",
+    "matplotlib==3.7.1",
+    "networkx==3.1",
+    "numpy==1.23.5",
+    "PyYAML==6.0",
+    "stable-baselines3==1.6.2"
+]
+
+[tool.setuptools.dynamic]
+version = {file = ["src/primaite/VERSION"]}
+readme = {file = ["README.md"]}
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+license-files = ["LICENSE"]
+
+
+[project.optional-dependencies]
+dev = [
+    "setuptools==66",
+    "pytest==7.2.0",
+    "flake8==6.0.0",
+    "Sphinx==6.1.3",
+    "furo==2023.3.27",
+    "sphinx-code-tabs==0.5.3",
+    "sphinx-copybutton==0.5.2",
+    "pytest-cov==4.0.0",
+    "pytest-flake8==1.1.1",
+    "pip-licenses==4.3.0",
+    "pre-commit==2.20.0",
+    "wheel==0.38.4",
+    "build==0.10.0"
+]
