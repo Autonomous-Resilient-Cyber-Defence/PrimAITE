@@ -165,7 +165,9 @@ def load_config_values():
         config_values.agent_identifier = config_data["agentIdentifier"]
         config_values.num_episodes = int(config_data["numEpisodes"])
         config_values.time_delay = int(config_data["timeDelay"])
-        config_values.config_filename_use_case = config_data["configFilename"]
+        config_values.config_filename_use_case = (
+            "config/" + config_data["configFilename"]
+        )
         config_values.session_type = config_data["sessionType"]
         config_values.load_agent = bool(config_data["loadAgent"])
         config_values.agent_load_file = config_data["agentLoadFile"]
