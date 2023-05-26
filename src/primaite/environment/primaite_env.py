@@ -247,7 +247,7 @@ class Primaite(Env):
             self.action_dict = self.create_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
         else:
-            _LOGGER.info("Action space type ANY selected")
+            _LOGGER.info("Action space type ANY selected - Node + ACL")
             self.action_dict = self.create_node_and_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
 
@@ -453,8 +453,18 @@ class Primaite(Env):
         # At the moment, actions are only affecting nodes
         if self.action_type == ActionType.NODE:
             self.apply_actions_to_nodes(_action)
-        else:
+        elif self.action_type == ActionType.ACL:
             self.apply_actions_to_acl(_action)
+        elif (
+            len(self.action_dict[_action]) == 6
+        ):  # ACL actions in multidiscrete form have len 6
+            self.apply_actions_to_acl(_action)
+        elif (
+            len(self.action_dict[_action]) == 4
+        ):  # Node actions in multdiscrete (array) from have len 4
+            self.apply_actions_to_nodes(_action)
+        else:
+            logging.error("Invalid action type found")
 
     def apply_actions_to_nodes(self, _action):
         """
@@ -463,10 +473,11 @@ class Primaite(Env):
         Args:
             _action: The action space from the agent
         """
-        node_id = _action[0]
-        node_property = _action[1]
-        property_action = _action[2]
-        service_index = _action[3]
+        readable_action = self.action_dict[_action]
+        node_id = readable_action[0]
+        node_property = readable_action[1]
+        property_action = readable_action[2]
+        service_index = readable_action[3]
 
         # Check that the action is requesting a valid node
         try:
@@ -552,12 +563,15 @@ class Primaite(Env):
         Args:
             _action: The action space from the agent
         """
-        action_decision = _action[0]
-        action_permission = _action[1]
-        action_source_ip = _action[2]
-        action_destination_ip = _action[3]
-        action_protocol = _action[4]
-        action_port = _action[5]
+        # Convert discrete value back to multidiscrete
+        multidiscrete_action = self.action_dict[_action]
+
+        action_decision = multidiscrete_action[0]
+        action_permission = multidiscrete_action[1]
+        action_source_ip = multidiscrete_action[2]
+        action_destination_ip = multidiscrete_action[3]
+        action_protocol = multidiscrete_action[4]
+        action_port = multidiscrete_action[5]
 
         if action_decision == 0:
             # It's decided to do nothing

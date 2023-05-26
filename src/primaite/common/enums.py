@@ -49,6 +49,7 @@ class SoftwareState(Enum):
 class NodePOLType(Enum):
     """Node Pattern of Life type enumeration."""
 
+    NONE = 0
     OPERATING = 1
     OS = 2
     SERVICE = 3
