@@ -11,7 +11,7 @@ PrimAITE provides the following features:
 * A flexible network / system laydown based on the Python networkx framework​
 * Nodes and links (edges) host Python classes in order to present attributes and methods (and hence, a more representative model of a platform / system)​
 * A ‘green agent’ Information Exchange Requirement (IER) function allows the representation of traffic (protocols and loading) on any / all links. Application of IERs is based on the status of node operating systems and services​
-* A ‘green agent’ node Pattern-of-Life (PoL) function allows the representation of core behaviours on nodes (e.g. Operating state, Operating System state, Service state, File System state)​
+* A ‘green agent’ node Pattern-of-Life (PoL) function allows the representation of core behaviours on nodes (e.g. Hardware state, Software State, Service state, File System state)​
 * An Access Control List (ACL) function, mimicking the behaviour of a network firewall, is applied across the model, following standard ACL rule format (e.g. DENY/ALLOW, source IP, destination IP, protocol and port). Application of IERs adheres to any ACL restrictions​
 * Presents an OpenAI Gym interface to the environment, allowing integration with any OpenAI Gym compliant defensive agents ​
 * Red agent activity based on ‘red’ IERs and ‘red’ PoL
@@ -31,12 +31,12 @@ An inheritance model has been adopted in order to model nodes. All nodes have th
 * Name
 * Type (e.g. computer, switch, RTU - enumeration)​
 * Priority (P1, P2, P3, P4 or P5 - enumeration)​
-* Operating State (ON, OFF, RESETTING - enumeration)​
+* Hardware State (ON, OFF, RESETTING - enumeration)​
 
 Active Nodes also have the following attributes (Class: Active Node):​
 
 * IP Address​
-* Operating System State (GOOD, PATCHING, COMPROMISED - enumeration)​
+* Software State (GOOD, PATCHING, COMPROMISED - enumeration)​
 * File System State (GOOD, CORRUPT, DESTROYED, REPAIRING, RESTORING - enumeration)
 
 Service Nodes also have the following attributes (Class: Service Node)​:
@@ -101,7 +101,7 @@ The status changes that can be made to a node are as follows:
 
 * All Nodes:
 
-   * Operating State:
+   * Hardware State:
 
       * ON
       * OFF
@@ -109,7 +109,7 @@ The status changes that can be made to a node are as follows:
 
 * Active Nodes and Service Nodes:
 
-   * Operating System State:
+   * Software State:
 
       * GOOD
       * PATCHING - when a status of patching is entered, the node will automatically exit this state after a number of steps (as defined by the osPatchingDuration configuration item) after which it returns to a GOOD state
@@ -185,7 +185,7 @@ Observation Spaces
 
 The OpenAI Gym observation space provides the status of all nodes and links across the whole system:​
 
-* Nodes (in terms of operating state, operating system state, file system state and services state) ​
+* Nodes (in terms of hardware state, Software State, file system state and services state) ​
 * Links (in terms of current loading for each service/protocol)
 
 An example observation space is provided below:
@@ -196,8 +196,8 @@ An example observation space is provided below:
 
    * -
      - ID
-     - Operating State
-     - O/S State
+     - Hardware State
+     - SoftwareState
      - File System State
      - Service / Protocol A
      - Service / Protocol B
@@ -249,13 +249,13 @@ The observation space is a 6 x 6 Box type (OpenAI Gym Space) in this example. Th
 For the nodes, the following values are represented:
 
  * ID
- * Operating State:
+ * Hardware State:
 
     * 1 = ON
     * 2 = OFF
     * 3 = RESETTING
 
- * O/S State:
+ * SoftwareState:
 
     * 1 = GOOD
     * 2 = PATCHING
@@ -281,8 +281,8 @@ For the nodes, the following values are represented:
 For the links, the following statuses are represented:
 
  * ID
- * Operating State = N/A
- * O/S State = N/A
+ * Hardware State = N/A
+ * SoftwareState = N/A
  * Protocol = loading in bits/s
 
 Action Spaces
@@ -300,7 +300,7 @@ The choice of action space used during a training session is determined in the c
 The agent is able to influence the status of nodes by switching them off, resetting, or patching operating systems and services. In this instance, the action space is an OpenAI Gym multidiscrete type, as follows:
 
  * [0, num nodes] - Node ID (0 = nothing, node ID)
- * [0, 4] - What property it's acting on (0 = nothing, 1 = state, 2 = O/S state, 3 = service state, 4 = file system state)
+ * [0, 4] - What property it's acting on (0 = nothing, 1 = state, 2 = SoftwareState, 3 = service state, 4 = file system state)
  * [0, 3] - Action on property (0 = nothing, 1 = on / scan, 2 = off / repair, 3 = reset / patch / restore)
  * [0, num services] - Resolves to service ID (0 = nothing, resolves to service)
 

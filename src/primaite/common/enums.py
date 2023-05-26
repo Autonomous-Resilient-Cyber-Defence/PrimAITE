@@ -4,7 +4,7 @@
 from enum import Enum
 
 
-class TYPE(Enum):
+class NodeType(Enum):
     """Node type enumeration."""
 
     CCTV = 1
@@ -19,7 +19,7 @@ class TYPE(Enum):
     SERVER = 10
 
 
-class PRIORITY(Enum):
+class Priority(Enum):
     """Node priority enumeration."""
 
     P1 = 1
@@ -29,7 +29,7 @@ class PRIORITY(Enum):
     P5 = 5
 
 
-class HARDWARE_STATE(Enum):
+class HardwareState(Enum):
     """Node hardware state enumeration."""
 
     ON = 1
@@ -37,8 +37,8 @@ class HARDWARE_STATE(Enum):
     RESETTING = 3
 
 
-class SOFTWARE_STATE(Enum):
-    """O/S or Service state enumeration."""
+class SoftwareState(Enum):
+    """Software or Service state enumeration."""
 
     GOOD = 1
     PATCHING = 2
@@ -46,7 +46,7 @@ class SOFTWARE_STATE(Enum):
     OVERWHELMED = 4
 
 
-class NODE_POL_TYPE(Enum):
+class NodePOLType(Enum):
     """Node Pattern of Life type enumeration."""
 
     OPERATING = 1
@@ -55,7 +55,7 @@ class NODE_POL_TYPE(Enum):
     FILE = 4
 
 
-class NODE_POL_INITIATOR(Enum):
+class NodePOLInitiator(Enum):
     """Node Pattern of Life initiator enumeration."""
 
     DIRECT = 1
@@ -63,7 +63,7 @@ class NODE_POL_INITIATOR(Enum):
     SERVICE = 3
 
 
-class PROTOCOL(Enum):
+class Protocol(Enum):
     """Service protocol enumeration."""
 
     LDAP = 0
@@ -76,14 +76,14 @@ class PROTOCOL(Enum):
     NONE = 7
 
 
-class ACTION_TYPE(Enum):
+class ActionType(Enum):
     """Action type enumeration."""
 
     NODE = 0
     ACL = 1
 
 
-class FILE_SYSTEM_STATE(Enum):
+class FileSystemState(Enum):
     """File System State."""
 
     GOOD = 1

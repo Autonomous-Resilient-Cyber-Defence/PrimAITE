@@ -8,5 +8,6 @@ extend-ignore =
     E203
     E712
     D401
+    F811
 exclude =
     docs/source/*

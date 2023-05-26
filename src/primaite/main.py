@@ -15,7 +15,7 @@ from stable_baselines3 import A2C, PPO
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.ppo import MlpPolicy as PPOMlp
 
-from primaite.common.config_values_main import config_values_main
+from primaite.common.config_values_main import ConfigValuesMain
 from primaite.environment.primaite_env import Primaite
 from primaite.transactions.transactions_to_file import write_transaction_to_file
 
@@ -178,7 +178,7 @@ def load_config_values():
         # Reward values
         # Generic
         config_values.all_ok = int(config_data["allOk"])
-        # Node Operating State
+        # Node Hardware State
         config_values.off_should_be_on = int(config_data["offShouldBeOn"])
         config_values.off_should_be_resetting = int(config_data["offShouldBeResetting"])
         config_values.on_should_be_off = int(config_data["onShouldBeOff"])
@@ -186,7 +186,7 @@ def load_config_values():
         config_values.resetting_should_be_on = int(config_data["resettingShouldBeOn"])
         config_values.resetting_should_be_off = int(config_data["resettingShouldBeOff"])
         config_values.resetting = int(config_data["resetting"])
-        # Node O/S or Service State
+        # Node Software or Service State
         config_values.good_should_be_patching = int(config_data["goodShouldBePatching"])
         config_values.good_should_be_compromised = int(
             config_data["goodShouldBeCompromised"]
@@ -331,7 +331,7 @@ try:
     config_file_main = open("config/config_main.yaml", "r")
     config_data = yaml.safe_load(config_file_main)
     # Create a config class
-    config_values = config_values_main()
+    config_values = ConfigValuesMain()
     # Load in config data
     load_config_values()
 except Exception:
