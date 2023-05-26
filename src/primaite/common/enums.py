@@ -91,3 +91,29 @@ class FileSystemState(Enum):
     DESTROYED = 3
     REPAIRING = 4
     RESTORING = 5
+
+
+class NodeHardwareAction(Enum):
+    """Node hardware action."""
+
+    NONE = 0
+    ON = 1
+    OFF = 2
+    RESET = 3
+
+
+class NodeSoftwareAction(Enum):
+    """Node software action."""
+
+    NONE = 0
+    PATCHING = 1
+
+
+class LinkStatus(Enum):
+    """Link traffic status."""
+
+    NONE = 0
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+    OVERLOAD = 4
