@@ -5,7 +5,7 @@ from typing import Dict, Union
 from networkx import MultiGraph, shortest_path
 
 from primaite.acl.access_control_list import AccessControlList
-from primaite.common.custom_typing import NodeType
+from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import HardwareState, NodePOLType, NodeType, SoftwareState
 from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
@@ -19,7 +19,7 @@ _VERBOSE = False
 
 def apply_iers(
     network: MultiGraph,
-    nodes: Dict[str, NodeType],
+    nodes: Dict[str, NodeUnion],
     links: Dict[str, Link],
     iers: Dict[str, IER],
     acl: AccessControlList,
@@ -230,7 +230,7 @@ def apply_iers(
 
 
 def apply_node_pol(
-    nodes: Dict[str, NodeType],
+    nodes: Dict[str, NodeUnion],
     node_pol: Dict[any, Union[NodeStateInstructionGreen, NodeStateInstructionRed]],
     step: int,
 ):

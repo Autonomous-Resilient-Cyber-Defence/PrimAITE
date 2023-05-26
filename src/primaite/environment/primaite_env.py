@@ -15,7 +15,7 @@ from gym import Env, spaces
 from matplotlib import pyplot as plt
 
 from primaite.acl.access_control_list import AccessControlList
-from primaite.common.custom_typing import NodeType
+from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import (
     ActionType,
     FileSystemState,
@@ -80,10 +80,10 @@ class Primaite(Env):
         self.agent_identifier = self.config_values.agent_identifier
 
         # Create a dictionary to hold all the nodes
-        self.nodes: Dict[str, NodeType] = {}
+        self.nodes: Dict[str, NodeUnion] = {}
 
         # Create a dictionary to hold a reference set of nodes
-        self.nodes_reference: Dict[str, NodeType] = {}
+        self.nodes_reference: Dict[str, NodeUnion] = {}
 
         # Create a dictionary to hold all the links
         self.links: Dict[str, Link] = {}
@@ -1128,7 +1128,7 @@ class Primaite(Env):
         node_class = item["node_class"]
         node_hardware_state: HardwareState = HardwareState[item["hardware_state"]]
 
-        node: NodeType = self.nodes[node_id]
+        node: NodeUnion = self.nodes[node_id]
         node_ref = self.nodes_reference[node_id]
 
         # Reset the hardware state (common for all node types)
