@@ -5,7 +5,7 @@ from typing import Dict
 from networkx import MultiGraph, shortest_path
 
 from primaite.acl.access_control_list import AccessControlList
-from primaite.common.custom_typing import NodeType
+from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import (
     HardwareState,
     NodePOLInitiator,
@@ -24,7 +24,7 @@ _VERBOSE = False
 
 def apply_red_agent_iers(
     network: MultiGraph,
-    nodes: Dict[str, NodeType],
+    nodes: Dict[str, NodeUnion],
     links: Dict[str, Link],
     iers: Dict[str, IER],
     acl: AccessControlList,
@@ -221,7 +221,7 @@ def apply_red_agent_iers(
 
 
 def apply_red_agent_node_pol(
-    nodes: NodeType,
+    nodes: Dict[str, NodeUnion],
     iers: Dict[str, IER],
     node_pol: Dict[str, NodeStateInstructionRed],
     step: int,
@@ -256,7 +256,7 @@ def apply_red_agent_node_pol(
 
         if step >= start_step and step <= stop_step:
             # continue --------------------------
-            target_node: NodeType = nodes[target_node_id]
+            target_node: NodeUnion = nodes[target_node_id]
 
             # Based the action taken on the initiator type
             if initiator == NodePOLInitiator.DIRECT:
