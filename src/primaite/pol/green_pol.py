@@ -1,16 +1,30 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Implements Pattern of Life on the network (nodes and links)."""
+from typing import Dict, Union
 
-from networkx import shortest_path
+from networkx import MultiGraph, shortest_path
 
-from primaite.common.enums import HARDWARE_STATE, NODE_POL_TYPE, SOFTWARE_STATE, TYPE
+from primaite.acl.access_control_list import AccessControlList
+from primaite.common.custom_typing import NodeUnion
+from primaite.common.enums import HardwareState, NodePOLType, NodeType, SoftwareState
+from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
+from primaite.nodes.node_state_instruction_green import NodeStateInstructionGreen
+from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.service_node import ServiceNode
+from primaite.pol.ier import IER
 
 _VERBOSE = False
 
 
-def apply_iers(network, nodes, links, iers, acl, step):
+def apply_iers(
+    network: MultiGraph,
+    nodes: Dict[str, NodeUnion],
+    links: Dict[str, Link],
+    iers: Dict[str, IER],
+    acl: AccessControlList,
+    step: int,
+):
     """
     Applies IERs to the links (link pattern of life).
 
@@ -51,25 +65,25 @@ def apply_iers(network, nodes, links, iers, acl, step):
             dest_node = nodes[dest_node_id]
 
             # 1. Check the source node situation
-            if source_node.get_type() == TYPE.SWITCH:
+            if source_node.node_type == NodeType.SWITCH:
                 # It's a switch
                 if (
-                    source_node.get_state() == HARDWARE_STATE.ON
-                    and source_node.get_os_state() != SOFTWARE_STATE.PATCHING
+                    source_node.hardware_state == HardwareState.ON
+                    and source_node.software_state != SoftwareState.PATCHING
                 ):
                     source_valid = True
                 else:
                     # IER no longer valid
                     source_valid = False
-            elif source_node.get_type() == TYPE.ACTUATOR:
+            elif source_node.node_type == NodeType.ACTUATOR:
                 # It's an actuator
                 # TO DO
                 pass
             else:
                 # It's not a switch or an actuator (so active node)
                 if (
-                    source_node.get_state() == HARDWARE_STATE.ON
-                    and source_node.get_os_state() != SOFTWARE_STATE.PATCHING
+                    source_node.hardware_state == HardwareState.ON
+                    and source_node.software_state != SoftwareState.PATCHING
                 ):
                     if source_node.has_service(protocol):
                         if source_node.service_running(
@@ -87,24 +101,24 @@ def apply_iers(network, nodes, links, iers, acl, step):
                     source_valid = False
 
             # 2. Check the dest node situation
-            if dest_node.get_type() == TYPE.SWITCH:
+            if dest_node.node_type == NodeType.SWITCH:
                 # It's a switch
                 if (
-                    dest_node.get_state() == HARDWARE_STATE.ON
-                    and dest_node.get_os_state() != SOFTWARE_STATE.PATCHING
+                    dest_node.hardware_state == HardwareState.ON
+                    and dest_node.software_state != SoftwareState.PATCHING
                 ):
                     dest_valid = True
                 else:
                     # IER no longer valid
                     dest_valid = False
-            elif dest_node.get_type() == TYPE.ACTUATOR:
+            elif dest_node.node_type == NodeType.ACTUATOR:
                 # It's an actuator
                 pass
             else:
                 # It's not a switch or an actuator (so active node)
                 if (
-                    dest_node.get_state() == HARDWARE_STATE.ON
-                    and dest_node.get_os_state() != SOFTWARE_STATE.PATCHING
+                    dest_node.hardware_state == HardwareState.ON
+                    and dest_node.software_state != SoftwareState.PATCHING
                 ):
                     if dest_node.has_service(protocol):
                         if dest_node.service_running(
@@ -123,15 +137,15 @@ def apply_iers(network, nodes, links, iers, acl, step):
 
             # 3. Check that the ACL doesn't block it
             acl_block = acl.is_blocked(
-                source_node.get_ip_address(), dest_node.get_ip_address(), protocol, port
+                source_node.ip_address, dest_node.ip_address, protocol, port
             )
             if acl_block:
                 if _VERBOSE:
                     print(
                         "ACL block on source: "
-                        + source_node.get_ip_address()
+                        + source_node.ip_address
                         + ", dest: "
-                        + dest_node.get_ip_address()
+                        + dest_node.ip_address
                         + ", protocol: "
                         + protocol
                         + ", port: "
@@ -156,8 +170,8 @@ def apply_iers(network, nodes, links, iers, acl, step):
                 # We might have a switch in the path, so check all nodes are operational
                 for node in path_node_list:
                     if (
-                        node.get_state() != HARDWARE_STATE.ON
-                        or node.get_os_state() == SOFTWARE_STATE.PATCHING
+                        node.hardware_state != HardwareState.ON
+                        or node.software_state == SoftwareState.PATCHING
                     ):
                         path_valid = False
 
@@ -215,7 +229,11 @@ def apply_iers(network, nodes, links, iers, acl, step):
             pass
 
 
-def apply_node_pol(nodes, node_pol, step):
+def apply_node_pol(
+    nodes: Dict[str, NodeUnion],
+    node_pol: Dict[any, Union[NodeStateInstructionGreen, NodeStateInstructionRed]],
+    step: int,
+):
     """
     Applies node pattern of life.
 
@@ -239,15 +257,15 @@ def apply_node_pol(nodes, node_pol, step):
             # continue --------------------------
             node = nodes[node_id]
 
-            if node_pol_type == NODE_POL_TYPE.OPERATING:
-                # Change operating state
-                node.set_state(state)
-            elif node_pol_type == NODE_POL_TYPE.OS:
+            if node_pol_type == NodePOLType.OPERATING:
+                # Change hardware state
+                node.hardware_state = state
+            elif node_pol_type == NodePOLType.OS:
                 # Change OS state
                 # Don't allow PoL to fix something that is compromised. Only the Blue agent can do this
                 if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
-                    node.set_os_state_if_not_compromised(state)
-            elif node_pol_type == NODE_POL_TYPE.SERVICE:
+                    node.set_software_state_if_not_compromised(state)
+            elif node_pol_type == NodePOLType.SERVICE:
                 # Change a service state
                 # Don't allow PoL to fix something that is compromised. Only the Blue agent can do this
                 if isinstance(node, ServiceNode):

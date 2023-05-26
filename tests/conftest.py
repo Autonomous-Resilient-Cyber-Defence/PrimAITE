@@ -5,7 +5,7 @@ from typing import Union
 
 import yaml
 
-from primaite.common.config_values_main import config_values_main
+from primaite.common.config_values_main import ConfigValuesMain
 from primaite.environment.primaite_env import Primaite
 
 ACTION_SPACE_NODE_VALUES = 1
@@ -32,7 +32,7 @@ def _get_primaite_env_from_config(
         # Reward values
         # Generic
         config_values.all_ok = int(config_data["allOk"])
-        # Node Operating State
+        # Node Hardware State
         config_values.off_should_be_on = int(config_data["offShouldBeOn"])
         config_values.off_should_be_resetting = int(config_data["offShouldBeResetting"])
         config_values.on_should_be_off = int(config_data["onShouldBeOff"])
@@ -40,7 +40,7 @@ def _get_primaite_env_from_config(
         config_values.resetting_should_be_on = int(config_data["resettingShouldBeOn"])
         config_values.resetting_should_be_off = int(config_data["resettingShouldBeOff"])
         config_values.resetting = int(config_data["resetting"])
-        # Node O/S or Service State
+        # Node Software or Service State
         config_values.good_should_be_patching = int(config_data["goodShouldBePatching"])
         config_values.good_should_be_compromised = int(
             config_data["goodShouldBeCompromised"]
@@ -160,7 +160,7 @@ def _get_primaite_env_from_config(
     config_file_main = open(main_config_path, "r")
     config_data = yaml.safe_load(config_file_main)
     # Create a config class
-    config_values = config_values_main()
+    config_values = ConfigValuesMain()
     # Load in config data
     load_config_values()
     env = Primaite(config_values, [])

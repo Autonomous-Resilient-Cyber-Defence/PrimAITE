@@ -1,6 +1,9 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Implements reward function."""
-from primaite.common.enums import FILE_SYSTEM_STATE, HARDWARE_STATE, SOFTWARE_STATE
+from typing import Dict
+
+from primaite.common.enums import FileSystemState, HardwareState, SoftwareState
+from primaite.common.service import Service
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.service_node import ServiceNode
 
@@ -28,17 +31,17 @@ def calculate_reward_function(
     """
     reward_value = 0
 
-    # For each node, compare operating state, o/s operating state, service states
+    # For each node, compare hardware state, SoftwareState, service states
     for node_key, final_node in final_nodes.items():
         initial_node = initial_nodes[node_key]
         reference_node = reference_nodes[node_key]
 
-        # Operating State
+        # Hardware State
         reward_value += score_node_operating_state(
             final_node, initial_node, reference_node, config_values
         )
 
-        # Operating System State
+        # Software State
         if isinstance(final_node, ActiveNode) or isinstance(final_node, ServiceNode):
             reward_value += score_node_os_state(
                 final_node, initial_node, reference_node, config_values
@@ -80,7 +83,7 @@ def calculate_reward_function(
 
 def score_node_operating_state(final_node, initial_node, reference_node, config_values):
     """
-    Calculates score relating to the operating state of a node.
+    Calculates score relating to the hardware state of a node.
 
     Args:
         final_node: The node after red and blue agents take effect
@@ -89,9 +92,9 @@ def score_node_operating_state(final_node, initial_node, reference_node, config_
         config_values: Config values
     """
     score = 0
-    final_node_operating_state = final_node.get_state()
-    initial_node_operating_state = initial_node.get_state()
-    reference_node_operating_state = reference_node.get_state()
+    final_node_operating_state = final_node.hardware_state
+    initial_node_operating_state = initial_node.hardware_state
+    reference_node_operating_state = reference_node.hardware_state
 
     if final_node_operating_state == reference_node_operating_state:
         # All is well - we're no different from the reference situation
@@ -99,26 +102,26 @@ def score_node_operating_state(final_node, initial_node, reference_node, config_
     else:
         # We're different from the reference situation
         # Need to compare initial and reference (current) state of node (i.e. at every step)
-        if initial_node_operating_state == HARDWARE_STATE.ON:
-            if reference_node_operating_state == HARDWARE_STATE.OFF:
+        if initial_node_operating_state == HardwareState.ON:
+            if reference_node_operating_state == HardwareState.OFF:
                 score += config_values.off_should_be_on
-            elif reference_node_operating_state == HARDWARE_STATE.RESETTING:
+            elif reference_node_operating_state == HardwareState.RESETTING:
                 score += config_values.resetting_should_be_on
             else:
                 pass
-        elif initial_node_operating_state == HARDWARE_STATE.OFF:
-            if reference_node_operating_state == HARDWARE_STATE.ON:
+        elif initial_node_operating_state == HardwareState.OFF:
+            if reference_node_operating_state == HardwareState.ON:
                 score += config_values.on_should_be_off
-            elif reference_node_operating_state == HARDWARE_STATE.RESETTING:
+            elif reference_node_operating_state == HardwareState.RESETTING:
                 score += config_values.resetting_should_be_off
             else:
                 pass
-        elif initial_node_operating_state == HARDWARE_STATE.RESETTING:
-            if reference_node_operating_state == HARDWARE_STATE.ON:
+        elif initial_node_operating_state == HardwareState.RESETTING:
+            if reference_node_operating_state == HardwareState.ON:
                 score += config_values.on_should_be_resetting
-            elif reference_node_operating_state == HARDWARE_STATE.OFF:
+            elif reference_node_operating_state == HardwareState.OFF:
                 score += config_values.off_should_be_resetting
-            elif reference_node_operating_state == HARDWARE_STATE.RESETTING:
+            elif reference_node_operating_state == HardwareState.RESETTING:
                 score += config_values.resetting
             else:
                 pass
@@ -130,7 +133,7 @@ def score_node_operating_state(final_node, initial_node, reference_node, config_
 
 def score_node_os_state(final_node, initial_node, reference_node, config_values):
     """
-    Calculates score relating to the operating system state of a node.
+    Calculates score relating to the Software State of a node.
 
     Args:
         final_node: The node after red and blue agents take effect
@@ -139,9 +142,9 @@ def score_node_os_state(final_node, initial_node, reference_node, config_values)
         config_values: Config values
     """
     score = 0
-    final_node_os_state = final_node.get_os_state()
-    initial_node_os_state = initial_node.get_os_state()
-    reference_node_os_state = reference_node.get_os_state()
+    final_node_os_state = final_node.software_state
+    initial_node_os_state = initial_node.software_state
+    reference_node_os_state = reference_node.software_state
 
     if final_node_os_state == reference_node_os_state:
         # All is well - we're no different from the reference situation
@@ -149,28 +152,28 @@ def score_node_os_state(final_node, initial_node, reference_node, config_values)
     else:
         # We're different from the reference situation
         # Need to compare initial and reference (current) state of node (i.e. at every step)
-        if initial_node_os_state == SOFTWARE_STATE.GOOD:
-            if reference_node_os_state == SOFTWARE_STATE.PATCHING:
+        if initial_node_os_state == SoftwareState.GOOD:
+            if reference_node_os_state == SoftwareState.PATCHING:
                 score += config_values.patching_should_be_good
-            elif reference_node_os_state == SOFTWARE_STATE.COMPROMISED:
+            elif reference_node_os_state == SoftwareState.COMPROMISED:
                 score += config_values.compromised_should_be_good
             else:
                 pass
-        elif initial_node_os_state == SOFTWARE_STATE.PATCHING:
-            if reference_node_os_state == SOFTWARE_STATE.GOOD:
+        elif initial_node_os_state == SoftwareState.PATCHING:
+            if reference_node_os_state == SoftwareState.GOOD:
                 score += config_values.good_should_be_patching
-            elif reference_node_os_state == SOFTWARE_STATE.COMPROMISED:
+            elif reference_node_os_state == SoftwareState.COMPROMISED:
                 score += config_values.compromised_should_be_patching
-            elif reference_node_os_state == SOFTWARE_STATE.PATCHING:
+            elif reference_node_os_state == SoftwareState.PATCHING:
                 score += config_values.patching
             else:
                 pass
-        elif initial_node_os_state == SOFTWARE_STATE.COMPROMISED:
-            if reference_node_os_state == SOFTWARE_STATE.GOOD:
+        elif initial_node_os_state == SoftwareState.COMPROMISED:
+            if reference_node_os_state == SoftwareState.GOOD:
                 score += config_values.good_should_be_compromised
-            elif reference_node_os_state == SOFTWARE_STATE.PATCHING:
+            elif reference_node_os_state == SoftwareState.PATCHING:
                 score += config_values.patching_should_be_compromised
-            elif reference_node_os_state == SOFTWARE_STATE.COMPROMISED:
+            elif reference_node_os_state == SoftwareState.COMPROMISED:
                 score += config_values.compromised
             else:
                 pass
@@ -191,59 +194,59 @@ def score_node_service_state(final_node, initial_node, reference_node, config_va
         config_values: Config values
     """
     score = 0
-    final_node_services = final_node.get_services()
-    initial_node_services = initial_node.get_services()
-    reference_node_services = reference_node.get_services()
+    final_node_services: Dict[str, Service] = final_node.services
+    initial_node_services: Dict[str, Service] = initial_node.services
+    reference_node_services: Dict[str, Service] = reference_node.services
 
     for service_key, final_service in final_node_services.items():
         reference_service = reference_node_services[service_key]
         initial_service = initial_node_services[service_key]
 
-        if final_service.get_state() == reference_service.get_state():
+        if final_service.software_state == reference_service.software_state:
             # All is well - we're no different from the reference situation
             score += config_values.all_ok
         else:
             # We're different from the reference situation
             # Need to compare initial and reference state of node (i.e. at every step)
-            if initial_service.get_state() == SOFTWARE_STATE.GOOD:
-                if reference_service.get_state() == SOFTWARE_STATE.PATCHING:
+            if initial_service.software_state == SoftwareState.GOOD:
+                if reference_service.software_state == SoftwareState.PATCHING:
                     score += config_values.patching_should_be_good
-                elif reference_service.get_state() == SOFTWARE_STATE.COMPROMISED:
+                elif reference_service.software_state == SoftwareState.COMPROMISED:
                     score += config_values.compromised_should_be_good
-                elif reference_service.get_state() == SOFTWARE_STATE.OVERWHELMED:
+                elif reference_service.software_state == SoftwareState.OVERWHELMED:
                     score += config_values.overwhelmed_should_be_good
                 else:
                     pass
-            elif initial_service.get_state() == SOFTWARE_STATE.PATCHING:
-                if reference_service.get_state() == SOFTWARE_STATE.GOOD:
+            elif initial_service.software_state == SoftwareState.PATCHING:
+                if reference_service.software_state == SoftwareState.GOOD:
                     score += config_values.good_should_be_patching
-                elif reference_service.get_state() == SOFTWARE_STATE.COMPROMISED:
+                elif reference_service.software_state == SoftwareState.COMPROMISED:
                     score += config_values.compromised_should_be_patching
-                elif reference_service.get_state() == SOFTWARE_STATE.OVERWHELMED:
+                elif reference_service.software_state == SoftwareState.OVERWHELMED:
                     score += config_values.overwhelmed_should_be_patching
-                elif reference_service.get_state() == SOFTWARE_STATE.PATCHING:
+                elif reference_service.software_state == SoftwareState.PATCHING:
                     score += config_values.patching
                 else:
                     pass
-            elif initial_service.get_state() == SOFTWARE_STATE.COMPROMISED:
-                if reference_service.get_state() == SOFTWARE_STATE.GOOD:
+            elif initial_service.software_state == SoftwareState.COMPROMISED:
+                if reference_service.software_state == SoftwareState.GOOD:
                     score += config_values.good_should_be_compromised
-                elif reference_service.get_state() == SOFTWARE_STATE.PATCHING:
+                elif reference_service.software_state == SoftwareState.PATCHING:
                     score += config_values.patching_should_be_compromised
-                elif reference_service.get_state() == SOFTWARE_STATE.COMPROMISED:
+                elif reference_service.software_state == SoftwareState.COMPROMISED:
                     score += config_values.compromised
-                elif reference_service.get_state() == SOFTWARE_STATE.OVERWHELMED:
+                elif reference_service.software_state == SoftwareState.OVERWHELMED:
                     score += config_values.overwhelmed_should_be_compromised
                 else:
                     pass
-            elif initial_service.get_state() == SOFTWARE_STATE.OVERWHELMED:
-                if reference_service.get_state() == SOFTWARE_STATE.GOOD:
+            elif initial_service.software_state == SoftwareState.OVERWHELMED:
+                if reference_service.software_state == SoftwareState.GOOD:
                     score += config_values.good_should_be_overwhelmed
-                elif reference_service.get_state() == SOFTWARE_STATE.PATCHING:
+                elif reference_service.software_state == SoftwareState.PATCHING:
                     score += config_values.patching_should_be_overwhelmed
-                elif reference_service.get_state() == SOFTWARE_STATE.COMPROMISED:
+                elif reference_service.software_state == SoftwareState.COMPROMISED:
                     score += config_values.compromised_should_be_overwhelmed
-                elif reference_service.get_state() == SOFTWARE_STATE.OVERWHELMED:
+                elif reference_service.software_state == SoftwareState.OVERWHELMED:
                     score += config_values.overwhelmed
                 else:
                     pass
@@ -263,12 +266,12 @@ def score_node_file_system(final_node, initial_node, reference_node, config_valu
         reference_node: The node if there had been no red or blue effect
     """
     score = 0
-    final_node_file_system_state = final_node.get_file_system_state_actual()
-    initial_node_file_system_state = initial_node.get_file_system_state_actual()
-    reference_node_file_system_state = reference_node.get_file_system_state_actual()
+    final_node_file_system_state = final_node.file_system_state_actual
+    initial_node_file_system_state = initial_node.file_system_state_actual
+    reference_node_file_system_state = reference_node.file_system_state_actual
 
-    final_node_scanning_state = final_node.is_scanning_file_system()
-    reference_node_scanning_state = reference_node.is_scanning_file_system()
+    final_node_scanning_state = final_node.file_system_scanning
+    reference_node_scanning_state = reference_node.file_system_scanning
 
     # File System State
     if final_node_file_system_state == reference_node_file_system_state:
@@ -277,66 +280,66 @@ def score_node_file_system(final_node, initial_node, reference_node, config_valu
     else:
         # We're different from the reference situation
         # Need to compare initial and reference state of node (i.e. at every step)
-        if initial_node_file_system_state == FILE_SYSTEM_STATE.GOOD:
-            if reference_node_file_system_state == FILE_SYSTEM_STATE.REPAIRING:
+        if initial_node_file_system_state == FileSystemState.GOOD:
+            if reference_node_file_system_state == FileSystemState.REPAIRING:
                 score += config_values.repairing_should_be_good
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.RESTORING:
+            elif reference_node_file_system_state == FileSystemState.RESTORING:
                 score += config_values.restoring_should_be_good
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.CORRUPT:
+            elif reference_node_file_system_state == FileSystemState.CORRUPT:
                 score += config_values.corrupt_should_be_good
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.DESTROYED:
+            elif reference_node_file_system_state == FileSystemState.DESTROYED:
                 score += config_values.destroyed_should_be_good
             else:
                 pass
-        elif initial_node_file_system_state == FILE_SYSTEM_STATE.REPAIRING:
-            if reference_node_file_system_state == FILE_SYSTEM_STATE.GOOD:
+        elif initial_node_file_system_state == FileSystemState.REPAIRING:
+            if reference_node_file_system_state == FileSystemState.GOOD:
                 score += config_values.good_should_be_repairing
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.RESTORING:
+            elif reference_node_file_system_state == FileSystemState.RESTORING:
                 score += config_values.restoring_should_be_repairing
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.CORRUPT:
+            elif reference_node_file_system_state == FileSystemState.CORRUPT:
                 score += config_values.corrupt_should_be_repairing
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.DESTROYED:
+            elif reference_node_file_system_state == FileSystemState.DESTROYED:
                 score += config_values.destroyed_should_be_repairing
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.REPAIRING:
+            elif reference_node_file_system_state == FileSystemState.REPAIRING:
                 score += config_values.repairing
             else:
                 pass
-        elif initial_node_file_system_state == FILE_SYSTEM_STATE.RESTORING:
-            if reference_node_file_system_state == FILE_SYSTEM_STATE.GOOD:
+        elif initial_node_file_system_state == FileSystemState.RESTORING:
+            if reference_node_file_system_state == FileSystemState.GOOD:
                 score += config_values.good_should_be_restoring
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.REPAIRING:
+            elif reference_node_file_system_state == FileSystemState.REPAIRING:
                 score += config_values.repairing_should_be_restoring
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.CORRUPT:
+            elif reference_node_file_system_state == FileSystemState.CORRUPT:
                 score += config_values.corrupt_should_be_restoring
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.DESTROYED:
+            elif reference_node_file_system_state == FileSystemState.DESTROYED:
                 score += config_values.destroyed_should_be_restoring
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.RESTORING:
+            elif reference_node_file_system_state == FileSystemState.RESTORING:
                 score += config_values.restoring
             else:
                 pass
-        elif initial_node_file_system_state == FILE_SYSTEM_STATE.CORRUPT:
-            if reference_node_file_system_state == FILE_SYSTEM_STATE.GOOD:
+        elif initial_node_file_system_state == FileSystemState.CORRUPT:
+            if reference_node_file_system_state == FileSystemState.GOOD:
                 score += config_values.good_should_be_corrupt
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.REPAIRING:
+            elif reference_node_file_system_state == FileSystemState.REPAIRING:
                 score += config_values.repairing_should_be_corrupt
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.RESTORING:
+            elif reference_node_file_system_state == FileSystemState.RESTORING:
                 score += config_values.restoring_should_be_corrupt
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.DESTROYED:
+            elif reference_node_file_system_state == FileSystemState.DESTROYED:
                 score += config_values.destroyed_should_be_corrupt
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.CORRUPT:
+            elif reference_node_file_system_state == FileSystemState.CORRUPT:
                 score += config_values.corrupt
             else:
                 pass
-        elif initial_node_file_system_state == FILE_SYSTEM_STATE.DESTROYED:
-            if reference_node_file_system_state == FILE_SYSTEM_STATE.GOOD:
+        elif initial_node_file_system_state == FileSystemState.DESTROYED:
+            if reference_node_file_system_state == FileSystemState.GOOD:
                 score += config_values.good_should_be_destroyed
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.REPAIRING:
+            elif reference_node_file_system_state == FileSystemState.REPAIRING:
                 score += config_values.repairing_should_be_destroyed
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.RESTORING:
+            elif reference_node_file_system_state == FileSystemState.RESTORING:
                 score += config_values.restoring_should_be_destroyed
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.CORRUPT:
+            elif reference_node_file_system_state == FileSystemState.CORRUPT:
                 score += config_values.corrupt_should_be_destroyed
-            elif reference_node_file_system_state == FILE_SYSTEM_STATE.DESTROYED:
+            elif reference_node_file_system_state == FileSystemState.DESTROYED:
                 score += config_values.destroyed
             else:
                 pass

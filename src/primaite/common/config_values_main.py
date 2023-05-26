@@ -2,7 +2,7 @@
 """The config class."""
 
 
-class config_values_main(object):
+class ConfigValuesMain(object):
     """Class to hold main config values."""
 
     def __init__(self):
@@ -23,7 +23,7 @@ class config_values_main(object):
         # Reward values
         # Generic
         self.all_ok = 0
-        # Node Operating State
+        # Node Hardware State
         self.off_should_be_on = 0
         self.off_should_be_resetting = 0
         self.on_should_be_off = 0
@@ -31,7 +31,7 @@ class config_values_main(object):
         self.resetting_should_be_on = 0
         self.resetting_should_be_off = 0
         self.resetting = 0
-        # Node O/S or Service State
+        # Node Software or Service State
         self.good_should_be_patching = 0
         self.good_should_be_compromised = 0
         self.good_should_be_overwhelmed = 0

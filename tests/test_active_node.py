@@ -1,22 +1,22 @@
 """Used to test Active Node functions."""
 import pytest
 
-from primaite.common.enums import FILE_SYSTEM_STATE, HARDWARE_STATE, SOFTWARE_STATE
+from primaite.common.enums import FileSystemState, HardwareState, SoftwareState
 from primaite.nodes.active_node import ActiveNode
 
 
 @pytest.mark.parametrize(
     "operating_state, expected_state",
     [
-        (HARDWARE_STATE.OFF, SOFTWARE_STATE.GOOD),
-        (HARDWARE_STATE.ON, SOFTWARE_STATE.OVERWHELMED),
+        (HardwareState.OFF, SoftwareState.GOOD),
+        (HardwareState.ON, SoftwareState.OVERWHELMED),
     ],
 )
 def test_os_state_change(operating_state, expected_state):
     """
-    Test that a node cannot change its operating system state.
+    Test that a node cannot change its Software State.
 
-    When its operating state is OFF.
+    When its hardware state is OFF.
     """
     active_node = ActiveNode(
         0,
@@ -25,28 +25,28 @@ def test_os_state_change(operating_state, expected_state):
         "1",
         operating_state,
         "192.168.0.1",
-        SOFTWARE_STATE.GOOD,
+        SoftwareState.GOOD,
         "GOOD",
         1,
     )
 
-    active_node.set_os_state(SOFTWARE_STATE.OVERWHELMED)
+    active_node.software_state = SoftwareState.OVERWHELMED
 
-    assert active_node.get_os_state() == expected_state
+    assert active_node.software_state == expected_state
 
 
 @pytest.mark.parametrize(
     "operating_state, expected_state",
     [
-        (HARDWARE_STATE.OFF, SOFTWARE_STATE.GOOD),
-        (HARDWARE_STATE.ON, SOFTWARE_STATE.OVERWHELMED),
+        (HardwareState.OFF, SoftwareState.GOOD),
+        (HardwareState.ON, SoftwareState.OVERWHELMED),
     ],
 )
 def test_os_state_change_if_not_compromised(operating_state, expected_state):
     """
-    Test that a node cannot change its operating system state.
+    Test that a node cannot change its Software State.
 
-    If not compromised) when its operating state is OFF.
+    If not compromised) when its hardware state is OFF.
     """
     active_node = ActiveNode(
         0,
@@ -55,25 +55,25 @@ def test_os_state_change_if_not_compromised(operating_state, expected_state):
         "1",
         operating_state,
         "192.168.0.1",
-        SOFTWARE_STATE.GOOD,
+        SoftwareState.GOOD,
         "GOOD",
         1,
     )
 
-    active_node.set_os_state_if_not_compromised(SOFTWARE_STATE.OVERWHELMED)
+    active_node.set_software_state_if_not_compromised(SoftwareState.OVERWHELMED)
 
-    assert active_node.get_os_state() == expected_state
+    assert active_node.software_state == expected_state
 
 
 @pytest.mark.parametrize(
     "operating_state, expected_state",
     [
-        (HARDWARE_STATE.OFF, FILE_SYSTEM_STATE.GOOD),
-        (HARDWARE_STATE.ON, FILE_SYSTEM_STATE.CORRUPT),
+        (HardwareState.OFF, FileSystemState.GOOD),
+        (HardwareState.ON, FileSystemState.CORRUPT),
     ],
 )
 def test_file_system_change(operating_state, expected_state):
-    """Test that a node cannot change its file system state when its operating state is ON."""
+    """Test that a node cannot change its file system state when its hardware state is ON."""
     active_node = ActiveNode(
         0,
         "node",
@@ -82,27 +82,27 @@ def test_file_system_change(operating_state, expected_state):
         operating_state,
         "192.168.0.1",
         "COMPROMISED",
-        FILE_SYSTEM_STATE.GOOD,
+        FileSystemState.GOOD,
         1,
     )
 
-    active_node.set_file_system_state(FILE_SYSTEM_STATE.CORRUPT)
+    active_node.set_file_system_state(FileSystemState.CORRUPT)
 
-    assert active_node.get_file_system_state_actual() == expected_state
+    assert active_node.file_system_state_actual == expected_state
 
 
 @pytest.mark.parametrize(
     "operating_state, expected_state",
     [
-        (HARDWARE_STATE.OFF, FILE_SYSTEM_STATE.GOOD),
-        (HARDWARE_STATE.ON, FILE_SYSTEM_STATE.CORRUPT),
+        (HardwareState.OFF, FileSystemState.GOOD),
+        (HardwareState.ON, FileSystemState.CORRUPT),
     ],
 )
 def test_file_system_change_if_not_compromised(operating_state, expected_state):
     """
     Test that a node cannot change its file system state.
 
-    If not compromised) when its operating state is OFF.
+    If not compromised) when its hardware state is OFF.
     """
     active_node = ActiveNode(
         0,
@@ -112,10 +112,10 @@ def test_file_system_change_if_not_compromised(operating_state, expected_state):
         operating_state,
         "192.168.0.1",
         "GOOD",
-        FILE_SYSTEM_STATE.GOOD,
+        FileSystemState.GOOD,
         1,
     )
 
-    active_node.set_file_system_state_if_not_compromised(FILE_SYSTEM_STATE.CORRUPT)
+    active_node.set_file_system_state_if_not_compromised(FileSystemState.CORRUPT)
 
-    assert active_node.get_file_system_state_actual() == expected_state
+    assert active_node.file_system_state_actual == expected_state
