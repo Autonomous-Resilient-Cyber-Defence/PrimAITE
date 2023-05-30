@@ -191,22 +191,6 @@ class Primaite(Env):
             _LOGGER.error("Exception occured", exc_info=True)
             print("Could not save network diagram")
 
-        # Define Observation Space
-        # x = number of nodes and links (i.e. items)
-        # y = number of parameters to be sent
-        # For each item, we send:
-        # - [For Nodes]              |      [For Links]
-        # - node ID                  |      link ID
-        # - hardware state           |      N/A
-        # - Software State           |      N/A
-        # - file system state        |      N/A
-        # - service A state          |      service A loading
-        # - service B state          |      service B loading
-        # - service C state          |      service C loading
-        # - service D state          |      service D loading
-        # - service E state          |      service E loading
-        # - service F state          |      service F loading
-        # - service G state          |      service G loading
         # Initiate observation space
         self.observation_space, self.env_obs = self.init_observations()
 
@@ -704,7 +688,7 @@ class Primaite(Env):
             # the magic number 5 refers to 5 states of quantisation of traffic amount.
             # (zero, low, medium, high, fully utilised/overwhelmed)
             link_obs_shape = [5] * self.num_links
-            observation_shape = node_obs_shape + link_obs_shape
+            observation_shape = node_obs_shape * self.num_nodes + link_obs_shape
 
             # 2. Create observation space & zeroed out sample from space.
             observation_space = spaces.MultiDiscrete(observation_shape)
