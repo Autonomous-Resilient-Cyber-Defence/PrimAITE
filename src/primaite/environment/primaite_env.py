@@ -149,8 +149,8 @@ class Primaite(Env):
         # The action type
         self.action_type = 0
 
-        # Observation type.
-        self.observation_type = 0
+        # Observation type, by default box.
+        self.observation_type = ObservationType.BOX
 
         # Open the config file and build the environment laydown
         try:
