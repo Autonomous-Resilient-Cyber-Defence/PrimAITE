@@ -3,7 +3,7 @@
 - itemType: OBSERVATIONS
   type: BOX
 - itemType: STEPS
-  steps: 13
+  steps: 15
 - itemType: PORTS
   portsList:
   - port: '21'
@@ -44,7 +44,7 @@
 - itemType: RED_POL
   id: '2'
   startStep: 3
-  endStep: 13
+  endStep: 15
   targetNodeId: '1'
   initiator: DIRECT
   type: FILE
@@ -68,7 +68,7 @@
 - itemType: RED_POL
   id: '4'
   startStep: 6
-  endStep: 13
+  endStep: 15
   targetNodeId: '1'
   initiator: DIRECT
   type: OPERATING
@@ -92,7 +92,7 @@
 - itemType: RED_POL
   id: '6'
   startStep: 9
-  endStep: 13
+  endStep: 15
   targetNodeId: '1'
   initiator: DIRECT
   type: SERVICE
@@ -116,7 +116,7 @@
 - itemType: RED_POL
   id: '8'
   startStep: 12
-  endStep: 13
+  endStep: 15
   targetNodeId: '1'
   initiator: DIRECT
   type: OS
