@@ -11,7 +11,7 @@ numEpisodes: 10
 # Time delay between steps (for generic agents)
 timeDelay: 10
 # Filename of the scenario / laydown
-configFilename: config_1_DDOS_BASIC.yaml
+configFilename: config_5_DATA_MANIPULATION.yaml
 # Type of session to be run (TRAINING or EVALUATION)
 sessionType: TRAINING
 # Determine whether to load an agent from file
