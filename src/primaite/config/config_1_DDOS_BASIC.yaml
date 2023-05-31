@@ -1,7 +1,5 @@
 - itemType: ACTIONS
   type: NODE
-- itemType: OBSERVATIONS
-  type: BOX
 - itemType: STEPS
   steps: 128
 - itemType: PORTS
