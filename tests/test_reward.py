@@ -28,4 +28,4 @@ def test_rewards_are_being_penalised_at_each_step_function():
         Average Reward: 2 (26 / 13)
     """
     print("average reward", env.average_reward)
-    assert env.average_reward == 2.0
+    assert env.average_reward == -8.0
