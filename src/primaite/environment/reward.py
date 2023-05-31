@@ -100,7 +100,7 @@ def score_node_operating_state(final_node, initial_node, reference_node, config_
         score += config_values.all_ok
     else:
         # We're different from the reference situation
-        # Need to compare initial and reference (current) state of node (i.e. at every step)
+        # Need to compare reference and final (current) state of node (i.e. at every step)
         if reference_node_operating_state == HardwareState.ON:
             if final_node_operating_state == HardwareState.OFF:
                 score += config_values.off_should_be_on
@@ -149,7 +149,7 @@ def score_node_os_state(final_node, initial_node, reference_node, config_values)
         score += config_values.all_ok
     else:
         # We're different from the reference situation
-        # Need to compare initial and reference (current) state of node (i.e. at every step)
+        # Need to compare reference and final (current) state of node (i.e. at every step)
         if reference_node_os_state == SoftwareState.GOOD:
             if final_node_os_state == SoftwareState.PATCHING:
                 score += config_values.patching_should_be_good
@@ -204,7 +204,7 @@ def score_node_service_state(final_node, initial_node, reference_node, config_va
             score += config_values.all_ok
         else:
             # We're different from the reference situation
-            # Need to compare initial and reference state of node (i.e. at every step)
+            # Need to compare reference and final state of node (i.e. at every step)
             if reference_service.software_state == SoftwareState.GOOD:
                 if final_service.software_state == SoftwareState.PATCHING:
                     score += config_values.patching_should_be_good
@@ -275,7 +275,7 @@ def score_node_file_system(final_node, initial_node, reference_node, config_valu
         score += config_values.all_ok
     else:
         # We're different from the reference situation
-        # Need to compare initial and reference state of node (i.e. at every step)
+        # Need to compare reference and final state of node (i.e. at every step)
         if reference_node_file_system_state == FileSystemState.GOOD:
             if final_node_file_system_state == FileSystemState.REPAIRING:
                 score += config_values.repairing_should_be_good
