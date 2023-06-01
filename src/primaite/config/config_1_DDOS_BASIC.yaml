@@ -1,5 +1,13 @@
 - itemType: ACTIONS
   type: NODE
+- itemType: OBSERVATION_SPACE
+  components:
+    - name: NODE_LINK_TABLE
+    - name: NODE_STATUSES
+    - name: LINK_TRAFFIC_LEVELS
+      options:
+        - combine_service_traffic : False
+        - quantisation_levels : 7
 - itemType: STEPS
   steps: 128
 - itemType: PORTS

@@ -35,7 +35,23 @@ class AbstractObservationComponent(ABC):
 class NodeLinkTable(AbstractObservationComponent):
     """Table with nodes/links as rows and hardware/software status as cols.
 
-    #todo: write full description
+    Initialise the observation space with the BOX option chosen.
+
+    This will create the observation space formatted as a table of integers.
+    There is one row per node, followed by one row per link.
+    Columns are as follows:
+        * node/link ID
+        * node hardware status / 0 for links
+        * node operating system status (if active/service) / 0 for links
+        * node file system status (active/service only) / 0 for links
+        * node service1 status / traffic load from that service for links
+        * node service2 status / traffic load from that service for links
+        * ...
+        * node serviceN status / traffic load from that service for links
+
+    For example if the environment has 5 nodes, 7 links, and 3 services, the observation space shape will be
+    ``(12, 7)``
+    #todo: clean up description
 
     """
 
@@ -44,7 +60,7 @@ class NodeLinkTable(AbstractObservationComponent):
     _DATA_TYPE = np.int64
 
     def __init__(self, env: Primaite):
-        super().__init__()
+        super().__init__(env)
 
         # 1. Define the shape of your observation space component
         num_items = self.env.num_links + self.env.num_nodes
@@ -65,6 +81,10 @@ class NodeLinkTable(AbstractObservationComponent):
     def update_obs(self):
         """Update the observation.
 
+        Update the environment's observation state based on the current status of nodes and links.
+
+        The structure of the observation space is described in :func:`~_init_box_observations`
+        This function can only be called if the observation space setting is set to BOX.
         todo: complete description..
         """
         item_index = 0
@@ -116,12 +136,20 @@ class NodeLinkTable(AbstractObservationComponent):
 
 
 class NodeStatuses(AbstractObservationComponent):
-    """todo: complete description."""
+    """todo: complete description.
+
+    This will create the observation space with node observations followed by link observations.
+    Each node has 3 elements in the observation space plus 1 per service, more specifically:
+        * hardware state
+        * operating system state
+        * file system state
+        * service states (one per service)
+    """
 
     _DATA_TYPE = np.int64
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, env: Primaite):
+        super().__init__(env)
 
         # 1. Define the shape of your observation space component
         shape = [
@@ -139,7 +167,15 @@ class NodeStatuses(AbstractObservationComponent):
         self.current_observation = np.zeros(len(shape), dtype=self._DATA_TYPE)
 
     def update_obs(self):
-        """todo: complete description."""
+        """todo: complete description.
+
+        Update the environment's observation state based on the current status of nodes and links.
+
+        The structure of the observation space is described in :func:`~_init_multidiscrete_observations`
+        This function can only be called if the observation space setting is set to MULTIDISCRETE.
+
+
+        """
         obs = []
         for _, node in self.env.nodes.items():
             hardware_state = node.hardware_state.value
@@ -160,14 +196,26 @@ class NodeStatuses(AbstractObservationComponent):
 
 
 class LinkTrafficLevels(AbstractObservationComponent):
-    """todo: complete description."""
+    """todo: complete description.
+
+    Each link has one element in the observation space, corresponding to the traffic load,
+    it can take the following values:
+        0 = No traffic (0% of bandwidth)
+        1 = No traffic (0%-33% of bandwidth)
+        2 = No traffic (33%-66% of bandwidth)
+        3 = No traffic (66%-100% of bandwidth)
+        4 = No traffic (100% of bandwidth)
+    """
 
     _DATA_TYPE = np.int64
 
     def __init__(
-        self, combine_service_traffic: bool = False, quantisation_levels: int = 5
+        self,
+        env: Primaite,
+        combine_service_traffic: bool = False,
+        quantisation_levels: int = 5,
     ):
-        super().__init__()
+        super().__init__(env)
         self._combine_service_traffic: bool = combine_service_traffic
         self._quantisation_levels: int = quantisation_levels
         self._entries_per_link: int = 1
@@ -212,7 +260,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
 
 
 class ObservationsHandler:
-    """todo: complete description."""
+    """Component-based observation space handler."""
 
     class registry(Enum):
         """todo: complete description."""
@@ -254,3 +302,25 @@ class ObservationsHandler:
         for obs_comp in self.registered_obs_components:
             component_spaces.append(obs_comp.space)
         self.space = spaces.Tuple(component_spaces)
+
+    @classmethod
+    def from_config(cls, obs_space_config):
+        """todo: complete description.
+
+        This method parses config items related to the observation space, then
+        creates the necessary components and adds them to the observation handler.
+        """
+        # Instantiate the handler
+        handler = cls()
+
+        for component_cfg in obs_space_config["components"]:
+            # Figure out which class can instantiate the desired component
+            comp_type = component_cfg["name"]
+            comp_class = cls.registry[comp_type].value
+
+            # Create the component with options from the YAML
+            component = comp_class(**component_cfg["options"])
+
+            handler.register(component)
+
+        return handler
