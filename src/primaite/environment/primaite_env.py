@@ -149,7 +149,8 @@ class Primaite(Env):
         # The action type
         self.action_type = 0
 
-        # todo: proper description here
+        # TODO: proper description here
+        self.obs_config: dict
         self.obs_handler: ObservationsHandler
 
         # Open the config file and build the environment laydown
@@ -160,10 +161,6 @@ class Primaite(Env):
         except Exception:
             _LOGGER.error("Could not load the environment configuration")
             _LOGGER.error("Exception occured", exc_info=True)
-
-        # If it doesn't exist after parsing config, create default obs space.
-        if self.get("obs_handler") is None:
-            self.configure_obs_space()
 
         # Store the node objects as node attributes
         # (This is so we can access them as objects)
@@ -194,6 +191,10 @@ class Primaite(Env):
             _LOGGER.error("Could not save network diagram")
             _LOGGER.error("Exception occured", exc_info=True)
             print("Could not save network diagram")
+
+        # # If it doesn't exist after parsing config, create default obs space.
+        # if getattr(self, "obs_handler", None) is None:
+        #     self.configure_obs_space()
 
         # Initiate observation space
         self.observation_space, self.env_obs = self.init_observations()
@@ -646,13 +647,22 @@ class Primaite(Env):
                 pass
 
     def init_observations(self) -> Tuple[spaces.Space, np.ndarray]:
-        """todo: write docstring."""
+        """TODO: write docstring."""
+        if getattr(self, "obs_config", None) is None:
+            self.obs_config = {
+                "components": [
+                    {"name": "NODE_LINK_TABLE"},
+                ]
+            }
+
+        self.obs_handler = ObservationsHandler.from_config(self, self.obs_config)
+
         return self.obs_handler.space, self.obs_handler.current_observation
 
     def update_environent_obs(self):
         """Updates the observation space based on the node and link status.
 
-        todo: better docstring
+        TODO: better docstring
         """
         self.obs_handler.update_obs()
         self.env_obs = self.obs_handler.current_observation
@@ -692,7 +702,7 @@ class Primaite(Env):
                 self.get_action_info(item)
             elif item["itemType"] == "OBSERVATION_SPACE":
                 # Get the observation information
-                self.configure_obs_space(item)
+                self.save_obs_config(item)
             elif item["itemType"] == "STEPS":
                 # Get the steps information
                 self.get_steps_info(item)
@@ -1025,16 +1035,9 @@ class Primaite(Env):
         """
         self.action_type = ActionType[action_info["type"]]
 
-    def configure_obs_space(self, observation_config: Optional[Dict] = None):
-        """todo: better docstring."""
-        if observation_config is None:
-            observation_config = {
-                "components": [
-                    {"name": "NODE_LINK_TABLE"},
-                ]
-            }
-
-        self.obs_handler = ObservationsHandler[observation_config]
+    def save_obs_config(self, obs_config: Optional[Dict] = None):
+        """TODO: better docstring."""
+        self.obs_config = obs_config
 
     def get_steps_info(self, steps_info):
         """
