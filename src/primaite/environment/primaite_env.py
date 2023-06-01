@@ -648,12 +648,10 @@ class Primaite(Env):
         `OBSERVATION_SPACE_FIXED_PARAMETERS`, `OBSERVATION_SPACE_HIGH_VALUE`, and `observation_type`
         attributes to figure out the correct shape and format for the observation space.
 
-        Returns
-        -------
-        gym.spaces.Space
-            Gym observation space
-        numpy.Array
-            Initial observation with all entries set to 0
+        :return: Gym observation space
+        :rtype: gym.spaces.Space
+        :return: Initial observation with all entires set to 0
+        :rtype: numpy.Array
         """
         if self.observation_type == ObservationType.BOX:
             _LOGGER.info("Observation space type BOX selected")
@@ -1179,10 +1177,8 @@ class Primaite(Env):
     def get_observation_info(self, observation_info):
         """Extracts observation_info.
 
-        Parameters
-        ----------
-        observation_info : str
-            Config item that defines which type of observation space to use
+        :param observation_info: Config item that defines which type of observation space to use
+        :type observation_info: str
         """
         self.observation_type = ObservationType[observation_info["type"]]
 
