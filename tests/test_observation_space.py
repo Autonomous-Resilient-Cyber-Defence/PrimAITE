@@ -12,6 +12,12 @@ def test_creating_env_with_box_obs():
     )
     env.update_environent_obs()
 
+    # we have three nodes and two links, with one service
+    # therefore the box observation space will have:
+    #   * 5 columns (four fixed and one for the service)
+    #   * 5 rows (3 nodes + 2 links)
+    assert env.env_obs.shape == (5, 5)
+
 
 def test_creating_env_with_multidiscrete_obs():
     """Try creating env with MultiDiscrete observation space."""
@@ -21,3 +27,8 @@ def test_creating_env_with_multidiscrete_obs():
         / "multidiscrete_obs_space_laydown_config.yaml",
     )
     env.update_environent_obs()
+
+    # we have three nodes and two links, with one service
+    # the nodes have hardware, OS, FS, and service, the links just have bandwidth,
+    # therefore we need 3*4 + 2 observations
+    assert env.env_obs.shape == (3 * 4 + 2,)
