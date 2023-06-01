@@ -1,5 +1,6 @@
 """Test env creation and behaviour with different observation spaces."""
 
+from primaite.environment.observations import NodeStatuses, ObservationsHandler
 from tests import TEST_CONFIG_ROOT
 from tests.conftest import _get_primaite_env_from_config
 
@@ -32,3 +33,13 @@ def test_creating_env_with_multidiscrete_obs():
     # the nodes have hardware, OS, FS, and service, the links just have bandwidth,
     # therefore we need 3*4 + 2 observations
     assert env.env_obs.shape == (3 * 4 + 2,)
+
+
+def test_component_registration():
+    """Test that we can register and deregister a component."""
+    handler = ObservationsHandler()
+    component = NodeStatuses()
+    handler.register(component)
+    assert component in handler.registered_obs_components
+    handler.deregister(component)
+    assert component not in handler.registered_obs_components
