@@ -6,7 +6,7 @@ import csv
 import logging
 import os.path
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Tuple
 
 import networkx as nx
 import numpy as np
@@ -641,7 +641,7 @@ class Primaite(Env):
             else:
                 pass
 
-    def init_observations(self):
+    def init_observations(self) -> Tuple[spaces.Space, np.ndarray]:
         """Build the observation space based on network laydown and provide initial obs.
 
         This method uses the object's `num_links`, `num_nodes`, `num_services`,
