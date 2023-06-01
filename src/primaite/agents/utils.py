@@ -414,6 +414,8 @@ def is_valid_node_action(action):
     node_property = action_r[1]
     node_action = action_r[2]
 
+    # print("node property", node_property, "\nnode action", node_action)
+
     if node_property == "NONE":
         return False
     if node_action == "NONE":

@@ -11,7 +11,7 @@ numEpisodes: 1
 # Time delay between steps (for generic agents)
 timeDelay: 1
 # Filename of the scenario / laydown
-configFilename: one_node_states_on_off_lay_down_config.yaml
+configFilename: single_action_space_lay_down_config.yaml
 # Type of session to be run (TRAINING or EVALUATION)
 sessionType: TRAINING
 # Determine whether to load an agent from file
