@@ -1,5 +1,5 @@
 - itemType: ACTIONS
-  type: NODE
+  type: ANY
 - itemType: STEPS
   steps: 15
 - itemType: PORTS
@@ -27,3 +27,27 @@
   - node: '1'
     x_pos: 309
     y_pos: 78
+- itemType: RED_POL
+  id: '1'
+  startStep: 1
+  endStep: 3
+  targetNodeId: '1'
+  initiator: DIRECT
+  type: FILE
+  protocol: NA
+  state: CORRUPT
+  sourceNodeId: NA
+  sourceNodeService: NA
+  sourceNodeServiceState: NA
+- itemType: RED_POL
+  id: '2'
+  startStep: 3
+  endStep: 15
+  targetNodeId: '1'
+  initiator: DIRECT
+  type: FILE
+  protocol: NA
+  state: GOOD
+  sourceNodeId: NA
+  sourceNodeService: NA
+  sourceNodeServiceState: NA

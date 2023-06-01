@@ -42,6 +42,7 @@ from primaite.pol.red_agent_pol import apply_red_agent_iers, apply_red_agent_nod
 from primaite.transactions.transaction import Transaction
 
 _LOGGER = logging.getLogger(__name__)
+_LOGGER.setLevel(logging.INFO)
 
 
 class Primaite(Env):
@@ -235,6 +236,7 @@ class Primaite(Env):
             # [0, num services] - resolves to service ID (0 = nothing, resolves to service) # noqa
             self.action_dict = self.create_node_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
+            print(self.action_space, "NODE action space")
         elif self.action_type == ActionType.ACL:
             _LOGGER.info("Action space type ACL selected")
             # Terms (for ACL action space):
@@ -246,11 +248,12 @@ class Primaite(Env):
             # [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
             self.action_dict = self.create_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
+            print(self.action_space, "ACL action space")
         else:
-            _LOGGER.info("Action space type ANY selected - Node + ACL")
+            _LOGGER.warning("Action space type ANY selected - Node + ACL")
             self.action_dict = self.create_node_and_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
-
+            print(self.action_space, "ANY action space")
         # Set up a csv to store the results of the training
         try:
             now = datetime.now()  # current date and time
@@ -450,6 +453,7 @@ class Primaite(Env):
         Args:
             _action: The action space from the agent
         """
+        # print("intepret action")
         # At the moment, actions are only affecting nodes
         if self.action_type == ActionType.NODE:
             self.apply_actions_to_nodes(_action)
@@ -464,6 +468,7 @@ class Primaite(Env):
         ):  # Node actions in multdiscrete (array) from have len 4
             self.apply_actions_to_nodes(_action)
         else:
+            print("invalid action type found")
             logging.error("Invalid action type found")
 
     def apply_actions_to_nodes(self, _action):
@@ -1084,6 +1089,7 @@ class Primaite(Env):
             item: A config data item representing action info
         """
         self.action_type = ActionType[action_info["type"]]
+        print("action type selected: ", self.action_type)
 
     def get_steps_info(self, steps_info):
         """
@@ -1187,9 +1193,8 @@ class Primaite(Env):
 
         """
         # reserve 0 action to be a nothing action
-        # Used to be {0: [1, 0, 0, 0]}
         actions = {0: [1, 0, 0, 0]}
-
+        # print("node dict function call", self.num_nodes + 1)
         action_key = 1
         for node in range(1, self.num_nodes + 1):
             # 4 node properties (NONE, OPERATING, OS, SERVICE)
@@ -1197,11 +1202,14 @@ class Primaite(Env):
                 # Node Actions either:
                 # (NONE, ON, OFF, RESET) - operating state OR (NONE, PATCH) - OS/service state
                 # Use MAX to ensure we get them all
+                # print(self.num_services, "num services")
                 for node_action in range(4):
                     for service_state in range(self.num_services):
                         action = [node, node_property, node_action, service_state]
                         # check to see if its a nothing aciton (has no effect)
+                        # print("action node",action)
                         if is_valid_node_action(action):
+                            print("true")
                             actions[action_key] = action
                             action_key += 1
 
@@ -1213,6 +1221,7 @@ class Primaite(Env):
         actions = {0: [0, 0, 0, 0, 0, 0]}
 
         action_key = 1
+        # print("node count",self.num_nodes + 1)
         # 3 possible action decisions, 0=NOTHING, 1=CREATE, 2=DELETE
         for action_decision in range(3):
             # 2 possible action permissions 0 = DENY, 1 = CREATE
@@ -1230,10 +1239,13 @@ class Primaite(Env):
                                     protocol,
                                     port,
                                 ]
+                                # print("action acl", action)
                                 # Check to see if its an action we want to include as possible i.e. not a nothing action
                                 if is_valid_acl_action_extra(action):
+                                    print("true")
                                     actions[action_key] = action
                                     action_key += 1
+                                # print("false")
 
         return actions
 
@@ -1247,6 +1259,8 @@ class Primaite(Env):
         node_action_dict = self.create_node_action_dict()
         acl_action_dict = self.create_acl_action_dict()
 
+        print(len(node_action_dict), len(acl_action_dict))
+
         # Change node keys to not overlap with acl keys
         # Only 1 nothing action (key 0) is required, remove the other
         new_node_action_dict = {
@@ -1257,4 +1271,6 @@ class Primaite(Env):
 
         # Combine the Node dict and ACL dict
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
+        logging.warning("logging is working")
+        # print(len(list(combined_action_dict.values())))
         return combined_action_dict
