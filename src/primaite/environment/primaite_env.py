@@ -6,7 +6,7 @@ import csv
 import logging
 import os.path
 from datetime import datetime
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 import networkx as nx
 import numpy as np
@@ -643,16 +643,17 @@ class Primaite(Env):
                 pass
 
     def init_observations(self) -> Tuple[spaces.Space, np.ndarray]:
-        """TODO: write docstring."""
+        """Create the environment's observation handler.
+
+        :return: The observation space, initial observation (zeroed out array with the correct shape)
+        :rtype: Tuple[spaces.Space, np.ndarray]
+        """
         self.obs_handler = ObservationsHandler.from_config(self, self.obs_config)
 
         return self.obs_handler.space, self.obs_handler.current_observation
 
     def update_environent_obs(self):
-        """Updates the observation space based on the node and link status.
-
-        TODO: better docstring
-        """
+        """Updates the observation space based on the node and link status."""
         self.obs_handler.update_obs()
         self.env_obs = self.obs_handler.current_observation
 
@@ -1024,8 +1025,16 @@ class Primaite(Env):
         """
         self.action_type = ActionType[action_info["type"]]
 
-    def save_obs_config(self, obs_config: Optional[Dict] = None):
-        """TODO: better docstring."""
+    def save_obs_config(self, obs_config: dict):
+        """Cache the config for the observation space.
+
+        This is necessary as the observation space can't be built while reading the config,
+        it must be done after all the nodes, links, and services have been initialised.
+
+        :param obs_config: Parsed config relating to the observation space. The format is described in
+        :py:meth:`primaite.environment.observations.ObservationsHandler.from_config`
+        :type obs_config: dict
+        """
         self.obs_config = obs_config
 
     def get_steps_info(self, steps_info):
