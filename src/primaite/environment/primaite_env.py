@@ -763,6 +763,7 @@ class Primaite(Env):
     def _update_env_obs_box(self):
         """Update the environment's observation state based on the current status of nodes and links.
 
+        The structure of the observation space is described in :func:`~_init_box_observations`
         This function can only be called if the observation space setting is set to BOX.
 
         :raises AssertionError: If this function is called when the environment has the incorrect ``observation_type``
@@ -813,6 +814,7 @@ class Primaite(Env):
     def _update_env_obs_multidiscrete(self):
         """Update the environment's observation state based on the current status of nodes and links.
 
+        The structure of the observation space is described in :func:`~_init_multidiscrete_observations`
         This function can only be called if the observation space setting is set to MULTIDISCRETE.
 
         :raises AssertionError: If this function is called when the environment has the incorrect ``observation_type``
