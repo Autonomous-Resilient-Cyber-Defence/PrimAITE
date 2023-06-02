@@ -85,6 +85,13 @@ class ActionType(Enum):
     ACL = 1
 
 
+class ObservationType(Enum):
+    """Observation type enumeration."""
+
+    BOX = 0
+    MULTIDISCRETE = 1
+
+
 class FileSystemState(Enum):
     """File System State."""
 

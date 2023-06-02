@@ -1,0 +1,68 @@
+- itemType: ACTIONS
+  type: NODE
+- itemType: OBSERVATIONS
+  type: BOX
+- itemType: STEPS
+  steps: 5
+- itemType: PORTS
+  portsList:
+    - port: '80'
+- itemType: SERVICES
+  serviceList:
+    - name: TCP
+
+########################################
+# Nodes
+- itemType: NODE
+  node_id: '1'
+  name: PC1
+  node_class: SERVICE
+  node_type: COMPUTER
+  priority: P5
+  hardware_state: 'ON'
+  ip_address: 192.168.1.1
+  software_state: GOOD
+  file_system_state: GOOD
+  services:
+    - name: TCP
+      port: '80'
+      state: GOOD
+- itemType: NODE
+  node_id: '2'
+  name: SERVER
+  node_class: SERVICE
+  node_type: SERVER
+  priority: P5
+  hardware_state: 'ON'
+  ip_address: 192.168.1.2
+  software_state: GOOD
+  file_system_state: GOOD
+  services:
+    - name: TCP
+      port: '80'
+      state: GOOD
+- itemType: NODE
+  node_id: '3'
+  name: SWITCH1
+  node_class: ACTIVE
+  node_type: SWITCH
+  priority: P2
+  hardware_state: 'ON'
+  ip_address: 192.168.1.3
+  software_state: GOOD
+  file_system_state: GOOD
+
+########################################
+# Links
+- itemType: LINK
+  id: '4'
+  name: link1
+  bandwidth: 1000
+  source: '1'
+  destination: '3'
+- itemType: LINK
+  id: '5'
+  name: link2
+  bandwidth: 1000
+  source: '3'
+  destination: '2'
