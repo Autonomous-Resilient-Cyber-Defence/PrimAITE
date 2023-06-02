@@ -1,8 +1,5 @@
 - itemType: ACTIONS
   type: NODE
-- itemType: OBSERVATION_SPACE
-  components:
-    - name: NODE_LINK_TABLE
 - itemType: STEPS
   steps: 5
 - itemType: PORTS
