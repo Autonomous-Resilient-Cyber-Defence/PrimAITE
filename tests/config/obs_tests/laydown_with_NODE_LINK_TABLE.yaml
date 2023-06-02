@@ -1,7 +1,11 @@
 - itemType: ACTIONS
   type: NODE
-- itemType: OBSERVATIONS
-  type: BOX
+- itemType: OBSERVATION_SPACE
+  components:
+    - name: NODE_LINK_TABLE
+      options:
+        - combine_service_traffic: false
+        - quantisation_levels: 8
 - itemType: STEPS
   steps: 5
 - itemType: PORTS
