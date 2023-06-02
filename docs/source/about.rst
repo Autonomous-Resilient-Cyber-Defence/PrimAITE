@@ -188,6 +188,11 @@ The OpenAI Gym observation space provides the status of all nodes and links acro
 * Nodes (in terms of hardware state, Software State, file system state and services state) ​
 * Links (in terms of current loading for each service/protocol)
 
+The observation space can be configured as a ``gym.spaces.Box`` or ``gym.spaces.MultiDiscrete``, by setting the ``OBSERVATIONS`` parameter in the laydown config.
+
+Box-type observation space
+--------------------------
+
 An example observation space is provided below:
 
 .. list-table:: Observation Space example
@@ -284,6 +289,51 @@ For the links, the following statuses are represented:
  * Hardware State = N/A
  * SoftwareState = N/A
  * Protocol = loading in bits/s
+
+MultiDiscrete-type observation space
+------------------------------------
+The MultiDiscrete observation space can be though of as a one-dimensional vector of discrete states, represented by integers.
+The example above would have the following structure:
+
+.. code-block::
+
+  [
+    node1_info
+    node2_info
+    node3_info
+    link1_status
+    link2_status
+    link3_status
+  ]
+
+Each ``node_info`` contains the following:
+
+.. code-block::
+
+  [
+    hardware_state    (0=none, 1=ON, 2=OFF, 3=RESETTING)
+    software_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)
+    file_system_state (0=none, 1=GOOD, 2=CORRUPT, 3=DESTROYED, 4=REPAIRING, 5=RESTORING)
+    service1_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)
+    service2_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)
+  ]
+
+Each ``link_status`` is just a number from 0-4 representing the network load in relation to bandwidth.
+
+.. code-block::
+
+  0 = No traffic (0%)
+  1 = low traffic (<33%)
+  2 = medium traffic (<66%)
+  3 = high traffic (<100%)
+  4 = max traffic/ overwhelmed (100%)
+
+The full observation space would have 15 node-related elements and 3 link-related elements. It can be written with ``gym`` notation to indicate the number of discrete options for each of the elements of the observation space. For example:
+
+.. code-block::
+
+  gym.spaces.MultiDiscrete([4,5,6,4,4,4,5,6,4,4,4,5,6,4,4,5,5,5])
+
 
 Action Spaces
 **************
