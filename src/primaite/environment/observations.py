@@ -281,7 +281,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
                     traffic_level = self._quantisation_levels - 1
                 else:
                     traffic_level = (load / bandwidth) // (
-                        1 / (self._quantisation_levels - 1)
+                        1 / (self._quantisation_levels - 2)
                     ) + 1
 
                 obs.append(int(traffic_level))
