@@ -194,3 +194,9 @@ class ServiceNode(ActiveNode):
         if self.resetting_count <= 0:
             for service in self.services.values():
                 service.software_state = SoftwareState.GOOD
+
+    def update_booting_status(self):
+        super().update_booting_status()
+        if self.booting_count <= 0:
+            for service in self.services.values():
+                service.software_state =SoftwareState.GOOD
