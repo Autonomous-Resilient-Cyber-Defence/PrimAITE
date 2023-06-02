@@ -210,8 +210,8 @@ class TestLinkTrafficLevels:
             * two services
             * three nodes
             * two links
-            * an IER trying to send 20 bits of data over both links the whole time (via the first service)
-            * link bandwidth of 1000, therefore the utilisation is 2%
+            * an IER trying to send 999 bits of data over both links the whole time (via the first service)
+            * link bandwidth of 1000, therefore the utilisation is 99.9%
         """
         act = np.asarray([0, 0, 0, 0])
         obs, reward, done, info = env.step(act)
@@ -219,6 +219,7 @@ class TestLinkTrafficLevels:
 
         # the observation space has combine_service_traffic set to False, so the space has this format:
         # [link1_service1, link1_service2, link2_service1, link2_service2]
-        # we send 20 bits of data via link1 and link2 on service 1.
-        # therefore the first and third elements should be 1 and all others 0
-        assert np.array_equal(obs, [1, 0, 1, 0])
+        # we send 999 bits of data via link1 and link2 on service 1.
+        # therefore the first and third elements should be 6 and all others 0
+        # (`7` corresponds to 100% utiilsation and `6` corresponds to 87.5%-100%)
+        assert np.array_equal(obs, [6, 0, 6, 0])
