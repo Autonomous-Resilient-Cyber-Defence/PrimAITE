@@ -83,6 +83,8 @@ greenIerBlocked: -10
 # Patching / Reset durations
 osPatchingDuration: 5            # The time taken to patch the OS
 nodeResetDuration: 5             # The time taken to reset a node (hardware)
+nodeBootingDuration: 3           # The Time taken to turn on the node
+nodeShutdownDuration: 2          # The time taken to turn off the node
 servicePatchingDuration: 5       # The time taken to patch a service
 fileSystemRepairingLimit: 5      # The time take to repair the file system
 fileSystemRestoringLimit: 5      # The time take to restore the file system

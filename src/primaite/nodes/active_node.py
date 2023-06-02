@@ -210,3 +210,10 @@ class ActiveNode(Node):
             self.file_system_state_observed = self.file_system_state_actual
             self.file_system_scanning = False
             self.file_system_scanning_count = 0
+
+    def update_resetting_status(self):
+        super().update_resetting_status()
+        if self.resetting_count <= 0:
+            self.file_system_state_actual = FileSystemState.GOOD
+            self.software_state = SoftwareState.GOOD
+
