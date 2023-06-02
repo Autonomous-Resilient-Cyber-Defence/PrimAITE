@@ -249,11 +249,13 @@ class Primaite(Env):
             self.action_dict = self.create_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
             print(self.action_space, "ACL action space")
-        else:
-            _LOGGER.warning("Action space type ANY selected - Node + ACL")
+        elif self.action_type == ActionType.ANY:
+            _LOGGER.info("Action space type ANY selected - Node + ACL")
             self.action_dict = self.create_node_and_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
             print(self.action_space, "ANY action space")
+        else:
+            _LOGGER.info("Invalid action type selected")
         # Set up a csv to store the results of the training
         try:
             now = datetime.now()  # current date and time
@@ -1271,6 +1273,5 @@ class Primaite(Env):
 
         # Combine the Node dict and ACL dict
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
-        logging.warning("logging is working")
         # print(len(list(combined_action_dict.values())))
         return combined_action_dict
