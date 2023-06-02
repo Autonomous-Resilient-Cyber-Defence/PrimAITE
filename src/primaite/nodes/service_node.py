@@ -188,3 +188,9 @@ class ServiceNode(ActiveNode):
         for service_key, service_value in self.services.items():
             if service_value.software_state == SoftwareState.PATCHING:
                 service_value.reduce_patching_count()
+
+    def update_resetting_status(self):
+        super().update_resetting_status()
+        if self.resetting_count <= 0:
+            for service in self.services.values():
+                service.software_state = SoftwareState.GOOD
