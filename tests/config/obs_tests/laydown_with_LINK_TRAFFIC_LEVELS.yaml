@@ -1,7 +1,8 @@
 - itemType: ACTIONS
   type: NODE
-- itemType: OBSERVATIONS
-  type: MULTIDISCRETE
+- itemType: OBSERVATION_SPACE
+  components:
+    - name: NODE_STATUSES
 - itemType: STEPS
   steps: 5
 - itemType: PORTS
