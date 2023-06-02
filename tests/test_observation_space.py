@@ -79,9 +79,65 @@ class TestNodeLinkTable:
         #   * 6 columns (four fixed and two for the services)
         assert env.env_obs.shape == (5, 6)
 
-    # def test_value(self, env: Primaite):
-    #     """"""
-    #     ...
+    def test_value(self, env: Primaite):
+        """Test that the observation is generated correctly.
+
+        The laydown has:
+            * 3 nodes (2 service nodes and 1 active node)
+            * 2 services
+            * 2 links
+
+        Both nodes have both services, and all states are GOOD, therefore the expected observation value is:
+
+            * Node 1:
+                * 1 (id)
+                * 1 (good hardware state)
+                * 1 (good OS state)
+                * 1 (good file system state)
+                * 1 (good service1 state)
+                * 1 (good service2 state)
+            * Node 2:
+                * 2 (id)
+                * 1 (good hardware state)
+                * 1 (good OS state)
+                * 1 (good file system state)
+                * 1 (good service1 state)
+                * 1 (good service2 state)
+            * Node 3 (active node):
+                * 3 (id)
+                * 1 (good hardware state)
+                * 1 (good OS state)
+                * 1 (good file system state)
+                * 0 (doesn't have service1)
+                * 0 (doesn't have service2)
+            * Link 1:
+                * 4 (id)
+                * 0 (n/a hardware state)
+                * 0 (n/a OS state)
+                * 0 (n/a file system state)
+                * 0 (no traffic for service1)
+                * 0 (no traffic for service2)
+            * Link 2:
+                * 5 (id)
+                * 0 (good hardware state)
+                * 0 (good OS state)
+                * 0 (good file system state)
+                * 0 (no traffic service1)
+                * 0 (no traffic for service2)
+        """
+        act = np.asarray([0, 0, 0, 0])
+        obs, reward, done, info = env.step(act)
+
+        assert np.array_equal(
+            obs,
+            [
+                [1, 1, 1, 1, 1, 1],
+                [2, 1, 1, 1, 1, 1],
+                [3, 1, 1, 1, 0, 0],
+                [4, 0, 0, 0, 0, 0],
+                [5, 0, 0, 0, 0, 0],
+            ],
+        )
 
 
 @pytest.mark.env_config_paths(
@@ -96,7 +152,7 @@ class TestNodeStatuses:
 
     def test_obs_shape(self, env: Primaite):
         """Try creating env with NodeStatuses as the only component."""
-        assert env.env_obs.shape == (15)
+        assert env.env_obs.shape == (15,)
 
     def test_values(self, env: Primaite):
         """Test that the hardware and software states are encoded correctly.
