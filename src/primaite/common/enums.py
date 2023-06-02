@@ -82,6 +82,7 @@ class ActionType(Enum):
 
     NODE = 0
     ACL = 1
+    ANY = 2
 
 
 class FileSystemState(Enum):
