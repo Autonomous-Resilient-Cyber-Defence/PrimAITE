@@ -217,3 +217,10 @@ class ActiveNode(Node):
             self.file_system_state_actual = FileSystemState.GOOD
             self.software_state = SoftwareState.GOOD
 
+
+    def update_booting_status(self):
+        super().update_booting_status()
+        if self.booting_count <= 0:
+            self.file_system_state_actual =FileSystemState.GOOD
+            self.software_state = SoftwareState.GOOD
+
