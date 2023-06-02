@@ -288,6 +288,28 @@ The config_[name].yaml file consists of the following attributes:
 
    Determines whether a NODE or ACL action space format is adopted for the session
 
+* **itemType: OBSERVATION_SPACE** [dict]
+
+   Allows for user to configure observation space by combining one or more observation components. List of available
+   components is is :py:mod:'primaite.environment.observations'.
+
+   The observation space config item should have a ``components`` key which is a list of components. Each component
+   config must have a ``name`` key, and can optionally have an ``options`` key. The ``options`` are passed to the
+   component while it is being initialised.
+
+   This example illustrates the correct format for the observation space config item
+
+.. code-block::yaml
+
+   - itemType: OBSERVATION_SPACE
+     components:
+     - name: LINK_TRAFFIC_LEVELS
+       options:
+         combine_service_traffic: false
+         quantisation_levels: 8
+     - name: NODE_STATUSES
+     - name: LINK_TRAFFIC_LEVELS
+
 * **itemType: STEPS** [int]
 
    Determines the number of steps to run in each episode of the session
