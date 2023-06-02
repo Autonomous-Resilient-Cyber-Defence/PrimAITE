@@ -351,12 +351,12 @@ except Exception:
 transaction_list = []
 
 # Create the Primaite environment
-try:
-    env = Primaite(config_values, transaction_list)
-    logging.info("PrimAITE environment created")
-except Exception:
-    logging.error("Could not create PrimAITE environment")
-    logging.error("Exception occured", exc_info=True)
+# try:
+env = Primaite(config_values, transaction_list)
+#     logging.info("PrimAITE environment created")
+# except Exception:
+#     logging.error("Could not create PrimAITE environment")
+#     logging.error("Exception occured", exc_info=True)
 
 # Get the number of steps (which is stored in the child config file)
 config_values.num_steps = env.episode_steps
