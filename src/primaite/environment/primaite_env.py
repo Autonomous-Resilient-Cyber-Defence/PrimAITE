@@ -423,6 +423,7 @@ class Primaite(Env):
             _action: The action space from the agent
         """
         # At the moment, actions are only affecting nodes
+        print("ACTION:", self.action_dict[_action])
         if self.action_type == ActionType.NODE:
             self.apply_actions_to_nodes(_action)
         elif self.action_type == ActionType.ACL:
