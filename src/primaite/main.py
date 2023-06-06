@@ -7,7 +7,6 @@ Coding Standards: PEP 8
 
 import logging
 import os.path
-import time
 from datetime import datetime
 
 import yaml
