@@ -164,10 +164,13 @@ def _get_primaite_env_from_config(
     # Load in config data
     load_config_values()
     env = Primaite(config_values, [])
+    # Get the number of steps (which is stored in the child config file)
     config_values.num_steps = env.episode_steps
 
     if env.config_values.agent_identifier == "GENERIC":
         run_generic(env, config_values)
+    elif env.config_values.agent_identifier == "GENERIC_TEST":
+        run_generic_set_actions(env, config_values)
 
     return env
 
@@ -183,6 +186,43 @@ def run_generic(env, config_values):
             # action = env.blue_agent_action(obs)
             action = env.action_space.sample()
 
+            # Run the simulation step on the live environment
+            obs, reward, done, info = env.step(action)
+
+            # Break if done is True
+            if done:
+                break
+
+            # Introduce a delay between steps
+            time.sleep(config_values.time_delay / 1000)
+
+        # Reset the environment at the end of the episode
+        # env.reset()
+
+    # env.close()
+
+
+def run_generic_set_actions(env, config_values):
+    """Run against a generic agent with specified blue agent actions."""
+    # Reset the environment at the start of the episode
+    # env.reset()
+    for episode in range(0, config_values.num_episodes):
+        for step in range(0, config_values.num_steps):
+            # Send the observation space to the agent to get an action
+            # TEMP - random action for now
+            # action = env.blue_agent_action(obs)
+            action = 0
+            if step == 5:
+                # [1, 1, 2, 1, 1, 1]
+                # Creates an ACL rule
+                # Deny traffic from server_1 to node_1 on port FTP
+                action = 7
+            elif step == 7:
+                # [1, 1, 2, 0] Node Action
+                # Sets Node 1 Hardware State to OFF
+                # Does not resolve any service
+                action = 16
+            print(action, "ran")
             # Run the simulation step on the live environment
             obs, reward, done, info = env.step(action)
 

@@ -1273,5 +1273,6 @@ class Primaite(Env):
 
         # Combine the Node dict and ACL dict
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
+        print("combined_action_dict entry", combined_action_dict.items())
         # print(len(list(combined_action_dict.values())))
         return combined_action_dict
