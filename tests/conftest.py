@@ -184,8 +184,8 @@ def run_generic(env, config_values):
             # Send the observation space to the agent to get an action
             # TEMP - random action for now
             # action = env.blue_agent_action(obs)
-            action = env.action_space.sample()
-
+            # action = env.action_space.sample()
+            action = 0
             # Run the simulation step on the live environment
             obs, reward, done, info = env.step(action)
 
@@ -222,7 +222,6 @@ def run_generic_set_actions(env, config_values):
                 # Sets Node 1 Hardware State to OFF
                 # Does not resolve any service
                 action = 16
-            print(action, "ran")
             # Run the simulation step on the live environment
             obs, reward, done, info = env.step(action)
 
