@@ -344,7 +344,7 @@ The action space available to the blue agent comes in two types:
 
  1. Node-based
  2. Access Control List
- 3. Any
+ 3. Any (Agent can take both node-based and ACL-based actions)
 
 The choice of action space used during a training session is determined in the config_[name].yaml file.
 
