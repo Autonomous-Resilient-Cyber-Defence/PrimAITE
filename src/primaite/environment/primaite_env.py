@@ -361,7 +361,7 @@ class Primaite(Env):
         # 5. Calculate reward signal (for RL)
         reward = calculate_reward_function(
             self.nodes_post_pol,
-            self.nodes_post_blue,
+            self.nodes_post_red,
             self.nodes_reference,
             self.green_iers,
             self.red_iers,
