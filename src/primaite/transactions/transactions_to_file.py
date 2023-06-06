@@ -51,8 +51,13 @@ def write_transaction_to_file(_transaction_list):
     # This will be tied into the PrimAITE Use Case so that they make sense
     template_transation = _transaction_list[0]
     action_length = template_transation.action_space.size
+    obs_shape = template_transation.obs_space_post.shape
     obs_assets = template_transation.obs_space_post.shape[0]
-    obs_features = template_transation.obs_space_post.shape[1]
+    if len(obs_shape) == 1:
+        # bit of a workaround but I think the way transactions are written will change soon
+        obs_features = 1
+    else:
+        obs_features = template_transation.obs_space_post.shape[1]
 
     # Create the action space headers array
     action_header = []
