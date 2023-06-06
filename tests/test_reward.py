@@ -8,7 +8,7 @@ def test_rewards_are_being_penalised_at_each_step_function():
 
     When the initial state is OFF compared to reference state which is ON.
     """
-    env = _get_primaite_env_from_config(
+    env, config_values = _get_primaite_env_from_config(
         main_config_path=TEST_CONFIG_ROOT / "one_node_states_on_off_main_config.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT
         / "one_node_states_on_off_lay_down_config.yaml",
