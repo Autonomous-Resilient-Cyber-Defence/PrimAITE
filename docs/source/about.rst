@@ -334,9 +334,6 @@ The full observation space would have 15 node-related elements and 3 link-relate
 
   gym.spaces.MultiDiscrete([4,5,6,4,4,4,5,6,4,4,4,5,6,4,4,5,5,5])
 
-   * Dictionary item {... ,1: [x1, x2, x3, x4, x5, x6] ...}
-   The placeholders inside the list under the key '1' mean the following:
-
 Action Spaces
 **************
 
@@ -344,7 +341,7 @@ The action space available to the blue agent comes in two types:
 
  1. Node-based
  2. Access Control List
- 3. Any
+ 3. Any (Agent can take both node-based and ACL-based actions)
 
 The choice of action space used during a training session is determined in the config_[name].yaml file.
 
@@ -364,6 +361,8 @@ The agent is able to influence the status of nodes by switching them off, resett
 
 The blue agent is able to influence the configuration of the Access Control List rule set (which implements a system-wide firewall). In this instance, the action space is an OpenAI spaces.Discrete type, as follows:
 
+   * Dictionary item {... ,1: [x1, x2, x3, x4, x5, x6] ...}
+   The placeholders inside the list under the key '1' mean the following:
 
      * [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
      * [0, 1] - Permission (0 = DENY, 1 = ALLOW)
@@ -375,7 +374,7 @@ The blue agent is able to influence the configuration of the Access Control List
 **ANY**
 The agent is able to carry out both **Node-Based** and **Access Control List** operations.
 
-This means the dictionary will contain  key-value pairs in the format of BOTH Node-Based and Access Control List as seen above.
+This means the dictionary will contain key-value pairs in the format of BOTH Node-Based and Access Control List as seen above.
 
 Rewards
 *******

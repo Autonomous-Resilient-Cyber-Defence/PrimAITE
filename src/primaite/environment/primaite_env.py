@@ -536,14 +536,14 @@ class Primaite(Env):
             _action: The action space from the agent
         """
         # Convert discrete value back to multidiscrete
-        multidiscrete_action = self.action_dict[_action]
+        readable_action = self.action_dict[_action]
 
-        action_decision = multidiscrete_action[0]
-        action_permission = multidiscrete_action[1]
-        action_source_ip = multidiscrete_action[2]
-        action_destination_ip = multidiscrete_action[3]
-        action_protocol = multidiscrete_action[4]
-        action_port = multidiscrete_action[5]
+        action_decision = readable_action[0]
+        action_permission = readable_action[1]
+        action_source_ip = readable_action[2]
+        action_destination_ip = readable_action[3]
+        action_protocol = readable_action[4]
+        action_port = readable_action[5]
 
         if action_decision == 0:
             # It's decided to do nothing
