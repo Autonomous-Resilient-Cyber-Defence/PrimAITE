@@ -19,7 +19,7 @@ def run_generic_set_actions(env, config_values):
             if step == 5:
                 # [1, 1, 2, 1, 1, 1]
                 # Creates an ACL rule
-                # Deny traffic from server_1 to node_1 on port FTP
+                # Allows traffic from server_1 to node_1 on port FTP
                 action = 7
             elif step == 7:
                 # [1, 1, 2, 0] Node Action
@@ -97,4 +97,5 @@ def test_agent_is_executing_actions_from_both_spaces():
     # In the scenario, we specified that the agent should create only 1 acl rule
     num_of_rules = len(acl_rules_list)
     # Therefore these statements below MUST be true
-    assert computer_node_hardware_state == HardwareState.OFF and num_of_rules == 1
+    assert computer_node_hardware_state == HardwareState.OFF
+    assert num_of_rules == 1
