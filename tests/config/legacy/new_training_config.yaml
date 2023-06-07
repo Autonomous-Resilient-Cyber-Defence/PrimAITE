@@ -4,19 +4,19 @@
 # Choose one of these (dependent on Agent being trained)
 # "STABLE_BASELINES3_PPO"
 # "STABLE_BASELINES3_A2C"
-agent_identifier: GENERIC
+# "GENERIC"
+agent_identifier: STABLE_BASELINES3_A2C
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
 # "ANY" node and acl actions
-action_type: NODE
+action_type: ANY
 # Number of episodes to run per session
-num_episodes: 1
+num_episodes: 10
 # Number of time_steps per episode
-num_steps: 15
+num_steps: 256
 # Time delay between steps (for generic agents)
-time_delay: 1
-
+time_delay: 10
 # Type of session to be run (TRAINING or EVALUATION)
 session_type: TRAINING
 # Determine whether to load an agent from file

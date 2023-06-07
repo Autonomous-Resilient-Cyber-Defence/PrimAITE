@@ -1,7 +1,4 @@
-- itemType: ACTIONS
-  type: NODE
-- itemType: STEPS
-  steps: 256
+
 - itemType: PORTS
   portsList:
     - port: '80'

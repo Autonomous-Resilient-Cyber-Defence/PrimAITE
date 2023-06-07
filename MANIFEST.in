@@ -1,1 +1,1 @@
-include src/primaite/config/*.yaml
+include src/primaite/config/_package_data/*.yaml

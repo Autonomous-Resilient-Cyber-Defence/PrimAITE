@@ -1,7 +1,3 @@
-- itemType: ACTIONS
-  type: NODE
-- itemType: STEPS
-  steps: 15
 - itemType: PORTS
   portsList:
   - port: '21'

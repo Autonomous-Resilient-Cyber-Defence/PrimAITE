@@ -8,51 +8,51 @@ Features
 
 PrimAITE provides the following features:
 
-* A flexible network / system laydown based on the Python networkx framework​
-* Nodes and links (edges) host Python classes in order to present attributes and methods (and hence, a more representative model of a platform / system)​
-* A ‘green agent’ Information Exchange Requirement (IER) function allows the representation of traffic (protocols and loading) on any / all links. Application of IERs is based on the status of node operating systems and services​
-* A ‘green agent’ node Pattern-of-Life (PoL) function allows the representation of core behaviours on nodes (e.g. Hardware state, Software State, Service state, File System state)​
-* An Access Control List (ACL) function, mimicking the behaviour of a network firewall, is applied across the model, following standard ACL rule format (e.g. DENY/ALLOW, source IP, destination IP, protocol and port). Application of IERs adheres to any ACL restrictions​
-* Presents an OpenAI Gym interface to the environment, allowing integration with any OpenAI Gym compliant defensive agents ​
+* A flexible network / system laydown based on the Python networkx framework
+* Nodes and links (edges) host Python classes in order to present attributes and methods (and hence, a more representative model of a platform / system)
+* A ‘green agent’ Information Exchange Requirement (IER) function allows the representation of traffic (protocols and loading) on any / all links. Application of IERs is based on the status of node operating systems and services
+* A ‘green agent’ node Pattern-of-Life (PoL) function allows the representation of core behaviours on nodes (e.g. Hardware state, Software State, Service state, File System state)
+* An Access Control List (ACL) function, mimicking the behaviour of a network firewall, is applied across the model, following standard ACL rule format (e.g. DENY/ALLOW, source IP, destination IP, protocol and port). Application of IERs adheres to any ACL restrictions
+* Presents an OpenAI Gym interface to the environment, allowing integration with any OpenAI Gym compliant defensive agents
 * Red agent activity based on ‘red’ IERs and ‘red’ PoL
-* Defined reward function for use with RL agents (based on nodes status, and green / red IER success)​
-* Fully configurable (network / system laydown, IERs, node PoL, ACL, episode step period, episode max steps) and repeatable to suit the training requirements of agents. Therefore, not bound to a representation of any particular platform, system or technology​
-* Full capture of discrete metrics relating to agent training (full system state, agent actions taken, average reward)​
-* Networkx provides laydown visualisation capability ​
+* Defined reward function for use with RL agents (based on nodes status, and green / red IER success)
+* Fully configurable (network / system laydown, IERs, node PoL, ACL, episode step period, episode max steps) and repeatable to suit the training requirements of agents. Therefore, not bound to a representation of any particular platform, system or technology
+* Full capture of discrete metrics relating to agent training (full system state, agent actions taken, average reward)
+* Networkx provides laydown visualisation capability
 
 Architecture - Nodes and Links
 ******************************
 
 **Nodes**
 
-An inheritance model has been adopted in order to model nodes. All nodes have the following base attributes (Class: Node):​
+An inheritance model has been adopted in order to model nodes. All nodes have the following base attributes (Class: Node):
 
-* ID​
+* ID
 * Name
-* Type (e.g. computer, switch, RTU - enumeration)​
-* Priority (P1, P2, P3, P4 or P5 - enumeration)​
-* Hardware State (ON, OFF, RESETTING - enumeration)​
+* Type (e.g. computer, switch, RTU - enumeration)
+* Priority (P1, P2, P3, P4 or P5 - enumeration)
+* Hardware State (ON, OFF, RESETTING - enumeration)
 
-Active Nodes also have the following attributes (Class: Active Node):​
+Active Nodes also have the following attributes (Class: Active Node):
 
-* IP Address​
-* Software State (GOOD, PATCHING, COMPROMISED - enumeration)​
+* IP Address
+* Software State (GOOD, PATCHING, COMPROMISED - enumeration)
 * File System State (GOOD, CORRUPT, DESTROYED, REPAIRING, RESTORING - enumeration)
 
-Service Nodes also have the following attributes (Class: Service Node)​:
+Service Nodes also have the following attributes (Class: Service Node):
 
-* List of Services (where service is composed of service name and port). There is no theoretical limit on the number of services that can be modelled. Services and protocols are currently intrinsically linked (i.e. a service is an application on a node transmitting traffic of this protocol type)​
+* List of Services (where service is composed of service name and port). There is no theoretical limit on the number of services that can be modelled. Services and protocols are currently intrinsically linked (i.e. a service is an application on a node transmitting traffic of this protocol type)
 * Service state (GOOD, PATCHING, COMPROMISED, OVERWHELMED - enumeration)
 
 Passive Nodes are currently not used (but may be employed for non IP-based components such as machinery actuators in future releases).
 
 **Links**
 
-Links are modelled both as network edges (networkx) and as Python classes, in order to extend their functionality​. Links include the following attributes:​
+Links are modelled both as network edges (networkx) and as Python classes, in order to extend their functionality. Links include the following attributes:
 
-* ID​
+* ID
 * Name
-* Bandwidth (bits/s)​
+* Bandwidth (bits/s)
 * Source node ID
 * Destination node ID
 * Protocol list (containing the loading of protocols currently running on the link)
@@ -62,32 +62,32 @@ When the simulation runs, IERs are applied to the links in order to model traffi
 Information Exchange Requirements (IERs)
 ****************************************
 
-PrimAITE adopts the concept of Information Exchange Requirements (IERs) to model both green agent (background) and red agent (adversary) behaviour. IERs are used to initiate modelling of traffic loading on the network, and have the following attributes:​
+PrimAITE adopts the concept of Information Exchange Requirements (IERs) to model both green agent (background) and red agent (adversary) behaviour. IERs are used to initiate modelling of traffic loading on the network, and have the following attributes:
 
-* ID​
-* Start step (i.e. which step in the training episode should the IER start)​
-* End step​ (i.e. which step in the training episode should the IER end)
+* ID
+* Start step (i.e. which step in the training episode should the IER start)
+* End step (i.e. which step in the training episode should the IER end)
 * Source node ID
-* Destination node ID​
-* Load (bits/s)​
-* Protocol​
-* Port​
+* Destination node ID
+* Load (bits/s)
+* Protocol
+* Port
 * Running status (i.e. on / off)
 
-The application of green agent IERs between a source and destination follows a number of rules. Specifically:​
+The application of green agent IERs between a source and destination follows a number of rules. Specifically:
 
-1. Does the current simulation time step fall between IER start and end step​
-2. Is the source node operational (both physically and at an O/S level), and is the service (protocol / port) associated with the IER (a) present on this node, and (b) in an operational state (i.e. not PATCHING)​
-3. Is the destination node operational (both physically and at an O/S level), and is the service (protocol / port) associated with the IER (a) present on this node, and (b) in an operational state (i.e. not PATCHING)​
-4. Are there any Access Control List rules in place that prevent the application of this IER​
-5. Are all switches in the (OSPF) path between source and destination operational (both physically and at an O/S level)​
+1. Does the current simulation time step fall between IER start and end step
+2. Is the source node operational (both physically and at an O/S level), and is the service (protocol / port) associated with the IER (a) present on this node, and (b) in an operational state (i.e. not PATCHING)
+3. Is the destination node operational (both physically and at an O/S level), and is the service (protocol / port) associated with the IER (a) present on this node, and (b) in an operational state (i.e. not PATCHING)
+4. Are there any Access Control List rules in place that prevent the application of this IER
+5. Are all switches in the (OSPF) path between source and destination operational (both physically and at an O/S level)
 
-For red agent IERs, the application of IERs between a source and destination follows a number of subtly different rules. Specifically:​
+For red agent IERs, the application of IERs between a source and destination follows a number of subtly different rules. Specifically:
 
-1. Does the current simulation time step fall between IER start and end step​
-2. Is the source node operational, and is the service (protocol / port) associated with the IER (a) present on that node and (b) already in a compromised state​
-3. Is the destination node operational, and is the service (protocol / port) associated with the IER present on that node​
-4. Are there any Access Control List rules in place that prevent the application of this IER​
+1. Does the current simulation time step fall between IER start and end step
+2. Is the source node operational, and is the service (protocol / port) associated with the IER (a) present on that node and (b) already in a compromised state
+3. Is the destination node operational, and is the service (protocol / port) associated with the IER present on that node
+4. Are there any Access Control List rules in place that prevent the application of this IER
 5. Are all switches in the (OSPF) path between source and destination operational (both physically and at an O/S level)
 
 Assuming the rules pass, the IER is applied to all relevant links (based on use of OSPF) between source and destination.
@@ -149,7 +149,7 @@ Red agent pattern-of-life has an additional feature not found in the green patte
 Access Control List modelling
 *****************************
 
-An Access Control List (ACL) is modelled to provide the means to manage traffic flows in the system. This will allow defensive agents the means to turn on / off rules, or potentially create new rules, to counter an attack​.
+An Access Control List (ACL) is modelled to provide the means to manage traffic flows in the system. This will allow defensive agents the means to turn on / off rules, or potentially create new rules, to counter an attack.
 
 The ACL follows a standard network firewall format. For example:
 
@@ -183,9 +183,9 @@ All ACL rules are considered when applying an IER. Logic follows the order of ru
 Observation Spaces
 ******************
 
-The OpenAI Gym observation space provides the status of all nodes and links across the whole system:​
+The OpenAI Gym observation space provides the status of all nodes and links across the whole system:
 
-* Nodes (in terms of hardware state, Software State, file system state and services state) ​
+* Nodes (in terms of hardware state, Software State, file system state and services state)
 * Links (in terms of current loading for each service/protocol)
 
 The observation space can be configured as a ``gym.spaces.Box`` or ``gym.spaces.MultiDiscrete``, by setting the ``OBSERVATIONS`` parameter in the laydown config.
