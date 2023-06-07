@@ -1,5 +1,7 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+import tempfile
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Union
 
@@ -9,14 +11,38 @@ ACTION_SPACE_NODE_VALUES = 1
 ACTION_SPACE_NODE_ACTION_VALUES = 1
 
 
+def _get_temp_session_path(session_timestamp: datetime) -> Path:
+    """
+    Get a temp directory session path the test session will output to.
+
+
+    :param session_timestamp: This is the datetime that the session started.
+    :return: The session directory path.
+    """
+    date_dir = session_timestamp.strftime("%Y-%m-%d")
+    session_dir = session_timestamp.strftime("%Y-%m-%d_%H-%M-%S")
+    session_path = Path(tempfile.gettempdir()) / "primaite" / date_dir / session_dir
+    session_path.mkdir(exist_ok=True, parents=True)
+
+    return session_path
+
+
 def _get_primaite_env_from_config(
-    training_config_path: Union[str, Path], lay_down_config_path: Union[str, Path]
+        training_config_path: Union[str, Path],
+        lay_down_config_path: Union[str, Path]
 ):
     """Takes a config path and returns the created instance of Primaite."""
+
+    session_timestamp: datetime = datetime.now()
+    session_path = _get_temp_session_path(session_timestamp)
+
+    timestamp_str = session_timestamp.strftime("%Y-%m-%d_%H-%M-%S")
     env = Primaite(
         training_config_path=training_config_path,
         lay_down_config_path=lay_down_config_path,
         transaction_list=[],
+        session_path=session_path,
+        timestamp_str=timestamp_str,
     )
     config_values = env.config_values
     config_values.num_steps = env.episode_steps
