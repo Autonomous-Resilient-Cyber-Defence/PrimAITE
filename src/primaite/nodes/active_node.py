@@ -212,15 +212,15 @@ class ActiveNode(Node):
             self.file_system_scanning_count = 0
 
     def update_resetting_status(self):
+        """Updates the reset count & makes software and file state to GOOD."""
         super().update_resetting_status()
         if self.resetting_count <= 0:
             self.file_system_state_actual = FileSystemState.GOOD
             self.software_state = SoftwareState.GOOD
 
-
     def update_booting_status(self):
+        """Updates the booting software and file state to GOOD."""
         super().update_booting_status()
         if self.booting_count <= 0:
-            self.file_system_state_actual =FileSystemState.GOOD
+            self.file_system_state_actual = FileSystemState.GOOD
             self.software_state = SoftwareState.GOOD
-
