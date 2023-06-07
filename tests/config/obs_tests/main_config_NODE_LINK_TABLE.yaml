@@ -7,6 +7,10 @@
 # "GENERIC"
 agentIdentifier: NONE
 # Number of episodes to run per session
+observationSpace:
+  components:
+    - name: NODE_LINK_TABLE
+
 numEpisodes: 1
 # Time delay between steps (for generic agents)
 timeDelay: 1
@@ -21,7 +25,7 @@ agentLoadFile: C:\[Path]\[agent_saved_filename.zip]
 
 # Environment config values
 # The high value for the observation space
-observationSpaceHighValue: 1000000000
+observationSpaceHighValue: 1_000_000_000
 
 # Reward values
 # Generic

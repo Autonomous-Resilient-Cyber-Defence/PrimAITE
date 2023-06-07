@@ -1,8 +1,5 @@
 - itemType: ACTIONS
   type: NODE
-- itemType: OBSERVATION_SPACE
-  components:
-    - name: NODE_LINK_TABLE
 - itemType: STEPS
   steps: 5
 - itemType: PORTS
@@ -24,7 +21,7 @@
   priority: P5
   hardware_state: 'ON'
   ip_address: 192.168.1.1
-  software_state: GOOD
+  software_state: COMPROMISED
   file_system_state: GOOD
   services:
     - name: TCP
@@ -49,7 +46,7 @@
       state: GOOD
     - name: UDP
       port: '53'
-      state: GOOD
+      state: OVERWHELMED
 - itemType: NODE
   node_id: '3'
   name: SWITCH1
@@ -75,3 +72,33 @@
   bandwidth: 1000
   source: '3'
   destination: '2'
+
+#########################################
+# IERS
+- itemType: GREEN_IER
+  id: '5'
+  startStep: 0
+  endStep: 5
+  load: 999
+  protocol: TCP
+  port: '80'
+  source: '1'
+  destination: '2'
+  missionCriticality: 5
+
+#########################################
+# ACL Rules
+- itemType: ACL_RULE
+  id: '6'
+  permission: ALLOW
+  source: 192.168.1.1
+  destination: 192.168.1.2
+  protocol: TCP
+  port: 80
+- itemType: ACL_RULE
+  id: '7'
+  permission: ALLOW
+  source: 192.168.1.2
+  destination: 192.168.1.1
+  protocol: TCP
+  port: 80
