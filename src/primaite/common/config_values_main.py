@@ -9,6 +9,7 @@ class ConfigValuesMain(object):
         """Init."""
         # Generic
         self.agent_identifier = ""  # the agent in use
+        self.observation_config = None  # observation space config
         self.num_episodes = 0  # number of episodes to train over
         self.num_steps = 0  # number of steps in an episode
         self.time_delay = 0  # delay between steps (ms) - applies to generic agents only

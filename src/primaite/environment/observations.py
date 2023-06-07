@@ -1,7 +1,7 @@
 """Module for handling configurable observation spaces in PrimAITE."""
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, List, Tuple, Union
+from typing import TYPE_CHECKING, Dict, Final, List, Tuple, Union
 
 import numpy as np
 from gym import spaces
@@ -56,9 +56,9 @@ class NodeLinkTable(AbstractObservationComponent):
     ``(12, 7)``
     """
 
-    _FIXED_PARAMETERS = 4
-    _MAX_VAL = 1_000_000
-    _DATA_TYPE = np.int64
+    _FIXED_PARAMETERS: int = 4
+    _MAX_VAL: int = 1_000_000
+    _DATA_TYPE: type = np.int64
 
     def __init__(self, env: "Primaite"):
         super().__init__(env)
@@ -159,7 +159,7 @@ class NodeStatuses(AbstractObservationComponent):
     :type env: Primaite
     """
 
-    _DATA_TYPE = np.int64
+    _DATA_TYPE: type = np.int64
 
     def __init__(self, env: "Primaite"):
         super().__init__(env)
@@ -231,7 +231,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
     :type quantisation_levels: int, optional
     """
 
-    _DATA_TYPE = np.int64
+    _DATA_TYPE: type = np.int64
 
     def __init__(
         self,
@@ -239,7 +239,14 @@ class LinkTrafficLevels(AbstractObservationComponent):
         combine_service_traffic: bool = False,
         quantisation_levels: int = 5,
     ):
-        assert quantisation_levels >= 3
+        if quantisation_levels < 3:
+            _msg = (
+                f"quantisation_levels must be 3 or more because the lowest and highest levels are "
+                f"reserved for 0% and 100% link utilisation, got {quantisation_levels} instead. "
+                f"Resetting to default value (5)"
+            )
+            _LOGGER.warning(_msg)
+            quantisation_levels = 5
 
         super().__init__(env)
 
@@ -296,7 +303,7 @@ class ObservationsHandler:
     Each component can also define further parameters to make them more flexible.
     """
 
-    registry = {
+    _REGISTRY: Final[Dict[str, type]] = {
         "NODE_LINK_TABLE": NodeLinkTable,
         "NODE_STATUSES": NodeStatuses,
         "LINK_TRAFFIC_LEVELS": LinkTrafficLevels,
@@ -384,7 +391,7 @@ class ObservationsHandler:
         for component_cfg in obs_space_config["components"]:
             # Figure out which class can instantiate the desired component
             comp_type = component_cfg["name"]
-            comp_class = cls.registry[comp_type]
+            comp_class = cls._REGISTRY[comp_type]
 
             # Create the component with options from the YAML
             options = component_cfg.get("options") or {}

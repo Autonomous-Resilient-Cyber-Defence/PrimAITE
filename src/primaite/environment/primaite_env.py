@@ -48,10 +48,10 @@ class Primaite(Env):
     """PRIMmary AI Training Evironment (Primaite) class."""
 
     #  Action Space contants
-    ACTION_SPACE_NODE_PROPERTY_VALUES = 5
-    ACTION_SPACE_NODE_ACTION_VALUES = 4
-    ACTION_SPACE_ACL_ACTION_VALUES = 3
-    ACTION_SPACE_ACL_PERMISSION_VALUES = 2
+    ACTION_SPACE_NODE_PROPERTY_VALUES: int = 5
+    ACTION_SPACE_NODE_ACTION_VALUES: int = 4
+    ACTION_SPACE_ACL_ACTION_VALUES: int = 3
+    ACTION_SPACE_ACL_PERMISSION_VALUES: int = 2
 
     def __init__(self, _config_values, _transaction_list):
         """
@@ -148,6 +148,8 @@ class Primaite(Env):
 
         # stores the observation config from the yaml, default is NODE_LINK_TABLE
         self.obs_config: dict = {"components": [{"name": "NODE_LINK_TABLE"}]}
+        if self.config_values.observation_config is not None:
+            self.obs_config = self.config_values.observation_config
 
         # Observation Handler manages the user-configurable observation space.
         # It will be initialised later.
@@ -690,9 +692,6 @@ class Primaite(Env):
             elif item["itemType"] == "ACTIONS":
                 # Get the action information
                 self.get_action_info(item)
-            elif item["itemType"] == "OBSERVATION_SPACE":
-                # Get the observation information
-                self.save_obs_config(item)
             elif item["itemType"] == "STEPS":
                 # Get the steps information
                 self.get_steps_info(item)

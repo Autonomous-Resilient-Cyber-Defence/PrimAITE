@@ -27,9 +27,8 @@ def env(request):
 
 @pytest.mark.env_config_paths(
     dict(
-        main_config_path=TEST_CONFIG_ROOT / "one_node_states_on_off_main_config.yaml",
-        lay_down_config_path=TEST_CONFIG_ROOT
-        / "obs_tests/laydown_without_obs_space.yaml",
+        main_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_without_obs.yaml",
+        lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
 def test_default_obs_space(env: Primaite):
@@ -44,9 +43,8 @@ def test_default_obs_space(env: Primaite):
 
 @pytest.mark.env_config_paths(
     dict(
-        main_config_path=TEST_CONFIG_ROOT / "one_node_states_on_off_main_config.yaml",
-        lay_down_config_path=TEST_CONFIG_ROOT
-        / "obs_tests/laydown_without_obs_space.yaml",
+        main_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_without_obs.yaml",
+        lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
 def test_registering_components(env: Primaite):
@@ -61,9 +59,9 @@ def test_registering_components(env: Primaite):
 
 @pytest.mark.env_config_paths(
     dict(
-        main_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_no_agent.yaml",
-        lay_down_config_path=TEST_CONFIG_ROOT
-        / "obs_tests/laydown_with_NODE_LINK_TABLE.yaml",
+        main_config_path=TEST_CONFIG_ROOT
+        / "obs_tests/main_config_NODE_LINK_TABLE.yaml",
+        lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
 class TestNodeLinkTable:
@@ -92,17 +90,17 @@ class TestNodeLinkTable:
             * Node 1:
                 * 1 (id)
                 * 1 (good hardware state)
-                * 1 (good OS state)
+                * 3 (compromised OS state)
                 * 1 (good file system state)
-                * 1 (good service1 state)
-                * 1 (good service2 state)
+                * 1 (good TCP state)
+                * 1 (good UDP state)
             * Node 2:
                 * 2 (id)
                 * 1 (good hardware state)
                 * 1 (good OS state)
                 * 1 (good file system state)
-                * 1 (good service1 state)
-                * 1 (good service2 state)
+                * 1 (good TCP state)
+                * 4 (overwhelmed UDP state)
             * Node 3 (active node):
                 * 3 (id)
                 * 1 (good hardware state)
@@ -115,14 +113,14 @@ class TestNodeLinkTable:
                 * 0 (n/a hardware state)
                 * 0 (n/a OS state)
                 * 0 (n/a file system state)
-                * 0 (no traffic for service1)
+                * 999 (999 traffic for service1)
                 * 0 (no traffic for service2)
             * Link 2:
                 * 5 (id)
                 * 0 (good hardware state)
                 * 0 (good OS state)
                 * 0 (good file system state)
-                * 0 (no traffic service1)
+                * 999 (999 traffic service1)
                 * 0 (no traffic for service2)
         """
         act = np.asarray([0, 0, 0, 0])
@@ -131,20 +129,19 @@ class TestNodeLinkTable:
         assert np.array_equal(
             obs,
             [
-                [1, 1, 1, 1, 1, 1],
-                [2, 1, 1, 1, 1, 1],
+                [1, 1, 3, 1, 1, 1],
+                [2, 1, 1, 1, 1, 4],
                 [3, 1, 1, 1, 0, 0],
-                [4, 0, 0, 0, 0, 0],
-                [5, 0, 0, 0, 0, 0],
+                [4, 0, 0, 0, 999, 0],
+                [5, 0, 0, 0, 999, 0],
             ],
         )
 
 
 @pytest.mark.env_config_paths(
     dict(
-        main_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_no_agent.yaml",
-        lay_down_config_path=TEST_CONFIG_ROOT
-        / "obs_tests/laydown_with_NODE_STATUSES.yaml",
+        main_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_NODE_STATUSES.yaml",
+        lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
 class TestNodeStatuses:
@@ -188,9 +185,9 @@ class TestNodeStatuses:
 
 @pytest.mark.env_config_paths(
     dict(
-        main_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_no_agent.yaml",
-        lay_down_config_path=TEST_CONFIG_ROOT
-        / "obs_tests/laydown_with_LINK_TRAFFIC_LEVELS.yaml",
+        main_config_path=TEST_CONFIG_ROOT
+        / "obs_tests/main_config_LINK_TRAFFIC_LEVELS.yaml",
+        lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
 class TestLinkTrafficLevels:
