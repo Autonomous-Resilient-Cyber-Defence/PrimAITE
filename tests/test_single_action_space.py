@@ -81,9 +81,8 @@ def test_agent_is_executing_actions_from_both_spaces():
         lay_down_config_path=TEST_CONFIG_ROOT
         / "single_action_space_lay_down_config.yaml",
     )
-
+    # Run environment with specified fixed blue agent actions only
     run_generic_set_actions(env, config_values)
-
     # Retrieve hardware state of computer_1 node in laydown config
     # Agent turned this off in Step 5
     computer_node_hardware_state = env.nodes["1"].hardware_state
