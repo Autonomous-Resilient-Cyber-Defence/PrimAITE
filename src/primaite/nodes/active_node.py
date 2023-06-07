@@ -3,7 +3,6 @@
 import logging
 from typing import Final
 
-from primaite.common.config_values_main import ConfigValuesMain
 from primaite.common.enums import (
     FileSystemState,
     HardwareState,
@@ -11,6 +10,7 @@ from primaite.common.enums import (
     Priority,
     SoftwareState,
 )
+from primaite.config.training_config import TrainingConfig
 from primaite.nodes.node import Node
 
 _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class ActiveNode(Node):
         ip_address: str,
         software_state: SoftwareState,
         file_system_state: FileSystemState,
-        config_values: ConfigValuesMain,
+        config_values: TrainingConfig,
     ):
         """
         Init.

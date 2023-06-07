@@ -29,10 +29,10 @@ the run_generic function should be selected, and should be modified (typically) 
 
 .. code:: python
 
-    agent = MyAgent(environment, max_steps)​
-    for episode in range(0, num_episodes):​
-        agent.learn()      ​
-    env.close()​
+    agent = MyAgent(environment, max_steps)
+    for episode in range(0, num_episodes):
+        agent.learn()
+    env.close()
     save_agent(agent)
 
 Where:
@@ -51,29 +51,29 @@ environment is reset between episodes. Note that the example below should not be
 
 .. code:: python
 
-    def learn(self) :​
+    def learn(self) :
 
-    # pre-reqs​​
+    # pre-reqs
 
-    # reset the environment​
-    self.environment.reset()​
-    done = False​
+    # reset the environment
+    self.environment.reset()
+    done = False
 
-    for step in range(max_steps):​
-        # calculate the action​
+    for step in range(max_steps):
+        # calculate the action
         action = ...
 
-        ​# execute the environment step​
-        new_state, reward, done, info = self.environment.step(action)​
+        # execute the environment step
+        new_state, reward, done, info = self.environment.step(action)
 
-        # algorithm updates​
+        # algorithm updates
         ...
 
-        # update to our new state​
-        state = new_state​
+        # update to our new state
+        state = new_state
 
-        # if done, finish episode​
-        if done == True:​
+        # if done, finish episode
+        if done == True:
             break
 
 **Running the session**

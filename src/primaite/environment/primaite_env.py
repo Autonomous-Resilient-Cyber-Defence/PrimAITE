@@ -6,7 +6,8 @@ import csv
 import logging
 import os.path
 from datetime import datetime
-from typing import Dict, Tuple
+from pathlib import Path
+from typing import Dict, Tuple, Union
 
 import networkx as nx
 import numpy as np
@@ -28,6 +29,8 @@ from primaite.common.enums import (
     SoftwareState,
 )
 from primaite.common.service import Service
+from primaite.config import training_config
+from primaite.config.training_config import TrainingConfig
 from primaite.environment.reward import calculate_reward_function
 from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
@@ -56,26 +59,36 @@ class Primaite(Env):
 
     OBSERVATION_SPACE_HIGH_VALUE = 1000000  # Highest value within an observation space
 
-    def __init__(self, _config_values, _transaction_list):
+    def __init__(
+        self,
+        training_config_path: Union[str, Path],
+        lay_down_config_path: Union[str, Path],
+        transaction_list,
+        session_path: Path,
+        timestamp_str: str,
+    ):
         """
-        Init.
+        The Primaite constructor.
 
-        Args:
-            _episode_steps: The number of steps for the episode
-            _config_filename: The name of config file
-            _transaction_list: The list of transactions to populate
-            _agent_identifier: Identifier for the agent
+        :param training_config_path: The training config filepath.
+        :param lay_down_config_path: The lay down config filepath.
+        :param transaction_list: The list of transactions to populate.
+        :param session_path: The directory path the session is writing to.
+        :param timestamp_str: The session timestamp in the format:
+            <yyyy-mm-dd>_<hh-mm-ss>.
         """
-        super(Primaite, self).__init__()
+        self._training_config_path = training_config_path
+        self._lay_down_config_path = lay_down_config_path
 
-        # Take a copy of the config values
-        self.config_values = _config_values
+        self.config_values: TrainingConfig = training_config.load(training_config_path)
 
         # Number of steps in an episode
-        self.episode_steps = 0
+        self.episode_steps = self.config_values.num_steps
+
+        super(Primaite, self).__init__()
 
         # Transaction list
-        self.transaction_list = _transaction_list
+        self.transaction_list = transaction_list
 
         # The agent in use
         self.agent_identifier = self.config_values.agent_identifier
@@ -153,13 +166,10 @@ class Primaite(Env):
         self.observation_type = ObservationType.BOX
 
         # Open the config file and build the environment laydown
-        try:
-            self.config_file = open(self.config_values.config_filename_use_case, "r")
-            self.config_data = yaml.safe_load(self.config_file)
-            self.load_config()
-        except Exception:
-            _LOGGER.error("Could not load the environment configuration")
-            _LOGGER.error("Exception occured", exc_info=True)
+        with open(self._lay_down_config_path, "r") as file:
+            # Open the config file and build the environment laydown
+            self.config_data = yaml.safe_load(file)
+            self.load_lay_down_config()
 
         # Store the node objects as node attributes
         # (This is so we can access them as objects)
@@ -179,12 +189,8 @@ class Primaite(Env):
             now = datetime.now()  # current date and time
             time = now.strftime("%Y%m%d_%H%M%S")
 
-            path = "outputs/diagrams"
-            is_dir = os.path.isdir(path)
-            if not is_dir:
-                os.makedirs(path)
-            filename = "outputs/diagrams/network_" + time + ".png"
-            plt.savefig(filename, format="PNG")
+            file_path = session_path / f"network_{timestamp_str}.png"
+            plt.savefig(file_path, format="PNG")
             plt.clf()
         except Exception:
             _LOGGER.error("Could not save network diagram")
@@ -236,13 +242,9 @@ class Primaite(Env):
             time = now.strftime("%Y%m%d_%H%M%S")
             header = ["Episode", "Average Reward"]
 
-            # Check whether the output/rerults folder exists (doesn't exist by default install)
-            path = "outputs/results/"
-            is_dir = os.path.isdir(path)
-            if not is_dir:
-                os.makedirs(path)
-            filename = "outputs/results/average_reward_per_episode_" + time + ".csv"
-            self.csv_file = open(filename, "w", encoding="UTF8", newline="")
+            file_name = f"average_reward_per_episode_{timestamp_str}.csv"
+            file_path = session_path / file_name
+            self.csv_file = open(file_path, "w", encoding="UTF8", newline="")
             self.csv_writer = csv.writer(self.csv_file)
             self.csv_writer.writerow(header)
         except Exception:
@@ -404,7 +406,6 @@ class Primaite(Env):
     def __close__(self):
         """Override close function."""
         self.csv_file.close()
-        self.config_file.close()
 
     def init_acl(self):
         """Initialise the Access Control List."""
@@ -888,7 +889,7 @@ class Primaite(Env):
         elif self.observation_type == ObservationType.MULTIDISCRETE:
             self._update_env_obs_multidiscrete()
 
-    def load_config(self):
+    def load_lay_down_config(self):
         """Loads config data in order to build the environment configuration."""
         for item in self.config_data:
             if item["itemType"] == "NODE":
@@ -918,15 +919,9 @@ class Primaite(Env):
             elif item["itemType"] == "PORTS":
                 # Create the list of ports
                 self.create_ports_list(item)
-            elif item["itemType"] == "ACTIONS":
-                # Get the action information
-                self.get_action_info(item)
             elif item["itemType"] == "OBSERVATIONS":
                 # Get the observation information
                 self.get_observation_info(item)
-            elif item["itemType"] == "STEPS":
-                # Get the steps information
-                self.get_steps_info(item)
             else:
                 # Do nothing (bad formatting)
                 pass
@@ -1247,15 +1242,6 @@ class Primaite(Env):
         # Set the number of ports
         self.num_ports = len(self.ports_list)
 
-    def get_action_info(self, action_info):
-        """
-        Extracts action_info.
-
-        Args:
-            item: A config data item representing action info
-        """
-        self.action_type = ActionType[action_info["type"]]
-
     def get_observation_info(self, observation_info):
         """Extracts observation_info.
 
@@ -1263,16 +1249,6 @@ class Primaite(Env):
         :type observation_info: str
         """
         self.observation_type = ObservationType[observation_info["type"]]
-
-    def get_steps_info(self, steps_info):
-        """
-        Extracts steps_info.
-
-        Args:
-            item: A config data item representing steps info
-        """
-        self.episode_steps = int(steps_info["steps"])
-        _LOGGER.info("Training episodes have " + str(self.episode_steps) + " steps")
 
     def reset_environment(self):
         """
