@@ -2,7 +2,7 @@
 from pathlib import Path
 from typing import Final
 
-from primaite import getLogger, USERS_CONFIG_DIR
+from primaite import USERS_CONFIG_DIR, getLogger
 
 _LOGGER = getLogger(__name__)
 
@@ -17,7 +17,7 @@ def ddos_basic_one_config_path() -> Path:
     """
     path = _EXAMPLE_LAY_DOWN / "lay_down_config_1_DDOS_basic.yaml"
     if not path.exists():
-        msg = f"Example config not found. Please run 'primaite setup'"
+        msg = "Example config not found. Please run 'primaite setup'"
         _LOGGER.critical(msg)
         raise FileNotFoundError(msg)
 
@@ -32,7 +32,7 @@ def ddos_basic_two_config_path() -> Path:
     """
     path = _EXAMPLE_LAY_DOWN / "lay_down_config_2_DDOS_basic.yaml"
     if not path.exists():
-        msg = f"Example config not found. Please run 'primaite setup'"
+        msg = "Example config not found. Please run 'primaite setup'"
         _LOGGER.critical(msg)
         raise FileNotFoundError(msg)
 
@@ -47,7 +47,7 @@ def dos_very_basic_config_path() -> Path:
     """
     path = _EXAMPLE_LAY_DOWN / "lay_down_config_3_DOS_very_basic.yaml"
     if not path.exists():
-        msg = f"Example config not found. Please run 'primaite setup'"
+        msg = "Example config not found. Please run 'primaite setup'"
         _LOGGER.critical(msg)
         raise FileNotFoundError(msg)
 
@@ -62,7 +62,7 @@ def data_manipulation_config_path() -> Path:
     """
     path = _EXAMPLE_LAY_DOWN / "lay_down_config_5_data_manipulation.yaml"
     if not path.exists():
-        msg = f"Example config not found. Please run 'primaite setup'"
+        msg = "Example config not found. Please run 'primaite setup'"
         _LOGGER.critical(msg)
         raise FileNotFoundError(msg)
 

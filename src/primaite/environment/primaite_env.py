@@ -4,7 +4,6 @@
 import copy
 import csv
 import logging
-import os.path
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Tuple, Union
@@ -80,10 +79,12 @@ class Primaite(Env):
         self._training_config_path = training_config_path
         self._lay_down_config_path = lay_down_config_path
 
-        self.config_values: TrainingConfig = training_config.load(training_config_path)
+        self.training_config: TrainingConfig = training_config.load(
+            training_config_path
+        )
 
         # Number of steps in an episode
-        self.episode_steps = self.config_values.num_steps
+        self.episode_steps = self.training_config.num_steps
 
         super(Primaite, self).__init__()
 
@@ -91,7 +92,7 @@ class Primaite(Env):
         self.transaction_list = transaction_list
 
         # The agent in use
-        self.agent_identifier = self.config_values.agent_identifier
+        self.agent_identifier = self.training_config.agent_identifier
 
         # Create a dictionary to hold all the nodes
         self.nodes: Dict[str, NodeUnion] = {}
@@ -135,6 +136,9 @@ class Primaite(Env):
         # Create step count
         self.step_count = 0
 
+        self.total_step_count: int = 0
+        """The total number of time steps completed."""
+
         # Create step info dictionary
         self.step_info = {}
 
@@ -168,7 +172,7 @@ class Primaite(Env):
         # Open the config file and build the environment laydown
         with open(self._lay_down_config_path, "r") as file:
             # Open the config file and build the environment laydown
-            self.config_data = yaml.safe_load(file)
+            self.lay_down_config = yaml.safe_load(file)
             self.load_lay_down_config()
 
         # Store the node objects as node attributes
@@ -187,7 +191,6 @@ class Primaite(Env):
             plt.tight_layout()
             nx.draw_networkx(self.network, with_labels=True)
             now = datetime.now()  # current date and time
-            time = now.strftime("%Y%m%d_%H%M%S")
 
             file_path = session_path / f"network_{timestamp_str}.png"
             plt.savefig(file_path, format="PNG")
@@ -238,8 +241,6 @@ class Primaite(Env):
 
         # Set up a csv to store the results of the training
         try:
-            now = datetime.now()  # current date and time
-            time = now.strftime("%Y%m%d_%H%M%S")
             header = ["Episode", "Average Reward"]
 
             file_name = f"average_reward_per_episode_{timestamp_str}.csv"
@@ -303,7 +304,8 @@ class Primaite(Env):
         done = False
 
         self.step_count += 1
-        # print("Episode step: " + str(self.stepCount))
+        self.total_step_count += 1
+        # print("Episode step: " + str(self.step_count))
 
         # Need to clear traffic on all links first
         for link_key, link_value in self.links.items():
@@ -375,13 +377,13 @@ class Primaite(Env):
             self.green_iers,
             self.red_iers,
             self.step_count,
-            self.config_values,
+            self.training_config,
         )
         # print(f"    Step {self.step_count} Reward: {str(reward)}")
         self.total_reward += reward
         if self.step_count == self.episode_steps:
             self.average_reward = self.total_reward / self.step_count
-            if self.config_values.session_type == "EVALUATION":
+            if self.training_config.session_type == "EVALUATION":
                 # For evaluation, need to trigger the done value = True when
                 # step count is reached in order to prevent neverending episode
                 done = True
@@ -891,7 +893,7 @@ class Primaite(Env):
 
     def load_lay_down_config(self):
         """Loads config data in order to build the environment configuration."""
-        for item in self.config_data:
+        for item in self.lay_down_config:
             if item["itemType"] == "NODE":
                 # Create a node
                 self.create_node(item)
@@ -951,7 +953,7 @@ class Primaite(Env):
                 node_type,
                 node_priority,
                 node_hardware_state,
-                self.config_values,
+                self.training_config,
             )
         elif node_class == "ACTIVE":
             # Active nodes have IP address, Software State and file system state
@@ -967,7 +969,7 @@ class Primaite(Env):
                 node_ip_address,
                 node_software_state,
                 node_file_system_state,
-                self.config_values,
+                self.training_config,
             )
         elif node_class == "SERVICE":
             # Service nodes have IP address, Software State, file system state and list of services
@@ -983,7 +985,7 @@ class Primaite(Env):
                 node_ip_address,
                 node_software_state,
                 node_file_system_state,
-                self.config_values,
+                self.training_config,
             )
             node_services = item["services"]
             for service in node_services:
@@ -1257,7 +1259,7 @@ class Primaite(Env):
         Uses config data config data in order to build the environment
         configuration.
         """
-        for item in self.config_data:
+        for item in self.lay_down_config:
             if item["itemType"] == "NODE":
                 # Reset a node's state (normal and reference)
                 self.reset_node(item)

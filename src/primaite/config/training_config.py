@@ -1,17 +1,16 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Union, Final
+from typing import Any, Dict, Final, Union
 
 import yaml
 
-from primaite import getLogger, USERS_CONFIG_DIR
+from primaite import USERS_CONFIG_DIR, getLogger
 from primaite.common.enums import ActionType
 
 _LOGGER = getLogger(__name__)
 
-_EXAMPLE_TRAINING: Final[
-    Path] = USERS_CONFIG_DIR / "example_config" / "training"
+_EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training"
 
 
 @dataclass()
@@ -99,25 +98,37 @@ class TrainingConfig:
     file_system_restoring_limit: int  # The time take to restore a file
     file_system_scanning_limit: int  # The time taken to scan the file system
 
+    def to_dict(self, json_serializable: bool = True):
+        """
+        Serialise the ``TrainingConfig`` as dict.
+
+        :param json_serializable: If True, Enums are converted to their
+            string name.
+        :return: The ``TrainingConfig`` as a dict.
+        """
+        data = self.__dict__
+        if json_serializable:
+            data["action_type"] = self.action_type.value
+
+        return data
+
 
 def main_training_config_path() -> Path:
     """
-    The path to the example training_config_main.yaml file
+    The path to the example training_config_main.yaml file.
 
     :return: The file path.
     """
-
     path = _EXAMPLE_TRAINING / "training_config_main.yaml"
     if not path.exists():
-        msg = f"Example config not found. Please run 'primaite setup'"
+        msg = "Example config not found. Please run 'primaite setup'"
         _LOGGER.critical(msg)
         raise FileNotFoundError(msg)
 
     return path
 
 
-def load(file_path: Union[str, Path],
-         legacy_file: bool = False) -> TrainingConfig:
+def load(file_path: Union[str, Path], legacy_file: bool = False) -> TrainingConfig:
     """
     Read in a training config yaml file.
 
@@ -162,9 +173,7 @@ def load(file_path: Union[str, Path],
 
 
 def convert_legacy_training_config_dict(
-        legacy_config_dict: Dict[str, Any],
-        num_steps: int = 256,
-        action_type: str = "ANY"
+    legacy_config_dict: Dict[str, Any], num_steps: int = 256, action_type: str = "ANY"
 ) -> Dict[str, Any]:
     """
     Convert a legacy training config dict to the new format.
