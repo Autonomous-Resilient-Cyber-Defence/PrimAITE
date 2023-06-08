@@ -1,8 +1,3 @@
-.. PrimAITE documentation master file, created by
-   sphinx-quickstart on Thu Dec  8 09:51:18 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to PrimAITE's documentation
 ====================================
 
@@ -34,9 +29,21 @@ The best place to start is :ref:`about`
 .. toctree::
    :maxdepth: 8
    :caption: Contents:
+   :hidden:
 
    source/about
-   source/dependencies
    source/config
-   source/session
-   source/results
+   source/primaite_session
+   source/custom_agent
+   PrimAITE API <source/_autosummary/primaite>
+   PrimAITE Tests <source/_autosummary/tests>
+   source/dependencies
+
+.. toctree::
+   :caption: Project Links:
+   :hidden:
+
+   #Code <>
+   #Issues <>
+   #Pull Requests <>
+   #Discussions <>

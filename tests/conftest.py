@@ -15,7 +15,6 @@ def _get_temp_session_path(session_timestamp: datetime) -> Path:
     """
     Get a temp directory session path the test session will output to.
 
-
     :param session_timestamp: This is the datetime that the session started.
     :return: The session directory path.
     """
@@ -28,11 +27,9 @@ def _get_temp_session_path(session_timestamp: datetime) -> Path:
 
 
 def _get_primaite_env_from_config(
-        training_config_path: Union[str, Path],
-        lay_down_config_path: Union[str, Path]
+    training_config_path: Union[str, Path], lay_down_config_path: Union[str, Path]
 ):
     """Takes a config path and returns the created instance of Primaite."""
-
     session_timestamp: datetime = datetime.now()
     session_path = _get_temp_session_path(session_timestamp)
 
@@ -44,12 +41,12 @@ def _get_primaite_env_from_config(
         session_path=session_path,
         timestamp_str=timestamp_str,
     )
-    config_values = env.config_values
+    config_values = env.training_config
     config_values.num_steps = env.episode_steps
 
     # TOOD: This needs t be refactored to happen outside. Should be part of
     # a main Session class.
-    if env.config_values.agent_identifier == "GENERIC":
+    if env.training_config.agent_identifier == "GENERIC":
         run_generic(env, config_values)
 
     return env

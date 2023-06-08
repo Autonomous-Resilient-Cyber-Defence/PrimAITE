@@ -82,9 +82,9 @@ def write_transaction_to_file(transaction_list, session_path: Path, timestamp_st
     header = ["Timestamp", "Episode", "Step", "Reward"]
     header = header + action_header + obs_header_initial + obs_header_new
 
-
     try:
         filename = session_path / f"all_transactions_{timestamp_str}.csv"
+        _LOGGER.debug(f"Saving transaction logs: {filename}")
         csv_file = open(filename, "w", encoding="UTF8", newline="")
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(header)

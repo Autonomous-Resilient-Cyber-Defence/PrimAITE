@@ -6,11 +6,12 @@ TODO: This will eventually be refactored out into a proper Session class.
 TODO: The passing about of session_dir and timestamp_str is temporary and
     will be cleaned up once we move to a proper Session class.
 """
-import argparse
+import json
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import Final, Union
+from uuid import uuid4
 
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.common.evaluation import evaluate_policy
@@ -19,8 +20,7 @@ from stable_baselines3.ppo import MlpPolicy as PPOMlp
 
 from primaite import SESSIONS_DIR, getLogger
 from primaite.config.lay_down_config import data_manipulation_config_path
-from primaite.config.training_config import TrainingConfig, \
-    main_training_config_path
+from primaite.config.training_config import TrainingConfig, main_training_config_path
 from primaite.environment.primaite_env import Primaite
 from primaite.transactions.transactions_to_file import write_transaction_to_file
 
@@ -60,10 +60,7 @@ def run_generic(env: Primaite, config_values: TrainingConfig):
 
 
 def run_stable_baselines3_ppo(
-        env: Primaite,
-        config_values: TrainingConfig,
-        session_path: Path,
-        timestamp_str: str
+    env: Primaite, config_values: TrainingConfig, session_path: Path, timestamp_str: str
 ):
     """
     Run against a stable_baselines3 PPO agent.
@@ -98,8 +95,8 @@ def run_stable_baselines3_ppo(
         # We're in a training session
         print("Starting training session...")
         _LOGGER.debug("Starting training session...")
-        for episode in range(0, config_values.num_episodes):
-            agent.learn(total_timesteps=1)
+        for episode in range(config_values.num_episodes):
+            agent.learn(total_timesteps=config_values.num_steps)
         _save_agent(agent, session_path, timestamp_str)
     else:
         # Default to being in an evaluation session
@@ -111,9 +108,7 @@ def run_stable_baselines3_ppo(
 
 
 def run_stable_baselines3_a2c(
-        env: Primaite,
-        config_values: TrainingConfig,
-        session_path: Path, timestamp_str: str
+    env: Primaite, config_values: TrainingConfig, session_path: Path, timestamp_str: str
 ):
     """
     Run against a stable_baselines3 A2C agent.
@@ -148,8 +143,8 @@ def run_stable_baselines3_a2c(
         # We're in a training session
         print("Starting training session...")
         _LOGGER.debug("Starting training session...")
-        for episode in range(0, config_values.num_episodes):
-            agent.learn(total_timesteps=1)
+        for episode in range(config_values.num_episodes):
+            agent.learn(total_timesteps=config_values.num_steps)
         _save_agent(agent, session_path, timestamp_str)
     else:
         # Default to being in an evaluation session
@@ -158,6 +153,68 @@ def run_stable_baselines3_a2c(
         evaluate_policy(agent, env, n_eval_episodes=config_values.num_episodes)
 
     env.close()
+
+
+def _write_session_metadata_file(
+    session_dir: Path, uuid: str, session_timestamp: datetime, env: Primaite
+):
+    """
+    Write the ``session_metadata.json`` file.
+
+    Creates a ``session_metadata.json`` in the ``session_dir`` directory
+    and adds the following key/value pairs:
+
+    - uuid: The UUID assigned to the session upon instantiation.
+    - start_datetime: The date & time the session started in iso format.
+    - end_datetime: NULL.
+    - total_episodes: NULL.
+    - total_time_steps: NULL.
+    - env:
+        - training_config:
+            - All training config items
+        - lay_down_config:
+            - All lay down config items
+
+    """
+    metadata_dict = {
+        "uuid": uuid,
+        "start_datetime": session_timestamp.isoformat(),
+        "end_datetime": None,
+        "total_episodes": None,
+        "total_time_steps": None,
+        "env": {
+            "training_config": env.training_config.to_dict(json_serializable=True),
+            "lay_down_config": env.lay_down_config,
+        },
+    }
+    filepath = session_dir / "session_metadata.json"
+    _LOGGER.debug(f"Writing Session Metadata file: {filepath}")
+    with open(filepath, "w") as file:
+        json.dump(metadata_dict, file)
+
+
+def _update_session_metadata_file(session_dir: Path, env: Primaite):
+    """
+    Update the ``session_metadata.json`` file.
+
+    Updates the `session_metadata.json`` in the ``session_dir`` directory
+    with the following key/value pairs:
+
+    - end_datetime: NULL.
+    - total_episodes: NULL.
+    - total_time_steps: NULL.
+    """
+    with open(session_dir / "session_metadata.json", "r") as file:
+        metadata_dict = json.load(file)
+
+    metadata_dict["end_datetime"] = datetime.now().isoformat()
+    metadata_dict["total_episodes"] = env.episode_count
+    metadata_dict["total_time_steps"] = env.total_step_count
+
+    filepath = session_dir / "session_metadata.json"
+    _LOGGER.debug(f"Updating Session Metadata file: {filepath}")
+    with open(filepath, "w") as file:
+        json.dump(metadata_dict, file)
 
 
 def _save_agent(agent: OnPolicyAlgorithm, session_path: Path, timestamp_str: str):
@@ -197,10 +254,7 @@ def _get_session_path(session_timestamp: datetime) -> Path:
     return session_path
 
 
-def run(
-        training_config_path: Union[str, Path],
-        lay_down_config_path: Union[str, Path]
-):
+def run(training_config_path: Union[str, Path], lay_down_config_path: Union[str, Path]):
     """Run the PrimAITE Session.
 
     :param training_config_path: The training config filepath.
@@ -208,12 +262,12 @@ def run(
     """
     # Welcome message
     print("Welcome to the Primary-level AI Training Environment (PrimAITE)")
-
+    uuid = str(uuid4())
     session_timestamp: Final[datetime] = datetime.now()
-    session_path = _get_session_path(session_timestamp)
+    session_dir = _get_session_path(session_timestamp)
     timestamp_str = session_timestamp.strftime("%Y-%m-%d_%H-%M-%S")
 
-    print(f"The output directory for this session is: {session_path}")
+    print(f"The output directory for this session is: {session_dir}")
 
     # Create a list of transactions
     # A transaction is an object holding the:
@@ -230,11 +284,17 @@ def run(
         training_config_path=training_config_path,
         lay_down_config_path=lay_down_config_path,
         transaction_list=transaction_list,
-        session_path=session_path,
+        session_path=session_dir,
         timestamp_str=timestamp_str,
     )
 
-    config_values = env.config_values
+    print("Writing Session Metadata file...")
+
+    _write_session_metadata_file(
+        session_dir=session_dir, uuid=uuid, session_timestamp=session_timestamp, env=env
+    )
+
+    config_values = env.training_config
 
     # Get the number of steps (which is stored in the child config file)
     config_values.num_steps = env.episode_steps
@@ -246,14 +306,14 @@ def run(
         run_stable_baselines3_ppo(
             env=env,
             config_values=config_values,
-            session_path=session_path,
+            session_path=session_dir,
             timestamp_str=timestamp_str,
         )
     elif config_values.agent_identifier == "STABLE_BASELINES3_A2C":
         run_stable_baselines3_a2c(
             env=env,
             config_values=config_values,
-            session_path=session_path,
+            session_path=session_dir,
             timestamp_str=timestamp_str,
         )
 
@@ -261,29 +321,32 @@ def run(
     _LOGGER.debug("Session finished")
 
     print("Saving transaction logs...")
-    _LOGGER.debug("Saving transaction logs...")
-
     write_transaction_to_file(
         transaction_list=transaction_list,
-        session_path=session_path,
+        session_path=session_dir,
         timestamp_str=timestamp_str,
     )
+
+    print("Updating Session Metadata file...")
+    _update_session_metadata_file(session_dir=session_dir, env=env)
 
     print("Finished")
     _LOGGER.debug("Finished")
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--tc")
-    parser.add_argument("--ldc")
-    args = parser.parse_args()
-    if not args.tc:
-        _LOGGER.error(
-            "Please provide a training config file using the --tc " "argument"
-        )
-    if not args.ldc:
-        _LOGGER.error(
-            "Please provide a lay down config file using the --ldc " "argument"
-        )
-    run(training_config_path=args.tc, lay_down_config_path=args.ldc)
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument("--tc")
+#     parser.add_argument("--ldc")
+#     args = parser.parse_args()
+#     if not args.tc:
+#         _LOGGER.error(
+#             "Please provide a training config file using the --tc " "argument"
+#         )
+#     if not args.ldc:
+#         _LOGGER.error(
+#             "Please provide a lay down config file using the --ldc " "argument"
+#         )
+#     run(training_config_path=args.tc, lay_down_config_path=args.ldc)
+
+run(main_training_config_path(), data_manipulation_config_path())
