@@ -52,6 +52,8 @@ def _log_dir() -> Path:
 LOG_DIR: Final[Path] = _log_dir()
 """The path to the app log directory as an instance of `Path` or `PosixPath`, depending on the OS."""
 
+LOG_DIR.mkdir(exist_ok=True, parents=True)
+
 LOG_PATH: Final[Path] = LOG_DIR / "primaite.log"
 """The primaite.log file path as an instance of `Path` or `PosixPath`, depending on the OS."""
 
