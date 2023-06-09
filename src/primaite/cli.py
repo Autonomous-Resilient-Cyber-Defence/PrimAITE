@@ -90,6 +90,7 @@ def setup(overwrite_existing: bool = True):
     WARNING: All user-data will be lost.
     """
     app_dirs = PlatformDirs(appname="primaite")
+    app_dirs.user_config_path.mkdir(exist_ok=True, parents=True)
     user_config_path = app_dirs.user_config_path / "primaite_config.yaml"
     build_config = overwrite_existing or (not user_config_path.exists())
     if build_config:
