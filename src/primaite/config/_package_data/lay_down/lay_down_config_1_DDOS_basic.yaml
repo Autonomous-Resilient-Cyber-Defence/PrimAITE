@@ -1,14 +1,14 @@
-- itemType: ACTIONS
+- item_type: ACTIONS
   type: NODE
-- itemType: STEPS
+- item_type: STEPS
   steps: 128
-- itemType: PORTS
-  portsList:
+- item_type: PORTS
+  ports_list:
     - port: '80'
-- itemType: SERVICES
-  serviceList:
+- item_type: SERVICES
+  service_list:
     - name: TCP
-- itemType: NODE
+- item_type: NODE
   node_id: '1'
   name: PC1
   node_class: SERVICE
@@ -22,7 +22,7 @@
     - name: TCP
       port: '80'
       state: GOOD
-- itemType: NODE
+- item_type: NODE
   node_id: '2'
   name: SERVER
   node_class: SERVICE
@@ -36,7 +36,7 @@
     - name: TCP
       port: '80'
       state: GOOD
-- itemType: NODE
+- item_type: NODE
   node_id: '3'
   name: PC2
   node_class: SERVICE
@@ -50,7 +50,7 @@
     - name: TCP
       port: '80'
       state: GOOD
-- itemType: NODE
+- item_type: NODE
   node_id: '4'
   name: SWITCH1
   node_class: ACTIVE
@@ -60,7 +60,7 @@
   ip_address: 192.168.1.5
   software_state: GOOD
   file_system_state: GOOD
-- itemType: NODE
+- item_type: NODE
   node_id: '5'
   name: SWITCH2
   node_class: ACTIVE
@@ -70,7 +70,7 @@
   ip_address: 192.168.1.6
   software_state: GOOD
   file_system_state: GOOD
-- itemType: NODE
+- item_type: NODE
   node_id: '6'
   name: SWITCH3
   node_class: ACTIVE
@@ -80,56 +80,56 @@
   ip_address: 192.168.1.7
   software_state: GOOD
   file_system_state: GOOD
-- itemType: LINK
+- item_type: LINK
   id: '7'
   name: link1
   bandwidth: 1000000000
   source: '1'
   destination: '4'
-- itemType: LINK
+- item_type: LINK
   id: '8'
   name: link2
   bandwidth: 1000000000
   source: '4'
   destination: '2'
-- itemType: LINK
+- item_type: LINK
   id: '9'
   name: link3
   bandwidth: 1000000000
   source: '2'
   destination: '5'
-- itemType: LINK
+- item_type: LINK
   id: '10'
   name: link4
   bandwidth: 1000000000
   source: '2'
   destination: '6'
-- itemType: LINK
+- item_type: LINK
   id: '11'
   name: link5
   bandwidth: 1000000000
   source: '5'
   destination: '3'
-- itemType: LINK
+- item_type: LINK
   id: '12'
   name: link6
   bandwidth: 1000000000
   source: '6'
   destination: '3'
-- itemType: GREEN_IER
+- item_type: GREEN_IER
   id: '13'
-  startStep: 1
-  endStep: 128
+  start_step: 1
+  end_step: 128
   load: 100000
   protocol: TCP
   port: '80'
   source: '3'
   destination: '2'
-  missionCriticality: 5
-- itemType: RED_POL
+  mission_criticality: 5
+- item_type: RED_POL
   id: '14'
-  startStep: 50
-  endStep: 50
+  start_step: 50
+  end_step: 50
   targetNodeId: '1'
   initiator: DIRECT
   type: SERVICE
@@ -138,20 +138,20 @@
   sourceNodeId: NA
   sourceNodeService: NA
   sourceNodeServiceState: NA
-- itemType: RED_IER
+- item_type: RED_IER
   id: '15'
-  startStep: 60
-  endStep: 100
+  start_step: 60
+  end_step: 100
   load: 1000000
   protocol: TCP
   port: '80'
   source: '1'
   destination: '2'
-  missionCriticality: 0
-- itemType: RED_POL
+  mission_criticality: 0
+- item_type: RED_POL
   id: '16'
-  startStep: 80
-  endStep: 80
+  start_step: 80
+  end_step: 80
   targetNodeId: '2'
   initiator: IER
   type: SERVICE
@@ -160,7 +160,7 @@
   sourceNodeId: NA
   sourceNodeService: NA
   sourceNodeServiceState: NA
-- itemType: ACL_RULE
+- item_type: ACL_RULE
   id: '17'
   permission: ALLOW
   source: ANY

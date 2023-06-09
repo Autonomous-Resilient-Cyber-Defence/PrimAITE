@@ -296,15 +296,15 @@ The Lay Down Config
 
 The lay down config file consists of the following attributes:
 
-* **itemType: PORTS** [int]
+* **item_type: PORTS** [int]
 
    Provides a list of ports modelled in this session
 
-* **itemType: SERVICES** [freetext]
+* **item_type: SERVICES** [freetext]
 
    Provides a list of services modelled in this session
 
-* **itemType: NODE**
+* **item_type: NODE**
 
    Defines a node included in the system laydown being simulated. It should consist of the following attributes:
 
@@ -323,7 +323,7 @@ The lay down config file consists of the following attributes:
         * **port** [int]: Integer value of the port related to this service, but must match one of the ports defined for the system in the ports list
         * **state** [enum]: The initial state of the service. Can be one of GOOD, PATCHING, COMPROMISED or OVERWHELMED
 
-* **itemType: LINK**
+* **item_type: LINK**
 
    Defines a link included in the system laydown being simulated. It should consist of the following attributes:
 
@@ -333,53 +333,53 @@ The lay down config file consists of the following attributes:
      * **source** [int]: The ID of the source node
      * **destination** [int]: The ID of the destination node
 
-* **itemType: GREEN_IER**
+* **item_type: GREEN_IER**
 
    Defines a green agent Information Exchange Requirement (IER). It should consist of:
 
      * **id** [int]: Unique ID for this YAML item
-     * **startStep** [int]: The start step (in the episode) for this IER to begin
-     * **endStep** [int]: The end step (in the episode) for this IER to finish
+     * **start_step** [int]: The start step (in the episode) for this IER to begin
+     * **end_step** [int]: The end step (in the episode) for this IER to finish
      * **load** [int]: The load (in bits/s) for this IER to apply to links
      * **protocol** [freetext]: The protocol to apply to the links. This must match a value in the services list
      * **port** [int]: The port that the protocol is running on. This must match a value in the ports list
      * **source** [int]: The ID of the source node
      * **destination** [int]: The ID of the destination node
-     * **missionCriticality** [enum]: The mission criticality of this IER (with 5 being highest, 1 lowest)
+     * **mission_criticality** [enum]: The mission criticality of this IER (with 5 being highest, 1 lowest)
 
-* **itemType: RED_IER**
+* **item_type: RED_IER**
 
    Defines a red agent Information Exchange Requirement (IER). It should consist of:
 
      * **id** [int]: Unique ID for this YAML item
-     * **startStep** [int]: The start step (in the episode) for this IER to begin
-     * **endStep** [int]: The end step (in the episode) for this IER to finish
+     * **start_step** [int]: The start step (in the episode) for this IER to begin
+     * **end_step** [int]: The end step (in the episode) for this IER to finish
      * **load** [int]: The load (in bits/s) for this IER to apply to links
      * **protocol** [freetext]: The protocol to apply to the links. This must match a value in the services list
      * **port** [int]: The port that the protocol is running on. This must match a value in the ports list
      * **source** [int]: The ID of the source node
      * **destination** [int]: The ID of the destination node
-     * **missionCriticality** [enum]: Not currently used. Default to 0
+     * **mission_criticality** [enum]: Not currently used. Default to 0
 
-* **itemType: GREEN_POL**
+* **item_type: GREEN_POL**
 
     Defines a green agent pattern-of-life instruction. It should consist of:
 
       * **id** [int]: Unique ID for this YAML item
-      * **startStep** [int]: The start step (in the episode) for this PoL to begin
-      * **endStep** [int]: Not currently used. Default to same as start step
+      * **start_step** [int]: The start step (in the episode) for this PoL to begin
+      * **end_step** [int]: Not currently used. Default to same as start step
       * **nodeId** [int]: The ID of the node to apply the PoL to
       * **type** [enum]: The type of PoL to apply. Can be one of OPERATING, OS or SERVICE
       * **protocol** [freetext]: The protocol to be affected if SERVICE type is chosen. Must match a value in the services list
       * **state** [enuum]: The state to apply to the node (which represents the PoL change). Can be one of ON, OFF or RESETTING (for node state) or GOOD, PATCHING or COMPROMISED (for Software State) or GOOD, PATCHING, COMPROMISED or OVERWHELMED (for service state)
 
-* **itemType: RED_POL**
+* **item_type: RED_POL**
 
     Defines a red agent pattern-of-life instruction. It should consist of:
 
       * **id** [int]: Unique ID for this YAML item
-      * **startStep** [int]: The start step (in the episode) for this PoL to begin
-      * **endStep** [int]: Not currently used. Default to same as start step
+      * **start_step** [int]: The start step (in the episode) for this PoL to begin
+      * **end_step** [int]: Not currently used. Default to same as start step
       * **targetNodeId** [int]: The ID of the node to apply the PoL to
       * **initiator** [enum]: What initiates the PoL. Can be DIRECT, IER or SERVICE
       * **type** [enum]: The type of PoL to apply. Can be one of OPERATING, OS or SERVICE
@@ -389,7 +389,7 @@ The lay down config file consists of the following attributes:
       * **sourceNodeService** [freetext]: The service on the source node to check (used for SERVICE initiator). Must match a value in the services list for this node
       * **sourceNodeServiceState** [enum]: The state of the source node service to check (used for SERVICE initiator). Can be one of GOOD, PATCHING, COMPROMISED or OVERWHELMED
 
-* **itemType: ACL_RULE**
+* **item_type: ACL_RULE**
 
     Defines an initial Access Control List (ACL) rule. It should consist of:
 
