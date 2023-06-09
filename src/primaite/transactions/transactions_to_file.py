@@ -16,11 +16,10 @@ def turn_action_space_to_array(_action_space):
     Args:
         _action_space: The action space.
     """
-    return_array = []
-    for x in range(len(_action_space)):
-        return_array.append(str(_action_space[x]))
-
-    return return_array
+    if isinstance(_action_space, list):
+        return [str(i) for i in _action_space]
+    else:
+        return [str(_action_space)]
 
 
 def turn_obs_space_to_array(_obs_space, _obs_assets, _obs_features):
