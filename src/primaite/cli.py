@@ -1,9 +1,13 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Provides a CLI using Typer as an entry point."""
 import os
+import shutil
 import sys
+from pathlib import Path
 
+import pkg_resources
 import typer
+from platformdirs import PlatformDirs
 
 app = typer.Typer()
 
@@ -79,12 +83,24 @@ def clean_up():
 
 
 @app.command()
-def setup():
+def setup(overwrite_existing: bool = True):
     """
     Perform the PrimAITE first-time setup.
 
     WARNING: All user-data will be lost.
     """
+    app_dirs = PlatformDirs(appname="primaite")
+    user_config_path = app_dirs.user_config_path / "primaite_config.yaml"
+    build_config = overwrite_existing or (not user_config_path.exists())
+    if build_config:
+        pkg_config_path = Path(
+            pkg_resources.resource_filename(
+                "primaite", "setup/_package_data/primaite_config.yaml"
+            )
+        )
+
+        shutil.copy2(pkg_config_path, user_config_path)
+
     from primaite import getLogger
     from primaite.setup import (
         old_installation_clean_up,
@@ -96,6 +112,9 @@ def setup():
     _LOGGER = getLogger(__name__)
 
     _LOGGER.info("Performing the PrimAITE first-time setup...")
+
+    if build_config:
+        _LOGGER.info("Building primaite_config.yaml...")
 
     _LOGGER.info("Building the PrimAITE app directories...")
     setup_app_dirs.run()
