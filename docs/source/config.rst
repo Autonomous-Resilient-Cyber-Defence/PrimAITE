@@ -37,7 +37,7 @@ The environment config file consists of the following attributes:
 
    This defines the number of episodes that the agent will train or be evaluated over.
 
-* **num_stepss** [int]
+* **num_steps** [int]
 
    Determines the number of steps to run in each episode of the session
 
