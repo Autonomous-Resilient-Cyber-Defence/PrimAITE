@@ -17,20 +17,16 @@ def start_jupyter_session():
 
     .. todo:: Figure out how to get this working for Linux and MacOS too.
     """
-    if sys.platform == "win32":
-        if importlib.util.find_spec("jupyter") is not None:
-            # Jupyter is installed
-            working_dir = os.getcwd()
-            os.chdir(NOTEBOOKS_DIR)
-            subprocess.Popen("jupyter lab")
-            os.chdir(working_dir)
-        else:
-            # Jupyter is not installed
-            _LOGGER.error("Cannot start jupyter lab as it is not installed")
+
+    if importlib.util.find_spec("jupyter") is not None:
+        jupyter_cmd = "python3 -m jupyter lab"
+        if sys.platform == "win32":
+            jupyter_cmd = "jupyter lab"
+
+        working_dir = os.getcwd()
+        os.chdir(NOTEBOOKS_DIR)
+        subprocess.Popen(jupyter_cmd)
+        os.chdir(working_dir)
     else:
-        msg = (
-            "Feature currently only supported on Windows OS. For "
-            "Linux/MacOS users, run 'cd ~/primaite/notebooks; jupyter "
-            "lab' from your Python environment."
-        )
-        _LOGGER.warning(msg)
+        # Jupyter is not installed
+        _LOGGER.error("Cannot start jupyter lab as it is not installed")

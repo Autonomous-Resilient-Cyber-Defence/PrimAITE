@@ -377,7 +377,7 @@ class Primaite(Env):
             self.step_count,
             self.training_config,
         )
-        print(f"    Step {self.step_count} Reward: {str(reward)}")
+        #print(f"    Step {self.step_count} Reward: {str(reward)}")
         self.total_reward += reward
         if self.step_count == self.episode_steps:
             self.average_reward = self.total_reward / self.step_count

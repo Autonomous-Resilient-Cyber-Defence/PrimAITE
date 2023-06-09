@@ -6,6 +6,7 @@ TODO: This will eventually be refactored out into a proper Session class.
 TODO: The passing about of session_dir and timestamp_str is temporary and
     will be cleaned up once we move to a proper Session class.
 """
+import argparse
 import json
 import time
 from datetime import datetime
@@ -19,10 +20,10 @@ from stable_baselines3.common.on_policy_algorithm import OnPolicyAlgorithm
 from stable_baselines3.ppo import MlpPolicy as PPOMlp
 
 from primaite import SESSIONS_DIR, getLogger
-from primaite.config.lay_down_config import data_manipulation_config_path
-from primaite.config.training_config import TrainingConfig, main_training_config_path
+from primaite.config.training_config import TrainingConfig
 from primaite.environment.primaite_env import Primaite
-from primaite.transactions.transactions_to_file import write_transaction_to_file
+from primaite.transactions.transactions_to_file import \
+    write_transaction_to_file
 
 _LOGGER = getLogger(__name__)
 
@@ -334,19 +335,19 @@ def run(training_config_path: Union[str, Path], lay_down_config_path: Union[str,
     _LOGGER.debug("Finished")
 
 
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("--tc")
-#     parser.add_argument("--ldc")
-#     args = parser.parse_args()
-#     if not args.tc:
-#         _LOGGER.error(
-#             "Please provide a training config file using the --tc " "argument"
-#         )
-#     if not args.ldc:
-#         _LOGGER.error(
-#             "Please provide a lay down config file using the --ldc " "argument"
-#         )
-#     run(training_config_path=args.tc, lay_down_config_path=args.ldc)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--tc")
+    parser.add_argument("--ldc")
+    args = parser.parse_args()
+    if not args.tc:
+        _LOGGER.error(
+            "Please provide a training config file using the --tc " "argument"
+        )
+    if not args.ldc:
+        _LOGGER.error(
+            "Please provide a lay down config file using the --ldc " "argument"
+        )
+    run(training_config_path=args.tc, lay_down_config_path=args.ldc)
 
-run(main_training_config_path(), data_manipulation_config_path())
+

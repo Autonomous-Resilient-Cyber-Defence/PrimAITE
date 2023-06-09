@@ -2,12 +2,12 @@
 """Provides a CLI using Typer as an entry point."""
 import os
 import shutil
-import sys
 from pathlib import Path
 
 import pkg_resources
 import typer
 from platformdirs import PlatformDirs
+from typing_extensions import Annotated
 
 app = typer.Typer()
 
@@ -33,26 +33,17 @@ def reset_notebooks(overwrite: bool = True):
 
 
 @app.command()
-def logs(last_n: int = 10):
+def logs(last_n: Annotated[int, typer.Option("-n")]):
     """
     Print the PrimAITE log file.
 
     :param last_n: The number of lines to print. Default value is 10.
     """
     import re
+    from primaite import LOG_PATH
 
-    from platformdirs import PlatformDirs
-
-    yt_platform_dirs = PlatformDirs(appname="primaite")
-
-    if sys.platform == "win32":
-        log_dir = yt_platform_dirs.user_data_path / "logs"
-    else:
-        log_dir = yt_platform_dirs.user_log_path
-    log_path = os.path.join(log_dir, "primaite.log")
-
-    if os.path.isfile(log_path):
-        with open(log_path) as file:
+    if os.path.isfile(LOG_PATH):
+        with open(LOG_PATH) as file:
             lines = file.readlines()
         for line in lines[-last_n:]:
             print(re.sub(r"\n*", "", line))
@@ -89,6 +80,7 @@ def setup(overwrite_existing: bool = True):
 
     WARNING: All user-data will be lost.
     """
+    # Does this way to avoid using PrimAITE package before config is loaded
     app_dirs = PlatformDirs(appname="primaite")
     app_dirs.user_config_path.mkdir(exist_ok=True, parents=True)
     user_config_path = app_dirs.user_config_path / "primaite_config.yaml"
