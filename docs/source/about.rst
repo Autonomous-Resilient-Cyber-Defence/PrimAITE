@@ -351,29 +351,40 @@ The action space available to the blue agent comes in two types:
 
  1. Node-based
  2. Access Control List
+ 3. Any (Agent can take both node-based and ACL-based actions)
 
 The choice of action space used during a training session is determined in the config_[name].yaml file.
 
 **Node-Based**
 
-The agent is able to influence the status of nodes by switching them off, resetting, or patching operating systems and services. In this instance, the action space is an OpenAI Gym multidiscrete type, as follows:
+The agent is able to influence the status of nodes by switching them off, resetting, or patching operating systems and services. In this instance, the action space is an OpenAI Gym spaces.Discrete type, as follows:
 
- * [0, num nodes] - Node ID (0 = nothing, node ID)
- * [0, 4] - What property it's acting on (0 = nothing, 1 = state, 2 = SoftwareState, 3 = service state, 4 = file system state)
- * [0, 3] - Action on property (0 = nothing, 1 = on / scan, 2 = off / repair, 3 = reset / patch / restore)
- * [0, num services] - Resolves to service ID (0 = nothing, resolves to service)
+ * Dictionary item {... ,1: [x1, x2, x3,x4] ...}
+   The placeholders inside the list under the key '1' mean the following:
+
+    * [0, num nodes] - Node ID (0 = nothing, node ID)
+    * [0, 4] - What property it's acting on (0 = nothing, 1 = state, 2 = SoftwareState, 3 = service state, 4 = file system state)
+    * [0, 3] - Action on property (0 = nothing, 1 = on / scan, 2 = off / repair, 3 = reset / patch / restore)
+    * [0, num services] - Resolves to service ID (0 = nothing, resolves to service)
 
 **Access Control List**
 
-The blue agent is able to influence the configuration of the Access Control List rule set (which implements a system-wide firewall). In this instance, the action space is an OpenAI multidiscrete type, as follows:
+The blue agent is able to influence the configuration of the Access Control List rule set (which implements a system-wide firewall). In this instance, the action space is an OpenAI spaces.Discrete type, as follows:
 
+   * Dictionary item {... ,1: [x1, x2, x3, x4, x5, x6] ...}
+   The placeholders inside the list under the key '1' mean the following:
 
- * [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
- * [0, 1] - Permission (0 = DENY, 1 = ALLOW)
- * [0, num nodes] - Source IP (0 = any, then 1 -> x resolving to IP addresses)
- * [0, num nodes] - Dest IP (0 = any, then 1 -> x resolving to IP addresses)
- * [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
- * [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
+     * [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
+     * [0, 1] - Permission (0 = DENY, 1 = ALLOW)
+     * [0, num nodes] - Source IP (0 = any, then 1 -> x resolving to IP addresses)
+     * [0, num nodes] - Dest IP (0 = any, then 1 -> x resolving to IP addresses)
+     * [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
+     * [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
+
+**ANY**
+The agent is able to carry out both **Node-Based** and **Access Control List** operations.
+
+This means the dictionary will contain key-value pairs in the format of BOTH Node-Based and Access Control List as seen above.
 
 Rewards
 *******
