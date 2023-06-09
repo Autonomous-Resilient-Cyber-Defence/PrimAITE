@@ -65,6 +65,8 @@ The environment config file consists of the following attributes:
 
 **Reward-Based Config Values**
 
+Rewards are calculated based on the difference between the current state and reference state (the 'should be' state) of the environment.
+
 * **Generic [all_ok]** [int]
 
    The score to give when the current situation (for a given component) is no different from that expected in the baseline (i.e. as though no blue or red agent actions had been undertaken)
