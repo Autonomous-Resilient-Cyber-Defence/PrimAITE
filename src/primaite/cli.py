@@ -1,11 +1,15 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Provides a CLI using Typer as an entry point."""
+import logging
 import os
 import shutil
 from pathlib import Path
+from enum import Enum
+from typing import Optional
 
 import pkg_resources
 import typer
+import yaml
 from platformdirs import PlatformDirs
 from typing_extensions import Annotated
 
@@ -47,6 +51,36 @@ def logs(last_n: Annotated[int, typer.Option("-n")]):
             lines = file.readlines()
         for line in lines[-last_n:]:
             print(re.sub(r"\n*", "", line))
+
+
+_LogLevel = Enum("LogLevel", {k: k for k in logging._levelToName.values()}) # noqa
+
+
+@app.command()
+def log_level(level: Annotated[Optional[_LogLevel], typer.Argument()] = None):
+    """
+    View or set the PrimAITE Log Level.
+
+    To View, simply call: primaite log-level
+
+    To set, call: primaite log-level <desired log level>
+
+    For example, to set the to debug, call: primaite log-level DEBUG
+    """
+    app_dirs = PlatformDirs(appname="primaite")
+    app_dirs.user_config_path.mkdir(exist_ok=True, parents=True)
+    user_config_path = app_dirs.user_config_path / "primaite_config.yaml"
+    if user_config_path.exists():
+        with open(user_config_path, "r") as file:
+            primaite_config = yaml.safe_load(file)
+
+        if level:
+            primaite_config["log_level"] = level.value
+            with open(user_config_path, "w") as file:
+                yaml.dump(primaite_config, file)
+        else:
+            level = primaite_config["log_level"]
+            print(f"PrimAITE Log Level: {level}")
 
 
 @app.command()

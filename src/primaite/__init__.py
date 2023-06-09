@@ -14,6 +14,7 @@ from platformdirs import PlatformDirs
 _PLATFORM_DIRS: Final[PlatformDirs] = PlatformDirs(appname="primaite")
 """An instance of `PlatformDirs` set with appname='primaite'."""
 
+
 def _get_primaite_config():
     config_path = _PLATFORM_DIRS.user_config_path / "primaite_config.yaml"
     if not config_path.exists():
@@ -24,15 +25,19 @@ def _get_primaite_config():
         )
     with open(config_path, "r") as file:
         primaite_config = yaml.safe_load(file)
+    log_level_map = {
+        "NOTSET": logging.NOTSET,
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARN": logging.WARN,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL
+    }
+    primaite_config["log_level"] = log_level_map[primaite_config["log_level"]]
     return primaite_config
 
 
 _PRIMAITE_CONFIG = _get_primaite_config()
-
-# PrimAITE config items
-_LOG_LEVEL: int = _PRIMAITE_CONFIG["log_level"]
-_LOGGER_FORMAT: str = _PRIMAITE_CONFIG["logger_format"]
-
 
 _USER_DIRS: Final[Path] = Path.home() / "primaite"
 """The users home space for PrimAITE which is located at: ~/primaite."""
@@ -86,10 +91,10 @@ _FILE_HANDLER: Final[RotatingFileHandler] = RotatingFileHandler(
     backupCount=9,  # Max 100MB of logs
     encoding="utf8",
 )
-_STREAM_HANDLER.setLevel(_LOG_LEVEL)
-_FILE_HANDLER.setLevel(_LOG_LEVEL)
+_STREAM_HANDLER.setLevel(_PRIMAITE_CONFIG["log_level"])
+_FILE_HANDLER.setLevel(_PRIMAITE_CONFIG["log_level"])
 
-_LOG_FORMAT_STR: Final[str] = _LOGGER_FORMAT
+_LOG_FORMAT_STR: Final[str] = _PRIMAITE_CONFIG["logger_format"]
 _STREAM_HANDLER.setFormatter(logging.Formatter(_LOG_FORMAT_STR))
 _FILE_HANDLER.setFormatter(logging.Formatter(_LOG_FORMAT_STR))
 
@@ -108,7 +113,7 @@ def getLogger(name: str) -> Logger:
         logging config.
     """
     logger = logging.getLogger(name)
-    logger.setLevel(_LOG_LEVEL)
+    logger.setLevel(_PRIMAITE_CONFIG["log_level"])
 
     return logger
 
