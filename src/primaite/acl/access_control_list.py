@@ -1,8 +1,11 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """A class that implements the access control list implementation for the network."""
-from typing import List
+import logging
+from typing import Final, List
 
 from primaite.acl.acl_rule import ACLRule
+
+_LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
 
 class AccessControlList:
@@ -92,7 +95,16 @@ class AccessControlList:
             _position: position to insert ACL rule into ACL list
         """
         new_rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
-        self.acl.insert(_position, new_rule)
+
+        if _position < self.max_acl_rules - 1 and _position < 0:
+            if _position < len(self.acl):
+                self.acl.insert(_position, new_rule)
+            else:
+                print("check logic on this")
+        else:
+            _LOGGER.info(
+                f"Position {_position} is an invalid index for list/overwriting implicit firewall rule"
+            )
 
     def remove_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port):
         """
@@ -107,10 +119,9 @@ class AccessControlList:
         """
         # Add check so you cant remove implicit rule
         rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
-        hash_value = hash(rule)
         # There will not always be something 'popable' since the agent will be trying random things
         try:
-            self.acl.pop(hash_value)
+            self.acl.remove(rule)
         except Exception:
             return
 
