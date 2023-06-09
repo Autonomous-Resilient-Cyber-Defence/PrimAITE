@@ -16,10 +16,10 @@ from tests.conftest import _get_primaite_env_from_config
 def env(request):
     """Build Primaite environment for integration tests of observation space."""
     marker = request.node.get_closest_marker("env_config_paths")
-    main_config_path = marker.args[0]["main_config_path"]
+    training_config_path = marker.args[0]["training_config_path"]
     lay_down_config_path = marker.args[0]["lay_down_config_path"]
-    env, _ = _get_primaite_env_from_config(
-        main_config_path=main_config_path,
+    env = _get_primaite_env_from_config(
+        training_config_path=training_config_path,
         lay_down_config_path=lay_down_config_path,
     )
     yield env
@@ -27,7 +27,7 @@ def env(request):
 
 @pytest.mark.env_config_paths(
     dict(
-        main_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_without_obs.yaml",
+        training_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_without_obs.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
@@ -43,7 +43,7 @@ def test_default_obs_space(env: Primaite):
 
 @pytest.mark.env_config_paths(
     dict(
-        main_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_without_obs.yaml",
+        training_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_without_obs.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
@@ -59,7 +59,7 @@ def test_registering_components(env: Primaite):
 
 @pytest.mark.env_config_paths(
     dict(
-        main_config_path=TEST_CONFIG_ROOT
+        training_config_path=TEST_CONFIG_ROOT
         / "obs_tests/main_config_NODE_LINK_TABLE.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
@@ -140,7 +140,7 @@ class TestNodeLinkTable:
 
 @pytest.mark.env_config_paths(
     dict(
-        main_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_NODE_STATUSES.yaml",
+        training_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_NODE_STATUSES.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
@@ -184,7 +184,7 @@ class TestNodeStatuses:
 
 @pytest.mark.env_config_paths(
     dict(
-        main_config_path=TEST_CONFIG_ROOT
+        training_config_path=TEST_CONFIG_ROOT
         / "obs_tests/main_config_LINK_TRAFFIC_LEVELS.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )

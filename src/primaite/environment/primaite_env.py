@@ -168,8 +168,8 @@ class Primaite(Env):
         # TODO fix up with TrainingConfig
         # stores the observation config from the yaml, default is NODE_LINK_TABLE
         self.obs_config: dict = {"components": [{"name": "NODE_LINK_TABLE"}]}
-        if self.config_values.observation_config is not None:
-            self.obs_config = self.config_values.observation_config
+        if self.training_config.observation_space is not None:
+            self.obs_config = self.training_config.observation_space
 
         # Observation Handler manages the user-configurable observation space.
         # It will be initialised later.

@@ -14,7 +14,7 @@ action_type: ANY
 # Number of episodes to run per session
 num_episodes: 1
 # Number of time_steps per episode
-num_steps: 15
+num_steps: 5
 # Time delay between steps (for generic agents)
 time_delay: 1
 # Type of session to be run (TRAINING or EVALUATION)
