@@ -77,7 +77,7 @@ class AccessControlList:
         # If there has been no rule to allow the IER through, it will return a blocked signal by default
         return True
 
-    def add_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port):
+    def add_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port, _position):
         """
         Adds a new rule.
 
@@ -87,10 +87,10 @@ class AccessControlList:
             _dest_ip: the destination IP address
             _protocol: the protocol
             _port: the port
+            _position: position to insert ACL rule into ACL list
         """
         new_rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
-        hash_value = hash(new_rule)
-        self.acl[hash_value] = new_rule
+        self.acl.insert(_position, new_rule)
 
     def remove_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port):
         """

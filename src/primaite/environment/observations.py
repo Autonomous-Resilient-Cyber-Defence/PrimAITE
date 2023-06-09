@@ -6,7 +6,12 @@ from typing import TYPE_CHECKING, Dict, Final, List, Tuple, Union
 import numpy as np
 from gym import spaces
 
-from primaite.common.enums import FileSystemState, HardwareState, SoftwareState
+from primaite.common.enums import (
+    FileSystemState,
+    HardwareState,
+    ImplicitFirewallRule,
+    SoftwareState,
+)
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.service_node import ServiceNode
 
@@ -292,6 +297,88 @@ class LinkTrafficLevels(AbstractObservationComponent):
                     ) + 1
 
                 obs.append(int(traffic_level))
+
+        self.current_observation[:] = obs
+
+
+class AccessControlList(AbstractObservationComponent):
+    """Flat list of all the Access Control Rules in the Access Control List.
+
+    The MultiDiscrete observation space can be though of as a one-dimensional vector of discrete states, represented by
+    integers.
+
+    :param env: The environment that forms the basis of the observations
+    :type env: Primaite
+    :param acl_implicit_rule: Whether to have an implicit DENY or implicit ALLOW ACL rule at the end of the ACL list
+     Default is 0 DENY, 1 ALLOW
+    :type acl_implicit_rule: ImplicitFirewallRule Enumeration (ALLOW or DENY)
+    :param max_acl_rules: Maximum number of ACLs allowed in the environment
+    :type max_acl_rules: int
+
+    Each ACL Rule has 6 elements. It will have the following structure:
+    .. code-block::
+        [
+            acl_rule1 permission,
+            acl_rule1 source_ip,
+            acl_rule1 dest_ip,
+            acl_rule1 protocol,
+            acl_rule1 port,
+            acl_rule1 position,
+            acl_rule2 permission,
+            acl_rule2 source_ip,
+            acl_rule2 dest_ip,
+            acl_rule2 protocol,
+            acl_rule2 port,
+            acl_rule2 position,
+            ...
+        ]
+    """
+
+    _DATA_TYPE: type = np.int64
+
+    def __init__(
+        self,
+        env: "Primaite",
+        acl_implicit_rule=ImplicitFirewallRule.DENY,
+        max_acl_rules: int = 5,
+    ):
+        super().__init__(env)
+
+        self.acl_implicit_rule: ImplicitFirewallRule = acl_implicit_rule
+        self.max_acl_rules = max_acl_rules
+
+        # 1. Define the shape of your observation space component
+        acl_shape = [
+            len(ImplicitFirewallRule),
+            len(env.nodes),
+            len(env.nodes),
+            len(env.services_list),
+            len(env.ports_list),
+            len(env.acl),
+        ]
+        shape = acl_shape * self.env.max_acl_rules
+
+        # 2. Create Observation space
+        self.space = spaces.MultiDiscrete(shape)
+
+        # 3. Initialise observation with zeroes
+        self.current_observation = np.zeros(len(shape), dtype=self._DATA_TYPE)
+
+    def update(self):
+        """Update the observation based on current environment state.
+
+        The structure of the observation space is described in :class:`.AccessControlList`
+        """
+        obs = []
+        for acl_rule in self.env.acl:
+            permission = acl_rule.permission
+            source_ip = acl_rule.source_ip
+            dest_ip = acl_rule.dest_ip
+            protocol = acl_rule.protocol
+            port = acl_rule.port
+            position = self.env.acl.index(acl_rule)
+
+            obs.extend([permission, source_ip, dest_ip, protocol, port, position])
 
         self.current_observation[:] = obs
 

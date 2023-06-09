@@ -21,6 +21,7 @@ from primaite.common.enums import (
     ActionType,
     FileSystemState,
     HardwareState,
+    ImplicitFirewallRule,
     NodePOLInitiator,
     NodePOLType,
     NodeType,
@@ -157,6 +158,12 @@ class Primaite(Env):
         # It will be initialised later.
         self.obs_handler: ObservationsHandler
 
+        # Set by main_config
+        # Adds a DENY ALL or ALLOW ALL to the end of the Access Control List
+        self.acl_implicit_rule = ImplicitFirewallRule.DENY
+
+        # Sets a limit to how many ACL
+        self.max_acl_rules = 0
         # Open the config file and build the environment laydown
         try:
             self.config_file = open(self.config_values.config_filename_use_case, "r")

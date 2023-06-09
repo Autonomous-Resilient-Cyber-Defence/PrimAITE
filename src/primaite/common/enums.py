@@ -126,3 +126,10 @@ class LinkStatus(Enum):
     MEDIUM = 2
     HIGH = 3
     OVERLOAD = 4
+
+
+class ImplicitFirewallRule(Enum):
+    """Implicit firewall rule."""
+
+    DENY = 0
+    ALLOW = 1
