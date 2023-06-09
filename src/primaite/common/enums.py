@@ -128,7 +128,7 @@ class LinkStatus(Enum):
     OVERLOAD = 4
 
 
-class ImplicitFirewallRule(Enum):
+class RulePermissionType(Enum):
     """Implicit firewall rule."""
 
     DENY = 0

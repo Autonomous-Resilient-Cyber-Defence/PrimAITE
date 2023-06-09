@@ -8,10 +8,12 @@ from primaite.acl.acl_rule import ACLRule
 class AccessControlList:
     """Access Control List class."""
 
-    def __init__(self):
+    def __init__(self, implicit_permission):
         """Init."""
         # A list of ACL Rules
         self.acl: List[ACLRule] = []
+        self.acl_implicit_rule = implicit_permission
+        self.max_acl_rules: int
 
     def check_address_match(self, _rule, _source_ip_address, _dest_ip_address):
         """
@@ -103,6 +105,7 @@ class AccessControlList:
             _protocol: the protocol
             _port: the port
         """
+        # Add check so you cant remove implicit rule
         rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
         hash_value = hash(rule)
         # There will not always be something 'popable' since the agent will be trying random things
