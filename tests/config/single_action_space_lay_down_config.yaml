@@ -1,0 +1,55 @@
+- itemType: ACTIONS
+  type: ANY
+- itemType: STEPS
+  steps: 15
+- itemType: PORTS
+  portsList:
+  - port: '21'
+- itemType: SERVICES
+  serviceList:
+  - name: ftp
+- itemType: NODE
+  node_id: '1'
+  name: node
+  node_class: SERVICE
+  node_type: COMPUTER
+  priority: P1
+  hardware_state: 'ON'
+  ip_address: 192.168.0.14
+  software_state: GOOD
+  file_system_state: GOOD
+  services:
+  - name: ftp
+    port: '21'
+    state: COMPROMISED
+- itemType: NODE
+  node_id: '2'
+  name: server_1
+  node_class: SERVICE
+  node_type: SERVER
+  priority: P1
+  hardware_state: 'ON'
+  ip_address: 192.168.0.1
+  software_state: GOOD
+  file_system_state: GOOD
+  services:
+  - name: ftp
+    port: '21'
+    state: COMPROMISED
+- itemType: POSITION
+  positions:
+  - node: '1'
+    x_pos: 309
+    y_pos: 78
+  - node: '2'
+    x_pos: 200
+    y_pos: 78
+- itemType: RED_IER
+  id: '3'
+  startStep: 2
+  endStep: 15
+  load: 1000
+  protocol: ftp
+  port: CORRUPT
+  source: '1'
+  destination: '2'
