@@ -9,7 +9,7 @@ from gym import spaces
 from primaite.common.enums import (
     FileSystemState,
     HardwareState,
-    ImplicitFirewallRule,
+    RulePermissionType,
     SoftwareState,
 )
 from primaite.nodes.active_node import ActiveNode
@@ -336,25 +336,16 @@ class AccessControlList(AbstractObservationComponent):
 
     _DATA_TYPE: type = np.int64
 
-    def __init__(
-        self,
-        env: "Primaite",
-        acl_implicit_rule=ImplicitFirewallRule.DENY,
-        max_acl_rules: int = 5,
-    ):
+    def __init__(self, env: "Primaite"):
         super().__init__(env)
-
-        self.acl_implicit_rule: ImplicitFirewallRule = acl_implicit_rule
-        self.max_acl_rules = max_acl_rules
 
         # 1. Define the shape of your observation space component
         acl_shape = [
-            len(ImplicitFirewallRule),
+            len(RulePermissionType),
             len(env.nodes),
             len(env.nodes),
             len(env.services_list),
             len(env.ports_list),
-            len(env.acl),
         ]
         shape = acl_shape * self.env.max_acl_rules
 
@@ -394,6 +385,7 @@ class ObservationsHandler:
         "NODE_LINK_TABLE": NodeLinkTable,
         "NODE_STATUSES": NodeStatuses,
         "LINK_TRAFFIC_LEVELS": LinkTrafficLevels,
+        "ACCESS_CONTROL_LIST": AccessControlList,
     }
 
     def __init__(self):

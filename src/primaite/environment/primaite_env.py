@@ -21,11 +21,11 @@ from primaite.common.enums import (
     ActionType,
     FileSystemState,
     HardwareState,
-    ImplicitFirewallRule,
     NodePOLInitiator,
     NodePOLType,
     NodeType,
     Priority,
+    RulePermissionType,
     SoftwareState,
 )
 from primaite.common.service import Service
@@ -160,7 +160,7 @@ class Primaite(Env):
 
         # Set by main_config
         # Adds a DENY ALL or ALLOW ALL to the end of the Access Control List
-        self.acl_implicit_rule = ImplicitFirewallRule.DENY
+        self.acl_implicit_rule = RulePermissionType.DENY
 
         # Sets a limit to how many ACL
         self.max_acl_rules = 0
@@ -1173,7 +1173,7 @@ class Primaite(Env):
     def create_acl_action_dict(self):
         """Creates a dictionary mapping each possible discrete action to more readable multidiscrete action."""
         # reserve 0 action to be a nothing action
-        actions = {0: [0, 0, 0, 0, 0, 0]}
+        actions = {0: [0, 0, 0, 0, 0, 0, 0]}
 
         action_key = 1
         # 3 possible action decisions, 0=NOTHING, 1=CREATE, 2=DELETE
@@ -1185,14 +1185,16 @@ class Primaite(Env):
                     for dest_ip in range(self.num_nodes + 1):
                         for protocol in range(self.num_services + 1):
                             for port in range(self.num_ports + 1):
-                                action = [
-                                    action_decision,
-                                    action_permission,
-                                    source_ip,
-                                    dest_ip,
-                                    protocol,
-                                    port,
-                                ]
+                                for position in range(self.max_acl_rules - 1):
+                                    action = [
+                                        action_decision,
+                                        action_permission,
+                                        source_ip,
+                                        dest_ip,
+                                        protocol,
+                                        port,
+                                        position,
+                                    ]
                                 # Check to see if its an action we want to include as possible i.e. not a nothing action
                                 if is_valid_acl_action_extra(action):
                                     actions[action_key] = action
