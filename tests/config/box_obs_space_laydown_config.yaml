@@ -1,19 +1,19 @@
-- itemType: ACTIONS
+- item_type: ACTIONS
   type: NODE
-- itemType: OBSERVATIONS
+- item_type: OBSERVATIONS
   type: BOX
-- itemType: STEPS
+- item_type: STEPS
   steps: 5
-- itemType: PORTS
-  portsList:
+- item_type: PORTS
+  ports_list:
     - port: '80'
-- itemType: SERVICES
-  serviceList:
+- item_type: SERVICES
+  service_list:
     - name: TCP
 
 ########################################
 # Nodes
-- itemType: NODE
+- item_type: NODE
   node_id: '1'
   name: PC1
   node_class: SERVICE
@@ -27,7 +27,7 @@
     - name: TCP
       port: '80'
       state: GOOD
-- itemType: NODE
+- item_type: NODE
   node_id: '2'
   name: SERVER
   node_class: SERVICE
@@ -41,7 +41,7 @@
     - name: TCP
       port: '80'
       state: GOOD
-- itemType: NODE
+- item_type: NODE
   node_id: '3'
   name: SWITCH1
   node_class: ACTIVE
@@ -54,13 +54,13 @@
 
 ########################################
 # Links
-- itemType: LINK
+- item_type: LINK
   id: '4'
   name: link1
   bandwidth: 1000
   source: '1'
   destination: '3'
-- itemType: LINK
+- item_type: LINK
   id: '5'
   name: link2
   bandwidth: 1000

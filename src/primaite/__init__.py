@@ -64,8 +64,8 @@ _FILE_HANDLER: Final[RotatingFileHandler] = RotatingFileHandler(
     backupCount=9,  # Max 100MB of logs
     encoding="utf8",
 )
-_STREAM_HANDLER.setLevel(logging.INFO)
-_FILE_HANDLER.setLevel(logging.INFO)
+_STREAM_HANDLER.setLevel(logging.DEBUG)
+_FILE_HANDLER.setLevel(logging.DEBUG)
 
 _LOG_FORMAT_STR: Final[
     str
@@ -88,7 +88,7 @@ def getLogger(name: str) -> Logger:
         logging config.
     """
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     return logger
 

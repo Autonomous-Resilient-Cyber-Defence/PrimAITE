@@ -1,10 +1,10 @@
-- itemType: PORTS
-  portsList:
+- item_type: PORTS
+  ports_list:
   - port: '21'
-- itemType: SERVICES
-  serviceList:
+- item_type: SERVICES
+  service_list:
   - name: ftp
-- itemType: NODE
+- item_type: NODE
   node_id: '1'
   name: node
   node_class: SERVICE
@@ -18,15 +18,15 @@
   - name: ftp
     port: '21'
     state: GOOD
-- itemType: POSITION
+- item_type: POSITION
   positions:
   - node: '1'
     x_pos: 309
     y_pos: 78
-- itemType: RED_POL
+- item_type: RED_POL
   id: '1'
-  startStep: 1
-  endStep: 3
+  start_step: 1
+  end_step: 3
   targetNodeId: '1'
   initiator: DIRECT
   type: FILE
@@ -35,10 +35,10 @@
   sourceNodeId: NA
   sourceNodeService: NA
   sourceNodeServiceState: NA
-- itemType: RED_POL
+- item_type: RED_POL
   id: '2'
-  startStep: 3
-  endStep: 15
+  start_step: 3
+  end_step: 15
   targetNodeId: '1'
   initiator: DIRECT
   type: FILE
@@ -47,10 +47,10 @@
   sourceNodeId: NA
   sourceNodeService: NA
   sourceNodeServiceState: NA
-- itemType: RED_POL
+- item_type: RED_POL
   id: '3'
-  startStep: 4
-  endStep: 6
+  start_step: 4
+  end_step: 6
   targetNodeId: '1'
   initiator: DIRECT
   type: OPERATING
@@ -59,10 +59,10 @@
   sourceNodeId: NA
   sourceNodeService: NA
   sourceNodeServiceState: NA
-- itemType: RED_POL
+- item_type: RED_POL
   id: '4'
-  startStep: 6
-  endStep: 15
+  start_step: 6
+  end_step: 15
   targetNodeId: '1'
   initiator: DIRECT
   type: OPERATING
@@ -71,10 +71,10 @@
   sourceNodeId: NA
   sourceNodeService: NA
   sourceNodeServiceState: NA
-- itemType: RED_POL
+- item_type: RED_POL
   id: '5'
-  startStep: 7
-  endStep: 9
+  start_step: 7
+  end_step: 9
   targetNodeId: '1'
   initiator: DIRECT
   type: SERVICE
@@ -83,10 +83,10 @@
   sourceNodeId: NA
   sourceNodeService: NA
   sourceNodeServiceState: NA
-- itemType: RED_POL
+- item_type: RED_POL
   id: '6'
-  startStep: 9
-  endStep: 15
+  start_step: 9
+  end_step: 15
   targetNodeId: '1'
   initiator: DIRECT
   type: SERVICE
@@ -95,10 +95,10 @@
   sourceNodeId: NA
   sourceNodeService: NA
   sourceNodeServiceState: NA
-- itemType: RED_POL
+- item_type: RED_POL
   id: '7'
-  startStep: 10
-  endStep: 12
+  start_step: 10
+  end_step: 12
   targetNodeId: '1'
   initiator: DIRECT
   type: OS
@@ -107,10 +107,10 @@
   sourceNodeId: NA
   sourceNodeService: NA
   sourceNodeServiceState: NA
-- itemType: RED_POL
+- item_type: RED_POL
   id: '8'
-  startStep: 12
-  endStep: 15
+  start_step: 12
+  end_step: 15
   targetNodeId: '1'
   initiator: DIRECT
   type: OS
