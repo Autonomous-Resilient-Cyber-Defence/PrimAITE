@@ -163,6 +163,10 @@ def load_config_values():
     try:
         # Generic
         config_values.agent_identifier = config_data["agentIdentifier"]
+        if "observationSpace" in config_data:
+            config_values.observation_config = config_data["observationSpace"]
+        else:
+            config_values.observation_config = None
         config_values.num_episodes = int(config_data["numEpisodes"])
         config_values.time_delay = int(config_data["timeDelay"])
         config_values.config_filename_use_case = (
