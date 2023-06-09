@@ -18,7 +18,7 @@ def env(request):
     marker = request.node.get_closest_marker("env_config_paths")
     main_config_path = marker.args[0]["main_config_path"]
     lay_down_config_path = marker.args[0]["lay_down_config_path"]
-    env = _get_primaite_env_from_config(
+    env, _ = _get_primaite_env_from_config(
         main_config_path=main_config_path,
         lay_down_config_path=lay_down_config_path,
     )
@@ -123,8 +123,8 @@ class TestNodeLinkTable:
                 * 999 (999 traffic service1)
                 * 0 (no traffic for service2)
         """
-        act = np.asarray([0, 0, 0, 0])
-        obs, reward, done, info = env.step(act)
+        # act = np.asarray([0,])
+        obs, reward, done, info = env.step(0)  # apply the 'do nothing' action
 
         assert np.array_equal(
             obs,
@@ -178,8 +178,7 @@ class TestNodeStatuses:
                 * service 1 = n/a (0)
                 * service 2 = n/a (0)
         """
-        act = np.asarray([0, 0, 0, 0])
-        obs, _, _, _ = env.step(act)
+        obs, _, _, _ = env.step(0)  # apply the 'do nothing' action
         assert np.array_equal(obs, [1, 3, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 0, 0])
 
 
@@ -210,9 +209,8 @@ class TestLinkTrafficLevels:
             * an IER trying to send 999 bits of data over both links the whole time (via the first service)
             * link bandwidth of 1000, therefore the utilisation is 99.9%
         """
-        act = np.asarray([0, 0, 0, 0])
-        obs, reward, done, info = env.step(act)
-        obs, reward, done, info = env.step(act)
+        obs, reward, done, info = env.step(0)
+        obs, reward, done, info = env.step(0)
 
         # the observation space has combine_service_traffic set to False, so the space has this format:
         # [link1_service1, link1_service2, link2_service1, link2_service2]
