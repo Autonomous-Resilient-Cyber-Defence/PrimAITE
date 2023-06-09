@@ -1,6 +1,6 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """A class that implements the access control list implementation for the network."""
-from typing import Dict
+from typing import List
 
 from primaite.acl.acl_rule import ACLRule
 
@@ -10,7 +10,8 @@ class AccessControlList:
 
     def __init__(self):
         """Init."""
-        self.acl: Dict[str, AccessControlList] = {}  # A dictionary of ACL Rules
+        # A list of ACL Rules
+        self.acl: List[ACLRule] = []
 
     def check_address_match(self, _rule, _source_ip_address, _dest_ip_address):
         """
