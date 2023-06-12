@@ -85,7 +85,10 @@ class ConfigValuesMain(object):
         # Patching / Reset
         self.os_patching_duration = 0  # The time taken to patch the OS
         self.node_reset_duration = 0  # The time taken to reset a node (hardware)
+        self.node_booting_duration = 0  # The Time taken to turn on the node
+        self.node_shutdown_duration = 0  # The time taken to turn off the node
         self.service_patching_duration = 0  # The time taken to patch a service
         self.file_system_repairing_limit = 0  # The time take to repair a file
         self.file_system_restoring_limit = 0  # The time take to restore a file
         self.file_system_scanning_limit = 0  # The time taken to scan the file system
+
