@@ -24,6 +24,7 @@ from primaite.transactions.transactions_to_file import write_transaction_to_file
 def run_generic():
     """Run against a generic agent."""
     for episode in range(0, config_values.num_episodes):
+        env.reset()
         for step in range(0, config_values.num_steps):
             # Send the observation space to the agent to get an action
             # TEMP - random action for now
@@ -41,7 +42,6 @@ def run_generic():
             time.sleep(config_values.time_delay / 1000)
 
         # Reset the environment at the end of the episode
-        env.reset()
 
     env.close()
 
@@ -162,6 +162,10 @@ def load_config_values():
     try:
         # Generic
         config_values.agent_identifier = config_data["agentIdentifier"]
+        if "observationSpace" in config_data:
+            config_values.observation_config = config_data["observationSpace"]
+        else:
+            config_values.observation_config = None
         config_values.num_episodes = int(config_data["numEpisodes"])
         config_values.time_delay = int(config_data["timeDelay"])
         config_values.config_filename_use_case = (
@@ -376,7 +380,7 @@ logging.info("Saving transaction logs...")
 
 write_transaction_to_file(transaction_list)
 
-config_file_main.close
+config_file_main.close()
 
 print("Finished")
 logging.info("Finished")

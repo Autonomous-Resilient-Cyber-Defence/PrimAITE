@@ -1,0 +1,93 @@
+# Main Config File
+
+# Generic config values
+# Choose one of these (dependent on Agent being trained)
+# "STABLE_BASELINES3_PPO"
+# "STABLE_BASELINES3_A2C"
+# "GENERIC"
+agentIdentifier: NONE
+# Number of episodes to run per session
+observationSpace:
+  components:
+    - name: NODE_STATUSES
+
+numEpisodes: 1
+# Time delay between steps (for generic agents)
+timeDelay: 1
+# Filename of the scenario / laydown
+configFilename: one_node_states_on_off_lay_down_config.yaml
+# Type of session to be run (TRAINING or EVALUATION)
+sessionType: TRAINING
+# Determine whether to load an agent from file
+loadAgent: False
+# File path and file name of agent if you're loading one in
+agentLoadFile: C:\[Path]\[agent_saved_filename.zip]
+
+# Environment config values
+# The high value for the observation space
+observationSpaceHighValue: 1_000_000_000
+
+# Reward values
+# Generic
+allOk: 0
+# Node Hardware State
+offShouldBeOn: -10
+offShouldBeResetting: -5
+onShouldBeOff: -2
+onShouldBeResetting: -5
+resettingShouldBeOn: -5
+resettingShouldBeOff: -2
+resetting: -3
+# Node Software or Service State
+goodShouldBePatching: 2
+goodShouldBeCompromised: 5
+goodShouldBeOverwhelmed: 5
+patchingShouldBeGood: -5
+patchingShouldBeCompromised: 2
+patchingShouldBeOverwhelmed: 2
+patching: -3
+compromisedShouldBeGood: -20
+compromisedShouldBePatching: -20
+compromisedShouldBeOverwhelmed: -20
+compromised: -20
+overwhelmedShouldBeGood: -20
+overwhelmedShouldBePatching: -20
+overwhelmedShouldBeCompromised: -20
+overwhelmed: -20
+# Node File System State
+goodShouldBeRepairing: 2
+goodShouldBeRestoring: 2
+goodShouldBeCorrupt: 5
+goodShouldBeDestroyed: 10
+repairingShouldBeGood: -5
+repairingShouldBeRestoring: 2
+repairingShouldBeCorrupt: 2
+repairingShouldBeDestroyed: 0
+repairing: -3
+restoringShouldBeGood: -10
+restoringShouldBeRepairing: -2
+restoringShouldBeCorrupt: 1
+restoringShouldBeDestroyed: 2
+restoring: -6
+corruptShouldBeGood: -10
+corruptShouldBeRepairing: -10
+corruptShouldBeRestoring: -10
+corruptShouldBeDestroyed: 2
+corrupt: -10
+destroyedShouldBeGood: -20
+destroyedShouldBeRepairing: -20
+destroyedShouldBeRestoring: -20
+destroyedShouldBeCorrupt: -20
+destroyed: -20
+scanning: -2
+# IER status
+redIerRunning: -5
+greenIerBlocked: -10
+
+# Patching / Reset durations
+osPatchingDuration: 5            # The time taken to patch the OS
+nodeResetDuration: 5             # The time taken to reset a node (hardware)
+servicePatchingDuration: 5       # The time taken to patch a service
+fileSystemRepairingLimit: 5      # The time take to repair the file system
+fileSystemRestoringLimit: 5      # The time take to restore the file system
+fileSystemScanningLimit: 5       # The time taken to scan the file system
