@@ -1,6 +1,5 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Main environment module containing the PRIMmary AI Training Evironment (Primaite) class."""
-import time
 import copy
 import csv
 import logging
@@ -15,7 +14,8 @@ from gym import Env, spaces
 from matplotlib import pyplot as plt
 
 from primaite.acl.access_control_list import AccessControlList
-from primaite.agents.utils import is_valid_acl_action_extra, is_valid_node_action
+from primaite.agents.utils import is_valid_acl_action_extra, \
+    is_valid_node_action
 from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import (
     ActionType,
@@ -25,23 +25,25 @@ from primaite.common.enums import (
     NodePOLType,
     NodeType,
     Priority,
-    SoftwareState,
+    SoftwareState, ObservationType,
 )
 from primaite.common.service import Service
-from primaite.environment.observations import ObservationsHandler
 from primaite.config import training_config
 from primaite.config.training_config import TrainingConfig
+from primaite.environment.observations import ObservationsHandler
 from primaite.environment.reward import calculate_reward_function
 from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.node import Node
-from primaite.nodes.node_state_instruction_green import NodeStateInstructionGreen
+from primaite.nodes.node_state_instruction_green import \
+    NodeStateInstructionGreen
 from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.passive_node import PassiveNode
 from primaite.nodes.service_node import ServiceNode
 from primaite.pol.green_pol import apply_iers, apply_node_pol
 from primaite.pol.ier import IER
-from primaite.pol.red_agent_pol import apply_red_agent_iers, apply_red_agent_node_pol
+from primaite.pol.red_agent_pol import apply_red_agent_iers, \
+    apply_red_agent_node_pol
 from primaite.transactions.transaction import Transaction
 
 _LOGGER = logging.getLogger(__name__)

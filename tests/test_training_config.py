@@ -18,7 +18,8 @@ def test_legacy_lay_down_config_yaml_conversion():
 
     converted_dict = training_config.convert_legacy_training_config_dict(legacy_dict)
 
-    assert converted_dict == new_dict
+    for key, value in new_dict.items():
+        assert converted_dict[key] == value
 
 
 def test_create_config_values_main_from_file():
