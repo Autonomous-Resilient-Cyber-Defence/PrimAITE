@@ -119,6 +119,12 @@ class TrainingConfig:
     node_reset_duration: int = 5
     "The time taken to reset a node (hardware)."
 
+    node_booting_duration: int = 3
+    "The Time taken to turn on the node."
+
+    node_shutdown_duration: int = 2
+    "The time taken to turn off the node."
+
     service_patching_duration: int = 5
     "The time taken to patch a service."
 
@@ -207,7 +213,8 @@ def load(file_path: Union[str, Path],
 
 
 def convert_legacy_training_config_dict(
-        legacy_config_dict: Dict[str, Any], num_steps: int = 256,
+        legacy_config_dict: Dict[str, Any],
+        num_steps: int = 256,
         action_type: str = "ANY"
 ) -> Dict[str, Any]:
     """
@@ -220,7 +227,10 @@ def convert_legacy_training_config_dict(
         don't have action_type values.
     :return: The converted training config dict.
     """
-    config_dict = {"num_steps": num_steps, "action_type": action_type}
+    config_dict = {
+        "num_steps": num_steps,
+        "action_type": action_type
+    }
     for legacy_key, value in legacy_config_dict.items():
         new_key = _get_new_key_from_legacy(legacy_key)
         if new_key:
@@ -296,6 +306,8 @@ def _get_new_key_from_legacy(legacy_key: str) -> str:
         "greenIerBlocked": "green_ier_blocked",
         "osPatchingDuration": "os_patching_duration",
         "nodeResetDuration": "node_reset_duration",
+        "nodeBootingDuration": "node_booting_duration",
+        "nodeShutdownDuration": "node_shutdown_duration",
         "servicePatchingDuration": "service_patching_duration",
         "fileSystemRepairingLimit": "file_system_repairing_limit",
         "fileSystemRestoringLimit": "file_system_restoring_limit",
