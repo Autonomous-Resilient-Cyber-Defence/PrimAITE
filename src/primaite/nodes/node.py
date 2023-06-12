@@ -2,8 +2,8 @@
 """The base Node class."""
 from typing import Final
 
-from primaite.common.config_values_main import ConfigValuesMain
 from primaite.common.enums import HardwareState, NodeType, Priority
+from primaite.config.training_config import TrainingConfig
 
 
 class Node:
@@ -16,7 +16,7 @@ class Node:
         node_type: NodeType,
         priority: Priority,
         hardware_state: HardwareState,
-        config_values: ConfigValuesMain,
+        config_values: TrainingConfig,
     ):
         """
         Init.
@@ -34,7 +34,7 @@ class Node:
         self.priority = priority
         self.hardware_state: HardwareState = hardware_state
         self.resetting_count: int = 0
-        self.config_values: ConfigValuesMain = config_values
+        self.config_values: TrainingConfig = config_values
         self.booting_count: int = 0
         self.shutting_down_count: int = 0
 

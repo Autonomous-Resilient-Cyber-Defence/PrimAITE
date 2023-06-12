@@ -1,7 +1,7 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """The Passive Node class (i.e. an actuator)."""
-from primaite.common.config_values_main import ConfigValuesMain
 from primaite.common.enums import HardwareState, NodeType, Priority
+from primaite.config.training_config import TrainingConfig
 from primaite.nodes.node import Node
 
 
@@ -15,7 +15,7 @@ class PassiveNode(Node):
         node_type: NodeType,
         priority: Priority,
         hardware_state: HardwareState,
-        config_values: ConfigValuesMain,
+        config_values: TrainingConfig,
     ):
         """
         Init.

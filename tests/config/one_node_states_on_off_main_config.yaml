@@ -4,86 +4,91 @@
 # Choose one of these (dependent on Agent being trained)
 # "STABLE_BASELINES3_PPO"
 # "STABLE_BASELINES3_A2C"
-# "GENERIC"
-agentIdentifier: GENERIC
+agent_identifier: GENERIC
+# Sets How the Action Space is defined:
+# "NODE"
+# "ACL"
+# "ANY" node and acl actions
+action_type: NODE
 # Number of episodes to run per session
-numEpisodes: 1
+num_episodes: 1
+# Number of time_steps per episode
+num_steps: 15
 # Time delay between steps (for generic agents)
-timeDelay: 1
-# Filename of the scenario / laydown
-configFilename: one_node_states_on_off_lay_down_config.yaml
+time_delay: 1
+
 # Type of session to be run (TRAINING or EVALUATION)
-sessionType: TRAINING
+session_type: TRAINING
 # Determine whether to load an agent from file
-loadAgent: False
+load_agent: False
 # File path and file name of agent if you're loading one in
-agentLoadFile: C:\[Path]\[agent_saved_filename.zip]
+agent_load_file: C:\[Path]\[agent_saved_filename.zip]
 
 # Environment config values
 # The high value for the observation space
-observationSpaceHighValue: 1000000000
+observation_space_high_value: 1000000000
 
 # Reward values
 # Generic
-allOk: 0
+all_ok: 0
 # Node Hardware State
-offShouldBeOn: -10
-offShouldBeResetting: -5
-onShouldBeOff: -2
-onShouldBeResetting: -5
-resettingShouldBeOn: -5
-resettingShouldBeOff: -2
+off_should_be_on: -10
+off_should_be_resetting: -5
+on_should_be_off: -2
+on_should_be_resetting: -5
+resetting_should_be_on: -5
+resetting_should_be_off: -2
 resetting: -3
 # Node Software or Service State
-goodShouldBePatching: 2
-goodShouldBeCompromised: 5
-goodShouldBeOverwhelmed: 5
-patchingShouldBeGood: -5
-patchingShouldBeCompromised: 2
-patchingShouldBeOverwhelmed: 2
+good_should_be_patching: 2
+good_should_be_compromised: 5
+good_should_be_overwhelmed: 5
+patching_should_be_good: -5
+patching_should_be_compromised: 2
+patching_should_be_overwhelmed: 2
 patching: -3
-compromisedShouldBeGood: -20
-compromisedShouldBePatching: -20
-compromisedShouldBeOverwhelmed: -20
+compromised_should_be_good: -20
+compromised_should_be_patching: -20
+compromised_should_be_overwhelmed: -20
 compromised: -20
-overwhelmedShouldBeGood: -20
-overwhelmedShouldBePatching: -20
-overwhelmedShouldBeCompromised: -20
+overwhelmed_should_be_good: -20
+overwhelmed_should_be_patching: -20
+overwhelmed_should_be_compromised: -20
 overwhelmed: -20
 # Node File System State
-goodShouldBeRepairing: 2
-goodShouldBeRestoring: 2
-goodShouldBeCorrupt: 5
-goodShouldBeDestroyed: 10
-repairingShouldBeGood: -5
-repairingShouldBeRestoring: 2
-repairingShouldBeCorrupt: 2
-repairingShouldBeDestroyed: 0
+good_should_be_repairing: 2
+good_should_be_restoring: 2
+good_should_be_corrupt: 5
+good_should_be_destroyed: 10
+repairing_should_be_good: -5
+repairing_should_be_restoring: 2
+repairing_should_be_corrupt: 2
+repairing_should_be_destroyed: 0
 repairing: -3
-restoringShouldBeGood: -10
-restoringShouldBeRepairing: -2
-restoringShouldBeCorrupt: 1
-restoringShouldBeDestroyed: 2
+restoring_should_be_good: -10
+restoring_should_be_repairing: -2
+restoring_should_be_corrupt: 1
+restoring_should_be_destroyed: 2
 restoring: -6
-corruptShouldBeGood: -10
-corruptShouldBeRepairing: -10
-corruptShouldBeRestoring: -10
-corruptShouldBeDestroyed: 2
+corrupt_should_be_good: -10
+corrupt_should_be_repairing: -10
+corrupt_should_be_restoring: -10
+corrupt_should_be_destroyed: 2
 corrupt: -10
-destroyedShouldBeGood: -20
-destroyedShouldBeRepairing: -20
-destroyedShouldBeRestoring: -20
-destroyedShouldBeCorrupt: -20
+destroyed_should_be_good: -20
+destroyed_should_be_repairing: -20
+destroyed_should_be_restoring: -20
+destroyed_should_be_corrupt: -20
 destroyed: -20
 scanning: -2
 # IER status
-redIerRunning: -5
-greenIerBlocked: -10
+red_ier_running: -5
+green_ier_blocked: -10
 
 # Patching / Reset durations
-osPatchingDuration: 5            # The time taken to patch the OS
-nodeResetDuration: 5             # The time taken to reset a node (hardware)
-servicePatchingDuration: 5       # The time taken to patch a service
-fileSystemRepairingLimit: 5      # The time take to repair the file system
-fileSystemRestoringLimit: 5      # The time take to restore the file system
-fileSystemScanningLimit: 5       # The time taken to scan the file system
+os_patching_duration: 5            # The time taken to patch the OS
+node_reset_duration: 5             # The time taken to reset a node (hardware)
+service_patching_duration: 5       # The time taken to patch a service
+file_system_repairing_limit: 5      # The time take to repair the file system
+file_system_restoring_limit: 5      # The time take to restore the file system
+file_system_scanning_limit: 5       # The time taken to scan the file system
