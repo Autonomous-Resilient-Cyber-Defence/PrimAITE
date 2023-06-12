@@ -35,6 +35,8 @@ class Node:
         self.hardware_state: HardwareState = hardware_state
         self.resetting_count: int = 0
         self.config_values: TrainingConfig = config_values
+        self.booting_count: int = 0
+        self.shutting_down_count: int = 0
 
     def __repr__(self):
         """Returns the name of the node."""
@@ -42,11 +44,12 @@ class Node:
 
     def turn_on(self):
         """Sets the node state to ON."""
-        self.hardware_state = HardwareState.ON
-
+        self.hardware_state = HardwareState.BOOTING
+        self.booting_count = self.config_values.node_booting_duration
     def turn_off(self):
         """Sets the node state to OFF."""
         self.hardware_state = HardwareState.OFF
+        self.shutting_down_count = self.config_values.node_shutdown_duration
 
     def reset(self):
         """Sets the node state to Resetting and starts the reset count."""
@@ -59,3 +62,17 @@ class Node:
         if self.resetting_count <= 0:
             self.resetting_count = 0
             self.hardware_state = HardwareState.ON
+
+    def update_booting_status(self):
+        """Updates the booting count"""
+        self.booting_count -= 1
+        if self.booting_count <= 0:
+            self.booting_count = 0
+            self.hardware_state = HardwareState.ON
+
+    def update_shutdown_status(self):
+        """Updates the shutdown count"""
+        self.shutting_down_count -= 1
+        if self.shutting_down_count <= 0:
+            self.shutting_down_count = 0
+            self.hardware_state = HardwareState.OFF

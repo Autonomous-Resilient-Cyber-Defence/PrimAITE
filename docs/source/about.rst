@@ -31,7 +31,7 @@ An inheritance model has been adopted in order to model nodes. All nodes have th
 * Name
 * Type (e.g. computer, switch, RTU - enumeration)
 * Priority (P1, P2, P3, P4 or P5 - enumeration)
-* Hardware State (ON, OFF, RESETTING - enumeration)
+* Hardware State (ON, OFF, RESETTING, SHUTTING_DOWN, BOOTING - enumeration)
 
 Active Nodes also have the following attributes (Class: Active Node):
 
@@ -106,6 +106,8 @@ The status changes that can be made to a node are as follows:
       * ON
       * OFF
       * RESETTING - when a status of resetting is entered, the node will automatically exit this state after a number of steps (as defined by the nodeResetDuration configuration item) after which it returns to an ON state
+      * BOOTING
+      * SHUTTING_DOWN
 
 * Active Nodes and Service Nodes:
 
@@ -254,6 +256,8 @@ For the nodes, the following values are represented:
     * 1 = ON
     * 2 = OFF
     * 3 = RESETTING
+    * 4 = SHUTTING_DOWN
+    * 5 = BOOTING
 
  * SoftwareState:
 
@@ -303,7 +307,7 @@ Each ``node_info`` contains the following:
 .. code-block::
 
   [
-    hardware_state    (0=none, 1=ON, 2=OFF, 3=RESETTING)
+    hardware_state    (0=none, 1=ON, 2=OFF, 3=RESETTING, 4=SHUTTING_DOWN, 5=BOOTING)
     software_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)
     file_system_state (0=none, 1=GOOD, 2=CORRUPT, 3=DESTROYED, 4=REPAIRING, 5=RESTORING)
     service1_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)

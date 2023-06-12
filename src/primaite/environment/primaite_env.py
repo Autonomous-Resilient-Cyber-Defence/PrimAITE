@@ -1,6 +1,6 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Main environment module containing the PRIMmary AI Training Evironment (Primaite) class."""
-
+import time
 import copy
 import csv
 import logging

@@ -35,6 +35,8 @@ class HardwareState(Enum):
     ON = 1
     OFF = 2
     RESETTING = 3
+    SHUTTING_DOWN = 4
+    BOOTING = 5
 
 
 class SoftwareState(Enum):
