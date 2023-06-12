@@ -7,7 +7,6 @@ Coding Standards: PEP 8
 
 import logging
 import os.path
-import time
 from datetime import datetime
 
 import yaml
@@ -294,6 +293,8 @@ def load_config_values():
         # Patching / Reset durations
         config_values.os_patching_duration = int(config_data["osPatchingDuration"])
         config_values.node_reset_duration = int(config_data["nodeResetDuration"])
+        config_values.node_booting_duration = int(config_data["nodeBootingDuration"])
+        config_values.node_shutting_down_duration = int(config_data["nodeShutdownDuration"])
         config_values.service_patching_duration = int(
             config_data["servicePatchingDuration"]
         )
