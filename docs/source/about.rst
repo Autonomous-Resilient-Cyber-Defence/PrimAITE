@@ -184,16 +184,13 @@ All ACL rules are considered when applying an IER. Logic follows the order of ru
 
 Observation Spaces
 ******************
+The observation space provides the blue agent with information about the current status of nodes and links.
 
-The OpenAI Gym observation space provides the status of all nodes and links across the whole system:​
+PrimAITE builds on top of Gym Spaces to create an observation space that is easily configurable for users. It's made up of components which are managed by the :py:class:`primaite.environment.observations.ObservationHandler`. Each training scenario can define its own observation space, and the user can choose which information to inlude, and how it should be formatted.
 
-* Nodes (in terms of hardware state, Software State, file system state and services state) ​
-* Links (in terms of current loading for each service/protocol)
-
-The observation space can be configured as a ``gym.spaces.Box`` or ``gym.spaces.MultiDiscrete``, by setting the ``OBSERVATIONS`` parameter in the laydown config.
-
-Box-type observation space
---------------------------
+NodeLinkTable component
+-----------------------
+For example, the :py:class:`primaite.environment.observations.NodeLinkTable` component represents the status of nodes and links as a ``gym.spaces.Box`` with an example format shown below:
 
 An example observation space is provided below:
 
@@ -251,8 +248,6 @@ An example observation space is provided below:
      - 5000
      - 0
 
-The observation space is a 6 x 6 Box type (OpenAI Gym Space) in this example. This is made up from the node and link information detailed below.
-
 For the nodes, the following values are represented:
 
  * ID
@@ -294,9 +289,9 @@ For the links, the following statuses are represented:
  * SoftwareState = N/A
  * Protocol = loading in bits/s
 
-MultiDiscrete-type observation space
-------------------------------------
-The MultiDiscrete observation space can be though of as a one-dimensional vector of discrete states, represented by integers.
+NodeStatus component
+----------------------
+This is a MultiDiscrete observation space that can be though of as a one-dimensional vector of discrete states, represented by integers.
 The example above would have the following structure:
 
 .. code-block::
@@ -305,9 +300,6 @@ The example above would have the following structure:
     node1_info
     node2_info
     node3_info
-    link1_status
-    link2_status
-    link3_status
   ]
 
 Each ``node_info`` contains the following:
@@ -322,7 +314,25 @@ Each ``node_info`` contains the following:
     service2_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)
   ]
 
-Each ``link_status`` is just a number from 0-4 representing the network load in relation to bandwidth.
+In a network with three nodes and two services, the full observation space would have 15 elements. It can be written with ``gym`` notation to indicate the number of discrete options for each of the elements of the observation space. For example:
+
+.. code-block::
+
+  gym.spaces.MultiDiscrete([4,5,6,4,4,4,5,6,4,4,4,5,6,4,4])
+
+LinkTrafficLevels
+-----------------
+This component is a MultiDiscrete space showing the traffic flow levels on the links in the network, after applying a threshold to convert it from a continuous to a discrete value.
+The number of bins can be customised with 5 being the default. It has the following strucutre:
+.. code-block::
+
+  [
+    link1_status
+    link2_status
+    link3_status
+  ]
+
+Each ``link_status`` is a number from 0-4 representing the network load in relation to bandwidth.
 
 .. code-block::
 
@@ -332,12 +342,11 @@ Each ``link_status`` is just a number from 0-4 representing the network load in 
   3 = high traffic (<100%)
   4 = max traffic/ overwhelmed (100%)
 
-The full observation space would have 15 node-related elements and 3 link-related elements. It can be written with ``gym`` notation to indicate the number of discrete options for each of the elements of the observation space. For example:
+If the network has three links, the full observation space would have 3 elements. It can be written with ``gym`` notation to indicate the number of discrete options for each of the elements of the observation space. For example:
 
 .. code-block::
 
-  gym.spaces.MultiDiscrete([4,5,6,4,4,4,5,6,4,4,4,5,6,4,4,5,5,5])
-
+  gym.spaces.MultiDiscrete([5,5,5])
 
 Action Spaces
 **************
@@ -346,29 +355,40 @@ The action space available to the blue agent comes in two types:
 
  1. Node-based
  2. Access Control List
+ 3. Any (Agent can take both node-based and ACL-based actions)
 
 The choice of action space used during a training session is determined in the config_[name].yaml file.
 
 **Node-Based**
 
-The agent is able to influence the status of nodes by switching them off, resetting, or patching operating systems and services. In this instance, the action space is an OpenAI Gym multidiscrete type, as follows:
+The agent is able to influence the status of nodes by switching them off, resetting, or patching operating systems and services. In this instance, the action space is an OpenAI Gym spaces.Discrete type, as follows:
 
- * [0, num nodes] - Node ID (0 = nothing, node ID)
- * [0, 4] - What property it's acting on (0 = nothing, 1 = state, 2 = SoftwareState, 3 = service state, 4 = file system state)
- * [0, 3] - Action on property (0 = nothing, 1 = on / scan, 2 = off / repair, 3 = reset / patch / restore)
- * [0, num services] - Resolves to service ID (0 = nothing, resolves to service)
+ * Dictionary item {... ,1: [x1, x2, x3,x4] ...}
+   The placeholders inside the list under the key '1' mean the following:
+
+    * [0, num nodes] - Node ID (0 = nothing, node ID)
+    * [0, 4] - What property it's acting on (0 = nothing, 1 = state, 2 = SoftwareState, 3 = service state, 4 = file system state)
+    * [0, 3] - Action on property (0 = nothing, 1 = on / scan, 2 = off / repair, 3 = reset / patch / restore)
+    * [0, num services] - Resolves to service ID (0 = nothing, resolves to service)
 
 **Access Control List**
 
-The blue agent is able to influence the configuration of the Access Control List rule set (which implements a system-wide firewall). In this instance, the action space is an OpenAI multidiscrete type, as follows:
+The blue agent is able to influence the configuration of the Access Control List rule set (which implements a system-wide firewall). In this instance, the action space is an OpenAI spaces.Discrete type, as follows:
 
+   * Dictionary item {... ,1: [x1, x2, x3, x4, x5, x6] ...}
+   The placeholders inside the list under the key '1' mean the following:
 
- * [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
- * [0, 1] - Permission (0 = DENY, 1 = ALLOW)
- * [0, num nodes] - Source IP (0 = any, then 1 -> x resolving to IP addresses)
- * [0, num nodes] - Dest IP (0 = any, then 1 -> x resolving to IP addresses)
- * [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
- * [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
+     * [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
+     * [0, 1] - Permission (0 = DENY, 1 = ALLOW)
+     * [0, num nodes] - Source IP (0 = any, then 1 -> x resolving to IP addresses)
+     * [0, num nodes] - Dest IP (0 = any, then 1 -> x resolving to IP addresses)
+     * [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
+     * [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
+
+**ANY**
+The agent is able to carry out both **Node-Based** and **Access Control List** operations.
+
+This means the dictionary will contain key-value pairs in the format of BOTH Node-Based and Access Control List as seen above.
 
 Rewards
 *******

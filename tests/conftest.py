@@ -19,6 +19,10 @@ def _get_primaite_env_from_config(
 
     def load_config_values():
         config_values.agent_identifier = config_data["agentIdentifier"]
+        if "observationSpace" in config_data:
+            config_values.observation_config = config_data["observationSpace"]
+        else:
+            config_values.observation_config = None
         config_values.num_episodes = int(config_data["numEpisodes"])
         config_values.time_delay = int(config_data["timeDelay"])
         config_values.config_filename_use_case = lay_down_config_path
@@ -164,12 +168,13 @@ def _get_primaite_env_from_config(
     # Load in config data
     load_config_values()
     env = Primaite(config_values, [])
+    # Get the number of steps (which is stored in the child config file)
     config_values.num_steps = env.episode_steps
 
     if env.config_values.agent_identifier == "GENERIC":
         run_generic(env, config_values)
 
-    return env
+    return env, config_values
 
 
 def run_generic(env, config_values):
@@ -181,7 +186,8 @@ def run_generic(env, config_values):
             # Send the observation space to the agent to get an action
             # TEMP - random action for now
             # action = env.blue_agent_action(obs)
-            action = env.action_space.sample()
+            # action = env.action_space.sample()
+            action = 0
 
             # Run the simulation step on the live environment
             obs, reward, done, info = env.step(action)
