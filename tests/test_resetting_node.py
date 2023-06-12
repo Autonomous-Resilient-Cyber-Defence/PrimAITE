@@ -3,8 +3,8 @@ import pytest
 
 from primaite.common.enums import FileSystemState, HardwareState, SoftwareState, NodeType, Priority
 from primaite.common.service import Service
+from primaite.config.training_config import TrainingConfig
 from primaite.nodes.active_node import ActiveNode
-from primaite.common.config_values_main import ConfigValuesMain
 from primaite.nodes.service_node import ServiceNode
 
 
@@ -27,7 +27,7 @@ def test_node_resets_correctly(starting_operating_state, expected_operating_stat
         ip_address = "192.168.0.1",
         software_state = SoftwareState.COMPROMISED,
         file_system_state = FileSystemState.CORRUPT,
-        config_values = ConfigValuesMain(),
+        config_values=TrainingConfig()
     )
 
     for x in range(5):

@@ -1,14 +1,10 @@
-- itemType: ACTIONS
-  type: ANY
-- itemType: STEPS
-  steps: 15
-- itemType: PORTS
-  portsList:
+- item_type: PORTS
+  ports_list:
   - port: '21'
-- itemType: SERVICES
-  serviceList:
+- item_type: SERVICES
+  service_list:
   - name: ftp
-- itemType: NODE
+- item_type: NODE
   node_id: '1'
   name: node
   node_class: SERVICE
@@ -22,7 +18,7 @@
   - name: ftp
     port: '21'
     state: COMPROMISED
-- itemType: NODE
+- item_type: NODE
   node_id: '2'
   name: server_1
   node_class: SERVICE
@@ -36,7 +32,7 @@
   - name: ftp
     port: '21'
     state: COMPROMISED
-- itemType: POSITION
+- item_type: POSITION
   positions:
   - node: '1'
     x_pos: 309
@@ -44,12 +40,13 @@
   - node: '2'
     x_pos: 200
     y_pos: 78
-- itemType: RED_IER
+- item_type: RED_IER
   id: '3'
-  startStep: 2
-  endStep: 15
+  start_step: 2
+  end_step: 15
   load: 1000
   protocol: ftp
   port: CORRUPT
   source: '1'
   destination: '2'
+  mission_criticality: 0
