@@ -1,0 +1,5 @@
+# The main PrimAITE application config file
+
+# Logging
+log_level: INFO
+logger_format: '%(asctime)s::%(levelname)s::%(name)s::%(lineno)s::%(message)s'

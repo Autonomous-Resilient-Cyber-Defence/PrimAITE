@@ -1,16 +1,18 @@
 import time
 
 from primaite.common.enums import HardwareState
+from primaite.environment.primaite_env import Primaite
 from tests import TEST_CONFIG_ROOT
 from tests.conftest import _get_primaite_env_from_config
 
 
-def run_generic_set_actions(env, config_values):
+def run_generic_set_actions(env: Primaite):
     """Run against a generic agent with specified blue agent actions."""
     # Reset the environment at the start of the episode
     # env.reset()
-    for episode in range(0, config_values.num_episodes):
-        for step in range(0, config_values.num_steps):
+    training_config = env.training_config
+    for episode in range(0, training_config.num_episodes):
+        for step in range(0, training_config.num_steps):
             # Send the observation space to the agent to get an action
             # TEMP - random action for now
             # action = env.blue_agent_action(obs)
@@ -34,7 +36,7 @@ def run_generic_set_actions(env, config_values):
                 break
 
             # Introduce a delay between steps
-            time.sleep(config_values.time_delay / 1000)
+            time.sleep(training_config.time_delay / 1000)
 
         # Reset the environment at the end of the episode
         # env.reset()
@@ -44,13 +46,12 @@ def run_generic_set_actions(env, config_values):
 
 def test_single_action_space_is_valid():
     """Test to ensure the blue agent is using the ACL action space and is carrying out both kinds of operations."""
-    env, config_values = _get_primaite_env_from_config(
-        main_config_path=TEST_CONFIG_ROOT / "single_action_space_main_config.yaml",
-        lay_down_config_path=TEST_CONFIG_ROOT
-        / "single_action_space_lay_down_config.yaml",
+    env = _get_primaite_env_from_config(
+        training_config_path=TEST_CONFIG_ROOT / "single_action_space_main_config.yaml",
+        lay_down_config_path=TEST_CONFIG_ROOT / "single_action_space_lay_down_config.yaml",
     )
 
-    run_generic_set_actions(env, config_values)
+    run_generic_set_actions(env)
 
     # Retrieve the action space dictionary values from environment
     env_action_space_dict = env.action_dict.values()
@@ -75,14 +76,12 @@ def test_single_action_space_is_valid():
 
 def test_agent_is_executing_actions_from_both_spaces():
     """Test to ensure the blue agent is carrying out both kinds of operations (NODE & ACL)."""
-    env, config_values = _get_primaite_env_from_config(
-        main_config_path=TEST_CONFIG_ROOT
-        / "single_action_space_fixed_blue_actions_main_config.yaml",
-        lay_down_config_path=TEST_CONFIG_ROOT
-        / "single_action_space_lay_down_config.yaml",
+    env = _get_primaite_env_from_config(
+        training_config_path=TEST_CONFIG_ROOT / "single_action_space_fixed_blue_actions_main_config.yaml",
+        lay_down_config_path=TEST_CONFIG_ROOT / "single_action_space_lay_down_config.yaml",
     )
     # Run environment with specified fixed blue agent actions only
-    run_generic_set_actions(env, config_values)
+    run_generic_set_actions(env)
     # Retrieve hardware state of computer_1 node in laydown config
     # Agent turned this off in Step 5
     computer_node_hardware_state = env.nodes["1"].hardware_state

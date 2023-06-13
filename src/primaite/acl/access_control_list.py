@@ -11,12 +11,21 @@ _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 class AccessControlList:
     """Access Control List class."""
 
-    def __init__(self, implicit_permission):
+    def __init__(self, implicit_permission, max_acl_rules):
         """Init."""
-        # A list of ACL Rules
-        self.acl: List[ACLRule] = []
+        # Implicit ALLOW or DENY firewall spec
+        # Last rule in the ACL list
         self.acl_implicit_rule = implicit_permission
-        self.max_acl_rules: int
+        # Create implicit rule based on input
+        if self.acl_implicit_rule == "DENY":
+            implicit_rule = ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
+        else:
+            implicit_rule = ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
+
+        # Maximum number of ACL Rules in ACL
+        self.max_acl_rules: int = max_acl_rules
+        # A list of ACL Rules
+        self.acl: List[ACLRule] = [implicit_rule]
 
     def check_address_match(self, _rule, _source_ip_address, _dest_ip_address):
         """
@@ -62,21 +71,15 @@ class AccessControlList:
         Returns:
              Indicates block if all conditions are satisfied.
         """
-        for rule_key, rule_value in self.acl.items():
-            if self.check_address_match(
-                rule_value, _source_ip_address, _dest_ip_address
-            ):
+        for rule in self.acl:
+            if self.check_address_match(rule, _source_ip_address, _dest_ip_address):
                 if (
-                    rule_value.get_protocol() == _protocol
-                    or rule_value.get_protocol() == "ANY"
-                ) and (
-                    str(rule_value.get_port()) == str(_port)
-                    or rule_value.get_port() == "ANY"
-                ):
+                    rule.get_protocol() == _protocol or rule.get_protocol() == "ANY"
+                ) and (str(rule.get_port()) == str(_port) or rule.get_port() == "ANY"):
                     # There's a matching rule. Get the permission
-                    if rule_value.get_permission() == "DENY":
+                    if rule.get_permission() == "DENY":
                         return True
-                    elif rule_value.get_permission() == "ALLOW":
+                    elif rule.get_permission() == "ALLOW":
                         return False
 
         # If there has been no rule to allow the IER through, it will return a blocked signal by default
@@ -92,18 +95,26 @@ class AccessControlList:
             _dest_ip: the destination IP address
             _protocol: the protocol
             _port: the port
-            _position: position to insert ACL rule into ACL list
+            _position: position to insert ACL rule into ACL list (starting from index 1 and NOT 0)
         """
+        position_index = int(_position) - 1
         new_rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
-
-        if _position < self.max_acl_rules - 1 and _position < 0:
-            if _position < len(self.acl):
-                self.acl.insert(_position, new_rule)
+        if len(self.acl) < self.max_acl_rules:
+            if len(self.acl) > position_index > -1:
+                try:
+                    self.acl.insert(position_index, new_rule)
+                except Exception:
+                    _LOGGER.info(
+                        f"New Rule could NOT be added to list at position {position_index}."
+                    )
             else:
-                print("check logic on this")
+                _LOGGER.info(
+                    f"Position {position_index} is an invalid index for list and/or overwrites implicit firewall rule"
+                )
         else:
             _LOGGER.info(
-                f"Position {_position} is an invalid index for list/overwriting implicit firewall rule"
+                f"The ACL list is FULL."
+                f"The list of ACLs has length {len(self.acl)} and it has a max capacity of {self.max_acl_rules}."
             )
 
     def remove_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port):

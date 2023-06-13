@@ -3,7 +3,6 @@
 import logging
 from typing import Final
 
-from primaite.common.config_values_main import ConfigValuesMain
 from primaite.common.enums import (
     FileSystemState,
     HardwareState,
@@ -11,6 +10,7 @@ from primaite.common.enums import (
     Priority,
     SoftwareState,
 )
+from primaite.config.training_config import TrainingConfig
 from primaite.nodes.node import Node
 
 _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class ActiveNode(Node):
         ip_address: str,
         software_state: SoftwareState,
         file_system_state: FileSystemState,
-        config_values: ConfigValuesMain,
+        config_values: TrainingConfig,
     ):
         """
         Init.
@@ -210,3 +210,17 @@ class ActiveNode(Node):
             self.file_system_state_observed = self.file_system_state_actual
             self.file_system_scanning = False
             self.file_system_scanning_count = 0
+
+    def update_resetting_status(self):
+        """Updates the reset count & makes software and file state to GOOD."""
+        super().update_resetting_status()
+        if self.resetting_count <= 0:
+            self.file_system_state_actual = FileSystemState.GOOD
+            self.software_state = SoftwareState.GOOD
+
+    def update_booting_status(self):
+        """Updates the booting software and file state to GOOD."""
+        super().update_booting_status()
+        if self.booting_count <= 0:
+            self.file_system_state_actual = FileSystemState.GOOD
+            self.software_state = SoftwareState.GOOD
