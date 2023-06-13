@@ -120,9 +120,8 @@ class Primaite(Env):
         # Create the Access Control List
         self.acl = AccessControlList(
             self.training_config.implicit_acl_rule,
-            self.training_config.max_number_acl_rule,
+            self.training_config.max_number_acl_rules,
         )
-
         # Create a list of services (enums)
         self.services_list = []
 
@@ -423,14 +422,13 @@ class Primaite(Env):
             _action: The action space from the agent
         """
         # At the moment, actions are only affecting nodes
-
         if self.training_config.action_type == ActionType.NODE:
             self.apply_actions_to_nodes(_action)
         elif self.training_config.action_type == ActionType.ACL:
             self.apply_actions_to_acl(_action)
         elif (
-            len(self.action_dict[_action]) == 6
-        ):  # ACL actions in multidiscrete form have len 6
+            len(self.action_dict[_action]) == 7
+        ):  # ACL actions in multidiscrete form have len 7
             self.apply_actions_to_acl(_action)
         elif (
             len(self.action_dict[_action]) == 4
@@ -981,6 +979,7 @@ class Primaite(Env):
             acl_rule_destination,
             acl_rule_protocol,
             acl_rule_port,
+            0,
         )
 
     def create_services_list(self, services):
@@ -1173,6 +1172,10 @@ class Primaite(Env):
         actions = {0: [0, 0, 0, 0, 0, 0]}
 
         action_key = 1
+        print(
+            "what is this primaite_env.py 1177",
+            self.training_config.max_number_acl_rules - 1,
+        )
         # 3 possible action decisions, 0=NOTHING, 1=CREATE, 2=DELETE
         for action_decision in range(3):
             # 2 possible action permissions 0 = DENY, 1 = CREATE
@@ -1182,7 +1185,9 @@ class Primaite(Env):
                     for dest_ip in range(self.num_nodes + 1):
                         for protocol in range(self.num_services + 1):
                             for port in range(self.num_ports + 1):
-                                for position in range(self.max_acl_rules - 1):
+                                for position in range(
+                                    self.training_config.max_number_acl_rules - 1
+                                ):
                                     action = [
                                         action_decision,
                                         action_permission,
@@ -1192,10 +1197,11 @@ class Primaite(Env):
                                         port,
                                         position,
                                     ]
-                                # Check to see if its an action we want to include as possible i.e. not a nothing action
-                                if is_valid_acl_action_extra(action):
-                                    actions[action_key] = action
-                                    action_key += 1
+                                    # Check to see if it is an action we want to include as possible
+                                    # i.e. not a nothing action
+                                    if is_valid_acl_action_extra(action):
+                                        actions[action_key] = action
+                                        action_key += 1
 
         return actions
 
@@ -1219,4 +1225,5 @@ class Primaite(Env):
 
         # Combine the Node dict and ACL dict
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
+        print("combined dict", combined_action_dict.items())
         return combined_action_dict

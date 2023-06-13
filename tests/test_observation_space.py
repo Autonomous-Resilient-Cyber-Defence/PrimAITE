@@ -27,7 +27,8 @@ def env(request):
 
 @pytest.mark.env_config_paths(
     dict(
-        training_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_without_obs.yaml",
+        training_config_path=TEST_CONFIG_ROOT
+        / "obs_tests/main_config_without_obs.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
@@ -43,7 +44,8 @@ def test_default_obs_space(env: Primaite):
 
 @pytest.mark.env_config_paths(
     dict(
-        training_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_without_obs.yaml",
+        training_config_path=TEST_CONFIG_ROOT
+        / "obs_tests/main_config_without_obs.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
@@ -140,7 +142,8 @@ class TestNodeLinkTable:
 
 @pytest.mark.env_config_paths(
     dict(
-        training_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_NODE_STATUSES.yaml",
+        training_config_path=TEST_CONFIG_ROOT
+        / "obs_tests/main_config_NODE_STATUSES.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
@@ -217,4 +220,5 @@ class TestLinkTrafficLevels:
         # we send 999 bits of data via link1 and link2 on service 1.
         # therefore the first and third elements should be 6 and all others 0
         # (`7` corresponds to 100% utiilsation and `6` corresponds to 87.5%-100%)
+        print(obs)
         assert np.array_equal(obs, [6, 0, 6, 0])
