@@ -2,12 +2,20 @@
 from pathlib import Path
 from typing import Final
 
+import networkx
+
 from primaite import USERS_CONFIG_DIR, getLogger
 
 _LOGGER = getLogger(__name__)
 
 _EXAMPLE_LAY_DOWN: Final[Path] = USERS_CONFIG_DIR / "example_config" / "lay_down"
 
+
+# class LayDownConfig:
+#     network: networkx.Graph
+#     POL
+#     EIR
+#     ACL
 
 def ddos_basic_one_config_path() -> Path:
     """

@@ -22,46 +22,64 @@ The environment config file consists of the following attributes:
 
 * **agent_identifier** [enum]
 
-   This identifies the agent to use for the session. Select from one of the following:
+    This identifies the agent to use for the session. Select from one of the following:
 
-   * GENERIC - Where a user developed agent is to be used
-   * STABLE_BASELINES3_PPO - Use a SB3 PPO agent
-   * STABLE_BASELINES3_A2C - use a SB3 A2C agent
+    * GENERIC - Where a user developed agent is to be used
+    * STABLE_BASELINES3_PPO - Use a SB3 PPO agent
+    * STABLE_BASELINES3_A2C - use a SB3 A2C agent
+
+* **agent_framework** [enum]
+    
+    This identifies the agent framework to be used to instantiate the agent algorithm. Select from one of the following:
+
+    * NONE - Where a user developed agent is to be used
+    * SB3 - Stable Baselines3
+    * RLLIB - Ray RLlib.
+
+* **red_agent_identifier**
+    
+    This identifies the agent to use for the session. Select from one of the following:
+
+    * A2C - Advantage Actor Critic
+    * PPO - Proximal Policy Optimization
+    * HARDCODED - A custom built deterministic agent
+    * RANDOM - A Stochastic random agent
+    
 
 * **action_type** [enum]
 
-   Determines whether a NODE, ACL, or ANY (combined NODE & ACL) action space format is adopted for the session
+    Determines whether a NODE, ACL, or ANY (combined NODE & ACL) action space format is adopted for the session
 
 
 * **num_episodes** [int]
 
-   This defines the number of episodes that the agent will train or be evaluated over.
+    This defines the number of episodes that the agent will train or be evaluated over.
 
 * **num_steps** [int]
 
-   Determines the number of steps to run in each episode of the session
+    Determines the number of steps to run in each episode of the session
 
 
 * **time_delay** [int]
 
-   The time delay (in milliseconds) to take between each step when running a GENERIC agent session
+    The time delay (in milliseconds) to take between each step when running a GENERIC agent session
 
 
 * **session_type** [text]
 
-   Type of session to be run (TRAINING or EVALUATION)
+    Type of session to be run (TRAINING, EVALUATION, or BOTH)
 
 * **load_agent** [bool]
 
-   Determine whether to load an agent from file
+    Determine whether to load an agent from file
 
 * **agent_load_file** [text]
 
-   File path and file name of agent if you're loading one in
+    File path and file name of agent if you're loading one in
 
 * **observation_space_high_value** [int]
 
-   The high value to use for values in the observation space. This is set to 1000000000 by default, and should not need changing in most cases
+    The high value to use for values in the observation space. This is set to 1000000000 by default, and should not need changing in most cases
 
 **Reward-Based Config Values**
 
@@ -69,95 +87,95 @@ Rewards are calculated based on the difference between the current state and ref
 
 * **Generic [all_ok]** [int]
 
-   The score to give when the current situation (for a given component) is no different from that expected in the baseline (i.e. as though no blue or red agent actions had been undertaken)
+    The score to give when the current situation (for a given component) is no different from that expected in the baseline (i.e. as though no blue or red agent actions had been undertaken)
 
 * **Node Hardware State [off_should_be_on]** [int]
 
-   The score to give when the node should be on, but is off
+    The score to give when the node should be on, but is off
 
 * **Node Hardware State [off_should_be_resetting]** [int]
 
-   The score to give when the node should be resetting, but is off
+    The score to give when the node should be resetting, but is off
 
 * **Node Hardware State [on_should_be_off]** [int]
 
-   The score to give when the node should be off, but is on
+    The score to give when the node should be off, but is on
 
 * **Node Hardware State [on_should_be_resetting]** [int]
 
-   The score to give when the node should be resetting, but is on
+    The score to give when the node should be resetting, but is on
 
 * **Node Hardware State [resetting_should_be_on]** [int]
 
-   The score to give when the node should be on, but is resetting
+    The score to give when the node should be on, but is resetting
 
 * **Node Hardware State [resetting_should_be_off]** [int]
 
-   The score to give when the node should be off, but is resetting
+    The score to give when the node should be off, but is resetting
 
 * **Node Hardware State [resetting]** [int]
 
-   The score to give when the node is resetting
+    The score to give when the node is resetting
 
 * **Node Operating System or Service State [good_should_be_patching]** [int]
 
-   The score to give when the state should be patching, but is good
+    The score to give when the state should be patching, but is good
 
 * **Node Operating System or Service State [good_should_be_compromised]** [int]
 
-   The score to give when the state should be compromised, but is good
+    The score to give when the state should be compromised, but is good
 
 * **Node Operating System or Service State [good_should_be_overwhelmed]** [int]
 
-   The score to give when the state should be overwhelmed, but is good
+    The score to give when the state should be overwhelmed, but is good
 
 * **Node Operating System or Service State [patching_should_be_good]** [int]
 
-   The score to give when the state should be good, but is patching
+    The score to give when the state should be good, but is patching
 
 * **Node Operating System or Service State [patching_should_be_compromised]** [int]
 
-   The score to give when the state should be compromised, but is patching
+    The score to give when the state should be compromised, but is patching
 
 * **Node Operating System or Service State [patching_should_be_overwhelmed]** [int]
 
-   The score to give when the state should be overwhelmed, but is patching
+    The score to give when the state should be overwhelmed, but is patching
 
 * **Node Operating System or Service State [patching]** [int]
 
-   The score to give when the state is patching
+    The score to give when the state is patching
 
 * **Node Operating System or Service State [compromised_should_be_good]** [int]
 
-   The score to give when the state should be good, but is compromised
+    The score to give when the state should be good, but is compromised
 
 * **Node Operating System or Service State [compromised_should_be_patching]** [int]
 
-   The score to give when the state should be patching, but is compromised
+    The score to give when the state should be patching, but is compromised
 
 * **Node Operating System or Service State [compromised_should_be_overwhelmed]** [int]
 
-   The score to give when the state should be overwhelmed, but is compromised
+    The score to give when the state should be overwhelmed, but is compromised
 
 * **Node Operating System or Service State [compromised]** [int]
 
-   The score to give when the state is compromised
+    The score to give when the state is compromised
 
 * **Node Operating System or Service State [overwhelmed_should_be_good]** [int]
 
-   The score to give when the state should be good, but is overwhelmed
+    The score to give when the state should be good, but is overwhelmed
 
 * **Node Operating System or Service State [overwhelmed_should_be_patching]** [int]
 
-   The score to give when the state should be patching, but is overwhelmed
+    The score to give when the state should be patching, but is overwhelmed
 
 * **Node Operating System or Service State [overwhelmed_should_be_compromised]** [int]
 
-   The score to give when the state should be compromised, but is overwhelmed
+    The score to give when the state should be compromised, but is overwhelmed
 
 * **Node Operating System or Service State [overwhelmed]** [int]
 
-   The score to give when the state is overwhelmed
+    The score to give when the state is overwhelmed
 
 * **Node File System State [good_should_be_repairing]** [int]
 
@@ -261,37 +279,37 @@ Rewards are calculated based on the difference between the current state and ref
 
 * **IER Status [red_ier_running]** [int]
 
-   The score to give when a red agent IER is permitted to run
+    The score to give when a red agent IER is permitted to run
 
 * **IER Status [green_ier_blocked]** [int]
 
-   The score to give when a green agent IER is prevented from running
+    The score to give when a green agent IER is prevented from running
 
 **Patching / Reset Durations**
 
 * **os_patching_duration** [int]
 
-   The number of steps to take when patching an Operating System
+    The number of steps to take when patching an Operating System
 
 * **node_reset_duration** [int]
 
-   The number of steps to take when resetting a node's hardware state
+    The number of steps to take when resetting a node's hardware state
 
 * **service_patching_duration** [int]
 
-   The number of steps to take when patching a service
+    The number of steps to take when patching a service
 
 * **file_system_repairing_limit** [int]:
 
-   The number of steps to take when repairing the file system
+    The number of steps to take when repairing the file system
 
 * **file_system_restoring_limit** [int]
 
-   The number of steps to take when restoring the file system
+    The number of steps to take when restoring the file system
 
 * **file_system_scanning_limit** [int]
 
-   The number of steps to take when scanning the file system
+    The number of steps to take when scanning the file system
 
 The Lay Down Config
 *******************
@@ -300,22 +318,22 @@ The lay down config file consists of the following attributes:
 
 * **itemType: ACTIONS** [enum]
 
-   Determines whether a NODE or ACL action space format is adopted for the session
+    Determines whether a NODE or ACL action space format is adopted for the session
 
 * **itemType: OBSERVATION_SPACE** [dict]
 
-   Allows for user to configure observation space by combining one or more observation components. List of available
-   components is is :py:mod:'primaite.environment.observations'.
+    Allows for user to configure observation space by combining one or more observation components. List of available
+    components is is :py:mod:'primaite.environment.observations'.
 
-   The observation space config item should have a ``components`` key which is a list of components. Each component
-   config must have a ``name`` key, and can optionally have an ``options`` key. The ``options`` are passed to the
-   component while it is being initialised.
+    The observation space config item should have a ``components`` key which is a list of components. Each component
+    config must have a ``name`` key, and can optionally have an ``options`` key. The ``options`` are passed to the
+    component while it is being initialised.
 
-   This example illustrates the correct format for the observation space config item
+    This example illustrates the correct format for the observation space config item
 
 .. code-block::yaml
 
-   - itemType: OBSERVATION_SPACE
+    - item_type: OBSERVATION_SPACE
      components:
      - name: LINK_TRAFFIC_LEVELS
        options:
@@ -328,15 +346,15 @@ The lay down config file consists of the following attributes:
 
 * **item_type: PORTS** [int]
 
-   Provides a list of ports modelled in this session
+    Provides a list of ports modelled in this session
 
 * **item_type: SERVICES** [freetext]
 
-   Provides a list of services modelled in this session
+    Provides a list of services modelled in this session
 
 * **item_type: NODE**
 
-   Defines a node included in the system laydown being simulated. It should consist of the following attributes:
+    Defines a node included in the system laydown being simulated. It should consist of the following attributes:
 
      * **id** [int]: Unique ID for this YAML item
      * **name** [freetext]: Human-readable name of the component
@@ -355,7 +373,7 @@ The lay down config file consists of the following attributes:
 
 * **item_type: LINK**
 
-   Defines a link included in the system laydown being simulated. It should consist of the following attributes:
+    Defines a link included in the system laydown being simulated. It should consist of the following attributes:
 
      * **id** [int]: Unique ID for this YAML item
      * **name** [freetext]: Human-readable name of the component
@@ -365,7 +383,7 @@ The lay down config file consists of the following attributes:
 
 * **item_type: GREEN_IER**
 
-   Defines a green agent Information Exchange Requirement (IER). It should consist of:
+    Defines a green agent Information Exchange Requirement (IER). It should consist of:
 
      * **id** [int]: Unique ID for this YAML item
      * **start_step** [int]: The start step (in the episode) for this IER to begin
@@ -379,7 +397,7 @@ The lay down config file consists of the following attributes:
 
 * **item_type: RED_IER**
 
-   Defines a red agent Information Exchange Requirement (IER). It should consist of:
+    Defines a red agent Information Exchange Requirement (IER). It should consist of:
 
      * **id** [int]: Unique ID for this YAML item
      * **start_step** [int]: The start step (in the episode) for this IER to begin

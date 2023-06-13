@@ -1,11 +1,20 @@
 # Main Config File
 
 # Generic config values
-# Choose one of these (dependent on Agent being trained)
-# "STABLE_BASELINES3_PPO"
-# "STABLE_BASELINES3_A2C"
-# "GENERIC"
-agent_identifier: STABLE_BASELINES3_A2C
+
+# Sets which agent algorithm framework will be used:
+# "SB3" (Stable Baselines3)
+# "RLLIB" (Ray[RLlib])
+# "NONE" (Custom Agent)
+agent_framework: RLLIB
+
+# Sets which Red Agent algo/class will be used:
+# "PPO" (Proximal Policy Optimization)
+# "A2C" (Advantage Actor Critic)
+# "HARDCODED" (Custom Agent)
+# "RANDOM" (Random Action)
+red_agent_identifier: PPO
+
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
