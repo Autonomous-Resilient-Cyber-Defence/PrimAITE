@@ -118,7 +118,10 @@ class Primaite(Env):
         self.red_node_pol = {}
 
         # Create the Access Control List
-        self.acl = AccessControlList()
+        self.acl = AccessControlList(
+            self.training_config.implicit_acl_rule,
+            self.training_config.max_number_acl_rule,
+        )
 
         # Create a list of services (enums)
         self.services_list = []
@@ -212,22 +215,10 @@ class Primaite(Env):
         # Define Action Space - depends on action space type (Node or ACL)
         if self.training_config.action_type == ActionType.NODE:
             _LOGGER.info("Action space type NODE selected")
-            # Terms (for node action space):
-            # [0, num nodes] - node ID (0 = nothing, node ID)
-            # [0, 4] - what property it's acting on (0 = nothing, state, SoftwareState, service state, file system state) # noqa
-            # [0, 3] - action on property (0 = nothing, On / Scan, Off / Repair, Reset / Patch / Restore) # noqa
-            # [0, num services] - resolves to service ID (0 = nothing, resolves to service) # noqa
             self.action_dict = self.create_node_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
         elif self.training_config.action_type == ActionType.ACL:
             _LOGGER.info("Action space type ACL selected")
-            # Terms (for ACL action space):
-            # [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
-            # [0, 1] - Permission (0 = DENY, 1 = ALLOW)
-            # [0, num nodes] - Source IP (0 = any, then 1 -> x resolving to IP addresses)
-            # [0, num nodes] - Dest IP (0 = any, then 1 -> x resolving to IP addresses)
-            # [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
-            # [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
             self.action_dict = self.create_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
         elif self.training_config.action_type == ActionType.ANY:
@@ -1144,6 +1135,11 @@ class Primaite(Env):
         }
 
         """
+        # Terms (for node action space):
+        # [0, num nodes] - node ID (0 = nothing, node ID)
+        # [0, 4] - what property it's acting on (0 = nothing, state, SoftwareState, service state, file system state) # noqa
+        # [0, 3] - action on property (0 = nothing, On / Scan, Off / Repair, Reset / Patch / Restore) # noqa
+        # [0, num services] - resolves to service ID (0 = nothing, resolves to service) # noqa
         # reserve 0 action to be a nothing action
         actions = {0: [1, 0, 0, 0]}
         action_key = 1
@@ -1165,6 +1161,14 @@ class Primaite(Env):
 
     def create_acl_action_dict(self):
         """Creates a dictionary mapping each possible discrete action to more readable multidiscrete action."""
+        # Terms (for ACL action space):
+        # [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
+        # [0, 1] - Permission (0 = DENY, 1 = ALLOW)
+        # [0, num nodes] - Source IP (0 = any, then 1 -> x resolving to IP addresses)
+        # [0, num nodes] - Dest IP (0 = any, then 1 -> x resolving to IP addresses)
+        # [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
+        # [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
+        # [0, max acl rules - 1] - Position (0 = first index, then 1 -> x index resolving to acl rule in acl list)
         # reserve 0 action to be a nothing action
         actions = {0: [0, 0, 0, 0, 0, 0]}
 
@@ -1178,14 +1182,16 @@ class Primaite(Env):
                     for dest_ip in range(self.num_nodes + 1):
                         for protocol in range(self.num_services + 1):
                             for port in range(self.num_ports + 1):
-                                action = [
-                                    action_decision,
-                                    action_permission,
-                                    source_ip,
-                                    dest_ip,
-                                    protocol,
-                                    port,
-                                ]
+                                for position in range(self.max_acl_rules - 1):
+                                    action = [
+                                        action_decision,
+                                        action_permission,
+                                        source_ip,
+                                        dest_ip,
+                                        protocol,
+                                        port,
+                                        position,
+                                    ]
                                 # Check to see if its an action we want to include as possible i.e. not a nothing action
                                 if is_valid_acl_action_extra(action):
                                     actions[action_key] = action

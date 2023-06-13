@@ -97,7 +97,7 @@ class AccessControlList:
             _port: the port
             _position: position to insert ACL rule into ACL list (starting from index 1 and NOT 0)
         """
-        position_index = int(_position) - 1
+        position_index = int(_position)
         new_rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
         if len(self.acl) < self.max_acl_rules:
             if len(self.acl) > position_index > -1:
