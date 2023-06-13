@@ -122,6 +122,9 @@ class Primaite(Env):
             self.training_config.implicit_acl_rule,
             self.training_config.max_number_acl_rules,
         )
+        # Sets limit for number of ACL rules in environment
+        self.max_number_acl_rules = self.training_config.max_number_acl_rules
+
         # Create a list of services (enums)
         self.services_list = []
 
