@@ -222,3 +222,42 @@ class TestLinkTrafficLevels:
         # (`7` corresponds to 100% utiilsation and `6` corresponds to 87.5%-100%)
         print(obs)
         assert np.array_equal(obs, [6, 0, 6, 0])
+
+
+@pytest.mark.env_config_paths(
+    dict(
+        training_config_path=TEST_CONFIG_ROOT
+        / "obs_tests/main_config_ACCESS_CONTROL_LIST.yaml",
+        lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
+    )
+)
+class TestAccessControlList:
+    """Test the AccessControlList observation component (in isolation)."""
+
+    def test_obs_shape(self, env: Primaite):
+        """Try creating env with MultiDiscrete observation space."""
+        env.update_environent_obs()
+
+        # we have two ACLs
+        assert env.env_obs.shape == (5, 2)
+
+    def test_values(self, env: Primaite):
+        """Test that traffic values are encoded correctly.
+
+        The laydown has:
+            * two services
+            * three nodes
+            * two links
+            * an IER trying to send 999 bits of data over both links the whole time (via the first service)
+            * link bandwidth of 1000, therefore the utilisation is 99.9%
+        """
+        obs, reward, done, info = env.step(0)
+        obs, reward, done, info = env.step(0)
+
+        # the observation space has combine_service_traffic set to False, so the space has this format:
+        # [link1_service1, link1_service2, link2_service1, link2_service2]
+        # we send 999 bits of data via link1 and link2 on service 1.
+        # therefore the first and third elements should be 6 and all others 0
+        # (`7` corresponds to 100% utiilsation and `6` corresponds to 87.5%-100%)
+        print(obs)
+        assert np.array_equal(obs, [6, 0, 6, 0])

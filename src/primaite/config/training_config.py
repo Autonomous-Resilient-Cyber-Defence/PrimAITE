@@ -1,4 +1,5 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Final, Optional, Union
@@ -9,6 +10,7 @@ from primaite import USERS_CONFIG_DIR, getLogger
 from primaite.common.enums import ActionType
 
 _LOGGER = getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 _EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training"
 
