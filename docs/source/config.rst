@@ -5,17 +5,22 @@ The Config Files Explained
 
 PrimAITE uses two configuration files for its operation:
 
-* config_main.yaml - used to define the top-level settings of the PrimAITE environment, and the session that is to be run.
-* config_[name].yaml - used to define the low-level settings of a session, including the network laydown, green / red agent information exchange requirements (IERSs), Access Control Rules, Action Space type, and the number of steps in each episode.
+* **The Training Config**
 
-config_main.yaml:
-*****************
+    Used to define the top-level settings of the PrimAITE environment, the reward values, and the session that is to be run.
 
-The config_main.yaml file consists of the following attributes:
+* **The Lay Down Config**
+
+    Used to define the low-level settings of a session, including the network laydown, green / red agent information exchange requirements (IERSs) and Access Control Rules.
+
+Environment Config:
+*******************
+
+The environment config file consists of the following attributes:
 
 **Generic Config Values**
 
-* **agentIdentifier** [enum]
+* **agent_identifier** [enum]
 
    This identifies the agent to use for the session. Select from one of the following:
 
@@ -23,61 +28,70 @@ The config_main.yaml file consists of the following attributes:
    * STABLE_BASELINES3_PPO - Use a SB3 PPO agent
    * STABLE_BASELINES3_A2C - use a SB3 A2C agent
 
-* **numEpisodes** [int]
+* **action_type** [enum]
 
-   This defines the number of episodes that the agent will train or be evaluated over. Each episode consists of a number of steps (with step number defined in the config_[name].yaml file)
+   Determines whether a NODE, ACL, or ANY (combined NODE & ACL) action space format is adopted for the session
 
-* **timeDelay** [int]
+
+* **num_episodes** [int]
+
+   This defines the number of episodes that the agent will train or be evaluated over.
+
+* **num_steps** [int]
+
+   Determines the number of steps to run in each episode of the session
+
+
+* **time_delay** [int]
 
    The time delay (in milliseconds) to take between each step when running a GENERIC agent session
 
-* **configFilename** [filename]
 
-   The name of the config_[name].yaml file to use for this session
-
-* **sessionType** [text]
+* **session_type** [text]
 
    Type of session to be run (TRAINING or EVALUATION)
 
-* **loadAgent** [bool]
+* **load_agent** [bool]
 
    Determine whether to load an agent from file
 
-* **agentLoadFile** [text]
+* **agent_load_file** [text]
 
    File path and file name of agent if you're loading one in
 
-* **observationSpaceHighValue** [int]
+* **observation_space_high_value** [int]
 
    The high value to use for values in the observation space. This is set to 1000000000 by default, and should not need changing in most cases
 
 **Reward-Based Config Values**
 
-* **Generic [allOk]** [int]
+Rewards are calculated based on the difference between the current state and reference state (the 'should be' state) of the environment.
+
+* **Generic [all_ok]** [int]
 
    The score to give when the current situation (for a given component) is no different from that expected in the baseline (i.e. as though no blue or red agent actions had been undertaken)
 
-* **Node Hardware State [offShouldBeOn]** [int]
+* **Node Hardware State [off_should_be_on]** [int]
 
    The score to give when the node should be on, but is off
 
-* **Node Hardware State [offShouldBeResetting]** [int]
+* **Node Hardware State [off_should_be_resetting]** [int]
 
    The score to give when the node should be resetting, but is off
 
-* **Node Hardware State [onShouldBeOff]** [int]
+* **Node Hardware State [on_should_be_off]** [int]
 
    The score to give when the node should be off, but is on
 
-* **Node Hardware State [onShouldBeResetting]** [int]
+* **Node Hardware State [on_should_be_resetting]** [int]
 
    The score to give when the node should be resetting, but is on
 
-* **Node Hardware State [resettingShouldBeOn]** [int]
+* **Node Hardware State [resetting_should_be_on]** [int]
 
    The score to give when the node should be on, but is resetting
 
-* **Node Hardware State [resettingShouldBeOff]** [int]
+* **Node Hardware State [resetting_should_be_off]** [int]
 
    The score to give when the node should be off, but is resetting
 
@@ -85,27 +99,27 @@ The config_main.yaml file consists of the following attributes:
 
    The score to give when the node is resetting
 
-* **Node Operating System or Service State [goodShouldBePatching]** [int]
+* **Node Operating System or Service State [good_should_be_patching]** [int]
 
    The score to give when the state should be patching, but is good
 
-* **Node Operating System or Service State [goodShouldBeCompromised]** [int]
+* **Node Operating System or Service State [good_should_be_compromised]** [int]
 
    The score to give when the state should be compromised, but is good
 
-* **Node Operating System or Service State [goodShouldBeOverwhelmed]** [int]
+* **Node Operating System or Service State [good_should_be_overwhelmed]** [int]
 
    The score to give when the state should be overwhelmed, but is good
 
-* **Node Operating System or Service State [patchingShouldBeGood]** [int]
+* **Node Operating System or Service State [patching_should_be_good]** [int]
 
    The score to give when the state should be good, but is patching
 
-* **Node Operating System or Service State [patchingShouldBeCompromised]** [int]
+* **Node Operating System or Service State [patching_should_be_compromised]** [int]
 
    The score to give when the state should be compromised, but is patching
 
-* **Node Operating System or Service State [patchingShouldBeOverwhelmed]** [int]
+* **Node Operating System or Service State [patching_should_be_overwhelmed]** [int]
 
    The score to give when the state should be overwhelmed, but is patching
 
@@ -113,15 +127,15 @@ The config_main.yaml file consists of the following attributes:
 
    The score to give when the state is patching
 
-* **Node Operating System or Service State [compromisedShouldBeGood]** [int]
+* **Node Operating System or Service State [compromised_should_be_good]** [int]
 
    The score to give when the state should be good, but is compromised
 
-* **Node Operating System or Service State [compromisedShouldBePatching]** [int]
+* **Node Operating System or Service State [compromised_should_be_patching]** [int]
 
    The score to give when the state should be patching, but is compromised
 
-* **Node Operating System or Service State [compromisedShouldBeOverwhelmed]** [int]
+* **Node Operating System or Service State [compromised_should_be_overwhelmed]** [int]
 
    The score to give when the state should be overwhelmed, but is compromised
 
@@ -129,15 +143,15 @@ The config_main.yaml file consists of the following attributes:
 
    The score to give when the state is compromised
 
-* **Node Operating System or Service State [overwhelmedShouldBeGood]** [int]
+* **Node Operating System or Service State [overwhelmed_should_be_good]** [int]
 
    The score to give when the state should be good, but is overwhelmed
 
-* **Node Operating System or Service State [overwhelmedShouldBePatching]** [int]
+* **Node Operating System or Service State [overwhelmed_should_be_patching]** [int]
 
    The score to give when the state should be patching, but is overwhelmed
 
-* **Node Operating System or Service State [overwhelmedShouldBeCompromised]** [int]
+* **Node Operating System or Service State [overwhelmed_should_be_compromised]** [int]
 
    The score to give when the state should be compromised, but is overwhelmed
 
@@ -145,35 +159,35 @@ The config_main.yaml file consists of the following attributes:
 
    The score to give when the state is overwhelmed
 
-* **Node File System State [goodShouldBeRepairing]** [int]
+* **Node File System State [good_should_be_repairing]** [int]
 
     The score to give when the state should be repairing, but is good
 
-* **Node File System State [goodShouldBeRestoring]** [int]
+* **Node File System State [good_should_be_restoring]** [int]
 
     The score to give when the state should be restoring, but is good
 
-* **Node File System State [goodShouldBeCorrupt]** [int]
+* **Node File System State [good_should_be_corrupt]** [int]
 
     The score to give when the state should be corrupt, but is good
 
-* **Node File System State [goodShouldBeDestroyed]** [int]
+* **Node File System State [good_should_be_destroyed]** [int]
 
     The score to give when the state should be destroyed, but is good
 
-* **Node File System State [repairingShouldBeGood]** [int]
+* **Node File System State [repairing_should_be_good]** [int]
 
     The score to give when the state should be good, but is repairing
 
-* **Node File System State [repairingShouldBeRestoring]** [int]
+* **Node File System State [repairing_should_be_restoring]** [int]
 
     The score to give when the state should be restoring, but is repairing
 
-* **Node File System State [repairingShouldBeCorrupt]** [int]
+* **Node File System State [repairing_should_be_corrupt]** [int]
 
     The score to give when the state should be corrupt, but is repairing
 
-* **Node File System State [repairingShouldBeDestroyed]** [int]
+* **Node File System State [repairing_should_be_destroyed]** [int]
 
     The score to give when the state should be destroyed, but is repairing
 
@@ -181,19 +195,19 @@ The config_main.yaml file consists of the following attributes:
 
     The score to give when the state is repairing
 
-* **Node File System State [restoringShouldBeGood]** [int]
+* **Node File System State [restoring_should_be_good]** [int]
 
     The score to give when the state should be good, but is restoring
 
-* **Node File System State [restoringShouldBeRepairing]** [int]
+* **Node File System State [restoring_should_be_repairing]** [int]
 
     The score to give when the state should be repairing, but is restoring
 
-* **Node File System State [restoringShouldBeCorrupt]** [int]
+* **Node File System State [restoring_should_be_corrupt]** [int]
 
     The score to give when the state should be corrupt, but is restoring
 
-* **Node File System State [restoringShouldBeDestroyed]** [int]
+* **Node File System State [restoring_should_be_destroyed]** [int]
 
     The score to give when the state should be destroyed, but is restoring
 
@@ -201,19 +215,19 @@ The config_main.yaml file consists of the following attributes:
 
     The score to give when the state is restoring
 
-* **Node File System State [corruptShouldBeGood]** [int]
+* **Node File System State [corrupt_should_be_good]** [int]
 
     The score to give when the state should be good, but is corrupt
 
-* **Node File System State [corruptShouldBeRepairing]** [int]
+* **Node File System State [corrupt_should_be_repairing]** [int]
 
     The score to give when the state should be repairing, but is corrupt
 
-* **Node File System State [corruptShouldBeRestoring]** [int]
+* **Node File System State [corrupt_should_be_restoring]** [int]
 
     The score to give when the state should be restoring, but is corrupt
 
-* **Node File System State [corruptShouldBeDestroyed]** [int]
+* **Node File System State [corrupt_should_be_destroyed]** [int]
 
     The score to give when the state should be destroyed, but is corrupt
 
@@ -221,19 +235,19 @@ The config_main.yaml file consists of the following attributes:
 
     The score to give when the state is corrupt
 
-* **Node File System State [destroyedShouldBeGood]** [int]
+* **Node File System State [destroyed_should_be_good]** [int]
 
     The score to give when the state should be good, but is destroyed
 
-* **Node File System State [destroyedShouldBeRepairing]** [int]
+* **Node File System State [destroyed_should_be_repairing]** [int]
 
     The score to give when the state should be repairing, but is destroyed
 
-* **Node File System State [destroyedShouldBeRestoring]** [int]
+* **Node File System State [destroyed_should_be_restoring]** [int]
 
     The score to give when the state should be restoring, but is destroyed
 
-* **Node File System State [destroyedShouldBeCorrupt]** [int]
+* **Node File System State [destroyed_should_be_corrupt]** [int]
 
     The score to give when the state should be corrupt, but is destroyed
 
@@ -245,44 +259,44 @@ The config_main.yaml file consists of the following attributes:
 
     The score to give when the state is scanning
 
-* **IER Status [redIerRunning]** [int]
+* **IER Status [red_ier_running]** [int]
 
    The score to give when a red agent IER is permitted to run
 
-* **IER Status [greenIerBlocked]** [int]
+* **IER Status [green_ier_blocked]** [int]
 
    The score to give when a green agent IER is prevented from running
 
 **Patching / Reset Durations**
 
-* **osPatchingDuration** [int]
+* **os_patching_duration** [int]
 
    The number of steps to take when patching an Operating System
 
-* **nodeResetDuration** [int]
+* **node_reset_duration** [int]
 
    The number of steps to take when resetting a node's hardware state
 
-* **servicePatchingDuration** [int]
+* **service_patching_duration** [int]
 
    The number of steps to take when patching a service
 
-* **fileSystemRepairingLimit** [int]:
+* **file_system_repairing_limit** [int]:
 
    The number of steps to take when repairing the file system
 
-* **fileSystemRestoringLimit** [int]
+* **file_system_restoring_limit** [int]
 
    The number of steps to take when restoring the file system
 
-* **fileSystemScanningLimit** [int]
+* **file_system_scanning_limit** [int]
 
    The number of steps to take when scanning the file system
 
-config_[name].yaml:
+The Lay Down Config
 *******************
 
-The config_[name].yaml file consists of the following attributes:
+The lay down config file consists of the following attributes:
 
 * **itemType: ACTIONS** [enum]
 
@@ -312,17 +326,15 @@ The config_[name].yaml file consists of the following attributes:
 
 * **itemType: STEPS** [int]
 
-   Determines the number of steps to run in each episode of the session
-
-* **itemType: PORTS** [int]
+* **item_type: PORTS** [int]
 
    Provides a list of ports modelled in this session
 
-* **itemType: SERVICES** [freetext]
+* **item_type: SERVICES** [freetext]
 
    Provides a list of services modelled in this session
 
-* **itemType: NODE**
+* **item_type: NODE**
 
    Defines a node included in the system laydown being simulated. It should consist of the following attributes:
 
@@ -341,7 +353,7 @@ The config_[name].yaml file consists of the following attributes:
         * **port** [int]: Integer value of the port related to this service, but must match one of the ports defined for the system in the ports list
         * **state** [enum]: The initial state of the service. Can be one of GOOD, PATCHING, COMPROMISED or OVERWHELMED
 
-* **itemType: LINK**
+* **item_type: LINK**
 
    Defines a link included in the system laydown being simulated. It should consist of the following attributes:
 
@@ -351,53 +363,53 @@ The config_[name].yaml file consists of the following attributes:
      * **source** [int]: The ID of the source node
      * **destination** [int]: The ID of the destination node
 
-* **itemType: GREEN_IER**
+* **item_type: GREEN_IER**
 
    Defines a green agent Information Exchange Requirement (IER). It should consist of:
 
      * **id** [int]: Unique ID for this YAML item
-     * **startStep** [int]: The start step (in the episode) for this IER to begin
-     * **endStep** [int]: The end step (in the episode) for this IER to finish
+     * **start_step** [int]: The start step (in the episode) for this IER to begin
+     * **end_step** [int]: The end step (in the episode) for this IER to finish
      * **load** [int]: The load (in bits/s) for this IER to apply to links
      * **protocol** [freetext]: The protocol to apply to the links. This must match a value in the services list
      * **port** [int]: The port that the protocol is running on. This must match a value in the ports list
      * **source** [int]: The ID of the source node
      * **destination** [int]: The ID of the destination node
-     * **missionCriticality** [enum]: The mission criticality of this IER (with 5 being highest, 1 lowest)
+     * **mission_criticality** [enum]: The mission criticality of this IER (with 5 being highest, 1 lowest)
 
-* **itemType: RED_IER**
+* **item_type: RED_IER**
 
    Defines a red agent Information Exchange Requirement (IER). It should consist of:
 
      * **id** [int]: Unique ID for this YAML item
-     * **startStep** [int]: The start step (in the episode) for this IER to begin
-     * **endStep** [int]: The end step (in the episode) for this IER to finish
+     * **start_step** [int]: The start step (in the episode) for this IER to begin
+     * **end_step** [int]: The end step (in the episode) for this IER to finish
      * **load** [int]: The load (in bits/s) for this IER to apply to links
      * **protocol** [freetext]: The protocol to apply to the links. This must match a value in the services list
      * **port** [int]: The port that the protocol is running on. This must match a value in the ports list
      * **source** [int]: The ID of the source node
      * **destination** [int]: The ID of the destination node
-     * **missionCriticality** [enum]: Not currently used. Default to 0
+     * **mission_criticality** [enum]: Not currently used. Default to 0
 
-* **itemType: GREEN_POL**
+* **item_type: GREEN_POL**
 
     Defines a green agent pattern-of-life instruction. It should consist of:
 
       * **id** [int]: Unique ID for this YAML item
-      * **startStep** [int]: The start step (in the episode) for this PoL to begin
-      * **endStep** [int]: Not currently used. Default to same as start step
+      * **start_step** [int]: The start step (in the episode) for this PoL to begin
+      * **end_step** [int]: Not currently used. Default to same as start step
       * **nodeId** [int]: The ID of the node to apply the PoL to
       * **type** [enum]: The type of PoL to apply. Can be one of OPERATING, OS or SERVICE
       * **protocol** [freetext]: The protocol to be affected if SERVICE type is chosen. Must match a value in the services list
       * **state** [enuum]: The state to apply to the node (which represents the PoL change). Can be one of ON, OFF or RESETTING (for node state) or GOOD, PATCHING or COMPROMISED (for Software State) or GOOD, PATCHING, COMPROMISED or OVERWHELMED (for service state)
 
-* **itemType: RED_POL**
+* **item_type: RED_POL**
 
     Defines a red agent pattern-of-life instruction. It should consist of:
 
       * **id** [int]: Unique ID for this YAML item
-      * **startStep** [int]: The start step (in the episode) for this PoL to begin
-      * **endStep** [int]: Not currently used. Default to same as start step
+      * **start_step** [int]: The start step (in the episode) for this PoL to begin
+      * **end_step** [int]: Not currently used. Default to same as start step
       * **targetNodeId** [int]: The ID of the node to apply the PoL to
       * **initiator** [enum]: What initiates the PoL. Can be DIRECT, IER or SERVICE
       * **type** [enum]: The type of PoL to apply. Can be one of OPERATING, OS or SERVICE
@@ -407,7 +419,7 @@ The config_[name].yaml file consists of the following attributes:
       * **sourceNodeService** [freetext]: The service on the source node to check (used for SERVICE initiator). Must match a value in the services list for this node
       * **sourceNodeServiceState** [enum]: The state of the source node service to check (used for SERVICE initiator). Can be one of GOOD, PATCHING, COMPROMISED or OVERWHELMED
 
-* **itemType: ACL_RULE**
+* **item_type: ACL_RULE**
 
     Defines an initial Access Control List (ACL) rule. It should consist of:
 

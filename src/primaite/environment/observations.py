@@ -355,21 +355,50 @@ class AccessControlList(AbstractObservationComponent):
         # 3. Initialise observation with zeroes
         self.current_observation = np.zeros(len(shape), dtype=self._DATA_TYPE)
 
+        # Dictionary to map services to numbers for obs space
+        self.services_dict = {}
+
     def update(self):
         """Update the observation based on current environment state.
 
         The structure of the observation space is described in :class:`.AccessControlList`
         """
         obs = []
-        for acl_rule in self.env.acl:
+        for acl_rule in self.env.acl.acl:
             permission = acl_rule.permission
             source_ip = acl_rule.source_ip
             dest_ip = acl_rule.dest_ip
             protocol = acl_rule.protocol
             port = acl_rule.port
-            position = self.env.acl.index(acl_rule)
+            position = self.env.acl.acl.index(acl_rule)
+            if permission == "DENY":
+                permission_int = 0
+            else:
+                permission_int = 1
 
-            obs.extend([permission, source_ip, dest_ip, protocol, port, position])
+            if source_ip == "ANY":
+                source_ip = 0
+            if dest_ip == "ANY":
+                dest_ip = 0
+            if port == "ANY":
+                port = 0
+            if protocol == "ANY":
+                protocol_int = 0
+            else:
+                while True:
+                    if protocol in self.service_dict:
+                        protocol_int = self.services_dict[protocol]
+                        break
+                    else:
+                        self.services_dict[protocol] = len(self.services_dict) + 1
+                        continue
+            # [0 - DENY, 1 - ALLOW] Permission
+            # [0 - ANY, x - IP Address/Protocol/Port]
+
+            print(permission_int, source_ip, dest_ip, protocol_int, port)
+            obs.extend(
+                [permission_int, source_ip, dest_ip, protocol_int, port, position]
+            )
 
         self.current_observation[:] = obs
 
