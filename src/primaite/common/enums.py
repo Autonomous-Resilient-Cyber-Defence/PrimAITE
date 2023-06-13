@@ -79,6 +79,33 @@ class Protocol(Enum):
     NONE = 7
 
 
+class SessionType(Enum):
+    "The type of PrimAITE Session to be run."
+    TRAINING = 1
+    EVALUATION = 2
+    BOTH = 3
+
+
+class VerboseLevel(Enum):
+    """PrimAITE Session Output verbose level."""
+    NO_OUTPUT = 0
+    INFO = 1
+    DEBUG = 2
+
+
+class AgentFramework(Enum):
+    NONE = 0
+    SB3 = 1
+    RLLIB = 2
+
+
+class RedAgentIdentifier(Enum):
+    A2C = 1
+    PPO = 2
+    HARDCODED = 3
+    RANDOM = 4
+
+
 class ActionType(Enum):
     """Action type enumeration."""
 
