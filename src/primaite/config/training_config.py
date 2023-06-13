@@ -58,7 +58,7 @@ class TrainingConfig:
     implicit_acl_rule: str = "DENY"
     "ALLOW or DENY implicit firewall rule to go at the end of list of ACL list."
 
-    max_number_acl_rule: int = 0
+    max_number_acl_rules: int = 0
     "Sets a limit for number of acl rules allowed in the list and environment."
 
     # Reward values
@@ -190,6 +190,7 @@ def load(file_path: Union[str, Path], legacy_file: bool = False) -> TrainingConf
     :raises TypeError: When the TrainingConfig object cannot be created
         using the values from the config file read from ``file_path``.
     """
+    print("FILE PATH", file_path)
     if not isinstance(file_path, Path):
         file_path = Path(file_path)
     if file_path.exists():

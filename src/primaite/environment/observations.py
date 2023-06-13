@@ -9,6 +9,7 @@ from gym import spaces
 from primaite.common.enums import (
     FileSystemState,
     HardwareState,
+    Protocol,
     RulePermissionType,
     SoftwareState,
 )
@@ -309,11 +310,6 @@ class AccessControlList(AbstractObservationComponent):
 
     :param env: The environment that forms the basis of the observations
     :type env: Primaite
-    :param acl_implicit_rule: Whether to have an implicit DENY or implicit ALLOW ACL rule at the end of the ACL list
-     Default is 0 DENY, 1 ALLOW
-    :type acl_implicit_rule: ImplicitFirewallRule Enumeration (ALLOW or DENY)
-    :param max_acl_rules: Maximum number of ACLs allowed in the environment
-    :type max_acl_rules: int
 
     Each ACL Rule has 6 elements. It will have the following structure:
     .. code-block::
@@ -333,6 +329,15 @@ class AccessControlList(AbstractObservationComponent):
             ...
         ]
     """
+
+    # Terms (for ACL observation space):
+    # [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
+    # [0, 1] - Permission (0 = DENY, 1 = ALLOW)
+    # [0, num nodes] - Source IP (0 = any, then 1 -> x resolving to IP addresses)
+    # [0, num nodes] - Dest IP (0 = any, then 1 -> x resolving to IP addresses)
+    # [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
+    # [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
+    # [0, max acl rules - 1] - Position (0 = first index, then 1 -> x index resolving to acl rule in acl list)
 
     _DATA_TYPE: type = np.int64
 
@@ -377,30 +382,53 @@ class AccessControlList(AbstractObservationComponent):
                 permission_int = 1
 
             if source_ip == "ANY":
-                source_ip = 0
+                source_ip_int = 0
+            else:
+                source_ip_int = self.obtain_node_id_using_ip(source_ip)
             if dest_ip == "ANY":
-                dest_ip = 0
-            if port == "ANY":
-                port = 0
+                dest_ip_int = 0
+            else:
+                dest_ip_int = self.obtain_node_id_using_ip(dest_ip)
             if protocol == "ANY":
                 protocol_int = 0
             else:
-                while True:
-                    if protocol in self.service_dict:
-                        protocol_int = self.services_dict[protocol]
-                        break
-                    else:
-                        self.services_dict[protocol] = len(self.services_dict) + 1
-                        continue
-            # [0 - DENY, 1 - ALLOW] Permission
-            # [0 - ANY, x - IP Address/Protocol/Port]
+                try:
+                    protocol_int = Protocol[protocol]
+                except AttributeError:
+                    _LOGGER.info(f"Service {protocol} could not be found")
+            if port == "ANY":
+                port_int = 0
+            else:
+                if port in self.env.ports_list:
+                    port_int = self.env.ports_list.index(port)
+                else:
+                    _LOGGER.info(f"Port {port} could not be found.")
 
-            print(permission_int, source_ip, dest_ip, protocol_int, port)
+            print(permission_int, source_ip, dest_ip, protocol_int, port_int, position)
             obs.extend(
-                [permission_int, source_ip, dest_ip, protocol_int, port, position]
+                [
+                    permission_int,
+                    source_ip_int,
+                    dest_ip_int,
+                    protocol_int,
+                    port_int,
+                    position,
+                ]
             )
 
         self.current_observation[:] = obs
+
+    def obtain_node_id_using_ip(self, ip_address):
+        """Uses IP address of Nodes to find the ID.
+
+        Resolves IP address -> x (node id e.g. 1 or 2 or 3 or 4) for observation space
+        """
+        for key, node in self.env.nodes:
+            if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
+                if node.ip_address == ip_address:
+                    return key
+        _LOGGER.info(f"Node ID was not found from IP Address {ip_address}")
+        return -1
 
 
 class ObservationsHandler:
