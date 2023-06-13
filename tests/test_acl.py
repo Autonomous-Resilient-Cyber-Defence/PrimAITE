@@ -52,7 +52,7 @@ def test_check_acl_block_affirmative():
     acl_rule_destination = "192.168.1.2"
     acl_rule_protocol = "TCP"
     acl_rule_port = "80"
-    acl_position_in_list = "1"
+    acl_position_in_list = "0"
 
     acl.add_rule(
         acl_rule_permission,
@@ -76,7 +76,7 @@ def test_check_acl_block_negative():
     acl_rule_destination = "192.168.1.2"
     acl_rule_protocol = "TCP"
     acl_rule_port = "80"
-    acl_position_in_list = "1"
+    acl_position_in_list = "0"
 
     acl.add_rule(
         acl_rule_permission,
