@@ -7,6 +7,8 @@ from typing import Final, Optional, Union
 from uuid import uuid4
 
 from primaite import getLogger, SESSIONS_DIR
+from primaite.common.enums import AgentFramework, RedAgentIdentifier, \
+    ActionType
 from primaite.config.training_config import TrainingConfig
 from primaite.environment.primaite_env import Primaite
 
@@ -61,7 +63,7 @@ class PrimaiteSession:
 
 
         self._env  = None
-        self._training_config = None
+        self._training_config: TrainingConfig
         self._can_learn: bool = False
         _LOGGER.debug("")
 
@@ -157,22 +159,70 @@ class PrimaiteSession:
     ):
         if self._can_learn:
             # Run environment against an agent
-            if self._training_config.agent_identifier == "GENERIC":
-                run_generic(env=env, config_values=config_values)
-            elif self._training_config == "STABLE_BASELINES3_PPO":
-                run_stable_baselines3_ppo(
-                    env=env,
-                    config_values=config_values,
-                    session_path=session_dir,
-                    timestamp_str=timestamp_str,
-                )
-            elif self._training_config == "STABLE_BASELINES3_A2C":
-                run_stable_baselines3_a2c(
-                    env=env,
-                    config_values=config_values,
-                    session_path=session_dir,
-                    timestamp_str=timestamp_str,
-                )
+            if self._training_config.agent_framework == AgentFramework.NONE:
+                if self._training_config.red_agent_identifier == RedAgentIdentifier.RANDOM:
+                    # Stochastic Random Agent
+                    run_generic(env=env, config_values=config_values)
+
+                elif self._training_config.red_agent_identifier == RedAgentIdentifier.HARDCODED:
+                    if self._training_config.action_type == ActionType.NODE:
+                        # Deterministic Hardcoded Agent with Node Action Space
+                        pass
+
+                    elif self._training_config.action_type == ActionType.ACL:
+                        # Deterministic Hardcoded Agent with ACL Action Space
+                        pass
+
+                    elif self._training_config.action_type == ActionType.ANY:
+                        # Deterministic Hardcoded Agent with ANY Action Space
+                        pass
+
+                    else:
+                        # Invalid RedAgentIdentifier ActionType combo
+                        pass
+
+                else:
+                    # Invalid AgentFramework RedAgentIdentifier combo
+                    pass
+
+            elif self._training_config.agent_framework == AgentFramework.SB3:
+                if self._training_config.red_agent_identifier == RedAgentIdentifier.PPO:
+                    # Stable Baselines3/Proximal Policy Optimization
+                    run_stable_baselines3_ppo(
+                        env=env,
+                        config_values=config_values,
+                        session_path=session_dir,
+                        timestamp_str=timestamp_str,
+                    )
+
+                elif self._training_config.red_agent_identifier == RedAgentIdentifier.A2C:
+                    # Stable Baselines3/Advantage Actor Critic
+                    run_stable_baselines3_a2c(
+                        env=env,
+                        config_values=config_values,
+                        session_path=session_dir,
+                        timestamp_str=timestamp_str,
+                    )
+
+                else:
+                    # Invalid AgentFramework RedAgentIdentifier combo
+                    pass
+
+            elif self._training_config.agent_framework == AgentFramework.RLLIB:
+                if self._training_config.red_agent_identifier == RedAgentIdentifier.PPO:
+                    # Ray RLlib/Proximal Policy Optimization
+                    pass
+
+                elif self._training_config.red_agent_identifier == RedAgentIdentifier.A2C:
+                    # Ray RLlib/Advantage Actor Critic
+                    pass
+
+                else:
+                    # Invalid AgentFramework RedAgentIdentifier combo
+                    pass
+            else:
+                # Invalid AgentFramework
+                pass
 
             print("Session finished")
             _LOGGER.debug("Session finished")
