@@ -20,13 +20,6 @@ The environment config file consists of the following attributes:
 
 **Generic Config Values**
 
-* **agent_identifier** [enum]
-
-    This identifies the agent to use for the session. Select from one of the following:
-
-    * GENERIC - Where a user developed agent is to be used
-    * STABLE_BASELINES3_PPO - Use a SB3 PPO agent
-    * STABLE_BASELINES3_A2C - use a SB3 A2C agent
 
 * **agent_framework** [enum]
     
