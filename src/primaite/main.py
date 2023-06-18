@@ -108,54 +108,6 @@ def run_stable_baselines3_ppo(
     env.close()
 
 
-def run_stable_baselines3_a2c(
-    env: Primaite, config_values: TrainingConfig, session_path: Path, timestamp_str: str
-):
-    """
-    Run against a stable_baselines3 A2C agent.
-
-    :param env: An instance of
-        :class:`~primaite.environment.primaite_env.Primaite`.
-    :param config_values: An instance of
-        :class:`~primaite.config.training_config.TrainingConfig`.
-    param session_path: The directory path the session is writing to.
-    :param timestamp_str: The session timestamp in the format:
-        <yyyy-mm-dd>_<hh-mm-ss>.
-    """
-    if config_values.load_agent:
-        try:
-            agent = A2C.load(
-                config_values.agent_load_file,
-                env,
-                verbose=0,
-                n_steps=config_values.num_steps,
-            )
-        except Exception:
-            print(
-                "ERROR: Could not load agent at location: "
-                + config_values.agent_load_file
-            )
-            _LOGGER.error("Could not load agent")
-            _LOGGER.error("Exception occured", exc_info=True)
-    else:
-        agent = A2C("MlpPolicy", env, verbose=0, n_steps=config_values.num_steps)
-
-    if config_values.session_type == "TRAINING":
-        # We're in a training session
-        print("Starting training session...")
-        _LOGGER.debug("Starting training session...")
-        for episode in range(config_values.num_episodes):
-            agent.learn(total_timesteps=config_values.num_steps)
-        _save_agent(agent, session_path, timestamp_str)
-    else:
-        # Default to being in an evaluation session
-        print("Starting evaluation session...")
-        _LOGGER.debug("Starting evaluation session...")
-        evaluate_policy(agent, env, n_eval_episodes=config_values.num_episodes)
-
-    env.close()
-
-
 def _write_session_metadata_file(
     session_dir: Path, uuid: str, session_timestamp: datetime, env: Primaite
 ):

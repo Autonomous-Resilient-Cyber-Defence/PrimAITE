@@ -5,7 +5,7 @@ import csv
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Tuple, Union
+from typing import Dict, Tuple, Union, Final
 
 import networkx as nx
 import numpy as np
@@ -77,6 +77,8 @@ class Primaite(Env):
         :param timestamp_str: The session timestamp in the format:
             <yyyy-mm-dd>_<hh-mm-ss>.
         """
+        self.session_path: Final[Path] = session_path
+        self.timestamp_str: Final[str] = timestamp_str
         self._training_config_path = training_config_path
         self._lay_down_config_path = lay_down_config_path
 
@@ -93,7 +95,7 @@ class Primaite(Env):
         self.transaction_list = transaction_list
 
         # The agent in use
-        self.agent_identifier = self.training_config.agent_identifier
+        self.agent_identifier = self.training_config.red_agent_identifier
 
         # Create a dictionary to hold all the nodes
         self.nodes: Dict[str, NodeUnion] = {}

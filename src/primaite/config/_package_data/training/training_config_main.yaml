@@ -1,26 +1,52 @@
 # Main Config File
 
-# Generic config values
-# Choose one of these (dependent on Agent being trained)
-# "STABLE_BASELINES3_PPO"
-# "STABLE_BASELINES3_A2C"
-# "GENERIC"
-agent_identifier: STABLE_BASELINES3_A2C
+# Sets which agent algorithm framework will be used:
+# Options are:
+# "SB3" (Stable Baselines3)
+# "RLLIB" (Ray RLlib)
+# "NONE" (Custom Agent)
+agent_framework: RLLIB
+
+# Sets which deep learning framework will be used. Default is TF (Tensorflow).
+# Options are:
+# "TF" (Tensorflow)
+# TF2 (Tensorflow 2.X)
+# TORCH (PyTorch)
+deep_learning_framework: TORCH
+
+# Sets which Red Agent algo/class will be used:
+# Options are:
+# "A2C" (Advantage Actor Critic)
+# "PPO" (Proximal Policy Optimization)
+# "HARDCODED" (Custom Agent)
+# "RANDOM" (Random Action)
+red_agent_identifier: PPO
+
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
 # "ANY" node and acl actions
 action_type: NODE
+
 # Number of episodes to run per session
 num_episodes: 10
+
 # Number of time_steps per episode
 num_steps: 256
+
+# Sets how often the agent will save a checkpoint (every n time episodes).
+# Set to 0 if no checkpoints are required. Default is 10
+checkpoint_every_n_episodes: 5
+
 # Time delay between steps (for generic agents)
 time_delay: 10
+
 # Type of session to be run (TRAINING or EVALUATION)
 session_type: TRAINING
+
 # Determine whether to load an agent from file
 load_agent: False
+
 # File path and file name of agent if you're loading one in
 agent_load_file: C:\[Path]\[agent_saved_filename.zip]
 
