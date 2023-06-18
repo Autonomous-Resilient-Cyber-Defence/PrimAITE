@@ -8,6 +8,7 @@ from typing import Any, Dict, Final, Union, Optional
 import yaml
 
 from primaite import USERS_CONFIG_DIR, getLogger
+from primaite.common.enums import DeepLearningFramework
 from primaite.common.enums import ActionType, RedAgentIdentifier, \
     AgentFramework, SessionType
 
@@ -20,10 +21,13 @@ _EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training
 class TrainingConfig:
     """The Training Config class."""
     agent_framework: AgentFramework = AgentFramework.SB3
-    "The agent framework."
+    "The AgentFramework"
+
+    deep_learning_framework: DeepLearningFramework = DeepLearningFramework.TF
+    "The DeepLearningFramework."
 
     red_agent_identifier: RedAgentIdentifier = RedAgentIdentifier.PPO
-    "The red agent/algo class."
+    "The RedAgentIdentifier.."
 
     action_type: ActionType = ActionType.ANY
     "The ActionType to use."
@@ -33,6 +37,10 @@ class TrainingConfig:
 
     num_steps: int = 256
     "The number of steps in an episode."
+
+    checkpoint_every_n_episodes: int = 5
+    "The agent will save a checkpoint every n episodes."
+
     observation_space: dict = field(
         default_factory=lambda: {"components": [{"name": "NODE_LINK_TABLE"}]}
     )
@@ -148,6 +156,7 @@ class TrainingConfig:
     ) -> TrainingConfig:
         field_enum_map = {
             "agent_framework": AgentFramework,
+            "deep_learning_framework": DeepLearningFramework,
              "red_agent_identifier": RedAgentIdentifier,
              "action_type": ActionType,
              "session_type": SessionType
@@ -155,7 +164,7 @@ class TrainingConfig:
 
         for field, enum_class in field_enum_map.items():
             if field in config_dict:
-                config_dict[field] = enum_class[field]
+                config_dict[field] = enum_class[config_dict[field]]
 
         return TrainingConfig(**config_dict)
 
@@ -219,7 +228,7 @@ def load(file_path: Union[str, Path],
                 )
                 _LOGGER.error(msg)
         try:
-            return TrainingConfig.from_dict(**config)
+            return TrainingConfig.from_dict(config)
         except TypeError as e:
             msg = (
                 f"Error when creating an instance of {TrainingConfig} "

@@ -95,15 +95,32 @@ class VerboseLevel(Enum):
 
 class AgentFramework(Enum):
     NONE = 0
+    "Custom Agent"
     SB3 = 1
+    "Stable Baselines3"
     RLLIB = 2
+    "Ray RLlib"
+
+
+class DeepLearningFramework(Enum):
+    """The deep learning framework enumeration."""
+    TF = "tf"
+    "Tensorflow"
+    TF2 = "tf2"
+    "Tensorflow 2.x"
+    TORCH = "torch"
+    "PyTorch"
 
 
 class RedAgentIdentifier(Enum):
     A2C = 1
+    "Advantage Actor Critic"
     PPO = 2
+    "Proximal Policy Optimization"
     HARDCODED = 3
+    "Custom Agent"
     RANDOM = 4
+    "Custom Agent"
 
 
 class ActionType(Enum):
