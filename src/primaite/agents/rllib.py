@@ -8,7 +8,7 @@ from ray.rllib.algorithms import Algorithm
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray.tune.registry import register_env
 
-from primaite.agents.agent_abc import AgentABC
+from primaite.agents.agent import AgentSessionABC
 from primaite.config import training_config
 from primaite.environment.primaite_env import Primaite
 
@@ -23,7 +23,7 @@ def _env_creator(env_config):
     )
 
 
-class RLlibPPO(AgentABC):
+class RLlibPPO(AgentSessionABC):
 
     def __init__(
             self,
@@ -34,8 +34,10 @@ class RLlibPPO(AgentABC):
         self._ppo_config: PPOConfig
         self._current_result: dict
         self._setup()
+        self._agent.save()
 
     def _setup(self):
+        super()._setup()
         register_env("primaite", _env_creator)
         self._ppo_config = PPOConfig()
 
@@ -72,12 +74,13 @@ class RLlibPPO(AgentABC):
                     (episode_count % checkpoint_n == 0)
                     or (episode_count == self._training_config.num_episodes)
             ):
-                self._agent.save(self.session_path)
+                self._agent.save(self.checkpoints_path)
 
     def learn(
             self,
             time_steps: Optional[int] = None,
-            episodes: Optional[int] = None
+            episodes: Optional[int] = None,
+            **kwargs
     ):
         # Temporarily override train_batch_size and horizon
         if time_steps:
@@ -91,11 +94,13 @@ class RLlibPPO(AgentABC):
             self._current_result = self._agent.train()
             self._save_checkpoint()
         self._agent.stop()
+        super().learn()
 
     def evaluate(
             self,
             time_steps: Optional[int] = None,
-            episodes: Optional[int] = None
+            episodes: Optional[int] = None,
+            **kwargs
     ):
         raise NotImplementedError
 

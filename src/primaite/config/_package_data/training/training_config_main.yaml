@@ -54,6 +54,13 @@ agent_load_file: C:\[Path]\[agent_saved_filename.zip]
 # The high value for the observation space
 observation_space_high_value: 1000000000
 
+# The Agent output verbosity level:
+# Options are:
+# "NONE" (No Output)
+# "INFO" (Info Messages)
+# "ALL" (All Messages)
+output_verbose_level: INFO
+
 # Reward values
 # Generic
 all_ok: 0
