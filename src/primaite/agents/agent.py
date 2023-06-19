@@ -5,19 +5,18 @@ from pathlib import Path
 from typing import Optional, Final, Dict, Union, List
 from uuid import uuid4
 
-from primaite import getLogger
+from primaite import getLogger, SESSIONS_DIR
 from primaite.common.enums import OutputVerboseLevel
 from primaite.config import lay_down_config
 from primaite.config import training_config
 from primaite.config.training_config import TrainingConfig
 from primaite.environment.primaite_env import Primaite
-from primaite.transactions.transactions_to_file import \
-    write_transaction_to_file
+
 
 _LOGGER = getLogger(__name__)
 
 
-def _get_temp_session_path(session_timestamp: datetime) -> Path:
+def _get_session_path(session_timestamp: datetime) -> Path:
     """
     Get a temp directory session path the test session will output to.
 
@@ -26,7 +25,7 @@ def _get_temp_session_path(session_timestamp: datetime) -> Path:
     """
     date_dir = session_timestamp.strftime("%Y-%m-%d")
     session_path = session_timestamp.strftime("%Y-%m-%d_%H-%M-%S")
-    session_path = Path("./") / date_dir / session_path
+    session_path = SESSIONS_DIR / date_dir / session_path
     session_path.mkdir(exist_ok=True, parents=True)
 
     return session_path
@@ -57,16 +56,16 @@ class AgentSessionABC(ABC):
 
         self._env: Primaite
         self._agent = None
-        self._transaction_list: List[Dict] = []
         self._can_learn: bool = False
         self._can_evaluate: bool = False
 
         self._uuid = str(uuid4())
         self.session_timestamp: datetime = datetime.now()
         "The session timestamp"
-        self.session_path = _get_temp_session_path(self.session_timestamp)
+        self.session_path = _get_session_path(self.session_timestamp)
         "The Session path"
         self.checkpoints_path = self.session_path / "checkpoints"
+        self.checkpoints_path.mkdir(parents=True, exist_ok=True)
         "The Session checkpoints path"
 
         self.timestamp_str = self.session_timestamp.strftime(
@@ -167,11 +166,6 @@ class AgentSessionABC(ABC):
     ):
         if self._can_learn:
             _LOGGER.debug("Writing transactions")
-            write_transaction_to_file(
-                transaction_list=self._transaction_list,
-                session_path=self.session_path,
-                timestamp_str=self.timestamp_str,
-            )
             self._update_session_metadata_file()
             self._can_evaluate = True
 

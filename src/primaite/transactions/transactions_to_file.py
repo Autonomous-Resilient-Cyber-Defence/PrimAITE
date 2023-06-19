@@ -4,6 +4,8 @@
 import csv
 from pathlib import Path
 
+import numpy as np
+
 from primaite import getLogger
 
 _LOGGER = getLogger(__name__)
@@ -54,8 +56,12 @@ def write_transaction_to_file(transaction_list, session_path: Path, timestamp_st
     # Label the obs space fields in csv as "OSI_1_1", "OSN_1_1" and action
     # space as "AS_1"
     # This will be tied into the PrimAITE Use Case so that they make sense
+
     template_transation = transaction_list[0]
-    action_length = template_transation.action_space.size
+    if isinstance(template_transation.action_space, int):
+        action_length = template_transation.action_space
+    else:
+        action_length = template_transation.action_space.size
     obs_shape = template_transation.obs_space_post.shape
     obs_assets = template_transation.obs_space_post.shape[0]
     if len(obs_shape) == 1:

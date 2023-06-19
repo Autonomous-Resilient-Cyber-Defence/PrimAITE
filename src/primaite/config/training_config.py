@@ -185,7 +185,6 @@ class TrainingConfig:
         for field, enum_class in field_enum_map.items():
             if field in config_dict:
                 config_dict[field] = enum_class[config_dict[field]]
-
         return TrainingConfig(**config_dict)
 
     def to_dict(self, json_serializable: bool = True):
@@ -203,6 +202,7 @@ class TrainingConfig:
             data["red_agent_identifier"] = self.red_agent_identifier.value
             data["action_type"] = self.action_type.value
             data["output_verbose_level"] = self.output_verbose_level.value
+            data["session_type"] = self.session_type.value
 
         return data
 

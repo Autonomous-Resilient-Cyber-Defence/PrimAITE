@@ -1,23 +1,48 @@
 from typing import Optional
 
 import numpy as np
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, A2C
 
+from primaite import getLogger
 from primaite.agents.agent import AgentSessionABC
+from primaite.common.enums import RedAgentIdentifier, AgentFramework
 from primaite.environment.primaite_env import Primaite
 from stable_baselines3.ppo import MlpPolicy as PPOMlp
 
+_LOGGER = getLogger(__name__)
 
-class SB3PPO(AgentSessionABC):
+
+class SB3Agent(AgentSessionABC):
     def __init__(
             self,
             training_config_path,
             lay_down_config_path
     ):
         super().__init__(training_config_path, lay_down_config_path)
+        if not self._training_config.agent_framework == AgentFramework.SB3:
+            msg = (f"Expected SB3 agent_framework, "
+                   f"got {self._training_config.agent_framework}")
+            _LOGGER.error(msg)
+            raise ValueError(msg)
+        if self._training_config.red_agent_identifier == RedAgentIdentifier.PPO:
+            self._agent_class = PPO
+        elif self._training_config.red_agent_identifier == RedAgentIdentifier.A2C:
+            self._agent_class = A2C
+        else:
+            msg = ("Expected PPO or A2C red_agent_identifier, "
+                   f"got {self._training_config.red_agent_identifier.value}")
+            _LOGGER.error(msg)
+            raise ValueError(msg)
+
         self._tensorboard_log_path = self.session_path / "tensorboard_logs"
         self._tensorboard_log_path.mkdir(parents=True, exist_ok=True)
         self._setup()
+        _LOGGER.debug(
+            f"Created {self.__class__.__name__} using: "
+            f"agent_framework={self._training_config.agent_framework}, "
+            f"red_agent_identifier="
+            f"{self._training_config.red_agent_identifier}"
+        )
 
     def _setup(self):
         super()._setup()
@@ -28,10 +53,10 @@ class SB3PPO(AgentSessionABC):
             session_path=self.session_path,
             timestamp_str=self.timestamp_str
         )
-        self._agent = PPO(
+        self._agent = self._agent_class(
             PPOMlp,
             self._env,
-            verbose=1,
+            verbose=self._training_config.output_verbose_level,
             n_steps=self._training_config.num_steps,
             tensorboard_log=self._tensorboard_log_path
         )
@@ -65,6 +90,7 @@ class SB3PPO(AgentSessionABC):
         for i in range(episodes):
             self._agent.learn(total_timesteps=time_steps)
             self._save_checkpoint()
+        self._env.close()
         super().learn()
 
     def evaluate(
