@@ -108,5 +108,6 @@ def write_transaction_to_file(transaction_list, session_path: Path, timestamp_st
             csv_writer.writerow(csv_data)
 
         csv_file.close()
+        _LOGGER.debug("Finished writing transactions")
     except Exception:
         _LOGGER.error("Could not save the transaction file", exc_info=True)

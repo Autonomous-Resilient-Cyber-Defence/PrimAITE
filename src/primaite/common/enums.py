@@ -1,7 +1,7 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Enumerations for APE."""
 
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class NodeType(Enum):
@@ -172,3 +172,13 @@ class LinkStatus(Enum):
     MEDIUM = 2
     HIGH = 3
     OVERLOAD = 4
+
+
+class OutputVerboseLevel(IntEnum):
+    """The Agent output verbosity level."""
+    NONE = 0
+    "No Output"
+    INFO = 1
+    "Info Messages"
+    ALL = 2
+    "All Messages"

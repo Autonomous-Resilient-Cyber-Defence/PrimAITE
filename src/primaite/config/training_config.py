@@ -10,11 +10,27 @@ import yaml
 from primaite import USERS_CONFIG_DIR, getLogger
 from primaite.common.enums import DeepLearningFramework
 from primaite.common.enums import ActionType, RedAgentIdentifier, \
-    AgentFramework, SessionType
+    AgentFramework, SessionType, OutputVerboseLevel
 
 _LOGGER = getLogger(__name__)
 
-_EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training"
+_EXAMPLE_TRAINING: Final[
+    Path] = USERS_CONFIG_DIR / "example_config" / "training"
+
+
+def main_training_config_path() -> Path:
+    """
+    The path to the example training_config_main.yaml file.
+
+    :return: The file path.
+    """
+    path = _EXAMPLE_TRAINING / "training_config_main.yaml"
+    if not path.exists():
+        msg = "Example config not found. Please run 'primaite setup'"
+        _LOGGER.critical(msg)
+        raise FileNotFoundError(msg)
+
+    return path
 
 
 @dataclass()
@@ -24,44 +40,47 @@ class TrainingConfig:
     "The AgentFramework"
 
     deep_learning_framework: DeepLearningFramework = DeepLearningFramework.TF
-    "The DeepLearningFramework."
+    "The DeepLearningFramework"
 
     red_agent_identifier: RedAgentIdentifier = RedAgentIdentifier.PPO
-    "The RedAgentIdentifier.."
+    "The RedAgentIdentifier"
 
     action_type: ActionType = ActionType.ANY
-    "The ActionType to use."
+    "The ActionType to use"
 
     num_episodes: int = 10
-    "The number of episodes to train over."
+    "The number of episodes to train over"
 
     num_steps: int = 256
-    "The number of steps in an episode."
+    "The number of steps in an episode"
 
     checkpoint_every_n_episodes: int = 5
-    "The agent will save a checkpoint every n episodes."
+    "The agent will save a checkpoint every n episodes"
 
     observation_space: dict = field(
         default_factory=lambda: {"components": [{"name": "NODE_LINK_TABLE"}]}
     )
-    "The observation space config dict."
+    "The observation space config dict"
 
     time_delay: int = 10
-    "The delay between steps (ms). Applies to generic agents only."
+    "The delay between steps (ms). Applies to generic agents only"
 
     # file
     session_type: SessionType = SessionType.TRAINING
-    "The type of PrimAITE session to run."
+    "The type of PrimAITE session to run"
 
     load_agent: str = False
-    "Determine whether to load an agent from file."
+    "Determine whether to load an agent from file"
 
     agent_load_file: Optional[str] = None
-    "File path and file name of agent if you're loading one in."
+    "File path and file name of agent if you're loading one in"
 
     # Environment
     observation_space_high_value: int = 1000000000
-    "The high value for the observation space."
+    "The high value for the observation space"
+
+    output_verbose_level: OutputVerboseLevel = OutputVerboseLevel.INFO
+    "The Agent output verbosity level"
 
     # Reward values
     # Generic
@@ -126,28 +145,28 @@ class TrainingConfig:
 
     # Patching / Reset durations
     os_patching_duration: int = 5
-    "The time taken to patch the OS."
+    "The time taken to patch the OS"
 
     node_reset_duration: int = 5
-    "The time taken to reset a node (hardware)."
+    "The time taken to reset a node (hardware)"
 
     node_booting_duration: int = 3
-    "The Time taken to turn on the node."
+    "The Time taken to turn on the node"
 
     node_shutdown_duration: int = 2
-    "The time taken to turn off the node."
+    "The time taken to turn off the node"
 
     service_patching_duration: int = 5
-    "The time taken to patch a service."
+    "The time taken to patch a service"
 
     file_system_repairing_limit: int = 5
-    "The time take to repair the file system."
+    "The time take to repair the file system"
 
     file_system_restoring_limit: int = 5
-    "The time take to restore the file system."
+    "The time take to restore the file system"
 
     file_system_scanning_limit: int = 5
-    "The time taken to scan the file system."
+    "The time taken to scan the file system"
 
     @classmethod
     def from_dict(
@@ -157,9 +176,10 @@ class TrainingConfig:
         field_enum_map = {
             "agent_framework": AgentFramework,
             "deep_learning_framework": DeepLearningFramework,
-             "red_agent_identifier": RedAgentIdentifier,
-             "action_type": ActionType,
-             "session_type": SessionType
+            "red_agent_identifier": RedAgentIdentifier,
+            "action_type": ActionType,
+            "session_type": SessionType,
+            "output_verbose_level": OutputVerboseLevel
         }
 
         for field, enum_class in field_enum_map.items():
@@ -178,28 +198,19 @@ class TrainingConfig:
         """
         data = self.__dict__
         if json_serializable:
+            data["agent_framework"] = self.agent_framework.value
+            data["deep_learning_framework"] = self.deep_learning_framework.value
+            data["red_agent_identifier"] = self.red_agent_identifier.value
             data["action_type"] = self.action_type.value
+            data["output_verbose_level"] = self.output_verbose_level.value
 
         return data
 
 
-def main_training_config_path() -> Path:
-    """
-    The path to the example training_config_main.yaml file.
-
-    :return: The file path.
-    """
-    path = _EXAMPLE_TRAINING / "training_config_main.yaml"
-    if not path.exists():
-        msg = "Example config not found. Please run 'primaite setup'"
-        _LOGGER.critical(msg)
-        raise FileNotFoundError(msg)
-
-    return path
-
-
-def load(file_path: Union[str, Path],
-         legacy_file: bool = False) -> TrainingConfig:
+def load(
+        file_path: Union[str, Path],
+        legacy_file: bool = False
+) -> TrainingConfig:
     """
     Read in a training config yaml file.
 
@@ -246,7 +257,8 @@ def convert_legacy_training_config_dict(
         agent_framework: AgentFramework = AgentFramework.SB3,
         red_agent_identifier: RedAgentIdentifier = RedAgentIdentifier.PPO,
         action_type: ActionType = ActionType.ANY,
-        num_steps: int = 256
+        num_steps: int = 256,
+        output_verbose_level: OutputVerboseLevel = OutputVerboseLevel.INFO
 ) -> Dict[str, Any]:
     """
     Convert a legacy training config dict to the new format.
@@ -260,13 +272,16 @@ def convert_legacy_training_config_dict(
         don't have action_type values.
     :param num_steps: The number of steps to set as legacy training configs
         don't have num_steps values.
+    :param output_verbose_level: The agent output verbose level to use as
+        legacy training configs don't have output_verbose_level values.
     :return: The converted training config dict.
     """
     config_dict = {
         "agent_framework": agent_framework.name,
         "red_agent_identifier": red_agent_identifier.name,
         "action_type": action_type.name,
-        "num_steps": num_steps
+        "num_steps": num_steps,
+        "output_verbose_level": output_verbose_level
     }
     for legacy_key, value in legacy_config_dict.items():
         new_key = _get_new_key_from_legacy(legacy_key)
