@@ -45,6 +45,8 @@ from primaite.pol.ier import IER
 from primaite.pol.red_agent_pol import apply_red_agent_iers, \
     apply_red_agent_node_pol
 from primaite.transactions.transaction import Transaction
+from primaite.transactions.transactions_to_file import \
+    write_transaction_to_file
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.INFO)
@@ -407,10 +409,19 @@ class Primaite(Env):
         # Return
         return self.env_obs, reward, done, self.step_info
 
-    def __close__(self):
-        """Override close function."""
-        self.csv_file.close()
+    def close(self):
+        self.__close__()
 
+    def __close__(self):
+        """
+        Override close function
+        """
+        write_transaction_to_file(
+            self.transaction_list,
+            self.session_path,
+            self.timestamp_str
+        )
+        self.csv_file.close()
     def init_acl(self):
         """Initialise the Access Control List."""
         self.acl.remove_all_rules()

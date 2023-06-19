@@ -59,7 +59,7 @@ observation_space_high_value: 1000000000
 # "NONE" (No Output)
 # "INFO" (Info Messages)
 # "ALL" (All Messages)
-output_verbose_level: INFO
+output_verbose_level: NONE
 
 # Reward values
 # Generic

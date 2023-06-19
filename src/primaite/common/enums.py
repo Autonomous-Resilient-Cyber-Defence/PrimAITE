@@ -80,13 +80,13 @@ class Protocol(Enum):
 
 
 class SessionType(Enum):
-    "The type of PrimAITE Session to be run."
+    """The type of PrimAITE Session to be run."""
     TRAINING = 1
     EVALUATION = 2
     BOTH = 3
 
 
-class VerboseLevel(Enum):
+class VerboseLevel(IntEnum):
     """PrimAITE Session Output verbose level."""
     NO_OUTPUT = 0
     INFO = 1

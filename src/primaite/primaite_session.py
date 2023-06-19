@@ -8,10 +8,10 @@ from uuid import uuid4
 
 from primaite import getLogger, SESSIONS_DIR
 from primaite.agents.agent import AgentSessionABC
-from primaite.agents.rllib import RLlibPPO
-from primaite.agents.sb3 import SB3PPO
+from primaite.agents.rllib import RLlibAgent
+from primaite.agents.sb3 import SB3Agent
 from primaite.common.enums import AgentFramework, RedAgentIdentifier, \
-    ActionType
+    ActionType, SessionType
 from primaite.config import lay_down_config, training_config
 from primaite.config.training_config import TrainingConfig
 from primaite.environment.primaite_env import Primaite
@@ -95,35 +95,19 @@ class PrimaiteSession:
                 pass
 
         elif self._training_config.agent_framework == AgentFramework.SB3:
-            if self._training_config.red_agent_identifier == RedAgentIdentifier.PPO:
-                # Stable Baselines3/Proximal Policy Optimization
-                self._agent_session = SB3PPO(
-                    self._training_config_path,
-                    self._lay_down_config_path
-                )
-
-            elif self._training_config.red_agent_identifier == RedAgentIdentifier.A2C:
-                # Stable Baselines3/Advantage Actor Critic
-                raise NotImplementedError
-            else:
-                # Invalid AgentFramework RedAgentIdentifier combo
-                pass
+            # Stable Baselines3 Agent
+            self._agent_session = SB3Agent(
+                self._training_config_path,
+                self._lay_down_config_path
+            )
 
         elif self._training_config.agent_framework == AgentFramework.RLLIB:
-            if self._training_config.red_agent_identifier == RedAgentIdentifier.PPO:
-                # Ray RLlib/Proximal Policy Optimization
-                self._agent_session = RLlibPPO(
-                    self._training_config_path,
-                    self._lay_down_config_path
-                )
+            # Ray RLlib Agent
+            self._agent_session = RLlibAgent(
+                self._training_config_path,
+                self._lay_down_config_path
+            )
 
-            elif self._training_config.red_agent_identifier == RedAgentIdentifier.A2C:
-                # Ray RLlib/Advantage Actor Critic
-                raise NotImplementedError
-
-            else:
-                # Invalid AgentFramework RedAgentIdentifier combo
-                pass
         else:
             # Invalid AgentFramework
             pass
@@ -134,7 +118,8 @@ class PrimaiteSession:
             episodes: Optional[int] = None,
             **kwargs
     ):
-        self._agent_session.learn(time_steps, episodes, **kwargs)
+        if not self._training_config.session_type == SessionType.EVALUATION:
+            self._agent_session.learn(time_steps, episodes, **kwargs)
 
     def evaluate(
             self,
@@ -142,18 +127,5 @@ class PrimaiteSession:
             episodes: Optional[int] = None,
             **kwargs
     ):
-        self._agent_session.evaluate(time_steps, episodes, **kwargs)
-
-    @classmethod
-    def import_agent(
-            cls,
-            gent_path: str,
-            training_config_path: str,
-            lay_down_config_path: str
-    ) -> PrimaiteSession:
-        session = PrimaiteSession(training_config_path, lay_down_config_path)
-
-        # Reset the UUID
-        session._uuid = ""
-
-        return session
+        if not self._training_config.session_type == SessionType.TRAINING:
+            self._agent_session.evaluate(time_steps, episodes, **kwargs)
