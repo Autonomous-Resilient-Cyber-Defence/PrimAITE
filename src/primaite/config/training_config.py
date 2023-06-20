@@ -137,6 +137,12 @@ class TrainingConfig:
     file_system_scanning_limit: int = 5
     "The time taken to scan the file system."
 
+    deterministic: bool = False
+    "If true, the training will be deterministic"
+
+    seed: int = None
+    "The random number generator seed to be used while training the agent"
+
     def to_dict(self, json_serializable: bool = True):
         """
         Serialise the ``TrainingConfig`` as dict.

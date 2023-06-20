@@ -45,6 +45,7 @@ from primaite.pol.ier import IER
 from primaite.pol.red_agent_pol import apply_red_agent_iers, \
     apply_red_agent_node_pol
 from primaite.transactions.transaction import Transaction
+from primaite.transactions.transactions_to_file import write_transaction_to_file
 
 _LOGGER = logging.getLogger(__name__)
 _LOGGER.setLevel(logging.INFO)
@@ -221,7 +222,7 @@ class Primaite(Env):
             # [0, 3] - action on property (0 = nothing, On / Scan, Off / Repair, Reset / Patch / Restore) # noqa
             # [0, num services] - resolves to service ID (0 = nothing, resolves to service) # noqa
             self.action_dict = self.create_node_action_dict()
-            self.action_space = spaces.Discrete(len(self.action_dict))
+            self.action_space = spaces.Discrete(len(self.action_dict), seed=self.training_config.seed)
         elif self.training_config.action_type == ActionType.ACL:
             _LOGGER.info("Action space type ACL selected")
             # Terms (for ACL action space):
@@ -232,11 +233,11 @@ class Primaite(Env):
             # [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
             # [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
             self.action_dict = self.create_acl_action_dict()
-            self.action_space = spaces.Discrete(len(self.action_dict))
+            self.action_space = spaces.Discrete(len(self.action_dict), seed=self.training_config.seed)
         elif self.training_config.action_type == ActionType.ANY:
             _LOGGER.info("Action space type ANY selected - Node + ACL")
             self.action_dict = self.create_node_and_acl_action_dict()
-            self.action_space = spaces.Discrete(len(self.action_dict))
+            self.action_space = spaces.Discrete(len(self.action_dict), seed=self.training_config.seed)
         else:
             _LOGGER.info(f"Invalid action type selected: {self.training_config.action_type}")
         # Set up a csv to store the results of the training
@@ -405,8 +406,13 @@ class Primaite(Env):
         # Return
         return self.env_obs, reward, done, self.step_info
 
+    def close(self):
+        self.__close__()
+
     def __close__(self):
-        """Override close function."""
+        """
+        Override close function
+        """
         self.csv_file.close()
 
     def init_acl(self):
