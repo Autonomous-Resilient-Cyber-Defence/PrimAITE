@@ -42,6 +42,7 @@ To install the development dependencies, postfix the command in step 3 above wit
 
 ```bash
 python3 -m pip install -e .[dev]
+```
 
 ## Building documentation
 The PrimAITE documentation can be built with the following commands:
