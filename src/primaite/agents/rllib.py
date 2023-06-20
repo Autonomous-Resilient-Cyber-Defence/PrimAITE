@@ -1,20 +1,18 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from pathlib import Path
 from typing import Optional
 
 from ray.rllib.algorithms import Algorithm
-from ray.rllib.algorithms.ppo import PPOConfig
 from ray.rllib.algorithms.a2c import A2CConfig
+from ray.rllib.algorithms.ppo import PPOConfig
 from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import register_env
 
 from primaite import getLogger
 from primaite.agents.agent import AgentSessionABC
-from primaite.common.enums import AgentFramework, RedAgentIdentifier
+from primaite.common.enums import AgentFramework, AgentIdentifier
 from primaite.environment.primaite_env import Primaite
-
 
 _LOGGER = getLogger(__name__)
 
@@ -51,13 +49,13 @@ class RLlibAgent(AgentSessionABC):
                    f"got {self._training_config.agent_framework}")
             _LOGGER.error(msg)
             raise ValueError(msg)
-        if self._training_config.red_agent_identifier == RedAgentIdentifier.PPO:
+        if self._training_config.agent_identifier == AgentIdentifier.PPO:
             self._agent_config_class = PPOConfig
-        elif self._training_config.red_agent_identifier == RedAgentIdentifier.A2C:
+        elif self._training_config.agent_identifier == AgentIdentifier.A2C:
             self._agent_config_class = A2CConfig
         else:
-            msg = ("Expected PPO or A2C red_agent_identifier, "
-                   f"got {self._training_config.red_agent_identifier.value}")
+            msg = ("Expected PPO or A2C agent_identifier, "
+                   f"got {self._training_config.agent_identifier.value}")
             _LOGGER.error(msg)
             raise ValueError(msg)
         self._agent_config: PPOConfig
@@ -67,8 +65,8 @@ class RLlibAgent(AgentSessionABC):
         _LOGGER.debug(
             f"Created {self.__class__.__name__} using: "
             f"agent_framework={self._training_config.agent_framework}, "
-            f"red_agent_identifier="
-            f"{self._training_config.red_agent_identifier}, "
+            f"agent_identifier="
+            f"{self._training_config.agent_identifier}, "
             f"deep_learning_framework="
             f"{self._training_config.deep_learning_framework}"
         )
@@ -117,7 +115,7 @@ class RLlibAgent(AgentSessionABC):
             train_batch_size=self._training_config.num_steps
         )
         self._agent_config.framework(
-            framework=self._training_config.deep_learning_framework
+            framework="torch"
         )
 
         self._agent_config.rollouts(

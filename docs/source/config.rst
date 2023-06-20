@@ -29,7 +29,7 @@ The environment config file consists of the following attributes:
     * SB3 - Stable Baselines3
     * RLLIB - Ray RLlib.
 
-* **red_agent_identifier**
+* **agent_identifier**
     
     This identifies the agent to use for the session. Select from one of the following:
 

@@ -2,12 +2,12 @@ from typing import Optional
 
 import numpy as np
 from stable_baselines3 import PPO, A2C
+from stable_baselines3.ppo import MlpPolicy as PPOMlp
 
 from primaite import getLogger
 from primaite.agents.agent import AgentSessionABC
-from primaite.common.enums import RedAgentIdentifier, AgentFramework
+from primaite.common.enums import AgentIdentifier, AgentFramework
 from primaite.environment.primaite_env import Primaite
-from stable_baselines3.ppo import MlpPolicy as PPOMlp
 
 _LOGGER = getLogger(__name__)
 
@@ -24,13 +24,13 @@ class SB3Agent(AgentSessionABC):
                    f"got {self._training_config.agent_framework}")
             _LOGGER.error(msg)
             raise ValueError(msg)
-        if self._training_config.red_agent_identifier == RedAgentIdentifier.PPO:
+        if self._training_config.agent_identifier == AgentIdentifier.PPO:
             self._agent_class = PPO
-        elif self._training_config.red_agent_identifier == RedAgentIdentifier.A2C:
+        elif self._training_config.agent_identifier == AgentIdentifier.A2C:
             self._agent_class = A2C
         else:
-            msg = ("Expected PPO or A2C red_agent_identifier, "
-                   f"got {self._training_config.red_agent_identifier.value}")
+            msg = ("Expected PPO or A2C agent_identifier, "
+                   f"got {self._training_config.agent_identifier.value}")
             _LOGGER.error(msg)
             raise ValueError(msg)
 
@@ -40,8 +40,8 @@ class SB3Agent(AgentSessionABC):
         _LOGGER.debug(
             f"Created {self.__class__.__name__} using: "
             f"agent_framework={self._training_config.agent_framework}, "
-            f"red_agent_identifier="
-            f"{self._training_config.red_agent_identifier}"
+            f"agent_identifier="
+            f"{self._training_config.agent_identifier}"
         )
 
     def _setup(self):
@@ -56,7 +56,7 @@ class SB3Agent(AgentSessionABC):
         self._agent = self._agent_class(
             PPOMlp,
             self._env,
-            verbose=self._training_config.output_verbose_level,
+            verbose=self.output_verbose_level,
             n_steps=self._training_config.num_steps,
             tensorboard_log=self._tensorboard_log_path
         )
@@ -118,6 +118,7 @@ class SB3Agent(AgentSessionABC):
                     action = np.int64(action)
                 obs, rewards, done, info = self._env.step(action)
 
+    @classmethod
     def load(self):
         raise NotImplementedError
 

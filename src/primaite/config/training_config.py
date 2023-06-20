@@ -8,8 +8,8 @@ from typing import Any, Dict, Final, Union, Optional
 import yaml
 
 from primaite import USERS_CONFIG_DIR, getLogger
-from primaite.common.enums import DeepLearningFramework
-from primaite.common.enums import ActionType, RedAgentIdentifier, \
+from primaite.common.enums import DeepLearningFramework, HardCodedAgentView
+from primaite.common.enums import ActionType, AgentIdentifier, \
     AgentFramework, SessionType, OutputVerboseLevel
 
 _LOGGER = getLogger(__name__)
@@ -42,8 +42,11 @@ class TrainingConfig:
     deep_learning_framework: DeepLearningFramework = DeepLearningFramework.TF
     "The DeepLearningFramework"
 
-    red_agent_identifier: RedAgentIdentifier = RedAgentIdentifier.PPO
-    "The RedAgentIdentifier"
+    agent_identifier: AgentIdentifier = AgentIdentifier.PPO
+    "The AgentIdentifier"
+
+    hard_coded_agent_view: HardCodedAgentView = HardCodedAgentView.FULL
+    "The view the deterministic hard-coded agent has of the environment"
 
     action_type: ActionType = ActionType.ANY
     "The ActionType to use"
@@ -176,10 +179,11 @@ class TrainingConfig:
         field_enum_map = {
             "agent_framework": AgentFramework,
             "deep_learning_framework": DeepLearningFramework,
-            "red_agent_identifier": RedAgentIdentifier,
+            "agent_identifier": AgentIdentifier,
             "action_type": ActionType,
             "session_type": SessionType,
-            "output_verbose_level": OutputVerboseLevel
+            "output_verbose_level": OutputVerboseLevel,
+            "hard_coded_agent_view": HardCodedAgentView
         }
 
         for field, enum_class in field_enum_map.items():
@@ -197,12 +201,13 @@ class TrainingConfig:
         """
         data = self.__dict__
         if json_serializable:
-            data["agent_framework"] = self.agent_framework.value
-            data["deep_learning_framework"] = self.deep_learning_framework.value
-            data["red_agent_identifier"] = self.red_agent_identifier.value
-            data["action_type"] = self.action_type.value
-            data["output_verbose_level"] = self.output_verbose_level.value
-            data["session_type"] = self.session_type.value
+            data["agent_framework"] = self.agent_framework.name
+            data["deep_learning_framework"] = self.deep_learning_framework.name
+            data["agent_identifier"] = self.agent_identifier.name
+            data["action_type"] = self.action_type.name
+            data["output_verbose_level"] = self.output_verbose_level.name
+            data["session_type"] = self.session_type.name
+            data["hard_coded_agent_view"] = self.hard_coded_agent_view.name
 
         return data
 
@@ -255,7 +260,7 @@ def load(
 def convert_legacy_training_config_dict(
         legacy_config_dict: Dict[str, Any],
         agent_framework: AgentFramework = AgentFramework.SB3,
-        red_agent_identifier: RedAgentIdentifier = RedAgentIdentifier.PPO,
+        agent_identifier: AgentIdentifier = AgentIdentifier.PPO,
         action_type: ActionType = ActionType.ANY,
         num_steps: int = 256,
         output_verbose_level: OutputVerboseLevel = OutputVerboseLevel.INFO
@@ -266,8 +271,8 @@ def convert_legacy_training_config_dict(
     :param legacy_config_dict: A legacy training config dict.
     :param agent_framework: The agent framework to use as legacy training
         configs don't have agent_framework values.
-    :param red_agent_identifier: The red agent identifier to use as legacy
-        training configs don't have red_agent_identifier values.
+    :param agent_identifier: The red agent identifier to use as legacy
+        training configs don't have agent_identifier values.
     :param action_type: The action space type to set as legacy training configs
         don't have action_type values.
     :param num_steps: The number of steps to set as legacy training configs
@@ -278,7 +283,7 @@ def convert_legacy_training_config_dict(
     """
     config_dict = {
         "agent_framework": agent_framework.name,
-        "red_agent_identifier": red_agent_identifier.name,
+        "agent_identifier": agent_identifier.name,
         "action_type": action_type.name,
         "num_steps": num_steps,
         "output_verbose_level": output_verbose_level

@@ -97,7 +97,7 @@ class Primaite(Env):
         self.transaction_list = transaction_list
 
         # The agent in use
-        self.agent_identifier = self.training_config.red_agent_identifier
+        self.agent_identifier = self.training_config.agent_identifier
 
         # Create a dictionary to hold all the nodes
         self.nodes: Dict[str, NodeUnion] = {}

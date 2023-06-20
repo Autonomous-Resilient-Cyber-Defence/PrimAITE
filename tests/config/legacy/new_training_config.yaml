@@ -13,7 +13,7 @@ agent_framework: RLLIB
 # "A2C" (Advantage Actor Critic)
 # "HARDCODED" (Custom Agent)
 # "RANDOM" (Random Action)
-red_agent_identifier: PPO
+agent_identifier: PPO
 
 # Sets How the Action Space is defined:
 # "NODE"
