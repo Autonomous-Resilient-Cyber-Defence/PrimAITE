@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Dict, Final, List, Tuple, Union
 import numpy as np
 from gym import spaces
 
+from primaite.acl.acl_rule import ACLRule
 from primaite.common.enums import (
     FileSystemState,
     HardwareState,
@@ -21,7 +22,6 @@ from primaite.nodes.service_node import ServiceNode
 # Therefore, this avoids circular dependency problem.
 if TYPE_CHECKING:
     from primaite.environment.primaite_env import Primaite
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -346,16 +346,19 @@ class AccessControlList(AbstractObservationComponent):
         # 1. Define the shape of your observation space component
         acl_shape = [
             len(RulePermissionType),
-            len(env.nodes),
-            len(env.nodes),
+            len(env.nodes) + 1,
+            len(env.nodes) + 1,
             len(env.services_list),
             len(env.ports_list),
+            env.max_number_acl_rules,
         ]
+        len(acl_shape)
+        # shape = acl_shape
         shape = acl_shape * self.env.max_number_acl_rules
 
         # 2. Create Observation space
         self.space = spaces.MultiDiscrete(shape)
-
+        print("obs space:", self.space)
         # 3. Initialise observation with zeroes
         self.current_observation = np.zeros(len(shape), dtype=self._DATA_TYPE)
 
@@ -365,67 +368,85 @@ class AccessControlList(AbstractObservationComponent):
         The structure of the observation space is described in :class:`.AccessControlList`
         """
         obs = []
-        for acl_rule in self.env.acl.acl:
-            permission = acl_rule.permission
-            source_ip = acl_rule.source_ip
-            dest_ip = acl_rule.dest_ip
-            protocol = acl_rule.protocol
-            port = acl_rule.port
-            position = self.env.acl.acl.index(acl_rule)
-            if permission == "DENY":
-                permission_int = 0
-            else:
-                permission_int = 1
-            if source_ip == "ANY":
-                source_ip_int = 0
-            else:
-                source_ip_int = self.obtain_node_id_using_ip(source_ip)
-            if dest_ip == "ANY":
-                dest_ip_int = 0
-            else:
-                dest_ip_int = self.obtain_node_id_using_ip(dest_ip)
-            if protocol == "ANY":
-                protocol_int = 0
-            else:
-                try:
-                    protocol_int = Protocol[protocol].value
-                except AttributeError:
-                    _LOGGER.info(f"Service {protocol} could not be found")
-                    protocol_int = -1
-            if port == "ANY":
-                port_int = 0
-            else:
-                if port in self.env.ports_list:
-                    port_int = self.env.ports_list.index(port)
+
+        for index in range(len(self.env.acl.acl)):
+            acl_rule = self.env.acl.acl[index]
+            if isinstance(acl_rule, ACLRule):
+                permission = acl_rule.permission
+                source_ip = acl_rule.source_ip
+                dest_ip = acl_rule.dest_ip
+                protocol = acl_rule.protocol
+                port = acl_rule.port
+                position = index
+
+                source_ip_int = -1
+                dest_ip_int = -1
+                if permission == "DENY":
+                    permission_int = 0
                 else:
-                    _LOGGER.info(f"Port {port} could not be found.")
+                    permission_int = 1
+                if source_ip == "ANY":
+                    source_ip_int = 0
+                else:
+                    nodes = list(self.env.nodes.values())
+                    for node in nodes:
+                        # print(node.ip_address, source_ip, node.ip_address == source_ip)
+                        if (
+                            isinstance(node, ServiceNode)
+                            or isinstance(node, ActiveNode)
+                        ) and node.ip_address == source_ip:
+                            source_ip_int = node.node_id
+                            break
+                if dest_ip == "ANY":
+                    dest_ip_int = 0
+                else:
+                    nodes = list(self.env.nodes.values())
+                    for node in nodes:
+                        if (
+                            isinstance(node, ServiceNode)
+                            or isinstance(node, ActiveNode)
+                        ) and node.ip_address == dest_ip:
+                            dest_ip_int = node.node_id
+                if protocol == "ANY":
+                    protocol_int = 0
+                else:
+                    try:
+                        protocol_int = Protocol[protocol].value
+                    except AttributeError:
+                        _LOGGER.info(f"Service {protocol} could not be found")
+                        protocol_int = -1
+                if port == "ANY":
+                    port_int = 0
+                else:
+                    if port in self.env.ports_list:
+                        port_int = self.env.ports_list.index(port)
+                    else:
+                        _LOGGER.info(f"Port {port} could not be found.")
 
-            print(permission_int, source_ip, dest_ip, protocol_int, port_int, position)
-            obs.extend(
-                [
-                    permission_int,
-                    source_ip_int,
-                    dest_ip_int,
-                    protocol_int,
-                    port_int,
-                    position,
-                ]
-            )
+                # Either do the multiply on the obs space
+                # Change the obs to
+                if source_ip_int != -1 and dest_ip_int != -1:
+                    items_to_add = [
+                        permission_int,
+                        source_ip_int,
+                        dest_ip_int,
+                        protocol_int,
+                        port_int,
+                        position,
+                    ]
+                    position = position * 6
+                    for item in items_to_add:
+                        obs.insert(position, int(item))
+                        position += 1
+                else:
+                    items_to_add = [-1, -1, -1, -1, -1, index]
+                    position = index * 6
+                    for item in items_to_add:
+                        obs.insert(position, int(item))
+                        position += 1
 
-        self.current_observation[:] = obs
-
-    def obtain_node_id_using_ip(self, ip_address):
-        """Uses IP address of Nodes to find the ID.
-
-        Resolves IP address -> x (node id e.g. 1 or 2 or 3 or 4) for observation space
-        """
-        print(type(self.env.nodes))
-        for key, node in self.env.nodes.items():
-            if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
-                if node.ip_address == ip_address:
-                    return key
-        _LOGGER.info(f"Node ID was not found from IP Address {ip_address}")
-        return -1
+        self.current_observation = obs
+        print("current observation space:", self.current_observation)
 
 
 class ObservationsHandler:

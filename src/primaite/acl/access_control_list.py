@@ -11,21 +11,43 @@ _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 class AccessControlList:
     """Access Control List class."""
 
-    def __init__(self, implicit_permission, max_acl_rules):
+    def __init__(self, apply_implicit_rule, implicit_permission, max_acl_rules):
         """Init."""
+        # Bool option in main_config to decide to use implicit rule or not
+        self.apply_implicit_rule: bool = apply_implicit_rule
         # Implicit ALLOW or DENY firewall spec
         # Last rule in the ACL list
-        self.acl_implicit_rule = implicit_permission
-        # Create implicit rule based on input
-        if self.acl_implicit_rule == "DENY":
-            implicit_rule = ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
-        else:
-            implicit_rule = ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
-
+        self.acl_implicit_permission = implicit_permission
         # Maximum number of ACL Rules in ACL
         self.max_acl_rules: int = max_acl_rules
         # A list of ACL Rules
-        self.acl: List[ACLRule] = [implicit_rule]
+        self._acl: List[ACLRule] = []
+        # Implicit rule
+
+    @property
+    def acl_implicit_rule(self):
+        """ACL implicit rule class attribute with added logic to change it depending on option in main_config."""
+        # Create implicit rule based on input
+        if self.apply_implicit_rule:
+            if self.acl_implicit_permission == "DENY":
+                return ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
+            elif self.acl_implicit_permission == "ALLOW":
+                return ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
+            else:
+                return None
+        else:
+            return None
+
+    @property
+    def acl(self):
+        """Public access method for private _acl.
+
+        Adds implicit rule to end of acl list and
+        Pads out rest of list (if empty) with -1.
+        """
+        if self.acl_implicit_rule is not None:
+            acl_list = self._acl + [self.acl_implicit_rule]
+        return acl_list + [-1] * (self.max_acl_rules - len(acl_list))
 
     def check_address_match(self, _rule, _source_ip_address, _dest_ip_address):
         """
@@ -85,7 +107,9 @@ class AccessControlList:
         # If there has been no rule to allow the IER through, it will return a blocked signal by default
         return True
 
-    def add_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port, _position):
+    def add_rule(
+        self, _permission, _source_ip, _dest_ip, _protocol, _port, _position=None
+    ):
         """
         Adds a new rule.
 
@@ -99,18 +123,22 @@ class AccessControlList:
         """
         position_index = int(_position)
         new_rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
-        if len(self.acl) < self.max_acl_rules:
-            if len(self.acl) > position_index > -1:
-                try:
-                    self.acl.insert(position_index, new_rule)
-                except Exception:
+        print(len(self._acl))
+        if len(self._acl) + 1 < self.max_acl_rules:
+            if _position is not None:
+                if self.max_acl_rules - 1 > position_index > -1:
+                    try:
+                        self._acl.insert(position_index, new_rule)
+                    except Exception:
+                        _LOGGER.info(
+                            f"New Rule could NOT be added to list at position {position_index}."
+                        )
+                else:
                     _LOGGER.info(
-                        f"New Rule could NOT be added to list at position {position_index}."
+                        f"Position {position_index} is an invalid index for list/overwrites implicit firewall rule"
                     )
             else:
-                _LOGGER.info(
-                    f"Position {position_index} is an invalid index for list and/or overwrites implicit firewall rule"
-                )
+                self.acl.append(new_rule)
         else:
             _LOGGER.info(
                 f"The ACL list is FULL."

@@ -66,7 +66,7 @@ def test_single_action_space_is_valid():
         if len(dict_item) == 4:
             contains_node_actions = True
         # Link action detected
-        elif len(dict_item) == 6:
+        elif len(dict_item) == 7:
             contains_acl_actions = True
     # If both are there then the ANY action type is working
     if contains_node_actions and contains_acl_actions:
@@ -92,7 +92,7 @@ def test_agent_is_executing_actions_from_both_spaces():
     access_control_list = env.acl
     # Use the Access Control List object acl object attribute to get dictionary
     # Use dictionary.values() to get total list of all items in the dictionary
-    acl_rules_list = access_control_list.acl.values()
+    acl_rules_list = access_control_list.acl
     # Length of this list tells you how many items are in the dictionary
     # This number is the frequency of Access Control Rules in the environment
     # In the scenario, we specified that the agent should create only 1 acl rule

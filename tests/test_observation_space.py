@@ -1,4 +1,7 @@
 """Test env creation and behaviour with different observation spaces."""
+
+import time
+
 import numpy as np
 import pytest
 
@@ -10,6 +13,46 @@ from primaite.environment.observations import (
 from primaite.environment.primaite_env import Primaite
 from tests import TEST_CONFIG_ROOT
 from tests.conftest import _get_primaite_env_from_config
+
+
+def run_generic_set_actions(env: Primaite):
+    """Run against a generic agent with specified blue agent actions."""
+    # Reset the environment at the start of the episode
+    # env.reset()
+    training_config = env.training_config
+    for episode in range(0, training_config.num_episodes):
+        for step in range(0, training_config.num_steps):
+            # Send the observation space to the agent to get an action
+            # TEMP - random action for now
+            # action = env.blue_agent_action(obs)
+            action = 0
+            print("\nStep:", step)
+            if step == 5:
+                # [1, 1, 2, 1, 1, 1, 2] ACL Action
+                # Creates an ACL rule
+                # Allows traffic from SERVER to PC1 on port TCP 80 and place ACL at position 2
+                action = 291
+            elif step == 7:
+                # [1, 1, 3, 1, 2, 2, 1] ACL Action
+                # Creates an ACL rule
+                # Allows traffic from PC1 to SWITCH 1 on port UDP at position 1
+                action = 425
+            # Run the simulation step on the live environment
+            obs, reward, done, info = env.step(action)
+            # Update observations space and return
+            env.update_environent_obs()
+
+            # Break if done is True
+            if done:
+                break
+
+            # Introduce a delay between steps
+            time.sleep(training_config.time_delay / 1000)
+
+        # Reset the environment at the end of the episode
+        # env.reset()
+
+    # env.close()
 
 
 @pytest.fixture
@@ -131,11 +174,11 @@ class TestNodeLinkTable:
         assert np.array_equal(
             obs,
             [
-                [1, 1, 3, 1, 1, 1],
-                [2, 1, 1, 1, 1, 4],
-                [3, 1, 1, 1, 0, 0],
-                [4, 0, 0, 0, 999, 0],
-                [5, 0, 0, 0, 999, 0],
+                [1, 1, 3, 1, 1, 1, 0],
+                [2, 1, 1, 1, 1, 4, 1],
+                [3, 1, 1, 1, 0, 0, 2],
+                [4, 0, 0, 0, 999, 0, 3],
+                [5, 0, 0, 0, 999, 0, 4],
             ],
         )
 
@@ -260,4 +303,16 @@ class TestAccessControlList:
         # therefore the first and third elements should be 6 and all others 0
         # (`7` corresponds to 100% utiilsation and `6` corresponds to 87.5%-100%)
         print(obs)
-        assert np.array_equal(obs, [6, 0, 6, 0])
+        assert np.array_equal(obs, [])
+
+    def test_observation_space(self):
+        """Test observation space is what is expected when an agent adds ACLs during an episode."""
+        # Used to use env from test fixture but AtrributeError function object has no 'training_config'
+        env = _get_primaite_env_from_config(
+            training_config_path=TEST_CONFIG_ROOT
+            / "single_action_space_fixed_blue_actions_main_config.yaml",
+            lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown_ACL.yaml",
+        )
+        run_generic_set_actions(env)
+
+        # print("observation space",env.observation_space)

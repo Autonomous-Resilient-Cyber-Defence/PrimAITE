@@ -7,7 +7,7 @@ from primaite.acl.acl_rule import ACLRule
 
 def test_acl_address_match_1():
     """Test that matching IP addresses produce True."""
-    acl = AccessControlList("DENY", 10)
+    acl = AccessControlList(True, "DENY", 10)
 
     rule = ACLRule("ALLOW", "192.168.1.1", "192.168.1.2", "TCP", "80")
 
@@ -16,7 +16,7 @@ def test_acl_address_match_1():
 
 def test_acl_address_match_2():
     """Test that mismatching IP addresses produce False."""
-    acl = AccessControlList("DENY", 10)
+    acl = AccessControlList(True, "DENY", 10)
 
     rule = ACLRule("ALLOW", "192.168.1.1", "192.168.1.2", "TCP", "80")
 
@@ -25,7 +25,7 @@ def test_acl_address_match_2():
 
 def test_acl_address_match_3():
     """Test the ANY condition for source IP addresses produce True."""
-    acl = AccessControlList("DENY", 10)
+    acl = AccessControlList(True, "DENY", 10)
 
     rule = ACLRule("ALLOW", "ANY", "192.168.1.2", "TCP", "80")
 
@@ -34,7 +34,7 @@ def test_acl_address_match_3():
 
 def test_acl_address_match_4():
     """Test the ANY condition for dest IP addresses produce True."""
-    acl = AccessControlList("DENY", 10)
+    acl = AccessControlList(True, "DENY", 10)
 
     rule = ACLRule("ALLOW", "192.168.1.1", "ANY", "TCP", "80")
 
@@ -44,7 +44,7 @@ def test_acl_address_match_4():
 def test_check_acl_block_affirmative():
     """Test the block function (affirmative)."""
     # Create the Access Control List
-    acl = AccessControlList("DENY", 10)
+    acl = AccessControlList(True, "DENY", 10)
 
     # Create a rule
     acl_rule_permission = "ALLOW"
@@ -68,7 +68,7 @@ def test_check_acl_block_affirmative():
 def test_check_acl_block_negative():
     """Test the block function (negative)."""
     # Create the Access Control List
-    acl = AccessControlList("DENY", 10)
+    acl = AccessControlList(True, "DENY", 10)
 
     # Create a rule
     acl_rule_permission = "DENY"
@@ -93,7 +93,7 @@ def test_check_acl_block_negative():
 def test_rule_hash():
     """Test the rule hash."""
     # Create the Access Control List
-    acl = AccessControlList("DENY", 10)
+    acl = AccessControlList(True, "DENY", 10)
 
     rule = ACLRule("DENY", "192.168.1.1", "192.168.1.2", "TCP", "80")
     hash_value_local = hash(rule)
