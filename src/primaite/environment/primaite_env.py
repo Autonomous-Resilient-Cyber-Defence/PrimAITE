@@ -45,7 +45,7 @@ from primaite.pol.red_agent_pol import apply_red_agent_iers, apply_red_agent_nod
 from primaite.transactions.transaction import Transaction
 
 _LOGGER = logging.getLogger(__name__)
-_LOGGER.setLevel(logging.INFO)
+# _LOGGER.setLevel(logging.INFO)
 
 
 class Primaite(Env):
@@ -119,6 +119,7 @@ class Primaite(Env):
 
         # Create the Access Control List
         self.acl = AccessControlList(
+            self.training_config.apply_implicit_rule,
             self.training_config.implicit_acl_rule,
             self.training_config.max_number_acl_rules,
         )
@@ -546,6 +547,7 @@ class Primaite(Env):
         action_destination_ip = readable_action[3]
         action_protocol = readable_action[4]
         action_port = readable_action[5]
+        acl_rule_position = readable_action[6]
 
         if action_decision == 0:
             # It's decided to do nothing
@@ -595,6 +597,7 @@ class Primaite(Env):
                     acl_rule_destination,
                     acl_rule_protocol,
                     acl_rule_port,
+                    acl_rule_position,
                 )
             elif action_decision == 2:
                 # Remove the rule
@@ -1172,13 +1175,9 @@ class Primaite(Env):
         # [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
         # [0, max acl rules - 1] - Position (0 = first index, then 1 -> x index resolving to acl rule in acl list)
         # reserve 0 action to be a nothing action
-        actions = {0: [0, 0, 0, 0, 0, 0]}
+        actions = {0: [0, 0, 0, 0, 0, 0, 0]}
 
         action_key = 1
-        print(
-            "what is this primaite_env.py 1177",
-            self.training_config.max_number_acl_rules - 1,
-        )
         # 3 possible action decisions, 0=NOTHING, 1=CREATE, 2=DELETE
         for action_decision in range(3):
             # 2 possible action permissions 0 = DENY, 1 = CREATE
@@ -1188,9 +1187,7 @@ class Primaite(Env):
                     for dest_ip in range(self.num_nodes + 1):
                         for protocol in range(self.num_services + 1):
                             for port in range(self.num_ports + 1):
-                                for position in range(
-                                    self.training_config.max_number_acl_rules - 1
-                                ):
+                                for position in range(self.max_number_acl_rules - 1):
                                     action = [
                                         action_decision,
                                         action_permission,
