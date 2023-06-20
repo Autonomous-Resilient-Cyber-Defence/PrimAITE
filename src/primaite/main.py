@@ -22,8 +22,7 @@ from stable_baselines3.ppo import MlpPolicy as PPOMlp
 from primaite import SESSIONS_DIR, getLogger
 from primaite.config.training_config import TrainingConfig
 from primaite.environment.primaite_env import Primaite
-from primaite.transactions.transactions_to_file import \
-    write_transaction_to_file
+from primaite.transactions.transactions_to_file import write_transaction_to_file
 
 _LOGGER = getLogger(__name__)
 
@@ -87,7 +86,13 @@ def run_stable_baselines3_ppo(
             _LOGGER.error("Could not load agent")
             _LOGGER.error("Exception occured", exc_info=True)
     else:
-        agent = PPO(PPOMlp, env, verbose=0, n_steps=config_values.num_steps, seed=env.training_config.seed)
+        agent = PPO(
+            PPOMlp,
+            env,
+            verbose=0,
+            n_steps=config_values.num_steps,
+            seed=env.training_config.seed,
+        )
 
     if config_values.session_type == "TRAINING":
         # We're in a training session
@@ -106,8 +111,7 @@ def run_stable_baselines3_ppo(
 
             for step in range(0, config_values.num_steps):
                 action, _states = agent.predict(
-                    obs,
-                    deterministic=env.training_config.deterministic
+                    obs, deterministic=env.training_config.deterministic
                 )
                 # convert to int if action is a numpy array
                 if isinstance(action, np.ndarray):
@@ -146,7 +150,13 @@ def run_stable_baselines3_a2c(
             _LOGGER.error("Could not load agent")
             _LOGGER.error("Exception occured", exc_info=True)
     else:
-        agent = A2C("MlpPolicy", env, verbose=0, n_steps=config_values.num_steps, seed=env.training_config.seed)
+        agent = A2C(
+            "MlpPolicy",
+            env,
+            verbose=0,
+            n_steps=config_values.num_steps,
+            seed=env.training_config.seed,
+        )
 
     if config_values.session_type == "TRAINING":
         # We're in a training session
@@ -164,8 +174,7 @@ def run_stable_baselines3_a2c(
 
             for step in range(0, config_values.num_steps):
                 action, _states = agent.predict(
-                    obs,
-                    deterministic=env.training_config.deterministic
+                    obs, deterministic=env.training_config.deterministic
                 )
                 # convert to int if action is a numpy array
                 if isinstance(action, np.ndarray):
@@ -368,5 +377,3 @@ if __name__ == "__main__":
             "Please provide a lay down config file using the --ldc " "argument"
         )
     run(training_config_path=args.tc, lay_down_config_path=args.ldc)
-
-

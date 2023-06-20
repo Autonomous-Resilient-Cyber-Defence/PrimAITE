@@ -2,8 +2,13 @@ import time
 
 from primaite import getLogger
 from primaite.config.lay_down_config import data_manipulation_config_path
-from primaite.main import run_stable_baselines3_a2c, \
-    run_stable_baselines3_ppo, run_generic, _update_session_metadata_file, _get_session_path
+from primaite.main import (
+    _get_session_path,
+    _update_session_metadata_file,
+    run_generic,
+    run_stable_baselines3_a2c,
+    run_stable_baselines3_ppo,
+)
 from primaite.transactions.transactions_to_file import write_transaction_to_file
 from tests import TEST_CONFIG_ROOT
 from tests.conftest import TestSession, compare_file_content, compare_transaction_file
@@ -12,18 +17,17 @@ _LOGGER = getLogger(__name__)
 
 
 def test_generic_same_results():
-    """Runs seeded and deterministic Generic Primaite sessions and checks that the results are the same"""
+    """Runs seeded and deterministic Generic Primaite sessions and checks that the results are the same."""
     print("")
     print("=======================")
     print("Generic test run")
     print("=======================")
     print("")
 
-
     # run session 1
     session1 = TestSession(
         TEST_CONFIG_ROOT / "e2e/generic_deterministic_seeded_training_config.yaml",
-        data_manipulation_config_path()
+        data_manipulation_config_path(),
     )
 
     config_values = session1.env.training_config
@@ -31,17 +35,14 @@ def test_generic_same_results():
     # Get the number of steps (which is stored in the child config file)
     config_values.num_steps = session1.env.episode_steps
 
-    run_generic(
-        env=session1.env,
-        config_values=session1.env.training_config
-    )
+    run_generic(env=session1.env, config_values=session1.env.training_config)
 
     _update_session_metadata_file(session_dir=session1.session_dir, env=session1.env)
 
     # run session 2
     session2 = TestSession(
         TEST_CONFIG_ROOT / "e2e/generic_deterministic_seeded_training_config.yaml",
-        data_manipulation_config_path()
+        data_manipulation_config_path(),
     )
 
     config_values = session2.env.training_config
@@ -49,10 +50,7 @@ def test_generic_same_results():
     # Get the number of steps (which is stored in the child config file)
     config_values.num_steps = session2.env.episode_steps
 
-    run_generic(
-        env=session2.env,
-        config_values=session2.env.training_config
-    )
+    run_generic(env=session2.env, config_values=session2.env.training_config)
 
     _update_session_metadata_file(session_dir=session2.session_dir, env=session2.env)
 
@@ -61,36 +59,41 @@ def test_generic_same_results():
         time.sleep(1)
 
     # check if both outputs are the same
-    assert compare_file_content(
-        session1.env.csv_file.name,
-        session2.env.csv_file.name,
-    ) is True
+    assert (
+        compare_file_content(
+            session1.env.csv_file.name,
+            session2.env.csv_file.name,
+        )
+        is True
+    )
 
     # deterministic run
     deterministic = TestSession(
         TEST_CONFIG_ROOT / "e2e/generic_deterministic_seeded_training_config.yaml",
-        data_manipulation_config_path()
+        data_manipulation_config_path(),
     )
 
     deterministic.env.training_config.deterministic = True
 
-    run_generic(
-        env=deterministic.env,
-        config_values=deterministic.env.training_config
+    run_generic(env=deterministic.env, config_values=deterministic.env.training_config)
+
+    _update_session_metadata_file(
+        session_dir=deterministic.session_dir, env=deterministic.env
     )
 
-    _update_session_metadata_file(session_dir=deterministic.session_dir, env=deterministic.env)
-
     # check if both outputs are the same
-    assert compare_file_content(
-        deterministic.env.csv_file.name,
-        TEST_CONFIG_ROOT / "e2e/deterministic_test_outputs/deterministic_generic.csv",
-    ) is True
+    assert (
+        compare_file_content(
+            deterministic.env.csv_file.name,
+            TEST_CONFIG_ROOT
+            / "e2e/deterministic_test_outputs/deterministic_generic.csv",
+        )
+        is True
+    )
 
 
 def test_ppo_same_results():
-    """Runs seeded and deterministic PPO Primaite sessions and checks that the results are the same"""
-
+    """Runs seeded and deterministic PPO Primaite sessions and checks that the results are the same."""
     print("")
     print("=======================")
     print("PPO test run")
@@ -99,7 +102,7 @@ def test_ppo_same_results():
 
     training_session = TestSession(
         TEST_CONFIG_ROOT / "e2e/ppo_deterministic_seeded_training_config.yaml",
-        data_manipulation_config_path()
+        data_manipulation_config_path(),
     )
 
     # Train agent
@@ -123,12 +126,14 @@ def test_ppo_same_results():
         timestamp_str=training_session.timestamp_str,
     )
 
-    _update_session_metadata_file(session_dir=training_session.session_dir, env=training_session.env)
+    _update_session_metadata_file(
+        session_dir=training_session.session_dir, env=training_session.env
+    )
 
     # Evaluate Agent again
     eval_session1 = TestSession(
         TEST_CONFIG_ROOT / "e2e/ppo_deterministic_seeded_training_config.yaml",
-        data_manipulation_config_path()
+        data_manipulation_config_path(),
     )
 
     # Get the number of steps (which is stored in the child config file)
@@ -137,7 +142,10 @@ def test_ppo_same_results():
 
     # load the agent that was trained previously
     eval_session1.env.training_config.load_agent = True
-    eval_session1.env.training_config.agent_load_file = _get_session_path(training_session.session_timestamp) / f"agent_saved_{training_session.timestamp_str}.zip"
+    eval_session1.env.training_config.agent_load_file = (
+        _get_session_path(training_session.session_timestamp)
+        / f"agent_saved_{training_session.timestamp_str}.zip"
+    )
 
     config_values = eval_session1.env.training_config
 
@@ -154,11 +162,13 @@ def test_ppo_same_results():
         timestamp_str=eval_session1.timestamp_str,
     )
 
-    _update_session_metadata_file(session_dir=eval_session1.session_dir, env=eval_session1.env)
+    _update_session_metadata_file(
+        session_dir=eval_session1.session_dir, env=eval_session1.env
+    )
 
     eval_session2 = TestSession(
         TEST_CONFIG_ROOT / "e2e/ppo_deterministic_seeded_training_config.yaml",
-        data_manipulation_config_path()
+        data_manipulation_config_path(),
     )
 
     # Get the number of steps (which is stored in the child config file)
@@ -167,8 +177,10 @@ def test_ppo_same_results():
 
     # load the agent that was trained previously
     eval_session2.env.training_config.load_agent = True
-    eval_session2.env.training_config.agent_load_file = _get_session_path(
-        training_session.session_timestamp) / f"agent_saved_{training_session.timestamp_str}.zip"
+    eval_session2.env.training_config.agent_load_file = (
+        _get_session_path(training_session.session_timestamp)
+        / f"agent_saved_{training_session.timestamp_str}.zip"
+    )
 
     config_values = eval_session2.env.training_config
 
@@ -185,18 +197,25 @@ def test_ppo_same_results():
         timestamp_str=eval_session2.timestamp_str,
     )
 
-    _update_session_metadata_file(session_dir=eval_session2.session_dir, env=eval_session2.env)
+    _update_session_metadata_file(
+        session_dir=eval_session2.session_dir, env=eval_session2.env
+    )
 
     # check if both eval outputs are the same
-    assert compare_transaction_file(
-        eval_session1.session_dir / f"all_transactions_{eval_session1.timestamp_str}.csv",
-        eval_session2.session_dir / f"all_transactions_{eval_session2.timestamp_str}.csv",
-    ) is True
+    assert (
+        compare_transaction_file(
+            eval_session1.session_dir
+            / f"all_transactions_{eval_session1.timestamp_str}.csv",
+            eval_session2.session_dir
+            / f"all_transactions_{eval_session2.timestamp_str}.csv",
+        )
+        is True
+    )
 
     # deterministic run
     deterministic = TestSession(
         TEST_CONFIG_ROOT / "e2e/ppo_deterministic_seeded_training_config.yaml",
-        data_manipulation_config_path()
+        data_manipulation_config_path(),
     )
 
     deterministic.env.training_config.deterministic = True
@@ -214,18 +233,23 @@ def test_ppo_same_results():
         timestamp_str=deterministic.timestamp_str,
     )
 
-    _update_session_metadata_file(session_dir=deterministic.session_dir, env=deterministic.env)
+    _update_session_metadata_file(
+        session_dir=deterministic.session_dir, env=deterministic.env
+    )
 
     # check if both outputs are the same
-    assert compare_transaction_file(
-        deterministic.session_dir / f"all_transactions_{deterministic.timestamp_str}.csv",
-        TEST_CONFIG_ROOT / "e2e/deterministic_test_outputs/deterministic_ppo.csv",
-    ) is True
+    assert (
+        compare_transaction_file(
+            deterministic.session_dir
+            / f"all_transactions_{deterministic.timestamp_str}.csv",
+            TEST_CONFIG_ROOT / "e2e/deterministic_test_outputs/deterministic_ppo.csv",
+        )
+        is True
+    )
 
 
 def test_a2c_same_results():
-    """Runs seeded and deterministic A2C Primaite sessions and checks that the results are the same"""
-
+    """Runs seeded and deterministic A2C Primaite sessions and checks that the results are the same."""
     print("")
     print("=======================")
     print("A2C test run")
@@ -234,7 +258,7 @@ def test_a2c_same_results():
 
     training_session = TestSession(
         TEST_CONFIG_ROOT / "e2e/a2c_deterministic_seeded_training_config.yaml",
-        data_manipulation_config_path()
+        data_manipulation_config_path(),
     )
 
     # Train agent
@@ -258,12 +282,14 @@ def test_a2c_same_results():
         timestamp_str=training_session.timestamp_str,
     )
 
-    _update_session_metadata_file(session_dir=training_session.session_dir, env=training_session.env)
+    _update_session_metadata_file(
+        session_dir=training_session.session_dir, env=training_session.env
+    )
 
     # Evaluate Agent again
     eval_session1 = TestSession(
         TEST_CONFIG_ROOT / "e2e/a2c_deterministic_seeded_training_config.yaml",
-        data_manipulation_config_path()
+        data_manipulation_config_path(),
     )
 
     # Get the number of steps (which is stored in the child config file)
@@ -272,8 +298,10 @@ def test_a2c_same_results():
 
     # load the agent that was trained previously
     eval_session1.env.training_config.load_agent = True
-    eval_session1.env.training_config.agent_load_file = _get_session_path(
-        training_session.session_timestamp) / f"agent_saved_{training_session.timestamp_str}.zip"
+    eval_session1.env.training_config.agent_load_file = (
+        _get_session_path(training_session.session_timestamp)
+        / f"agent_saved_{training_session.timestamp_str}.zip"
+    )
 
     config_values = eval_session1.env.training_config
 
@@ -290,11 +318,13 @@ def test_a2c_same_results():
         timestamp_str=eval_session1.timestamp_str,
     )
 
-    _update_session_metadata_file(session_dir=eval_session1.session_dir, env=eval_session1.env)
+    _update_session_metadata_file(
+        session_dir=eval_session1.session_dir, env=eval_session1.env
+    )
 
     eval_session2 = TestSession(
         TEST_CONFIG_ROOT / "e2e/a2c_deterministic_seeded_training_config.yaml",
-        data_manipulation_config_path()
+        data_manipulation_config_path(),
     )
 
     # Get the number of steps (which is stored in the child config file)
@@ -303,8 +333,10 @@ def test_a2c_same_results():
 
     # load the agent that was trained previously
     eval_session2.env.training_config.load_agent = True
-    eval_session2.env.training_config.agent_load_file = _get_session_path(
-        training_session.session_timestamp) / f"agent_saved_{training_session.timestamp_str}.zip"
+    eval_session2.env.training_config.agent_load_file = (
+        _get_session_path(training_session.session_timestamp)
+        / f"agent_saved_{training_session.timestamp_str}.zip"
+    )
 
     config_values = eval_session2.env.training_config
 
@@ -321,18 +353,25 @@ def test_a2c_same_results():
         timestamp_str=eval_session2.timestamp_str,
     )
 
-    _update_session_metadata_file(session_dir=eval_session2.session_dir, env=eval_session2.env)
+    _update_session_metadata_file(
+        session_dir=eval_session2.session_dir, env=eval_session2.env
+    )
 
     # check if both eval outputs are the same
-    assert compare_transaction_file(
-        eval_session1.session_dir / f"all_transactions_{eval_session1.timestamp_str}.csv",
-        eval_session2.session_dir / f"all_transactions_{eval_session2.timestamp_str}.csv",
-    ) is True
+    assert (
+        compare_transaction_file(
+            eval_session1.session_dir
+            / f"all_transactions_{eval_session1.timestamp_str}.csv",
+            eval_session2.session_dir
+            / f"all_transactions_{eval_session2.timestamp_str}.csv",
+        )
+        is True
+    )
 
     # deterministic run
     deterministic = TestSession(
         TEST_CONFIG_ROOT / "e2e/a2c_deterministic_seeded_training_config.yaml",
-        data_manipulation_config_path()
+        data_manipulation_config_path(),
     )
 
     deterministic.env.training_config.deterministic = True
@@ -350,10 +389,16 @@ def test_a2c_same_results():
         timestamp_str=deterministic.timestamp_str,
     )
 
-    _update_session_metadata_file(session_dir=deterministic.session_dir, env=deterministic.env)
+    _update_session_metadata_file(
+        session_dir=deterministic.session_dir, env=deterministic.env
+    )
 
     # check if both outputs are the same
-    assert compare_transaction_file(
-        deterministic.session_dir / f"all_transactions_{deterministic.timestamp_str}.csv",
-        TEST_CONFIG_ROOT / "e2e/deterministic_test_outputs/deterministic_a2c.csv",
-    ) is True
+    assert (
+        compare_transaction_file(
+            deterministic.session_dir
+            / f"all_transactions_{deterministic.timestamp_str}.csv",
+            TEST_CONFIG_ROOT / "e2e/deterministic_test_outputs/deterministic_a2c.csv",
+        )
+        is True
+    )

@@ -1,7 +1,7 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Final, Union, Optional
+from typing import Any, Dict, Final, Optional, Union
 
 import yaml
 
@@ -173,8 +173,7 @@ def main_training_config_path() -> Path:
     return path
 
 
-def load(file_path: Union[str, Path],
-         legacy_file: bool = False) -> TrainingConfig:
+def load(file_path: Union[str, Path], legacy_file: bool = False) -> TrainingConfig:
     """
     Read in a training config yaml file.
 
@@ -219,9 +218,7 @@ def load(file_path: Union[str, Path],
 
 
 def convert_legacy_training_config_dict(
-        legacy_config_dict: Dict[str, Any],
-        num_steps: int = 256,
-        action_type: str = "ANY"
+    legacy_config_dict: Dict[str, Any], num_steps: int = 256, action_type: str = "ANY"
 ) -> Dict[str, Any]:
     """
     Convert a legacy training config dict to the new format.
@@ -233,10 +230,7 @@ def convert_legacy_training_config_dict(
         don't have action_type values.
     :return: The converted training config dict.
     """
-    config_dict = {
-        "num_steps": num_steps,
-        "action_type": action_type
-    }
+    config_dict = {"num_steps": num_steps, "action_type": action_type}
     for legacy_key, value in legacy_config_dict.items():
         new_key = _get_new_key_from_legacy(legacy_key)
         if new_key:

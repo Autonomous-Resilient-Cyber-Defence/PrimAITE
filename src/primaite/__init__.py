@@ -31,7 +31,7 @@ def _get_primaite_config():
         "INFO": logging.INFO,
         "WARN": logging.WARN,
         "ERROR": logging.ERROR,
-        "CRITICAL": logging.CRITICAL
+        "CRITICAL": logging.CRITICAL,
     }
     primaite_config["log_level"] = log_level_map[primaite_config["log_level"]]
     return primaite_config
