@@ -1,32 +1,41 @@
-# Main Config File
+# Training Config File
 
-# Sets which agent algorithm framework will be used:
+# Sets which agent algorithm framework will be used.
 # Options are:
 # "SB3" (Stable Baselines3)
 # "RLLIB" (Ray RLlib)
-# "NONE" (Custom Agent)
+# "CUSTOM" (Custom Agent)
 agent_framework: RLLIB
 
-# Sets which deep learning framework will be used. Default is TF (Tensorflow).
+# Sets which deep learning framework will be used (by RLlib ONLY).
+# Default is TF (Tensorflow).
 # Options are:
 # "TF" (Tensorflow)
 # TF2 (Tensorflow 2.X)
 # TORCH (PyTorch)
 deep_learning_framework: TORCH
 
-# Sets which Red Agent algo/class will be used:
+# Sets which Agent class will be used.
 # Options are:
-# "A2C" (Advantage Actor Critic)
-# "PPO" (Proximal Policy Optimization)
-# "HARDCODED" (Custom Agent)
-# "RANDOM" (Random Action)
-red_agent_identifier: PPO
+# "A2C" (Advantage Actor Critic coupled with either SB3 or RLLIB agent_framework)
+# "PPO" (Proximal Policy Optimization coupled with either SB3 or RLLIB agent_framework)
+# "HARDCODED" (The HardCoded agents coupled with an ACL or NODE action_type)
+# "DO_NOTHING" (The DoNothing agents coupled with an ACL or NODE action_type)
+# "RANDOM" (primaite.agents.simple.RandomAgent)
+# "DUMMY" (primaite.agents.simple.DummyAgent)
+agent_identifier: PPO
+
+# Sets what view of the environment the deterministic hardcoded agent has. The default is BASIC.
+# Options are:
+# "BASIC" (The current observation space only)
+# "FULL" (Full environment view with actions taken and reward feedback)
+hard_coded_agent_view: FULL
 
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
 # "ANY" node and acl actions
-action_type: NODE
+action_type: ACL
 
 # Number of episodes to run per session
 num_episodes: 10

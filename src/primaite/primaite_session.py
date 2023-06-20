@@ -8,9 +8,13 @@ from uuid import uuid4
 
 from primaite import getLogger, SESSIONS_DIR
 from primaite.agents.agent import AgentSessionABC
+from primaite.agents.hardcoded_acl import HardCodedACLAgent
+from primaite.agents.hardcoded_node import HardCodedNodeAgent
 from primaite.agents.rllib import RLlibAgent
 from primaite.agents.sb3 import SB3Agent
-from primaite.common.enums import AgentFramework, RedAgentIdentifier, \
+from primaite.agents.simple import DoNothingACLAgent, DoNothingNodeAgent, \
+    RandomAgent, DummyAgent
+from primaite.common.enums import AgentFramework, AgentIdentifier, \
     ActionType, SessionType
 from primaite.config import lay_down_config, training_config
 from primaite.config.training_config import TrainingConfig
@@ -68,31 +72,66 @@ class PrimaiteSession:
             self.learn()
 
     def setup(self):
-        if self._training_config.agent_framework == AgentFramework.NONE:
-            if self._training_config.red_agent_identifier == RedAgentIdentifier.RANDOM:
-                # Stochastic Random Agent
-                raise NotImplementedError
-
-            elif self._training_config.red_agent_identifier == RedAgentIdentifier.HARDCODED:
+        if self._training_config.agent_framework == AgentFramework.CUSTOM:
+            if self._training_config.agent_identifier == AgentIdentifier.HARDCODED:
                 if self._training_config.action_type == ActionType.NODE:
                     # Deterministic Hardcoded Agent with Node Action Space
-                    raise NotImplementedError
+                    self._agent_session = HardCodedNodeAgent(
+                        self._training_config_path,
+                        self._lay_down_config_path
+                    )
 
                 elif self._training_config.action_type == ActionType.ACL:
                     # Deterministic Hardcoded Agent with ACL Action Space
-                    raise NotImplementedError
+                    self._agent_session = HardCodedACLAgent(
+                        self._training_config_path,
+                        self._lay_down_config_path
+                    )
 
                 elif self._training_config.action_type == ActionType.ANY:
                     # Deterministic Hardcoded Agent with ANY Action Space
                     raise NotImplementedError
 
                 else:
-                    # Invalid RedAgentIdentifier ActionType combo
-                    pass
+                    # Invalid AgentIdentifier ActionType combo
+                    raise ValueError
+
+            elif self._training_config.agent_identifier == AgentIdentifier.DO_NOTHING:
+                if self._training_config.action_type == ActionType.NODE:
+                    self._agent_session = DoNothingNodeAgent(
+                        self._training_config_path,
+                        self._lay_down_config_path
+                    )
+
+                elif self._training_config.action_type == ActionType.ACL:
+                    # Deterministic Hardcoded Agent with ACL Action Space
+                    self._agent_session = DoNothingACLAgent(
+                        self._training_config_path,
+                        self._lay_down_config_path
+                    )
+
+                elif self._training_config.action_type == ActionType.ANY:
+                    # Deterministic Hardcoded Agent with ANY Action Space
+                    raise NotImplementedError
+
+                else:
+                    # Invalid AgentIdentifier ActionType combo
+                    raise ValueError
+
+            elif self._training_config.agent_identifier == AgentIdentifier.RANDOM:
+                self._agent_session = RandomAgent(
+                    self._training_config_path,
+                    self._lay_down_config_path
+                )
+            elif self._training_config.agent_identifier == AgentIdentifier.DUMMY:
+                self._agent_session = DummyAgent(
+                    self._training_config_path,
+                    self._lay_down_config_path
+                )
 
             else:
-                # Invalid AgentFramework RedAgentIdentifier combo
-                pass
+                # Invalid AgentFramework AgentIdentifier combo
+                raise ValueError
 
         elif self._training_config.agent_framework == AgentFramework.SB3:
             # Stable Baselines3 Agent
@@ -110,7 +149,7 @@ class PrimaiteSession:
 
         else:
             # Invalid AgentFramework
-            pass
+            raise ValueError
 
     def learn(
             self,

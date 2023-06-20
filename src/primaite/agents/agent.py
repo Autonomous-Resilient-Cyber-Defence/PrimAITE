@@ -1,4 +1,5 @@
 import json
+import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
@@ -11,7 +12,6 @@ from primaite.config import lay_down_config
 from primaite.config import training_config
 from primaite.config.training_config import TrainingConfig
 from primaite.environment.primaite_env import Primaite
-
 
 _LOGGER = getLogger(__name__)
 
@@ -196,50 +196,77 @@ class AgentSessionABC(ABC):
         pass
 
 
-class DeterministicAgentSessionABC(AgentSessionABC):
-    @abstractmethod
-    def __init__(
-            self,
-            training_config_path,
-            lay_down_config_path
-    ):
-        self._training_config_path = training_config_path
-        self._lay_down_config_path = lay_down_config_path
-        self._env: Primaite
-        self._agent = None
+class HardCodedAgentSessionABC(AgentSessionABC):
+    def __init__(self, training_config_path, lay_down_config_path):
+        super().__init__(training_config_path, lay_down_config_path)
+        self._setup()
 
-    @abstractmethod
     def _setup(self):
+        self._env: Primaite = Primaite(
+            training_config_path=self._training_config_path,
+            lay_down_config_path=self._lay_down_config_path,
+            transaction_list=[],
+            session_path=self.session_path,
+            timestamp_str=self.timestamp_str
+        )
+        super()._setup()
+        self._can_learn = False
+        self._can_evaluate = True
+
+
+    def _save_checkpoint(self):
         pass
 
-    @abstractmethod
     def _get_latest_checkpoint(self):
         pass
 
     def learn(
             self,
             time_steps: Optional[int] = None,
-            episodes: Optional[int] = None
+            episodes: Optional[int] = None,
+            **kwargs
     ):
         _LOGGER.warning("Deterministic agents cannot learn")
 
     @abstractmethod
+    def _calculate_action(self, obs):
+        pass
+
     def evaluate(
             self,
             time_steps: Optional[int] = None,
-            episodes: Optional[int] = None
+            episodes: Optional[int] = None,
+            **kwargs
     ):
-        pass
+        if not time_steps:
+            time_steps = self._training_config.num_steps
+
+        if not episodes:
+            episodes = self._training_config.num_episodes
+
+        for episode in range(episodes):
+            # Reset env and collect initial observation
+            obs = self._env.reset()
+            for step in range(time_steps):
+                # Calculate action
+                action = self._calculate_action(obs)
+
+                # Perform the step
+                obs, reward, done, info = self._env.step(action)
+
+                if done:
+                    break
+
+                # Introduce a delay between steps
+                time.sleep(self._training_config.time_delay / 1000)
+        self._env.close()
 
     @classmethod
-    @abstractmethod
     def load(cls):
-        pass
+        _LOGGER.warning("Deterministic agents cannot be loaded")
 
-    @abstractmethod
     def save(self):
-        pass
+        _LOGGER.warning("Deterministic agents cannot be saved")
 
-    @abstractmethod
     def export(self):
-        pass
+        _LOGGER.warning("Deterministic agents cannot be exported")
