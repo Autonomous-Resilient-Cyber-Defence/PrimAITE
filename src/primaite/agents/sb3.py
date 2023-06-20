@@ -86,10 +86,10 @@ class SB3Agent(AgentSessionABC):
 
         if not episodes:
             episodes = self._training_config.num_episodes
-
         for i in range(episodes):
             self._agent.learn(total_timesteps=time_steps)
             self._save_checkpoint()
+
         self._env.close()
         super().learn()
 

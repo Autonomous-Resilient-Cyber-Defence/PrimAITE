@@ -8,10 +8,11 @@ from ray.rllib.algorithms.a2c import A2CConfig
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import register_env
-
+import tensorflow as tf
 from primaite import getLogger
 from primaite.agents.agent import AgentSessionABC
-from primaite.common.enums import AgentFramework, AgentIdentifier
+from primaite.common.enums import AgentFramework, AgentIdentifier, \
+    DeepLearningFramework
 from primaite.environment.primaite_env import Primaite
 
 _LOGGER = getLogger(__name__)
@@ -115,7 +116,7 @@ class RLlibAgent(AgentSessionABC):
             train_batch_size=self._training_config.num_steps
         )
         self._agent_config.framework(
-            framework="torch"
+            framework="tf"
         )
 
         self._agent_config.rollouts(
@@ -126,6 +127,7 @@ class RLlibAgent(AgentSessionABC):
         self._agent: Algorithm = self._agent_config.build(
             logger_creator=_custom_log_creator(self.session_path)
         )
+
 
     def _save_checkpoint(self):
         checkpoint_n = self._training_config.checkpoint_every_n_episodes
@@ -154,8 +156,14 @@ class RLlibAgent(AgentSessionABC):
         for i in range(episodes):
             self._current_result = self._agent.train()
             self._save_checkpoint()
-        self._agent.stop()
+        if self._training_config.deep_learning_framework != DeepLearningFramework.TORCH:
+            policy = self._agent.get_policy()
+            tf.compat.v1.summary.FileWriter(
+                self.session_path / "ray_results",
+                policy.get_session().graph
+            )
         super().learn()
+        self._agent.stop()
 
     def evaluate(
             self,
