@@ -3,6 +3,7 @@
 import copy
 import csv
 import logging
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Tuple, Union, Final
@@ -301,6 +302,8 @@ class Primaite(Env):
              done: Indicates episode is complete if True
              step_info: Additional information relating to this step
         """
+        # Introduce a delay between steps
+        time.sleep(self.training_config.time_delay / 1000)
         if self.step_count == 0:
             print(f"Episode: {str(self.episode_count)}")
 
