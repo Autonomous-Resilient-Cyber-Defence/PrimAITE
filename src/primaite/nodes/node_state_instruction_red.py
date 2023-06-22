@@ -137,3 +137,20 @@ class NodeStateInstructionRed(object):
              The source node service state
         """
         return self.source_node_service_state
+
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}("
+            f"id={self.id}, "
+            f"start_step={self.start_step}, "
+            f"end_step={self.end_step}, "
+            f"target_node_id={self.target_node_id}, "
+            f"initiator={self.initiator}, "
+            f"pol_type={self.pol_type}, "
+            f"service_name={self.service_name}, "
+            f"state={self.state}, "
+            f"source_node_id={self.source_node_id}, "
+            f"source_node_service={self.source_node_service}, "
+            f"source_node_service_state={self.source_node_service_state}"
+            f")"
+        )
