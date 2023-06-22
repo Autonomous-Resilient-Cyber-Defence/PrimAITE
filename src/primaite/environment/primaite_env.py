@@ -14,8 +14,7 @@ from gym import Env, spaces
 from matplotlib import pyplot as plt
 
 from primaite.acl.access_control_list import AccessControlList
-from primaite.agents.utils import is_valid_acl_action_extra, \
-    is_valid_node_action
+from primaite.agents.utils import is_valid_acl_action_extra, is_valid_node_action
 from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import (
     ActionType,
@@ -24,8 +23,9 @@ from primaite.common.enums import (
     NodePOLInitiator,
     NodePOLType,
     NodeType,
+    ObservationType,
     Priority,
-    SoftwareState, ObservationType,
+    SoftwareState,
 )
 from primaite.common.service import Service
 from primaite.config import training_config
@@ -35,15 +35,13 @@ from primaite.environment.reward import calculate_reward_function
 from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.node import Node
-from primaite.nodes.node_state_instruction_green import \
-    NodeStateInstructionGreen
+from primaite.nodes.node_state_instruction_green import NodeStateInstructionGreen
 from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.passive_node import PassiveNode
 from primaite.nodes.service_node import ServiceNode
 from primaite.pol.green_pol import apply_iers, apply_node_pol
 from primaite.pol.ier import IER
-from primaite.pol.red_agent_pol import apply_red_agent_iers, \
-    apply_red_agent_node_pol
+from primaite.pol.red_agent_pol import apply_red_agent_iers, apply_red_agent_node_pol
 from primaite.transactions.transaction import Transaction
 
 _LOGGER = logging.getLogger(__name__)
@@ -177,7 +175,6 @@ class Primaite(Env):
         # It will be initialised later.
         self.obs_handler: ObservationsHandler
 
-
         # Open the config file and build the environment laydown
         with open(self._lay_down_config_path, "r") as file:
             # Open the config file and build the environment laydown
@@ -238,7 +235,9 @@ class Primaite(Env):
             self.action_dict = self.create_node_and_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
         else:
-            _LOGGER.info(f"Invalid action type selected: {self.training_config.action_type}")
+            _LOGGER.info(
+                f"Invalid action type selected: {self.training_config.action_type}"
+            )
         # Set up a csv to store the results of the training
         try:
             header = ["Episode", "Average Reward"]
@@ -274,6 +273,10 @@ class Primaite(Env):
         # Reset the node statuses and recreate the ACL from config
         # Does this for both live and reference nodes
         self.reset_environment()
+
+        # Create a random red agent to use for this episode
+        if self.training_config.red_agent_identifier == "RANDOM":
+            self.create_random_red_agent()
 
         # Reset counters and totals
         self.total_reward = 0
@@ -379,7 +382,7 @@ class Primaite(Env):
             self.step_count,
             self.training_config,
         )
-        #print(f"    Step {self.step_count} Reward: {str(reward)}")
+        print(f"    Step {self.step_count} Reward: {str(reward)}")
         self.total_reward += reward
         if self.step_count == self.episode_steps:
             self.average_reward = self.total_reward / self.step_count
@@ -1033,7 +1036,6 @@ class Primaite(Env):
         """
         self.observation_type = ObservationType[observation_info["type"]]
 
-
     def get_action_info(self, action_info):
         """
         Extracts action_info.
@@ -1216,3 +1218,152 @@ class Primaite(Env):
         # Combine the Node dict and ACL dict
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
         return combined_action_dict
+
+    def create_random_red_agent(self):
+        """Decide on random red agent for the episode to be called in env.reset()."""
+
+        # Reset the current red iers and red node pol
+        self.red_iers = {}
+        self.red_node_pol = {}
+
+        # Decide how many nodes become compromised
+        node_list = list(self.nodes.values())
+        computers = [node for node in node_list if node.node_type == NodeType.COMPUTER]
+        max_num_nodes_compromised = len(
+            computers
+        )  # only computers can become compromised
+        # random select between 1 and max_num_nodes_compromised
+        num_nodes_to_compromise = np.random.randint(1, max_num_nodes_compromised + 1)
+
+        # Decide which of the nodes to compromise
+        nodes_to_be_compromised = np.random.choice(computers, num_nodes_to_compromise)
+
+        # For each of the nodes to be compromised decide which step they become compromised
+        max_step_compromised = (
+            self.episode_steps // 2
+        )  # always compromise in first half of episode
+
+        # Bandwidth for all links
+        bandwidths = [i.get_bandwidth() for i in list(self.links.values())]
+        servers = [node for node in node_list if node.node_type == NodeType.SERVER]
+
+        for n, node in enumerate(nodes_to_be_compromised):
+            # 1: Use Node PoL to set node to compromised
+
+            _id = str(1000 + n)  # doesn't really matter, make sure it doesn't duplicate
+            _start_step = np.random.randint(
+                2, max_step_compromised + 1
+            )  # step compromised
+            _end_step = _start_step  # Become compromised on 1 step
+            _target_node_id = node.node_id
+            _pol_initiator = "DIRECT"
+            _pol_type = NodePOLType["SERVICE"]  # All computers are service nodes
+            pol_service_name = np.random.choice(
+                list(node.get_services().keys())
+            )  # Random service may wish to change this, currently always TCP)
+            pol_protocol = pol_protocol
+            _pol_state = SoftwareState.COMPROMISED
+            is_entry_node = True  # Assumes all computers in network are entry nodes
+            _pol_source_node_id = _pol_source_node_id
+            _pol_source_node_service = _pol_source_node_service
+            _pol_source_node_service_state = _pol_source_node_service_state
+            red_pol = NodeStateInstructionRed(
+                _id,
+                _start_step,
+                _end_step,
+                _target_node_id,
+                _pol_initiator,
+                _pol_type,
+                pol_protocol,
+                _pol_state,
+                _pol_source_node_id,
+                _pol_source_node_service,
+                _pol_source_node_service_state,
+            )
+
+            self.red_node_pol[_id] = red_pol
+
+            # 2: Launch the attack from compromised node - set the IER
+
+            ier_id = str(2000 + n)
+            # Launch the attack after node is compromised, and not right at the end of the episode
+            ier_start_step = np.random.randint(
+                _start_step + 2, int(self.episode_steps * 0.8)
+            )
+            ier_end_step = self.episode_steps
+            ier_source_node_id = node.get_id()
+            # Randomise the load, as a percentage of a random link bandwith
+            ier_load = np.random.uniform(low=0.4, high=0.8) * np.random.choice(
+                bandwidths
+            )
+            ier_protocol = pol_service_name  # Same protocol as compromised node
+            ier_service = node.get_services()[
+                pol_service_name
+            ]  # same service as defined in the pol
+            ier_port = ier_service.get_port()
+            ier_mission_criticality = (
+                0  # Red IER will never be important to green agent success
+            )
+            # We choose a node to attack based on the first that applies:
+            # a. Green IERs, select dest node of the red ier based on dest node of green IER
+            # b. Attack a random server that doesn't have a DENY acl rule in default config
+            # c. Attack a random server
+            possible_ier_destinations = [
+                ier.get_dest_node_id()
+                for ier in list(self.green_iers.values())
+                if ier.get_source_node_id() == node.get_id()
+            ]
+            if len(possible_ier_destinations) < 1:
+                for server in servers:
+                    if not self.acl.is_blocked(
+                        node.get_ip_address(),
+                        server.ip_address,
+                        ier_service,
+                        ier_port,
+                    ):
+                        possible_ier_destinations.append(server.node_id)
+            if len(possible_ier_destinations) < 1:
+                # If still none found choose from all servers
+                possible_ier_destinations = [server.node_id for server in servers]
+            ier_dest = np.random.choice(possible_ier_destinations)
+            self.red_iers[ier_id] = IER(
+                ier_id,
+                ier_start_step,
+                ier_end_step,
+                ier_load,
+                ier_protocol,
+                ier_port,
+                ier_source_node_id,
+                ier_dest,
+                ier_mission_criticality,
+            )
+
+            # 3: Make sure the targetted node can be set to overwhelmed - with node pol
+            # TODO remove duplicate red pol for same targetted service - must take into account start step
+
+            o_pol_id = str(3000 + n)
+            o_pol_start_step = ier_start_step  # Can become compromised the same step attack is launched
+            o_pol_end_step = (
+                self.episode_steps
+            )  # Can become compromised at any timestep after start
+            o_pol_node_id = ier_dest  # Node effected is the one targetted by the IER
+            o_pol_node_type = NodePOLType["SERVICE"]  # Always targets service nodes
+            o_pol_service_name = (
+                ier_protocol  # Same protocol/service as the IER uses to attack
+            )
+            o_pol_new_state = SoftwareState["OVERWHELMED"]
+            o_pol_entry_node = False  # Assumes servers are not entry nodes
+            o_red_pol = NodeStateInstructionRed(
+                _id,
+                _start_step,
+                _end_step,
+                _target_node_id,
+                _pol_initiator,
+                _pol_type,
+                pol_protocol,
+                _pol_state,
+                _pol_source_node_id,
+                _pol_source_node_service,
+                _pol_source_node_service_state,
+            )
+            self.red_node_pol[o_pol_id] = o_red_pol
