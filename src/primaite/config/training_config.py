@@ -140,7 +140,7 @@ class TrainingConfig:
     deterministic: bool = False
     "If true, the training will be deterministic"
 
-    seed: int = None
+    seed: Optional[int] = None
     "The random number generator seed to be used while training the agent"
 
     def to_dict(self, json_serializable: bool = True):
