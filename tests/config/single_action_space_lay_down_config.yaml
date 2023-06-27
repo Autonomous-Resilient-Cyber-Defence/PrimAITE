@@ -1,9 +1,9 @@
 - item_type: PORTS
   ports_list:
-  - port: '21'
+  - port: '80'
 - item_type: SERVICES
   service_list:
-  - name: ftp
+  - name: TCP
 - item_type: NODE
   node_id: '1'
   name: node
@@ -15,8 +15,8 @@
   software_state: GOOD
   file_system_state: GOOD
   services:
-  - name: ftp
-    port: '21'
+  - name: TCP
+    port: '80'
     state: COMPROMISED
 - item_type: NODE
   node_id: '2'
@@ -29,8 +29,8 @@
   software_state: GOOD
   file_system_state: GOOD
   services:
-  - name: ftp
-    port: '21'
+  - name: TCP
+    port: '80'
     state: COMPROMISED
 - item_type: POSITION
   positions:
@@ -45,7 +45,7 @@
   start_step: 2
   end_step: 15
   load: 1000
-  protocol: ftp
+  protocol: TCP
   port: CORRUPT
   source: '1'
   destination: '2'

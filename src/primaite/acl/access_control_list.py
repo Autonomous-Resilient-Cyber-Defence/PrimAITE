@@ -23,20 +23,12 @@ class AccessControlList:
         # A list of ACL Rules
         self._acl: List[ACLRule] = []
         # Implicit rule
-
-    @property
-    def acl_implicit_rule(self):
-        """ACL implicit rule class attribute with added logic to change it depending on option in main_config."""
-        # Create implicit rule based on input
+        self.acl_implicit_rule = None
         if self.apply_implicit_rule:
             if self.acl_implicit_permission == "DENY":
-                return ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
+                self.acl_implicit_rule = ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
             elif self.acl_implicit_permission == "ALLOW":
-                return ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
-            else:
-                return None
-        else:
-            return None
+                self.acl_implicit_rule = ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
 
     @property
     def acl(self):
