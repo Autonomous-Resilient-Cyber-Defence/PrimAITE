@@ -78,23 +78,31 @@ def calculate_reward_function(
         start_step = ier_value.get_start_step()
         stop_step = ier_value.get_end_step()
         if step_count >= start_step and step_count <= stop_step:
-            if not ier_value.get_is_running():
-                if reference_ier.get_is_running():
-                    ier_reward = (
-                        config_values.green_ier_blocked
-                        * ier_value.get_mission_criticality()
+            reference_blocked = reference_ier.get_is_running()
+            live_blocked = ier_value.get_is_running()
+            ier_reward = (
+                config_values.green_ier_blocked * ier_value.get_mission_criticality()
+            )
+
+            if live_blocked and not reference_blocked:
+                _LOGGER.debug(
+                    f"Applying reward of {ier_reward} because IER {ier_key} is blocked"
+                )
+                reward_value += ier_reward
+            elif live_blocked and reference_blocked:
+                _LOGGER.debug(
+                    (
+                        f"IER {ier_key} is blocked in the reference and live environments. "
+                        f"Penalty of {ier_reward} was NOT applied."
                     )
-                    _LOGGER.debug(
-                        f"Applying reward of {ier_reward} because IER {ier_key} is blocked"
+                )
+            elif not live_blocked and reference_blocked:
+                _LOGGER.debug(
+                    (
+                        f"IER {ier_key} is blocked in the reference env but not in the live one. "
+                        f"Penalty of {ier_reward} was NOT applied."
                     )
-                    reward_value += ier_reward
-                else:
-                    _LOGGER.debug(
-                        (
-                            f"IER {ier_key} is blocked in the reference and live environments. "
-                            f"Therefore, no penalty was applied."
-                        )
-                    )
+                )
 
     return reward_value
 
