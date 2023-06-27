@@ -9,7 +9,7 @@ from tests.conftest import _get_primaite_env_from_config
 def run_generic_set_actions(env: Primaite):
     """Run against a generic agent with specified blue agent actions."""
     # Reset the environment at the start of the episode
-    # env.reset()
+    env.reset()
     training_config = env.training_config
     for episode in range(0, training_config.num_episodes):
         for step in range(0, training_config.num_steps):
@@ -96,7 +96,11 @@ def test_agent_is_executing_actions_from_both_spaces():
     # Length of this list tells you how many items are in the dictionary
     # This number is the frequency of Access Control Rules in the environment
     # In the scenario, we specified that the agent should create only 1 acl rule
-    num_of_rules = len(acl_rules_list)
+    # This 1 rule added to the implicit deny means there should be 2 rules in total.
+    rules_count = 0
+    for rule in acl_rules_list:
+        if rule != -1:
+            rules_count += 1
     # Therefore these statements below MUST be true
     assert computer_node_hardware_state == HardwareState.OFF
-    assert num_of_rules == 1
+    assert rules_count == 2

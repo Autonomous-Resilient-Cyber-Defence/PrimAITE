@@ -352,7 +352,6 @@ class AccessControlList(AbstractObservationComponent):
             len(env.ports_list),
             env.max_number_acl_rules,
         ]
-        len(acl_shape)
         # shape = acl_shape
         shape = acl_shape * self.env.max_number_acl_rules
 
@@ -446,7 +445,6 @@ class AccessControlList(AbstractObservationComponent):
                         position += 1
 
         self.current_observation = obs
-        print("current observation space:", self.current_observation)
 
 
 class ObservationsHandler:
