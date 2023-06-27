@@ -2,10 +2,13 @@
 """Implements reward function."""
 from typing import Dict
 
+from primaite import getLogger
 from primaite.common.enums import FileSystemState, HardwareState, SoftwareState
 from primaite.common.service import Service
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.service_node import ServiceNode
+
+_LOGGER = getLogger(__name__)
 
 
 def calculate_reward_function(
@@ -13,6 +16,7 @@ def calculate_reward_function(
     final_nodes,
     reference_nodes,
     green_iers,
+    green_iers_reference,
     red_iers,
     step_count,
     config_values,
@@ -68,14 +72,36 @@ def calculate_reward_function(
                 reward_value += config_values.red_ier_running
 
     # Go through each green IER - penalise if it's not running (weighted)
+    # but only if it's supposed to be running (it's running in reference)
     for ier_key, ier_value in green_iers.items():
+        reference_ier = green_iers_reference[ier_key]
         start_step = ier_value.get_start_step()
         stop_step = ier_value.get_end_step()
         if step_count >= start_step and step_count <= stop_step:
-            if not ier_value.get_is_running():
-                reward_value += (
-                    config_values.green_ier_blocked
-                    * ier_value.get_mission_criticality()
+            reference_blocked = reference_ier.get_is_running()
+            live_blocked = ier_value.get_is_running()
+            ier_reward = (
+                config_values.green_ier_blocked * ier_value.get_mission_criticality()
+            )
+
+            if live_blocked and not reference_blocked:
+                _LOGGER.debug(
+                    f"Applying reward of {ier_reward} because IER {ier_key} is blocked"
+                )
+                reward_value += ier_reward
+            elif live_blocked and reference_blocked:
+                _LOGGER.debug(
+                    (
+                        f"IER {ier_key} is blocked in the reference and live environments. "
+                        f"Penalty of {ier_reward} was NOT applied."
+                    )
+                )
+            elif not live_blocked and reference_blocked:
+                _LOGGER.debug(
+                    (
+                        f"IER {ier_key} is blocked in the reference env but not in the live one. "
+                        f"Penalty of {ier_reward} was NOT applied."
+                    )
                 )
 
     return reward_value
