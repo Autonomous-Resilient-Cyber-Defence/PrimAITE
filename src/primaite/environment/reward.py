@@ -2,11 +2,11 @@
 """Implements reward function."""
 from typing import Dict
 
+from primaite import getLogger
 from primaite.common.enums import FileSystemState, HardwareState, SoftwareState
 from primaite.common.service import Service
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.service_node import ServiceNode
-from primaite import getLogger
 
 _LOGGER = getLogger(__name__)
 
@@ -80,7 +80,13 @@ def calculate_reward_function(
         if step_count >= start_step and step_count <= stop_step:
             if not ier_value.get_is_running() and ref_ier.get_is_running():
                 # what should happen if reference IER is blocked but live IER is running?
-                _LOGGER.debug(f"Applying penalty of {config_values.green_ier_blocked * ier_value.get_mission_criticality()} due to IER {ier_key} being blocked")
+                _LOGGER.debug(
+                    (
+                        f"Applying penalty of "
+                        f"{config_values.green_ier_blocked * ier_value.get_mission_criticality()} "
+                        f"due to IER {ier_key} being blocked"
+                    )
+                )
                 reward_value += (
                     config_values.green_ier_blocked
                     * ier_value.get_mission_criticality()
