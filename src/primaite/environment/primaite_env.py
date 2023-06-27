@@ -107,6 +107,7 @@ class Primaite(Env):
 
         # Create a dictionary to hold all the green IERs (this will come from an external source)
         self.green_iers: Dict[str, IER] = {}
+        self.green_iers_reference: Dict[str, IER] = {}
 
         # Create a dictionary to hold all the node PoLs (this will come from an external source)
         self.node_pol = {}
@@ -309,6 +310,9 @@ class Primaite(Env):
         for link_key, link_value in self.links.items():
             link_value.clear_traffic()
 
+        for link in self.links_reference.values():
+            link.clear_traffic()
+
         # Create a Transaction (metric) object for this step
         transaction = Transaction(
             datetime.now(), self.agent_identifier, self.episode_count, self.step_count
@@ -346,7 +350,7 @@ class Primaite(Env):
             self.network_reference,
             self.nodes_reference,
             self.links_reference,
-            self.green_iers,
+            self.green_iers_reference,
             self.acl,
             self.step_count,
         )  # Network PoL
@@ -373,6 +377,7 @@ class Primaite(Env):
             self.nodes_post_red,
             self.nodes_reference,
             self.green_iers,
+            self.green_iers_reference,
             self.red_iers,
             self.step_count,
             self.training_config,
@@ -854,6 +859,17 @@ class Primaite(Env):
 
         # Create IER and add to green IER dictionary
         self.green_iers[ier_id] = IER(
+            ier_id,
+            ier_start_step,
+            ier_end_step,
+            ier_load,
+            ier_protocol,
+            ier_port,
+            ier_source,
+            ier_destination,
+            ier_mission_criticality,
+        )
+        self.green_iers_reference[ier_id] = IER(
             ier_id,
             ier_start_step,
             ier_end_step,
