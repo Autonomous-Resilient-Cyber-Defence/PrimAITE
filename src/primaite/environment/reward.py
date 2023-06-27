@@ -74,11 +74,11 @@ def calculate_reward_function(
     # Go through each green IER - penalise if it's not running (weighted)
     # but only if it's supposed to be running (it's running in reference)
     for ier_key, ier_value in green_iers.items():
-        ref_ier = green_iers_reference[ier_key]
+        reference_ier = green_iers_reference[ier_key]
         start_step = ier_value.get_start_step()
         stop_step = ier_value.get_end_step()
         if step_count >= start_step and step_count <= stop_step:
-            if not ier_value.get_is_running() and ref_ier.get_is_running():
+            if not ier_value.get_is_running() and reference_ier.get_is_running():
                 # what should happen if reference IER is blocked but live IER is running?
                 _LOGGER.debug(
                     (
