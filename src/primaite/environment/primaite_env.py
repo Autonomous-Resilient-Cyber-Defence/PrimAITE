@@ -14,8 +14,7 @@ from gym import Env, spaces
 from matplotlib import pyplot as plt
 
 from primaite.acl.access_control_list import AccessControlList
-from primaite.agents.utils import is_valid_acl_action_extra, \
-    is_valid_node_action
+from primaite.agents.utils import is_valid_acl_action_extra, is_valid_node_action
 from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import (
     ActionType,
@@ -24,8 +23,9 @@ from primaite.common.enums import (
     NodePOLInitiator,
     NodePOLType,
     NodeType,
+    ObservationType,
     Priority,
-    SoftwareState, ObservationType,
+    SoftwareState,
 )
 from primaite.common.service import Service
 from primaite.config import training_config
@@ -35,15 +35,13 @@ from primaite.environment.reward import calculate_reward_function
 from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.node import Node
-from primaite.nodes.node_state_instruction_green import \
-    NodeStateInstructionGreen
+from primaite.nodes.node_state_instruction_green import NodeStateInstructionGreen
 from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.passive_node import PassiveNode
 from primaite.nodes.service_node import ServiceNode
 from primaite.pol.green_pol import apply_iers, apply_node_pol
 from primaite.pol.ier import IER
-from primaite.pol.red_agent_pol import apply_red_agent_iers, \
-    apply_red_agent_node_pol
+from primaite.pol.red_agent_pol import apply_red_agent_iers, apply_red_agent_node_pol
 from primaite.transactions.transaction import Transaction
 
 _LOGGER = logging.getLogger(__name__)
@@ -177,7 +175,6 @@ class Primaite(Env):
         # It will be initialised later.
         self.obs_handler: ObservationsHandler
 
-
         # Open the config file and build the environment laydown
         with open(self._lay_down_config_path, "r") as file:
             # Open the config file and build the environment laydown
@@ -199,7 +196,6 @@ class Primaite(Env):
         try:
             plt.tight_layout()
             nx.draw_networkx(self.network, with_labels=True)
-            now = datetime.now()  # current date and time
 
             file_path = session_path / f"network_{timestamp_str}.png"
             plt.savefig(file_path, format="PNG")
@@ -238,7 +234,9 @@ class Primaite(Env):
             self.action_dict = self.create_node_and_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
         else:
-            _LOGGER.info(f"Invalid action type selected: {self.training_config.action_type}")
+            _LOGGER.info(
+                f"Invalid action type selected: {self.training_config.action_type}"
+            )
         # Set up a csv to store the results of the training
         try:
             header = ["Episode", "Average Reward"]
@@ -379,7 +377,7 @@ class Primaite(Env):
             self.step_count,
             self.training_config,
         )
-        #print(f"    Step {self.step_count} Reward: {str(reward)}")
+        # print(f"    Step {self.step_count} Reward: {str(reward)}")
         self.total_reward += reward
         if self.step_count == self.episode_steps:
             self.average_reward = self.total_reward / self.step_count
@@ -1032,7 +1030,6 @@ class Primaite(Env):
         :type observation_info: str
         """
         self.observation_type = ObservationType[observation_info["type"]]
-
 
     def get_action_info(self, action_info):
         """

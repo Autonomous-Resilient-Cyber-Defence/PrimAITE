@@ -22,8 +22,7 @@ from stable_baselines3.ppo import MlpPolicy as PPOMlp
 from primaite import SESSIONS_DIR, getLogger
 from primaite.config.training_config import TrainingConfig
 from primaite.environment.primaite_env import Primaite
-from primaite.transactions.transactions_to_file import \
-    write_transaction_to_file
+from primaite.transactions.transactions_to_file import write_transaction_to_file
 
 _LOGGER = getLogger(__name__)
 
@@ -349,5 +348,3 @@ if __name__ == "__main__":
             "Please provide a lay down config file using the --ldc " "argument"
         )
     run(training_config_path=args.tc, lay_down_config_path=args.ldc)
-
-
