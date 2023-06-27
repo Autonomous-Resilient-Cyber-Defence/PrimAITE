@@ -78,8 +78,8 @@ def calculate_reward_function(
         start_step = ier_value.get_start_step()
         stop_step = ier_value.get_end_step()
         if step_count >= start_step and step_count <= stop_step:
-            reference_blocked = reference_ier.get_is_running()
-            live_blocked = ier_value.get_is_running()
+            reference_blocked = not reference_ier.get_is_running()
+            live_blocked = not ier_value.get_is_running()
             ier_reward = (
                 config_values.green_ier_blocked * ier_value.get_mission_criticality()
             )
