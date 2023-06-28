@@ -152,7 +152,8 @@ class RLlibAgent(AgentSessionABC):
 
         if not episodes:
             episodes = self._training_config.num_episodes
-
+        _LOGGER.info(f"Beginning learning for {episodes} episodes @"
+                     f" {time_steps} time steps...")
         for i in range(episodes):
             self._current_result = self._agent.train()
             self._save_checkpoint()

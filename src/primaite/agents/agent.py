@@ -3,11 +3,11 @@ import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Final, Dict, Union, List
+from typing import Optional, Final, Dict, Union
 from uuid import uuid4
 
+import primaite
 from primaite import getLogger, SESSIONS_DIR
-from primaite.common.enums import OutputVerboseLevel
 from primaite.config import lay_down_config
 from primaite.config import training_config
 from primaite.config.training_config import TrainingConfig
@@ -141,14 +141,13 @@ class AgentSessionABC(ABC):
 
     @abstractmethod
     def _setup(self):
-        if self.output_verbose_level >= OutputVerboseLevel.INFO:
-            _LOGGER.info(
-                "Welcome to the Primary-level AI Training Environment "
-                "(PrimAITE)"
-            )
-            _LOGGER.debug(
-                f"The output directory for this agent is: {self.session_path}"
-            )
+        _LOGGER.info(
+            "Welcome to the Primary-level AI Training Environment "
+            f"(PrimAITE) (version: {primaite.__version__})"
+        )
+        _LOGGER.info(
+            f"The output directory for this session is: {self.session_path}"
+        )
         self._write_session_metadata_file()
         self._can_learn = True
         self._can_evaluate = False
@@ -165,6 +164,7 @@ class AgentSessionABC(ABC):
             **kwargs
     ):
         if self._can_learn:
+            _LOGGER.info("Finished learning")
             _LOGGER.debug("Writing transactions")
             self._update_session_metadata_file()
             self._can_evaluate = True
@@ -176,7 +176,7 @@ class AgentSessionABC(ABC):
             episodes: Optional[int] = None,
             **kwargs
     ):
-        pass
+        _LOGGER.info("Finished evaluation")
 
     @abstractmethod
     def _get_latest_checkpoint(self):
@@ -260,6 +260,7 @@ class HardCodedAgentSessionABC(AgentSessionABC):
                 # Introduce a delay between steps
                 time.sleep(self._training_config.time_delay / 1000)
         self._env.close()
+        super().evaluate()
 
     @classmethod
     def load(cls):
