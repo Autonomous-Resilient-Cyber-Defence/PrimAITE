@@ -35,7 +35,7 @@ hard_coded_agent_view: FULL
 # "NODE"
 # "ACL"
 # "ANY" node and acl actions
-action_type: ANY
+action_type: NODE
 
 # Number of episodes to run per session
 num_episodes: 1000

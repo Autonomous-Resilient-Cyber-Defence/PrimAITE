@@ -44,6 +44,8 @@ class SB3Agent(AgentSessionABC):
             f"{self._training_config.agent_identifier}"
         )
 
+        self.is_eval = False
+
     def _setup(self):
         super()._setup()
         self._env = Primaite(
@@ -86,6 +88,7 @@ class SB3Agent(AgentSessionABC):
 
         if not episodes:
             episodes = self._training_config.num_episodes
+        self.is_eval = False
         _LOGGER.info(f"Beginning learning for {episodes} episodes @"
                      f" {time_steps} time steps...")
         for i in range(episodes):
@@ -108,6 +111,7 @@ class SB3Agent(AgentSessionABC):
         if not episodes:
             episodes = self._training_config.num_episodes
         self._env.set_as_eval()
+        self.is_eval = True
         if deterministic:
             deterministic_str = "deterministic"
         else:
