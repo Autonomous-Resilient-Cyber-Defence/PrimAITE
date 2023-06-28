@@ -46,6 +46,7 @@ class Node:
         """Sets the node state to ON."""
         self.hardware_state = HardwareState.BOOTING
         self.booting_count = self.config_values.node_booting_duration
+
     def turn_off(self):
         """Sets the node state to OFF."""
         self.hardware_state = HardwareState.OFF
@@ -64,14 +65,14 @@ class Node:
             self.hardware_state = HardwareState.ON
 
     def update_booting_status(self):
-        """Updates the booting count"""
+        """Updates the booting count."""
         self.booting_count -= 1
         if self.booting_count <= 0:
             self.booting_count = 0
             self.hardware_state = HardwareState.ON
 
     def update_shutdown_status(self):
-        """Updates the shutdown count"""
+        """Updates the shutdown count."""
         self.shutting_down_count -= 1
         if self.shutting_down_count <= 0:
             self.shutting_down_count = 0

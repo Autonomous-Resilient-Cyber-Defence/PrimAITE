@@ -36,5 +36,3 @@ if __name__ == "__main__":
             "Please provide a lay down config file using the --ldc " "argument"
         )
     run(training_config_path=args.tc, lay_down_config_path=args.ldc)
-
-
