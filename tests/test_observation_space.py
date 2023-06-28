@@ -27,7 +27,8 @@ def env(request):
 
 @pytest.mark.env_config_paths(
     dict(
-        training_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_without_obs.yaml",
+        training_config_path=TEST_CONFIG_ROOT
+        / "obs_tests/main_config_without_obs.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
@@ -43,7 +44,8 @@ def test_default_obs_space(env: Primaite):
 
 @pytest.mark.env_config_paths(
     dict(
-        training_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_without_obs.yaml",
+        training_config_path=TEST_CONFIG_ROOT
+        / "obs_tests/main_config_without_obs.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
@@ -140,7 +142,8 @@ class TestNodeLinkTable:
 
 @pytest.mark.env_config_paths(
     dict(
-        training_config_path=TEST_CONFIG_ROOT / "obs_tests/main_config_NODE_STATUSES.yaml",
+        training_config_path=TEST_CONFIG_ROOT
+        / "obs_tests/main_config_NODE_STATUSES.yaml",
         lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
     )
 )
