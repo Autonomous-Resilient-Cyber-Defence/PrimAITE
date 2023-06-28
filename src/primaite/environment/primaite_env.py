@@ -197,7 +197,6 @@ class Primaite(Env):
         try:
             plt.tight_layout()
             nx.draw_networkx(self.network, with_labels=True)
-            # now = datetime.now()  # current date and time
 
             file_path = session_path / f"network_{timestamp_str}.png"
             plt.savefig(file_path, format="PNG")
