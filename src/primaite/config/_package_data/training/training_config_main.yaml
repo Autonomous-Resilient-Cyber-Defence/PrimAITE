@@ -38,7 +38,7 @@ hard_coded_agent_view: FULL
 action_type: ANY
 
 # Number of episodes to run per session
-num_episodes: 10
+num_episodes: 1000
 
 # Number of time_steps per episode
 num_steps: 256

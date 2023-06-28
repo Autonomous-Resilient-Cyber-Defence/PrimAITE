@@ -37,7 +37,6 @@ def _get_primaite_env_from_config(
     env = Primaite(
         training_config_path=training_config_path,
         lay_down_config_path=lay_down_config_path,
-        transaction_list=[],
         session_path=session_path,
         timestamp_str=timestamp_str,
     )
