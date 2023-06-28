@@ -6,8 +6,8 @@ from primaite.common.enums import (
     NodeHardwareAction,
     NodeSoftwareAction,
     SoftwareState,
+    NodePOLType
 )
-from primaite.common.enums import NodePOLType
 
 
 def transform_action_node_readable(action):

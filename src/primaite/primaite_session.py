@@ -47,8 +47,7 @@ class PrimaiteSession:
     def __init__(
             self,
             training_config_path: Union[str, Path],
-            lay_down_config_path: Union[str, Path],
-            auto: bool = True
+            lay_down_config_path: Union[str, Path]
     ):
         if not isinstance(training_config_path, Path):
             training_config_path = Path(training_config_path)
@@ -64,12 +63,7 @@ class PrimaiteSession:
             self._lay_down_config_path
         )
 
-        self._auto: bool = auto
         self._agent_session: AgentSessionABC = None  # noqa
-
-        if self._auto:
-            self.setup()
-            self.learn()
 
     def setup(self):
         if self._training_config.agent_framework == AgentFramework.CUSTOM:
@@ -157,7 +151,7 @@ class PrimaiteSession:
             episodes: Optional[int] = None,
             **kwargs
     ):
-        if not self._training_config.session_type == SessionType.EVALUATION:
+        if not self._training_config.session_type == SessionType.EVAL:
             self._agent_session.learn(time_steps, episodes, **kwargs)
 
     def evaluate(
@@ -166,5 +160,5 @@ class PrimaiteSession:
             episodes: Optional[int] = None,
             **kwargs
     ):
-        if not self._training_config.session_type == SessionType.TRAINING:
+        if not self._training_config.session_type == SessionType.TRAIN:
             self._agent_session.evaluate(time_steps, episodes, **kwargs)

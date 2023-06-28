@@ -160,13 +160,26 @@ def setup(overwrite_existing: bool = True):
 
 
 @app.command()
-def session(tc: str, ldc: str):
+def session(tc: Optional[str] = None, ldc: Optional[str] = None):
     """
     Run a PrimAITE session.
 
-    :param tc: The training config filepath.
-    :param ldc: The lay down config file path.
+    tc: The training config filepath. Optional. If no value is passed then
+    example default training config is used from:
+    ~/primaite/config/example_config/training/training_config_main.yaml.
+
+    ldc: The lay down config file path. Optional. If no value is passed then
+    example default lay down config is used from:
+    ~/primaite/config/example_config/lay_down/lay_down_config_5_data_manipulation.yaml.
     """
     from primaite.main import run
+    from primaite.config.training_config import main_training_config_path
+    from primaite.config.lay_down_config import data_manipulation_config_path
+
+    if not tc:
+        tc = main_training_config_path()
+
+    if not ldc:
+        ldc = data_manipulation_config_path()
 
     run(training_config_path=tc, lay_down_config_path=ldc)

@@ -2,9 +2,12 @@
 import logging
 import logging.config
 import sys
-from logging import Logger, StreamHandler
+from bisect import bisect
+from logging import Formatter, LogRecord, StreamHandler
+from logging import Logger
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from typing import Dict
 from typing import Final
 
 import pkg_resources
@@ -68,6 +71,33 @@ Users PrimAITE Sessions are stored at: ``~/primaite/sessions``.
 
 
 # region Setup Logging
+class _LevelFormatter(Formatter):
+    """
+    A custom level-specific formatter.
+
+    Credit to: https://stackoverflow.com/a/68154386
+    """
+
+    def __init__(self, formats: Dict[int, str], **kwargs):
+        super().__init__()
+
+        if "fmt" in kwargs:
+            raise ValueError(
+                "Format string must be passed to level-surrogate formatters, "
+                "not this one"
+            )
+
+        self.formats = sorted(
+            (level, Formatter(fmt, **kwargs)) for level, fmt in formats.items()
+        )
+
+    def format(self, record: LogRecord) -> str:
+        """Overrides ``Formatter.format``."""
+        idx = bisect(self.formats, (record.levelno,), hi=len(self.formats) - 1)
+        level, formatter = self.formats[idx]
+        return formatter.format(record)
+
+
 def _log_dir() -> Path:
     if sys.platform == "win32":
         dir_path = _PLATFORM_DIRS.user_data_path / "logs"
@@ -75,6 +105,16 @@ def _log_dir() -> Path:
         dir_path = _PLATFORM_DIRS.user_log_path
     return dir_path
 
+
+_LEVEL_FORMATTER: Final[_LevelFormatter] = _LevelFormatter(
+    {
+        logging.DEBUG: _PRIMAITE_CONFIG["logger_format"]["DEBUG"],
+        logging.INFO: _PRIMAITE_CONFIG["logger_format"]["INFO"],
+        logging.WARNING: _PRIMAITE_CONFIG["logger_format"]["WARNING"],
+        logging.ERROR: _PRIMAITE_CONFIG["logger_format"]["ERROR"],
+        logging.CRITICAL: _PRIMAITE_CONFIG["logger_format"]["CRITICAL"]
+    }
+)
 
 LOG_DIR: Final[Path] = _log_dir()
 """The path to the app log directory as an instance of `Path` or `PosixPath`, depending on the OS."""
@@ -85,6 +125,7 @@ LOG_PATH: Final[Path] = LOG_DIR / "primaite.log"
 """The primaite.log file path as an instance of `Path` or `PosixPath`, depending on the OS."""
 
 _STREAM_HANDLER: Final[StreamHandler] = StreamHandler()
+
 _FILE_HANDLER: Final[RotatingFileHandler] = RotatingFileHandler(
     filename=LOG_PATH,
     maxBytes=10485760,  # 10MB
@@ -95,8 +136,8 @@ _STREAM_HANDLER.setLevel(_PRIMAITE_CONFIG["log_level"])
 _FILE_HANDLER.setLevel(_PRIMAITE_CONFIG["log_level"])
 
 _LOG_FORMAT_STR: Final[str] = _PRIMAITE_CONFIG["logger_format"]
-_STREAM_HANDLER.setFormatter(logging.Formatter(_LOG_FORMAT_STR))
-_FILE_HANDLER.setFormatter(logging.Formatter(_LOG_FORMAT_STR))
+_STREAM_HANDLER.setFormatter(_LEVEL_FORMATTER)
+_FILE_HANDLER.setFormatter(_LEVEL_FORMATTER)
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -38,26 +38,23 @@ hard_coded_agent_view: FULL
 action_type: ANY
 
 # Number of episodes to run per session
-num_episodes: 100
+num_episodes: 10
 
 # Number of time_steps per episode
 num_steps: 256
 
 # Sets how often the agent will save a checkpoint (every n time episodes).
 # Set to 0 if no checkpoints are required. Default is 10
-checkpoint_every_n_episodes: 100
+checkpoint_every_n_episodes: 10
 
 # Time delay between steps (for generic agents)
-time_delay: 3
+time_delay: 5
 
-# Type of session to be run (TRAINING or EVALUATION)
-session_type: TRAINING
-
-# Determine whether to load an agent from file
-load_agent: False
-
-# File path and file name of agent if you're loading one in
-agent_load_file: C:\[Path]\[agent_saved_filename.zip]
+# Type of session to be run. Options are:
+# "TRAIN" (Trains an agent)
+# "EVAL" (Evaluates an agent)
+# "TRAIN_EVAL" (Trains then evaluates an agent)
+session_type: TRAIN
 
 # Environment config values
 # The high value for the observation space

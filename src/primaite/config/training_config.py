@@ -69,7 +69,7 @@ class TrainingConfig:
     "The delay between steps (ms). Applies to generic agents only"
 
     # file
-    session_type: SessionType = SessionType.TRAINING
+    session_type: SessionType = SessionType.TRAIN
     "The type of PrimAITE session to run"
 
     load_agent: str = False
@@ -171,6 +171,7 @@ class TrainingConfig:
     file_system_scanning_limit: int = 5
     "The time taken to scan the file system"
 
+
     @classmethod
     def from_dict(
             cls,
@@ -183,7 +184,7 @@ class TrainingConfig:
             "action_type": ActionType,
             "session_type": SessionType,
             "output_verbose_level": OutputVerboseLevel,
-            "hard_coded_agent_view": HardCodedAgentView
+            "hard_coded_agent_view": HardCodedAgentView,
         }
 
         for field, enum_class in field_enum_map.items():
@@ -210,6 +211,20 @@ class TrainingConfig:
             data["hard_coded_agent_view"] = self.hard_coded_agent_view.name
 
         return data
+
+    def __str__(self) -> str:
+        tc = f"TrainingConfig(agent_framework={self.agent_framework.name}, "
+        if self.agent_framework is AgentFramework.RLLIB:
+            tc += f"deep_learning_framework=" \
+                  f"{self.deep_learning_framework.name}, "
+        tc += f"agent_identifier={self.agent_identifier.name}, "
+        if self.agent_identifier is AgentIdentifier.HARDCODED:
+            tc += f"hard_coded_agent_view={self.hard_coded_agent_view.name}, "
+        tc += f"action_type={self.action_type.name}, "
+        tc += f"observation_space={self.observation_space}, "
+        tc += f"num_episodes={self.num_episodes}, "
+        tc += f"num_steps={self.num_steps})"
+        return tc
 
 
 def load(

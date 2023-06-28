@@ -69,8 +69,9 @@ class SB3Agent(AgentSessionABC):
                     (episode_count % checkpoint_n == 0)
                     or (episode_count == self._training_config.num_episodes)
             ):
-                self._agent.save(
-                    self.checkpoints_path / f"sb3ppo_{episode_count}.zip")
+                checkpoint_path = self.checkpoints_path / f"sb3ppo_{episode_count}.zip"
+                self._agent.save(checkpoint_path)
+                _LOGGER.debug(f"Saved agent checkpoint: {checkpoint_path}")
 
     def _get_latest_checkpoint(self):
         pass
@@ -86,6 +87,8 @@ class SB3Agent(AgentSessionABC):
 
         if not episodes:
             episodes = self._training_config.num_episodes
+        _LOGGER.info(f"Beginning learning for {episodes} episodes @"
+                     f" {time_steps} time steps...")
         for i in range(episodes):
             self._agent.learn(total_timesteps=time_steps)
             self._save_checkpoint()
@@ -105,6 +108,9 @@ class SB3Agent(AgentSessionABC):
 
         if not episodes:
             episodes = self._training_config.num_episodes
+
+        _LOGGER.info(f"Beginning evaluation for {episodes} episodes @"
+                     f" {time_steps} time steps...")
 
         for episode in range(episodes):
             obs = self._env.reset()

@@ -83,9 +83,12 @@ class Protocol(Enum):
 
 class SessionType(Enum):
     """The type of PrimAITE Session to be run."""
-    TRAINING = 1
-    EVALUATION = 2
-    BOTH = 3
+    TRAIN = 1
+    "Train an agent"
+    EVAL = 2
+    "Evaluate an agent"
+    TRAIN_EVAL = 3
+    "Train then evaluate an agent"
 
 
 class VerboseLevel(IntEnum):
@@ -141,7 +144,6 @@ class HardCodedAgentView(Enum):
 
 class ActionType(Enum):
     """Action type enumeration."""
-
     NODE = 0
     ACL = 1
     ANY = 2
@@ -149,7 +151,6 @@ class ActionType(Enum):
 
 class ObservationType(Enum):
     """Observation type enumeration."""
-
     BOX = 0
     MULTIDISCRETE = 1
 
