@@ -260,6 +260,8 @@ class Primaite(Env):
             learning_session=False
         )
         self.episode_count = 0
+        self.step_count = 0
+        self.total_step_count = 0
 
     def reset(self):
         """
@@ -329,8 +331,6 @@ class Primaite(Env):
         # Load the action space into the transaction
         transaction.action_space = copy.deepcopy(action)
 
-        initial_nodes = copy.deepcopy(self.nodes)
-
         # 1. Implement Blue Action
         self.interpret_action_and_apply(action)
         # Take snapshots of nodes and links
@@ -383,7 +383,7 @@ class Primaite(Env):
 
         # 5. Calculate reward signal (for RL)
         reward = calculate_reward_function(
-            initial_nodes,
+            self.nodes_post_pol,
             self.nodes_post_red,
             self.nodes_reference,
             self.green_iers,
