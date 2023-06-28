@@ -21,7 +21,6 @@ def _env_creator(env_config):
     return Primaite(
         training_config_path=env_config["training_config_path"],
         lay_down_config_path=env_config["lay_down_config_path"],
-        transaction_list=env_config["transaction_list"],
         session_path=env_config["session_path"],
         timestamp_str=env_config["timestamp_str"]
     )
@@ -106,7 +105,6 @@ class RLlibAgent(AgentSessionABC):
             env_config=dict(
                 training_config_path=self._training_config_path,
                 lay_down_config_path=self._lay_down_config_path,
-                transaction_list=[],
                 session_path=self.session_path,
                 timestamp_str=self.timestamp_str
             )

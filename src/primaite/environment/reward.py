@@ -85,9 +85,6 @@ def calculate_reward_function(
             )
 
             if live_blocked and not reference_blocked:
-                _LOGGER.debug(
-                    f"Applying reward of {ier_reward} because IER {ier_key} is blocked"
-                )
                 reward_value += ier_reward
             elif live_blocked and reference_blocked:
                 _LOGGER.debug(

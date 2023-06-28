@@ -64,7 +64,11 @@ class AgentSessionABC(ABC):
         "The session timestamp"
         self.session_path = _get_session_path(self.session_timestamp)
         "The Session path"
-        self.checkpoints_path = self.session_path / "checkpoints"
+        self.learning_path = self.session_path / "learning"
+        "The learning outputs path"
+        self.evaluation_path = self.session_path / "evaluation"
+        "The evaluation outputs path"
+        self.checkpoints_path = self.learning_path / "checkpoints"
         self.checkpoints_path.mkdir(parents=True, exist_ok=True)
         "The Session checkpoints path"
 
@@ -205,7 +209,6 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         self._env: Primaite = Primaite(
             training_config_path=self._training_config_path,
             lay_down_config_path=self._lay_down_config_path,
-            transaction_list=[],
             session_path=self.session_path,
             timestamp_str=self.timestamp_str
         )

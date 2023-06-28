@@ -20,6 +20,7 @@ def run(training_config_path: Union[str, Path], lay_down_config_path: Union[str,
 
     session.setup()
     session.learn()
+    session.evaluate()
 
 
 if __name__ == "__main__":

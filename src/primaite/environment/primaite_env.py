@@ -1,10 +1,6 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Main environment module containing the PRIMmary AI Training Evironment (Primaite) class."""
 import copy
-import csv
-import logging
-import time
-from datetime import datetime
 from pathlib import Path
 from typing import Dict, Tuple, Union, Final
 
@@ -14,6 +10,7 @@ import yaml
 from gym import Env, spaces
 from matplotlib import pyplot as plt
 
+from primaite import getLogger
 from primaite.acl.access_control_list import AccessControlList
 from primaite.agents.utils import is_valid_acl_action_extra, \
     is_valid_node_action
@@ -27,7 +24,7 @@ from primaite.common.enums import (
     NodeType,
     ObservationType,
     Priority,
-    SoftwareState,
+    SoftwareState, SessionType,
 )
 from primaite.common.service import Service
 from primaite.config import training_config
@@ -47,11 +44,9 @@ from primaite.pol.ier import IER
 from primaite.pol.red_agent_pol import apply_red_agent_iers, \
     apply_red_agent_node_pol
 from primaite.transactions.transaction import Transaction
-from primaite.transactions.transactions_to_file import \
-    write_transaction_to_file
+from primaite.utils.session_output_writer import SessionOutputWriter
 
-_LOGGER = logging.getLogger(__name__)
-_LOGGER.setLevel(logging.INFO)
+_LOGGER = getLogger(__name__)
 
 
 class Primaite(Env):
@@ -67,7 +62,6 @@ class Primaite(Env):
             self,
             training_config_path: Union[str, Path],
             lay_down_config_path: Union[str, Path],
-            transaction_list,
             session_path: Path,
             timestamp_str: str,
     ):
@@ -76,7 +70,6 @@ class Primaite(Env):
 
         :param training_config_path: The training config filepath.
         :param lay_down_config_path: The lay down config filepath.
-        :param transaction_list: The list of transactions to populate.
         :param session_path: The directory path the session is writing to.
         :param timestamp_str: The session timestamp in the format:
             <yyyy-mm-dd>_<hh-mm-ss>.
@@ -95,9 +88,6 @@ class Primaite(Env):
         self.episode_steps = self.training_config.num_steps
 
         super(Primaite, self).__init__()
-
-        # Transaction list
-        self.transaction_list = transaction_list
 
         # The agent in use
         self.agent_identifier = self.training_config.agent_identifier
@@ -245,20 +235,31 @@ class Primaite(Env):
             _LOGGER.error(
                 f"Invalid action type selected: {self.training_config.action_type}"
             )
-        # Set up a csv to store the results of the training
-        try:
-            header = ["Episode", "Average Reward"]
 
-            file_name = f"average_reward_per_episode_{timestamp_str}.csv"
-            file_path = session_path / file_name
-            self.csv_file = open(file_path, "w", encoding="UTF8", newline="")
-            self.csv_writer = csv.writer(self.csv_file)
-            self.csv_writer.writerow(header)
-        except Exception:
-            _LOGGER.error(
-                "Could not create csv file to hold average reward per episode"
-            )
-            _LOGGER.error("Exception occured", exc_info=True)
+        self.episode_av_reward_writer = SessionOutputWriter(
+            self,
+            transaction_writer=False,
+            learning_session=True
+        )
+        self.transaction_writer = SessionOutputWriter(
+            self,
+            transaction_writer=True,
+            learning_session=True
+        )
+
+    def set_as_eval(self):
+        """Set the writers to write to eval directories."""
+        self.episode_av_reward_writer = SessionOutputWriter(
+            self,
+            transaction_writer=False,
+            learning_session=False
+        )
+        self.transaction_writer = SessionOutputWriter(
+            self,
+            transaction_writer=True,
+            learning_session=False
+        )
+        self.episode_count = 0
 
     def reset(self):
         """
@@ -267,12 +268,14 @@ class Primaite(Env):
         Returns:
              Environment observation space (reset)
         """
-        csv_data = self.episode_count, self.average_reward
-        self.csv_writer.writerow(csv_data)
+        if self.episode_count > 0:
+            csv_data = self.episode_count, self.average_reward
+            self.episode_av_reward_writer.write(csv_data)
 
         self.episode_count += 1
 
-        # Don't need to reset links, as they are cleared and recalculated every step
+        # Don't need to reset links, as they are cleared and recalculated every
+        # step
 
         # Clear the ACL
         self.init_acl()
@@ -303,12 +306,8 @@ class Primaite(Env):
              done: Indicates episode is complete if True
              step_info: Additional information relating to this step
         """
-        if self.step_count == 0:
-            _LOGGER.info(f"Episode: {str(self.episode_count)}")
-
         # TEMP
         done = False
-
         self.step_count += 1
         self.total_step_count += 1
 
@@ -321,13 +320,16 @@ class Primaite(Env):
 
         # Create a Transaction (metric) object for this step
         transaction = Transaction(
-            datetime.now(), self.agent_identifier, self.episode_count,
+            self.agent_identifier,
+            self.episode_count,
             self.step_count
         )
         # Load the initial observation space into the transaction
-        transaction.set_obs_space_pre(copy.deepcopy(self.env_obs))
+        transaction.obs_space_pre = copy.deepcopy(self.env_obs)
         # Load the action space into the transaction
-        transaction.set_action_space(copy.deepcopy(action))
+        transaction.action_space = copy.deepcopy(action)
+
+        initial_nodes = copy.deepcopy(self.nodes)
 
         # 1. Implement Blue Action
         self.interpret_action_and_apply(action)
@@ -381,7 +383,7 @@ class Primaite(Env):
 
         # 5. Calculate reward signal (for RL)
         reward = calculate_reward_function(
-            self.nodes_post_pol,
+            initial_nodes,
             self.nodes_post_red,
             self.nodes_reference,
             self.green_iers,
@@ -390,17 +392,22 @@ class Primaite(Env):
             self.step_count,
             self.training_config,
         )
-        _LOGGER.debug(f"    Step {self.step_count} Reward: {str(reward)}")
+        _LOGGER.debug(
+            f"Episode: {self.episode_count}, "
+            f"Step {self.step_count}, "
+            f"Reward: {reward}"
+        )
         self.total_reward += reward
         if self.step_count == self.episode_steps:
             self.average_reward = self.total_reward / self.step_count
-            if self.training_config.session_type == "EVALUATION":
+            if self.training_config.session_type is SessionType.EVAL:
                 # For evaluation, need to trigger the done value = True when
                 # step count is reached in order to prevent neverending episode
                 done = True
-            _LOGGER.info(f"  Average Reward: {str(self.average_reward)}")
+            _LOGGER.info(f"Episode: {self.episode_count}, "
+                         f"Average Reward: {self.average_reward}")
             # Load the reward into the transaction
-        transaction.set_reward(reward)
+        transaction.reward = reward
 
         # 6. Output Verbose
         # self.output_link_status()
@@ -408,27 +415,13 @@ class Primaite(Env):
         # 7. Update env_obs
         self.update_environent_obs()
         # Load the new observation space into the transaction
-        transaction.set_obs_space_post(copy.deepcopy(self.env_obs))
+        transaction.obs_space_post = copy.deepcopy(self.env_obs)
 
-        # 8. Add the transaction to the list of transactions
-        self.transaction_list.append(copy.deepcopy(transaction))
+        # Write transaction to file
+        self.transaction_writer.write(transaction)
 
         # Return
         return self.env_obs, reward, done, self.step_info
-
-    def close(self):
-        self.__close__()
-
-    def __close__(self):
-        """
-        Override close function
-        """
-        write_transaction_to_file(
-            self.transaction_list,
-            self.session_path,
-            self.timestamp_str
-        )
-        self.csv_file.close()
 
     def init_acl(self):
         """Initialise the Access Control List."""
@@ -467,7 +460,7 @@ class Primaite(Env):
         ):  # Node actions in multdiscrete (array) from have len 4
             self.apply_actions_to_nodes(_action)
         else:
-            logging.error("Invalid action type found")
+            _LOGGER.error("Invalid action type found")
 
     def apply_actions_to_nodes(self, _action):
         """

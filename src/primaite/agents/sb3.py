@@ -34,7 +34,7 @@ class SB3Agent(AgentSessionABC):
             _LOGGER.error(msg)
             raise ValueError(msg)
 
-        self._tensorboard_log_path = self.session_path / "tensorboard_logs"
+        self._tensorboard_log_path = self.learning_path / "tensorboard_logs"
         self._tensorboard_log_path.mkdir(parents=True, exist_ok=True)
         self._setup()
         _LOGGER.debug(
@@ -49,7 +49,6 @@ class SB3Agent(AgentSessionABC):
         self._env = Primaite(
             training_config_path=self._training_config_path,
             lay_down_config_path=self._lay_down_config_path,
-            transaction_list=[],
             session_path=self.session_path,
             timestamp_str=self.timestamp_str
         )
@@ -108,10 +107,13 @@ class SB3Agent(AgentSessionABC):
 
         if not episodes:
             episodes = self._training_config.num_episodes
-
-        _LOGGER.info(f"Beginning evaluation for {episodes} episodes @"
-                     f" {time_steps} time steps...")
-
+        self._env.set_as_eval()
+        if deterministic:
+            deterministic_str = "deterministic"
+        else:
+            deterministic_str = "non-deterministic"
+        _LOGGER.info(f"Beginning {deterministic_str} evaluation for "
+                     f"{episodes} episodes @ {time_steps} time steps...")
         for episode in range(episodes):
             obs = self._env.reset()
 
@@ -123,6 +125,7 @@ class SB3Agent(AgentSessionABC):
                 if isinstance(action, np.ndarray):
                     action = np.int64(action)
                 obs, rewards, done, info = self._env.step(action)
+        _LOGGER.info(f"Finished evaluation")
 
     @classmethod
     def load(self):
