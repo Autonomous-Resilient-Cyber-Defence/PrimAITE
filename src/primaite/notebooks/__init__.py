@@ -17,7 +17,6 @@ def start_jupyter_session():
 
     .. todo:: Figure out how to get this working for Linux and MacOS too.
     """
-
     if importlib.util.find_spec("jupyter") is not None:
         jupyter_cmd = "python3 -m jupyter lab"
         if sys.platform == "win32":

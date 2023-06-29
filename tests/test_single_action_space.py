@@ -48,7 +48,8 @@ def test_single_action_space_is_valid():
     """Test to ensure the blue agent is using the ACL action space and is carrying out both kinds of operations."""
     env = _get_primaite_env_from_config(
         training_config_path=TEST_CONFIG_ROOT / "single_action_space_main_config.yaml",
-        lay_down_config_path=TEST_CONFIG_ROOT / "single_action_space_lay_down_config.yaml",
+        lay_down_config_path=TEST_CONFIG_ROOT
+        / "single_action_space_lay_down_config.yaml",
     )
 
     run_generic_set_actions(env)
@@ -77,8 +78,10 @@ def test_single_action_space_is_valid():
 def test_agent_is_executing_actions_from_both_spaces():
     """Test to ensure the blue agent is carrying out both kinds of operations (NODE & ACL)."""
     env = _get_primaite_env_from_config(
-        training_config_path=TEST_CONFIG_ROOT / "single_action_space_fixed_blue_actions_main_config.yaml",
-        lay_down_config_path=TEST_CONFIG_ROOT / "single_action_space_lay_down_config.yaml",
+        training_config_path=TEST_CONFIG_ROOT
+        / "single_action_space_fixed_blue_actions_main_config.yaml",
+        lay_down_config_path=TEST_CONFIG_ROOT
+        / "single_action_space_lay_down_config.yaml",
     )
     # Run environment with specified fixed blue agent actions only
     run_generic_set_actions(env)
