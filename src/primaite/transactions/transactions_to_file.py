@@ -22,24 +22,12 @@ def turn_action_space_to_array(_action_space):
         return [str(_action_space)]
 
 
-def turn_obs_space_to_array(_obs_space, _obs_assets, _obs_features):
-    """
-    Turns observation space into a string array so it can be saved to csv.
-
-    Args:
-        _obs_space: The observation space
-        _obs_assets: The number of assets (i.e. nodes or links) in the observation space
-        _obs_features: The number of features associated with the asset
-    """
-    return_array = []
-    for x in range(_obs_assets):
-        for y in range(_obs_features):
-            return_array.append(str(_obs_space[x][y]))
-
-    return return_array
-
-
-def write_transaction_to_file(transaction_list, session_path: Path, timestamp_str: str):
+def write_transaction_to_file(
+    transaction_list,
+    session_path: Path,
+    timestamp_str: str,
+    obs_space_description: list,
+):
     """
     Writes transaction logs to file to support training evaluation.
 
@@ -56,13 +44,13 @@ def write_transaction_to_file(transaction_list, session_path: Path, timestamp_st
     # This will be tied into the PrimAITE Use Case so that they make sense
     template_transation = transaction_list[0]
     action_length = template_transation.action_space.size
-    obs_shape = template_transation.obs_space_post.shape
-    obs_assets = template_transation.obs_space_post.shape[0]
-    if len(obs_shape) == 1:
-        # bit of a workaround but I think the way transactions are written will change soon
-        obs_features = 1
-    else:
-        obs_features = template_transation.obs_space_post.shape[1]
+    # obs_shape = template_transation.obs_space_post.shape
+    # obs_assets = template_transation.obs_space_post.shape[0]
+    # if len(obs_shape) == 1:
+    # bit of a workaround but I think the way transactions are written will change soon
+    # obs_features = 1
+    # else:
+    # obs_features = template_transation.obs_space_post.shape[1]
 
     # Create the action space headers array
     action_header = []
@@ -70,12 +58,8 @@ def write_transaction_to_file(transaction_list, session_path: Path, timestamp_st
         action_header.append("AS_" + str(x))
 
     # Create the observation space headers array
-    obs_header_initial = []
-    obs_header_new = []
-    for x in range(obs_assets):
-        for y in range(obs_features):
-            obs_header_initial.append("OSI_" + str(x) + "_" + str(y))
-            obs_header_new.append("OSN_" + str(x) + "_" + str(y))
+    obs_header_initial = [f"pre_{o}" for o in obs_space_description]
+    obs_header_new = [f"post_{o}" for o in obs_space_description]
 
     # Open up a csv file
     header = ["Timestamp", "Episode", "Step", "Reward"]
@@ -98,12 +82,8 @@ def write_transaction_to_file(transaction_list, session_path: Path, timestamp_st
             csv_data = (
                 csv_data
                 + turn_action_space_to_array(transaction.action_space)
-                + turn_obs_space_to_array(
-                    transaction.obs_space_pre, obs_assets, obs_features
-                )
-                + turn_obs_space_to_array(
-                    transaction.obs_space_post, obs_assets, obs_features
-                )
+                + transaction.obs_space_pre.tolist()
+                + transaction.obs_space_post.tolist()
             )
             csv_writer.writerow(csv_data)
 
