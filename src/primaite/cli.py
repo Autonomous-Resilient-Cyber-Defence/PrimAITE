@@ -3,8 +3,8 @@
 import logging
 import os
 import shutil
-from pathlib import Path
 from enum import Enum
+from pathlib import Path
 from typing import Optional
 
 import pkg_resources
@@ -44,6 +44,7 @@ def logs(last_n: Annotated[int, typer.Option("-n")]):
     :param last_n: The number of lines to print. Default value is 10.
     """
     import re
+
     from primaite import LOG_PATH
 
     if os.path.isfile(LOG_PATH):
@@ -53,7 +54,7 @@ def logs(last_n: Annotated[int, typer.Option("-n")]):
             print(re.sub(r"\n*", "", line))
 
 
-_LogLevel = Enum("LogLevel", {k: k for k in logging._levelToName.values()}) # noqa
+_LogLevel = Enum("LogLevel", {k: k for k in logging._levelToName.values()})  # noqa
 
 
 @app.command()
