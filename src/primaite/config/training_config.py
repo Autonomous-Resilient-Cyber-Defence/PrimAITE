@@ -14,7 +14,7 @@ from primaite.common.enums import (
     AgentIdentifier,
     DeepLearningFramework,
     HardCodedAgentView,
-    OutputVerboseLevel,
+    SB3OutputVerboseLevel,
     SessionType,
 )
 
@@ -86,8 +86,8 @@ class TrainingConfig:
     observation_space_high_value: int = 1000000000
     "The high value for the observation space"
 
-    output_verbose_level: OutputVerboseLevel = OutputVerboseLevel.INFO
-    "The Agent output verbosity level"
+    sb3_output_verbose_level: SB3OutputVerboseLevel = SB3OutputVerboseLevel.NONE
+    "Stable Baselines3 learn/eval output verbosity level"
 
     # Reward values
     # Generic
@@ -189,7 +189,7 @@ class TrainingConfig:
             "agent_identifier": AgentIdentifier,
             "action_type": ActionType,
             "session_type": SessionType,
-            "output_verbose_level": OutputVerboseLevel,
+            "sb3_output_verbose_level": SB3OutputVerboseLevel,
             "hard_coded_agent_view": HardCodedAgentView,
         }
 
@@ -212,7 +212,7 @@ class TrainingConfig:
             data["deep_learning_framework"] = self.deep_learning_framework.name
             data["agent_identifier"] = self.agent_identifier.name
             data["action_type"] = self.action_type.name
-            data["output_verbose_level"] = self.output_verbose_level.name
+            data["sb3_output_verbose_level"] = self.sb3_output_verbose_level.name
             data["session_type"] = self.session_type.name
             data["hard_coded_agent_view"] = self.hard_coded_agent_view.name
 
@@ -277,7 +277,6 @@ def convert_legacy_training_config_dict(
     agent_identifier: AgentIdentifier = AgentIdentifier.PPO,
     action_type: ActionType = ActionType.ANY,
     num_steps: int = 256,
-    output_verbose_level: OutputVerboseLevel = OutputVerboseLevel.INFO,
 ) -> Dict[str, Any]:
     """
     Convert a legacy training config dict to the new format.
@@ -291,8 +290,6 @@ def convert_legacy_training_config_dict(
         don't have action_type values.
     :param num_steps: The number of steps to set as legacy training configs
         don't have num_steps values.
-    :param output_verbose_level: The agent output verbose level to use as
-        legacy training configs don't have output_verbose_level values.
     :return: The converted training config dict.
     """
     config_dict = {
@@ -300,7 +297,7 @@ def convert_legacy_training_config_dict(
         "agent_identifier": agent_identifier.name,
         "action_type": action_type.name,
         "num_steps": num_steps,
-        "output_verbose_level": output_verbose_level.name,
+        "sb3_output_verbose_level": SB3OutputVerboseLevel.INFO.name,
     }
     session_type_map = {"TRAINING": "TRAIN", "EVALUATION": "EVAL"}
     legacy_config_dict["sessionType"] = session_type_map[legacy_config_dict["sessionType"]]

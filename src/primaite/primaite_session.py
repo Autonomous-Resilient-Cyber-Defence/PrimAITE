@@ -75,7 +75,7 @@ class PrimaiteSession:
                     raise ValueError
 
             elif self._training_config.agent_identifier == AgentIdentifier.DO_NOTHING:
-                _LOGGER.debug(f"PrimaiteSession Setup: Agent Identifier =" f" {AgentIdentifier.DO_NOTHINGD}")
+                _LOGGER.debug(f"PrimaiteSession Setup: Agent Identifier =" f" {AgentIdentifier.DO_NOTHING}")
                 if self._training_config.action_type == ActionType.NODE:
                     self._agent_session = DoNothingNodeAgent(self._training_config_path, self._lay_down_config_path)
 

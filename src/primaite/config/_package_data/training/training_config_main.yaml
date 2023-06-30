@@ -60,12 +60,12 @@ session_type: TRAIN_EVAL
 # The high value for the observation space
 observation_space_high_value: 1000000000
 
-# The Agent output verbosity level:
+# The Stable Baselines3 learn/eval output verbosity level:
 # Options are:
 # "NONE" (No Output)
-# "INFO" (Info Messages)
-# "ALL" (All Messages)
-output_verbose_level: NONE
+# "INFO" (Info Messages (such as devices and wrappers used))
+# "DEBUG" (All Messages)
+sb3_output_verbose_level: NONE
 
 # Reward values
 # Generic

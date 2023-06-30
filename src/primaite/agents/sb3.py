@@ -56,7 +56,7 @@ class SB3Agent(AgentSessionABC):
         self._agent = self._agent_class(
             PPOMlp,
             self._env,
-            verbose=self.output_verbose_level,
+            verbose=self.sb3_output_verbose_level,
             n_steps=self._training_config.num_steps,
             tensorboard_log=str(self._tensorboard_log_path),
         )
