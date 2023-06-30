@@ -1,13 +1,7 @@
 """Used to test Active Node functions."""
 import pytest
 
-from primaite.common.enums import (
-    FileSystemState,
-    HardwareState,
-    NodeType,
-    Priority,
-    SoftwareState,
-)
+from primaite.common.enums import FileSystemState, HardwareState, NodeType, Priority, SoftwareState
 from primaite.common.service import Service
 from primaite.config.training_config import TrainingConfig
 from primaite.nodes.active_node import ActiveNode
@@ -18,9 +12,7 @@ from primaite.nodes.service_node import ServiceNode
     "starting_operating_state, expected_operating_state",
     [(HardwareState.RESETTING, HardwareState.ON)],
 )
-def test_node_resets_correctly(
-    starting_operating_state, expected_operating_state
-):
+def test_node_resets_correctly(starting_operating_state, expected_operating_state):
     """Tests that a node resets correctly."""
     active_node = ActiveNode(
         node_id="0",
@@ -59,9 +51,7 @@ def test_node_boots_correctly(operating_state, expected_operating_state):
         file_system_state="GOOD",
         config_values=1,
     )
-    service_attributes = Service(
-        name="node", port="80", software_state=SoftwareState.COMPROMISED
-    )
+    service_attributes = Service(name="node", port="80", software_state=SoftwareState.COMPROMISED)
     service_node.add_service(service_attributes)
 
     for x in range(5):

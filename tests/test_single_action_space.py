@@ -18,7 +18,6 @@ def run_generic_set_actions(env: Primaite):
             # TEMP - random action for now
             # action = env.blue_agent_action(obs)
             action = 0
-            print("Episode:", episode, "\nStep:", step)
             if step == 5:
                 # [1, 1, 2, 1, 1, 1]
                 # Creates an ACL rule
@@ -86,8 +85,7 @@ def test_single_action_space_is_valid(temp_primaite_session):
     "temp_primaite_session",
     [
         [
-            TEST_CONFIG_ROOT
-            / "single_action_space_fixed_blue_actions_main_config.yaml",
+            TEST_CONFIG_ROOT / "single_action_space_fixed_blue_actions_main_config.yaml",
             TEST_CONFIG_ROOT / "single_action_space_lay_down_config.yaml",
         ]
     ],

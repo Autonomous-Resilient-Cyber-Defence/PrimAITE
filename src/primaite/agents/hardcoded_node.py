@@ -1,9 +1,5 @@
 from primaite.agents.agent import HardCodedAgentSessionABC
-from primaite.agents.utils import (
-    get_new_action,
-    transform_action_node_enum,
-    transform_change_obs_readable,
-)
+from primaite.agents.utils import get_new_action, transform_action_node_enum, transform_change_obs_readable
 
 
 class HardCodedNodeAgent(HardCodedAgentSessionABC):
@@ -93,12 +89,8 @@ class HardCodedNodeAgent(HardCodedAgentSessionABC):
             if os_state == "OFF":
                 action_node_id = x + 1
                 action_node_property = "OPERATING"
-                property_action = (
-                    "ON"  # Why reset it when we can just turn it on
-                )
-                action_service_index = (
-                    0  # does nothing isn't relevant for operating state
-                )
+                property_action = "ON"  # Why reset it when we can just turn it on
+                action_service_index = 0  # does nothing isn't relevant for operating state
                 action = [
                     action_node_id,
                     action_node_property,

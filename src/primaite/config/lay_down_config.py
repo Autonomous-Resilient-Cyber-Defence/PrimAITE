@@ -8,14 +8,10 @@ from primaite import getLogger, USERS_CONFIG_DIR
 
 _LOGGER = getLogger(__name__)
 
-_EXAMPLE_LAY_DOWN: Final[Path] = (
-    USERS_CONFIG_DIR / "example_config" / "lay_down"
-)
+_EXAMPLE_LAY_DOWN: Final[Path] = USERS_CONFIG_DIR / "example_config" / "lay_down"
 
 
-def convert_legacy_lay_down_config_dict(
-    legacy_config_dict: Dict[str, Any]
-) -> Dict[str, Any]:
+def convert_legacy_lay_down_config_dict(legacy_config_dict: Dict[str, Any]) -> Dict[str, Any]:
     """
     Convert a legacy lay down config dict to the new format.
 

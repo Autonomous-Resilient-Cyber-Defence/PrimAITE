@@ -6,17 +6,10 @@ from networkx import MultiGraph, shortest_path
 
 from primaite.acl.access_control_list import AccessControlList
 from primaite.common.custom_typing import NodeUnion
-from primaite.common.enums import (
-    HardwareState,
-    NodePOLType,
-    NodeType,
-    SoftwareState,
-)
+from primaite.common.enums import HardwareState, NodePOLType, NodeType, SoftwareState
 from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
-from primaite.nodes.node_state_instruction_green import (
-    NodeStateInstructionGreen,
-)
+from primaite.nodes.node_state_instruction_green import NodeStateInstructionGreen
 from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.service_node import ServiceNode
 from primaite.pol.ier import IER
@@ -93,9 +86,7 @@ def apply_iers(
                     and source_node.software_state != SoftwareState.PATCHING
                 ):
                     if source_node.has_service(protocol):
-                        if source_node.service_running(
-                            protocol
-                        ) and not source_node.service_is_overwhelmed(protocol):
+                        if source_node.service_running(protocol) and not source_node.service_is_overwhelmed(protocol):
                             source_valid = True
                         else:
                             source_valid = False
@@ -110,10 +101,7 @@ def apply_iers(
             # 2. Check the dest node situation
             if dest_node.node_type == NodeType.SWITCH:
                 # It's a switch
-                if (
-                    dest_node.hardware_state == HardwareState.ON
-                    and dest_node.software_state != SoftwareState.PATCHING
-                ):
+                if dest_node.hardware_state == HardwareState.ON and dest_node.software_state != SoftwareState.PATCHING:
                     dest_valid = True
                 else:
                     # IER no longer valid
@@ -123,14 +111,9 @@ def apply_iers(
                 pass
             else:
                 # It's not a switch or an actuator (so active node)
-                if (
-                    dest_node.hardware_state == HardwareState.ON
-                    and dest_node.software_state != SoftwareState.PATCHING
-                ):
+                if dest_node.hardware_state == HardwareState.ON and dest_node.software_state != SoftwareState.PATCHING:
                     if dest_node.has_service(protocol):
-                        if dest_node.service_running(
-                            protocol
-                        ) and not dest_node.service_is_overwhelmed(protocol):
+                        if dest_node.service_running(protocol) and not dest_node.service_is_overwhelmed(protocol):
                             dest_valid = True
                         else:
                             dest_valid = False
@@ -143,9 +126,7 @@ def apply_iers(
                     dest_valid = False
 
             # 3. Check that the ACL doesn't block it
-            acl_block = acl.is_blocked(
-                source_node.ip_address, dest_node.ip_address, protocol, port
-            )
+            acl_block = acl.is_blocked(source_node.ip_address, dest_node.ip_address, protocol, port)
             if acl_block:
                 if _VERBOSE:
                     print(
@@ -176,10 +157,7 @@ def apply_iers(
 
                 # We might have a switch in the path, so check all nodes are operational
                 for node in path_node_list:
-                    if (
-                        node.hardware_state != HardwareState.ON
-                        or node.software_state == SoftwareState.PATCHING
-                    ):
+                    if node.hardware_state != HardwareState.ON or node.software_state == SoftwareState.PATCHING:
                         path_valid = False
 
                 if path_valid:
@@ -191,15 +169,11 @@ def apply_iers(
                     # Check that the link capacity is not exceeded by the new load
                     while count < path_node_list_length - 1:
                         # Get the link between the next two nodes
-                        edge_dict = network.get_edge_data(
-                            path_node_list[count], path_node_list[count + 1]
-                        )
+                        edge_dict = network.get_edge_data(path_node_list[count], path_node_list[count + 1])
                         link_id = edge_dict[0].get("id")
                         link = links[link_id]
                         # Check whether the new load exceeds the bandwidth
-                        if (
-                            link.get_current_load() + load
-                        ) > link.get_bandwidth():
+                        if (link.get_current_load() + load) > link.get_bandwidth():
                             link_capacity_exceeded = True
                             if _VERBOSE:
                                 print("Link capacity exceeded")
@@ -226,9 +200,7 @@ def apply_iers(
                 else:
                     # One of the nodes is not operational
                     if _VERBOSE:
-                        print(
-                            "Path not valid - one or more nodes not operational"
-                        )
+                        print("Path not valid - one or more nodes not operational")
                     pass
 
             else:
@@ -243,9 +215,7 @@ def apply_iers(
 
 def apply_node_pol(
     nodes: Dict[str, NodeUnion],
-    node_pol: Dict[
-        any, Union[NodeStateInstructionGreen, NodeStateInstructionRed]
-    ],
+    node_pol: Dict[any, Union[NodeStateInstructionGreen, NodeStateInstructionRed]],
     step: int,
 ):
     """
@@ -277,22 +247,16 @@ def apply_node_pol(
             elif node_pol_type == NodePOLType.OS:
                 # Change OS state
                 # Don't allow PoL to fix something that is compromised. Only the Blue agent can do this
-                if isinstance(node, ActiveNode) or isinstance(
-                    node, ServiceNode
-                ):
+                if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
                     node.set_software_state_if_not_compromised(state)
             elif node_pol_type == NodePOLType.SERVICE:
                 # Change a service state
                 # Don't allow PoL to fix something that is compromised. Only the Blue agent can do this
                 if isinstance(node, ServiceNode):
-                    node.set_service_state_if_not_compromised(
-                        service_name, state
-                    )
+                    node.set_service_state_if_not_compromised(service_name, state)
             else:
                 # Change the file system status
-                if isinstance(node, ActiveNode) or isinstance(
-                    node, ServiceNode
-                ):
+                if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
                     node.set_file_system_state_if_not_compromised(state)
         else:
             # PoL is not valid in this time step

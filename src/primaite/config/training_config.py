@@ -20,9 +20,7 @@ from primaite.common.enums import (
 
 _LOGGER = getLogger(__name__)
 
-_EXAMPLE_TRAINING: Final[Path] = (
-    USERS_CONFIG_DIR / "example_config" / "training"
-)
+_EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training"
 
 
 def main_training_config_path() -> Path:
@@ -68,9 +66,7 @@ class TrainingConfig:
     checkpoint_every_n_episodes: int = 5
     "The agent will save a checkpoint every n episodes"
 
-    observation_space: dict = field(
-        default_factory=lambda: {"components": [{"name": "NODE_LINK_TABLE"}]}
-    )
+    observation_space: dict = field(default_factory=lambda: {"components": [{"name": "NODE_LINK_TABLE"}]})
     "The observation space config dict"
 
     time_delay: int = 10
@@ -180,9 +176,7 @@ class TrainingConfig:
     "The time taken to scan the file system"
 
     @classmethod
-    def from_dict(
-        cls, config_dict: Dict[str, Union[str, int, bool]]
-    ) -> TrainingConfig:
+    def from_dict(cls, config_dict: Dict[str, Union[str, int, bool]]) -> TrainingConfig:
         """
         Create an instance of TrainingConfig from a dict.
 
@@ -238,9 +232,7 @@ class TrainingConfig:
         return tc
 
 
-def load(
-    file_path: Union[str, Path], legacy_file: bool = False
-) -> TrainingConfig:
+def load(file_path: Union[str, Path], legacy_file: bool = False) -> TrainingConfig:
     """
     Read in a training config yaml file.
 
@@ -271,10 +263,7 @@ def load(
         try:
             return TrainingConfig.from_dict(config)
         except TypeError as e:
-            msg = (
-                f"Error when creating an instance of {TrainingConfig} "
-                f"from the training config file {file_path}"
-            )
+            msg = f"Error when creating an instance of {TrainingConfig} " f"from the training config file {file_path}"
             _LOGGER.critical(msg, exc_info=True)
             raise e
     msg = f"Cannot load the training config as it does not exist: {file_path}"
@@ -314,9 +303,7 @@ def convert_legacy_training_config_dict(
         "output_verbose_level": output_verbose_level.name,
     }
     session_type_map = {"TRAINING": "TRAIN", "EVALUATION": "EVAL"}
-    legacy_config_dict["sessionType"] = session_type_map[
-        legacy_config_dict["sessionType"]
-    ]
+    legacy_config_dict["sessionType"] = session_type_map[legacy_config_dict["sessionType"]]
     for legacy_key, value in legacy_config_dict.items():
         new_key = _get_new_key_from_legacy(legacy_key)
         if new_key:

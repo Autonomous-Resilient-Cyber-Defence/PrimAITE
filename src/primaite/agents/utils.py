@@ -24,9 +24,7 @@ def transform_action_node_readable(action):
 
     if action_node_property == "OPERATING":
         property_action = NodeHardwareAction(action[2]).name
-    elif (
-        action_node_property == "OS" or action_node_property == "SERVICE"
-    ) and action[2] <= 1:
+    elif (action_node_property == "OS" or action_node_property == "SERVICE") and action[2] <= 1:
         property_action = NodeSoftwareAction(action[2]).name
     else:
         property_action = "NONE"
@@ -117,11 +115,7 @@ def is_valid_acl_action(action):
 
     if action_decision == "NONE":
         return False
-    if (
-        action_source_id == action_destination_id
-        and action_source_id != "ANY"
-        and action_destination_id != "ANY"
-    ):
+    if action_source_id == action_destination_id and action_source_id != "ANY" and action_destination_id != "ANY":
         # ACL rule towards itself
         return False
     if action_permission == "DENY":
@@ -173,9 +167,7 @@ def transform_change_obs_readable(obs):
 
     for service in range(3, obs.shape[1]):
         # Links bit/s don't have a service state
-        service_states = [
-            SoftwareState(i).name if i <= 4 else i for i in obs[:, service]
-        ]
+        service_states = [SoftwareState(i).name if i <= 4 else i for i in obs[:, service]]
         new_obs.append(service_states)
 
     return new_obs
@@ -247,9 +239,7 @@ def convert_to_old_obs(obs, num_nodes=10, num_links=10, num_services=1):
     return new_obs
 
 
-def describe_obs_change(
-    obs1, obs2, num_nodes=10, num_links=10, num_services=1
-):
+def describe_obs_change(obs1, obs2, num_nodes=10, num_links=10, num_services=1):
     """
     Return string describing change between two observations.
 
@@ -291,16 +281,9 @@ def _describe_obs_change_helper(obs_change, is_link):
     TODO: Typehint params and return.
     """
     # Indexes where a change has occured, not including 0th index
-    index_changed = [
-        i for i in range(1, len(obs_change)) if obs_change[i] != -1
-    ]
+    index_changed = [i for i in range(1, len(obs_change)) if obs_change[i] != -1]
     # Node pol types, Indexes >= 3 are service nodes
-    NodePOLTypes = [
-        NodePOLType(i).name
-        if i < 3
-        else NodePOLType(3).name + " " + str(i - 3)
-        for i in index_changed
-    ]
+    NodePOLTypes = [NodePOLType(i).name if i < 3 else NodePOLType(3).name + " " + str(i - 3) for i in index_changed]
     # Account for hardware states, software sattes and links
     states = [
         LinkStatus(obs_change[i]).name
@@ -367,9 +350,7 @@ def transform_action_node_readable(action):
 
     if action_node_property == "OPERATING":
         property_action = NodeHardwareAction(action[2]).name
-    elif (
-        action_node_property == "OS" or action_node_property == "SERVICE"
-    ) and action[2] <= 1:
+    elif (action_node_property == "OS" or action_node_property == "SERVICE") and action[2] <= 1:
         property_action = NodeSoftwareAction(action[2]).name
     else:
         property_action = "NONE"
@@ -397,9 +378,7 @@ def node_action_description(action):
     if property_action == "NONE":
         return ""
     if node_property == "OPERATING" or node_property == "OS":
-        description = (
-            f"NODE {node_id}, {node_property}, SET TO {property_action}"
-        )
+        description = f"NODE {node_id}, {node_property}, SET TO {property_action}"
     elif node_property == "SERVICE":
         description = f"NODE {node_id} FROM SERVICE {service_id}, SET TO {property_action}"
     else:
@@ -522,11 +501,7 @@ def is_valid_acl_action(action):
 
     if action_decision == "NONE":
         return False
-    if (
-        action_source_id == action_destination_id
-        and action_source_id != "ANY"
-        and action_destination_id != "ANY"
-    ):
+    if action_source_id == action_destination_id and action_source_id != "ANY" and action_destination_id != "ANY":
         # ACL rule towards itself
         return False
     if action_permission == "DENY":

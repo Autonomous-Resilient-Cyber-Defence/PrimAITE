@@ -3,13 +3,7 @@
 import logging
 from typing import Final
 
-from primaite.common.enums import (
-    FileSystemState,
-    HardwareState,
-    NodeType,
-    Priority,
-    SoftwareState,
-)
+from primaite.common.enums import FileSystemState, HardwareState, NodeType, Priority, SoftwareState
 from primaite.config.training_config import TrainingConfig
 from primaite.nodes.node import Node
 
@@ -44,9 +38,7 @@ class ActiveNode(Node):
         :param file_system_state: The node file system state
         :param config_values: The config values
         """
-        super().__init__(
-            node_id, name, node_type, priority, hardware_state, config_values
-        )
+        super().__init__(node_id, name, node_type, priority, hardware_state, config_values)
         self.ip_address: str = ip_address
         # Related to Software
         self._software_state: SoftwareState = software_state
@@ -87,9 +79,7 @@ class ActiveNode(Node):
                 f"Node.software_state:{self._software_state}"
             )
 
-    def set_software_state_if_not_compromised(
-        self, software_state: SoftwareState
-    ):
+    def set_software_state_if_not_compromised(self, software_state: SoftwareState):
         """
         Sets Software State if the node is not compromised.
 
@@ -100,9 +90,7 @@ class ActiveNode(Node):
             if self._software_state != SoftwareState.COMPROMISED:
                 self._software_state = software_state
                 if software_state == SoftwareState.PATCHING:
-                    self.patching_count = (
-                        self.config_values.os_patching_duration
-                    )
+                    self.patching_count = self.config_values.os_patching_duration
         else:
             _LOGGER.info(
                 f"The Nodes hardware state is OFF so OS State cannot be changed."
@@ -129,14 +117,10 @@ class ActiveNode(Node):
             self.file_system_state_actual = file_system_state
 
             if file_system_state == FileSystemState.REPAIRING:
-                self.file_system_action_count = (
-                    self.config_values.file_system_repairing_limit
-                )
+                self.file_system_action_count = self.config_values.file_system_repairing_limit
                 self.file_system_state_observed = FileSystemState.REPAIRING
             elif file_system_state == FileSystemState.RESTORING:
-                self.file_system_action_count = (
-                    self.config_values.file_system_restoring_limit
-                )
+                self.file_system_action_count = self.config_values.file_system_restoring_limit
                 self.file_system_state_observed = FileSystemState.RESTORING
             elif file_system_state == FileSystemState.GOOD:
                 self.file_system_state_observed = FileSystemState.GOOD
@@ -149,9 +133,7 @@ class ActiveNode(Node):
                 f"Node.file_system_state.actual:{self.file_system_state_actual}"
             )
 
-    def set_file_system_state_if_not_compromised(
-        self, file_system_state: FileSystemState
-    ):
+    def set_file_system_state_if_not_compromised(self, file_system_state: FileSystemState):
         """
         Sets the file system state (actual and observed) if not in a compromised state.
 
@@ -168,14 +150,10 @@ class ActiveNode(Node):
                 self.file_system_state_actual = file_system_state
 
                 if file_system_state == FileSystemState.REPAIRING:
-                    self.file_system_action_count = (
-                        self.config_values.file_system_repairing_limit
-                    )
+                    self.file_system_action_count = self.config_values.file_system_repairing_limit
                     self.file_system_state_observed = FileSystemState.REPAIRING
                 elif file_system_state == FileSystemState.RESTORING:
-                    self.file_system_action_count = (
-                        self.config_values.file_system_restoring_limit
-                    )
+                    self.file_system_action_count = self.config_values.file_system_restoring_limit
                     self.file_system_state_observed = FileSystemState.RESTORING
                 elif file_system_state == FileSystemState.GOOD:
                     self.file_system_state_observed = FileSystemState.GOOD
@@ -191,9 +169,7 @@ class ActiveNode(Node):
     def start_file_system_scan(self):
         """Starts a file system scan."""
         self.file_system_scanning = True
-        self.file_system_scanning_count = (
-            self.config_values.file_system_scanning_limit
-        )
+        self.file_system_scanning_count = self.config_values.file_system_scanning_limit
 
     def update_file_system_state(self):
         """Updates file system status based on scanning/restore/repair cycle."""
@@ -212,10 +188,7 @@ class ActiveNode(Node):
                 self.file_system_state_observed = FileSystemState.GOOD
 
         # Scanning updates
-        if (
-            self.file_system_scanning == True
-            and self.file_system_scanning_count < 0
-        ):
+        if self.file_system_scanning == True and self.file_system_scanning_count < 0:
             self.file_system_state_observed = self.file_system_state_actual
             self.file_system_scanning = False
             self.file_system_scanning_count = 0

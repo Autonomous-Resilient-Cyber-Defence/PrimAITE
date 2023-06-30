@@ -2,11 +2,7 @@
 import numpy as np
 import pytest
 
-from primaite.environment.observations import (
-    NodeLinkTable,
-    NodeStatuses,
-    ObservationsHandler,
-)
+from primaite.environment.observations import NodeLinkTable, NodeStatuses, ObservationsHandler
 from tests import TEST_CONFIG_ROOT
 
 
@@ -127,9 +123,7 @@ class TestNodeLinkTable:
         with temp_primaite_session as session:
             env = session.env
             # act = np.asarray([0,])
-            obs, reward, done, info = env.step(
-                0
-            )  # apply the 'do nothing' action
+            obs, reward, done, info = env.step(0)  # apply the 'do nothing' action
 
             assert np.array_equal(
                 obs,
@@ -192,17 +186,15 @@ class TestNodeStatuses:
         with temp_primaite_session as session:
             env = session.env
             obs, _, _, _ = env.step(0)  # apply the 'do nothing' action
-            assert np.array_equal(
-                obs, [1, 3, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 0, 0]
-            )
+            print(obs)
+            assert np.array_equal(obs, [1, 3, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 0, 0])
 
 
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [
         [
-            TEST_CONFIG_ROOT
-            / "obs_tests/main_config_LINK_TRAFFIC_LEVELS.yaml",
+            TEST_CONFIG_ROOT / "obs_tests/main_config_LINK_TRAFFIC_LEVELS.yaml",
             TEST_CONFIG_ROOT / "obs_tests/laydown.yaml",
         ]
     ],

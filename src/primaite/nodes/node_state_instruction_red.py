@@ -42,9 +42,7 @@ class NodeStateInstructionRed(object):
         self.target_node_id = _target_node_id
         self.initiator = _pol_initiator
         self.pol_type: NodePOLType = _pol_type
-        self.service_name = (
-            pol_protocol  # Not used when not a service instruction
-        )
+        self.service_name = pol_protocol  # Not used when not a service instruction
         self.state = _pol_state
         self.source_node_id = _pol_source_node_id
         self.source_node_service = _pol_source_node_service

@@ -17,16 +17,12 @@ def run(overwrite_existing=True):
     :param overwrite_existing: A bool to toggle replacing existing edited
         config on or off.
     """
-    configs_package_data_root = pkg_resources.resource_filename(
-        "primaite", "config/_package_data"
-    )
+    configs_package_data_root = pkg_resources.resource_filename("primaite", "config/_package_data")
 
     for subdir, dirs, files in os.walk(configs_package_data_root):
         for file in files:
             fp = os.path.join(subdir, file)
-            path_split = os.path.relpath(fp, configs_package_data_root).split(
-                os.sep
-            )
+            path_split = os.path.relpath(fp, configs_package_data_root).split(os.sep)
             target_fp = USERS_CONFIG_DIR / "example_config" / Path(*path_split)
             target_fp.parent.mkdir(exist_ok=True, parents=True)
             copy_file = not target_fp.is_file()
