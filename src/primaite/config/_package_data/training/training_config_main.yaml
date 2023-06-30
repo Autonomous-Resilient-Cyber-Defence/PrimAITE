@@ -5,7 +5,7 @@
 # "STABLE_BASELINES3_PPO"
 # "STABLE_BASELINES3_A2C"
 # "GENERIC"
-agent_identifier: STABLE_BASELINES3_A2C
+agent_identifier: STABLE_BASELINES3_PPO
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
@@ -16,12 +16,14 @@ observation_space:
   # flatten: true
   components:
     - name: NODE_LINK_TABLE
+    # - name: NODE_STATUSES
+    # - name: LINK_TRAFFIC_LEVELS
 # Number of episodes to run per session
-num_episodes: 1000
+num_episodes: 10
 # Number of time_steps per episode
 num_steps: 256
 # Time delay between steps (for generic agents)
-time_delay: 0
+time_delay: 10
 # Type of session to be run (TRAINING or EVALUATION)
 session_type: TRAINING
 # Determine whether to load an agent from file
