@@ -10,7 +10,10 @@ from primaite.primaite_session import PrimaiteSession
 _LOGGER = getLogger(__name__)
 
 
-def run(training_config_path: Union[str, Path], lay_down_config_path: Union[str, Path]):
+def run(
+    training_config_path: Union[str, Path],
+    lay_down_config_path: Union[str, Path],
+):
     """Run the PrimAITE Session.
 
     :param training_config_path: The training config filepath.

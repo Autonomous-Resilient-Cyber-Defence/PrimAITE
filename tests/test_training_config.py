@@ -16,7 +16,9 @@ def test_legacy_lay_down_config_yaml_conversion():
     with open(new_path, "r") as file:
         new_dict = yaml.safe_load(file)
 
-    converted_dict = training_config.convert_legacy_training_config_dict(legacy_dict)
+    converted_dict = training_config.convert_legacy_training_config_dict(
+        legacy_dict
+    )
 
     for key, value in new_dict.items():
         assert converted_dict[key] == value

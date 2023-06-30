@@ -2,7 +2,7 @@
 """Main environment module containing the PRIMmary AI Training Evironment (Primaite) class."""
 import copy
 from pathlib import Path
-from typing import Dict, Tuple, Union, Final
+from typing import Dict, Final, Tuple, Union
 
 import networkx as nx
 import numpy as np
@@ -12,8 +12,10 @@ from matplotlib import pyplot as plt
 
 from primaite import getLogger
 from primaite.acl.access_control_list import AccessControlList
-from primaite.agents.utils import is_valid_acl_action_extra, \
-    is_valid_node_action
+from primaite.agents.utils import (
+    is_valid_acl_action_extra,
+    is_valid_node_action,
+)
 from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import (
     ActionType,
@@ -24,7 +26,8 @@ from primaite.common.enums import (
     NodeType,
     ObservationType,
     Priority,
-    SoftwareState, SessionType,
+    SessionType,
+    SoftwareState,
 )
 from primaite.common.service import Service
 from primaite.config import training_config
@@ -34,15 +37,18 @@ from primaite.environment.reward import calculate_reward_function
 from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.node import Node
-from primaite.nodes.node_state_instruction_green import \
-    NodeStateInstructionGreen
+from primaite.nodes.node_state_instruction_green import (
+    NodeStateInstructionGreen,
+)
 from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.passive_node import PassiveNode
 from primaite.nodes.service_node import ServiceNode
 from primaite.pol.green_pol import apply_iers, apply_node_pol
 from primaite.pol.ier import IER
-from primaite.pol.red_agent_pol import apply_red_agent_iers, \
-    apply_red_agent_node_pol
+from primaite.pol.red_agent_pol import (
+    apply_red_agent_iers,
+    apply_red_agent_node_pol,
+)
 from primaite.transactions.transaction import Transaction
 from primaite.utils.session_output_writer import SessionOutputWriter
 
@@ -59,11 +65,11 @@ class Primaite(Env):
     ACTION_SPACE_ACL_PERMISSION_VALUES: int = 2
 
     def __init__(
-            self,
-            training_config_path: Union[str, Path],
-            lay_down_config_path: Union[str, Path],
-            session_path: Path,
-            timestamp_str: str,
+        self,
+        training_config_path: Union[str, Path],
+        lay_down_config_path: Union[str, Path],
+        session_path: Path,
+        timestamp_str: str,
     ):
         """
         The Primaite constructor.
@@ -237,27 +243,19 @@ class Primaite(Env):
             )
 
         self.episode_av_reward_writer = SessionOutputWriter(
-            self,
-            transaction_writer=False,
-            learning_session=True
+            self, transaction_writer=False, learning_session=True
         )
         self.transaction_writer = SessionOutputWriter(
-            self,
-            transaction_writer=True,
-            learning_session=True
+            self, transaction_writer=True, learning_session=True
         )
 
     def set_as_eval(self):
         """Set the writers to write to eval directories."""
         self.episode_av_reward_writer = SessionOutputWriter(
-            self,
-            transaction_writer=False,
-            learning_session=False
+            self, transaction_writer=False, learning_session=False
         )
         self.transaction_writer = SessionOutputWriter(
-            self,
-            transaction_writer=True,
-            learning_session=False
+            self, transaction_writer=True, learning_session=False
         )
         self.episode_count = 0
         self.step_count = 0
@@ -322,9 +320,7 @@ class Primaite(Env):
 
         # Create a Transaction (metric) object for this step
         transaction = Transaction(
-            self.agent_identifier,
-            self.episode_count,
-            self.step_count
+            self.agent_identifier, self.episode_count, self.step_count
         )
         # Load the initial observation space into the transaction
         transaction.obs_space_pre = copy.deepcopy(self.env_obs)
@@ -354,8 +350,9 @@ class Primaite(Env):
         self.nodes_post_pol = copy.deepcopy(self.nodes)
         self.links_post_pol = copy.deepcopy(self.links)
         # Reference
-        apply_node_pol(self.nodes_reference, self.node_pol,
-                       self.step_count)  # Node PoL
+        apply_node_pol(
+            self.nodes_reference, self.node_pol, self.step_count
+        )  # Node PoL
         apply_iers(
             self.network_reference,
             self.nodes_reference,
@@ -404,8 +401,10 @@ class Primaite(Env):
                 # For evaluation, need to trigger the done value = True when
                 # step count is reached in order to prevent neverending episode
                 done = True
-            _LOGGER.info(f"Episode: {self.episode_count}, "
-                         f"Average Reward: {self.average_reward}")
+            _LOGGER.info(
+                f"Episode: {self.episode_count}, "
+                f"Average Reward: {self.average_reward}"
+            )
             # Load the reward into the transaction
         transaction.reward = reward
 
@@ -452,11 +451,11 @@ class Primaite(Env):
         elif self.training_config.action_type == ActionType.ACL:
             self.apply_actions_to_acl(_action)
         elif (
-                len(self.action_dict[_action]) == 6
+            len(self.action_dict[_action]) == 6
         ):  # ACL actions in multidiscrete form have len 6
             self.apply_actions_to_acl(_action)
         elif (
-                len(self.action_dict[_action]) == 4
+            len(self.action_dict[_action]) == 4
         ):  # Node actions in multdiscrete (array) from have len 4
             self.apply_actions_to_nodes(_action)
         else:
@@ -525,7 +524,7 @@ class Primaite(Env):
                     # Patch (valid action if it's good or compromised)
                     node.set_service_state(
                         self.services_list[service_index],
-                        SoftwareState.PATCHING
+                        SoftwareState.PATCHING,
                     )
             else:
                 # Node is not of Service Type
@@ -542,7 +541,10 @@ class Primaite(Env):
                 elif property_action == 2:
                     # Repair
                     # You cannot repair a destroyed file system - it needs restoring
-                    if node.file_system_state_actual != FileSystemState.DESTROYED:
+                    if (
+                        node.file_system_state_actual
+                        != FileSystemState.DESTROYED
+                    ):
                         node.set_file_system_state(FileSystemState.REPAIRING)
                 elif property_action == 3:
                     # Restore
@@ -585,8 +587,9 @@ class Primaite(Env):
                 acl_rule_source = "ANY"
             else:
                 node = list(self.nodes.values())[action_source_ip - 1]
-                if isinstance(node, ServiceNode) or isinstance(node,
-                                                               ActiveNode):
+                if isinstance(node, ServiceNode) or isinstance(
+                    node, ActiveNode
+                ):
                     acl_rule_source = node.ip_address
                 else:
                     return
@@ -595,8 +598,9 @@ class Primaite(Env):
                 acl_rule_destination = "ANY"
             else:
                 node = list(self.nodes.values())[action_destination_ip - 1]
-                if isinstance(node, ServiceNode) or isinstance(node,
-                                                               ActiveNode):
+                if isinstance(node, ServiceNode) or isinstance(
+                    node, ActiveNode
+                ):
                     acl_rule_destination = node.ip_address
                 else:
                     return
@@ -681,8 +685,9 @@ class Primaite(Env):
         :return: The observation space, initial observation (zeroed out array with the correct shape)
         :rtype: Tuple[spaces.Space, np.ndarray]
         """
-        self.obs_handler = ObservationsHandler.from_config(self,
-                                                           self.obs_config)
+        self.obs_handler = ObservationsHandler.from_config(
+            self, self.obs_config
+        )
 
         return self.obs_handler.space, self.obs_handler.current_observation
 
@@ -790,7 +795,8 @@ class Primaite(Env):
                 service_port = service["port"]
                 service_state = SoftwareState[service["state"]]
                 node.add_service(
-                    Service(service_protocol, service_port, service_state))
+                    Service(service_protocol, service_port, service_state)
+                )
         else:
             # Bad formatting
             pass
@@ -843,8 +849,9 @@ class Primaite(Env):
         dest_node_ref: Node = self.nodes_reference[link_destination]
 
         # Add link to network (reference)
-        self.network_reference.add_edge(source_node_ref, dest_node_ref,
-                                        id=link_name)
+        self.network_reference.add_edge(
+            source_node_ref, dest_node_ref, id=link_name
+        )
 
         # Add link to link dictionary (reference)
         self.links_reference[link_name] = Link(
@@ -1120,7 +1127,8 @@ class Primaite(Env):
         node_id = item["node_id"]
         node_class = item["node_class"]
         node_hardware_state: HardwareState = HardwareState[
-            item["hardware_state"]]
+            item["hardware_state"]
+        ]
 
         node: NodeUnion = self.nodes[node_id]
         node_ref = self.nodes_reference[node_id]
@@ -1186,8 +1194,12 @@ class Primaite(Env):
                 # Use MAX to ensure we get them all
                 for node_action in range(4):
                     for service_state in range(self.num_services):
-                        action = [node, node_property, node_action,
-                                  service_state]
+                        action = [
+                            node,
+                            node_property,
+                            node_action,
+                            service_state,
+                        ]
                         # check to see if it's a nothing action (has no effect)
                         if is_valid_node_action(action):
                             actions[action_key] = action

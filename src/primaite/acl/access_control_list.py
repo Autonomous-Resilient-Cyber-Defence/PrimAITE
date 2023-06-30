@@ -10,7 +10,9 @@ class AccessControlList:
 
     def __init__(self):
         """Init."""
-        self.acl: Dict[str, AccessControlList] = {}  # A dictionary of ACL Rules
+        self.acl: Dict[
+            str, AccessControlList
+        ] = {}  # A dictionary of ACL Rules
 
     def check_address_match(self, _rule, _source_ip_address, _dest_ip_address):
         """
@@ -37,13 +39,17 @@ class AccessControlList:
                 _rule.get_source_ip() == _source_ip_address
                 and _rule.get_dest_ip() == "ANY"
             )
-            or (_rule.get_source_ip() == "ANY" and _rule.get_dest_ip() == "ANY")
+            or (
+                _rule.get_source_ip() == "ANY" and _rule.get_dest_ip() == "ANY"
+            )
         ):
             return True
         else:
             return False
 
-    def is_blocked(self, _source_ip_address, _dest_ip_address, _protocol, _port):
+    def is_blocked(
+        self, _source_ip_address, _dest_ip_address, _protocol, _port
+    ):
         """
         Checks for rules that block a protocol / port.
 
@@ -87,7 +93,9 @@ class AccessControlList:
             _protocol: the protocol
             _port: the port
         """
-        new_rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
+        new_rule = ACLRule(
+            _permission, _source_ip, _dest_ip, _protocol, str(_port)
+        )
         hash_value = hash(new_rule)
         self.acl[hash_value] = new_rule
 
@@ -102,7 +110,9 @@ class AccessControlList:
             _protocol: the protocol
             _port: the port
         """
-        rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
+        rule = ACLRule(
+            _permission, _source_ip, _dest_ip, _protocol, str(_port)
+        )
         hash_value = hash(rule)
         # There will not always be something 'popable' since the agent will be trying random things
         try:
@@ -114,7 +124,9 @@ class AccessControlList:
         """Removes all rules."""
         self.acl.clear()
 
-    def get_dictionary_hash(self, _permission, _source_ip, _dest_ip, _protocol, _port):
+    def get_dictionary_hash(
+        self, _permission, _source_ip, _dest_ip, _protocol, _port
+    ):
         """
         Produces a hash value for a rule.
 
@@ -128,6 +140,8 @@ class AccessControlList:
         Returns:
              Hash value based on rule parameters.
         """
-        rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
+        rule = ACLRule(
+            _permission, _source_ip, _dest_ip, _protocol, str(_port)
+        )
         hash_value = hash(rule)
         return hash_value

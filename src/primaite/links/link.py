@@ -8,7 +8,9 @@ from primaite.common.protocol import Protocol
 class Link(object):
     """Link class."""
 
-    def __init__(self, _id, _bandwidth, _source_node_name, _dest_node_name, _services):
+    def __init__(
+        self, _id, _bandwidth, _source_node_name, _dest_node_name, _services
+    ):
         """
         Init.
 

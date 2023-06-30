@@ -11,9 +11,13 @@ from primaite.common.enums import HardCodedAgentView
 
 
 class HardCodedACLAgent(HardCodedAgentSessionABC):
+    """An Agent Session class that implements a deterministic ACL agent."""
 
     def _calculate_action(self, obs):
-        if self._training_config.hard_coded_agent_view == HardCodedAgentView.BASIC:
+        if (
+            self._training_config.hard_coded_agent_view
+            == HardCodedAgentView.BASIC
+        ):
             # Basic view action using only the current observation
             return self._calculate_action_basic_view(obs)
         else:
@@ -22,6 +26,12 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
             return self._calculate_action_full_view(obs)
 
     def get_blocked_green_iers(self, green_iers, acl, nodes):
+        """
+        Get blocked green IERs.
+
+        TODO: Add params and return in docstring.
+        TODO: Typehint params and return.
+        """
         blocked_green_iers = {}
 
         for green_ier_id, green_ier in green_iers.items():
@@ -33,8 +43,9 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
             port = green_ier.get_port()
 
             # Can be blocked by an ACL or by default (no allow rule exists)
-            if acl.is_blocked(source_node_address, dest_node_address, protocol,
-                              port):
+            if acl.is_blocked(
+                source_node_address, dest_node_address, protocol, port
+            ):
                 blocked_green_iers[green_ier_id] = green_ier
 
         return blocked_green_iers
@@ -42,8 +53,10 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
     def get_matching_acl_rules_for_ier(self, ier, acl, nodes):
         """
         Get matching ACL rules for an IER.
-        """
 
+        TODO: Add params and return in docstring.
+        TODO: Typehint params and return.
+        """
         source_node_id = ier.get_source_node_id()
         source_node_address = nodes[source_node_id].ip_address
         dest_node_id = ier.get_dest_node_id()
@@ -51,17 +64,22 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         protocol = ier.get_protocol()  # e.g. 'TCP'
         port = ier.get_port()
 
-        matching_rules = acl.get_relevant_rules(source_node_address,
-                                                dest_node_address, protocol,
-                                                port)
+        matching_rules = acl.get_relevant_rules(
+            source_node_address, dest_node_address, protocol, port
+        )
         return matching_rules
 
     def get_blocking_acl_rules_for_ier(self, ier, acl, nodes):
         """
         Get blocking ACL rules for an IER.
-        Warning: Can return empty dict but IER can still be blocked by default (No ALLOW rule, therefore blocked)
-        """
 
+        .. warning::
+            Can return empty dict but IER can still be blocked by default
+            (No ALLOW rule, therefore blocked).
+
+        TODO: Add params and return in docstring.
+        TODO: Typehint params and return.
+        """
         matching_rules = self.get_matching_acl_rules_for_ier(ier, acl, nodes)
 
         blocked_rules = {}
@@ -74,8 +92,10 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
     def get_allow_acl_rules_for_ier(self, ier, acl, nodes):
         """
         Get all allowing ACL rules for an IER.
-        """
 
+        TODO: Add params and return in docstring.
+        TODO: Typehint params and return.
+        """
         matching_rules = self.get_matching_acl_rules_for_ier(ier, acl, nodes)
 
         allowed_rules = {}
@@ -85,9 +105,22 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
         return allowed_rules
 
-    def get_matching_acl_rules(self, source_node_id, dest_node_id, protocol,
-                               port, acl,
-                               nodes, services_list):
+    def get_matching_acl_rules(
+        self,
+        source_node_id,
+        dest_node_id,
+        protocol,
+        port,
+        acl,
+        nodes,
+        services_list,
+    ):
+        """
+        Get matching ACL rules.
+
+        TODO: Add params and return in docstring.
+        TODO: Typehint params and return.
+        """
         if source_node_id != "ANY":
             source_node_address = nodes[str(source_node_id)].ip_address
         else:
@@ -100,21 +133,39 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
         if protocol != "ANY":
             protocol = services_list[
-                protocol - 1]  # -1 as dont have to account for ANY in list of services
+                protocol - 1
+            ]  # -1 as dont have to account for ANY in list of services
 
-        matching_rules = acl.get_relevant_rules(source_node_address,
-                                                dest_node_address, protocol,
-                                                port)
+        matching_rules = acl.get_relevant_rules(
+            source_node_address, dest_node_address, protocol, port
+        )
         return matching_rules
 
-    def get_allow_acl_rules(self, source_node_id, dest_node_id, protocol,
-                            port, acl,
-                            nodes, services_list):
-        matching_rules = self.get_matching_acl_rules(source_node_id,
-                                                     dest_node_id,
-                                                     protocol, port, acl,
-                                                     nodes,
-                                                     services_list)
+    def get_allow_acl_rules(
+        self,
+        source_node_id,
+        dest_node_id,
+        protocol,
+        port,
+        acl,
+        nodes,
+        services_list,
+    ):
+        """
+        Get the ALLOW ACL rules.
+
+        TODO: Add params and return in docstring.
+        TODO: Typehint params and return.
+        """
+        matching_rules = self.get_matching_acl_rules(
+            source_node_id,
+            dest_node_id,
+            protocol,
+            port,
+            acl,
+            nodes,
+            services_list,
+        )
 
         allowed_rules = {}
         for rule_key, rule_value in matching_rules.items():
@@ -123,14 +174,31 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
         return allowed_rules
 
-    def get_deny_acl_rules(self, source_node_id, dest_node_id, protocol, port,
-                           acl,
-                           nodes, services_list):
-        matching_rules = self.get_matching_acl_rules(source_node_id,
-                                                     dest_node_id,
-                                                     protocol, port, acl,
-                                                     nodes,
-                                                     services_list)
+    def get_deny_acl_rules(
+        self,
+        source_node_id,
+        dest_node_id,
+        protocol,
+        port,
+        acl,
+        nodes,
+        services_list,
+    ):
+        """
+        Get the DENY ACL rules.
+
+        TODO: Add params and return in docstring.
+        TODO: Typehint params and return.
+        """
+        matching_rules = self.get_matching_acl_rules(
+            source_node_id,
+            dest_node_id,
+            protocol,
+            port,
+            acl,
+            nodes,
+            services_list,
+        )
 
         allowed_rules = {}
         for rule_key, rule_value in matching_rules.items():
@@ -141,7 +209,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
     def _calculate_action_full_view(self, obs):
         """
-        Given an observation and the environment calculate a good acl-based action for the blue agent to take
+        Calculate a good acl-based action for the blue agent to take.
 
         Knowledge of just the observation space is insufficient for a perfect solution, as we need to know:
 
@@ -167,8 +235,10 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         nodes once a service becomes overwhelmed. However currently the ACL action space has no way of reversing
         an overwhelmed state, so we don't do this.
 
+        TODO: Add params and return in docstring.
+        TODO: Typehint params and return.
         """
-        #obs = convert_to_old_obs(obs)
+        # obs = convert_to_old_obs(obs)
         r_obs = transform_change_obs_readable(obs)
         _, _, _, *s = r_obs
 
@@ -184,7 +254,6 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         for service_num, service_states in enumerate(s):
             for x, service_state in enumerate(service_states):
                 if service_state == "COMPROMISED":
-
                     action_source_id = x + 1  # +1 as 0 is any
                     action_destination_id = "ANY"
                     action_protocol = service_num + 1  # +1 as 0 is any
@@ -215,19 +284,23 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
                         action_permission = "ALLOW"
                         action_source_ip = rule.get_source_ip()
                         action_source_id = int(
-                            get_node_of_ip(action_source_ip, self._env.nodes))
+                            get_node_of_ip(action_source_ip, self._env.nodes)
+                        )
                         action_destination_ip = rule.get_dest_ip()
                         action_destination_id = int(
-                            get_node_of_ip(action_destination_ip,
-                                           self._env.nodes))
+                            get_node_of_ip(
+                                action_destination_ip, self._env.nodes
+                            )
+                        )
                         action_protocol_name = rule.get_protocol()
                         action_protocol = (
-                                self._env.services_list.index(
-                                    action_protocol_name) + 1
+                            self._env.services_list.index(action_protocol_name)
+                            + 1
                         )  # convert name e.g. 'TCP' to index
                         action_port_name = rule.get_port()
-                        action_port = self._env.ports_list.index(
-                            action_port_name) + 1  # convert port name e.g. '80' to index
+                        action_port = (
+                            self._env.ports_list.index(action_port_name) + 1
+                        )  # convert port name e.g. '80' to index
 
                         found_action = True
                         break
@@ -258,21 +331,21 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         if not found_action:
             # Which Green IERS are blocked
             blocked_green_iers = self.get_blocked_green_iers(
-                self._env.green_iers, self._env.acl,
-                self._env.nodes)
+                self._env.green_iers, self._env.acl, self._env.nodes
+            )
             for ier_key, ier in blocked_green_iers.items():
-
                 # Which ALLOW rules are allowing this IER (none)
-                allowing_rules = self.get_allow_acl_rules_for_ier(ier,
-                                                                  self._env.acl,
-                                                                  self._env.nodes)
+                allowing_rules = self.get_allow_acl_rules_for_ier(
+                    ier, self._env.acl, self._env.nodes
+                )
 
                 # If there are no blocking rules, it may be being blocked by default
                 # If there is already an allow rule
                 node_id_to_check = int(ier.get_source_node_id())
                 service_name_to_check = ier.get_protocol()
                 service_id_to_check = self._env.services_list.index(
-                    service_name_to_check)
+                    service_name_to_check
+                )
 
                 # Service state of the the source node in the ier
                 service_state = s[service_id_to_check][node_id_to_check - 1]
@@ -283,11 +356,13 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
                     action_source_id = int(ier.get_source_node_id())
                     action_destination_id = int(ier.get_dest_node_id())
                     action_protocol_name = ier.get_protocol()
-                    action_protocol = self._env.services_list.index(
-                        action_protocol_name) + 1  # convert name e.g. 'TCP' to index
+                    action_protocol = (
+                        self._env.services_list.index(action_protocol_name) + 1
+                    )  # convert name e.g. 'TCP' to index
                     action_port_name = ier.get_port()
-                    action_port = self._env.ports_list.index(
-                        action_port_name) + 1  # convert port name e.g. '80' to index
+                    action_port = (
+                        self._env.ports_list.index(action_port_name) + 1
+                    )  # convert port name e.g. '80' to index
 
                     found_action = True
                     break
@@ -311,19 +386,25 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         return action
 
     def _calculate_action_basic_view(self, obs):
-        """Given an observation calculate a good acl-based action for the blue agent to take
+        """Calculate a good acl-based action for the blue agent to take.
 
-        Uses ONLY information from the current observation with NO knowledge of previous actions taken and
-        NO reward feedback.
+        Uses ONLY information from the current observation with NO knowledge
+        of previous actions taken and NO reward feedback.
 
-        We rely on randomness to select the precise action, as we want to block all traffic originating from
-        a compromised node, without being able to tell:
+        We rely on randomness to select the precise action, as we want to
+        block all traffic originating from a compromised node, without being
+        able to tell:
             1. Which ACL rules already exist
-            1. Which actions the agent has already tried.
+            2. Which actions the agent has already tried.
 
-        There is a high probability that the correct rule will not be deleted before the state becomes overwhelmed.
+        There is a high probability that the correct rule will not be deleted
+        before the state becomes overwhelmed.
 
-        Currently a deny rule does not overwrite an allow rule. The allow rules must be deleted.
+        Currently, a deny rule does not overwrite an allow rule. The allow
+        rules must be deleted.
+
+        TODO: Add params and return in docstring.
+        TODO: Typehint params and return.
         """
         action_dict = self._env.action_dict
         r_obs = transform_change_obs_readable(obs)
@@ -333,27 +414,35 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
             s = [*s]
 
         number_of_nodes = len(
-            [i for i in o if i != "NONE"])  # number of nodes (not links)
+            [i for i in o if i != "NONE"]
+        )  # number of nodes (not links)
         for service_num, service_states in enumerate(s):
-            comprimised_states = [n for n, i in enumerate(service_states) if
-                                  i == "COMPROMISED"]
+            comprimised_states = [
+                n for n, i in enumerate(service_states) if i == "COMPROMISED"
+            ]
             if len(comprimised_states) == 0:
                 # No states are COMPROMISED, try the next service
                 continue
 
-            compromised_node = np.random.choice(
-                comprimised_states) + 1  # +1 as 0 would be any
+            compromised_node = (
+                np.random.choice(comprimised_states) + 1
+            )  # +1 as 0 would be any
             action_decision = "DELETE"
             action_permission = "ALLOW"
             action_source_ip = compromised_node
             # Randomly select a destination ID to block
             action_destination_ip = np.random.choice(
-                list(range(1, number_of_nodes + 1)) + ["ANY"])
-            action_destination_ip = int(
-                action_destination_ip) if action_destination_ip != "ANY" else action_destination_ip
+                list(range(1, number_of_nodes + 1)) + ["ANY"]
+            )
+            action_destination_ip = (
+                int(action_destination_ip)
+                if action_destination_ip != "ANY"
+                else action_destination_ip
+            )
             action_protocol = service_num + 1  # +1 as 0 is any
             # Randomly select a port to block
-            # Bad assumption that number of protocols equals number of ports AND no rules exist with an ANY port
+            # Bad assumption that number of protocols equals number of ports
+            # AND no rules exist with an ANY port
             action_port = np.random.choice(list(range(1, len(s) + 1)))
 
             action = [

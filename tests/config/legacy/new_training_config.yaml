@@ -6,7 +6,7 @@
 # "SB3" (Stable Baselines3)
 # "RLLIB" (Ray[RLlib])
 # "NONE" (Custom Agent)
-agent_framework: RLLIB
+agent_framework: SB3
 
 # Sets which Red Agent algo/class will be used:
 # "PPO" (Proximal Policy Optimization)
@@ -27,7 +27,7 @@ num_steps: 256
 # Time delay between steps (for generic agents)
 time_delay: 10
 # Type of session to be run (TRAINING or EVALUATION)
-session_type: TRAINING
+session_type: TRAIN
 # Determine whether to load an agent from file
 load_agent: False
 # File path and file name of agent if you're loading one in

@@ -4,9 +4,9 @@ from primaite.common.enums import (
     HardwareState,
     LinkStatus,
     NodeHardwareAction,
+    NodePOLType,
     NodeSoftwareAction,
     SoftwareState,
-    NodePOLType
 )
 
 
@@ -16,14 +16,17 @@ def transform_action_node_readable(action):
 
     example:
     [1, 3, 1, 0] -> [1, 'SERVICE', 'PATCHING', 0]
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
     """
     action_node_property = NodePOLType(action[1]).name
 
     if action_node_property == "OPERATING":
         property_action = NodeHardwareAction(action[2]).name
-    elif (action_node_property == "OS" or action_node_property == "SERVICE") and action[
-        2
-    ] <= 1:
+    elif (
+        action_node_property == "OS" or action_node_property == "SERVICE"
+    ) and action[2] <= 1:
         property_action = NodeSoftwareAction(action[2]).name
     else:
         property_action = "NONE"
@@ -38,6 +41,9 @@ def transform_action_acl_readable(action):
 
     example:
     [0, 1, 2, 5, 0, 1] -> ['NONE', 'ALLOW', 2, 5, 'ANY', 1]
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
     """
     action_decisions = {0: "NONE", 1: "CREATE", 2: "DELETE"}
     action_permissions = {0: "DENY", 1: "ALLOW"}
@@ -62,6 +68,9 @@ def is_valid_node_action(action):
     Does NOT consider:
     - Node ID not valid to perform an operation - e.g. selected node has no service so cannot patch
     - Node already being in that state (turning an ON node ON)
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
     """
     action_r = transform_action_node_readable(action)
 
@@ -77,7 +86,10 @@ def is_valid_node_action(action):
     if node_property == "OPERATING" and node_action == "PATCHING":
         # Operating State cannot PATCH
         return False
-    if node_property != "OPERATING" and node_action not in ["NONE", "PATCHING"]:
+    if node_property != "OPERATING" and node_action not in [
+        "NONE",
+        "PATCHING",
+    ]:
         # Software States can only do Nothing or Patch
         return False
     return True
@@ -92,6 +104,9 @@ def is_valid_acl_action(action):
     Does NOT consider:
         - Trying to create identical rules
         - Trying to create a rule which is a subset of another rule (caused by "ANY")
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
     """
     action_r = transform_action_acl_readable(action)
 
@@ -118,7 +133,12 @@ def is_valid_acl_action(action):
 
 
 def is_valid_acl_action_extra(action):
-    """Harsher version of valid acl actions, does not allow action."""
+    """
+    Harsher version of valid acl actions, does not allow action.
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
+    """
     if is_valid_acl_action(action) is False:
         return False
 
@@ -136,13 +156,15 @@ def is_valid_acl_action_extra(action):
     return True
 
 
-
 def transform_change_obs_readable(obs):
-    """Transform list of transactions to readable list of each observation property
+    """
+    Transform list of transactions to readable list of each observation property.
 
     example:
-
     np.array([[1,2,1,3],[2,1,1,1]]) -> [[1, 2], ['OFF', 'ON'], ['GOOD', 'GOOD'], ['COMPROMISED', 'GOOD']]
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
     """
     ids = [i for i in obs[:, 0]]
     operating_states = [HardwareState(i).name for i in obs[:, 1]]
@@ -151,7 +173,9 @@ def transform_change_obs_readable(obs):
 
     for service in range(3, obs.shape[1]):
         # Links bit/s don't have a service state
-        service_states = [SoftwareState(i).name if i <= 4 else i for i in obs[:, service]]
+        service_states = [
+            SoftwareState(i).name if i <= 4 else i for i in obs[:, service]
+        ]
         new_obs.append(service_states)
 
     return new_obs
@@ -159,10 +183,13 @@ def transform_change_obs_readable(obs):
 
 def transform_obs_readable(obs):
     """
-    example:
-    np.array([[1,2,1,3],[2,1,1,1]]) -> [[1, 'OFF', 'GOOD', 'COMPROMISED'], [2, 'ON', 'GOOD', 'GOOD']]
-    """
+    Transform observation to readable format.
 
+    np.array([[1,2,1,3],[2,1,1,1]]) -> [[1, 'OFF', 'GOOD', 'COMPROMISED'], [2, 'ON', 'GOOD', 'GOOD']]
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
+    """
     changed_obs = transform_change_obs_readable(obs)
     new_obs = list(zip(*changed_obs))
     # Convert list of tuples to list of lists
@@ -172,7 +199,12 @@ def transform_obs_readable(obs):
 
 
 def convert_to_new_obs(obs, num_nodes=10):
-    """Convert original gym Box observation space to new multiDiscrete observation space"""
+    """
+    Convert original gym Box observation space to new multiDiscrete observation space.
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
+    """
     # Remove ID columns, remove links and flatten to MultiDiscrete observation space
     new_obs = obs[:num_nodes, 1:].flatten()
     return new_obs
@@ -180,7 +212,9 @@ def convert_to_new_obs(obs, num_nodes=10):
 
 def convert_to_old_obs(obs, num_nodes=10, num_links=10, num_services=1):
     """
-    Convert to old observation, links filled with 0's as no information is included in new observation space
+    Convert to old observation.
+
+    Links filled with 0's as no information is included in new observation space.
 
     example:
     obs = array([1, 1, 1, 1, 1, 1, 1, 1, 1,  ..., 1, 1, 1])
@@ -190,13 +224,17 @@ def convert_to_old_obs(obs, num_nodes=10, num_links=10, num_services=1):
                      [ 3,  1,  1,  1],
                      ...
                     [20,  0,  0,  0]])
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
     """
-
     # Convert back to more readable, original format
     reshaped_nodes = obs[:-num_links].reshape(num_nodes, num_services + 2)
 
     # Add empty links back and add node ID back
-    s = np.zeros([reshaped_nodes.shape[0] + num_links, reshaped_nodes.shape[1] + 1], dtype=np.int64)
+    s = np.zeros(
+        [reshaped_nodes.shape[0] + num_links, reshaped_nodes.shape[1] + 1],
+        dtype=np.int64,
+    )
     s[:, 0] = range(1, num_nodes + num_links + 1)  # Adding ID back
     s[:num_nodes, 1:] = reshaped_nodes  # put values back in
     new_obs = s
@@ -209,14 +247,19 @@ def convert_to_old_obs(obs, num_nodes=10, num_links=10, num_services=1):
     return new_obs
 
 
-def describe_obs_change(obs1, obs2, num_nodes=10, num_links=10, num_services=1):
-    """Return string describing change between two observations
+def describe_obs_change(
+    obs1, obs2, num_nodes=10, num_links=10, num_services=1
+):
+    """
+    Return string describing change between two observations.
 
     example:
     obs_1 = array([[1, 1, 1, 1, 3], [2, 1, 1, 1, 1]])
     obs_2 = array([[1, 1, 1, 1, 1], [2, 1, 1, 1, 1]])
     output = 'ID 1: SERVICE 2 set to GOOD'
 
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
     """
     obs1 = convert_to_old_obs(obs1, num_nodes, num_links, num_services)
     obs2 = convert_to_old_obs(obs2, num_nodes, num_links, num_services)
@@ -236,20 +279,27 @@ def describe_obs_change(obs1, obs2, num_nodes=10, num_links=10, num_services=1):
 
 
 def _describe_obs_change_helper(obs_change, is_link):
-    """ "
-    Helper funcion to describe what has changed
+    """
+    Helper funcion to describe what has changed.
 
     example:
     [ 1 -1 -1 -1  1] -> "ID 1: Service 1 changed to GOOD"
 
     Handles multiple changes e.g. 'ID 1: SERVICE 1 changed to PATCHING. SERVICE 2 set to GOOD.'
 
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
     """
     # Indexes where a change has occured, not including 0th index
-    index_changed = [i for i in range(1, len(obs_change)) if obs_change[i] != -1]
+    index_changed = [
+        i for i in range(1, len(obs_change)) if obs_change[i] != -1
+    ]
     # Node pol types, Indexes >= 3 are service nodes
     NodePOLTypes = [
-        NodePOLType(i).name if i < 3 else NodePOLType(3).name + " " + str(i - 3) for i in index_changed
+        NodePOLType(i).name
+        if i < 3
+        else NodePOLType(3).name + " " + str(i - 3)
+        for i in index_changed
     ]
     # Account for hardware states, software sattes and links
     states = [
@@ -263,8 +313,8 @@ def _describe_obs_change_helper(obs_change, is_link):
 
     if not is_link:
         desc = f"ID {obs_change[0]}:"
-        for NodePOLType, state in list(zip(NodePOLTypes, states)):
-            desc = desc + " " + NodePOLType + " changed to " + state + "."
+        for node_pol_type, state in list(zip(NodePOLTypes, states)):
+            desc = desc + " " + node_pol_type + " changed to " + state + "."
     else:
         desc = f"ID {obs_change[0]}: Link traffic changed to {states[0]}."
 
@@ -273,12 +323,14 @@ def _describe_obs_change_helper(obs_change, is_link):
 
 def transform_action_node_enum(action):
     """
-    Convert a node action from readable string format, to enumerated format
+    Convert a node action from readable string format, to enumerated format.
 
     example:
     [1, 'SERVICE', 'PATCHING', 0] -> [1, 3, 1, 0]
-    """
 
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
+    """
     action_node_id = action[0]
     action_node_property = NodePOLType[action[1]].value
 
@@ -291,24 +343,33 @@ def transform_action_node_enum(action):
 
     action_service_index = action[3]
 
-    new_action = [action_node_id, action_node_property, property_action, action_service_index]
+    new_action = [
+        action_node_id,
+        action_node_property,
+        property_action,
+        action_service_index,
+    ]
 
     return new_action
 
 
 def transform_action_node_readable(action):
     """
-    Convert a node action from enumerated format to readable format
+    Convert a node action from enumerated format to readable format.
 
     example:
     [1, 3, 1, 0] -> [1, 'SERVICE', 'PATCHING', 0]
-    """
 
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
+    """
     action_node_property = NodePOLType(action[1]).name
 
     if action_node_property == "OPERATING":
         property_action = NodeHardwareAction(action[2]).name
-    elif (action_node_property == "OS" or action_node_property == "SERVICE") and action[2] <= 1:
+    elif (
+        action_node_property == "OS" or action_node_property == "SERVICE"
+    ) and action[2] <= 1:
         property_action = NodeSoftwareAction(action[2]).name
     else:
         property_action = "NONE"
@@ -319,9 +380,11 @@ def transform_action_node_readable(action):
 
 def node_action_description(action):
     """
-    Generate string describing a node-based action
-    """
+    Generate string describing a node-based action.
 
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
+    """
     if isinstance(action[1], (int, np.int64)):
         # transform action to readable format
         action = transform_action_node_readable(action)
@@ -334,7 +397,9 @@ def node_action_description(action):
     if property_action == "NONE":
         return ""
     if node_property == "OPERATING" or node_property == "OS":
-        description = f"NODE {node_id}, {node_property}, SET TO {property_action}"
+        description = (
+            f"NODE {node_id}, {node_property}, SET TO {property_action}"
+        )
     elif node_property == "SERVICE":
         description = f"NODE {node_id} FROM SERVICE {service_id}, SET TO {property_action}"
     else:
@@ -343,34 +408,13 @@ def node_action_description(action):
     return description
 
 
-def transform_action_acl_readable(action):
-    """
-    Transform an ACL action to a more readable format
-
-    example:
-    [0, 1, 2, 5, 0, 1] -> ['NONE', 'ALLOW', 2, 5, 'ANY', 1]
-    """
-
-    action_decisions = {0: "NONE", 1: "CREATE", 2: "DELETE"}
-    action_permissions = {0: "DENY", 1: "ALLOW"}
-
-    action_decision = action_decisions[action[0]]
-    action_permission = action_permissions[action[1]]
-
-    # For IPs, Ports and Protocols, 0 means any, otherwise its just an index
-    new_action = [action_decision, action_permission] + list(action[2:6])
-    for n, val in enumerate(list(action[2:6])):
-        if val == 0:
-            new_action[n + 2] = "ANY"
-
-    return new_action
-
-
 def transform_action_acl_enum(action):
     """
-    Convert a acl action from readable string format, to enumerated format
-    """
+    Convert acl action from readable str format, to enumerated format.
 
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
+    """
     action_decisions = {"NONE": 0, "CREATE": 1, "DELETE": 2}
     action_permissions = {"DENY": 0, "ALLOW": 1}
 
@@ -388,8 +432,12 @@ def transform_action_acl_enum(action):
 
 
 def acl_action_description(action):
-    """generate string describing a acl-based action"""
+    """
+    Generate string describing an acl-based action.
 
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
+    """
     if isinstance(action[0], (int, np.int64)):
         # transform action to readable format
         action = transform_action_acl_readable(action)
@@ -406,11 +454,13 @@ def acl_action_description(action):
 
 def get_node_of_ip(ip, node_dict):
     """
-    Get the node ID of an IP address
+    Get the node ID of an IP address.
 
     node_dict: dictionary of nodes where key is ID, and value is the node (can be ontained from env.nodes)
-    """
 
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
+    """
     for node_key, node_value in node_dict.items():
         node_ip = node_value.ip_address
         if node_ip == ip:
@@ -418,13 +468,16 @@ def get_node_of_ip(ip, node_dict):
 
 
 def is_valid_node_action(action):
-    """Is the node action an actual valid action
+    """Is the node action an actual valid action.
 
     Only uses information about the action to determine if the action has an effect
 
     Does NOT consider:
     - Node ID not valid to perform an operation - e.g. selected node has no service so cannot patch
     - Node already being in that state (turning an ON node ON)
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
     """
     action_r = transform_action_node_readable(action)
 
@@ -438,7 +491,10 @@ def is_valid_node_action(action):
     if node_property == "OPERATING" and node_action == "PATCHING":
         # Operating State cannot PATCH
         return False
-    if node_property != "OPERATING" and node_action not in ["NONE", "PATCHING"]:
+    if node_property != "OPERATING" and node_action not in [
+        "NONE",
+        "PATCHING",
+    ]:
         # Software States can only do Nothing or Patch
         return False
     return True
@@ -446,13 +502,16 @@ def is_valid_node_action(action):
 
 def is_valid_acl_action(action):
     """
-    Is the ACL action an actual valid action
+    Is the ACL action an actual valid action.
 
     Only uses information about the action to determine if the action has an effect
 
     Does NOT consider:
         - Trying to create identical rules
         - Trying to create a rule which is a subset of another rule (caused by "ANY")
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
     """
     action_r = transform_action_acl_readable(action)
 
@@ -463,7 +522,11 @@ def is_valid_acl_action(action):
 
     if action_decision == "NONE":
         return False
-    if action_source_id == action_destination_id and action_source_id != "ANY" and action_destination_id != "ANY":
+    if (
+        action_source_id == action_destination_id
+        and action_source_id != "ANY"
+        and action_destination_id != "ANY"
+    ):
         # ACL rule towards itself
         return False
     if action_permission == "DENY":
@@ -475,7 +538,12 @@ def is_valid_acl_action(action):
 
 
 def is_valid_acl_action_extra(action):
-    """Harsher version of valid acl actions, does not allow action"""
+    """
+    Harsher version of valid acl actions, does not allow action.
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
+    """
     if is_valid_acl_action(action) is False:
         return False
 
@@ -494,33 +562,17 @@ def is_valid_acl_action_extra(action):
 
 
 def get_new_action(old_action, action_dict):
-    """Get new action (e.g. 32) from old action e.g. [1,1,1,0]
-
-    old_action can be either node or acl action type
     """
+    Get new action (e.g. 32) from old action e.g. [1,1,1,0].
 
+    Old_action can be either node or acl action type
+
+    TODO: Add params and return in docstring.
+    TODO: Typehint params and return.
+    """
     for key, val in action_dict.items():
         if list(val) == list(old_action):
             return key
     # Not all possible actions are included in dict, only valid action are
     # if action is not in the dict, its an invalid action so return 0
     return 0
-
-
-def get_action_description(action, action_dict):
-    """
-    Get a string describing/explaining what an action is doing in words
-    """
-
-    action_array = action_dict[action]
-    if len(action_array) == 4:
-        # node actions have length 4
-        action_description = node_action_description(action_array)
-    elif len(action_array) == 6:
-        # acl actions have length 6
-        action_description = acl_action_description(action_array)
-    else:
-        # Should never happen
-        action_description = "Unrecognised action"
-
-    return action_description

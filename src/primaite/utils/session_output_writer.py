@@ -1,7 +1,6 @@
 import csv
 from logging import Logger
-from typing import List, Final, IO, Union, Tuple
-from typing import TYPE_CHECKING
+from typing import Final, List, Tuple, TYPE_CHECKING, Union
 
 from primaite import getLogger
 from primaite.transactions.transaction import Transaction
@@ -13,15 +12,22 @@ _LOGGER: Logger = getLogger(__name__)
 
 
 class SessionOutputWriter:
+    """
+    A session output writer class.
+
+    Is used to write session outputs to csv file.
+    """
+
     _AV_REWARD_PER_EPISODE_HEADER: Final[List[str]] = [
-        "Episode", "Average Reward"
+        "Episode",
+        "Average Reward",
     ]
 
     def __init__(
-            self,
-            env: "Primaite",
-            transaction_writer: bool = False,
-            learning_session: bool = True
+        self,
+        env: "Primaite",
+        transaction_writer: bool = False,
+        learning_session: bool = True,
     ):
         self._env = env
         self.transaction_writer = transaction_writer
@@ -52,14 +58,21 @@ class SessionOutputWriter:
         self._csv_writer = csv.writer(self._csv_file)
 
     def __del__(self):
+        self.close()
+
+    def close(self):
+        """Close the cvs file."""
         if self._csv_file:
             self._csv_file.close()
-            _LOGGER.info(f"Finished writing file: {self._csv_file_path}")
+            _LOGGER.debug(f"Finished writing file: {self._csv_file_path}")
 
-    def write(
-            self,
-            data: Union[Tuple, Transaction]
-    ):
+    def write(self, data: Union[Tuple, Transaction]):
+        """
+        Write a row of session data.
+
+        :param data: The row of data to write. Can be a Tuple or an instance
+            of Transaction.
+        """
         if isinstance(data, Transaction):
             header, data = data.as_csv_data()
         else:
@@ -69,5 +82,4 @@ class SessionOutputWriter:
             self._init_csv_writer()
             self._csv_writer.writerow(header)
             self._first_write = False
-
         self._csv_writer.writerow(data)

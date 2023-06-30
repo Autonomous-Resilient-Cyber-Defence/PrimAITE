@@ -13,6 +13,9 @@ repos:
     rev: 23.1.0
     hooks:
       - id: black
+        args: [ "--line-length=79" ]
+        additional_dependencies:
+          - jupyter
   - repo: http://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
@@ -22,4 +25,5 @@ repos:
     rev: 6.0.0
     hooks:
       - id: flake8
-        additional_dependencies: [ flake8-docstrings ]
+        additional_dependencies:
+          - flake8-docstrings

@@ -7,12 +7,7 @@ from typing import List, Tuple
 class Transaction(object):
     """Transaction class."""
 
-    def __init__(
-            self,
-            agent_identifier,
-            episode_number,
-            step_number
-    ):
+    def __init__(self, agent_identifier, episode_number, step_number):
         """
         Transaction constructor.
 
@@ -37,6 +32,11 @@ class Transaction(object):
         "The action space invoked by the agent"
 
     def as_csv_data(self) -> Tuple[List, List]:
+        """
+        Converts the Transaction to a csv data row and provides a header.
+
+        :return: A tuple consisting of (header, data).
+        """
         if isinstance(self.action_space, int):
             action_length = self.action_space
         else:
@@ -74,12 +74,14 @@ class Transaction(object):
             str(self.reward),
         ]
         row = (
-                row
-                + _turn_action_space_to_array(self.action_space)
-                + _turn_obs_space_to_array(self.obs_space_pre, obs_assets,
-                                           obs_features)
-                + _turn_obs_space_to_array(self.obs_space_post, obs_assets,
-                                           obs_features)
+            row
+            + _turn_action_space_to_array(self.action_space)
+            + _turn_obs_space_to_array(
+                self.obs_space_pre, obs_assets, obs_features
+            )
+            + _turn_obs_space_to_array(
+                self.obs_space_post, obs_assets, obs_features
+            )
         )
         return header, row
 

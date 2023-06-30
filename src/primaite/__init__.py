@@ -3,12 +3,10 @@ import logging
 import logging.config
 import sys
 from bisect import bisect
-from logging import Formatter, LogRecord, StreamHandler
-from logging import Logger
+from logging import Formatter, Logger, LogRecord, StreamHandler
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Dict
-from typing import Final
+from typing import Dict, Final
 
 import pkg_resources
 import yaml
@@ -21,7 +19,6 @@ _PLATFORM_DIRS: Final[PlatformDirs] = PlatformDirs(appname="primaite")
 def _get_primaite_config():
     config_path = _PLATFORM_DIRS.user_config_path / "primaite_config.yaml"
     if not config_path.exists():
-
         config_path = Path(
             pkg_resources.resource_filename(
                 "primaite", "setup/_package_data/primaite_config.yaml"
@@ -37,7 +34,9 @@ def _get_primaite_config():
         "ERROR": logging.ERROR,
         "CRITICAL": logging.CRITICAL,
     }
-    primaite_config["log_level"] = log_level_map[primaite_config["logging"]["log_level"]]
+    primaite_config["log_level"] = log_level_map[
+        primaite_config["logging"]["log_level"]
+    ]
     return primaite_config
 
 
@@ -111,9 +110,13 @@ _LEVEL_FORMATTER: Final[_LevelFormatter] = _LevelFormatter(
     {
         logging.DEBUG: _PRIMAITE_CONFIG["logging"]["logger_format"]["DEBUG"],
         logging.INFO: _PRIMAITE_CONFIG["logging"]["logger_format"]["INFO"],
-        logging.WARNING: _PRIMAITE_CONFIG["logging"]["logger_format"]["WARNING"],
+        logging.WARNING: _PRIMAITE_CONFIG["logging"]["logger_format"][
+            "WARNING"
+        ],
         logging.ERROR: _PRIMAITE_CONFIG["logging"]["logger_format"]["ERROR"],
-        logging.CRITICAL: _PRIMAITE_CONFIG["logging"]["logger_format"]["CRITICAL"]
+        logging.CRITICAL: _PRIMAITE_CONFIG["logging"]["logger_format"][
+            "CRITICAL"
+        ],
     }
 )
 

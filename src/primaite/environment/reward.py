@@ -46,7 +46,9 @@ def calculate_reward_function(
         )
 
         # Software State
-        if isinstance(final_node, ActiveNode) or isinstance(final_node, ServiceNode):
+        if isinstance(final_node, ActiveNode) or isinstance(
+            final_node, ServiceNode
+        ):
             reward_value += score_node_os_state(
                 final_node, initial_node, reference_node, config_values
             )
@@ -81,7 +83,8 @@ def calculate_reward_function(
             reference_blocked = not reference_ier.get_is_running()
             live_blocked = not ier_value.get_is_running()
             ier_reward = (
-                config_values.green_ier_blocked * ier_value.get_mission_criticality()
+                config_values.green_ier_blocked
+                * ier_value.get_mission_criticality()
             )
 
             if live_blocked and not reference_blocked:
@@ -104,7 +107,9 @@ def calculate_reward_function(
     return reward_value
 
 
-def score_node_operating_state(final_node, initial_node, reference_node, config_values):
+def score_node_operating_state(
+    final_node, initial_node, reference_node, config_values
+):
     """
     Calculates score relating to the hardware state of a node.
 
@@ -153,7 +158,9 @@ def score_node_operating_state(final_node, initial_node, reference_node, config_
     return score
 
 
-def score_node_os_state(final_node, initial_node, reference_node, config_values):
+def score_node_os_state(
+    final_node, initial_node, reference_node, config_values
+):
     """
     Calculates score relating to the Software State of a node.
 
@@ -204,7 +211,9 @@ def score_node_os_state(final_node, initial_node, reference_node, config_values)
     return score
 
 
-def score_node_service_state(final_node, initial_node, reference_node, config_values):
+def score_node_service_state(
+    final_node, initial_node, reference_node, config_values
+):
     """
     Calculates score relating to the service state(s) of a node.
 
@@ -276,7 +285,9 @@ def score_node_service_state(final_node, initial_node, reference_node, config_va
     return score
 
 
-def score_node_file_system(final_node, initial_node, reference_node, config_values):
+def score_node_file_system(
+    final_node, initial_node, reference_node, config_values
+):
     """
     Calculates score relating to the file system state of a node.
 

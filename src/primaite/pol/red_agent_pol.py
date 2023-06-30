@@ -176,7 +176,9 @@ def apply_red_agent_iers(
                         link_id = edge_dict[0].get("id")
                         link = links[link_id]
                         # Check whether the new load exceeds the bandwidth
-                        if (link.get_current_load() + load) > link.get_bandwidth():
+                        if (
+                            link.get_current_load() + load
+                        ) > link.get_bandwidth():
                             link_capacity_exceeded = True
                             if _VERBOSE:
                                 print("Link capacity exceeded")
@@ -190,7 +192,8 @@ def apply_red_agent_iers(
                         while count < path_node_list_length - 1:
                             # Get the link between the next two nodes
                             edge_dict = network.get_edge_data(
-                                path_node_list[count], path_node_list[count + 1]
+                                path_node_list[count],
+                                path_node_list[count + 1],
                             )
                             link_id = edge_dict[0].get("id")
                             link = links[link_id]
@@ -200,16 +203,23 @@ def apply_red_agent_iers(
                         # This IER is now valid, so set it to running
                         ier_value.set_is_running(True)
                         if _VERBOSE:
-                            print("Red IER was allowed to run in step " + str(step))
+                            print(
+                                "Red IER was allowed to run in step "
+                                + str(step)
+                            )
                 else:
                     # One of the nodes is not operational
                     if _VERBOSE:
-                        print("Path not valid - one or more nodes not operational")
+                        print(
+                            "Path not valid - one or more nodes not operational"
+                        )
                     pass
 
             else:
                 if _VERBOSE:
-                    print("Red IER was NOT allowed to run in step " + str(step))
+                    print(
+                        "Red IER was NOT allowed to run in step " + str(step)
+                    )
                     print("Source, Dest or ACL were not valid")
                 pass
             # ------------------------------------
@@ -264,7 +274,9 @@ def apply_red_agent_node_pol(
                 passed_checks = True
             elif initiator == NodePOLInitiator.IER:
                 # Need to check there is a red IER incoming
-                passed_checks = is_red_ier_incoming(target_node, iers, pol_type)
+                passed_checks = is_red_ier_incoming(
+                    target_node, iers, pol_type
+                )
             elif initiator == NodePOLInitiator.SERVICE:
                 # Need to check the condition of a service on another node
                 source_node = nodes[source_node_id]
@@ -308,7 +320,9 @@ def apply_red_agent_node_pol(
                         target_node.set_file_system_state(state)
             else:
                 if _VERBOSE:
-                    print("Node Red Agent PoL not allowed - did not pass checks")
+                    print(
+                        "Node Red Agent PoL not allowed - did not pass checks"
+                    )
         else:
             # PoL is not valid in this time step
             pass
@@ -323,7 +337,10 @@ def is_red_ier_incoming(node, iers, node_pol_type):
     node_id = node.node_id
 
     for ier_key, ier_value in iers.items():
-        if ier_value.get_is_running() and ier_value.get_dest_node_id() == node_id:
+        if (
+            ier_value.get_is_running()
+            and ier_value.get_dest_node_id() == node_id
+        ):
             if (
                 node_pol_type == NodePOLType.OPERATING
                 or node_pol_type == NodePOLType.OS

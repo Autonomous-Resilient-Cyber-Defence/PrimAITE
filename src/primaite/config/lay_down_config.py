@@ -1,20 +1,20 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 from pathlib import Path
-from typing import Final, Union, Dict, Any
+from typing import Any, Dict, Final, Union
 
-import networkx
 import yaml
 
-from primaite import USERS_CONFIG_DIR, getLogger
+from primaite import getLogger, USERS_CONFIG_DIR
 
 _LOGGER = getLogger(__name__)
 
-_EXAMPLE_LAY_DOWN: Final[
-    Path] = USERS_CONFIG_DIR / "example_config" / "lay_down"
+_EXAMPLE_LAY_DOWN: Final[Path] = (
+    USERS_CONFIG_DIR / "example_config" / "lay_down"
+)
 
 
 def convert_legacy_lay_down_config_dict(
-        legacy_config_dict: Dict[str, Any]
+    legacy_config_dict: Dict[str, Any]
 ) -> Dict[str, Any]:
     """
     Convert a legacy lay down config dict to the new format.
@@ -25,10 +25,7 @@ def convert_legacy_lay_down_config_dict(
     return legacy_config_dict
 
 
-def load(
-        file_path: Union[str, Path],
-        legacy_file: bool = False
-) -> Dict:
+def load(file_path: Union[str, Path], legacy_file: bool = False) -> Dict:
     """
     Read in a lay down config yaml file.
 
