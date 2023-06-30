@@ -450,7 +450,10 @@ class ObservationsHandler:
             self._space = component_spaces[0]
         else:
             self._space = spaces.Tuple(component_spaces)
-        self._flat_space = spaces.flatten_space(self._space)
+        if len(component_spaces) > 0:
+            self._flat_space = spaces.flatten_space(self._space)
+        else:
+            self._flat_space = spaces.Box(0, 1, (0,))
 
     @property
     def space(self):
