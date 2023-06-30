@@ -58,12 +58,12 @@ def write_transaction_to_file(
         action_header.append("AS_" + str(x))
 
     # Create the observation space headers array
-    obs_header_initial = [f"pre_{o}" for o in obs_space_description]
-    obs_header_new = [f"post_{o}" for o in obs_space_description]
+    # obs_header_initial = [f"pre_{o}" for o in obs_space_description]
+    # obs_header_new = [f"post_{o}" for o in obs_space_description]
 
     # Open up a csv file
     header = ["Timestamp", "Episode", "Step", "Reward"]
-    header = header + action_header + obs_header_initial + obs_header_new
+    header = header + action_header + obs_space_description
 
     try:
         filename = session_path / f"all_transactions_{timestamp_str}.csv"
@@ -82,8 +82,7 @@ def write_transaction_to_file(
             csv_data = (
                 csv_data
                 + turn_action_space_to_array(transaction.action_space)
-                + transaction.obs_space_pre.tolist()
-                + transaction.obs_space_post.tolist()
+                + transaction.obs_space.tolist()
             )
             csv_writer.writerow(csv_data)
 

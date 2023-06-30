@@ -168,7 +168,7 @@ class NodeLinkTable(AbstractObservationComponent):
                 f"link_{link_id}_n/a",
             ]
             for j, serv in enumerate(self.env.services_list):
-                link_labels.append(f"node_{node_id}_service_{serv}_load")
+                link_labels.append(f"link_{link_id}_service_{serv}_load")
 
             structure.extend(link_labels)
         return structure
