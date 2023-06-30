@@ -76,12 +76,8 @@ class Transaction(object):
         row = (
             row
             + _turn_action_space_to_array(self.action_space)
-            + _turn_obs_space_to_array(
-                self.obs_space_pre, obs_assets, obs_features
-            )
-            + _turn_obs_space_to_array(
-                self.obs_space_post, obs_assets, obs_features
-            )
+            + _turn_obs_space_to_array(self.obs_space_pre, obs_assets, obs_features)
+            + _turn_obs_space_to_array(self.obs_space_post, obs_assets, obs_features)
         )
         return header, row
 

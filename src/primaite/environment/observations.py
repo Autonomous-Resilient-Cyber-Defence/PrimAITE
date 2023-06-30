@@ -77,9 +77,7 @@ class NodeLinkTable(AbstractObservationComponent):
         )
 
         # 3. Initialise Observation with zeroes
-        self.current_observation = np.zeros(
-            observation_shape, dtype=self._DATA_TYPE
-        )
+        self.current_observation = np.zeros(observation_shape, dtype=self._DATA_TYPE)
 
     def update(self):
         """Update the observation based on current environment state.
@@ -94,12 +92,8 @@ class NodeLinkTable(AbstractObservationComponent):
             self.current_observation[item_index][0] = int(node.node_id)
             self.current_observation[item_index][1] = node.hardware_state.value
             if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
-                self.current_observation[item_index][
-                    2
-                ] = node.software_state.value
-                self.current_observation[item_index][
-                    3
-                ] = node.file_system_state_observed.value
+                self.current_observation[item_index][2] = node.software_state.value
+                self.current_observation[item_index][3] = node.file_system_state_observed.value
             else:
                 self.current_observation[item_index][2] = 0
                 self.current_observation[item_index][3] = 0
@@ -107,9 +101,7 @@ class NodeLinkTable(AbstractObservationComponent):
             if isinstance(node, ServiceNode):
                 for service in self.env.services_list:
                     if node.has_service(service):
-                        self.current_observation[item_index][
-                            service_index
-                        ] = node.get_service_state(service).value
+                        self.current_observation[item_index][service_index] = node.get_service_state(service).value
                     else:
                         self.current_observation[item_index][service_index] = 0
                     service_index += 1
@@ -129,9 +121,7 @@ class NodeLinkTable(AbstractObservationComponent):
             protocol_list = link.get_protocol_list()
             protocol_index = 0
             for protocol in protocol_list:
-                self.current_observation[item_index][
-                    protocol_index + 4
-                ] = protocol.get_load()
+                self.current_observation[item_index][protocol_index + 4] = protocol.get_load()
                 protocol_index += 1
             item_index += 1
 
@@ -203,9 +193,7 @@ class NodeStatuses(AbstractObservationComponent):
             if isinstance(node, ServiceNode):
                 for i, service in enumerate(self.env.services_list):
                     if node.has_service(service):
-                        service_states[i] = node.get_service_state(
-                            service
-                        ).value
+                        service_states[i] = node.get_service_state(service).value
             obs.extend(
                 [
                     hardware_state,
@@ -269,11 +257,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
             self._entries_per_link = self.env.num_services
 
         # 1. Define the shape of your observation space component
-        shape = (
-            [self._quantisation_levels]
-            * self.env.num_links
-            * self._entries_per_link
-        )
+        shape = [self._quantisation_levels] * self.env.num_links * self._entries_per_link
 
         # 2. Create Observation space
         self.space = spaces.MultiDiscrete(shape)
@@ -292,9 +276,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
             if self._combine_service_traffic:
                 loads = [link.get_current_load()]
             else:
-                loads = [
-                    protocol.get_load() for protocol in link.protocol_list
-                ]
+                loads = [protocol.get_load() for protocol in link.protocol_list]
 
             for load in loads:
                 if load <= 0:
@@ -302,9 +284,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
                 elif load >= bandwidth:
                     traffic_level = self._quantisation_levels - 1
                 else:
-                    traffic_level = (load / bandwidth) // (
-                        1 / (self._quantisation_levels - 2)
-                    ) + 1
+                    traffic_level = (load / bandwidth) // (1 / (self._quantisation_levels - 2)) + 1
 
                 obs.append(int(traffic_level))
 

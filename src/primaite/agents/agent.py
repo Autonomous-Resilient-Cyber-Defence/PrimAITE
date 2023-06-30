@@ -5,7 +5,7 @@ import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Final, Optional, Union
+from typing import Dict, Final, Union
 from uuid import uuid4
 
 import yaml
@@ -51,16 +51,12 @@ class AgentSessionABC(ABC):
         if not isinstance(training_config_path, Path):
             training_config_path = Path(training_config_path)
         self._training_config_path: Final[Union[Path]] = training_config_path
-        self._training_config: Final[TrainingConfig] = training_config.load(
-            self._training_config_path
-        )
+        self._training_config: Final[TrainingConfig] = training_config.load(self._training_config_path)
 
         if not isinstance(lay_down_config_path, Path):
             lay_down_config_path = Path(lay_down_config_path)
         self._lay_down_config_path: Final[Union[Path]] = lay_down_config_path
-        self._lay_down_config: Dict = lay_down_config.load(
-            self._lay_down_config_path
-        )
+        self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)
         self.output_verbose_level = self._training_config.output_verbose_level
 
         self._env: Primaite
@@ -132,9 +128,7 @@ class AgentSessionABC(ABC):
             "learning": {"total_episodes": None, "total_time_steps": None},
             "evaluation": {"total_episodes": None, "total_time_steps": None},
             "env": {
-                "training_config": self._training_config.to_dict(
-                    json_serializable=True
-                ),
+                "training_config": self._training_config.to_dict(json_serializable=True),
                 "lay_down_config": self._lay_down_config,
             },
         }
@@ -161,19 +155,11 @@ class AgentSessionABC(ABC):
         metadata_dict["end_datetime"] = datetime.now().isoformat()
 
         if not self.is_eval:
-            metadata_dict["learning"][
-                "total_episodes"
-            ] = self._env.episode_count  # noqa
-            metadata_dict["learning"][
-                "total_time_steps"
-            ] = self._env.total_step_count  # noqa
+            metadata_dict["learning"]["total_episodes"] = self._env.episode_count  # noqa
+            metadata_dict["learning"]["total_time_steps"] = self._env.total_step_count  # noqa
         else:
-            metadata_dict["evaluation"][
-                "total_episodes"
-            ] = self._env.episode_count  # noqa
-            metadata_dict["evaluation"][
-                "total_time_steps"
-            ] = self._env.total_step_count  # noqa
+            metadata_dict["evaluation"]["total_episodes"] = self._env.episode_count  # noqa
+            metadata_dict["evaluation"]["total_time_steps"] = self._env.total_step_count  # noqa
 
         filepath = self.session_path / "session_metadata.json"
         _LOGGER.debug(f"Updating Session Metadata file: {filepath}")
@@ -184,12 +170,9 @@ class AgentSessionABC(ABC):
     @abstractmethod
     def _setup(self):
         _LOGGER.info(
-            "Welcome to the Primary-level AI Training Environment "
-            f"(PrimAITE) (version: {primaite.__version__})"
+            "Welcome to the Primary-level AI Training Environment " f"(PrimAITE) (version: {primaite.__version__})"
         )
-        _LOGGER.info(
-            f"The output directory for this session is: {self.session_path}"
-        )
+        _LOGGER.info(f"The output directory for this session is: {self.session_path}")
         self._write_session_metadata_file()
         self._can_learn = True
         self._can_evaluate = False
@@ -201,17 +184,11 @@ class AgentSessionABC(ABC):
     @abstractmethod
     def learn(
         self,
-        time_steps: Optional[int] = None,
-        episodes: Optional[int] = None,
         **kwargs,
     ):
         """
         Train the agent.
 
-        :param time_steps: The number of steps per episode. Optional. If not
-            passed, the value from the training config will be used.
-        :param episodes: The number of episodes. Optional. If not
-            passed, the value from the training config will be used.
         :param kwargs: Any agent-specific key-word args to be passed.
         """
         if self._can_learn:
@@ -225,17 +202,11 @@ class AgentSessionABC(ABC):
     @abstractmethod
     def evaluate(
         self,
-        time_steps: Optional[int] = None,
-        episodes: Optional[int] = None,
         **kwargs,
     ):
         """
         Evaluate the agent.
 
-        :param time_steps: The number of steps per episode. Optional. If not
-            passed, the value from the training config will be used.
-        :param episodes: The number of episodes. Optional. If not
-            passed, the value from the training config will be used.
         :param kwargs: Any agent-specific key-word args to be passed.
         """
         self._env.set_as_eval()  # noqa
@@ -281,9 +252,7 @@ class AgentSessionABC(ABC):
 
         else:
             # Session path does not exist
-            msg = (
-                f"Failed to load PrimAITE Session, path does not exist: {path}"
-            )
+            msg = f"Failed to load PrimAITE Session, path does not exist: {path}"
             _LOGGER.error(msg)
             raise FileNotFoundError(msg)
         pass
@@ -354,17 +323,11 @@ class HardCodedAgentSessionABC(AgentSessionABC):
 
     def learn(
         self,
-        time_steps: Optional[int] = None,
-        episodes: Optional[int] = None,
         **kwargs,
     ):
         """
         Train the agent.
 
-        :param time_steps: The number of steps per episode. Optional. If not
-            passed, the value from the training config will be used.
-        :param episodes: The number of episodes. Optional. If not
-            passed, the value from the training config will be used.
         :param kwargs: Any agent-specific key-word args to be passed.
         """
         _LOGGER.warning("Deterministic agents cannot learn")
@@ -375,27 +338,19 @@ class HardCodedAgentSessionABC(AgentSessionABC):
 
     def evaluate(
         self,
-        time_steps: Optional[int] = None,
-        episodes: Optional[int] = None,
         **kwargs,
     ):
         """
         Evaluate the agent.
 
-        :param time_steps: The number of steps per episode. Optional. If not
-            passed, the value from the training config will be used.
-        :param episodes: The number of episodes. Optional. If not
-            passed, the value from the training config will be used.
         :param kwargs: Any agent-specific key-word args to be passed.
         """
         self._env.set_as_eval()  # noqa
         self.is_eval = True
 
-        if not time_steps:
-            time_steps = self._training_config.num_steps
+        time_steps = self._training_config.num_steps
+        episodes = self._training_config.num_episodes
 
-        if not episodes:
-            episodes = self._training_config.num_episodes
         obs = self._env.reset()
         for episode in range(episodes):
             # Reset env and collect initial observation

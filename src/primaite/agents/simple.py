@@ -1,9 +1,5 @@
 from primaite.agents.agent import HardCodedAgentSessionABC
-from primaite.agents.utils import (
-    get_new_action,
-    transform_action_acl_enum,
-    transform_action_node_enum,
-)
+from primaite.agents.utils import get_new_action, transform_action_acl_enum, transform_action_node_enum
 
 
 class RandomAgent(HardCodedAgentSessionABC):

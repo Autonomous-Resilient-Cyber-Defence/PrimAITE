@@ -56,9 +56,7 @@ def logs(last_n: Annotated[int, typer.Option("-n")]):
             print(re.sub(r"\n*", "", line))
 
 
-_LogLevel = Enum(
-    "LogLevel", {k: k for k in logging._levelToName.values()}
-)  # noqa
+_LogLevel = Enum("LogLevel", {k: k for k in logging._levelToName.values()})  # noqa
 
 
 @app.command()
@@ -124,21 +122,12 @@ def setup(overwrite_existing: bool = True):
     app_dirs = PlatformDirs(appname="primaite")
     app_dirs.user_config_path.mkdir(exist_ok=True, parents=True)
     user_config_path = app_dirs.user_config_path / "primaite_config.yaml"
-    pkg_config_path = Path(
-        pkg_resources.resource_filename(
-            "primaite", "setup/_package_data/primaite_config.yaml"
-        )
-    )
+    pkg_config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
 
     shutil.copy2(pkg_config_path, user_config_path)
 
     from primaite import getLogger
-    from primaite.setup import (
-        old_installation_clean_up,
-        reset_demo_notebooks,
-        reset_example_configs,
-        setup_app_dirs,
-    )
+    from primaite.setup import old_installation_clean_up, reset_demo_notebooks, reset_example_configs, setup_app_dirs
 
     _LOGGER = getLogger(__name__)
 
@@ -188,9 +177,7 @@ def session(tc: Optional[str] = None, ldc: Optional[str] = None):
 
 
 @app.command()
-def plotly_template(
-    template: Annotated[Optional[PlotlyTemplate], typer.Argument()] = None
-):
+def plotly_template(template: Annotated[Optional[PlotlyTemplate], typer.Argument()] = None):
     """
     View or set the plotly template for Session plots.
 
@@ -208,14 +195,10 @@ def plotly_template(
             primaite_config = yaml.safe_load(file)
 
         if template:
-            primaite_config["session"]["outputs"]["plots"][
-                "template"
-            ] = template.value
+            primaite_config["session"]["outputs"]["plots"]["template"] = template.value
             with open(user_config_path, "w") as file:
                 yaml.dump(primaite_config, file)
             print(f"PrimAITE plotly template: {template.value}")
         else:
-            template = primaite_config["session"]["outputs"]["plots"][
-                "template"
-            ]
+            template = primaite_config["session"]["outputs"]["plots"]["template"]
             print(f"PrimAITE plotly template: {template}")

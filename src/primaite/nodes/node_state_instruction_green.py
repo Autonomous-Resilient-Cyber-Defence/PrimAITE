@@ -32,9 +32,7 @@ class NodeStateInstructionGreen(object):
         self.end_step = _end_step
         self.node_id = _node_id
         self.node_pol_type = _node_pol_type
-        self.service_name = (
-            _service_name  # Not used when not a service instruction
-        )
+        self.service_name = _service_name  # Not used when not a service instruction
         self.state = _state
 
     def get_start_step(self):

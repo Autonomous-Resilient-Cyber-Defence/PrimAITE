@@ -51,9 +51,7 @@ class SessionOutputWriter:
         self._first_write: bool = True
 
     def _init_csv_writer(self):
-        self._csv_file = open(
-            self._csv_file_path, "w", encoding="UTF8", newline=""
-        )
+        self._csv_file = open(self._csv_file_path, "w", encoding="UTF8", newline="")
 
         self._csv_writer = csv.writer(self._csv_file)
 

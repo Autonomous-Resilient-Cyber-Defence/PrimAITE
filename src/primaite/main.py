@@ -32,11 +32,7 @@ if __name__ == "__main__":
     parser.add_argument("--ldc")
     args = parser.parse_args()
     if not args.tc:
-        _LOGGER.error(
-            "Please provide a training config file using the --tc " "argument"
-        )
+        _LOGGER.error("Please provide a training config file using the --tc " "argument")
     if not args.ldc:
-        _LOGGER.error(
-            "Please provide a lay down config file using the --ldc " "argument"
-        )
+        _LOGGER.error("Please provide a lay down config file using the --ldc " "argument")
     run(training_config_path=args.tc, lay_down_config_path=args.ldc)

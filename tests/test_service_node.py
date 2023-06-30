@@ -45,9 +45,7 @@ def test_service_state_change(operating_state, expected_state):
         (HardwareState.ON, SoftwareState.OVERWHELMED),
     ],
 )
-def test_service_state_change_if_not_comprised(
-    operating_state, expected_state
-):
+def test_service_state_change_if_not_comprised(operating_state, expected_state):
     """
     Test that a node cannot change the state of a running service.
 
@@ -67,8 +65,6 @@ def test_service_state_change_if_not_comprised(
     service = Service("TCP", 80, SoftwareState.GOOD)
     service_node.add_service(service)
 
-    service_node.set_service_state_if_not_compromised(
-        "TCP", SoftwareState.OVERWHELMED
-    )
+    service_node.set_service_state_if_not_compromised("TCP", SoftwareState.OVERWHELMED)
 
     assert service_node.get_service_state("TCP") == expected_state

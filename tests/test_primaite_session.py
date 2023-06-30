@@ -36,18 +36,12 @@ def test_primaite_session(temp_primaite_session):
         # Check that both the transactions and av reward csv files exist
         for file in session.learning_path.iterdir():
             if file.suffix == ".csv":
-                assert (
-                    "all_transactions" in file.name
-                    or "average_reward_per_episode" in file.name
-                )
+                assert "all_transactions" in file.name or "average_reward_per_episode" in file.name
 
         # Check that both the transactions and av reward csv files exist
         for file in session.evaluation_path.iterdir():
             if file.suffix == ".csv":
-                assert (
-                    "all_transactions" in file.name
-                    or "average_reward_per_episode" in file.name
-                )
+                assert "all_transactions" in file.name or "average_reward_per_episode" in file.name
 
         _LOGGER.debug("Inspecting files in temp session path...")
         for dir_path, dir_names, file_names in os.walk(session_path):

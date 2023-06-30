@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
 import numpy as np
 from stable_baselines3 import A2C, PPO
@@ -21,10 +21,7 @@ class SB3Agent(AgentSessionABC):
     def __init__(self, training_config_path, lay_down_config_path):
         super().__init__(training_config_path, lay_down_config_path)
         if not self._training_config.agent_framework == AgentFramework.SB3:
-            msg = (
-                f"Expected SB3 agent_framework, "
-                f"got {self._training_config.agent_framework}"
-            )
+            msg = f"Expected SB3 agent_framework, " f"got {self._training_config.agent_framework}"
             _LOGGER.error(msg)
             raise ValueError(msg)
         if self._training_config.agent_identifier == AgentIdentifier.PPO:
@@ -32,10 +29,7 @@ class SB3Agent(AgentSessionABC):
         elif self._training_config.agent_identifier == AgentIdentifier.A2C:
             self._agent_class = A2C
         else:
-            msg = (
-                "Expected PPO or A2C agent_identifier, "
-                f"got {self._training_config.agent_identifier}"
-            )
+            msg = "Expected PPO or A2C agent_identifier, " f"got {self._training_config.agent_identifier}"
             _LOGGER.error(msg)
             raise ValueError(msg)
 
@@ -64,19 +58,15 @@ class SB3Agent(AgentSessionABC):
             self._env,
             verbose=self.output_verbose_level,
             n_steps=self._training_config.num_steps,
-            tensorboard_log=self._tensorboard_log_path,
+            tensorboard_log=str(self._tensorboard_log_path),
         )
 
     def _save_checkpoint(self):
         checkpoint_n = self._training_config.checkpoint_every_n_episodes
         episode_count = self._env.episode_count
         if checkpoint_n > 0 and episode_count > 0:
-            if (episode_count % checkpoint_n == 0) or (
-                episode_count == self._training_config.num_episodes
-            ):
-                checkpoint_path = (
-                    self.checkpoints_path / f"sb3ppo_{episode_count}.zip"
-                )
+            if (episode_count % checkpoint_n == 0) or (episode_count == self._training_config.num_episodes):
+                checkpoint_path = self.checkpoints_path / f"sb3ppo_{episode_count}.zip"
                 self._agent.save(checkpoint_path)
                 _LOGGER.debug(f"Saved agent checkpoint: {checkpoint_path}")
 
@@ -85,58 +75,37 @@ class SB3Agent(AgentSessionABC):
 
     def learn(
         self,
-        time_steps: Optional[int] = None,
-        episodes: Optional[int] = None,
         **kwargs,
     ):
         """
         Train the agent.
 
-        :param time_steps: The number of steps per episode. Optional. If not
-            passed, the value from the training config will be used.
-        :param episodes: The number of episodes. Optional. If not
-            passed, the value from the training config will be used.
         :param kwargs: Any agent-specific key-word args to be passed.
         """
-        if not time_steps:
-            time_steps = self._training_config.num_steps
-
-        if not episodes:
-            episodes = self._training_config.num_episodes
+        time_steps = self._training_config.num_steps
+        episodes = self._training_config.num_episodes
         self.is_eval = False
-        _LOGGER.info(
-            f"Beginning learning for {episodes} episodes @"
-            f" {time_steps} time steps..."
-        )
+        _LOGGER.info(f"Beginning learning for {episodes} episodes @" f" {time_steps} time steps...")
         for i in range(episodes):
             self._agent.learn(total_timesteps=time_steps)
             self._save_checkpoint()
-
-        self.close()
+        self._env.reset()
+        self._env.close()
         super().learn()
 
     def evaluate(
         self,
-        time_steps: Optional[int] = None,
-        episodes: Optional[int] = None,
         deterministic: bool = True,
         **kwargs,
     ):
         """
         Evaluate the agent.
 
-        :param time_steps: The number of steps per episode. Optional. If not
-            passed, the value from the training config will be used.
-        :param episodes: The number of episodes. Optional. If not
-            passed, the value from the training config will be used.
         :param deterministic: Whether the evaluation is deterministic.
         :param kwargs: Any agent-specific key-word args to be passed.
         """
-        if not time_steps:
-            time_steps = self._training_config.num_steps
-
-        if not episodes:
-            episodes = self._training_config.num_episodes
+        time_steps = self._training_config.num_steps
+        episodes = self._training_config.num_episodes
         self._env.set_as_eval()
         self.is_eval = True
         if deterministic:
@@ -144,19 +113,18 @@ class SB3Agent(AgentSessionABC):
         else:
             deterministic_str = "non-deterministic"
         _LOGGER.info(
-            f"Beginning {deterministic_str} evaluation for "
-            f"{episodes} episodes @ {time_steps} time steps..."
+            f"Beginning {deterministic_str} evaluation for " f"{episodes} episodes @ {time_steps} time steps..."
         )
         for episode in range(episodes):
             obs = self._env.reset()
 
             for step in range(time_steps):
-                action, _states = self._agent.predict(
-                    obs, deterministic=deterministic
-                )
+                action, _states = self._agent.predict(obs, deterministic=deterministic)
                 if isinstance(action, np.ndarray):
                     action = np.int64(action)
                 obs, rewards, done, info = self._env.step(action)
+        self._env.reset()
+        self._env.close()
         super().evaluate()
 
     @classmethod

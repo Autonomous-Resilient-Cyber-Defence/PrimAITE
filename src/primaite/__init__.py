@@ -19,11 +19,7 @@ _PLATFORM_DIRS: Final[PlatformDirs] = PlatformDirs(appname="primaite")
 def _get_primaite_config():
     config_path = _PLATFORM_DIRS.user_config_path / "primaite_config.yaml"
     if not config_path.exists():
-        config_path = Path(
-            pkg_resources.resource_filename(
-                "primaite", "setup/_package_data/primaite_config.yaml"
-            )
-        )
+        config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
     with open(config_path, "r") as file:
         primaite_config = yaml.safe_load(file)
     log_level_map = {
@@ -34,9 +30,7 @@ def _get_primaite_config():
         "ERROR": logging.ERROR,
         "CRITICAL": logging.CRITICAL,
     }
-    primaite_config["log_level"] = log_level_map[
-        primaite_config["logging"]["log_level"]
-    ]
+    primaite_config["log_level"] = log_level_map[primaite_config["logging"]["log_level"]]
     return primaite_config
 
 
@@ -82,14 +76,9 @@ class _LevelFormatter(Formatter):
         super().__init__()
 
         if "fmt" in kwargs:
-            raise ValueError(
-                "Format string must be passed to level-surrogate formatters, "
-                "not this one"
-            )
+            raise ValueError("Format string must be passed to level-surrogate formatters, " "not this one")
 
-        self.formats = sorted(
-            (level, Formatter(fmt, **kwargs)) for level, fmt in formats.items()
-        )
+        self.formats = sorted((level, Formatter(fmt, **kwargs)) for level, fmt in formats.items())
 
     def format(self, record: LogRecord) -> str:
         """Overrides ``Formatter.format``."""
@@ -110,13 +99,9 @@ _LEVEL_FORMATTER: Final[_LevelFormatter] = _LevelFormatter(
     {
         logging.DEBUG: _PRIMAITE_CONFIG["logging"]["logger_format"]["DEBUG"],
         logging.INFO: _PRIMAITE_CONFIG["logging"]["logger_format"]["INFO"],
-        logging.WARNING: _PRIMAITE_CONFIG["logging"]["logger_format"][
-            "WARNING"
-        ],
+        logging.WARNING: _PRIMAITE_CONFIG["logging"]["logger_format"]["WARNING"],
         logging.ERROR: _PRIMAITE_CONFIG["logging"]["logger_format"]["ERROR"],
-        logging.CRITICAL: _PRIMAITE_CONFIG["logging"]["logger_format"][
-            "CRITICAL"
-        ],
+        logging.CRITICAL: _PRIMAITE_CONFIG["logging"]["logger_format"]["CRITICAL"],
     }
 )
 
