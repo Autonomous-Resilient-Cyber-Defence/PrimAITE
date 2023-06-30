@@ -124,15 +124,13 @@ def setup(overwrite_existing: bool = True):
     app_dirs = PlatformDirs(appname="primaite")
     app_dirs.user_config_path.mkdir(exist_ok=True, parents=True)
     user_config_path = app_dirs.user_config_path / "primaite_config.yaml"
-    build_config = overwrite_existing or (not user_config_path.exists())
-    if build_config:
-        pkg_config_path = Path(
-            pkg_resources.resource_filename(
-                "primaite", "setup/_package_data/primaite_config.yaml"
-            )
+    pkg_config_path = Path(
+        pkg_resources.resource_filename(
+            "primaite", "setup/_package_data/primaite_config.yaml"
         )
+    )
 
-        shutil.copy2(pkg_config_path, user_config_path)
+    shutil.copy2(pkg_config_path, user_config_path)
 
     from primaite import getLogger
     from primaite.setup import (
@@ -146,8 +144,7 @@ def setup(overwrite_existing: bool = True):
 
     _LOGGER.info("Performing the PrimAITE first-time setup...")
 
-    if build_config:
-        _LOGGER.info("Building primaite_config.yaml...")
+    _LOGGER.info("Building primaite_config.yaml...")
 
     _LOGGER.info("Building the PrimAITE app directories...")
     setup_app_dirs.run()
