@@ -87,7 +87,9 @@ class ActiveNode(Node):
                 f"Node.software_state:{self._software_state}"
             )
 
-    def set_software_state_if_not_compromised(self, software_state: SoftwareState):
+    def set_software_state_if_not_compromised(
+        self, software_state: SoftwareState
+    ):
         """
         Sets Software State if the node is not compromised.
 
@@ -98,7 +100,9 @@ class ActiveNode(Node):
             if self._software_state != SoftwareState.COMPROMISED:
                 self._software_state = software_state
                 if software_state == SoftwareState.PATCHING:
-                    self.patching_count = self.config_values.os_patching_duration
+                    self.patching_count = (
+                        self.config_values.os_patching_duration
+                    )
         else:
             _LOGGER.info(
                 f"The Nodes hardware state is OFF so OS State cannot be changed."
@@ -187,7 +191,9 @@ class ActiveNode(Node):
     def start_file_system_scan(self):
         """Starts a file system scan."""
         self.file_system_scanning = True
-        self.file_system_scanning_count = self.config_values.file_system_scanning_limit
+        self.file_system_scanning_count = (
+            self.config_values.file_system_scanning_limit
+        )
 
     def update_file_system_state(self):
         """Updates file system status based on scanning/restore/repair cycle."""
@@ -206,7 +212,10 @@ class ActiveNode(Node):
                 self.file_system_state_observed = FileSystemState.GOOD
 
         # Scanning updates
-        if self.file_system_scanning == True and self.file_system_scanning_count < 0:
+        if (
+            self.file_system_scanning == True
+            and self.file_system_scanning_count < 0
+        ):
             self.file_system_state_observed = self.file_system_state_actual
             self.file_system_scanning = False
             self.file_system_scanning_count = 0

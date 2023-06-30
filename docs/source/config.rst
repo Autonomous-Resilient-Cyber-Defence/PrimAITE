@@ -22,7 +22,7 @@ The environment config file consists of the following attributes:
 
 
 * **agent_framework** [enum]
-    
+
     This identifies the agent framework to be used to instantiate the agent algorithm. Select from one of the following:
 
     * NONE - Where a user developed agent is to be used
@@ -30,14 +30,14 @@ The environment config file consists of the following attributes:
     * RLLIB - Ray RLlib.
 
 * **agent_identifier**
-    
+
     This identifies the agent to use for the session. Select from one of the following:
 
     * A2C - Advantage Actor Critic
     * PPO - Proximal Policy Optimization
     * HARDCODED - A custom built deterministic agent
     * RANDOM - A Stochastic random agent
-    
+
 
 * **action_type** [enum]
 

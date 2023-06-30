@@ -83,6 +83,7 @@ class Protocol(Enum):
 
 class SessionType(Enum):
     """The type of PrimAITE Session to be run."""
+
     TRAIN = 1
     "Train an agent"
     EVAL = 2
@@ -93,6 +94,7 @@ class SessionType(Enum):
 
 class VerboseLevel(IntEnum):
     """PrimAITE Session Output verbose level."""
+
     NO_OUTPUT = 0
     INFO = 1
     DEBUG = 2
@@ -100,6 +102,7 @@ class VerboseLevel(IntEnum):
 
 class AgentFramework(Enum):
     """The agent algorithm framework/package."""
+
     CUSTOM = 0
     "Custom Agent"
     SB3 = 1
@@ -110,6 +113,7 @@ class AgentFramework(Enum):
 
 class DeepLearningFramework(Enum):
     """The deep learning framework."""
+
     TF = "tf"
     "Tensorflow"
     TF2 = "tf2"
@@ -120,6 +124,7 @@ class DeepLearningFramework(Enum):
 
 class AgentIdentifier(Enum):
     """The Red Agent algo/class."""
+
     A2C = 1
     "Advantage Actor Critic"
     PPO = 2
@@ -136,6 +141,7 @@ class AgentIdentifier(Enum):
 
 class HardCodedAgentView(Enum):
     """The view the deterministic hard-coded agent has of the environment."""
+
     BASIC = 1
     "The current observation space only"
     FULL = 2
@@ -144,6 +150,7 @@ class HardCodedAgentView(Enum):
 
 class ActionType(Enum):
     """Action type enumeration."""
+
     NODE = 0
     ACL = 1
     ANY = 2
@@ -151,6 +158,7 @@ class ActionType(Enum):
 
 class ObservationType(Enum):
     """Observation type enumeration."""
+
     BOX = 0
     MULTIDISCRETE = 1
 
@@ -193,6 +201,7 @@ class LinkStatus(Enum):
 
 class OutputVerboseLevel(IntEnum):
     """The Agent output verbosity level."""
+
     NONE = 0
     "No Output"
     INFO = 1

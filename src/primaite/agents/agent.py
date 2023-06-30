@@ -1,27 +1,31 @@
 from __future__ import annotations
+
 import json
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Final, Dict, Union
+from typing import Dict, Final, Optional, Union
 from uuid import uuid4
 
 import yaml
 
 import primaite
 from primaite import getLogger, SESSIONS_DIR
-from primaite.config import lay_down_config
-from primaite.config import training_config
+from primaite.config import lay_down_config, training_config
 from primaite.config.training_config import TrainingConfig
+from primaite.data_viz.session_plots import plot_av_reward_per_episode
 from primaite.environment.primaite_env import Primaite
 
 _LOGGER = getLogger(__name__)
 
 
-def _get_session_path(session_timestamp: datetime) -> Path:
+def get_session_path(session_timestamp: datetime) -> Path:
     """
-    Get a temp directory session path the test session will output to.
+    Get the directory path the session will output to.
+
+    This is set in the format of:
+        ~/primaite/sessions/<yyyy-mm-dd>/<yyyy-mm-dd>_<hh-mm-ss>.
 
     :param session_timestamp: This is the datetime that the session started.
     :return: The session directory path.
@@ -35,13 +39,15 @@ def _get_session_path(session_timestamp: datetime) -> Path:
 
 
 class AgentSessionABC(ABC):
+    """
+    An ABC that manages training and/or evaluation of agents in PrimAITE.
+
+    This class cannot be directly instantiated and must be inherited from
+    with all implemented abstract methods implemented.
+    """
 
     @abstractmethod
-    def __init__(
-            self,
-            training_config_path,
-            lay_down_config_path
-    ):
+    def __init__(self, training_config_path, lay_down_config_path):
         if not isinstance(training_config_path, Path):
             training_config_path = Path(training_config_path)
         self._training_config_path: Final[Union[Path]] = training_config_path
@@ -66,9 +72,8 @@ class AgentSessionABC(ABC):
         self._uuid = str(uuid4())
         self.session_timestamp: datetime = datetime.now()
         "The session timestamp"
-        self.session_path = _get_session_path(self.session_timestamp)
+        self.session_path = get_session_path(self.session_timestamp)
         "The Session path"
-        self.checkpoints_path.mkdir(parents=True, exist_ok=True)
 
     @property
     def timestamp_str(self) -> str:
@@ -78,17 +83,23 @@ class AgentSessionABC(ABC):
     @property
     def learning_path(self) -> Path:
         """The learning outputs path."""
-        return self.session_path / "learning"
+        path = self.session_path / "learning"
+        path.mkdir(exist_ok=True, parents=True)
+        return path
 
     @property
     def evaluation_path(self) -> Path:
         """The evaluation outputs path."""
-        return self.session_path / "evaluation"
+        path = self.session_path / "evaluation"
+        path.mkdir(exist_ok=True, parents=True)
+        return path
 
     @property
     def checkpoints_path(self) -> Path:
         """The Session checkpoints path."""
-        return self.learning_path / "checkpoints"
+        path = self.learning_path / "checkpoints"
+        path.mkdir(exist_ok=True, parents=True)
+        return path
 
     @property
     def uuid(self):
@@ -118,14 +129,8 @@ class AgentSessionABC(ABC):
             "uuid": self.uuid,
             "start_datetime": self.session_timestamp.isoformat(),
             "end_datetime": None,
-            "learning": {
-                "total_episodes": None,
-                "total_time_steps": None
-            },
-            "evaluation": {
-                "total_episodes": None,
-                "total_time_steps": None
-            },
+            "learning": {"total_episodes": None, "total_time_steps": None},
+            "evaluation": {"total_episodes": None, "total_time_steps": None},
             "env": {
                 "training_config": self._training_config.to_dict(
                     json_serializable=True
@@ -156,11 +161,19 @@ class AgentSessionABC(ABC):
         metadata_dict["end_datetime"] = datetime.now().isoformat()
 
         if not self.is_eval:
-            metadata_dict["learning"]["total_episodes"] = self._env.episode_count  # noqa
-            metadata_dict["learning"]["total_time_steps"] = self._env.total_step_count  # noqa
+            metadata_dict["learning"][
+                "total_episodes"
+            ] = self._env.episode_count  # noqa
+            metadata_dict["learning"][
+                "total_time_steps"
+            ] = self._env.total_step_count  # noqa
         else:
-            metadata_dict["evaluation"]["total_episodes"] = self._env.episode_count  # noqa
-            metadata_dict["evaluation"]["total_time_steps"] = self._env.total_step_count  # noqa
+            metadata_dict["evaluation"][
+                "total_episodes"
+            ] = self._env.episode_count  # noqa
+            metadata_dict["evaluation"][
+                "total_time_steps"
+            ] = self._env.total_step_count  # noqa
 
         filepath = self.session_path / "session_metadata.json"
         _LOGGER.debug(f"Updating Session Metadata file: {filepath}")
@@ -187,26 +200,47 @@ class AgentSessionABC(ABC):
 
     @abstractmethod
     def learn(
-            self,
-            time_steps: Optional[int] = None,
-            episodes: Optional[int] = None,
-            **kwargs
+        self,
+        time_steps: Optional[int] = None,
+        episodes: Optional[int] = None,
+        **kwargs,
     ):
+        """
+        Train the agent.
+
+        :param time_steps: The number of steps per episode. Optional. If not
+            passed, the value from the training config will be used.
+        :param episodes: The number of episodes. Optional. If not
+            passed, the value from the training config will be used.
+        :param kwargs: Any agent-specific key-word args to be passed.
+        """
         if self._can_learn:
             _LOGGER.info("Finished learning")
             _LOGGER.debug("Writing transactions")
             self._update_session_metadata_file()
             self._can_evaluate = True
             self.is_eval = False
+            self._plot_av_reward_per_episode(learning_session=True)
 
     @abstractmethod
     def evaluate(
-            self,
-            time_steps: Optional[int] = None,
-            episodes: Optional[int] = None,
-            **kwargs
+        self,
+        time_steps: Optional[int] = None,
+        episodes: Optional[int] = None,
+        **kwargs,
     ):
+        """
+        Evaluate the agent.
+
+        :param time_steps: The number of steps per episode. Optional. If not
+            passed, the value from the training config will be used.
+        :param episodes: The number of episodes. Optional. If not
+            passed, the value from the training config will be used.
+        :param kwargs: Any agent-specific key-word args to be passed.
+        """
+        self._env.set_as_eval()  # noqa
         self.is_eval = True
+        self._plot_av_reward_per_episode(learning_session=False)
         _LOGGER.info("Finished evaluation")
 
     @abstractmethod
@@ -216,6 +250,7 @@ class AgentSessionABC(ABC):
     @classmethod
     @abstractmethod
     def load(cls, path: Union[str, Path]) -> AgentSessionABC:
+        """Load an agent from file."""
         if not isinstance(path, Path):
             path = Path(path)
 
@@ -246,21 +281,56 @@ class AgentSessionABC(ABC):
 
         else:
             # Session path does not exist
-            msg = f"Failed to load PrimAITE Session, path does not exist: {path}"
+            msg = (
+                f"Failed to load PrimAITE Session, path does not exist: {path}"
+            )
             _LOGGER.error(msg)
             raise FileNotFoundError(msg)
         pass
 
     @abstractmethod
     def save(self):
+        """Save the agent."""
         self._agent.save(self.session_path)
 
     @abstractmethod
     def export(self):
+        """Export the agent to transportable file format."""
         pass
+
+    def close(self):
+        """Closes the agent."""
+        self._env.episode_av_reward_writer.close()  # noqa
+        self._env.transaction_writer.close()  # noqa
+
+    def _plot_av_reward_per_episode(self, learning_session: bool = True):
+        # self.close()
+        title = f"PrimAITE Session {self.timestamp_str} "
+        subtitle = str(self._training_config)
+        csv_file = f"average_reward_per_episode_{self.timestamp_str}.csv"
+        image_file = f"average_reward_per_episode_{self.timestamp_str}.png"
+        if learning_session:
+            title += "(Learning)"
+            path = self.learning_path / csv_file
+            image_path = self.learning_path / image_file
+        else:
+            title += "(Evaluation)"
+            path = self.evaluation_path / csv_file
+            image_path = self.evaluation_path / image_file
+
+        fig = plot_av_reward_per_episode(path, title, subtitle)
+        fig.write_image(image_path)
+        _LOGGER.debug(f"Saved average rewards per episode plot to: {path}")
 
 
 class HardCodedAgentSessionABC(AgentSessionABC):
+    """
+    An Agent Session ABC for evaluation deterministic agents.
+
+    This class cannot be directly instantiated and must be inherited from
+    with all implemented abstract methods implemented.
+    """
+
     def __init__(self, training_config_path, lay_down_config_path):
         super().__init__(training_config_path, lay_down_config_path)
         self._setup()
@@ -270,12 +340,11 @@ class HardCodedAgentSessionABC(AgentSessionABC):
             training_config_path=self._training_config_path,
             lay_down_config_path=self._lay_down_config_path,
             session_path=self.session_path,
-            timestamp_str=self.timestamp_str
+            timestamp_str=self.timestamp_str,
         )
         super()._setup()
         self._can_learn = False
         self._can_evaluate = True
-
 
     def _save_checkpoint(self):
         pass
@@ -284,11 +353,20 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         pass
 
     def learn(
-            self,
-            time_steps: Optional[int] = None,
-            episodes: Optional[int] = None,
-            **kwargs
+        self,
+        time_steps: Optional[int] = None,
+        episodes: Optional[int] = None,
+        **kwargs,
     ):
+        """
+        Train the agent.
+
+        :param time_steps: The number of steps per episode. Optional. If not
+            passed, the value from the training config will be used.
+        :param episodes: The number of episodes. Optional. If not
+            passed, the value from the training config will be used.
+        :param kwargs: Any agent-specific key-word args to be passed.
+        """
         _LOGGER.warning("Deterministic agents cannot learn")
 
     @abstractmethod
@@ -296,20 +374,31 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         pass
 
     def evaluate(
-            self,
-            time_steps: Optional[int] = None,
-            episodes: Optional[int] = None,
-            **kwargs
+        self,
+        time_steps: Optional[int] = None,
+        episodes: Optional[int] = None,
+        **kwargs,
     ):
+        """
+        Evaluate the agent.
+
+        :param time_steps: The number of steps per episode. Optional. If not
+            passed, the value from the training config will be used.
+        :param episodes: The number of episodes. Optional. If not
+            passed, the value from the training config will be used.
+        :param kwargs: Any agent-specific key-word args to be passed.
+        """
+        self._env.set_as_eval()  # noqa
+        self.is_eval = True
+
         if not time_steps:
             time_steps = self._training_config.num_steps
 
         if not episodes:
             episodes = self._training_config.num_episodes
-
+        obs = self._env.reset()
         for episode in range(episodes):
             # Reset env and collect initial observation
-            obs = self._env.reset()
             for step in range(time_steps):
                 # Calculate action
                 action = self._calculate_action(obs)
@@ -322,15 +411,18 @@ class HardCodedAgentSessionABC(AgentSessionABC):
 
                 # Introduce a delay between steps
                 time.sleep(self._training_config.time_delay / 1000)
+            obs = self._env.reset()
         self._env.close()
-        super().evaluate()
 
     @classmethod
     def load(cls):
+        """Load an agent from file."""
         _LOGGER.warning("Deterministic agents cannot be loaded")
 
     def save(self):
+        """Save the agent."""
         _LOGGER.warning("Deterministic agents cannot be saved")
 
     def export(self):
+        """Export the agent to transportable file format."""
         _LOGGER.warning("Deterministic agents cannot be exported")

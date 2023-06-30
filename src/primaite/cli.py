@@ -13,6 +13,8 @@ import yaml
 from platformdirs import PlatformDirs
 from typing_extensions import Annotated
 
+from primaite.data_viz import PlotlyTemplate
+
 app = typer.Typer()
 
 
@@ -54,7 +56,9 @@ def logs(last_n: Annotated[int, typer.Option("-n")]):
             print(re.sub(r"\n*", "", line))
 
 
-_LogLevel = Enum("LogLevel", {k: k for k in logging._levelToName.values()})  # noqa
+_LogLevel = Enum(
+    "LogLevel", {k: k for k in logging._levelToName.values()}
+)  # noqa
 
 
 @app.command()
@@ -76,11 +80,12 @@ def log_level(level: Annotated[Optional[_LogLevel], typer.Argument()] = None):
             primaite_config = yaml.safe_load(file)
 
         if level:
-            primaite_config["log_level"] = level.value
+            primaite_config["logging"]["log_level"] = level.value
             with open(user_config_path, "w") as file:
                 yaml.dump(primaite_config, file)
+            print(f"PrimAITE Log Level: {level}")
         else:
-            level = primaite_config["log_level"]
+            level = primaite_config["logging"]["log_level"]
             print(f"PrimAITE Log Level: {level}")
 
 
@@ -170,16 +175,50 @@ def session(tc: Optional[str] = None, ldc: Optional[str] = None):
 
     ldc: The lay down config file path. Optional. If no value is passed then
     example default lay down config is used from:
-    ~/primaite/config/example_config/lay_down/lay_down_config_5_data_manipulation.yaml.
+    ~/primaite/config/example_config/lay_down/lay_down_config_3_doc_very_basic.yaml.
     """
-    from primaite.main import run
+    from primaite.config.lay_down_config import dos_very_basic_config_path
     from primaite.config.training_config import main_training_config_path
-    from primaite.config.lay_down_config import data_manipulation_config_path
+    from primaite.main import run
 
     if not tc:
         tc = main_training_config_path()
 
     if not ldc:
-        ldc = data_manipulation_config_path()
+        ldc = dos_very_basic_config_path()
 
     run(training_config_path=tc, lay_down_config_path=ldc)
+
+
+@app.command()
+def plotly_template(
+    template: Annotated[Optional[PlotlyTemplate], typer.Argument()] = None
+):
+    """
+    View or set the plotly template for Session plots.
+
+    To View, simply call: primaite plotly-template
+
+    To set, call: primaite plotly-template <desired template>
+
+    For example, to set as plotly_dark, call: primaite plotly-template PLOTLY_DARK
+    """
+    app_dirs = PlatformDirs(appname="primaite")
+    app_dirs.user_config_path.mkdir(exist_ok=True, parents=True)
+    user_config_path = app_dirs.user_config_path / "primaite_config.yaml"
+    if user_config_path.exists():
+        with open(user_config_path, "r") as file:
+            primaite_config = yaml.safe_load(file)
+
+        if template:
+            primaite_config["session"]["outputs"]["plots"][
+                "template"
+            ] = template.value
+            with open(user_config_path, "w") as file:
+                yaml.dump(primaite_config, file)
+            print(f"PrimAITE plotly template: {template.value}")
+        else:
+            template = primaite_config["session"]["outputs"]["plots"][
+                "template"
+            ]
+            print(f"PrimAITE plotly template: {template}")

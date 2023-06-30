@@ -18,7 +18,9 @@ from primaite.nodes.service_node import ServiceNode
     "starting_operating_state, expected_operating_state",
     [(HardwareState.RESETTING, HardwareState.ON)],
 )
-def test_node_resets_correctly(starting_operating_state, expected_operating_state):
+def test_node_resets_correctly(
+    starting_operating_state, expected_operating_state
+):
     """Tests that a node resets correctly."""
     active_node = ActiveNode(
         node_id="0",

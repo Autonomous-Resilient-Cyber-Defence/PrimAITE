@@ -60,7 +60,9 @@ def test_os_state_change_if_not_compromised(operating_state, expected_state):
         1,
     )
 
-    active_node.set_software_state_if_not_compromised(SoftwareState.OVERWHELMED)
+    active_node.set_software_state_if_not_compromised(
+        SoftwareState.OVERWHELMED
+    )
 
     assert active_node.software_state == expected_state
 
@@ -98,7 +100,9 @@ def test_file_system_change(operating_state, expected_state):
         (HardwareState.ON, FileSystemState.CORRUPT),
     ],
 )
-def test_file_system_change_if_not_compromised(operating_state, expected_state):
+def test_file_system_change_if_not_compromised(
+    operating_state, expected_state
+):
     """
     Test that a node cannot change its file system state.
 
@@ -116,6 +120,8 @@ def test_file_system_change_if_not_compromised(operating_state, expected_state):
         1,
     )
 
-    active_node.set_file_system_state_if_not_compromised(FileSystemState.CORRUPT)
+    active_node.set_file_system_state_if_not_compromised(
+        FileSystemState.CORRUPT
+    )
 
     assert active_node.file_system_state_actual == expected_state

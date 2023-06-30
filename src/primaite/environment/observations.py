@@ -1,7 +1,7 @@
 """Module for handling configurable observation spaces in PrimAITE."""
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Dict, Final, List, Tuple, Union
+from typing import Dict, Final, List, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 from gym import spaces
@@ -77,7 +77,9 @@ class NodeLinkTable(AbstractObservationComponent):
         )
 
         # 3. Initialise Observation with zeroes
-        self.current_observation = np.zeros(observation_shape, dtype=self._DATA_TYPE)
+        self.current_observation = np.zeros(
+            observation_shape, dtype=self._DATA_TYPE
+        )
 
     def update(self):
         """Update the observation based on current environment state.
@@ -92,7 +94,9 @@ class NodeLinkTable(AbstractObservationComponent):
             self.current_observation[item_index][0] = int(node.node_id)
             self.current_observation[item_index][1] = node.hardware_state.value
             if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
-                self.current_observation[item_index][2] = node.software_state.value
+                self.current_observation[item_index][
+                    2
+                ] = node.software_state.value
                 self.current_observation[item_index][
                     3
                 ] = node.file_system_state_observed.value
@@ -199,9 +203,16 @@ class NodeStatuses(AbstractObservationComponent):
             if isinstance(node, ServiceNode):
                 for i, service in enumerate(self.env.services_list):
                     if node.has_service(service):
-                        service_states[i] = node.get_service_state(service).value
+                        service_states[i] = node.get_service_state(
+                            service
+                        ).value
             obs.extend(
-                [hardware_state, software_state, file_system_state, *service_states]
+                [
+                    hardware_state,
+                    software_state,
+                    file_system_state,
+                    *service_states,
+                ]
             )
         self.current_observation[:] = obs
 
@@ -259,7 +270,9 @@ class LinkTrafficLevels(AbstractObservationComponent):
 
         # 1. Define the shape of your observation space component
         shape = (
-            [self._quantisation_levels] * self.env.num_links * self._entries_per_link
+            [self._quantisation_levels]
+            * self.env.num_links
+            * self._entries_per_link
         )
 
         # 2. Create Observation space
@@ -279,7 +292,9 @@ class LinkTrafficLevels(AbstractObservationComponent):
             if self._combine_service_traffic:
                 loads = [link.get_current_load()]
             else:
-                loads = [protocol.get_load() for protocol in link.protocol_list]
+                loads = [
+                    protocol.get_load() for protocol in link.protocol_list
+                ]
 
             for load in loads:
                 if load <= 0:

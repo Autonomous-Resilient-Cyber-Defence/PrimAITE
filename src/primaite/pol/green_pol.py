@@ -6,10 +6,17 @@ from networkx import MultiGraph, shortest_path
 
 from primaite.acl.access_control_list import AccessControlList
 from primaite.common.custom_typing import NodeUnion
-from primaite.common.enums import HardwareState, NodePOLType, NodeType, SoftwareState
+from primaite.common.enums import (
+    HardwareState,
+    NodePOLType,
+    NodeType,
+    SoftwareState,
+)
 from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
-from primaite.nodes.node_state_instruction_green import NodeStateInstructionGreen
+from primaite.nodes.node_state_instruction_green import (
+    NodeStateInstructionGreen,
+)
 from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.service_node import ServiceNode
 from primaite.pol.ier import IER
@@ -190,7 +197,9 @@ def apply_iers(
                         link_id = edge_dict[0].get("id")
                         link = links[link_id]
                         # Check whether the new load exceeds the bandwidth
-                        if (link.get_current_load() + load) > link.get_bandwidth():
+                        if (
+                            link.get_current_load() + load
+                        ) > link.get_bandwidth():
                             link_capacity_exceeded = True
                             if _VERBOSE:
                                 print("Link capacity exceeded")
@@ -204,7 +213,8 @@ def apply_iers(
                         while count < path_node_list_length - 1:
                             # Get the link between the next two nodes
                             edge_dict = network.get_edge_data(
-                                path_node_list[count], path_node_list[count + 1]
+                                path_node_list[count],
+                                path_node_list[count + 1],
                             )
                             link_id = edge_dict[0].get("id")
                             link = links[link_id]
@@ -216,7 +226,9 @@ def apply_iers(
                 else:
                     # One of the nodes is not operational
                     if _VERBOSE:
-                        print("Path not valid - one or more nodes not operational")
+                        print(
+                            "Path not valid - one or more nodes not operational"
+                        )
                     pass
 
             else:
@@ -231,7 +243,9 @@ def apply_iers(
 
 def apply_node_pol(
     nodes: Dict[str, NodeUnion],
-    node_pol: Dict[any, Union[NodeStateInstructionGreen, NodeStateInstructionRed]],
+    node_pol: Dict[
+        any, Union[NodeStateInstructionGreen, NodeStateInstructionRed]
+    ],
     step: int,
 ):
     """
@@ -263,16 +277,22 @@ def apply_node_pol(
             elif node_pol_type == NodePOLType.OS:
                 # Change OS state
                 # Don't allow PoL to fix something that is compromised. Only the Blue agent can do this
-                if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
+                if isinstance(node, ActiveNode) or isinstance(
+                    node, ServiceNode
+                ):
                     node.set_software_state_if_not_compromised(state)
             elif node_pol_type == NodePOLType.SERVICE:
                 # Change a service state
                 # Don't allow PoL to fix something that is compromised. Only the Blue agent can do this
                 if isinstance(node, ServiceNode):
-                    node.set_service_state_if_not_compromised(service_name, state)
+                    node.set_service_state_if_not_compromised(
+                        service_name, state
+                    )
             else:
                 # Change the file system status
-                if isinstance(node, ActiveNode) or isinstance(node, ServiceNode):
+                if isinstance(node, ActiveNode) or isinstance(
+                    node, ServiceNode
+                ):
                     node.set_file_system_state_if_not_compromised(state)
         else:
             # PoL is not valid in this time step

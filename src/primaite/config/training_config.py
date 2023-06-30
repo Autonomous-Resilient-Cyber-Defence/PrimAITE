@@ -7,15 +7,22 @@ from typing import Any, Dict, Final, Optional, Union
 
 import yaml
 
-from primaite import USERS_CONFIG_DIR, getLogger
-from primaite.common.enums import DeepLearningFramework, HardCodedAgentView
-from primaite.common.enums import ActionType, AgentIdentifier, \
-    AgentFramework, SessionType, OutputVerboseLevel
+from primaite import getLogger, USERS_CONFIG_DIR
+from primaite.common.enums import (
+    ActionType,
+    AgentFramework,
+    AgentIdentifier,
+    DeepLearningFramework,
+    HardCodedAgentView,
+    OutputVerboseLevel,
+    SessionType,
+)
 
 _LOGGER = getLogger(__name__)
 
-_EXAMPLE_TRAINING: Final[
-    Path] = USERS_CONFIG_DIR / "example_config" / "training"
+_EXAMPLE_TRAINING: Final[Path] = (
+    USERS_CONFIG_DIR / "example_config" / "training"
+)
 
 
 def main_training_config_path() -> Path:
@@ -36,6 +43,7 @@ def main_training_config_path() -> Path:
 @dataclass()
 class TrainingConfig:
     """The Training Config class."""
+
     agent_framework: AgentFramework = AgentFramework.SB3
     "The AgentFramework"
 
@@ -171,12 +179,16 @@ class TrainingConfig:
     file_system_scanning_limit: int = 5
     "The time taken to scan the file system"
 
-
     @classmethod
     def from_dict(
-            cls,
-            config_dict: Dict[str, Union[str, int, bool]]
+        cls, config_dict: Dict[str, Union[str, int, bool]]
     ) -> TrainingConfig:
+        """
+        Create an instance of TrainingConfig from a dict.
+
+        :param config_dict: The training config dict.
+        :return: The instance of TrainingConfig.
+        """
         field_enum_map = {
             "agent_framework": AgentFramework,
             "deep_learning_framework": DeepLearningFramework,
@@ -187,9 +199,9 @@ class TrainingConfig:
             "hard_coded_agent_view": HardCodedAgentView,
         }
 
-        for field, enum_class in field_enum_map.items():
-            if field in config_dict:
-                config_dict[field] = enum_class[config_dict[field]]
+        for key, value in field_enum_map.items():
+            if key in config_dict:
+                config_dict[key] = value[config_dict[key]]
         return TrainingConfig(**config_dict)
 
     def to_dict(self, json_serializable: bool = True):
@@ -213,23 +225,21 @@ class TrainingConfig:
         return data
 
     def __str__(self) -> str:
-        tc = f"TrainingConfig(agent_framework={self.agent_framework.name}, "
+        tc = f"{self.agent_framework}, "
         if self.agent_framework is AgentFramework.RLLIB:
-            tc += f"deep_learning_framework=" \
-                  f"{self.deep_learning_framework.name}, "
-        tc += f"agent_identifier={self.agent_identifier.name}, "
+            tc += f"{self.deep_learning_framework}, "
+        tc += f"{self.agent_identifier}, "
         if self.agent_identifier is AgentIdentifier.HARDCODED:
-            tc += f"hard_coded_agent_view={self.hard_coded_agent_view.name}, "
-        tc += f"action_type={self.action_type.name}, "
+            tc += f"{self.hard_coded_agent_view}, "
+        tc += f"{self.action_type}, "
         tc += f"observation_space={self.observation_space}, "
-        tc += f"num_episodes={self.num_episodes}, "
-        tc += f"num_steps={self.num_steps})"
+        tc += f"{self.num_episodes} episodes @ "
+        tc += f"{self.num_steps} steps"
         return tc
 
 
 def load(
-        file_path: Union[str, Path],
-        legacy_file: bool = False
+    file_path: Union[str, Path], legacy_file: bool = False
 ) -> TrainingConfig:
     """
     Read in a training config yaml file.
@@ -273,12 +283,12 @@ def load(
 
 
 def convert_legacy_training_config_dict(
-        legacy_config_dict: Dict[str, Any],
-        agent_framework: AgentFramework = AgentFramework.SB3,
-        agent_identifier: AgentIdentifier = AgentIdentifier.PPO,
-        action_type: ActionType = ActionType.ANY,
-        num_steps: int = 256,
-        output_verbose_level: OutputVerboseLevel = OutputVerboseLevel.INFO
+    legacy_config_dict: Dict[str, Any],
+    agent_framework: AgentFramework = AgentFramework.SB3,
+    agent_identifier: AgentIdentifier = AgentIdentifier.PPO,
+    action_type: ActionType = ActionType.ANY,
+    num_steps: int = 256,
+    output_verbose_level: OutputVerboseLevel = OutputVerboseLevel.INFO,
 ) -> Dict[str, Any]:
     """
     Convert a legacy training config dict to the new format.
@@ -301,8 +311,12 @@ def convert_legacy_training_config_dict(
         "agent_identifier": agent_identifier.name,
         "action_type": action_type.name,
         "num_steps": num_steps,
-        "output_verbose_level": output_verbose_level
+        "output_verbose_level": output_verbose_level.name,
     }
+    session_type_map = {"TRAINING": "TRAIN", "EVALUATION": "EVAL"}
+    legacy_config_dict["sessionType"] = session_type_map[
+        legacy_config_dict["sessionType"]
+    ]
     for legacy_key, value in legacy_config_dict.items():
         new_key = _get_new_key_from_legacy(legacy_key)
         if new_key:

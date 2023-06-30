@@ -110,7 +110,9 @@ class ServiceNode(ActiveNode):
                     return False
         return False
 
-    def set_service_state(self, protocol_name: str, software_state: SoftwareState):
+    def set_service_state(
+        self, protocol_name: str, software_state: SoftwareState
+    ):
         """
         Sets the software_state of a service (protocol) on the node.
 
