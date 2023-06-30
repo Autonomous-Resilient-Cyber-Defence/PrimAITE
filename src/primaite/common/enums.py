@@ -92,14 +92,6 @@ class SessionType(Enum):
     "Train then evaluate an agent"
 
 
-class VerboseLevel(IntEnum):
-    """PrimAITE Session Output verbose level."""
-
-    NO_OUTPUT = 0
-    INFO = 1
-    DEBUG = 2
-
-
 class AgentFramework(Enum):
     """The agent algorithm framework/package."""
 
@@ -199,12 +191,9 @@ class LinkStatus(Enum):
     OVERLOAD = 4
 
 
-class OutputVerboseLevel(IntEnum):
-    """The Agent output verbosity level."""
+class SB3OutputVerboseLevel(IntEnum):
+    """The Stable Baselines3 learn/eval output verbosity level."""
 
     NONE = 0
-    "No Output"
     INFO = 1
-    "Info Messages"
-    ALL = 2
-    "All Messages"
+    DEBUG = 2

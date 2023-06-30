@@ -57,7 +57,7 @@ class AgentSessionABC(ABC):
             lay_down_config_path = Path(lay_down_config_path)
         self._lay_down_config_path: Final[Union[Path]] = lay_down_config_path
         self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)
-        self.output_verbose_level = self._training_config.output_verbose_level
+        self.sb3_output_verbose_level = self._training_config.sb3_output_verbose_level
 
         self._env: Primaite
         self._agent = None
