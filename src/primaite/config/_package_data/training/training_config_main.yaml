@@ -13,7 +13,7 @@ agent_framework: SB3
 # "TF" (Tensorflow)
 # TF2 (Tensorflow 2.X)
 # TORCH (PyTorch)
-deep_learning_framework: TORCH
+deep_learning_framework: TF2
 
 # Sets which Agent class will be used.
 # Options are:
