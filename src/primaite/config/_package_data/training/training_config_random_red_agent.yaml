@@ -9,7 +9,7 @@ agent_identifier: STABLE_BASELINES3_A2C
 
 # RED AGENT IDENTIFIER
 # RANDOM or NONE
-red_agent_identifier: "RANDOM"
+random_red_agent: True
 
 # Sets How the Action Space is defined:
 # "NODE"

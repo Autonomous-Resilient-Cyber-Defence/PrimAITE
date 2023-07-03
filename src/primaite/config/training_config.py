@@ -21,7 +21,7 @@ class TrainingConfig:
     agent_identifier: str = "STABLE_BASELINES3_A2C"
     "The Red Agent algo/class to be used."
 
-    red_agent_identifier: str = "RANDOM"
+    random_red_agent: bool = False
     "Creates Random Red Agent Attacks"
 
     action_type: ActionType = ActionType.ANY
