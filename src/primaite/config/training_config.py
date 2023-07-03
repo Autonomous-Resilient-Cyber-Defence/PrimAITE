@@ -54,6 +54,9 @@ class TrainingConfig:
     hard_coded_agent_view: HardCodedAgentView = HardCodedAgentView.FULL
     "The view the deterministic hard-coded agent has of the environment"
 
+    random_red_agent: bool = False
+    "Creates Random Red Agent Attacks"
+
     action_type: ActionType = ActionType.ANY
     "The ActionType to use"
 

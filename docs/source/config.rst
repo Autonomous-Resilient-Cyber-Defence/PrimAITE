@@ -39,6 +39,10 @@ The environment config file consists of the following attributes:
     * RANDOM - A Stochastic random agent
 
 
+* **random_red_agent** [bool]
+
+    Determines if the session should be run with a random red agent
+
 * **action_type** [enum]
 
     Determines whether a NODE, ACL, or ANY (combined NODE & ACL) action space format is adopted for the session
