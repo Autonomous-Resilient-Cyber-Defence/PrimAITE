@@ -28,6 +28,10 @@ The environment config file consists of the following attributes:
    * STABLE_BASELINES3_PPO - Use a SB3 PPO agent
    * STABLE_BASELINES3_A2C - use a SB3 A2C agent
 
+* **random_red_agent** [bool]
+
+    Determines if the session should be run with a random red agent
+
 * **action_type** [enum]
 
    Determines whether a NODE, ACL, or ANY (combined NODE & ACL) action space format is adopted for the session
