@@ -9,12 +9,7 @@ from primaite.common.enums import AgentIdentifier
 class Transaction(object):
     """Transaction class."""
 
-    def __init__(
-            self,
-            agent_identifier: AgentIdentifier,
-            episode_number: int,
-            step_number: int
-    ):
+    def __init__(self, agent_identifier: AgentIdentifier, episode_number: int, step_number: int):
         """
         Transaction constructor.
 
@@ -62,18 +57,14 @@ class Transaction(object):
         # Open up a csv file
         header = ["Timestamp", "Episode", "Step", "Reward"]
         header = header + action_header + self.obs_space_description
-        
+
         row = [
             str(self.timestamp),
             str(self.episode_number),
             str(self.step_number),
             str(self.reward),
         ]
-        row = (
-                row
-                + _turn_action_space_to_array(self.action_space)
-                + self.obs_space.tolist()
-        )
+        row = row + _turn_action_space_to_array(self.action_space) + self.obs_space.tolist()
         return header, row
 
 
