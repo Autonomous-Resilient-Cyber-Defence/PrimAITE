@@ -427,7 +427,12 @@ class Primaite(Env):
         for link_key, link_value in self.links.items():
             _LOGGER.debug("Link ID: " + link_value.get_id())
             for protocol in link_value.protocol_list:
-                _LOGGER.debug("    Protocol: " + protocol.get_name().name + ", Load: " + str(protocol.get_load()))
+                print(
+                    "    Protocol: "
+                    + protocol.get_name().name
+                    + ", Load: "
+                    + str(protocol.get_load())
+                )
 
     def interpret_action_and_apply(self, _action):
         """
@@ -437,16 +442,21 @@ class Primaite(Env):
             _action: The action space from the agent
         """
         # At the moment, actions are only affecting nodes
+
         if self.training_config.action_type == ActionType.NODE:
             self.apply_actions_to_nodes(_action)
         elif self.training_config.action_type == ActionType.ACL:
             self.apply_actions_to_acl(_action)
-        elif len(self.action_dict[_action]) == 6:  # ACL actions in multidiscrete form have len 6
+        elif (
+            len(self.action_dict[_action]) == 6
+        ):  # ACL actions in multidiscrete form have len 6
             self.apply_actions_to_acl(_action)
-        elif len(self.action_dict[_action]) == 4:  # Node actions in multdiscrete (array) from have len 4
+        elif (
+            len(self.action_dict[_action]) == 4
+        ):  # Node actions in multdiscrete (array) from have len 4
             self.apply_actions_to_nodes(_action)
         else:
-            _LOGGER.error("Invalid action type found")
+            logging.error("Invalid action type found")
 
     def apply_actions_to_nodes(self, _action):
         """
@@ -510,8 +520,7 @@ class Primaite(Env):
                 elif property_action == 1:
                     # Patch (valid action if it's good or compromised)
                     node.set_service_state(
-                        self.services_list[service_index],
-                        SoftwareState.PATCHING,
+                        self.services_list[service_index], SoftwareState.PATCHING
                     )
             else:
                 # Node is not of Service Type
@@ -709,7 +718,8 @@ class Primaite(Env):
                 _LOGGER.error(f"Invalid item_type: {item_type}")
                 pass
 
-        _LOGGER.debug("Environment configuration loaded")
+        _LOGGER.info("Environment configuration loaded")
+        print("Environment configuration loaded")
 
     def create_node(self, item):
         """
@@ -1166,12 +1176,7 @@ class Primaite(Env):
                 # Use MAX to ensure we get them all
                 for node_action in range(4):
                     for service_state in range(self.num_services):
-                        action = [
-                            node,
-                            node_property,
-                            node_action,
-                            service_state,
-                        ]
+                        action = [node, node_property, node_action, service_state]
                         # check to see if it's a nothing action (has no effect)
                         if is_valid_node_action(action):
                             actions[action_key] = action
@@ -1221,7 +1226,11 @@ class Primaite(Env):
 
         # Change node keys to not overlap with acl keys
         # Only 1 nothing action (key 0) is required, remove the other
-        new_node_action_dict = {k + len(acl_action_dict) - 1: v for k, v in node_action_dict.items() if k != 0}
+        new_node_action_dict = {
+            k + len(acl_action_dict) - 1: v
+            for k, v in node_action_dict.items()
+            if k != 0
+        }
 
         # Combine the Node dict and ACL dict
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
@@ -1235,7 +1244,8 @@ class Primaite(Env):
 
         # Decide how many nodes become compromised
         node_list = list(self.nodes.values())
-        computers = [node for node in node_list if node.node_type == NodeType.COMPUTER]
+        computers = [node for node in node_list if
+                     node.node_type == NodeType.COMPUTER]
         max_num_nodes_compromised = len(
             computers
         )  # only computers can become compromised
@@ -1250,7 +1260,7 @@ class Primaite(Env):
 
         # For each of the nodes to be compromised decide which step they become compromised
         max_step_compromised = (
-            self.episode_steps // 2
+                self.episode_steps // 2
         )  # always compromise in first half of episode
 
         # Bandwidth for all links
@@ -1261,13 +1271,15 @@ class Primaite(Env):
             _LOGGER.error(msg)
             raise Exception(msg)
 
-        servers = [node for node in node_list if node.node_type == NodeType.SERVER]
+        servers = [node for node in node_list if
+                   node.node_type == NodeType.SERVER]
 
         for n, node in enumerate(nodes_to_be_compromised):
             # 1: Use Node PoL to set node to compromised
 
             _id = str(uuid.uuid4())
-            _start_step = randint(2, max_step_compromised + 1)  # step compromised
+            _start_step = randint(2,
+                                  max_step_compromised + 1)  # step compromised
             pol_service_name = choice(list(node.services.keys()))
 
             source_node_service = choice(list(source_node.services.values()))
@@ -1292,7 +1304,8 @@ class Primaite(Env):
 
             ier_id = str(uuid.uuid4())
             # Launch the attack after node is compromised, and not right at the end of the episode
-            ier_start_step = randint(_start_step + 2, int(self.episode_steps * 0.8))
+            ier_start_step = randint(_start_step + 2,
+                                     int(self.episode_steps * 0.8))
             ier_end_step = self.episode_steps
 
             # Randomise the load, as a percentage of a random link bandwith
@@ -1315,15 +1328,16 @@ class Primaite(Env):
             if len(possible_ier_destinations) < 1:
                 for server in servers:
                     if not self.acl.is_blocked(
-                        node.ip_address,
-                        server.ip_address,
-                        ier_service,
-                        ier_port,
+                            node.ip_address,
+                            server.ip_address,
+                            ier_service,
+                            ier_port,
                     ):
                         possible_ier_destinations.append(server.node_id)
             if len(possible_ier_destinations) < 1:
                 # If still none found choose from all servers
-                possible_ier_destinations = [server.node_id for server in servers]
+                possible_ier_destinations = [server.node_id for server in
+                                             servers]
             ier_dest = choice(possible_ier_destinations)
             self.red_iers[ier_id] = IER(
                 ier_id,
