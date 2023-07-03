@@ -20,23 +20,14 @@ class Transaction(object):
         self.episode_number = _episode_number
         self.step_number = _step_number
 
-    def set_obs_space_pre(self, _obs_space_pre):
+    def set_obs_space(self, _obs_space):
         """
         Sets the observation space (pre).
 
         Args:
             _obs_space_pre: The observation space before any actions are taken
         """
-        self.obs_space_pre = _obs_space_pre
-
-    def set_obs_space_post(self, _obs_space_post):
-        """
-        Sets the observation space (post).
-
-        Args:
-            _obs_space_post: The observation space after any actions are taken
-        """
-        self.obs_space_post = _obs_space_post
+        self.obs_space = _obs_space
 
     def set_reward(self, _reward):
         """
