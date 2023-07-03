@@ -190,14 +190,14 @@ class ServiceNode(ActiveNode):
                 service_value.reduce_patching_count()
 
     def update_resetting_status(self):
-        """Updates the resetting counter for any service that are resetting."""
+        """Update resetting counter and set software state if it reached 0."""
         super().update_resetting_status()
         if self.resetting_count <= 0:
             for service in self.services.values():
                 service.software_state = SoftwareState.GOOD
 
     def update_booting_status(self):
-        """Updates the booting counter for any service that are booting up."""
+        """Update booting counter and set software to good if it reached 0."""
         super().update_booting_status()
         if self.booting_count <= 0:
             for service in self.services.values():
