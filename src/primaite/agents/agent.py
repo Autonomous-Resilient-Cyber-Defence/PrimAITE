@@ -50,7 +50,7 @@ class AgentSessionABC(ABC):
     def __init__(self, training_config_path, lay_down_config_path):
         if not isinstance(training_config_path, Path):
             training_config_path = Path(training_config_path)
-        self._training_config_path: Final[Union[Path]] = training_config_path
+        self._training_config_path: Final[Union[Path, str]] = training_config_path
         self._training_config: Final[TrainingConfig] = training_config.load(self._training_config_path)
 
         if not isinstance(lay_down_config_path, Path):

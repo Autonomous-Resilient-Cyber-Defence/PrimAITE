@@ -57,7 +57,7 @@ class NodeLinkTable(AbstractObservationComponent):
     """
 
     _FIXED_PARAMETERS: int = 4
-    _MAX_VAL: int = 1_000_000
+    _MAX_VAL: int = 1_000_000_000
     _DATA_TYPE: type = np.int64
 
     def __init__(self, env: "Primaite"):

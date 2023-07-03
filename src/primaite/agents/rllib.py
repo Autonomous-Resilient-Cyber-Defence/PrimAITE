@@ -55,7 +55,7 @@ class RLlibAgent(AgentSessionABC):
             msg = "Expected PPO or A2C agent_identifier, " f"got {self._training_config.agent_identifier.value}"
             _LOGGER.error(msg)
             raise ValueError(msg)
-        self._agent_config: PPOConfig
+        self._agent_config: Union[PPOConfig, A2CConfig]
 
         self._current_result: dict
         self._setup()
