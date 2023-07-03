@@ -29,7 +29,7 @@ class AbstractObservationComponent(ABC):
         self.env: "Primaite" = env
         self.space: spaces.Space
         self.current_observation: np.ndarray  # type might be too restrictive?
-        self.structure: list[str]
+        self.structure: List[str]
         return NotImplemented
 
     @abstractmethod
