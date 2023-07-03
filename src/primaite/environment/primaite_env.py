@@ -278,7 +278,7 @@ class Primaite(Env):
 
         # Create a random red agent to use for this episode
         if self.training_config.random_red_agent:
-            self.create_random_red_agent()
+            self._create_random_red_agent()
 
         # Reset counters and totals
         self.total_reward = 0
@@ -1236,7 +1236,7 @@ class Primaite(Env):
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
         return combined_action_dict
 
-    def create_random_red_agent(self):
+    def _create_random_red_agent(self):
         """Decide on random red agent for the episode to be called in env.reset()."""
         # Reset the current red iers and red node pol
         self.red_iers = {}
