@@ -55,6 +55,8 @@ def test_random_red_agent_behaviour():
             session_path=session_path,
             timestamp_str=timestamp_str,
         )
+        # set red_agent_
+        env.training_config.random_red_agent = True
         training_config = env.training_config
         training_config.num_steps = env.episode_steps
 

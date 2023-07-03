@@ -277,7 +277,7 @@ class Primaite(Env):
         self.reset_environment()
 
         # Create a random red agent to use for this episode
-        if self.training_config.red_agent_identifier == "RANDOM":
+        if self.training_config.random_red_agent:
             self.create_random_red_agent()
 
         # Reset counters and totals
