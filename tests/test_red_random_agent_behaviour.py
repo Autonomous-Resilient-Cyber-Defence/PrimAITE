@@ -2,6 +2,7 @@ from datetime import datetime
 
 from primaite.config.lay_down_config import data_manipulation_config_path
 from primaite.environment.primaite_env import Primaite
+from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from tests import TEST_CONFIG_ROOT
 from tests.conftest import _get_temp_session_path
 
@@ -41,14 +42,14 @@ def test_random_red_agent_behaviour():
 
     # RUN TWICE so we can make sure that red agent is randomised
     for i in range(2):
-
         """Takes a config path and returns the created instance of Primaite."""
         session_timestamp: datetime = datetime.now()
         session_path = _get_temp_session_path(session_timestamp)
 
         timestamp_str = session_timestamp.strftime("%Y-%m-%d_%H-%M-%S")
         env = Primaite(
-            training_config_path=TEST_CONFIG_ROOT / "one_node_states_on_off_main_config.yaml",
+            training_config_path=TEST_CONFIG_ROOT
+            / "one_node_states_on_off_main_config.yaml",
             lay_down_config_path=data_manipulation_config_path(),
             transaction_list=[],
             session_path=session_path,
@@ -64,7 +65,7 @@ def test_random_red_agent_behaviour():
     # compare instructions to make sure that red instructions are truly random
     for index, instruction in enumerate(list_of_node_instructions):
         for key in list_of_node_instructions[index].keys():
-            instruction: NodeInstructionRed = list_of_node_instructions[index][key]
+            instruction: NodeStateInstructionRed = list_of_node_instructions[index][key]
             print(f"run {index}")
             print(f"{key} start step: {instruction.get_start_step()}")
             print(f"{key} end step: {instruction.get_end_step()}")
