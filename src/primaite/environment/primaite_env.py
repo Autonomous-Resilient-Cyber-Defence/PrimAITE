@@ -1,8 +1,14 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Main environment module containing the PRIMmary AI Training Evironment (Primaite) class."""
 import copy
+import csv
+import logging
+import uuid as uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Final, Tuple, Union
+from random import choice, randint, sample, uniform
+from typing import Dict, Tuple, Union
 
 import networkx as nx
 import numpy as np
@@ -271,6 +277,10 @@ class Primaite(Env):
         # Reset the node statuses and recreate the ACL from config
         # Does this for both live and reference nodes
         self.reset_environment()
+
+        # Create a random red agent to use for this episode
+        if self.training_config.random_red_agent:
+            self._create_random_red_agent()
 
         # Reset counters and totals
         self.total_reward = 0
@@ -1216,3 +1226,136 @@ class Primaite(Env):
         # Combine the Node dict and ACL dict
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
         return combined_action_dict
+
+    def _create_random_red_agent(self):
+        """Decide on random red agent for the episode to be called in env.reset()."""
+        # Reset the current red iers and red node pol
+        self.red_iers = {}
+        self.red_node_pol = {}
+
+        # Decide how many nodes become compromised
+        node_list = list(self.nodes.values())
+        computers = [node for node in node_list if node.node_type == NodeType.COMPUTER]
+        max_num_nodes_compromised = len(
+            computers
+        )  # only computers can become compromised
+        # random select between 1 and max_num_nodes_compromised
+        num_nodes_to_compromise = randint(1, max_num_nodes_compromised)
+
+        # Decide which of the nodes to compromise
+        nodes_to_be_compromised = sample(computers, num_nodes_to_compromise)
+
+        # choose a random compromise node to be source of attacks
+        source_node = choice(nodes_to_be_compromised)
+
+        # For each of the nodes to be compromised decide which step they become compromised
+        max_step_compromised = (
+            self.episode_steps // 2
+        )  # always compromise in first half of episode
+
+        # Bandwidth for all links
+        bandwidths = [i.get_bandwidth() for i in list(self.links.values())]
+
+        if len(bandwidths) < 1:
+            msg = "Random red agent cannot be used on a network without any links"
+            _LOGGER.error(msg)
+            raise Exception(msg)
+
+        servers = [node for node in node_list if node.node_type == NodeType.SERVER]
+
+        for n, node in enumerate(nodes_to_be_compromised):
+            # 1: Use Node PoL to set node to compromised
+
+            _id = str(uuid.uuid4())
+            _start_step = randint(2, max_step_compromised + 1)  # step compromised
+            pol_service_name = choice(list(node.services.keys()))
+
+            source_node_service = choice(list(source_node.services.values()))
+
+            red_pol = NodeStateInstructionRed(
+                _id=_id,
+                _start_step=_start_step,
+                _end_step=_start_step,  # only run for 1 step
+                _target_node_id=node.node_id,
+                _pol_initiator="DIRECT",
+                _pol_type=NodePOLType["SERVICE"],
+                pol_protocol=pol_service_name,
+                _pol_state=SoftwareState.COMPROMISED,
+                _pol_source_node_id=source_node.node_id,
+                _pol_source_node_service=source_node_service.name,
+                _pol_source_node_service_state=source_node_service.software_state,
+            )
+
+            self.red_node_pol[_id] = red_pol
+
+            # 2: Launch the attack from compromised node - set the IER
+
+            ier_id = str(uuid.uuid4())
+            # Launch the attack after node is compromised, and not right at the end of the episode
+            ier_start_step = randint(_start_step + 2, int(self.episode_steps * 0.8))
+            ier_end_step = self.episode_steps
+
+            # Randomise the load, as a percentage of a random link bandwith
+            ier_load = uniform(0.4, 0.8) * choice(bandwidths)
+            ier_protocol = pol_service_name  # Same protocol as compromised node
+            ier_service = node.services[pol_service_name]
+            ier_port = ier_service.port
+            ier_mission_criticality = (
+                0  # Red IER will never be important to green agent success
+            )
+            # We choose a node to attack based on the first that applies:
+            # a. Green IERs, select dest node of the red ier based on dest node of green IER
+            # b. Attack a random server that doesn't have a DENY acl rule in default config
+            # c. Attack a random server
+            possible_ier_destinations = [
+                ier.get_dest_node_id()
+                for ier in list(self.green_iers.values())
+                if ier.get_source_node_id() == node.node_id
+            ]
+            if len(possible_ier_destinations) < 1:
+                for server in servers:
+                    if not self.acl.is_blocked(
+                        node.ip_address,
+                        server.ip_address,
+                        ier_service,
+                        ier_port,
+                    ):
+                        possible_ier_destinations.append(server.node_id)
+            if len(possible_ier_destinations) < 1:
+                # If still none found choose from all servers
+                possible_ier_destinations = [server.node_id for server in servers]
+            ier_dest = choice(possible_ier_destinations)
+            self.red_iers[ier_id] = IER(
+                ier_id,
+                ier_start_step,
+                ier_end_step,
+                ier_load,
+                ier_protocol,
+                ier_port,
+                node.node_id,
+                ier_dest,
+                ier_mission_criticality,
+            )
+
+            overwhelm_pol = red_pol
+            overwhelm_pol.id = str(uuid.uuid4())
+            overwhelm_pol.end_step = self.episode_steps
+
+            # 3: Make sure the targetted node can be set to overwhelmed - with node pol
+            # # TODO remove duplicate red pol for same targetted service - must take into account start step
+
+            o_pol_id = str(uuid.uuid4())
+            o_red_pol = NodeStateInstructionRed(
+                _id=o_pol_id,
+                _start_step=ier_start_step,
+                _end_step=self.episode_steps,
+                _target_node_id=ier_dest,
+                _pol_initiator="DIRECT",
+                _pol_type=NodePOLType["SERVICE"],
+                pol_protocol=ier_protocol,
+                _pol_state=SoftwareState.OVERWHELMED,
+                _pol_source_node_id=source_node.node_id,
+                _pol_source_node_service=source_node_service.name,
+                _pol_source_node_service_state=source_node_service.software_state,
+            )
+            self.red_node_pol[o_pol_id] = o_red_pol
