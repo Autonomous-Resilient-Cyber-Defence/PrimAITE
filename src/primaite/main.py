@@ -325,6 +325,7 @@ def run(training_config_path: Union[str, Path], lay_down_config_path: Union[str,
         transaction_list=transaction_list,
         session_path=session_dir,
         timestamp_str=timestamp_str,
+        obs_space_description=env.obs_handler.describe_structure(),
     )
 
     print("Updating Session Metadata file...")
