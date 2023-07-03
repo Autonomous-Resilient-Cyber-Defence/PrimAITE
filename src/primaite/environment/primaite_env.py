@@ -45,7 +45,7 @@ from primaite.pol.red_agent_pol import apply_red_agent_iers, apply_red_agent_nod
 from primaite.transactions.transaction import Transaction
 
 _LOGGER = logging.getLogger(__name__)
-# _LOGGER.setLevel(logging.INFO)
+_LOGGER.setLevel(logging.INFO)
 
 
 class Primaite(Env):
@@ -107,6 +107,7 @@ class Primaite(Env):
 
         # Create a dictionary to hold all the green IERs (this will come from an external source)
         self.green_iers: Dict[str, IER] = {}
+        self.green_iers_reference: Dict[str, IER] = {}
 
         # Create a dictionary to hold all the node PoLs (this will come from an external source)
         self.node_pol = {}
@@ -202,7 +203,6 @@ class Primaite(Env):
         try:
             plt.tight_layout()
             nx.draw_networkx(self.network, with_labels=True)
-            datetime.now()  # current date and time
 
             file_path = session_path / f"network_{timestamp_str}.png"
             plt.savefig(file_path, format="PNG")
@@ -218,10 +218,22 @@ class Primaite(Env):
         # Define Action Space - depends on action space type (Node or ACL)
         if self.training_config.action_type == ActionType.NODE:
             _LOGGER.info("Action space type NODE selected")
+            # Terms (for node action space):
+            # [0, num nodes] - node ID (0 = nothing, node ID)
+            # [0, 4] - what property it's acting on (0 = nothing, state, SoftwareState, service state, file system state) # noqa
+            # [0, 3] - action on property (0 = nothing, On / Scan, Off / Repair, Reset / Patch / Restore) # noqa
+            # [0, num services] - resolves to service ID (0 = nothing, resolves to service) # noqa
             self.action_dict = self.create_node_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
         elif self.training_config.action_type == ActionType.ACL:
             _LOGGER.info("Action space type ACL selected")
+            # Terms (for ACL action space):
+            # [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
+            # [0, 1] - Permission (0 = DENY, 1 = ALLOW)
+            # [0, num nodes] - Source IP (0 = any, then 1 -> x resolving to IP addresses)
+            # [0, num nodes] - Dest IP (0 = any, then 1 -> x resolving to IP addresses)
+            # [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
+            # [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
             self.action_dict = self.create_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
         elif self.training_config.action_type == ActionType.ANY:
@@ -304,6 +316,9 @@ class Primaite(Env):
         for link_key, link_value in self.links.items():
             link_value.clear_traffic()
 
+        for link in self.links_reference.values():
+            link.clear_traffic()
+
         # Create a Transaction (metric) object for this step
         transaction = Transaction(
             datetime.now(), self.agent_identifier, self.episode_count, self.step_count
@@ -341,7 +356,7 @@ class Primaite(Env):
             self.network_reference,
             self.nodes_reference,
             self.links_reference,
-            self.green_iers,
+            self.green_iers_reference,
             self.acl,
             self.step_count,
         )  # Network PoL
@@ -368,6 +383,7 @@ class Primaite(Env):
             self.nodes_post_red,
             self.nodes_reference,
             self.green_iers,
+            self.green_iers_reference,
             self.red_iers,
             self.step_count,
             self.training_config,
@@ -426,6 +442,7 @@ class Primaite(Env):
             _action: The action space from the agent
         """
         # At the moment, actions are only affecting nodes
+
         if self.training_config.action_type == ActionType.NODE:
             self.apply_actions_to_nodes(_action)
         elif self.training_config.action_type == ActionType.ACL:
@@ -850,6 +867,17 @@ class Primaite(Env):
 
         # Create IER and add to green IER dictionary
         self.green_iers[ier_id] = IER(
+            ier_id,
+            ier_start_step,
+            ier_end_step,
+            ier_load,
+            ier_protocol,
+            ier_port,
+            ier_source,
+            ier_destination,
+            ier_mission_criticality,
+        )
+        self.green_iers_reference[ier_id] = IER(
             ier_id,
             ier_start_step,
             ier_end_step,
