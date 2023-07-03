@@ -9,20 +9,13 @@ agent_identifier: STABLE_BASELINES3_A2C
 
 # RED AGENT IDENTIFIER
 # RANDOM or NONE
-random_red_agent: False
+random_red_agent: True
 
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
 # "ANY" node and acl actions
 action_type: NODE
-# observation space
-observation_space:
-  # flatten: true
-  components:
-    - name: NODE_LINK_TABLE
-    # - name: NODE_STATUSES
-    # - name: LINK_TRAFFIC_LEVELS
 # Number of episodes to run per session
 num_episodes: 10
 # Number of time_steps per episode
