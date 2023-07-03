@@ -31,6 +31,16 @@ class Transaction(object):
         self.action_space = None
         "The action space invoked by the agent"
 
+    def set_obs_space(self, _obs_space):
+        """
+        Sets the observation space (pre).
+
+        Args:
+            _obs_space_pre: The observation space before any actions are taken
+        """
+        self.obs_space = _obs_space
+
+
     def as_csv_data(self) -> Tuple[List, List]:
         """
         Converts the Transaction to a csv data row and provides a header.

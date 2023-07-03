@@ -320,7 +320,8 @@ class Primaite(Env):
         # Create a Transaction (metric) object for this step
         transaction = Transaction(self.agent_identifier, self.actual_episode_count, self.step_count)
         # Load the initial observation space into the transaction
-        transaction.obs_space_pre = copy.deepcopy(self.env_obs)
+        transaction.set_obs_space(self.obs_handler._flat_observation)
+
         # Load the action space into the transaction
         transaction.action_space = copy.deepcopy(action)
 
@@ -399,8 +400,6 @@ class Primaite(Env):
 
         # 7. Update env_obs
         self.update_environent_obs()
-        # Load the new observation space into the transaction
-        transaction.obs_space_post = copy.deepcopy(self.env_obs)
 
         # Write transaction to file
         if self.actual_episode_count > 0:
