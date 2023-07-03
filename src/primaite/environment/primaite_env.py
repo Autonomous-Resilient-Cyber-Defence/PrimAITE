@@ -324,7 +324,8 @@ class Primaite(Env):
             datetime.now(), self.agent_identifier, self.episode_count, self.step_count
         )
         # Load the initial observation space into the transaction
-        transaction.set_obs_space_pre(copy.deepcopy(self.env_obs))
+        transaction.set_obs_space(self.obs_handler._flat_observation)
+
         # Load the action space into the transaction
         transaction.set_action_space(copy.deepcopy(action))
 
@@ -405,8 +406,6 @@ class Primaite(Env):
 
         # 7. Update env_obs
         self.update_environent_obs()
-        # Load the new observation space into the transaction
-        transaction.set_obs_space_post(copy.deepcopy(self.env_obs))
 
         # 8. Add the transaction to the list of transactions
         self.transaction_list.append(copy.deepcopy(transaction))
