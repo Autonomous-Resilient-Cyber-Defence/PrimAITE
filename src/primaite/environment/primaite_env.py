@@ -1265,6 +1265,12 @@ class Primaite(Env):
 
         # Bandwidth for all links
         bandwidths = [i.get_bandwidth() for i in list(self.links.values())]
+
+        if len(bandwidths) < 1:
+            msg = "Random red agent cannot be used on a network without any links"
+            _LOGGER.error(msg)
+            raise Exception(msg)
+
         servers = [node for node in node_list if node.node_type == NodeType.SERVER]
 
         for n, node in enumerate(nodes_to_be_compromised):
