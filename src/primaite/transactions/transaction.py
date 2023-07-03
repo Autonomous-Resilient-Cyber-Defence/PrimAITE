@@ -3,11 +3,18 @@
 from datetime import datetime
 from typing import List, Tuple
 
+from primaite.common.enums import AgentIdentifier
+
 
 class Transaction(object):
     """Transaction class."""
 
-    def __init__(self, agent_identifier, episode_number, step_number):
+    def __init__(
+            self,
+            agent_identifier: AgentIdentifier,
+            episode_number: int,
+            step_number: int
+    ):
         """
         Transaction constructor.
 
@@ -17,11 +24,14 @@ class Transaction(object):
         """
         self.timestamp = datetime.now()
         "The datetime of the transaction"
-        self.agent_identifier = agent_identifier
-        self.episode_number = episode_number
+        self.agent_identifier: AgentIdentifier = agent_identifier
+        "The agent identifier"
+        self.episode_number: int = episode_number
         "The episode number"
-        self.step_number = step_number
+        self.step_number: int = step_number
         "The step number"
+        self.obs_space = None
+        "The observation space (pre)"
         self.obs_space_pre = None
         "The observation space before any actions are taken"
         self.obs_space_post = None
@@ -30,16 +40,8 @@ class Transaction(object):
         "The reward value"
         self.action_space = None
         "The action space invoked by the agent"
-
-    def set_obs_space(self, _obs_space):
-        """
-        Sets the observation space (pre).
-
-        Args:
-            _obs_space_pre: The observation space before any actions are taken
-        """
-        self.obs_space = _obs_space
-
+        self.obs_space_description = None
+        "The env observation space description"
 
     def as_csv_data(self) -> Tuple[List, List]:
         """
@@ -51,32 +53,16 @@ class Transaction(object):
             action_length = self.action_space
         else:
             action_length = self.action_space.size
-        obs_shape = self.obs_space_post.shape
-        obs_assets = self.obs_space_post.shape[0]
-        if len(obs_shape) == 1:
-            # A bit of a workaround but I think the way transactions are
-            # written will change soon
-            obs_features = 1
-        else:
-            obs_features = self.obs_space_post.shape[1]
 
         # Create the action space headers array
         action_header = []
         for x in range(action_length):
             action_header.append("AS_" + str(x))
 
-        # Create the observation space headers array
-        obs_header_initial = []
-        obs_header_new = []
-        for x in range(obs_assets):
-            for y in range(obs_features):
-                obs_header_initial.append("OSI_" + str(x) + "_" + str(y))
-                obs_header_new.append("OSN_" + str(x) + "_" + str(y))
-
         # Open up a csv file
         header = ["Timestamp", "Episode", "Step", "Reward"]
-        header = header + action_header + obs_header_initial + obs_header_new
-
+        header = header + action_header + self.obs_space_description
+        
         row = [
             str(self.timestamp),
             str(self.episode_number),
@@ -84,10 +70,9 @@ class Transaction(object):
             str(self.reward),
         ]
         row = (
-            row
-            + _turn_action_space_to_array(self.action_space)
-            + _turn_obs_space_to_array(self.obs_space_pre, obs_assets, obs_features)
-            + _turn_obs_space_to_array(self.obs_space_post, obs_assets, obs_features)
+                row
+                + _turn_action_space_to_array(self.action_space)
+                + self.obs_space.tolist()
         )
         return header, row
 

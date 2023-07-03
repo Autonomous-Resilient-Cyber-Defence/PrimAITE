@@ -178,6 +178,9 @@ class Primaite(Env):
         # It will be initialised later.
         self.obs_handler: ObservationsHandler
 
+        self._obs_space_description = None
+        "The env observation space description for transactions writing"
+
         # Open the config file and build the environment laydown
         with open(self._lay_down_config_path, "r") as file:
             # Open the config file and build the environment laydown
@@ -318,9 +321,16 @@ class Primaite(Env):
             link.clear_traffic()
 
         # Create a Transaction (metric) object for this step
-        transaction = Transaction(self.agent_identifier, self.actual_episode_count, self.step_count)
+        transaction = Transaction(
+            self.agent_identifier,
+            self.actual_episode_count,
+            self.step_count
+        )
         # Load the initial observation space into the transaction
-        transaction.set_obs_space(self.obs_handler._flat_observation)
+        transaction.obs_space = self.obs_handler._flat_observation
+
+        # Set the transaction obs space description
+        transaction.obs_space_description = self._obs_space_description
 
         # Load the action space into the transaction
         transaction.action_space = copy.deepcopy(action)
@@ -674,6 +684,9 @@ class Primaite(Env):
         :rtype: Tuple[spaces.Space, np.ndarray]
         """
         self.obs_handler = ObservationsHandler.from_config(self, self.obs_config)
+
+        if not self._obs_space_description:
+            self._obs_space_description = self.obs_handler.describe_structure()
 
         return self.obs_handler.space, self.obs_handler.current_observation
 
