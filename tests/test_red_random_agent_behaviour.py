@@ -4,6 +4,7 @@ from primaite.config.lay_down_config import data_manipulation_config_path
 from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from tests import TEST_CONFIG_ROOT
 
+
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [

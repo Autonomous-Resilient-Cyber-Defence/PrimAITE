@@ -266,9 +266,7 @@ class NodeStatuses(AbstractObservationComponent):
             for service in services:
                 structure.append(f"node_{node_id}_service_{service}_state_NONE")
                 for state in SoftwareState:
-                    structure.append(
-                        f"node_{node_id}_service_{service}_state_{state.name}"
-                    )
+                    structure.append(f"node_{node_id}_service_{service}_state_{state.name}")
         return structure
 
 
