@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pkg_resources
 
-from primaite import USERS_CONFIG_DIR, getLogger
+from primaite import getLogger, USERS_CONFIG_DIR
 
 _LOGGER = getLogger(__name__)
 
@@ -17,9 +17,7 @@ def run(overwrite_existing=True):
     :param overwrite_existing: A bool to toggle replacing existing edited
         config on or off.
     """
-    configs_package_data_root = pkg_resources.resource_filename(
-        "primaite", "config/_package_data"
-    )
+    configs_package_data_root = pkg_resources.resource_filename("primaite", "config/_package_data")
 
     for subdir, dirs, files in os.walk(configs_package_data_root):
         for file in files:

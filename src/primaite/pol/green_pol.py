@@ -86,9 +86,7 @@ def apply_iers(
                     and source_node.software_state != SoftwareState.PATCHING
                 ):
                     if source_node.has_service(protocol):
-                        if source_node.service_running(
-                            protocol
-                        ) and not source_node.service_is_overwhelmed(protocol):
+                        if source_node.service_running(protocol) and not source_node.service_is_overwhelmed(protocol):
                             source_valid = True
                         else:
                             source_valid = False
@@ -103,10 +101,7 @@ def apply_iers(
             # 2. Check the dest node situation
             if dest_node.node_type == NodeType.SWITCH:
                 # It's a switch
-                if (
-                    dest_node.hardware_state == HardwareState.ON
-                    and dest_node.software_state != SoftwareState.PATCHING
-                ):
+                if dest_node.hardware_state == HardwareState.ON and dest_node.software_state != SoftwareState.PATCHING:
                     dest_valid = True
                 else:
                     # IER no longer valid
@@ -116,14 +111,9 @@ def apply_iers(
                 pass
             else:
                 # It's not a switch or an actuator (so active node)
-                if (
-                    dest_node.hardware_state == HardwareState.ON
-                    and dest_node.software_state != SoftwareState.PATCHING
-                ):
+                if dest_node.hardware_state == HardwareState.ON and dest_node.software_state != SoftwareState.PATCHING:
                     if dest_node.has_service(protocol):
-                        if dest_node.service_running(
-                            protocol
-                        ) and not dest_node.service_is_overwhelmed(protocol):
+                        if dest_node.service_running(protocol) and not dest_node.service_is_overwhelmed(protocol):
                             dest_valid = True
                         else:
                             dest_valid = False
@@ -136,9 +126,7 @@ def apply_iers(
                     dest_valid = False
 
             # 3. Check that the ACL doesn't block it
-            acl_block = acl.is_blocked(
-                source_node.ip_address, dest_node.ip_address, protocol, port
-            )
+            acl_block = acl.is_blocked(source_node.ip_address, dest_node.ip_address, protocol, port)
             if acl_block:
                 if _VERBOSE:
                     print(
@@ -169,10 +157,7 @@ def apply_iers(
 
                 # We might have a switch in the path, so check all nodes are operational
                 for node in path_node_list:
-                    if (
-                        node.hardware_state != HardwareState.ON
-                        or node.software_state == SoftwareState.PATCHING
-                    ):
+                    if node.hardware_state != HardwareState.ON or node.software_state == SoftwareState.PATCHING:
                         path_valid = False
 
                 if path_valid:
@@ -184,9 +169,7 @@ def apply_iers(
                     # Check that the link capacity is not exceeded by the new load
                     while count < path_node_list_length - 1:
                         # Get the link between the next two nodes
-                        edge_dict = network.get_edge_data(
-                            path_node_list[count], path_node_list[count + 1]
-                        )
+                        edge_dict = network.get_edge_data(path_node_list[count], path_node_list[count + 1])
                         link_id = edge_dict[0].get("id")
                         link = links[link_id]
                         # Check whether the new load exceeds the bandwidth
@@ -204,7 +187,8 @@ def apply_iers(
                         while count < path_node_list_length - 1:
                             # Get the link between the next two nodes
                             edge_dict = network.get_edge_data(
-                                path_node_list[count], path_node_list[count + 1]
+                                path_node_list[count],
+                                path_node_list[count + 1],
                             )
                             link_id = edge_dict[0].get("id")
                             link = links[link_id]
