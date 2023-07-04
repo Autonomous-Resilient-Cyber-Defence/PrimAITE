@@ -139,3 +139,4 @@ dmypy.json
 cython_debug/
 
 .idea/
+docs/source/primaite-dependencies.rst
