@@ -1,21 +1,26 @@
+import pytest
+
 from tests import TEST_CONFIG_ROOT
-from tests.conftest import _get_primaite_env_from_config
 
 
-def test_rewards_are_being_penalised_at_each_step_function():
+@pytest.mark.parametrize(
+    "temp_primaite_session",
+    [
+        [
+            TEST_CONFIG_ROOT / "one_node_states_on_off_main_config.yaml",
+            TEST_CONFIG_ROOT / "one_node_states_on_off_lay_down_config.yaml",
+        ]
+    ],
+    indirect=True,
+)
+def test_rewards_are_being_penalised_at_each_step_function(
+    temp_primaite_session,
+):
     """
     Test that hardware state is penalised at each step.
 
     When the initial state is OFF compared to reference state which is ON.
-    """
-    env = _get_primaite_env_from_config(
-        training_config_path=TEST_CONFIG_ROOT
-        / "one_node_states_on_off_main_config.yaml",
-        lay_down_config_path=TEST_CONFIG_ROOT
-        / "one_node_states_on_off_lay_down_config.yaml",
-    )
 
-    """
     The config 'one_node_states_on_off_lay_down_config.yaml' has 15 steps:
         On different steps, the laydown config has Pattern of Life (PoLs) which change a state of the node's attribute.
         For example, turning the nodes' file system state to CORRUPT from its original state GOOD.
@@ -38,4 +43,8 @@ def test_rewards_are_being_penalised_at_each_step_function():
     For the 4 steps where this occurs the average reward is:
         Average Reward: -8 (-120 / 15)
     """
-    assert env.average_reward == -8.0
+    with temp_primaite_session as session:
+        session.evaluate()
+        session.close()
+        ev_rewards = session.eval_av_reward_per_episode_csv()
+        assert ev_rewards[1] == -8.0
