@@ -1,58 +1,96 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Final, Optional, Union
 
 import yaml
 
-from primaite import USERS_CONFIG_DIR, getLogger
-from primaite.common.enums import ActionType
+from primaite import getLogger, USERS_CONFIG_DIR
+from primaite.common.enums import (
+    ActionType,
+    AgentFramework,
+    AgentIdentifier,
+    DeepLearningFramework,
+    HardCodedAgentView,
+    SB3OutputVerboseLevel,
+    SessionType,
+)
 
 _LOGGER = getLogger(__name__)
 
 _EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training"
 
 
+def main_training_config_path() -> Path:
+    """
+    The path to the example training_config_main.yaml file.
+
+    :return: The file path.
+    """
+    path = _EXAMPLE_TRAINING / "training_config_main.yaml"
+    if not path.exists():
+        msg = "Example config not found. Please run 'primaite setup'"
+        _LOGGER.critical(msg)
+        raise FileNotFoundError(msg)
+
+    return path
+
+
 @dataclass()
 class TrainingConfig:
     """The Training Config class."""
 
-    # Generic
-    agent_identifier: str = "STABLE_BASELINES3_A2C"
-    "The Red Agent algo/class to be used."
+    agent_framework: AgentFramework = AgentFramework.SB3
+    "The AgentFramework"
+
+    deep_learning_framework: DeepLearningFramework = DeepLearningFramework.TF
+    "The DeepLearningFramework"
+
+    agent_identifier: AgentIdentifier = AgentIdentifier.PPO
+    "The AgentIdentifier"
+
+    hard_coded_agent_view: HardCodedAgentView = HardCodedAgentView.FULL
+    "The view the deterministic hard-coded agent has of the environment"
 
     random_red_agent: bool = False
     "Creates Random Red Agent Attacks"
 
     action_type: ActionType = ActionType.ANY
-    "The ActionType to use."
+    "The ActionType to use"
 
     num_episodes: int = 10
-    "The number of episodes to train over."
+    "The number of episodes to train over"
 
     num_steps: int = 256
-    "The number of steps in an episode."
-    observation_space: dict = field(
-        default_factory=lambda: {"components": [{"name": "NODE_LINK_TABLE"}]}
-    )
-    "The observation space config dict."
+    "The number of steps in an episode"
+
+    checkpoint_every_n_episodes: int = 5
+    "The agent will save a checkpoint every n episodes"
+
+    observation_space: dict = field(default_factory=lambda: {"components": [{"name": "NODE_LINK_TABLE"}]})
+    "The observation space config dict"
 
     time_delay: int = 10
-    "The delay between steps (ms). Applies to generic agents only."
+    "The delay between steps (ms). Applies to generic agents only"
 
     # file
-    session_type: str = "TRAINING"
-    "the session type to run (TRAINING or EVALUATION)"
+    session_type: SessionType = SessionType.TRAIN
+    "The type of PrimAITE session to run"
 
     load_agent: str = False
-    "Determine whether to load an agent from file."
+    "Determine whether to load an agent from file"
 
     agent_load_file: Optional[str] = None
-    "File path and file name of agent if you're loading one in."
+    "File path and file name of agent if you're loading one in"
 
     # Environment
     observation_space_high_value: int = 1000000000
-    "The high value for the observation space."
+    "The high value for the observation space"
+
+    sb3_output_verbose_level: SB3OutputVerboseLevel = SB3OutputVerboseLevel.NONE
+    "Stable Baselines3 learn/eval output verbosity level"
 
     # Reward values
     # Generic
@@ -117,28 +155,51 @@ class TrainingConfig:
 
     # Patching / Reset durations
     os_patching_duration: int = 5
-    "The time taken to patch the OS."
+    "The time taken to patch the OS"
 
     node_reset_duration: int = 5
-    "The time taken to reset a node (hardware)."
+    "The time taken to reset a node (hardware)"
 
     node_booting_duration: int = 3
-    "The Time taken to turn on the node."
+    "The Time taken to turn on the node"
 
     node_shutdown_duration: int = 2
-    "The time taken to turn off the node."
+    "The time taken to turn off the node"
 
     service_patching_duration: int = 5
-    "The time taken to patch a service."
+    "The time taken to patch a service"
 
     file_system_repairing_limit: int = 5
-    "The time take to repair the file system."
+    "The time take to repair the file system"
 
     file_system_restoring_limit: int = 5
-    "The time take to restore the file system."
+    "The time take to restore the file system"
 
     file_system_scanning_limit: int = 5
-    "The time taken to scan the file system."
+    "The time taken to scan the file system"
+
+    @classmethod
+    def from_dict(cls, config_dict: Dict[str, Union[str, int, bool]]) -> TrainingConfig:
+        """
+        Create an instance of TrainingConfig from a dict.
+
+        :param config_dict: The training config dict.
+        :return: The instance of TrainingConfig.
+        """
+        field_enum_map = {
+            "agent_framework": AgentFramework,
+            "deep_learning_framework": DeepLearningFramework,
+            "agent_identifier": AgentIdentifier,
+            "action_type": ActionType,
+            "session_type": SessionType,
+            "sb3_output_verbose_level": SB3OutputVerboseLevel,
+            "hard_coded_agent_view": HardCodedAgentView,
+        }
+
+        for key, value in field_enum_map.items():
+            if key in config_dict:
+                config_dict[key] = value[config_dict[key]]
+        return TrainingConfig(**config_dict)
 
     def to_dict(self, json_serializable: bool = True):
         """
@@ -150,24 +211,28 @@ class TrainingConfig:
         """
         data = self.__dict__
         if json_serializable:
-            data["action_type"] = self.action_type.value
+            data["agent_framework"] = self.agent_framework.name
+            data["deep_learning_framework"] = self.deep_learning_framework.name
+            data["agent_identifier"] = self.agent_identifier.name
+            data["action_type"] = self.action_type.name
+            data["sb3_output_verbose_level"] = self.sb3_output_verbose_level.name
+            data["session_type"] = self.session_type.name
+            data["hard_coded_agent_view"] = self.hard_coded_agent_view.name
 
         return data
 
-
-def main_training_config_path() -> Path:
-    """
-    The path to the example training_config_main.yaml file.
-
-    :return: The file path.
-    """
-    path = _EXAMPLE_TRAINING / "training_config_main.yaml"
-    if not path.exists():
-        msg = "Example config not found. Please run 'primaite setup'"
-        _LOGGER.critical(msg)
-        raise FileNotFoundError(msg)
-
-    return path
+    def __str__(self) -> str:
+        tc = f"{self.agent_framework}, "
+        if self.agent_framework is AgentFramework.RLLIB:
+            tc += f"{self.deep_learning_framework}, "
+        tc += f"{self.agent_identifier}, "
+        if self.agent_identifier is AgentIdentifier.HARDCODED:
+            tc += f"{self.hard_coded_agent_view}, "
+        tc += f"{self.action_type}, "
+        tc += f"observation_space={self.observation_space}, "
+        tc += f"{self.num_episodes} episodes @ "
+        tc += f"{self.num_steps} steps"
+        return tc
 
 
 def load(file_path: Union[str, Path], legacy_file: bool = False) -> TrainingConfig:
@@ -198,15 +263,10 @@ def load(file_path: Union[str, Path], legacy_file: bool = False) -> TrainingConf
                     f"from legacy format. Attempting to use file as is."
                 )
                 _LOGGER.error(msg)
-        # Convert values to Enums
-        config["action_type"] = ActionType[config["action_type"]]
         try:
-            return TrainingConfig(**config)
+            return TrainingConfig.from_dict(config)
         except TypeError as e:
-            msg = (
-                f"Error when creating an instance of {TrainingConfig} "
-                f"from the training config file {file_path}"
-            )
+            msg = f"Error when creating an instance of {TrainingConfig} " f"from the training config file {file_path}"
             _LOGGER.critical(msg, exc_info=True)
             raise e
     msg = f"Cannot load the training config as it does not exist: {file_path}"
@@ -215,19 +275,35 @@ def load(file_path: Union[str, Path], legacy_file: bool = False) -> TrainingConf
 
 
 def convert_legacy_training_config_dict(
-    legacy_config_dict: Dict[str, Any], num_steps: int = 256, action_type: str = "ANY"
+    legacy_config_dict: Dict[str, Any],
+    agent_framework: AgentFramework = AgentFramework.SB3,
+    agent_identifier: AgentIdentifier = AgentIdentifier.PPO,
+    action_type: ActionType = ActionType.ANY,
+    num_steps: int = 256,
 ) -> Dict[str, Any]:
     """
     Convert a legacy training config dict to the new format.
 
     :param legacy_config_dict: A legacy training config dict.
-    :param num_steps: The number of steps to set as legacy training configs
-        don't have num_steps values.
+    :param agent_framework: The agent framework to use as legacy training
+        configs don't have agent_framework values.
+    :param agent_identifier: The red agent identifier to use as legacy
+        training configs don't have agent_identifier values.
     :param action_type: The action space type to set as legacy training configs
         don't have action_type values.
+    :param num_steps: The number of steps to set as legacy training configs
+        don't have num_steps values.
     :return: The converted training config dict.
     """
-    config_dict = {"num_steps": num_steps, "action_type": action_type}
+    config_dict = {
+        "agent_framework": agent_framework.name,
+        "agent_identifier": agent_identifier.name,
+        "action_type": action_type.name,
+        "num_steps": num_steps,
+        "sb3_output_verbose_level": SB3OutputVerboseLevel.INFO.name,
+    }
+    session_type_map = {"TRAINING": "TRAIN", "EVALUATION": "EVAL"}
+    legacy_config_dict["sessionType"] = session_type_map[legacy_config_dict["sessionType"]]
     for legacy_key, value in legacy_config_dict.items():
         new_key = _get_new_key_from_legacy(legacy_key)
         if new_key:
@@ -243,7 +319,7 @@ def _get_new_key_from_legacy(legacy_key: str) -> str:
     :return: The mapped key.
     """
     key_mapping = {
-        "agentIdentifier": "agent_identifier",
+        "agentIdentifier": None,
         "numEpisodes": "num_episodes",
         "timeDelay": "time_delay",
         "configFilename": None,

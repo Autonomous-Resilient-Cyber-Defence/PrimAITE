@@ -3,13 +3,7 @@
 import logging
 from typing import Final
 
-from primaite.common.enums import (
-    FileSystemState,
-    HardwareState,
-    NodeType,
-    Priority,
-    SoftwareState,
-)
+from primaite.common.enums import FileSystemState, HardwareState, NodeType, Priority, SoftwareState
 from primaite.config.training_config import TrainingConfig
 from primaite.nodes.node import Node
 
@@ -44,9 +38,7 @@ class ActiveNode(Node):
         :param file_system_state: The node file system state
         :param config_values: The config values
         """
-        super().__init__(
-            node_id, name, node_type, priority, hardware_state, config_values
-        )
+        super().__init__(node_id, name, node_type, priority, hardware_state, config_values)
         self.ip_address: str = ip_address
         # Related to Software
         self._software_state: SoftwareState = software_state
@@ -125,14 +117,10 @@ class ActiveNode(Node):
             self.file_system_state_actual = file_system_state
 
             if file_system_state == FileSystemState.REPAIRING:
-                self.file_system_action_count = (
-                    self.config_values.file_system_repairing_limit
-                )
+                self.file_system_action_count = self.config_values.file_system_repairing_limit
                 self.file_system_state_observed = FileSystemState.REPAIRING
             elif file_system_state == FileSystemState.RESTORING:
-                self.file_system_action_count = (
-                    self.config_values.file_system_restoring_limit
-                )
+                self.file_system_action_count = self.config_values.file_system_restoring_limit
                 self.file_system_state_observed = FileSystemState.RESTORING
             elif file_system_state == FileSystemState.GOOD:
                 self.file_system_state_observed = FileSystemState.GOOD
@@ -145,9 +133,7 @@ class ActiveNode(Node):
                 f"Node.file_system_state.actual:{self.file_system_state_actual}"
             )
 
-    def set_file_system_state_if_not_compromised(
-        self, file_system_state: FileSystemState
-    ):
+    def set_file_system_state_if_not_compromised(self, file_system_state: FileSystemState):
         """
         Sets the file system state (actual and observed) if not in a compromised state.
 
@@ -164,14 +150,10 @@ class ActiveNode(Node):
                 self.file_system_state_actual = file_system_state
 
                 if file_system_state == FileSystemState.REPAIRING:
-                    self.file_system_action_count = (
-                        self.config_values.file_system_repairing_limit
-                    )
+                    self.file_system_action_count = self.config_values.file_system_repairing_limit
                     self.file_system_state_observed = FileSystemState.REPAIRING
                 elif file_system_state == FileSystemState.RESTORING:
-                    self.file_system_action_count = (
-                        self.config_values.file_system_restoring_limit
-                    )
+                    self.file_system_action_count = self.config_values.file_system_restoring_limit
                     self.file_system_state_observed = FileSystemState.RESTORING
                 elif file_system_state == FileSystemState.GOOD:
                     self.file_system_state_observed = FileSystemState.GOOD

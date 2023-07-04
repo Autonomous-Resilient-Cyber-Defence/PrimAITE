@@ -1,13 +1,11 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Main environment module containing the PRIMmary AI Training Evironment (Primaite) class."""
 import copy
-import csv
 import logging
 import uuid as uuid
-from datetime import datetime
 from pathlib import Path
 from random import choice, randint, sample, uniform
-from typing import Dict, Tuple, Union
+from typing import Dict, Final, Tuple, Union
 
 import networkx as nx
 import numpy as np
@@ -15,11 +13,13 @@ import yaml
 from gym import Env, spaces
 from matplotlib import pyplot as plt
 
+from primaite import getLogger
 from primaite.acl.access_control_list import AccessControlList
 from primaite.agents.utils import is_valid_acl_action_extra, is_valid_node_action
 from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import (
     ActionType,
+    AgentFramework,
     FileSystemState,
     HardwareState,
     NodePOLInitiator,
@@ -27,6 +27,7 @@ from primaite.common.enums import (
     NodeType,
     ObservationType,
     Priority,
+    SessionType,
     SoftwareState,
 )
 from primaite.common.service import Service
@@ -45,9 +46,9 @@ from primaite.pol.green_pol import apply_iers, apply_node_pol
 from primaite.pol.ier import IER
 from primaite.pol.red_agent_pol import apply_red_agent_iers, apply_red_agent_node_pol
 from primaite.transactions.transaction import Transaction
+from primaite.utils.session_output_writer import SessionOutputWriter
 
-_LOGGER = logging.getLogger(__name__)
-_LOGGER.setLevel(logging.INFO)
+_LOGGER = getLogger(__name__)
 
 
 class Primaite(Env):
@@ -63,7 +64,6 @@ class Primaite(Env):
         self,
         training_config_path: Union[str, Path],
         lay_down_config_path: Union[str, Path],
-        transaction_list,
         session_path: Path,
         timestamp_str: str,
     ):
@@ -72,25 +72,22 @@ class Primaite(Env):
 
         :param training_config_path: The training config filepath.
         :param lay_down_config_path: The lay down config filepath.
-        :param transaction_list: The list of transactions to populate.
         :param session_path: The directory path the session is writing to.
         :param timestamp_str: The session timestamp in the format:
             <yyyy-mm-dd>_<hh-mm-ss>.
         """
+        self.session_path: Final[Path] = session_path
+        self.timestamp_str: Final[str] = timestamp_str
         self._training_config_path = training_config_path
         self._lay_down_config_path = lay_down_config_path
 
-        self.training_config: TrainingConfig = training_config.load(
-            training_config_path
-        )
+        self.training_config: TrainingConfig = training_config.load(training_config_path)
+        _LOGGER.info(f"Using: {str(self.training_config)}")
 
         # Number of steps in an episode
         self.episode_steps = self.training_config.num_steps
 
         super(Primaite, self).__init__()
-
-        # Transaction list
-        self.transaction_list = transaction_list
 
         # The agent in use
         self.agent_identifier = self.training_config.agent_identifier
@@ -178,6 +175,9 @@ class Primaite(Env):
         # It will be initialised later.
         self.obs_handler: ObservationsHandler
 
+        self._obs_space_description = None
+        "The env observation space description for transactions writing"
+
         # Open the config file and build the environment laydown
         with open(self._lay_down_config_path, "r") as file:
             # Open the config file and build the environment laydown
@@ -204,16 +204,14 @@ class Primaite(Env):
             plt.savefig(file_path, format="PNG")
             plt.clf()
         except Exception:
-            _LOGGER.error("Could not save network diagram")
-            _LOGGER.error("Exception occured", exc_info=True)
-            print("Could not save network diagram")
+            _LOGGER.error("Could not save network diagram", exc_info=True)
 
         # Initiate observation space
         self.observation_space, self.env_obs = self.init_observations()
 
         # Define Action Space - depends on action space type (Node or ACL)
         if self.training_config.action_type == ActionType.NODE:
-            _LOGGER.info("Action space type NODE selected")
+            _LOGGER.debug("Action space type NODE selected")
             # Terms (for node action space):
             # [0, num nodes] - node ID (0 = nothing, node ID)
             # [0, 4] - what property it's acting on (0 = nothing, state, SoftwareState, service state, file system state) # noqa
@@ -222,7 +220,7 @@ class Primaite(Env):
             self.action_dict = self.create_node_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
         elif self.training_config.action_type == ActionType.ACL:
-            _LOGGER.info("Action space type ACL selected")
+            _LOGGER.debug("Action space type ACL selected")
             # Terms (for ACL action space):
             # [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
             # [0, 1] - Permission (0 = DENY, 1 = ALLOW)
@@ -233,27 +231,29 @@ class Primaite(Env):
             self.action_dict = self.create_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
         elif self.training_config.action_type == ActionType.ANY:
-            _LOGGER.info("Action space type ANY selected - Node + ACL")
+            _LOGGER.debug("Action space type ANY selected - Node + ACL")
             self.action_dict = self.create_node_and_acl_action_dict()
             self.action_space = spaces.Discrete(len(self.action_dict))
         else:
-            _LOGGER.info(
-                f"Invalid action type selected: {self.training_config.action_type}"
-            )
-        # Set up a csv to store the results of the training
-        try:
-            header = ["Episode", "Average Reward"]
+            _LOGGER.error(f"Invalid action type selected: {self.training_config.action_type}")
 
-            file_name = f"average_reward_per_episode_{timestamp_str}.csv"
-            file_path = session_path / file_name
-            self.csv_file = open(file_path, "w", encoding="UTF8", newline="")
-            self.csv_writer = csv.writer(self.csv_file)
-            self.csv_writer.writerow(header)
-        except Exception:
-            _LOGGER.error(
-                "Could not create csv file to hold average reward per episode"
-            )
-            _LOGGER.error("Exception occured", exc_info=True)
+        self.episode_av_reward_writer = SessionOutputWriter(self, transaction_writer=False, learning_session=True)
+        self.transaction_writer = SessionOutputWriter(self, transaction_writer=True, learning_session=True)
+
+    @property
+    def actual_episode_count(self) -> int:
+        """Shifts the episode_count by -1 for RLlib."""
+        if self.training_config.agent_framework is AgentFramework.RLLIB:
+            return self.episode_count - 1
+        return self.episode_count
+
+    def set_as_eval(self):
+        """Set the writers to write to eval directories."""
+        self.episode_av_reward_writer = SessionOutputWriter(self, transaction_writer=False, learning_session=False)
+        self.transaction_writer = SessionOutputWriter(self, transaction_writer=True, learning_session=False)
+        self.episode_count = 0
+        self.step_count = 0
+        self.total_step_count = 0
 
     def reset(self):
         """
@@ -262,12 +262,14 @@ class Primaite(Env):
         Returns:
              Environment observation space (reset)
         """
-        csv_data = self.episode_count, self.average_reward
-        self.csv_writer.writerow(csv_data)
+        if self.actual_episode_count > 0:
+            csv_data = self.actual_episode_count, self.average_reward
+            self.episode_av_reward_writer.write(csv_data)
 
         self.episode_count += 1
 
-        # Don't need to reset links, as they are cleared and recalculated every step
+        # Don't need to reset links, as they are cleared and recalculated every
+        # step
 
         # Clear the ACL
         self.init_acl()
@@ -287,6 +289,7 @@ class Primaite(Env):
 
         # Update observations space and return
         self.update_environent_obs()
+
         return self.env_obs
 
     def step(self, action):
@@ -302,15 +305,10 @@ class Primaite(Env):
              done: Indicates episode is complete if True
              step_info: Additional information relating to this step
         """
-        if self.step_count == 0:
-            print(f"Episode: {str(self.episode_count)}")
-
         # TEMP
         done = False
-
         self.step_count += 1
         self.total_step_count += 1
-        # print("Episode step: " + str(self.step_count))
 
         # Need to clear traffic on all links first
         for link_key, link_value in self.links.items():
@@ -320,14 +318,15 @@ class Primaite(Env):
             link.clear_traffic()
 
         # Create a Transaction (metric) object for this step
-        transaction = Transaction(
-            datetime.now(), self.agent_identifier, self.episode_count, self.step_count
-        )
+        transaction = Transaction(self.agent_identifier, self.actual_episode_count, self.step_count)
         # Load the initial observation space into the transaction
-        transaction.set_obs_space(self.obs_handler._flat_observation)
+        transaction.obs_space = self.obs_handler._flat_observation
+
+        # Set the transaction obs space description
+        transaction.obs_space_description = self._obs_space_description
 
         # Load the action space into the transaction
-        transaction.set_action_space(copy.deepcopy(action))
+        transaction.action_space = copy.deepcopy(action)
 
         # 1. Implement Blue Action
         self.interpret_action_and_apply(action)
@@ -371,9 +370,7 @@ class Primaite(Env):
             self.acl,
             self.step_count,
         )
-        apply_red_agent_node_pol(
-            self.nodes, self.red_iers, self.red_node_pol, self.step_count
-        )
+        apply_red_agent_node_pol(self.nodes, self.red_iers, self.red_node_pol, self.step_count)
         # Take snapshots of nodes and links
         self.nodes_post_red = copy.deepcopy(self.nodes)
         self.links_post_red = copy.deepcopy(self.links)
@@ -389,17 +386,17 @@ class Primaite(Env):
             self.step_count,
             self.training_config,
         )
-        # print(f"    Step {self.step_count} Reward: {str(reward)}")
+        _LOGGER.debug(f"Episode: {self.actual_episode_count}, " f"Step {self.step_count}, " f"Reward: {reward}")
         self.total_reward += reward
         if self.step_count == self.episode_steps:
             self.average_reward = self.total_reward / self.step_count
-            if self.training_config.session_type == "EVALUATION":
+            if self.training_config.session_type is SessionType.EVAL:
                 # For evaluation, need to trigger the done value = True when
                 # step count is reached in order to prevent neverending episode
                 done = True
-            print(f"  Average Reward: {str(self.average_reward)}")
+            _LOGGER.info(f"Episode: {self.actual_episode_count}, " f"Average Reward: {self.average_reward}")
             # Load the reward into the transaction
-        transaction.set_reward(reward)
+        transaction.reward = reward
 
         # 6. Output Verbose
         # self.output_link_status()
@@ -407,15 +404,21 @@ class Primaite(Env):
         # 7. Update env_obs
         self.update_environent_obs()
 
-        # 8. Add the transaction to the list of transactions
-        self.transaction_list.append(copy.deepcopy(transaction))
+        # Write transaction to file
+        if self.actual_episode_count > 0:
+            self.transaction_writer.write(transaction)
 
         # Return
         return self.env_obs, reward, done, self.step_info
 
-    def __close__(self):
-        """Override close function."""
-        self.csv_file.close()
+    def close(self):
+        """Override parent close and close writers."""
+        # Close files if last episode/step
+        # if self.can_finish:
+        super().close()
+
+        self.transaction_writer.close()
+        self.episode_av_reward_writer.close()
 
     def init_acl(self):
         """Initialise the Access Control List."""
@@ -424,14 +427,9 @@ class Primaite(Env):
     def output_link_status(self):
         """Output the link status of all links to the console."""
         for link_key, link_value in self.links.items():
-            print("Link ID: " + link_value.get_id())
+            _LOGGER.debug("Link ID: " + link_value.get_id())
             for protocol in link_value.protocol_list:
-                print(
-                    "    Protocol: "
-                    + protocol.get_name().name
-                    + ", Load: "
-                    + str(protocol.get_load())
-                )
+                print("    Protocol: " + protocol.get_name().name + ", Load: " + str(protocol.get_load()))
 
     def interpret_action_and_apply(self, _action):
         """
@@ -446,13 +444,9 @@ class Primaite(Env):
             self.apply_actions_to_nodes(_action)
         elif self.training_config.action_type == ActionType.ACL:
             self.apply_actions_to_acl(_action)
-        elif (
-            len(self.action_dict[_action]) == 6
-        ):  # ACL actions in multidiscrete form have len 6
+        elif len(self.action_dict[_action]) == 6:  # ACL actions in multidiscrete form have len 6
             self.apply_actions_to_acl(_action)
-        elif (
-            len(self.action_dict[_action]) == 4
-        ):  # Node actions in multdiscrete (array) from have len 4
+        elif len(self.action_dict[_action]) == 4:  # Node actions in multdiscrete (array) from have len 4
             self.apply_actions_to_nodes(_action)
         else:
             logging.error("Invalid action type found")
@@ -518,9 +512,7 @@ class Primaite(Env):
                     return
                 elif property_action == 1:
                     # Patch (valid action if it's good or compromised)
-                    node.set_service_state(
-                        self.services_list[service_index], SoftwareState.PATCHING
-                    )
+                    node.set_service_state(self.services_list[service_index], SoftwareState.PATCHING)
             else:
                 # Node is not of Service Type
                 return
@@ -674,6 +666,9 @@ class Primaite(Env):
         :rtype: Tuple[spaces.Space, np.ndarray]
         """
         self.obs_handler = ObservationsHandler.from_config(self, self.obs_config)
+
+        if not self._obs_space_description:
+            self._obs_space_description = self.obs_handler.describe_structure()
 
         return self.obs_handler.space, self.obs_handler.current_observation
 
@@ -1225,11 +1220,7 @@ class Primaite(Env):
 
         # Change node keys to not overlap with acl keys
         # Only 1 nothing action (key 0) is required, remove the other
-        new_node_action_dict = {
-            k + len(acl_action_dict) - 1: v
-            for k, v in node_action_dict.items()
-            if k != 0
-        }
+        new_node_action_dict = {k + len(acl_action_dict) - 1: v for k, v in node_action_dict.items() if k != 0}
 
         # Combine the Node dict and ACL dict
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
@@ -1244,9 +1235,7 @@ class Primaite(Env):
         # Decide how many nodes become compromised
         node_list = list(self.nodes.values())
         computers = [node for node in node_list if node.node_type == NodeType.COMPUTER]
-        max_num_nodes_compromised = len(
-            computers
-        )  # only computers can become compromised
+        max_num_nodes_compromised = len(computers)  # only computers can become compromised
         # random select between 1 and max_num_nodes_compromised
         num_nodes_to_compromise = randint(1, max_num_nodes_compromised)
 
@@ -1257,9 +1246,7 @@ class Primaite(Env):
         source_node = choice(nodes_to_be_compromised)
 
         # For each of the nodes to be compromised decide which step they become compromised
-        max_step_compromised = (
-            self.episode_steps // 2
-        )  # always compromise in first half of episode
+        max_step_compromised = self.episode_steps // 2  # always compromise in first half of episode
 
         # Bandwidth for all links
         bandwidths = [i.get_bandwidth() for i in list(self.links.values())]
@@ -1308,9 +1295,7 @@ class Primaite(Env):
             ier_protocol = pol_service_name  # Same protocol as compromised node
             ier_service = node.services[pol_service_name]
             ier_port = ier_service.port
-            ier_mission_criticality = (
-                0  # Red IER will never be important to green agent success
-            )
+            ier_mission_criticality = 0  # Red IER will never be important to green agent success
             # We choose a node to attack based on the first that applies:
             # a. Green IERs, select dest node of the red ier based on dest node of green IER
             # b. Attack a random server that doesn't have a DENY acl rule in default config

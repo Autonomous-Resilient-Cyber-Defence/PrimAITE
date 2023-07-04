@@ -25,18 +25,9 @@ class AccessControlList:
              True if match; False otherwise.
         """
         if (
-            (
-                _rule.get_source_ip() == _source_ip_address
-                and _rule.get_dest_ip() == _dest_ip_address
-            )
-            or (
-                _rule.get_source_ip() == "ANY"
-                and _rule.get_dest_ip() == _dest_ip_address
-            )
-            or (
-                _rule.get_source_ip() == _source_ip_address
-                and _rule.get_dest_ip() == "ANY"
-            )
+            (_rule.get_source_ip() == _source_ip_address and _rule.get_dest_ip() == _dest_ip_address)
+            or (_rule.get_source_ip() == "ANY" and _rule.get_dest_ip() == _dest_ip_address)
+            or (_rule.get_source_ip() == _source_ip_address and _rule.get_dest_ip() == "ANY")
             or (_rule.get_source_ip() == "ANY" and _rule.get_dest_ip() == "ANY")
         ):
             return True
@@ -57,15 +48,9 @@ class AccessControlList:
              Indicates block if all conditions are satisfied.
         """
         for rule_key, rule_value in self.acl.items():
-            if self.check_address_match(
-                rule_value, _source_ip_address, _dest_ip_address
-            ):
-                if (
-                    rule_value.get_protocol() == _protocol
-                    or rule_value.get_protocol() == "ANY"
-                ) and (
-                    str(rule_value.get_port()) == str(_port)
-                    or rule_value.get_port() == "ANY"
+            if self.check_address_match(rule_value, _source_ip_address, _dest_ip_address):
+                if (rule_value.get_protocol() == _protocol or rule_value.get_protocol() == "ANY") and (
+                    str(rule_value.get_port()) == str(_port) or rule_value.get_port() == "ANY"
                 ):
                     # There's a matching rule. Get the permission
                     if rule_value.get_permission() == "DENY":
