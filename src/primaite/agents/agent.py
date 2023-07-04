@@ -257,10 +257,17 @@ class AgentSessionABC(ABC):
             raise FileNotFoundError(msg)
         pass
 
-    @abstractmethod
-    def save(self):
+    def save(self, path_str: str | Path):
         """Save the agent."""
-        self._agent.save(self.session_path)
+        if path_str:
+            self._agent.save(path_str)
+            return
+
+        # if no path, save to root but with a random UUID
+        self._agent.save(
+            self.session_path
+            / f"{self._training_config.agent_framework}_{self._training_config.agent_identifier}_{uuid4()}"
+        )
 
     @abstractmethod
     def export(self):
