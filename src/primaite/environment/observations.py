@@ -376,8 +376,8 @@ class LinkTrafficLevels(AbstractObservationComponent):
 class ObservationsHandler:
     """Component-based observation space handler.
 
-    This allows users to configure observation spaces by mixing and matching components.
-    Each component can also define further parameters to make them more flexible.
+    This allows users to configure observation spaces by mixing and matching components. Each component can also define
+    further parameters to make them more flexible.
     """
 
     _REGISTRY: Final[Dict[str, type]] = {

@@ -10,8 +10,7 @@ class Transaction(object):
     """Transaction class."""
 
     def __init__(self, agent_identifier: AgentIdentifier, episode_number: int, step_number: int):
-        """
-        Transaction constructor.
+        """Transaction constructor.
 
         :param agent_identifier: An identifier for the agent in use
         :param episode_number: The episode number
@@ -39,8 +38,7 @@ class Transaction(object):
         "The env observation space description"
 
     def as_csv_data(self) -> Tuple[List, List]:
-        """
-        Converts the Transaction to a csv data row and provides a header.
+        """Converts the Transaction to a csv data row and provides a header.
 
         :return: A tuple consisting of (header, data).
         """
@@ -69,8 +67,7 @@ class Transaction(object):
 
 
 def _turn_action_space_to_array(action_space) -> List[str]:
-    """
-    Turns action space into a string array so it can be saved to csv.
+    """Turns action space into a string array so it can be saved to csv.
 
     :param action_space: The action space
     :return: The action space as an array of strings
@@ -82,12 +79,10 @@ def _turn_action_space_to_array(action_space) -> List[str]:
 
 
 def _turn_obs_space_to_array(obs_space, obs_assets, obs_features) -> List[str]:
-    """
-    Turns observation space into a string array so it can be saved to csv.
+    """Turns observation space into a string array so it can be saved to csv.
 
     :param obs_space: The observation space
-    :param obs_assets: The number of assets (i.e. nodes or links) in the
-        observation space
+    :param obs_assets: The number of assets (i.e. nodes or links) in the observation space
     :param obs_features: The number of features associated with the asset
     :return: The observation space as an array of strings
     """

@@ -15,8 +15,7 @@ class NodeStateInstructionGreen(object):
         _service_name,
         _state,
     ):
-        """
-        Init.
+        """Init.
 
         Args:
             _id: The node state instruction id
@@ -36,8 +35,7 @@ class NodeStateInstructionGreen(object):
         self.state = _state
 
     def get_start_step(self):
-        """
-        Gets the start step.
+        """Gets the start step.
 
         Returns:
              The start step
@@ -45,8 +43,7 @@ class NodeStateInstructionGreen(object):
         return self.start_step
 
     def get_end_step(self):
-        """
-        Gets the end step.
+        """Gets the end step.
 
         Returns:
              The end step
@@ -54,8 +51,7 @@ class NodeStateInstructionGreen(object):
         return self.end_step
 
     def get_node_id(self):
-        """
-        Gets the node ID.
+        """Gets the node ID.
 
         Returns:
              The node ID
@@ -63,8 +59,7 @@ class NodeStateInstructionGreen(object):
         return self.node_id
 
     def get_node_pol_type(self):
-        """
-        Gets the node pattern of life type (enum).
+        """Gets the node pattern of life type (enum).
 
         Returns:
              The node pattern of life type (enum)
@@ -72,8 +67,7 @@ class NodeStateInstructionGreen(object):
         return self.node_pol_type
 
     def get_service_name(self):
-        """
-        Gets the service name.
+        """Gets the service name.
 
         Returns:
              The service name
@@ -81,8 +75,7 @@ class NodeStateInstructionGreen(object):
         return self.service_name
 
     def get_state(self):
-        """
-        Gets the state (node or service).
+        """Gets the state (node or service).
 
         Returns:
              The state (node or service)

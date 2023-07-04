@@ -18,8 +18,7 @@ class Node:
         hardware_state: HardwareState,
         config_values: TrainingConfig,
     ):
-        """
-        Init.
+        """Init.
 
         :param node_id: The node id.
         :param name: The name of the node.

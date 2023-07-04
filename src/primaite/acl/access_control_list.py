@@ -13,8 +13,7 @@ class AccessControlList:
         self.acl: Dict[str, AccessControlList] = {}  # A dictionary of ACL Rules
 
     def check_address_match(self, _rule, _source_ip_address, _dest_ip_address):
-        """
-        Checks for IP address matches.
+        """Checks for IP address matches.
 
         Args:
             _rule: The rule being checked
@@ -35,8 +34,7 @@ class AccessControlList:
             return False
 
     def is_blocked(self, _source_ip_address, _dest_ip_address, _protocol, _port):
-        """
-        Checks for rules that block a protocol / port.
+        """Checks for rules that block a protocol / port.
 
         Args:
             _source_ip_address: the source IP address to check
@@ -62,8 +60,7 @@ class AccessControlList:
         return True
 
     def add_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port):
-        """
-        Adds a new rule.
+        """Adds a new rule.
 
         Args:
             _permission: the permission value (e.g. "ALLOW" or "DENY")
@@ -77,8 +74,7 @@ class AccessControlList:
         self.acl[hash_value] = new_rule
 
     def remove_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port):
-        """
-        Removes a rule.
+        """Removes a rule.
 
         Args:
             _permission: the permission value (e.g. "ALLOW" or "DENY")
@@ -100,8 +96,7 @@ class AccessControlList:
         self.acl.clear()
 
     def get_dictionary_hash(self, _permission, _source_ip, _dest_ip, _protocol, _port):
-        """
-        Produces a hash value for a rule.
+        """Produces a hash value for a rule.
 
         Args:
             _permission: the permission value (e.g. "ALLOW" or "DENY")

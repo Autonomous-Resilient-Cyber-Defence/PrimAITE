@@ -25,8 +25,7 @@ class ActiveNode(Node):
         file_system_state: FileSystemState,
         config_values: TrainingConfig,
     ):
-        """
-        Init.
+        """Init.
 
         :param node_id: The node ID
         :param name: The node name
@@ -52,8 +51,7 @@ class ActiveNode(Node):
 
     @property
     def software_state(self) -> SoftwareState:
-        """
-        Get the software_state.
+        """Get the software_state.
 
         :return: The software_state.
         """
@@ -61,8 +59,7 @@ class ActiveNode(Node):
 
     @software_state.setter
     def software_state(self, software_state: SoftwareState):
-        """
-        Get the software_state.
+        """Get the software_state.
 
         :param software_state: Software State.
         """
@@ -80,8 +77,7 @@ class ActiveNode(Node):
             )
 
     def set_software_state_if_not_compromised(self, software_state: SoftwareState):
-        """
-        Sets Software State if the node is not compromised.
+        """Sets Software State if the node is not compromised.
 
         Args:
             software_state: Software State
@@ -107,8 +103,7 @@ class ActiveNode(Node):
             self._software_state = SoftwareState.GOOD
 
     def set_file_system_state(self, file_system_state: FileSystemState):
-        """
-        Sets the file system state (actual and observed).
+        """Sets the file system state (actual and observed).
 
         Args:
             file_system_state: File system state
@@ -134,8 +129,7 @@ class ActiveNode(Node):
             )
 
     def set_file_system_state_if_not_compromised(self, file_system_state: FileSystemState):
-        """
-        Sets the file system state (actual and observed) if not in a compromised state.
+        """Sets the file system state (actual and observed) if not in a compromised state.
 
         Use for green PoL to prevent it overturning a compromised state
 

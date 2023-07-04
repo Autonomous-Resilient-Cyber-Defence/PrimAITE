@@ -67,14 +67,12 @@ class Primaite(Env):
         session_path: Path,
         timestamp_str: str,
     ):
-        """
-        The Primaite constructor.
+        """The Primaite constructor.
 
         :param training_config_path: The training config filepath.
         :param lay_down_config_path: The lay down config filepath.
         :param session_path: The directory path the session is writing to.
-        :param timestamp_str: The session timestamp in the format:
-            <yyyy-mm-dd>_<hh-mm-ss>.
+        :param timestamp_str: The session timestamp in the format: <yyyy-mm-dd>_<hh-mm- ss>.
         """
         self.session_path: Final[Path] = session_path
         self.timestamp_str: Final[str] = timestamp_str
@@ -256,8 +254,7 @@ class Primaite(Env):
         self.total_step_count = 0
 
     def reset(self):
-        """
-        AI Gym Reset function.
+        """AI Gym Reset function.
 
         Returns:
              Environment observation space (reset)
@@ -293,8 +290,7 @@ class Primaite(Env):
         return self.env_obs
 
     def step(self, action):
-        """
-        AI Gym Step function.
+        """AI Gym Step function.
 
         Args:
             action: Action space from agent
@@ -432,8 +428,7 @@ class Primaite(Env):
                 print("    Protocol: " + protocol.get_name().name + ", Load: " + str(protocol.get_load()))
 
     def interpret_action_and_apply(self, _action):
-        """
-        Applies agent actions to the nodes and Access Control List.
+        """Applies agent actions to the nodes and Access Control List.
 
         Args:
             _action: The action space from the agent
@@ -452,8 +447,7 @@ class Primaite(Env):
             logging.error("Invalid action type found")
 
     def apply_actions_to_nodes(self, _action):
-        """
-        Applies agent actions to the nodes.
+        """Applies agent actions to the nodes.
 
         Args:
             _action: The action space from the agent
@@ -540,8 +534,7 @@ class Primaite(Env):
             return
 
     def apply_actions_to_acl(self, _action):
-        """
-        Applies agent actions to the Access Control List [TO DO].
+        """Applies agent actions to the Access Control List [TO DO].
 
         Args:
             _action: The action space from the agent
@@ -618,8 +611,7 @@ class Primaite(Env):
                 return
 
     def apply_time_based_updates(self):
-        """
-        Updates anything that needs to count down and then change state.
+        """Updates anything that needs to count down and then change state.
 
         e.g. reset / patching status
         """
@@ -716,8 +708,7 @@ class Primaite(Env):
         print("Environment configuration loaded")
 
     def create_node(self, item):
-        """
-        Creates a node from config data.
+        """Creates a node from config data.
 
         Args:
             item: A config data item
@@ -797,8 +788,7 @@ class Primaite(Env):
         self.network_reference.add_nodes_from([node_ref])
 
     def create_link(self, item: Dict):
-        """
-        Creates a link from config data.
+        """Creates a link from config data.
 
         Args:
             item: A config data item
@@ -841,8 +831,7 @@ class Primaite(Env):
         )
 
     def create_green_ier(self, item):
-        """
-        Creates a green IER from config data.
+        """Creates a green IER from config data.
 
         Args:
             item: A config data item
@@ -882,8 +871,7 @@ class Primaite(Env):
         )
 
     def create_red_ier(self, item):
-        """
-        Creates a red IER from config data.
+        """Creates a red IER from config data.
 
         Args:
             item: A config data item
@@ -912,8 +900,7 @@ class Primaite(Env):
         )
 
     def create_green_pol(self, item):
-        """
-        Creates a green PoL object from config data.
+        """Creates a green PoL object from config data.
 
         Args:
             item: A config data item
@@ -946,8 +933,7 @@ class Primaite(Env):
         )
 
     def create_red_pol(self, item):
-        """
-        Creates a red PoL object from config data.
+        """Creates a red PoL object from config data.
 
         Args:
             item: A config data item
@@ -987,8 +973,7 @@ class Primaite(Env):
         )
 
     def create_acl_rule(self, item):
-        """
-        Creates an ACL rule from config data.
+        """Creates an ACL rule from config data.
 
         Args:
             item: A config data item
@@ -1008,8 +993,7 @@ class Primaite(Env):
         )
 
     def create_services_list(self, services):
-        """
-        Creates a list of services (enum) from config data.
+        """Creates a list of services (enum) from config data.
 
         Args:
             item: A config data item representing the services
@@ -1024,8 +1008,7 @@ class Primaite(Env):
         self.num_services = len(self.services_list)
 
     def create_ports_list(self, ports):
-        """
-        Creates a list of ports from config data.
+        """Creates a list of ports from config data.
 
         Args:
             item: A config data item representing the ports
@@ -1048,8 +1031,7 @@ class Primaite(Env):
         self.observation_type = ObservationType[observation_info["type"]]
 
     def get_action_info(self, action_info):
-        """
-        Extracts action_info.
+        """Extracts action_info.
 
         Args:
             item: A config data item representing action info
@@ -1069,11 +1051,9 @@ class Primaite(Env):
         self.obs_config = obs_config
 
     def reset_environment(self):
-        """
-        # Resets environment.
+        """# Resets environment.
 
-        Uses config data config data in order to build the environment
-        configuration.
+        Uses config data config data in order to build the environment configuration.
         """
         for item in self.lay_down_config:
             if item["item_type"] == "NODE":
@@ -1095,8 +1075,7 @@ class Primaite(Env):
             ier_value.set_is_running(False)
 
     def reset_node(self, item):
-        """
-        Resets the statuses of a node.
+        """Resets the statuses of a node.
 
         Args:
             item: A config data item
@@ -1143,8 +1122,7 @@ class Primaite(Env):
             pass
 
     def create_node_action_dict(self):
-        """
-        Creates a dictionary mapping each possible discrete action to more readable multidiscrete action.
+        """Creates a dictionary mapping each possible discrete action to more readable multidiscrete action.
 
         Note: Only actions that have the potential to change the state exist in the mapping (except for key 0)
 
@@ -1157,7 +1135,6 @@ class Primaite(Env):
         5: [1, 3, 1, 0],
         ...
         }
-
         """
         # reserve 0 action to be a nothing action
         actions = {0: [1, 0, 0, 0]}
@@ -1209,11 +1186,9 @@ class Primaite(Env):
         return actions
 
     def create_node_and_acl_action_dict(self):
-        """
-        Create a dictionary mapping each possible discrete action to a more readable mutlidiscrete action.
+        """Create a dictionary mapping each possible discrete action to a more readable mutlidiscrete action.
 
         The dictionary contains actions of both Node and ACL action types.
-
         """
         node_action_dict = self.create_node_action_dict()
         acl_action_dict = self.create_acl_action_dict()

@@ -23,8 +23,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
             return self._calculate_action_full_view(obs)
 
     def get_blocked_green_iers(self, green_iers, acl, nodes):
-        """
-        Get blocked green IERs.
+        """Get blocked green IERs.
 
         TODO: Add params and return in docstring.
         TODO: Typehint params and return.
@@ -46,8 +45,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         return blocked_green_iers
 
     def get_matching_acl_rules_for_ier(self, ier, acl, nodes):
-        """
-        Get matching ACL rules for an IER.
+        """Get matching ACL rules for an IER.
 
         TODO: Add params and return in docstring.
         TODO: Typehint params and return.
@@ -63,8 +61,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         return matching_rules
 
     def get_blocking_acl_rules_for_ier(self, ier, acl, nodes):
-        """
-        Get blocking ACL rules for an IER.
+        """Get blocking ACL rules for an IER.
 
         .. warning::
             Can return empty dict but IER can still be blocked by default
@@ -83,8 +80,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         return blocked_rules
 
     def get_allow_acl_rules_for_ier(self, ier, acl, nodes):
-        """
-        Get all allowing ACL rules for an IER.
+        """Get all allowing ACL rules for an IER.
 
         TODO: Add params and return in docstring.
         TODO: Typehint params and return.
@@ -108,8 +104,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         nodes,
         services_list,
     ):
-        """
-        Get matching ACL rules.
+        """Get matching ACL rules.
 
         TODO: Add params and return in docstring.
         TODO: Typehint params and return.
@@ -140,8 +135,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         nodes,
         services_list,
     ):
-        """
-        Get the ALLOW ACL rules.
+        """Get the ALLOW ACL rules.
 
         TODO: Add params and return in docstring.
         TODO: Typehint params and return.
@@ -173,8 +167,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         nodes,
         services_list,
     ):
-        """
-        Get the DENY ACL rules.
+        """Get the DENY ACL rules.
 
         TODO: Add params and return in docstring.
         TODO: Typehint params and return.
@@ -197,8 +190,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         return allowed_rules
 
     def _calculate_action_full_view(self, obs):
-        """
-        Calculate a good acl-based action for the blue agent to take.
+        """Calculate a good acl-based action for the blue agent to take.
 
         Knowledge of just the observation space is insufficient for a perfect solution, as we need to know:
 

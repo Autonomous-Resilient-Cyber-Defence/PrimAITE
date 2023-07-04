@@ -23,8 +23,7 @@ class NodeStateInstructionRed(object):
         _pol_source_node_service,
         _pol_source_node_service_state,
     ):
-        """
-        Init.
+        """Init.
 
         Args:
             _id: The node state instruction id
@@ -52,8 +51,7 @@ class NodeStateInstructionRed(object):
         self.source_node_service_state = _pol_source_node_service_state
 
     def get_start_step(self):
-        """
-        Gets the start step.
+        """Gets the start step.
 
         Returns:
              The start step
@@ -61,8 +59,7 @@ class NodeStateInstructionRed(object):
         return self.start_step
 
     def get_end_step(self):
-        """
-        Gets the end step.
+        """Gets the end step.
 
         Returns:
              The end step
@@ -70,8 +67,7 @@ class NodeStateInstructionRed(object):
         return self.end_step
 
     def get_target_node_id(self):
-        """
-        Gets the node ID.
+        """Gets the node ID.
 
         Returns:
              The node ID
@@ -79,8 +75,7 @@ class NodeStateInstructionRed(object):
         return self.target_node_id
 
     def get_initiator(self):
-        """
-        Gets the initiator.
+        """Gets the initiator.
 
         Returns:
              The initiator
@@ -88,8 +83,7 @@ class NodeStateInstructionRed(object):
         return self.initiator
 
     def get_pol_type(self) -> NodePOLType:
-        """
-        Gets the node pattern of life type (enum).
+        """Gets the node pattern of life type (enum).
 
         Returns:
              The node pattern of life type (enum)
@@ -97,8 +91,7 @@ class NodeStateInstructionRed(object):
         return self.pol_type
 
     def get_service_name(self):
-        """
-        Gets the service name.
+        """Gets the service name.
 
         Returns:
              The service name
@@ -106,8 +99,7 @@ class NodeStateInstructionRed(object):
         return self.service_name
 
     def get_state(self):
-        """
-        Gets the state (node or service).
+        """Gets the state (node or service).
 
         Returns:
              The state (node or service)
@@ -115,8 +107,7 @@ class NodeStateInstructionRed(object):
         return self.state
 
     def get_source_node_id(self):
-        """
-        Gets the source node id (used for initiator type SERVICE).
+        """Gets the source node id (used for initiator type SERVICE).
 
         Returns:
              The source node id
@@ -124,8 +115,7 @@ class NodeStateInstructionRed(object):
         return self.source_node_id
 
     def get_source_node_service(self):
-        """
-        Gets the source node service (used for initiator type SERVICE).
+        """Gets the source node service (used for initiator type SERVICE).
 
         Returns:
              The source node service
@@ -133,8 +123,7 @@ class NodeStateInstructionRed(object):
         return self.source_node_service
 
     def get_source_node_service_state(self):
-        """
-        Gets the source node service state (used for initiator type SERVICE).
+        """Gets the source node service state (used for initiator type SERVICE).
 
         Returns:
              The source node service state

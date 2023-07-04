@@ -9,8 +9,7 @@ class Link(object):
     """Link class."""
 
     def __init__(self, _id, _bandwidth, _source_node_name, _dest_node_name, _services):
-        """
-        Init.
+        """Init.
 
         Args:
             _id: The IER id
@@ -30,8 +29,7 @@ class Link(object):
             self.add_protocol(protocol_name)
 
     def add_protocol(self, _protocol):
-        """
-        Adds a new protocol to the list of protocols on this link.
+        """Adds a new protocol to the list of protocols on this link.
 
         Args:
             _protocol: The protocol to be added (enum)
@@ -39,8 +37,7 @@ class Link(object):
         self.protocol_list.append(Protocol(_protocol))
 
     def get_id(self):
-        """
-        Gets link ID.
+        """Gets link ID.
 
         Returns:
              Link ID
@@ -48,8 +45,7 @@ class Link(object):
         return self.id
 
     def get_source_node_name(self):
-        """
-        Gets source node name.
+        """Gets source node name.
 
         Returns:
              Source node name
@@ -57,8 +53,7 @@ class Link(object):
         return self.source_node_name
 
     def get_dest_node_name(self):
-        """
-        Gets destination node name.
+        """Gets destination node name.
 
         Returns:
              Destination node name
@@ -66,8 +61,7 @@ class Link(object):
         return self.dest_node_name
 
     def get_bandwidth(self):
-        """
-        Gets bandwidth of link.
+        """Gets bandwidth of link.
 
         Returns:
              Link bandwidth (bps)
@@ -75,8 +69,7 @@ class Link(object):
         return self.bandwidth
 
     def get_protocol_list(self):
-        """
-        Gets list of protocols on this link.
+        """Gets list of protocols on this link.
 
         Returns:
              List of protocols on this link
@@ -84,8 +77,7 @@ class Link(object):
         return self.protocol_list
 
     def get_current_load(self):
-        """
-        Gets current total load on this link.
+        """Gets current total load on this link.
 
         Returns:
              Total load on this link (bps)
@@ -96,8 +88,7 @@ class Link(object):
         return total_load
 
     def add_protocol_load(self, _protocol, _load):
-        """
-        Adds a loading to a protocol on this link.
+        """Adds a loading to a protocol on this link.
 
         Args:
             _protocol: The protocol to load

@@ -128,8 +128,7 @@ class RLlibAgent(AgentSessionABC):
         self,
         **kwargs,
     ):
-        """
-        Evaluate the agent.
+        """Evaluate the agent.
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
@@ -147,8 +146,7 @@ class RLlibAgent(AgentSessionABC):
         self,
         **kwargs,
     ):
-        """
-        Evaluate the agent.
+        """Evaluate the agent.
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """

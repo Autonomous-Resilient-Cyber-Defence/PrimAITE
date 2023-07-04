@@ -11,11 +11,9 @@ _LOGGER = getLogger(__name__)
 
 
 def run(overwrite_existing=True):
-    """
-    Resets the example config files in the users app config directory.
+    """Resets the example config files in the users app config directory.
 
-    :param overwrite_existing: A bool to toggle replacing existing edited
-        config on or off.
+    :param overwrite_existing: A bool to toggle replacing existing edited config on or off.
     """
     configs_package_data_root = pkg_resources.resource_filename("primaite", "config/_package_data")
 

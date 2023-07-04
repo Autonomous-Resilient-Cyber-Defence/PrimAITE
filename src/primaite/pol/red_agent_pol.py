@@ -24,8 +24,7 @@ def apply_red_agent_iers(
     acl: AccessControlList,
     step: int,
 ):
-    """
-    Applies IERs to the links (link POL) resulting from red agent attack.
+    """Applies IERs to the links (link POL) resulting from red agent attack.
 
     Args:
         network: The network modelled in the environment
@@ -214,8 +213,7 @@ def apply_red_agent_node_pol(
     node_pol: Dict[str, NodeStateInstructionRed],
     step: int,
 ):
-    """
-    Applies node pattern of life.
+    """Applies node pattern of life.
 
     Args:
         nodes: The nodes within the environment
@@ -297,8 +295,7 @@ def apply_red_agent_node_pol(
 
 
 def is_red_ier_incoming(node, iers, node_pol_type):
-    """
-    Checks if the RED IER is incoming.
+    """Checks if the RED IER is incoming.
 
     TODO: Write more descriptive docstring with params and returns.
     """
