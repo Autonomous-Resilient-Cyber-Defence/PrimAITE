@@ -49,6 +49,7 @@ class NodeLinkTable(AbstractObservationComponent):
     This will create the observation space formatted as a table of integers.
     There is one row per node, followed by one row per link.
     The number of columns is 4 plus one per service. They are:
+
         * node/link ID
         * node hardware status / 0 for links
         * node operating system status (if active/service) / 0 for links
@@ -175,6 +176,7 @@ class NodeStatuses(AbstractObservationComponent):
     integers.
     Each node has 3 elements plus 1 per service. It will have the following structure:
     .. code-block::
+
         [
             node1 hardware state,
             node1 OS state,
@@ -275,6 +277,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
 
     For each link, total traffic or traffic per service is encoded into a categorical value.
     For example, if ``quantisation_levels=5``, the traffic levels represent these values:
+
         * 0 = No traffic (0% of bandwidth)
         * 1 = No traffic (0%-33% of bandwidth)
         * 2 = No traffic (33%-66% of bandwidth)
@@ -426,7 +429,7 @@ class ObservationsHandler:
         """Remove a component from this handler.
 
         :param obs_component: Which component to remove. It must exist within this object's
-        ``registered_obs_components`` attribute.
+            ``registered_obs_components`` attribute.
         :type obs_component: AbstractObservationComponent
         """
         self.registered_obs_components.remove(obs_component)
@@ -470,7 +473,8 @@ class ObservationsHandler:
 
         The expected format for the config dictionary is:
 
-        ..code-block::python
+        .. code-block:: python
+
             config = {
                 components: [
                     {
