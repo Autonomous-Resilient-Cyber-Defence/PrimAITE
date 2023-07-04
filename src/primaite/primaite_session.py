@@ -1,3 +1,4 @@
+"""Main entry point to PrimAITE. Configure training/evaluation experiments and input/output."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -35,12 +36,12 @@ class PrimaiteSession:
         """
         if not isinstance(training_config_path, Path):
             training_config_path = Path(training_config_path)
-        self._training_config_path: Final[Union[Path]] = training_config_path
+        self._training_config_path: Final[Union[Path, str]] = training_config_path
         self._training_config: Final[TrainingConfig] = training_config.load(self._training_config_path)
 
         if not isinstance(lay_down_config_path, Path):
             lay_down_config_path = Path(lay_down_config_path)
-        self._lay_down_config_path: Final[Union[Path]] = lay_down_config_path
+        self._lay_down_config_path: Final[Union[Path, str]] = lay_down_config_path
         self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)
 
         self._agent_session: AgentSessionABC = None  # noqa
