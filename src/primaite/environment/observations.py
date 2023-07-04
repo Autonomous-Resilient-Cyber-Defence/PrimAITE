@@ -275,11 +275,11 @@ class LinkTrafficLevels(AbstractObservationComponent):
 
     For each link, total traffic or traffic per service is encoded into a categorical value.
     For example, if ``quantisation_levels=5``, the traffic levels represent these values:
-        0 = No traffic (0% of bandwidth)
-        1 = No traffic (0%-33% of bandwidth)
-        2 = No traffic (33%-66% of bandwidth)
-        3 = No traffic (66%-100% of bandwidth)
-        4 = No traffic (100% of bandwidth)
+        * 0 = No traffic (0% of bandwidth)
+        * 1 = No traffic (0%-33% of bandwidth)
+        * 2 = No traffic (33%-66% of bandwidth)
+        * 3 = No traffic (66%-100% of bandwidth)
+        * 4 = No traffic (100% of bandwidth)
 
     .. note::
         The lowest category always corresponds to no traffic and the highest category to the link being at max capacity.
@@ -288,10 +288,10 @@ class LinkTrafficLevels(AbstractObservationComponent):
     :param env: The environment that forms the basis of the observations
     :type env: Primaite
     :param combine_service_traffic: Whether to consider total traffic on the link, or each protocol individually,
-    defaults to False
+        defaults to False
     :type combine_service_traffic: bool, optional
     :param quantisation_levels: How many bands to consider when converting the traffic amount to a categorical value ,
-    defaults to 5
+        defaults to 5
     :type quantisation_levels: int, optional
     """
 
