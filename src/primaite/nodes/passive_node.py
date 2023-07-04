@@ -28,9 +28,7 @@ class PassiveNode(Node):
         :param config_values: Config values.
         """
         # Pass through to Super for now
-        super().__init__(
-            node_id, name, node_type, priority, hardware_state, config_values
-        )
+        super().__init__(node_id, name, node_type, priority, hardware_state, config_values)
 
     @property
     def ip_address(self) -> str:

@@ -95,8 +95,6 @@ def test_rule_hash():
     rule = ACLRule("DENY", "192.168.1.1", "192.168.1.2", "TCP", "80")
     hash_value_local = hash(rule)
 
-    hash_value_remote = acl.get_dictionary_hash(
-        "DENY", "192.168.1.1", "192.168.1.2", "TCP", "80"
-    )
+    hash_value_remote = acl.get_dictionary_hash("DENY", "192.168.1.1", "192.168.1.2", "TCP", "80")
 
     assert hash_value_local == hash_value_remote

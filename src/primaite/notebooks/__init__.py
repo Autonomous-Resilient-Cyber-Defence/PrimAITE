@@ -4,7 +4,7 @@ import os
 import subprocess
 import sys
 
-from primaite import NOTEBOOKS_DIR, getLogger
+from primaite import getLogger, NOTEBOOKS_DIR
 
 _LOGGER = getLogger(__name__)
 

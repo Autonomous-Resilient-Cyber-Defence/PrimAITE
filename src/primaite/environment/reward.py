@@ -41,27 +41,19 @@ def calculate_reward_function(
         reference_node = reference_nodes[node_key]
 
         # Hardware State
-        reward_value += score_node_operating_state(
-            final_node, initial_node, reference_node, config_values
-        )
+        reward_value += score_node_operating_state(final_node, initial_node, reference_node, config_values)
 
         # Software State
         if isinstance(final_node, ActiveNode) or isinstance(final_node, ServiceNode):
-            reward_value += score_node_os_state(
-                final_node, initial_node, reference_node, config_values
-            )
+            reward_value += score_node_os_state(final_node, initial_node, reference_node, config_values)
 
         # Service State
         if isinstance(final_node, ServiceNode):
-            reward_value += score_node_service_state(
-                final_node, initial_node, reference_node, config_values
-            )
+            reward_value += score_node_service_state(final_node, initial_node, reference_node, config_values)
 
         # File System State
         if isinstance(final_node, ActiveNode):
-            reward_value += score_node_file_system(
-                final_node, initial_node, reference_node, config_values
-            )
+            reward_value += score_node_file_system(final_node, initial_node, reference_node, config_values)
 
     # Go through each red IER - penalise if it is running
     for ier_key, ier_value in red_iers.items():
@@ -80,14 +72,9 @@ def calculate_reward_function(
         if step_count >= start_step and step_count <= stop_step:
             reference_blocked = not reference_ier.get_is_running()
             live_blocked = not ier_value.get_is_running()
-            ier_reward = (
-                config_values.green_ier_blocked * ier_value.get_mission_criticality()
-            )
+            ier_reward = config_values.green_ier_blocked * ier_value.get_mission_criticality()
 
             if live_blocked and not reference_blocked:
-                _LOGGER.debug(
-                    f"Applying reward of {ier_reward} because IER {ier_key} is blocked"
-                )
                 reward_value += ier_reward
             elif live_blocked and reference_blocked:
                 _LOGGER.debug(
