@@ -142,6 +142,7 @@ class RLlibAgent(AgentSessionABC):
             self._save_checkpoint()
         self._agent.stop()
         super().learn()
+        self.save(self.learning_path / f"rllib_{self._training_config.agent_identifier}_{self.timestamp_str}.zip")
 
     def evaluate(
         self,
@@ -160,10 +161,6 @@ class RLlibAgent(AgentSessionABC):
     @classmethod
     def load(cls, path: Union[str, Path]) -> RLlibAgent:
         """Load an agent from file."""
-        raise NotImplementedError
-
-    def save(self):
-        """Save the agent."""
         raise NotImplementedError
 
     def export(self):
