@@ -1,6 +1,5 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
-"""
-Information Exchange Requirements for APE.
+"""Information Exchange Requirements for APE.
 
 Used to represent an information flow from source to destination.
 """
@@ -22,8 +21,7 @@ class IER(object):
         _mission_criticality,
         _running=False,
     ):
-        """
-        Init.
+        """Init.
 
         Args:
             _id: The IER id
@@ -49,8 +47,7 @@ class IER(object):
         self.running = _running
 
     def get_id(self):
-        """
-        Gets IER ID.
+        """Gets IER ID.
 
         Returns:
              IER ID
@@ -58,8 +55,7 @@ class IER(object):
         return self.id
 
     def get_start_step(self):
-        """
-        Gets IER start step.
+        """Gets IER start step.
 
         Returns:
              IER start step
@@ -67,8 +63,7 @@ class IER(object):
         return self.start_step
 
     def get_end_step(self):
-        """
-        Gets IER end step.
+        """Gets IER end step.
 
         Returns:
              IER end step
@@ -76,8 +71,7 @@ class IER(object):
         return self.end_step
 
     def get_load(self):
-        """
-        Gets IER load.
+        """Gets IER load.
 
         Returns:
              IER load
@@ -85,8 +79,7 @@ class IER(object):
         return self.load
 
     def get_protocol(self):
-        """
-        Gets IER protocol.
+        """Gets IER protocol.
 
         Returns:
              IER protocol
@@ -94,8 +87,7 @@ class IER(object):
         return self.protocol
 
     def get_port(self):
-        """
-        Gets IER port.
+        """Gets IER port.
 
         Returns:
              IER port
@@ -103,8 +95,7 @@ class IER(object):
         return self.port
 
     def get_source_node_id(self):
-        """
-        Gets IER source node ID.
+        """Gets IER source node ID.
 
         Returns:
              IER source node ID
@@ -112,8 +103,7 @@ class IER(object):
         return self.source_node_id
 
     def get_dest_node_id(self):
-        """
-        Gets IER destination node ID.
+        """Gets IER destination node ID.
 
         Returns:
              IER destination node ID
@@ -121,8 +111,7 @@ class IER(object):
         return self.dest_node_id
 
     def get_is_running(self):
-        """
-        Informs whether the IER is currently running.
+        """Informs whether the IER is currently running.
 
         Returns:
              True if running
@@ -130,8 +119,7 @@ class IER(object):
         return self.running
 
     def set_is_running(self, _value):
-        """
-        Sets the running state of the IER.
+        """Sets the running state of the IER.
 
         Args:
              _value: running status
@@ -139,8 +127,7 @@ class IER(object):
         self.running = _value
 
     def get_mission_criticality(self):
-        """
-        Gets the IER mission criticality (used in the reward function).
+        """Gets the IER mission criticality (used in the reward function).
 
         Returns:
              Mission criticality value (0 lowest to 5 highest)

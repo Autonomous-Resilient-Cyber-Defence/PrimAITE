@@ -8,8 +8,7 @@ class Service(object):
     """Service class."""
 
     def __init__(self, name: str, port: str, software_state: SoftwareState):
-        """
-        Init.
+        """Init.
 
         :param name: The service name.
         :param port: The service port.

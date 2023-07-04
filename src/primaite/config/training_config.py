@@ -24,8 +24,7 @@ _EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training
 
 
 def main_training_config_path() -> Path:
-    """
-    The path to the example training_config_main.yaml file.
+    """The path to the example training_config_main.yaml file.
 
     :return: The file path.
     """
@@ -180,8 +179,7 @@ class TrainingConfig:
 
     @classmethod
     def from_dict(cls, config_dict: Dict[str, Union[str, int, bool]]) -> TrainingConfig:
-        """
-        Create an instance of TrainingConfig from a dict.
+        """Create an instance of TrainingConfig from a dict.
 
         :param config_dict: The training config dict.
         :return: The instance of TrainingConfig.
@@ -236,8 +234,7 @@ class TrainingConfig:
 
 
 def load(file_path: Union[str, Path], legacy_file: bool = False) -> TrainingConfig:
-    """
-    Read in a training config yaml file.
+    """Read in a training config yaml file.
 
     :param file_path: The config file path.
     :param legacy_file: True if the config file is legacy format, otherwise
@@ -281,18 +278,14 @@ def convert_legacy_training_config_dict(
     action_type: ActionType = ActionType.ANY,
     num_steps: int = 256,
 ) -> Dict[str, Any]:
-    """
-    Convert a legacy training config dict to the new format.
+    """Convert a legacy training config dict to the new format.
 
     :param legacy_config_dict: A legacy training config dict.
-    :param agent_framework: The agent framework to use as legacy training
-        configs don't have agent_framework values.
-    :param agent_identifier: The red agent identifier to use as legacy
-        training configs don't have agent_identifier values.
-    :param action_type: The action space type to set as legacy training configs
-        don't have action_type values.
-    :param num_steps: The number of steps to set as legacy training configs
-        don't have num_steps values.
+    :param agent_framework: The agent framework to use as legacy training configs don't have agent_framework values.
+    :param agent_identifier: The red agent identifier to use as legacy training configs don't have agent_identifier
+        values.
+    :param action_type: The action space type to set as legacy training configs don't have action_type values.
+    :param num_steps: The number of steps to set as legacy training configs don't have num_steps values.
     :return: The converted training config dict.
     """
     config_dict = {
@@ -312,8 +305,7 @@ def convert_legacy_training_config_dict(
 
 
 def _get_new_key_from_legacy(legacy_key: str) -> str:
-    """
-    Maps legacy training config keys to the new format keys.
+    """Maps legacy training config keys to the new format keys.
 
     :param legacy_key: A legacy training config key.
     :return: The mapped key.

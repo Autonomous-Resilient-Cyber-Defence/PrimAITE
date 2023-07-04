@@ -6,8 +6,7 @@ class ACLRule:
     """Access Control List Rule class."""
 
     def __init__(self, _permission, _source_ip, _dest_ip, _protocol, _port):
-        """
-        Init.
+        """Init.
 
         Args:
             _permission: The permission (ALLOW or DENY)
@@ -23,8 +22,7 @@ class ACLRule:
         self.port = _port
 
     def __hash__(self):
-        """
-        Override the hash function.
+        """Override the hash function.
 
         Returns:
              Returns hash of core parameters.
@@ -40,8 +38,7 @@ class ACLRule:
         )
 
     def get_permission(self):
-        """
-        Gets the permission attribute.
+        """Gets the permission attribute.
 
         Returns:
              Returns permission attribute
@@ -49,8 +46,7 @@ class ACLRule:
         return self.permission
 
     def get_source_ip(self):
-        """
-        Gets the source IP address attribute.
+        """Gets the source IP address attribute.
 
         Returns:
              Returns source IP address attribute
@@ -58,8 +54,7 @@ class ACLRule:
         return self.source_ip
 
     def get_dest_ip(self):
-        """
-        Gets the desintation IP address attribute.
+        """Gets the desintation IP address attribute.
 
         Returns:
              Returns destination IP address attribute
@@ -67,8 +62,7 @@ class ACLRule:
         return self.dest_ip
 
     def get_protocol(self):
-        """
-        Gets the protocol attribute.
+        """Gets the protocol attribute.
 
         Returns:
              Returns protocol attribute
@@ -76,8 +70,7 @@ class ACLRule:
         return self.protocol
 
     def get_port(self):
-        """
-        Gets the port attribute.
+        """Gets the port attribute.
 
         Returns:
              Returns port attribute

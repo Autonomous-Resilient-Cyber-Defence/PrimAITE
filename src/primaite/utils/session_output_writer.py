@@ -12,8 +12,7 @@ _LOGGER: Logger = getLogger(__name__)
 
 
 class SessionOutputWriter:
-    """
-    A session output writer class.
+    """A session output writer class.
 
     Is used to write session outputs to csv file.
     """
@@ -65,11 +64,9 @@ class SessionOutputWriter:
             _LOGGER.debug(f"Finished writing file: {self._csv_file_path}")
 
     def write(self, data: Union[Tuple, Transaction]):
-        """
-        Write a row of session data.
+        """Write a row of session data.
 
-        :param data: The row of data to write. Can be a Tuple or an instance
-            of Transaction.
+        :param data: The row of data to write. Can be a Tuple or an instance of Transaction.
         """
         if isinstance(data, Transaction):
             header, data = data.as_csv_data()

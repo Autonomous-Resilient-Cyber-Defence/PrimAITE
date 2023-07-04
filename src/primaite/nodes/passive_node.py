@@ -17,8 +17,7 @@ class PassiveNode(Node):
         hardware_state: HardwareState,
         config_values: TrainingConfig,
     ):
-        """
-        Init.
+        """Init.
 
         :param node_id: The node id.
         :param name: The name of the node.
@@ -32,8 +31,7 @@ class PassiveNode(Node):
 
     @property
     def ip_address(self) -> str:
-        """
-        Gets the node IP address as an empty string.
+        """Gets the node IP address as an empty string.
 
         No concept of IP address for passive nodes for now.
 

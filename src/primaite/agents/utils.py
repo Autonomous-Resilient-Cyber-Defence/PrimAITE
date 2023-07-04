@@ -11,8 +11,7 @@ from primaite.common.enums import (
 
 
 def transform_action_node_readable(action):
-    """
-    Convert a node action from enumerated format to readable format.
+    """Convert a node action from enumerated format to readable format.
 
     example:
     [1, 3, 1, 0] -> [1, 'SERVICE', 'PATCHING', 0]
@@ -34,8 +33,7 @@ def transform_action_node_readable(action):
 
 
 def transform_action_acl_readable(action):
-    """
-    Transform an ACL action to a more readable format.
+    """Transform an ACL action to a more readable format.
 
     example:
     [0, 1, 2, 5, 0, 1] -> ['NONE', 'ALLOW', 2, 5, 'ANY', 1]
@@ -94,8 +92,7 @@ def is_valid_node_action(action):
 
 
 def is_valid_acl_action(action):
-    """
-    Is the ACL action an actual valid action.
+    """Is the ACL action an actual valid action.
 
     Only uses information about the action to determine if the action has an effect.
 
@@ -127,8 +124,7 @@ def is_valid_acl_action(action):
 
 
 def is_valid_acl_action_extra(action):
-    """
-    Harsher version of valid acl actions, does not allow action.
+    """Harsher version of valid acl actions, does not allow action.
 
     TODO: Add params and return in docstring.
     TODO: Typehint params and return.
@@ -151,8 +147,7 @@ def is_valid_acl_action_extra(action):
 
 
 def transform_change_obs_readable(obs):
-    """
-    Transform list of transactions to readable list of each observation property.
+    """Transform list of transactions to readable list of each observation property.
 
     example:
     np.array([[1,2,1,3],[2,1,1,1]]) -> [[1, 2], ['OFF', 'ON'], ['GOOD', 'GOOD'], ['COMPROMISED', 'GOOD']]
@@ -174,8 +169,7 @@ def transform_change_obs_readable(obs):
 
 
 def transform_obs_readable(obs):
-    """
-    Transform observation to readable format.
+    """Transform observation to readable format.
 
     np.array([[1,2,1,3],[2,1,1,1]]) -> [[1, 'OFF', 'GOOD', 'COMPROMISED'], [2, 'ON', 'GOOD', 'GOOD']]
 
@@ -191,8 +185,7 @@ def transform_obs_readable(obs):
 
 
 def convert_to_new_obs(obs, num_nodes=10):
-    """
-    Convert original gym Box observation space to new multiDiscrete observation space.
+    """Convert original gym Box observation space to new multiDiscrete observation space.
 
     TODO: Add params and return in docstring.
     TODO: Typehint params and return.
@@ -203,8 +196,7 @@ def convert_to_new_obs(obs, num_nodes=10):
 
 
 def convert_to_old_obs(obs, num_nodes=10, num_links=10, num_services=1):
-    """
-    Convert to old observation.
+    """Convert to old observation.
 
     Links filled with 0's as no information is included in new observation space.
 
@@ -240,8 +232,7 @@ def convert_to_old_obs(obs, num_nodes=10, num_links=10, num_services=1):
 
 
 def describe_obs_change(obs1, obs2, num_nodes=10, num_links=10, num_services=1):
-    """
-    Return string describing change between two observations.
+    """Return string describing change between two observations.
 
     example:
     obs_1 = array([[1, 1, 1, 1, 3], [2, 1, 1, 1, 1]])
@@ -269,8 +260,7 @@ def describe_obs_change(obs1, obs2, num_nodes=10, num_links=10, num_services=1):
 
 
 def _describe_obs_change_helper(obs_change, is_link):
-    """
-    Helper funcion to describe what has changed.
+    """Helper funcion to describe what has changed.
 
     example:
     [ 1 -1 -1 -1  1] -> "ID 1: Service 1 changed to GOOD"
@@ -305,8 +295,7 @@ def _describe_obs_change_helper(obs_change, is_link):
 
 
 def transform_action_node_enum(action):
-    """
-    Convert a node action from readable string format, to enumerated format.
+    """Convert a node action from readable string format, to enumerated format.
 
     example:
     [1, 'SERVICE', 'PATCHING', 0] -> [1, 3, 1, 0]
@@ -337,8 +326,7 @@ def transform_action_node_enum(action):
 
 
 def transform_action_node_readable(action):
-    """
-    Convert a node action from enumerated format to readable format.
+    """Convert a node action from enumerated format to readable format.
 
     example:
     [1, 3, 1, 0] -> [1, 'SERVICE', 'PATCHING', 0]
@@ -360,8 +348,7 @@ def transform_action_node_readable(action):
 
 
 def node_action_description(action):
-    """
-    Generate string describing a node-based action.
+    """Generate string describing a node-based action.
 
     TODO: Add params and return in docstring.
     TODO: Typehint params and return.
@@ -388,8 +375,7 @@ def node_action_description(action):
 
 
 def transform_action_acl_enum(action):
-    """
-    Convert acl action from readable str format, to enumerated format.
+    """Convert acl action from readable str format, to enumerated format.
 
     TODO: Add params and return in docstring.
     TODO: Typehint params and return.
@@ -411,8 +397,7 @@ def transform_action_acl_enum(action):
 
 
 def acl_action_description(action):
-    """
-    Generate string describing an acl-based action.
+    """Generate string describing an acl-based action.
 
     TODO: Add params and return in docstring.
     TODO: Typehint params and return.
@@ -432,8 +417,7 @@ def acl_action_description(action):
 
 
 def get_node_of_ip(ip, node_dict):
-    """
-    Get the node ID of an IP address.
+    """Get the node ID of an IP address.
 
     node_dict: dictionary of nodes where key is ID, and value is the node (can be ontained from env.nodes)
 
@@ -480,8 +464,7 @@ def is_valid_node_action(action):
 
 
 def is_valid_acl_action(action):
-    """
-    Is the ACL action an actual valid action.
+    """Is the ACL action an actual valid action.
 
     Only uses information about the action to determine if the action has an effect
 
@@ -513,8 +496,7 @@ def is_valid_acl_action(action):
 
 
 def is_valid_acl_action_extra(action):
-    """
-    Harsher version of valid acl actions, does not allow action.
+    """Harsher version of valid acl actions, does not allow action.
 
     TODO: Add params and return in docstring.
     TODO: Typehint params and return.
@@ -537,8 +519,7 @@ def is_valid_acl_action_extra(action):
 
 
 def get_new_action(old_action, action_dict):
-    """
-    Get new action (e.g. 32) from old action e.g. [1,1,1,0].
+    """Get new action (e.g. 32) from old action e.g. [1,1,1,0].
 
     Old_action can be either node or acl action type
 

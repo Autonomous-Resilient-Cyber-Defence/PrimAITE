@@ -5,8 +5,7 @@ _LOGGER = getLogger(__name__)
 
 
 def run():
-    """
-    Handles creation of application directories and user directories.
+    """Handles creation of application directories and user directories.
 
     Uses `platformdirs.PlatformDirs` and `pathlib.Path` to create the required
     app directories in the correct locations based on the users OS.

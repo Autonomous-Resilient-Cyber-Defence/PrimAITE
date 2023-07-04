@@ -28,8 +28,7 @@ def build_dirs():
 
 @app.command()
 def reset_notebooks(overwrite: bool = True):
-    """
-    Force a reset of the demo notebooks in the users notebooks directory.
+    """Force a reset of the demo notebooks in the users notebooks directory.
 
     :param overwrite: If True, will overwrite existing demo notebooks.
     """
@@ -40,8 +39,7 @@ def reset_notebooks(overwrite: bool = True):
 
 @app.command()
 def logs(last_n: Annotated[int, typer.Option("-n")]):
-    """
-    Print the PrimAITE log file.
+    """Print the PrimAITE log file.
 
     :param last_n: The number of lines to print. Default value is 10.
     """
@@ -61,8 +59,7 @@ _LogLevel = Enum("LogLevel", {k: k for k in logging._levelToName.values()})  # n
 
 @app.command()
 def log_level(level: Annotated[Optional[_LogLevel], typer.Argument()] = None):
-    """
-    View or set the PrimAITE Log Level.
+    """View or set the PrimAITE Log Level.
 
     To View, simply call: primaite log-level
 
@@ -113,8 +110,7 @@ def clean_up():
 
 @app.command()
 def setup(overwrite_existing: bool = True):
-    """
-    Perform the PrimAITE first-time setup.
+    """Perform the PrimAITE first-time setup.
 
     WARNING: All user-data will be lost.
     """
@@ -152,8 +148,7 @@ def setup(overwrite_existing: bool = True):
 
 @app.command()
 def session(tc: Optional[str] = None, ldc: Optional[str] = None):
-    """
-    Run a PrimAITE session.
+    """Run a PrimAITE session.
 
     tc: The training config filepath. Optional. If no value is passed then
     example default training config is used from:
@@ -178,8 +173,7 @@ def session(tc: Optional[str] = None, ldc: Optional[str] = None):
 
 @app.command()
 def plotly_template(template: Annotated[Optional[PlotlyTemplate], typer.Argument()] = None):
-    """
-    View or set the plotly template for Session plots.
+    """View or set the plotly template for Session plots.
 
     To View, simply call: primaite plotly-template
 

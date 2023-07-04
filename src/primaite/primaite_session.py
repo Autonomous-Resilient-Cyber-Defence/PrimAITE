@@ -18,11 +18,9 @@ _LOGGER = getLogger(__name__)
 
 
 class PrimaiteSession:
-    """
-    The PrimaiteSession class.
+    """The PrimaiteSession class.
 
-    Provides a single learning and evaluation entry point for all training
-    and lay down configurations.
+    Provides a single learning and evaluation entry point for all training and lay down configurations.
     """
 
     def __init__(
@@ -30,8 +28,7 @@ class PrimaiteSession:
         training_config_path: Union[str, Path],
         lay_down_config_path: Union[str, Path],
     ):
-        """
-        The PrimaiteSession constructor.
+        """The PrimaiteSession constructor.
 
         :param training_config_path: The training config path.
         :param lay_down_config_path: The lay down config path.
@@ -125,8 +122,7 @@ class PrimaiteSession:
         self,
         **kwargs,
     ):
-        """
-        Train the agent.
+        """Train the agent.
 
         :param kwargs: Any agent-framework specific key word args.
         """
@@ -137,8 +133,7 @@ class PrimaiteSession:
         self,
         **kwargs,
     ):
-        """
-        Evaluate the agent.
+        """Evaluate the agent.
 
         :param kwargs: Any agent-framework specific key word args.
         """
