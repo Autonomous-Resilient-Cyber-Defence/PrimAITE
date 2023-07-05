@@ -8,6 +8,7 @@ from primaite.common.enums import NodePOLType
 @dataclass()
 class NodeStateInstructionRed(object):
     """The Node State Instruction class.
+
     :param _id: The node state instruction id
     :param _start_step: The start step of the instruction
     :param _end_step: The end step of the instruction
