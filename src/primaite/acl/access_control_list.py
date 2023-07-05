@@ -118,7 +118,7 @@ class AccessControlList:
         return hash_value
 
     def get_relevant_rules(self, _source_ip_address, _dest_ip_address, _protocol, _port):
-        """Get all ACL rules that relate to the given arguments
+        """Get all ACL rules that relate to the given arguments.
 
         :param _source_ip_address: the source IP address to check
         :param _dest_ip_address: the destination IP address to check
