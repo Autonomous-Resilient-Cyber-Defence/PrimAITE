@@ -7,7 +7,7 @@ name = "primaite"
 description = "PrimAITE (Primary-level AI Training Environment) is a simulation environment for training AI under the ARCD programme."
 authors = [{name="QinetiQ Training and Simulation Ltd"}]
 license = {text = "GFX"}
-requires-python = ">=3.8"
+requires-python = ">=3.8, <3.11"
 dynamic = ["version", "readme"]
 classifiers = [
     "License :: GFX",
@@ -20,19 +20,23 @@ classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3 :: Only",
 ]
 
 dependencies = [
     "gym==0.21.0",
     "jupyterlab==3.6.1",
+    "kaleido==0.2.1",
     "matplotlib==3.7.1",
     "networkx==3.1",
     "numpy==1.23.5",
     "platformdirs==3.5.1",
+    "plotly==5.15.0",
+    "polars==0.18.4",
     "PyYAML==6.0",
+    "ray[rllib]==2.2.0",
     "stable-baselines3==1.6.2",
+    "tensorflow==2.12.0",
     "typer[all]==0.9.0"
 ]
 
@@ -62,9 +66,15 @@ dev = [
     "sphinx-copybutton==0.5.2",
     "wheel==0.38.4"
 ]
-tensorflow = [
-    "tensorflow==2.12.0",
-]
 
 [project.scripts]
 primaite = "primaite.cli:app"
+
+[tool.isort]
+profile = "black"
+line_length = 120
+force_sort_within_sections = "False"
+order_by_type = "False"
+
+[tool.black]
+line-length = 120

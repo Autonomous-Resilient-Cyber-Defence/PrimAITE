@@ -30,7 +30,13 @@ class ACLRule:
              Returns hash of core parameters.
         """
         return hash(
-            (self.permission, self.source_ip, self.dest_ip, self.protocol, self.port)
+            (
+                self.permission,
+                self.source_ip,
+                self.dest_ip,
+                self.protocol,
+                self.port,
+            )
         )
 
     def get_permission(self):

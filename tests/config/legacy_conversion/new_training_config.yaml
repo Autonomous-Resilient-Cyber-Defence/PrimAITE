@@ -1,11 +1,20 @@
 # Main Config File
 
 # Generic config values
-# Choose one of these (dependent on Agent being trained)
-# "STABLE_BASELINES3_PPO"
-# "STABLE_BASELINES3_A2C"
-# "GENERIC"
-agent_identifier: STABLE_BASELINES3_A2C
+
+# Sets which agent algorithm framework will be used:
+# "SB3" (Stable Baselines3)
+# "RLLIB" (Ray[RLlib])
+# "NONE" (Custom Agent)
+agent_framework: SB3
+
+# Sets which Red Agent algo/class will be used:
+# "PPO" (Proximal Policy Optimization)
+# "A2C" (Advantage Actor Critic)
+# "HARDCODED" (Custom Agent)
+# "RANDOM" (Random Action)
+agent_identifier: PPO
+
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
@@ -18,7 +27,7 @@ num_steps: 256
 # Time delay between steps (for generic agents)
 time_delay: 10
 # Type of session to be run (TRAINING or EVALUATION)
-session_type: TRAINING
+session_type: TRAIN
 # Determine whether to load an agent from file
 load_agent: False
 # File path and file name of agent if you're loading one in

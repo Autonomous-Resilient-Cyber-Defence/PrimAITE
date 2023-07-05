@@ -56,18 +56,9 @@ class AccessControlList:
              True if match; False otherwise.
         """
         if (
-            (
-                _rule.get_source_ip() == _source_ip_address
-                and _rule.get_dest_ip() == _dest_ip_address
-            )
-            or (
-                _rule.get_source_ip() == "ANY"
-                and _rule.get_dest_ip() == _dest_ip_address
-            )
-            or (
-                _rule.get_source_ip() == _source_ip_address
-                and _rule.get_dest_ip() == "ANY"
-            )
+            (_rule.get_source_ip() == _source_ip_address and _rule.get_dest_ip() == _dest_ip_address)
+            or (_rule.get_source_ip() == "ANY" and _rule.get_dest_ip() == _dest_ip_address)
+            or (_rule.get_source_ip() == _source_ip_address and _rule.get_dest_ip() == "ANY")
             or (_rule.get_source_ip() == "ANY" and _rule.get_dest_ip() == "ANY")
         ):
             return True
@@ -90,9 +81,7 @@ class AccessControlList:
         for rule in self.acl:
             if isinstance(rule, ACLRule):
                 if self.check_address_match(rule, _source_ip_address, _dest_ip_address):
-                    if (
-                        rule.get_protocol() == _protocol or rule.get_protocol() == "ANY"
-                    ) and (
+                    if (rule.get_protocol() == _protocol or rule.get_protocol() == "ANY") and (
                         str(rule.get_port()) == str(_port) or rule.get_port() == "ANY"
                     ):
                         # There's a matching rule. Get the permission
@@ -104,9 +93,7 @@ class AccessControlList:
         # If there has been no rule to allow the IER through, it will return a blocked signal by default
         return True
 
-    def add_rule(
-        self, _permission, _source_ip, _dest_ip, _protocol, _port, _position=None
-    ):
+    def add_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port, _position=None):
         """
         Adds a new rule.
 
@@ -126,9 +113,7 @@ class AccessControlList:
                     try:
                         self._acl.insert(position_index, new_rule)
                     except Exception:
-                        _LOGGER.info(
-                            f"New Rule could NOT be added to list at position {position_index}."
-                        )
+                        _LOGGER.info(f"New Rule could NOT be added to list at position {position_index}.")
                 else:
                     _LOGGER.info(
                         f"Position {position_index} is an invalid index for list/overwrites implicit firewall rule"
