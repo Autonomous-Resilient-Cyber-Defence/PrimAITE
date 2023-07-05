@@ -39,7 +39,9 @@ class AccessControlList:
         """
         if self.acl_implicit_rule is not None:
             acl_list = self._acl + [self.acl_implicit_rule]
-        return acl_list + [-1] * (self.max_acl_rules - len(acl_list))
+        else:
+            acl_list = self._acl
+        return acl_list + [None] * (self.max_acl_rules - len(acl_list))
 
     def check_address_match(self, _rule, _source_ip_address, _dest_ip_address):
         """
@@ -86,15 +88,18 @@ class AccessControlList:
              Indicates block if all conditions are satisfied.
         """
         for rule in self.acl:
-            if self.check_address_match(rule, _source_ip_address, _dest_ip_address):
-                if (
-                    rule.get_protocol() == _protocol or rule.get_protocol() == "ANY"
-                ) and (str(rule.get_port()) == str(_port) or rule.get_port() == "ANY"):
-                    # There's a matching rule. Get the permission
-                    if rule.get_permission() == "DENY":
-                        return True
-                    elif rule.get_permission() == "ALLOW":
-                        return False
+            if isinstance(rule, ACLRule):
+                if self.check_address_match(rule, _source_ip_address, _dest_ip_address):
+                    if (
+                        rule.get_protocol() == _protocol or rule.get_protocol() == "ANY"
+                    ) and (
+                        str(rule.get_port()) == str(_port) or rule.get_port() == "ANY"
+                    ):
+                        # There's a matching rule. Get the permission
+                        if rule.get_permission() == "DENY":
+                            return True
+                        elif rule.get_permission() == "ALLOW":
+                            return False
 
         # If there has been no rule to allow the IER through, it will return a blocked signal by default
         return True
@@ -115,7 +120,6 @@ class AccessControlList:
         """
         position_index = int(_position)
         new_rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
-        print(len(self._acl))
         if len(self._acl) + 1 < self.max_acl_rules:
             if _position is not None:
                 if self.max_acl_rules - 1 > position_index > -1:
@@ -136,6 +140,7 @@ class AccessControlList:
                 f"The ACL list is FULL."
                 f"The list of ACLs has length {len(self.acl)} and it has a max capacity of {self.max_acl_rules}."
             )
+        # print("length of this list", len(self._acl))
 
     def remove_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port):
         """

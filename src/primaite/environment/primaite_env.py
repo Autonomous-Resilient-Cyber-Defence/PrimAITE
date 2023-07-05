@@ -1204,7 +1204,8 @@ class Primaite(Env):
         # [0, max acl rules - 1] - Position (0 = first index, then 1 -> x index resolving to acl rule in acl list)
         # reserve 0 action to be a nothing action
         actions = {0: [0, 0, 0, 0, 0, 0, 0]}
-
+        # [1, 1, 2, 1, 1, 1, 2] CREATE RULE ALLOW NODE 2 TO NODE 1 ON SERVICE 1 PORT 1 AT INDEX 2
+        # 1, 2, 1, 6, 0, 0, 1 ALLOW NODE 2 TO NODE 1 ON SERVICE 1 SERVICE ANY PORT ANY AT INDEX 1
         action_key = 1
         # 3 possible action decisions, 0=NOTHING, 1=CREATE, 2=DELETE
         for action_decision in range(3):

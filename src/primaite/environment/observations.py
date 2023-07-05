@@ -10,7 +10,6 @@ from primaite.acl.acl_rule import ACLRule
 from primaite.common.enums import (
     FileSystemState,
     HardwareState,
-    Protocol,
     RulePermissionType,
     SoftwareState,
 )
@@ -330,13 +329,14 @@ class AccessControlList(AbstractObservationComponent):
         ]
     """
 
+    0,
     # Terms (for ACL observation space):
-    # [0, 1] - Permission (0 = DENY, 1 = ALLOW)
-    # [0, num nodes] - Source IP (0 = any, then 1 -> x resolving to IP addresses)
-    # [0, num nodes] - Dest IP (0 = any, then 1 -> x resolving to IP addresses)
-    # [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
-    # [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
-    # [0, max acl rules - 1] - Position (0 = first index, then 1 -> x index resolving to acl rule in acl list)
+    # [0, 1, 2] - Permission (0 = NA, 1 = DENY, 2 = ALLOW)
+    # [0, num nodes] - Source IP (0 = NA, 1 = any, then 2 -> x resolving to IP addresses)
+    # [0, num nodes] - Dest IP (0 = NA, 1 = any, then 2 -> x resolving to IP addresses)
+    # [0, num services] - Protocol (0 = NA, 1 = any, then 2 -> x resolving to protocol)
+    # [0, num ports] - Port (0 = NA, 1 = any, then 2 -> x resolving to port)
+    # [0, max acl rules - 1] - Position (0 = NA, 1 = first index, then 2 -> x index resolving to acl rule in acl list)
 
     _DATA_TYPE: type = np.int64
 
@@ -346,18 +346,17 @@ class AccessControlList(AbstractObservationComponent):
         # 1. Define the shape of your observation space component
         acl_shape = [
             len(RulePermissionType),
-            len(env.nodes) + 1,
-            len(env.nodes) + 1,
-            len(env.services_list),
-            len(env.ports_list),
-            env.max_number_acl_rules,
+            len(env.nodes) + 2,
+            len(env.nodes) + 2,
+            len(env.services_list) + 1,
+            len(env.ports_list) + 1,
+            env.max_number_acl_rules + 1,
         ]
-        # shape = acl_shape
         shape = acl_shape * self.env.max_number_acl_rules
 
         # 2. Create Observation space
         self.space = spaces.MultiDiscrete(shape)
-        print("obs space:", self.space)
+        # print("obs space:", self.space)
         # 3. Initialise observation with zeroes
         self.current_observation = np.zeros(len(shape), dtype=self._DATA_TYPE)
 
@@ -367,8 +366,8 @@ class AccessControlList(AbstractObservationComponent):
         The structure of the observation space is described in :class:`.AccessControlList`
         """
         obs = []
-
-        for index in range(len(self.env.acl.acl)):
+        # print("starting len", len(self.env.acl.acl))
+        for index in range(0, len(self.env.acl.acl)):
             acl_rule = self.env.acl.acl[index]
             if isinstance(acl_rule, ACLRule):
                 permission = acl_rule.permission
@@ -378,26 +377,25 @@ class AccessControlList(AbstractObservationComponent):
                 port = acl_rule.port
                 position = index
 
-                source_ip_int = -1
-                dest_ip_int = -1
+                source_ip_int = None
+                dest_ip_int = None
                 if permission == "DENY":
-                    permission_int = 0
-                else:
                     permission_int = 1
+                else:
+                    permission_int = 2
                 if source_ip == "ANY":
-                    source_ip_int = 0
+                    source_ip_int = 1
                 else:
                     nodes = list(self.env.nodes.values())
                     for node in nodes:
-                        # print(node.ip_address, source_ip, node.ip_address == source_ip)
                         if (
                             isinstance(node, ServiceNode)
                             or isinstance(node, ActiveNode)
                         ) and node.ip_address == source_ip:
-                            source_ip_int = node.node_id
+                            source_ip_int = int(node.node_id) + 1
                             break
                 if dest_ip == "ANY":
-                    dest_ip_int = 0
+                    dest_ip_int = 1
                 else:
                     nodes = list(self.env.nodes.values())
                     for node in nodes:
@@ -405,46 +403,46 @@ class AccessControlList(AbstractObservationComponent):
                             isinstance(node, ServiceNode)
                             or isinstance(node, ActiveNode)
                         ) and node.ip_address == dest_ip:
-                            dest_ip_int = node.node_id
+                            dest_ip_int = int(node.node_id) + 1
                 if protocol == "ANY":
-                    protocol_int = 0
+                    protocol_int = 1
                 else:
                     try:
-                        protocol_int = Protocol[protocol].value
+                        protocol_int = self.env.services_list.index(protocol) + 2
                     except AttributeError:
                         _LOGGER.info(f"Service {protocol} could not be found")
-                        protocol_int = -1
+                        protocol_int = None
                 if port == "ANY":
-                    port_int = 0
+                    port_int = 1
                 else:
                     if port in self.env.ports_list:
-                        port_int = self.env.ports_list.index(port)
+                        port_int = self.env.ports_list.index(port) + 2
                     else:
                         _LOGGER.info(f"Port {port} could not be found.")
 
                 # Either do the multiply on the obs space
                 # Change the obs to
-                if source_ip_int != -1 and dest_ip_int != -1:
-                    items_to_add = [
-                        permission_int,
-                        source_ip_int,
-                        dest_ip_int,
-                        protocol_int,
-                        port_int,
-                        position,
-                    ]
-                    position = position * 6
-                    for item in items_to_add:
-                        obs.insert(position, int(item))
-                        position += 1
-                else:
-                    items_to_add = [-1, -1, -1, -1, -1, index]
-                    position = index * 6
-                    for item in items_to_add:
-                        obs.insert(position, int(item))
-                        position += 1
+                items_to_add = [
+                    permission_int,
+                    source_ip_int,
+                    dest_ip_int,
+                    protocol_int,
+                    port_int,
+                    position,
+                ]
+                position = position * 6
+                for item in items_to_add:
+                    # print("position", position, "\nitem", int(item))
+                    obs.insert(position, int(item))
+                    position += 1
+            else:
+                starting_position = index * 6
+                for placeholder in range(6):
+                    obs.insert(starting_position, 0)
+                    starting_position += 1
 
-        self.current_observation = obs
+        # print("current obs", obs, "\n" ,len(obs))
+        self.current_observation[:] = obs
 
 
 class ObservationsHandler:
