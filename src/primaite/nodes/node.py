@@ -7,7 +7,15 @@ from primaite.config.training_config import TrainingConfig
 
 
 class Node:
-    """Node class."""
+    """Node class.
+
+    :param node_id: The node id.
+    :param name: The name of the node.
+    :param node_type: The type of the node.
+    :param priority: The priority of the node.
+    :param hardware_state: The state of the node.
+    :param config_values: Config values.
+    """
 
     def __init__(
         self,
@@ -18,15 +26,6 @@ class Node:
         hardware_state: HardwareState,
         config_values: TrainingConfig,
     ):
-        """Init.
-
-        :param node_id: The node id.
-        :param name: The name of the node.
-        :param node_type: The type of the node.
-        :param priority: The priority of the node.
-        :param hardware_state: The state of the node.
-        :param config_values: Config values.
-        """
         self.node_id: Final[str] = node_id
         self.name: Final[str] = name
         self.node_type: Final[NodeType] = node_type

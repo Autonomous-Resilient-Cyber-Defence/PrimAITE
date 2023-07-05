@@ -6,18 +6,16 @@ from primaite.common.protocol import Protocol
 
 
 class Link(object):
-    """Link class."""
+    """Link class.
+
+    :param _id: The IER id
+    :param _bandwidth: The bandwidth of the link (bps)
+    :param _source_node_name: The name of the source node
+    :param _dest_node_name: The name of the destination node
+    :param _protocols: The protocols to add to the link
+    """
 
     def __init__(self, _id, _bandwidth, _source_node_name, _dest_node_name, _services):
-        """Init.
-
-        Args:
-            _id: The IER id
-            _bandwidth: The bandwidth of the link (bps)
-            _source_node_name: The name of the source node
-            _dest_node_name: The name of the destination node
-            _protocols: The protocols to add to the link
-        """
         self.id = _id
         self.bandwidth = _bandwidth
         self.source_node_name = _source_node_name

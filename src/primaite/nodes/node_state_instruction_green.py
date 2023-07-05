@@ -3,7 +3,16 @@
 
 
 class NodeStateInstructionGreen(object):
-    """The Node State Instruction class."""
+    """The Node State Instruction class.#
+
+    :param _id: The node state instruction id
+    :param _start_step: The start step of the instruction
+    :param _end_step: The end step of the instruction
+    :param _node_id: The id of the associated node
+    :param _node_pol_type: The pattern of life type
+    :param _service_name: The service name
+    :param _state: The state (node or service)
+    """
 
     def __init__(
         self,
@@ -15,17 +24,6 @@ class NodeStateInstructionGreen(object):
         _service_name,
         _state,
     ):
-        """Init.
-
-        Args:
-            _id: The node state instruction id
-            _start_step: The start step of the instruction
-            _end_step: The end step of the instruction
-            _node_id: The id of the associated node
-            _node_pol_type: The pattern of life type
-            _service_name: The service name
-            _state: The state (node or service)
-        """
         self.id = _id
         self.start_step = _start_step
         self.end_step = _end_step

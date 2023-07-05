@@ -9,7 +9,6 @@ class AccessControlList:
     """Access Control List class."""
 
     def __init__(self):
-        """Init."""
         self.acl: Dict[str, AccessControlList] = {}  # A dictionary of ACL Rules
 
     def check_address_match(self, _rule, _source_ip_address, _dest_ip_address):
