@@ -1,3 +1,5 @@
+from typing import List, Union
+
 import numpy as np
 
 from primaite.common.enums import (
@@ -10,15 +12,17 @@ from primaite.common.enums import (
 )
 
 
-def transform_action_node_readable(action):
-    """
-    Convert a node action from enumerated format to readable format.
+def transform_action_node_readable(action: List[int]) -> List[Union[int, str]]:
+    """Convert a node action from enumerated format to readable format.
 
     example:
     [1, 3, 1, 0] -> [1, 'SERVICE', 'PATCHING', 0]
 
-    TODO: Add params and return in docstring.
-    TODO: Typehint params and return.
+    :param action: Agent action, formatted as a list of ints, for more information check out
+        `primaite.environment.primaite_env.Primaite`
+    :type action: List[int]
+    :return: The same action list, but with the encodings translated back into meaningful labels
+    :rtype: List[Union[int,str]]
     """
     action_node_property = NodePOLType(action[1]).name
 
@@ -33,15 +37,18 @@ def transform_action_node_readable(action):
     return new_action
 
 
-def transform_action_acl_readable(action):
+def transform_action_acl_readable(action: List[str]) -> List[Union[str, int]]:
     """
     Transform an ACL action to a more readable format.
 
     example:
     [0, 1, 2, 5, 0, 1] -> ['NONE', 'ALLOW', 2, 5, 'ANY', 1]
 
-    TODO: Add params and return in docstring.
-    TODO: Typehint params and return.
+    :param action: Agent action, formatted as a list of ints, for more information check out
+        `primaite.environment.primaite_env.Primaite`
+    :type action: List[int]
+    :return: The same action list, but with the encodings translated back into meaningful labels
+    :rtype: List[Union[int,str]]
     """
     action_decisions = {0: "NONE", 1: "CREATE", 2: "DELETE"}
     action_permissions = {0: "DENY", 1: "ALLOW"}
@@ -58,7 +65,7 @@ def transform_action_acl_readable(action):
     return new_action
 
 
-def is_valid_node_action(action):
+def is_valid_node_action(action: List[int]) -> bool:
     """Is the node action an actual valid action.
 
     Only uses information about the action to determine if the action has an effect
@@ -67,8 +74,11 @@ def is_valid_node_action(action):
     - Node ID not valid to perform an operation - e.g. selected node has no service so cannot patch
     - Node already being in that state (turning an ON node ON)
 
-    TODO: Add params and return in docstring.
-    TODO: Typehint params and return.
+    :param action: Agent action, formatted as a list of ints, for more information check out
+        `primaite.environment.primaite_env.Primaite`
+    :type action: List[int]
+    :return: Whether the action is valid
+    :rtype: bool
     """
     action_r = transform_action_node_readable(action)
 
@@ -93,7 +103,7 @@ def is_valid_node_action(action):
     return True
 
 
-def is_valid_acl_action(action):
+def is_valid_acl_action(action: List[int]) -> bool:
     """
     Is the ACL action an actual valid action.
 
@@ -103,8 +113,11 @@ def is_valid_acl_action(action):
         - Trying to create identical rules
         - Trying to create a rule which is a subset of another rule (caused by "ANY")
 
-    TODO: Add params and return in docstring.
-    TODO: Typehint params and return.
+    :param action: Agent action, formatted as a list of ints, for more information check out
+        `primaite.environment.primaite_env.Primaite`
+    :type action: List[int]
+    :return: Whether the action is valid
+    :rtype: bool
     """
     action_r = transform_action_acl_readable(action)
 
@@ -126,12 +139,15 @@ def is_valid_acl_action(action):
     return True
 
 
-def is_valid_acl_action_extra(action):
+def is_valid_acl_action_extra(action: List[int]) -> bool:
     """
     Harsher version of valid acl actions, does not allow action.
 
-    TODO: Add params and return in docstring.
-    TODO: Typehint params and return.
+    :param action: Agent action, formatted as a list of ints, for more information check out
+        `primaite.environment.primaite_env.Primaite`
+    :type action: List[int]
+    :return: Whether the action is valid
+    :rtype: bool
     """
     if is_valid_acl_action(action) is False:
         return False
@@ -150,15 +166,16 @@ def is_valid_acl_action_extra(action):
     return True
 
 
-def transform_change_obs_readable(obs):
-    """
-    Transform list of transactions to readable list of each observation property.
+def transform_change_obs_readable(obs: np.ndarray) -> List[List[Union[str, int]]]:
+    """Transform list of transactions to readable list of each observation property.
 
     example:
     np.array([[1,2,1,3],[2,1,1,1]]) -> [[1, 2], ['OFF', 'ON'], ['GOOD', 'GOOD'], ['COMPROMISED', 'GOOD']]
 
-    TODO: Add params and return in docstring.
-    TODO: Typehint params and return.
+    :param obs: Raw observation from the environment.
+    :type obs: np.ndarray
+    :return: The same observation, but the encoded integer values are replaced with readable names.
+    :rtype: List[List[Union[str, int]]]
     """
     ids = [i for i in obs[:, 0]]
     operating_states = [HardwareState(i).name for i in obs[:, 1]]
@@ -174,14 +191,16 @@ def transform_change_obs_readable(obs):
     return new_obs
 
 
-def transform_obs_readable(obs):
-    """
-    Transform observation to readable format.
+def transform_obs_readable(obs: np.ndarray) -> List[List[Union[str, int]]]:
+    """Transform observation to readable format.
 
+    example
     np.array([[1,2,1,3],[2,1,1,1]]) -> [[1, 'OFF', 'GOOD', 'COMPROMISED'], [2, 'ON', 'GOOD', 'GOOD']]
 
-    TODO: Add params and return in docstring.
-    TODO: Typehint params and return.
+    :param obs: Raw observation from the environment.
+    :type obs: np.ndarray
+    :return: The same observation, but the encoded integer values are replaced with readable names.
+    :rtype: List[List[Union[str, int]]]
     """
     changed_obs = transform_change_obs_readable(obs)
     new_obs = list(zip(*changed_obs))
@@ -191,21 +210,23 @@ def transform_obs_readable(obs):
     return new_obs
 
 
-def convert_to_new_obs(obs, num_nodes=10):
-    """
-    Convert original gym Box observation space to new multiDiscrete observation space.
+def convert_to_new_obs(obs: np.ndarray, num_nodes: int = 10) -> np.ndarray:
+    """Convert original gym Box observation space to new multiDiscrete observation space.
 
-    TODO: Add params and return in docstring.
-    TODO: Typehint params and return.
+    :param obs: observation in the 'old' (NodeLinkTable) format
+    :type obs: np.ndarray
+    :param num_nodes: number of nodes in the network, defaults to 10
+    :type num_nodes: int, optional
+    :return: reformatted observation
+    :rtype: np.ndarray
     """
     # Remove ID columns, remove links and flatten to MultiDiscrete observation space
     new_obs = obs[:num_nodes, 1:].flatten()
     return new_obs
 
 
-def convert_to_old_obs(obs, num_nodes=10, num_links=10, num_services=1):
-    """
-    Convert to old observation.
+def convert_to_old_obs(obs: np.ndarray, num_nodes: int = 10, num_links: int = 10, num_services: int = 1) -> np.ndarray:
+    """Convert to old observation.
 
     Links filled with 0's as no information is included in new observation space.
 
@@ -217,8 +238,17 @@ def convert_to_old_obs(obs, num_nodes=10, num_links=10, num_services=1):
                      [ 3,  1,  1,  1],
                      ...
                     [20,  0,  0,  0]])
-    TODO: Add params and return in docstring.
-    TODO: Typehint params and return.
+
+    :param obs: observation in the 'new' (MultiDiscrete) format
+    :type obs: np.ndarray
+    :param num_nodes: number of nodes in the network, defaults to 10
+    :type num_nodes: int, optional
+    :param num_links: number of links in the network, defaults to 10
+    :type num_links: int, optional
+    :param num_services: number of services on the network, defaults to 1
+    :type num_services: int, optional
+    :return: 2-d BOX observation space, in the same format as NodeLinkTable
+    :rtype: np.ndarray
     """
     # Convert back to more readable, original format
     reshaped_nodes = obs[:-num_links].reshape(num_nodes, num_services + 2)
@@ -240,17 +270,28 @@ def convert_to_old_obs(obs, num_nodes=10, num_links=10, num_services=1):
     return new_obs
 
 
-def describe_obs_change(obs1, obs2, num_nodes=10, num_links=10, num_services=1):
-    """
-    Return string describing change between two observations.
+def describe_obs_change(
+    obs1: np.ndarray, obs2: np.ndarray, num_nodes: int = 10, num_links: int = 10, num_services: int = 1
+) -> str:
+    """Build a string describing the difference between two observations.
 
     example:
     obs_1 = array([[1, 1, 1, 1, 3], [2, 1, 1, 1, 1]])
     obs_2 = array([[1, 1, 1, 1, 1], [2, 1, 1, 1, 1]])
     output = 'ID 1: SERVICE 2 set to GOOD'
 
-    TODO: Add params and return in docstring.
-    TODO: Typehint params and return.
+    :param obs1: First observation
+    :type obs1: np.ndarray
+    :param obs2: Second observation
+    :type obs2: np.ndarray
+    :param num_nodes: How many nodes are in the network laydown, defaults to 10
+    :type num_nodes: int, optional
+    :param num_links: How many links are in the network laydown, defaults to 10
+    :type num_links: int, optional
+    :param num_services: How many services are configured for this scenario, defaults to 1
+    :type num_services: int, optional
+    :return: A multi-line string with a human-readable description of the difference.
+    :rtype: str
     """
     obs1 = convert_to_old_obs(obs1, num_nodes, num_links, num_services)
     obs2 = convert_to_old_obs(obs2, num_nodes, num_links, num_services)
