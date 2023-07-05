@@ -89,10 +89,12 @@ class SB3Agent(AgentSessionABC):
         for i in range(episodes):
             self._agent.learn(total_timesteps=time_steps)
             self._save_checkpoint()
-        self.save(self.learning_path / f"sb3_{self._training_config.agent_identifier}_{self.timestamp_str}.zip")
         self._env.reset()
         self._env.close()
         super().learn()
+
+        # save agent
+        self.save()
 
     def evaluate(
         self,
@@ -124,7 +126,6 @@ class SB3Agent(AgentSessionABC):
                 if isinstance(action, np.ndarray):
                     action = np.int64(action)
                 obs, rewards, done, info = self._env.step(action)
-        self.save(self.evaluation_path / f"sb3_{self._training_config.agent_identifier}_{self.timestamp_str}.zip")
         self._env.reset()
         self._env.close()
         super().evaluate()
