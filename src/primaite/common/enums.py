@@ -1,7 +1,7 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Enumerations for APE."""
 
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class NodeType(Enum):
@@ -32,6 +32,7 @@ class Priority(Enum):
 class HardwareState(Enum):
     """Node hardware state enumeration."""
 
+    NONE = 0
     ON = 1
     OFF = 2
     RESETTING = 3
@@ -42,6 +43,7 @@ class HardwareState(Enum):
 class SoftwareState(Enum):
     """Software or Service state enumeration."""
 
+    NONE = 0
     GOOD = 1
     PATCHING = 2
     COMPROMISED = 3
@@ -77,6 +79,65 @@ class Protocol(Enum):
     IPP = 5
     TCP = 6
     NONE = 7
+
+
+class SessionType(Enum):
+    """The type of PrimAITE Session to be run."""
+
+    TRAIN = 1
+    "Train an agent"
+    EVAL = 2
+    "Evaluate an agent"
+    TRAIN_EVAL = 3
+    "Train then evaluate an agent"
+
+
+class AgentFramework(Enum):
+    """The agent algorithm framework/package."""
+
+    CUSTOM = 0
+    "Custom Agent"
+    SB3 = 1
+    "Stable Baselines3"
+    RLLIB = 2
+    "Ray RLlib"
+
+
+class DeepLearningFramework(Enum):
+    """The deep learning framework."""
+
+    TF = "tf"
+    "Tensorflow"
+    TF2 = "tf2"
+    "Tensorflow 2.x"
+    TORCH = "torch"
+    "PyTorch"
+
+
+class AgentIdentifier(Enum):
+    """The Red Agent algo/class."""
+
+    A2C = 1
+    "Advantage Actor Critic"
+    PPO = 2
+    "Proximal Policy Optimization"
+    HARDCODED = 3
+    "The Hardcoded agents"
+    DO_NOTHING = 4
+    "The DoNothing agents"
+    RANDOM = 5
+    "The RandomAgent"
+    DUMMY = 6
+    "The DummyAgent"
+
+
+class HardCodedAgentView(Enum):
+    """The view the deterministic hard-coded agent has of the environment."""
+
+    BASIC = 1
+    "The current observation space only"
+    FULL = 2
+    "Full environment view with actions taken and reward feedback"
 
 
 class ActionType(Enum):
@@ -128,6 +189,14 @@ class LinkStatus(Enum):
     MEDIUM = 2
     HIGH = 3
     OVERLOAD = 4
+
+
+class SB3OutputVerboseLevel(IntEnum):
+    """The Stable Baselines3 learn/eval output verbosity level."""
+
+    NONE = 0
+    INFO = 1
+    DEBUG = 2
 
 
 class RulePermissionType(Enum):

@@ -1,11 +1,22 @@
-# Main Config File
+# Training Config File
 
-# Generic config values
-# Choose one of these (dependent on Agent being trained)
-# "STABLE_BASELINES3_PPO"
-# "STABLE_BASELINES3_A2C"
-# "GENERIC"
-agent_identifier: NONE
+# Sets which agent algorithm framework will be used.
+# Options are:
+# "SB3" (Stable Baselines3)
+# "RLLIB" (Ray RLlib)
+# "CUSTOM" (Custom Agent)
+agent_framework: CUSTOM
+
+# Sets which Agent class will be used.
+# Options are:
+# "A2C" (Advantage Actor Critic coupled with either SB3 or RLLIB agent_framework)
+# "PPO" (Proximal Policy Optimization coupled with either SB3 or RLLIB agent_framework)
+# "HARDCODED" (The HardCoded agents coupled with an ACL or NODE action_type)
+# "DO_NOTHING" (The DoNothing agents coupled with an ACL or NODE action_type)
+# "RANDOM" (primaite.agents.simple.RandomAgent)
+# "DUMMY" (primaite.agents.simple.DummyAgent)
+agent_identifier: RANDOM
+
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
@@ -18,7 +29,7 @@ num_steps: 5
 # Time delay between steps (for generic agents)
 time_delay: 1
 # Type of session to be run (TRAINING or EVALUATION)
-session_type: TRAINING
+session_type: TRAIN
 # Determine whether to load an agent from file
 load_agent: False
 # File path and file name of agent if you're loading one in

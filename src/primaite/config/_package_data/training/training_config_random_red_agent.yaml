@@ -1,42 +1,31 @@
-# Training Config File
+# Main Config File
 
-# Sets which agent algorithm framework will be used.
-# Options are:
-# "SB3" (Stable Baselines3)
-# "RLLIB" (Ray RLlib)
-# "CUSTOM" (Custom Agent)
-agent_framework: CUSTOM
+# Generic config values
+# Choose one of these (dependent on Agent being trained)
+# "STABLE_BASELINES3_PPO"
+# "STABLE_BASELINES3_A2C"
+# "GENERIC"
+agent_identifier: STABLE_BASELINES3_A2C
 
-# Sets which Agent class will be used.
+# Sets whether Red Agent POL and IER is randomised.
 # Options are:
-# "A2C" (Advantage Actor Critic coupled with either SB3 or RLLIB agent_framework)
-# "PPO" (Proximal Policy Optimization coupled with either SB3 or RLLIB agent_framework)
-# "HARDCODED" (The HardCoded agents coupled with an ACL or NODE action_type)
-# "DO_NOTHING" (The DoNothing agents coupled with an ACL or NODE action_type)
-# "RANDOM" (primaite.agents.simple.RandomAgent)
-# "DUMMY" (primaite.agents.simple.DummyAgent)
-agent_identifier: RANDOM
+# True
+# False
+random_red_agent: True
 
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
 # "ANY" node and acl actions
-action_type: ANY
+action_type: NODE
 # Number of episodes to run per session
-num_episodes: 1
+num_episodes: 10
 # Number of time_steps per episode
-num_steps: 5
-
-observation_space:
-  components:
-    - name: NODE_STATUSES
-
-
+num_steps: 256
 # Time delay between steps (for generic agents)
-time_delay: 1
-
+time_delay: 10
 # Type of session to be run (TRAINING or EVALUATION)
-session_type: TRAIN
+session_type: TRAINING
 # Determine whether to load an agent from file
 load_agent: False
 # File path and file name of agent if you're loading one in
@@ -44,7 +33,7 @@ agent_load_file: C:\[Path]\[agent_saved_filename.zip]
 
 # Environment config values
 # The high value for the observation space
-observation_space_high_value: 1_000_000_000
+observation_space_high_value: 1000000000
 
 # Reward values
 # Generic

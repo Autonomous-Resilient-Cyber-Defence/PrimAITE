@@ -6,13 +6,7 @@ from networkx import MultiGraph, shortest_path
 
 from primaite.acl.access_control_list import AccessControlList
 from primaite.common.custom_typing import NodeUnion
-from primaite.common.enums import (
-    HardwareState,
-    NodePOLInitiator,
-    NodePOLType,
-    NodeType,
-    SoftwareState,
-)
+from primaite.common.enums import HardwareState, NodePOLInitiator, NodePOLType, NodeType, SoftwareState
 from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
@@ -83,10 +77,7 @@ def apply_red_agent_iers(
                 if source_node.hardware_state == HardwareState.ON:
                     if source_node.has_service(protocol):
                         # Red agents IERs can only be valid if the source service is in a compromised state
-                        if (
-                            source_node.get_service_state(protocol)
-                            == SoftwareState.COMPROMISED
-                        ):
+                        if source_node.get_service_state(protocol) == SoftwareState.COMPROMISED:
                             source_valid = True
                         else:
                             source_valid = False
@@ -124,9 +115,7 @@ def apply_red_agent_iers(
                     dest_valid = False
 
             # 3. Check that the ACL doesn't block it
-            acl_block = acl.is_blocked(
-                source_node.ip_address, dest_node.ip_address, protocol, port
-            )
+            acl_block = acl.is_blocked(source_node.ip_address, dest_node.ip_address, protocol, port)
             if acl_block:
                 if _VERBOSE:
                     print(
@@ -170,9 +159,7 @@ def apply_red_agent_iers(
                     # Check that the link capacity is not exceeded by the new load
                     while count < path_node_list_length - 1:
                         # Get the link between the next two nodes
-                        edge_dict = network.get_edge_data(
-                            path_node_list[count], path_node_list[count + 1]
-                        )
+                        edge_dict = network.get_edge_data(path_node_list[count], path_node_list[count + 1])
                         link_id = edge_dict[0].get("id")
                         link = links[link_id]
                         # Check whether the new load exceeds the bandwidth
@@ -190,7 +177,8 @@ def apply_red_agent_iers(
                         while count < path_node_list_length - 1:
                             # Get the link between the next two nodes
                             edge_dict = network.get_edge_data(
-                                path_node_list[count], path_node_list[count + 1]
+                                path_node_list[count],
+                                path_node_list[count + 1],
                             )
                             link_id = edge_dict[0].get("id")
                             link = links[link_id]
@@ -248,9 +236,7 @@ def apply_red_agent_node_pol(
         state = node_instruction.get_state()
         source_node_id = node_instruction.get_source_node_id()
         source_node_service_name = node_instruction.get_source_node_service()
-        source_node_service_state_value = (
-            node_instruction.get_source_node_service_state()
-        )
+        source_node_service_state_value = node_instruction.get_source_node_service_state()
 
         passed_checks = False
 
@@ -292,9 +278,7 @@ def apply_red_agent_node_pol(
                     target_node.hardware_state = state
                 elif pol_type == NodePOLType.OS:
                     # Change OS state
-                    if isinstance(target_node, ActiveNode) or isinstance(
-                        target_node, ServiceNode
-                    ):
+                    if isinstance(target_node, ActiveNode) or isinstance(target_node, ServiceNode):
                         target_node.software_state = state
                 elif pol_type == NodePOLType.SERVICE:
                     # Change a service state
@@ -302,9 +286,7 @@ def apply_red_agent_node_pol(
                         target_node.set_service_state(service_name, state)
                 else:
                     # Change the file system status
-                    if isinstance(target_node, ActiveNode) or isinstance(
-                        target_node, ServiceNode
-                    ):
+                    if isinstance(target_node, ActiveNode) or isinstance(target_node, ServiceNode):
                         target_node.set_file_system_state(state)
             else:
                 if _VERBOSE:
