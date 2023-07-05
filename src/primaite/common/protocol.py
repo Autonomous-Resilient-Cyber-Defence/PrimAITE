@@ -3,14 +3,12 @@
 
 
 class Protocol(object):
-    """Protocol class."""
+    """Protocol class.
+
+    :param _name: The protocol name
+    """
 
     def __init__(self, _name):
-        """Init.
-
-        Args:
-            _name: The protocol name
-        """
         self.name = _name
         self.load = 0  # bps
 

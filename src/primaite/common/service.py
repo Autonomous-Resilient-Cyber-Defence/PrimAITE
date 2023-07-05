@@ -5,15 +5,14 @@ from primaite.common.enums import SoftwareState
 
 
 class Service(object):
-    """Service class."""
+    """Service class.
+
+    :param name: The service name.
+    :param port: The service port.
+    :param software_state: The service SoftwareState.
+    """
 
     def __init__(self, name: str, port: str, software_state: SoftwareState):
-        """Init.
-
-        :param name: The service name.
-        :param port: The service port.
-        :param software_state: The service SoftwareState.
-        """
         self.name = name
         self.port = port
         self.software_state = software_state
