@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Dict, Union
 from unittest.mock import patch
 
-import pandas as pd
 import pytest
 
 from primaite import getLogger
@@ -186,36 +185,3 @@ def run_generic(env, config_values):
         # env.reset()
 
     # env.close()
-
-
-def compare_file_content(output_a_file_path: str, output_b_file_path: str):
-    """Function used to check if output of both given files are the same."""
-    with open(output_a_file_path) as f1:
-        with open(output_b_file_path) as f2:
-            f1_content = f1.read()
-            f2_content = f2.read()
-
-            # check that both files are not empty and are matching
-            if len(f1_content) > 0 and len(f2_content) > 0 and f1_content == f2_content:
-                # both files have the same content
-                return True
-            # both files have different content
-            print(f"{output_a_file_path} and {output_b_file_path} has different contents")
-
-            return False
-
-
-def compare_transaction_file(output_a_file_path: str, output_b_file_path: str):
-    """Function used to check if contents of transaction files are the same."""
-    # load output a file
-    data_a = pd.read_csv(output_a_file_path)
-
-    # load output b file
-    data_b = pd.read_csv(output_b_file_path)
-
-    # remove the time stamp column
-    data_a.drop("Timestamp", inplace=True, axis=1)
-    data_b.drop("Timestamp", inplace=True, axis=1)
-
-    # if the comparison is empty, both files are the same i.e. True
-    return data_a.compare(data_b).empty

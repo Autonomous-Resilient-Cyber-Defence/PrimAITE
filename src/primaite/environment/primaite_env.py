@@ -2,6 +2,7 @@
 """Main environment module containing the PRIMmary AI Training Evironment (Primaite) class."""
 import copy
 import logging
+import random
 import uuid as uuid
 from pathlib import Path
 from random import choice, randint, sample, uniform
@@ -218,7 +219,7 @@ class Primaite(Env):
             # [0, 3] - action on property (0 = nothing, On / Scan, Off / Repair, Reset / Patch / Restore) # noqa
             # [0, num services] - resolves to service ID (0 = nothing, resolves to service) # noqa
             self.action_dict = self.create_node_action_dict()
-            self.action_space = spaces.Discrete(len(self.action_dict), seed=self.training_config.seed)
+            self.action_space = spaces.Discrete(len(self.action_dict))
         elif self.training_config.action_type == ActionType.ACL:
             _LOGGER.debug("Action space type ACL selected")
             # Terms (for ACL action space):
@@ -229,16 +230,21 @@ class Primaite(Env):
             # [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
             # [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
             self.action_dict = self.create_acl_action_dict()
-            self.action_space = spaces.Discrete(len(self.action_dict), seed=self.training_config.seed)
+            self.action_space = spaces.Discrete(len(self.action_dict))
         elif self.training_config.action_type == ActionType.ANY:
             _LOGGER.debug("Action space type ANY selected - Node + ACL")
             self.action_dict = self.create_node_and_acl_action_dict()
-            self.action_space = spaces.Discrete(len(self.action_dict), seed=self.training_config.seed)
+            self.action_space = spaces.Discrete(len(self.action_dict))
         else:
             _LOGGER.error(f"Invalid action type selected: {self.training_config.action_type}")
 
         self.episode_av_reward_writer = SessionOutputWriter(self, transaction_writer=False, learning_session=True)
         self.transaction_writer = SessionOutputWriter(self, transaction_writer=True, learning_session=True)
+
+        # set the seed globally if there is one
+        if self.training_config.seed:
+            random.seed(self.training_config.seed)
+            np.random.seed(self.training_config.seed)
 
     @property
     def actual_episode_count(self) -> int:
