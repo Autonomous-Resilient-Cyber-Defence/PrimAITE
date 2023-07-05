@@ -165,7 +165,8 @@ def transform_change_obs_readable(obs):
     os_states = [SoftwareState(i).name for i in obs[:, 2]]
     new_obs = [ids, operating_states, os_states]
 
-    for service in range(3, obs.shape[1]):
+    # changed range(3,...) to range(4,...) because we added file system which was new since ADSP
+    for service in range(4, obs.shape[1]):
         # Links bit/s don't have a service state
         service_states = [SoftwareState(i).name if i <= 4 else i for i in obs[:, service]]
         new_obs.append(service_states)
