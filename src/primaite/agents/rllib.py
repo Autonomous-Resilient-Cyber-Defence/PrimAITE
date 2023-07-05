@@ -141,8 +141,11 @@ class RLlibAgent(AgentSessionABC):
             self._current_result = self._agent.train()
             self._save_checkpoint()
         self._agent.stop()
+
         super().learn()
-        self.save(self.learning_path / f"rllib_{self._training_config.agent_identifier}_{self.timestamp_str}.zip")
+
+        # save agent
+        self.save()
 
     def evaluate(
         self,
