@@ -3,7 +3,7 @@
 
 
 class NodeStateInstructionGreen(object):
-    """The Node State Instruction class.#
+    """The Node State Instruction class.
 
     :param _id: The node state instruction id
     :param _start_step: The start step of the instruction
