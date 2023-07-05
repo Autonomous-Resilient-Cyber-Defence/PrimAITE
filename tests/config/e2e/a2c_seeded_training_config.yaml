@@ -23,7 +23,7 @@ deep_learning_framework: TF2
 # "DO_NOTHING" (The DoNothing agents coupled with an ACL or NODE action_type)
 # "RANDOM" (primaite.agents.simple.RandomAgent)
 # "DUMMY" (primaite.agents.simple.DummyAgent)
-agent_identifier: PPO
+agent_identifier: A2C
 
 # Sets whether Red Agent POL and IER is randomised.
 # Options are:
@@ -33,13 +33,13 @@ random_red_agent: False
 
 # The (integer) seed to be used in random number generation
 # Default is None (null)
-seed: null
+seed: 12345
 
 # Set whether the agent will be deterministic instead of stochastic
 # Options are:
 # True
 # False
-deterministic: False
+deterministic: True
 
 # Sets what view of the environment the deterministic hardcoded agent has. The default is BASIC.
 # Options are:
@@ -67,7 +67,7 @@ num_steps: 256
 
 # Sets how often the agent will save a checkpoint (every n time episodes).
 # Set to 0 if no checkpoints are required. Default is 10
-checkpoint_every_n_episodes: 10
+checkpoint_every_n_episodes: 0
 
 # Time delay (milliseconds) between steps for CUSTOM agents.
 time_delay: 5
