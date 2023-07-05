@@ -18,7 +18,7 @@ from tests.conftest import _get_primaite_env_from_config
 def run_generic_set_actions(env: Primaite):
     """Run against a generic agent with specified blue agent actions."""
     # Reset the environment at the start of the episode
-    # env.reset()
+    env.reset()
     training_config = env.training_config
     for episode in range(0, training_config.num_episodes):
         for step in range(0, training_config.num_steps):
@@ -31,12 +31,14 @@ def run_generic_set_actions(env: Primaite):
                 # [1, 1, 2, 1, 1, 1, 2] ACL Action
                 # Creates an ACL rule
                 # Allows traffic from SERVER to PC1 on port TCP 80 and place ACL at position 2
-                action = 291
+                # Rule in current observation: [2, 2, 3, 2, 2, 2]
+                action = 43
             elif step == 7:
                 # [1, 1, 3, 1, 2, 2, 1] ACL Action
                 # Creates an ACL rule
                 # Allows traffic from PC1 to SWITCH 1 on port UDP at position 1
-                action = 425
+                # 3, 1, 1, 1, 1,
+                action = 96
             # Run the simulation step on the live environment
             obs, reward, done, info = env.step(action)
             # Update observations space and return
@@ -282,7 +284,7 @@ class TestAccessControlList:
         env.update_environent_obs()
 
         # we have two ACLs
-        assert env.env_obs.shape == (5, 2)
+        assert env.env_obs.shape == (6 * 3)
 
     def test_values(self, env: Primaite):
         """Test that traffic values are encoded correctly.
@@ -305,7 +307,7 @@ class TestAccessControlList:
         print(obs)
         assert np.array_equal(obs, [])
 
-    def test_observation_space(self):
+    def test_observation_space_with_implicit_rule(self):
         """Test observation space is what is expected when an agent adds ACLs during an episode."""
         # Used to use env from test fixture but AtrributeError function object has no 'training_config'
         env = _get_primaite_env_from_config(
@@ -314,5 +316,17 @@ class TestAccessControlList:
             lay_down_config_path=TEST_CONFIG_ROOT / "obs_tests/laydown_ACL.yaml",
         )
         run_generic_set_actions(env)
+        obs = env.env_obs
+        """
+        Observation space at the end of the episode.
+        At the start of the episode, there is a single implicit Deny rule = 1,1,1,1,1,0
+        (0 represents its initial position at top of ACL list)
+        On Step 5, there is a rule added at POSITION 2: 2,2,3,2,3,0
+        On Step 7, there is a second rule added at POSITION 1: 2,4,2,3,3,1
+        THINK THE RULES SHOULD BE THE OTHER WAY AROUND IN THE CURRENT OBSERVATION
+        """
 
-        # print("observation space",env.observation_space)
+        # assert current_obs == [2, 2, 3, 2, 3, 0,    2, 4, 2, 3, 3, 1,   1, 1, 1, 1, 1, 2]
+        assert np.array_equal(
+            obs, [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2]
+        )

@@ -131,7 +131,8 @@ class LinkStatus(Enum):
 
 
 class RulePermissionType(Enum):
-    """Implicit firewall rule."""
+    """Any firewall rule type."""
 
-    DENY = 0
-    ALLOW = 1
+    NA = 0
+    DENY = 1
+    ALLOW = 2
