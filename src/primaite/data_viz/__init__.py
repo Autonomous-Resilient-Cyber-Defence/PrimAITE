@@ -1,5 +1,5 @@
-from enum import Enum
 """Utility to generate plots of sessions metrics after PrimAITE."""
+from enum import Enum
 
 class PlotlyTemplate(Enum):
     """The built-in plotly templates."""
