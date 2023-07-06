@@ -49,11 +49,19 @@ observation_space:
     - name: NODE_LINK_TABLE
     # - name: NODE_STATUSES
     # - name: LINK_TRAFFIC_LEVELS
-# Number of episodes to run per session
-num_episodes: 10
 
-# Number of time_steps per episode
-num_steps: 256
+
+# Number of episodes for training to run per session
+num_train_episodes: 10
+
+# Number of time_steps for training per episode
+num_train_steps: 256
+
+# Number of episodes for evaluation to run per session
+num_eval_episodes: 10
+
+# Number of time_steps for evaluation per episode
+num_eval_steps: 256
 
 # Sets how often the agent will save a checkpoint (every n time episodes).
 # Set to 0 if no checkpoints are required. Default is 10
