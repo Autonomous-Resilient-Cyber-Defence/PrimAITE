@@ -202,6 +202,6 @@ class SB3OutputVerboseLevel(IntEnum):
 class RulePermissionType(Enum):
     """Any firewall rule type."""
 
-    NA = 0
+    NONE = 0
     DENY = 1
     ALLOW = 2
