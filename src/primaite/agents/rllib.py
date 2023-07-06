@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Union
+from uuid import uuid4
 
 from ray.rllib.algorithms import Algorithm
 from ray.rllib.algorithms.a2c import A2CConfig
@@ -120,9 +122,11 @@ class RLlibAgent(AgentSessionABC):
     def _save_checkpoint(self):
         checkpoint_n = self._training_config.checkpoint_every_n_episodes
         episode_count = self._current_result["episodes_total"]
-        if checkpoint_n > 0 and episode_count > 0:
-            if (episode_count % checkpoint_n == 0) or (episode_count == self._training_config.num_episodes):
-                self._agent.save(str(self.checkpoints_path))
+        save_checkpoint = False
+        if checkpoint_n:
+            save_checkpoint = episode_count % checkpoint_n == 0
+        if episode_count and save_checkpoint:
+            self._agent.save(str(self.checkpoints_path))
 
     def learn(
         self,
@@ -140,6 +144,7 @@ class RLlibAgent(AgentSessionABC):
         for i in range(episodes):
             self._current_result = self._agent.train()
             self._save_checkpoint()
+        self.save()
         self._agent.stop()
         super().learn()
 
@@ -162,9 +167,25 @@ class RLlibAgent(AgentSessionABC):
         """Load an agent from file."""
         raise NotImplementedError
 
-    def save(self):
+    def save(self, overwrite_existing: bool = True):
         """Save the agent."""
-        raise NotImplementedError
+        # Make temp dir to save in isolation
+        temp_dir = self.learning_path / str(uuid4())
+        temp_dir.mkdir()
+
+        # Save the agent to the temp dir
+        self._agent.save(str(temp_dir))
+
+        # Capture the saved Rllib checkpoint inside the temp directory
+        for file in temp_dir.iterdir():
+            checkpoint_dir = file
+            break
+
+        # Zip the folder
+        shutil.make_archive(str(self._saved_agent_path).replace(".zip", ""), "zip", checkpoint_dir)  # noqa
+
+        # Drop the temp directory
+        shutil.rmtree(temp_dir)
 
     def export(self):
         """Export the agent to transportable file format."""
