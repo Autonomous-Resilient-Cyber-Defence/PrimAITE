@@ -186,6 +186,7 @@ class RLlibAgent(AgentSessionABC):
             checkpoint_dir = file
             break
 
+        # Zip the folder
         shutil.make_archive(
             str(self._saved_agent_path).replace(".zip", ""),
             "zip",
