@@ -3,17 +3,21 @@
 
 
 class Protocol(object):
-    """Protocol class.
-
-    :param _name: The protocol name
-    """
+    """Protocol class."""
 
     def __init__(self, _name):
+        """
+        Initialise a protocol.
+
+        :param _name: The name of the protocol
+        :type _name: str
+        """
         self.name = _name
         self.load = 0  # bps
 
     def get_name(self):
-        """Gets the protocol name.
+        """
+        Gets the protocol name.
 
         Returns:
              The protocol name
@@ -21,7 +25,8 @@ class Protocol(object):
         return self.name
 
     def get_load(self):
-        """Gets the protocol load.
+        """
+        Gets the protocol load.
 
         Returns:
              The protocol load (bps)
@@ -29,7 +34,8 @@ class Protocol(object):
         return self.load
 
     def add_load(self, _load):
-        """Adds load to the protocol.
+        """
+        Adds load to the protocol.
 
         Args:
             _load: The load to add

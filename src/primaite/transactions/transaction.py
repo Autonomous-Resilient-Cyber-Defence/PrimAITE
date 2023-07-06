@@ -10,7 +10,8 @@ class Transaction(object):
     """Transaction class."""
 
     def __init__(self, agent_identifier: AgentIdentifier, episode_number: int, step_number: int):
-        """Transaction constructor.
+        """
+        Transaction constructor.
 
         :param agent_identifier: An identifier for the agent in use
         :param episode_number: The episode number

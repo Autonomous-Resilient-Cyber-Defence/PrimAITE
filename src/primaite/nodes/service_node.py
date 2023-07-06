@@ -12,18 +12,7 @@ _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
 
 class ServiceNode(ActiveNode):
-    """ServiceNode class.
-
-    :param node_id: The node ID
-    :param name: The node name
-    :param node_type: The node type (enum)
-    :param priority: The node priority (enum)
-    :param hardware_state: The node Hardware State
-    :param ip_address: The node IP address
-    :param software_state: The node Software State
-    :param file_system_state: The node file system state
-    :param config_values: The config values
-    """
+    """ServiceNode class."""
 
     def __init__(
         self,
@@ -37,6 +26,19 @@ class ServiceNode(ActiveNode):
         file_system_state: FileSystemState,
         config_values: TrainingConfig,
     ):
+        """
+        Initialise a Service Node.
+
+        :param node_id: The node ID
+        :param name: The node name
+        :param node_type: The node type (enum)
+        :param priority: The node priority (enum)
+        :param hardware_state: The node Hardware State
+        :param ip_address: The node IP address
+        :param software_state: The node Software State
+        :param file_system_state: The node file system state
+        :param config_values: The config values
+        """
         super().__init__(
             node_id,
             name,

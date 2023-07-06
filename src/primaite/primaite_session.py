@@ -19,7 +19,8 @@ _LOGGER = getLogger(__name__)
 
 
 class PrimaiteSession:
-    """The PrimaiteSession class.
+    """
+    The PrimaiteSession class.
 
     Provides a single learning and evaluation entry point for all training and lay down configurations.
     """
@@ -29,7 +30,8 @@ class PrimaiteSession:
         training_config_path: Union[str, Path],
         lay_down_config_path: Union[str, Path],
     ):
-        """The PrimaiteSession constructor.
+        """
+        The PrimaiteSession constructor.
 
         :param training_config_path: The training config path.
         :param lay_down_config_path: The lay down config path.

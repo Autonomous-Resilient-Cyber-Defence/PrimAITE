@@ -23,7 +23,8 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
             return self._calculate_action_full_view(obs)
 
     def get_blocked_green_iers(self, green_iers, acl, nodes):
-        """Get blocked green IERs.
+        """
+        Get blocked green IERs.
 
         TODO: Add params and return in docstring.
         TODO: Typehint params and return.

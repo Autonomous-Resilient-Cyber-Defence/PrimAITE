@@ -38,7 +38,8 @@ def get_session_path(session_timestamp: datetime) -> Path:
 
 
 class AgentSessionABC(ABC):
-    """An ABC that manages training and/or evaluation of agents in PrimAITE.
+    """
+    An ABC that manages training and/or evaluation of agents in PrimAITE.
 
     This class cannot be directly instantiated and must be inherited from with all implemented abstract methods
     implemented.
@@ -46,6 +47,15 @@ class AgentSessionABC(ABC):
 
     @abstractmethod
     def __init__(self, training_config_path, lay_down_config_path):
+        """
+        Initialise an agent session from config files.
+
+        :param training_config_path: YAML file containing configurable items defined in
+            `primaite.config.training_config.TrainingConfig`
+        :type training_config_path: Union[path, str]
+        :param lay_down_config_path: YAML file containing configurable items for generating network laydown.
+        :type lay_down_config_path: Union[path, str]
+        """
         if not isinstance(training_config_path, Path):
             training_config_path = Path(training_config_path)
         self._training_config_path: Final[Union[Path, str]] = training_config_path
@@ -289,13 +299,23 @@ class AgentSessionABC(ABC):
 
 
 class HardCodedAgentSessionABC(AgentSessionABC):
-    """An Agent Session ABC for evaluation deterministic agents.
+    """
+    An Agent Session ABC for evaluation deterministic agents.
 
     This class cannot be directly instantiated and must be inherited from with all implemented abstract methods
     implemented.
     """
 
     def __init__(self, training_config_path, lay_down_config_path):
+        """
+        Initialise a hardcoded agent session.
+
+        :param training_config_path: YAML file containing configurable items defined in
+            `primaite.config.training_config.TrainingConfig`
+        :type training_config_path: Union[path, str]
+        :param lay_down_config_path: YAML file containing configurable items for generating network laydown.
+        :type lay_down_config_path: Union[path, str]
+        """
         super().__init__(training_config_path, lay_down_config_path)
         self._setup()
 
