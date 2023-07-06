@@ -310,11 +310,11 @@ Rewards are calculated based on the difference between the current state and ref
 
 * **deterministic** [bool]
 
-   Set to true if the agent should use deterministic actions. Default is ``False``
+   Set to true if the agent evaluation should be deterministic. Default is ``False``
 
 * **seed** [int]
 
-   Seed used in the randomisation in training / evaluation. Default is ``None``
+   Seed used in the randomisation in agent training. Default is ``None``
 
 The Lay Down Config
 *******************
