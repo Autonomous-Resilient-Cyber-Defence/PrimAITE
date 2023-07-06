@@ -252,6 +252,7 @@ class NodeStatuses(AbstractObservationComponent):
         services = self.env.services_list
 
         structure = []
+
         for _, node in self.env.nodes.items():
             node_id = node.node_id
             structure.append(f"node_{node_id}_hardware_state_NONE")
@@ -431,6 +432,8 @@ class AccessControlList(AbstractObservationComponent):
         # 3. Initialise observation with zeroes
         self.current_observation = np.zeros(len(shape), dtype=self._DATA_TYPE)
 
+        self.structure = self.generate_structure()
+
     def update(self):
         """Update the observation based on current environment state.
 
@@ -511,11 +514,32 @@ class AccessControlList(AbstractObservationComponent):
                     starting_position += 1
 
         # print("current obs", obs, "\n" ,len(obs))
-        self.current_observation[:] = obs
+        self.current_observation = obs
 
     def generate_structure(self):
         """Return a list of labels for the components of the flattened observation space."""
         structure = []
+        for acl_rule in self.env.acl.acl:
+            acl_rule_id = self.env.acl.acl.index(acl_rule)
+
+            for permission in RulePermissionType:
+                structure.append(f"acl_rule_{acl_rule_id}_permission_{permission.name}")
+
+            structure.append(f"acl_rule_{acl_rule_id}_source_ip_ANY")
+            for node in self.env.nodes.keys():
+                structure.append(f"acl_rule_{acl_rule_id}_source_ip_{node}")
+
+            structure.append(f"acl_rule_{acl_rule_id}_dest_ip_ANY")
+            for node in self.env.nodes.keys():
+                structure.append(f"acl_rule_{acl_rule_id}_dest_ip_{node}")
+
+            structure.append(f"acl_rule_{acl_rule_id}_service_ANY")
+            for service in self.env.services_list:
+                structure.append(f"acl_rule_{acl_rule_id}_service_{service}")
+
+            structure.append(f"acl_rule_{acl_rule_id}_port_ANY")
+            for port in self.env.ports_list:
+                structure.append(f"acl_rule_{acl_rule_id}_port_{port}")
 
         return structure
 

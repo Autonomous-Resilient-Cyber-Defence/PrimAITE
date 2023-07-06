@@ -354,6 +354,6 @@ class TestAccessControlList:
         On Step 7, there is a second rule added at POSITION 1: 2,4,2,3,3,1
         THINK THE RULES SHOULD BE THE OTHER WAY AROUND IN THE CURRENT OBSERVATION
         """
-
-        # assert current_obs == [2, 2, 3, 2, 3, 0,    2, 4, 2, 3, 3, 1,   1, 1, 1, 1, 1, 2]
-        assert np.array_equal(obs, [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2])
+        # np.array_equal(obs, [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2])
+        # assert np.array_equal(obs, [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2])
+        assert obs == [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2]

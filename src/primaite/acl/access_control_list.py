@@ -111,7 +111,9 @@ class AccessControlList:
             if _position is not None:
                 if self.max_acl_rules - 1 > position_index > -1:
                     try:
-                        self._acl.insert(position_index, new_rule)
+                        # self._acl.insert(position_index, new_rule)
+                        if self._acl[position_index] is None:
+                            self.acl[position_index] = new_rule
                     except Exception:
                         _LOGGER.info(f"New Rule could NOT be added to list at position {position_index}.")
                 else:
