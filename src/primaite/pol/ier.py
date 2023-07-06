@@ -6,19 +6,7 @@ Used to represent an information flow from source to destination.
 
 
 class IER(object):
-    """Information Exchange Requirement class.
-
-    :param _id: The IER id
-    :param _start_step: The step when this IER should start
-    :param _end_step: The step when this IER should end
-    :param _load: The load this IER should put on a link (bps)
-    :param _protocol: The protocol of this IER
-    :param _port: The port this IER runs on
-    :param _source_node_id: The source node ID
-    :param _dest_node_id: The destination node ID
-    :param _mission_criticality: Criticality of this IER to the mission (0 none, 5 mission critical)
-    :param _running: Indicates whether the IER is currently running
-    """
+    """Information Exchange Requirement class."""
 
     def __init__(
         self,
@@ -33,6 +21,20 @@ class IER(object):
         _mission_criticality,
         _running=False,
     ):
+        """
+        Initialise an Information Exchange Request.
+
+        :param _id: The IER id
+        :param _start_step: The step when this IER should start
+        :param _end_step: The step when this IER should end
+        :param _load: The load this IER should put on a link (bps)
+        :param _protocol: The protocol of this IER
+        :param _port: The port this IER runs on
+        :param _source_node_id: The source node ID
+        :param _dest_node_id: The destination node ID
+        :param _mission_criticality: Criticality of this IER to the mission (0 none, 5 mission critical)
+        :param _running: Indicates whether the IER is currently running
+        """
         self.id = _id
         self.start_step = _start_step
         self.end_step = _end_step

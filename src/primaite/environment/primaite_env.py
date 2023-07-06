@@ -67,7 +67,8 @@ class Primaite(Env):
         session_path: Path,
         timestamp_str: str,
     ):
-        """The Primaite constructor.
+        """
+        The Primaite constructor.
 
         :param training_config_path: The training config filepath.
         :param lay_down_config_path: The lay down config filepath.

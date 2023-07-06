@@ -25,6 +25,12 @@ class AbstractObservationComponent(ABC):
 
     @abstractmethod
     def __init__(self, env: "Primaite"):
+        """
+        Initialise observation component.
+
+        :param env: Primaite training environment.
+        :type env: Primaite
+        """
         _LOGGER.info(f"Initialising {self} observation component")
         self.env: "Primaite" = env
         self.space: spaces.Space
@@ -68,6 +74,11 @@ class NodeLinkTable(AbstractObservationComponent):
     _DATA_TYPE: type = np.int64
 
     def __init__(self, env: "Primaite"):
+        """Initialise a NodeLinkTable observation space component.
+
+        :param env: Training environment.
+        :type env: Primaite
+        """
         super().__init__(env)
 
         # 1. Define the shape of your observation space component
@@ -192,14 +203,17 @@ class NodeStatuses(AbstractObservationComponent):
             node2 serviceN state (one for each service),
             ...
         ]
-
-    :param env: The environment that forms the basis of the observations
-    :type env: Primaite
     """
 
     _DATA_TYPE: type = np.int64
 
     def __init__(self, env: "Primaite"):
+        """
+        Initialise a NodeStatuses observation component.
+
+        :param env: Training environment.
+        :type env: Primaite
+        """
         super().__init__(env)
 
         # 1. Define the shape of your observation space component
@@ -288,14 +302,6 @@ class LinkTrafficLevels(AbstractObservationComponent):
         The lowest category always corresponds to no traffic and the highest category to the link being at max capacity.
         Any amount of traffic between 0% and 100% (exclusive) is divided evenly into the remaining categories.
 
-    :param env: The environment that forms the basis of the observations
-    :type env: Primaite
-    :param combine_service_traffic: Whether to consider total traffic on the link, or each protocol individually,
-        defaults to False
-    :type combine_service_traffic: bool, optional
-    :param quantisation_levels: How many bands to consider when converting the traffic amount to a categorical value ,
-        defaults to 5
-    :type quantisation_levels: int, optional
     """
 
     _DATA_TYPE: type = np.int64
@@ -306,6 +312,18 @@ class LinkTrafficLevels(AbstractObservationComponent):
         combine_service_traffic: bool = False,
         quantisation_levels: int = 5,
     ):
+        """
+        Initialise a LinkTrafficLevels observation component.
+
+        :param env: The environment that forms the basis of the observations
+        :type env: Primaite
+        :param combine_service_traffic: Whether to consider total traffic on the link, or each protocol individually,
+            defaults to False
+        :type combine_service_traffic: bool, optional
+        :param quantisation_levels: How many bands to consider when converting the traffic amount to a categorical
+            value, defaults to 5
+        :type quantisation_levels: int, optional
+        """
         if quantisation_levels < 3:
             _msg = (
                 f"quantisation_levels must be 3 or more because the lowest and highest levels are "
@@ -390,6 +408,7 @@ class ObservationsHandler:
     }
 
     def __init__(self):
+        """Initialise the observation handler."""
         self.registered_obs_components: List[AbstractObservationComponent] = []
 
         # internal the observation space (unflattened version of space if flatten=True)

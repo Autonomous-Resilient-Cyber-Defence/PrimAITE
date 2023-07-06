@@ -3,7 +3,8 @@ from primaite.agents.utils import get_new_action, transform_action_acl_enum, tra
 
 
 class RandomAgent(HardCodedAgentSessionABC):
-    """A Random Agent.
+    """
+    A Random Agent.
 
     Get a completely random action from the action space.
     """
@@ -13,7 +14,8 @@ class RandomAgent(HardCodedAgentSessionABC):
 
 
 class DummyAgent(HardCodedAgentSessionABC):
-    """A Dummy Agent.
+    """
+    A Dummy Agent.
 
     All action spaces setup so dummy action is always 0 regardless of action type used.
     """
@@ -23,7 +25,8 @@ class DummyAgent(HardCodedAgentSessionABC):
 
 
 class DoNothingACLAgent(HardCodedAgentSessionABC):
-    """A do nothing ACL agent.
+    """
+    A do nothing ACL agent.
 
     A valid ACL action that has no effect; does nothing.
     """
@@ -37,7 +40,8 @@ class DoNothingACLAgent(HardCodedAgentSessionABC):
 
 
 class DoNothingNodeAgent(HardCodedAgentSessionABC):
-    """A do nothing Node agent.
+    """
+    A do nothing Node agent.
 
     A valid Node action that has no effect; does nothing.
     """

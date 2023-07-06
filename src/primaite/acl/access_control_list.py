@@ -9,10 +9,12 @@ class AccessControlList:
     """Access Control List class."""
 
     def __init__(self):
+        """Initialise an empty AccessControlList."""
         self.acl: Dict[str, AccessControlList] = {}  # A dictionary of ACL Rules
 
     def check_address_match(self, _rule, _source_ip_address, _dest_ip_address):
-        """Checks for IP address matches.
+        """
+        Checks for IP address matches.
 
         Args:
             _rule: The rule being checked
