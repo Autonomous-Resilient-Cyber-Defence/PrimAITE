@@ -65,11 +65,13 @@ class SB3Agent(AgentSessionABC):
     def _save_checkpoint(self):
         checkpoint_n = self._training_config.checkpoint_every_n_episodes
         episode_count = self._env.episode_count
-        if checkpoint_n > 0 and episode_count > 0:
-            if (episode_count % checkpoint_n == 0) or (episode_count == self._training_config.num_episodes):
-                checkpoint_path = self.checkpoints_path / f"sb3ppo_{episode_count}.zip"
-                self._agent.save(checkpoint_path)
-                _LOGGER.debug(f"Saved agent checkpoint: {checkpoint_path}")
+        save_checkpoint = False
+        if checkpoint_n:
+            save_checkpoint = episode_count % checkpoint_n == 0
+        if episode_count and save_checkpoint:
+            checkpoint_path = self.checkpoints_path / f"sb3ppo_{episode_count}.zip"
+            self._agent.save(checkpoint_path)
+            _LOGGER.debug(f"Saved agent checkpoint: {checkpoint_path}")
 
     def _get_latest_checkpoint(self):
         pass
@@ -91,6 +93,7 @@ class SB3Agent(AgentSessionABC):
             self._agent.learn(total_timesteps=time_steps)
             self._save_checkpoint()
         self._env.reset()
+        self.save()
         self._env.close()
         super().learn()
 
@@ -133,6 +136,10 @@ class SB3Agent(AgentSessionABC):
     def load(cls, path: Union[str, Path]) -> SB3Agent:
         """Load an agent from file."""
         raise NotImplementedError
+
+    def save(self):
+        """Save the agent."""
+        self._agent.save(self._saved_agent_path)
 
     def export(self):
         """Export the agent to transportable file format."""
