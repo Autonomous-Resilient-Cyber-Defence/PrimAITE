@@ -34,7 +34,7 @@ class AccessControlList:
         else:
             return False
 
-    def is_blocked(self, _source_ip_address, _dest_ip_address, _protocol, _port):
+    def is_blocked(self, _source_ip_address: str, _dest_ip_address: str, _protocol: str, _port: str) -> bool:
         """
         Checks for rules that block a protocol / port.
 
