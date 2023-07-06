@@ -59,6 +59,7 @@ class SB3Agent(AgentSessionABC):
             verbose=self.sb3_output_verbose_level,
             n_steps=self._training_config.num_steps,
             tensorboard_log=str(self._tensorboard_log_path),
+            seed=self._training_config.seed
         )
 
     def _save_checkpoint(self):
@@ -98,20 +99,18 @@ class SB3Agent(AgentSessionABC):
 
     def evaluate(
         self,
-        deterministic: bool = True,
         **kwargs,
     ):
         """
         Evaluate the agent.
 
-        :param deterministic: Whether the evaluation is deterministic.
         :param kwargs: Any agent-specific key-word args to be passed.
         """
         time_steps = self._training_config.num_steps
         episodes = self._training_config.num_episodes
         self._env.set_as_eval()
         self.is_eval = True
-        if deterministic:
+        if self._training_config.deterministic:
             deterministic_str = "deterministic"
         else:
             deterministic_str = "non-deterministic"
@@ -122,7 +121,10 @@ class SB3Agent(AgentSessionABC):
             obs = self._env.reset()
 
             for step in range(time_steps):
-                action, _states = self._agent.predict(obs, deterministic=deterministic)
+                action, _states = self._agent.predict(
+                    obs,
+                    deterministic=self._training_config.deterministic
+                )
                 if isinstance(action, np.ndarray):
                     action = np.int64(action)
                 obs, rewards, done, info = self._env.step(action)

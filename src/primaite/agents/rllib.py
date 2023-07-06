@@ -106,6 +106,7 @@ class RLlibAgent(AgentSessionABC):
                 timestamp_str=self.timestamp_str,
             ),
         )
+        self._agent_config.seed = self._training_config.seed
 
         self._agent_config.training(train_batch_size=self._training_config.num_steps)
         self._agent_config.framework(framework="tf")
