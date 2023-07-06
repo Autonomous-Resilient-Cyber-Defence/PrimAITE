@@ -78,7 +78,6 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         dest_node_address = nodes[dest_node_id].ip_address
         protocol = ier.get_protocol()  # e.g. 'TCP'
         port = ier.get_port()
-        # I can't find where this function 'get_relevant_rules' is defined...
         matching_rules = acl.get_relevant_rules(source_node_address, dest_node_address, protocol, port)
         return matching_rules
 
