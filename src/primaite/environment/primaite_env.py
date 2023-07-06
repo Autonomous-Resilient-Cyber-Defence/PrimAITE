@@ -142,10 +142,10 @@ class Primaite(Env):
         self.step_info = {}
 
         # Total reward
-        self.total_reward = 0
+        self.total_reward: float = 0
 
         # Average reward
-        self.average_reward = 0
+        self.average_reward: float = 0
 
         # Episode count
         self.episode_count = 0
@@ -283,9 +283,9 @@ class Primaite(Env):
             self._create_random_red_agent()
 
         # Reset counters and totals
-        self.total_reward = 0
+        self.total_reward = 0.0
         self.step_count = 0
-        self.average_reward = 0
+        self.average_reward = 0.0
 
         # Update observations space and return
         self.update_environent_obs()
