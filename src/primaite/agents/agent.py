@@ -248,7 +248,6 @@ class AgentSessionABC(ABC):
 
             agent.session_path = path
 
-
             return agent
 
         else:

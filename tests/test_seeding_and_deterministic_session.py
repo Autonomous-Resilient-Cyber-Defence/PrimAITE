@@ -6,15 +6,11 @@ from tests import TEST_CONFIG_ROOT
 
 @pytest.mark.parametrize(
     "temp_primaite_session",
-    [[
-        TEST_CONFIG_ROOT / "ppo_seeded_training_config.yaml",
-        dos_very_basic_config_path()
-    ]],
+    [[TEST_CONFIG_ROOT / "ppo_seeded_training_config.yaml", dos_very_basic_config_path()]],
     indirect=True,
 )
 def test_seeded_learning(temp_primaite_session):
     """Test running seeded learning produces the same output when ran twice."""
-
     expected_mean_reward_per_episode = {
         1: -90.703125,
         2: -91.15234375,
@@ -25,26 +21,22 @@ def test_seeded_learning(temp_primaite_session):
         7: -88.984375,
         8: -88.3203125,
         9: -112.79296875,
-        10: -100.01953125
+        10: -100.01953125,
     }
     with temp_primaite_session as session:
-        assert session._training_config.seed == 67890, \
-            "Expected output is based upon a agent that was trained with " \
-            "seed 67890"
+        assert session._training_config.seed == 67890, (
+            "Expected output is based upon a agent that was trained with " "seed 67890"
+        )
         session.learn()
         actual_mean_reward_per_episode = session.learn_av_reward_per_episode()
 
     assert actual_mean_reward_per_episode == expected_mean_reward_per_episode
 
 
-@pytest.mark.skip(reason="Inconsistent results. Needs someone with RL "
-                         "knowledge to investigate further.")
+@pytest.mark.skip(reason="Inconsistent results. Needs someone with RL " "knowledge to investigate further.")
 @pytest.mark.parametrize(
     "temp_primaite_session",
-    [[
-        TEST_CONFIG_ROOT / "ppo_seeded_training_config.yaml",
-        dos_very_basic_config_path()
-    ]],
+    [[TEST_CONFIG_ROOT / "ppo_seeded_training_config.yaml", dos_very_basic_config_path()]],
     indirect=True,
 )
 def test_deterministic_evaluation(temp_primaite_session):

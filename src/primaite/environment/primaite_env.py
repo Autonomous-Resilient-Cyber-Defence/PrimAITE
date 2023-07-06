@@ -2,7 +2,6 @@
 """Main environment module containing the PRIMmary AI Training Evironment (Primaite) class."""
 import copy
 import logging
-import random
 import uuid as uuid
 from pathlib import Path
 from random import choice, randint, sample, uniform
@@ -240,11 +239,6 @@ class Primaite(Env):
 
         self.episode_av_reward_writer = SessionOutputWriter(self, transaction_writer=False, learning_session=True)
         self.transaction_writer = SessionOutputWriter(self, transaction_writer=True, learning_session=True)
-
-        # set the seed globally if there is one
-        if self.training_config.seed:
-            random.seed(self.training_config.seed)
-            np.random.seed(self.training_config.seed)
 
     @property
     def actual_episode_count(self) -> int:
