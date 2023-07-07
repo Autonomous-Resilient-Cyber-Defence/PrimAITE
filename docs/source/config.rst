@@ -48,6 +48,41 @@ The environment config file consists of the following attributes:
     Determines whether a NODE, ACL, or ANY (combined NODE & ACL) action space format is adopted for the session
 
 
+* **OBSERVATION_SPACE** [dict]
+
+    Allows for user to configure observation space by combining one or more observation components. List of available
+    components is in :py:mod:`primaite.environment.observations`.
+
+    The observation space config item should have a ``components`` key which is a list of components. Each component
+    config must have a ``name`` key, and can optionally have an ``options`` key. The ``options`` are passed to the
+    component while it is being initialised.
+
+    This example illustrates the correct format for the observation space config item
+
+    .. code-block:: yaml
+
+        observation_space:
+        flatten: true
+        components:
+          - name: NODE_LINK_TABLE
+          - name: NODE_STATUSES
+          - name: LINK_TRAFFIC_LEVELS
+            options:
+              combine_service_traffic : False
+              quantisation_levels: 99
+
+
+    Currently available components are:
+
+      * :py:mod:`NODE_LINK_TABLE<primaite.environment.observations.NodeLinkTable>` this does not accept any additional options
+      * :py:mod:`NODE_STATUSES<primaite.environment.observations.NodeStatuses>`, this does not accept any additional options
+      * :py:mod:`LINK_TRAFFIC_LEVELS<primaite.environment.observations.LinkTrafficLevels>`, this accepts the following options:
+
+        * ``combine_service_traffic`` - whether to consider bandwidth use separately for each network protocol or combine them into a single bandwidth reading (boolean)
+        * ``quantisation_levels`` - how many discrete bandwidth usage levels to use for encoding. This can be an integer equal to or greater than 3.
+
+    The other configurable item is ``flatten`` which is false by default. When set to true, the observation space is flattened (turned into a 1-D vector). You should use this if your RL agent does not natively support the chosen shape of the observation space.
+
 * **num_episodes** [int]
 
     This defines the number of episodes that the agent will train or be evaluated over.
@@ -321,31 +356,6 @@ The Lay Down Config
 
 The lay down config file consists of the following attributes:
 
-* **itemType: ACTIONS** [enum]
-
-    Determines whether a NODE or ACL action space format is adopted for the session
-
-* **itemType: OBSERVATION_SPACE** [dict]
-
-    Allows for user to configure observation space by combining one or more observation components. List of available
-    components is is :py:mod:'primaite.environment.observations'.
-
-    The observation space config item should have a ``components`` key which is a list of components. Each component
-    config must have a ``name`` key, and can optionally have an ``options`` key. The ``options`` are passed to the
-    component while it is being initialised.
-
-    This example illustrates the correct format for the observation space config item
-
-.. code-block::yaml
-
-    - item_type: OBSERVATION_SPACE
-     components:
-     - name: LINK_TRAFFIC_LEVELS
-       options:
-         combine_service_traffic: false
-         quantisation_levels: 8
-     - name: NODE_STATUSES
-     - name: LINK_TRAFFIC_LEVELS
 
 * **itemType: STEPS** [int]
 
