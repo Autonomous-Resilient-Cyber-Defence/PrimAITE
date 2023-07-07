@@ -20,10 +20,17 @@ agent_identifier: PPO
 # "ACL"
 # "ANY" node and acl actions
 action_type: ANY
-# Number of episodes to run per session
-num_episodes: 10
-# Number of time_steps per episode
-num_steps: 256
+# Number of episodes for training to run per session
+num_train_episodes: 10
+
+# Number of time_steps for training per episode
+num_train_steps: 256
+
+# Number of episodes for evaluation to run per session
+num_eval_episodes: 10
+
+# Number of time_steps for evaluation per episode
+num_eval_steps: 256
 # Time delay between steps (for generic agents)
 time_delay: 10
 # Type of session to be run (TRAINING or EVALUATION)

@@ -163,8 +163,9 @@ def run_generic(env, config_values):
     """Run against a generic agent."""
     # Reset the environment at the start of the episode
     # env.reset()
-    for episode in range(0, config_values.num_episodes):
-        for step in range(0, config_values.num_steps):
+    print(config_values.num_train_episodes, "how many episodes")
+    for episode in range(0, config_values.num_train_episodes):
+        for step in range(0, config_values.num_train_steps):
             # Send the observation space to the agent to get an action
             # TEMP - random action for now
             # action = env.blue_agent_action(obs)

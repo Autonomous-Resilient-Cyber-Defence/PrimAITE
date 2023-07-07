@@ -5,7 +5,15 @@
 # "SB3" (Stable Baselines3)
 # "RLLIB" (Ray RLlib)
 # "CUSTOM" (Custom Agent)
-agent_framework: CUSTOM
+agent_framework: SB3
+
+# Sets which deep learning framework will be used (by RLlib ONLY).
+# Default is TF (Tensorflow).
+# Options are:
+# "TF" (Tensorflow)
+# TF2 (Tensorflow 2.X)
+# TORCH (PyTorch)
+deep_learning_framework: TF2
 
 # Sets which Agent class will be used.
 # Options are:
@@ -15,43 +23,69 @@ agent_framework: CUSTOM
 # "DO_NOTHING" (The DoNothing agents coupled with an ACL or NODE action_type)
 # "RANDOM" (primaite.agents.simple.RandomAgent)
 # "DUMMY" (primaite.agents.simple.DummyAgent)
-agent_identifier: RANDOM
+agent_identifier: PPO
+
+# Sets whether Red Agent POL and IER is randomised.
+# Options are:
+# True
+# False
+random_red_agent: False
+
+# Sets what view of the environment the deterministic hardcoded agent has. The default is BASIC.
+# Options are:
+# "BASIC" (The current observation space only)
+# "FULL" (Full environment view with actions taken and reward feedback)
+hard_coded_agent_view: FULL
 
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
 # "ANY" node and acl actions
-action_type: ANY
+action_type: NODE
+# observation space
+observation_space:
+  # flatten: true
+  components:
+    - name: NODE_LINK_TABLE
+    # - name: NODE_STATUSES
+    # - name: LINK_TRAFFIC_LEVELS
+
+
 # Number of episodes for training to run per session
-num_train_episodes: 10
+num_train_episodes: 30
 
 # Number of time_steps for training per episode
-num_train_steps: 256
+num_train_steps: 1
 
 # Number of episodes for evaluation to run per session
 num_eval_episodes: 10
 
 # Number of time_steps for evaluation per episode
-num_eval_steps: 256
+num_eval_steps: 10
 
-observation_space:
-  components:
-    - name: NODE_STATUSES
+# Sets how often the agent will save a checkpoint (every n time episodes).
+# Set to 0 if no checkpoints are required. Default is 10
+checkpoint_every_n_episodes: 10
 
+# Time delay (milliseconds) between steps for CUSTOM agents.
+time_delay: 5
 
-# Time delay between steps (for generic agents)
-time_delay: 1
-
-# Type of session to be run (TRAINING or EVALUATION)
-session_type: TRAIN
-# Determine whether to load an agent from file
-load_agent: False
-# File path and file name of agent if you're loading one in
-agent_load_file: C:\[Path]\[agent_saved_filename.zip]
+# Type of session to be run. Options are:
+# "TRAIN" (Trains an agent)
+# "EVAL" (Evaluates an agent)
+# "TRAIN_EVAL" (Trains then evaluates an agent)
+session_type: EVAL
 
 # Environment config values
 # The high value for the observation space
-observation_space_high_value: 1_000_000_000
+observation_space_high_value: 1000000000
+
+# The Stable Baselines3 learn/eval output verbosity level:
+# Options are:
+# "NONE" (No Output)
+# "INFO" (Info Messages (such as devices and wrappers used))
+# "DEBUG" (All Messages)
+sb3_output_verbose_level: NONE
 
 # Reward values
 # Generic

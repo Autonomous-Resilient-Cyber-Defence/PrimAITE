@@ -60,11 +60,17 @@ class TrainingConfig:
     action_type: ActionType = ActionType.ANY
     "The ActionType to use"
 
-    num_episodes: int = 10
-    "The number of episodes to train over"
+    num_train_episodes: int = 10
+    "The number of episodes to train over during an training session"
 
-    num_steps: int = 256
-    "The number of steps in an episode"
+    num_train_steps: int = 256
+    "The number of steps in an episode during an training session"
+
+    num_eval_episodes: int = 10
+    "The number of episodes to train over during an evaluation session"
+
+    num_eval_steps: int = 256
+    "The number of steps in an episode during an evaluation session"
 
     checkpoint_every_n_episodes: int = 5
     "The agent will save a checkpoint every n episodes"
@@ -230,8 +236,17 @@ class TrainingConfig:
             tc += f"{self.hard_coded_agent_view}, "
         tc += f"{self.action_type}, "
         tc += f"observation_space={self.observation_space}, "
-        tc += f"{self.num_episodes} episodes @ "
-        tc += f"{self.num_steps} steps"
+        if self.session_type.name == "TRAIN":
+            tc += f"{self.num_train_episodes} episodes @ "
+            tc += f"{self.num_train_steps} steps"
+        elif self.session_type.name == "EVAL":
+            tc += f"{self.num_eval_episodes} episodes @ "
+            tc += f"{self.num_eval_steps} steps"
+        else:
+            tc += f"Training: {self.num_eval_episodes} episodes @ "
+            tc += f"{self.num_eval_steps} steps"
+            tc += f"Evaluation: {self.num_eval_episodes} episodes @ "
+            tc += f"{self.num_eval_steps} steps"
         return tc
 
 
@@ -320,7 +335,8 @@ def _get_new_key_from_legacy(legacy_key: str) -> str:
     """
     key_mapping = {
         "agentIdentifier": None,
-        "numEpisodes": "num_episodes",
+        "numEpisodes": "num_train_episodes",
+        "numSteps": "num_train_steps",
         "timeDelay": "time_delay",
         "configFilename": None,
         "sessionType": "session_type",

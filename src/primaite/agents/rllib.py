@@ -107,13 +107,13 @@ class RLlibAgent(AgentSessionABC):
             ),
         )
 
-        self._agent_config.training(train_batch_size=self._training_config.num_steps)
+        self._agent_config.training(train_batch_size=self._training_config.num_train_steps)
         self._agent_config.framework(framework="tf")
 
         self._agent_config.rollouts(
             num_rollout_workers=1,
             num_envs_per_worker=1,
-            horizon=self._training_config.num_steps,
+            horizon=self._training_config.num_train_steps,
         )
         self._agent: Algorithm = self._agent_config.build(logger_creator=_custom_log_creator(self.learning_path))
 
@@ -121,7 +121,7 @@ class RLlibAgent(AgentSessionABC):
         checkpoint_n = self._training_config.checkpoint_every_n_episodes
         episode_count = self._current_result["episodes_total"]
         if checkpoint_n > 0 and episode_count > 0:
-            if (episode_count % checkpoint_n == 0) or (episode_count == self._training_config.num_episodes):
+            if (episode_count % checkpoint_n == 0) or (episode_count == self._training_config.num_train_episodes):
                 self._agent.save(str(self.checkpoints_path))
 
     def learn(
@@ -133,8 +133,8 @@ class RLlibAgent(AgentSessionABC):
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
-        time_steps = self._training_config.num_steps
-        episodes = self._training_config.num_episodes
+        time_steps = self._training_config.num_train_steps
+        episodes = self._training_config.num_train_episodes
 
         _LOGGER.info(f"Beginning learning for {episodes} episodes @" f" {time_steps} time steps...")
         for i in range(episodes):

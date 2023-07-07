@@ -85,7 +85,12 @@ class Primaite(Env):
         _LOGGER.info(f"Using: {str(self.training_config)}")
 
         # Number of steps in an episode
-        self.episode_steps = self.training_config.num_steps
+        if self.training_config.session_type == SessionType.TRAIN:
+            self.episode_steps = self.training_config.num_train_steps
+        elif self.training_config.session_type == SessionType.EVAL:
+            self.episode_steps = self.training_config.num_eval_steps
+        else:
+            self.episode_steps = self.training_config.num_train_steps
 
         super(Primaite, self).__init__()
 
@@ -254,6 +259,7 @@ class Primaite(Env):
         self.episode_count = 0
         self.step_count = 0
         self.total_step_count = 0
+        self.episode_steps = self.training_config.num_eval_steps
 
     def reset(self):
         """
