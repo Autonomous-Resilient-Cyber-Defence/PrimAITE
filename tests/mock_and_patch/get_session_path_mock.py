@@ -1,6 +1,7 @@
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from uuid import uuid4
 
 from primaite import getLogger
 
@@ -14,9 +15,7 @@ def get_temp_session_path(session_timestamp: datetime) -> Path:
     :param session_timestamp: This is the datetime that the session started.
     :return: The session directory path.
     """
-    date_dir = session_timestamp.strftime("%Y-%m-%d")
-    session_path = session_timestamp.strftime("%Y-%m-%d_%H-%M-%S")
-    session_path = Path(tempfile.gettempdir()) / "primaite" / date_dir / session_path
+    session_path = Path(tempfile.gettempdir()) / "primaite" / str(uuid4())
     session_path.mkdir(exist_ok=True, parents=True)
     _LOGGER.debug(f"Created temp session directory: {session_path}")
     return session_path

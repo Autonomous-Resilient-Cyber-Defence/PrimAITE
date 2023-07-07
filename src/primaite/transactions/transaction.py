@@ -31,7 +31,7 @@ class Transaction(object):
         "The observation space before any actions are taken"
         self.obs_space_post = None
         "The observation space after any actions are taken"
-        self.reward = None
+        self.reward: float = None
         "The reward value"
         self.action_space = None
         "The action space invoked by the agent"
