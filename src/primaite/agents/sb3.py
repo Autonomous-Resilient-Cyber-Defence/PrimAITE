@@ -58,7 +58,7 @@ class SB3Agent(AgentSessionABC):
             PPOMlp,
             self._env,
             verbose=self.sb3_output_verbose_level,
-            n_steps=self._training_config.num_eval_steps,
+            n_steps=self._training_config.num_train_steps,
             tensorboard_log=str(self._tensorboard_log_path),
             seed=self._training_config.seed,
         )
@@ -93,7 +93,7 @@ class SB3Agent(AgentSessionABC):
         for i in range(episodes):
             self._agent.learn(total_timesteps=time_steps)
             self._save_checkpoint()
-        self._env.reset()
+        self._env._write_av_reward_per_episode()  # noqa
         self.save()
         self._env.close()
         super().learn()
@@ -129,7 +129,7 @@ class SB3Agent(AgentSessionABC):
                 if isinstance(action, np.ndarray):
                     action = np.int64(action)
                 obs, rewards, done, info = self._env.step(action)
-        self._env.reset()
+        self._env._write_av_reward_per_episode()  # noqa
         self._env.close()
         super().evaluate()
 

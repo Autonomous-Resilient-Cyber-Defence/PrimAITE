@@ -90,7 +90,6 @@ def calculate_reward_function(
                         f"Penalty of {ier_reward} was NOT applied."
                     )
                 )
-
     return reward_value
 
 
