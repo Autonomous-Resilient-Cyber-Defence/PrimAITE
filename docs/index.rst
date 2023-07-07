@@ -31,6 +31,7 @@ The best place to start is :ref:`about`
    :caption: Contents:
    :hidden:
 
+   source/getting_started
    source/about
    source/config
    source/primaite_session
