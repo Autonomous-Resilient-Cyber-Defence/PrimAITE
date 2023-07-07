@@ -6,7 +6,8 @@ class HardCodedNodeAgent(HardCodedAgentSessionABC):
     """An Agent Session class that implements a deterministic Node agent."""
 
     def _calculate_action(self, obs):
-        """Calculate a good node-based action for the blue agent to take.
+        """
+        Calculate a good node-based action for the blue agent to take.
 
         TODO: Add params and return in docstring.
         TODO: Typehint params and return.

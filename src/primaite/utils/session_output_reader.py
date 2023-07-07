@@ -7,7 +7,8 @@ import polars as pl
 
 
 def av_rewards_dict(av_rewards_csv_file: Union[str, Path]) -> Dict[int, float]:
-    """Read an average rewards per episode csv file and return as a dict.
+    """
+    Read an average rewards per episode csv file and return as a dict.
 
     The dictionary keys are the episode number, and the values are the mean reward that episode.
 

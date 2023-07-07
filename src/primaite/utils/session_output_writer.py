@@ -77,7 +77,8 @@ class SessionOutputWriter:
             _LOGGER.debug(f"Finished writing file: {self._csv_file_path}")
 
     def write(self, data: Union[Tuple, Transaction]):
-        """Write a row of session data.
+        """
+        Write a row of session data.
 
         :param data: The row of data to write. Can be a Tuple or an instance of Transaction.
         """

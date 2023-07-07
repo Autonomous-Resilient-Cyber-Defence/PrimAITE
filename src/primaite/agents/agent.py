@@ -21,7 +21,8 @@ _LOGGER = getLogger(__name__)
 
 
 def get_session_path(session_timestamp: datetime) -> Path:
-    """Get the directory path the session will output to.
+    """
+    Get the directory path the session will output to.
 
     This is set in the format of:
         ~/primaite/sessions/<yyyy-mm-dd>/<yyyy-mm-dd>_<hh-mm-ss>.
@@ -194,7 +195,8 @@ class AgentSessionABC(ABC):
         self,
         **kwargs,
     ):
-        """Train the agent.
+        """
+        Train the agent.
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
@@ -211,7 +213,8 @@ class AgentSessionABC(ABC):
         self,
         **kwargs,
     ):
-        """Evaluate the agent.
+        """
+        Evaluate the agent.
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
@@ -340,7 +343,8 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         self,
         **kwargs,
     ):
-        """Train the agent.
+        """
+        Train the agent.
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
@@ -354,7 +358,8 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         self,
         **kwargs,
     ):
-        """Evaluate the agent.
+        """
+        Evaluate the agent.
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """

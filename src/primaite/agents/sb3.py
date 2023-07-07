@@ -89,7 +89,8 @@ class SB3Agent(AgentSessionABC):
         self,
         **kwargs,
     ):
-        """Train the agent.
+        """
+        Train the agent.
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
@@ -109,7 +110,8 @@ class SB3Agent(AgentSessionABC):
         deterministic: bool = True,
         **kwargs,
     ):
-        """Evaluate the agent.
+        """
+        Evaluate the agent.
 
         :param deterministic: Whether the evaluation is deterministic.
         :param kwargs: Any agent-specific key-word args to be passed.

@@ -12,7 +12,8 @@ _EXAMPLE_LAY_DOWN: Final[Path] = USERS_CONFIG_DIR / "example_config" / "lay_down
 
 
 def convert_legacy_lay_down_config_dict(legacy_config_dict: Dict[str, Any]) -> Dict[str, Any]:
-    """Convert a legacy lay down config dict to the new format.
+    """
+    Convert a legacy lay down config dict to the new format.
 
     :param legacy_config_dict: A legacy lay down config dict.
     """
@@ -21,7 +22,8 @@ def convert_legacy_lay_down_config_dict(legacy_config_dict: Dict[str, Any]) -> D
 
 
 def load(file_path: Union[str, Path], legacy_file: bool = False) -> Dict:
-    """Read in a lay down config yaml file.
+    """
+    Read in a lay down config yaml file.
 
     :param file_path: The config file path.
     :param legacy_file: True if the config file is legacy format, otherwise False.
@@ -50,7 +52,8 @@ def load(file_path: Union[str, Path], legacy_file: bool = False) -> Dict:
 
 
 def ddos_basic_one_config_path() -> Path:
-    """The path to the example lay_down_config_1_DDOS_basic.yaml file.
+    """
+    The path to the example lay_down_config_1_DDOS_basic.yaml file.
 
     :return: The file path.
     """
@@ -64,7 +67,8 @@ def ddos_basic_one_config_path() -> Path:
 
 
 def ddos_basic_two_config_path() -> Path:
-    """The path to the example lay_down_config_2_DDOS_basic.yaml file.
+    """
+    The path to the example lay_down_config_2_DDOS_basic.yaml file.
 
     :return: The file path.
     """
@@ -78,7 +82,8 @@ def ddos_basic_two_config_path() -> Path:
 
 
 def dos_very_basic_config_path() -> Path:
-    """The path to the example lay_down_config_3_DOS_very_basic.yaml file.
+    """
+    The path to the example lay_down_config_3_DOS_very_basic.yaml file.
 
     :return: The file path.
     """
@@ -92,7 +97,8 @@ def dos_very_basic_config_path() -> Path:
 
 
 def data_manipulation_config_path() -> Path:
-    """The path to the example lay_down_config_5_data_manipulation.yaml file.
+    """
+    The path to the example lay_down_config_5_data_manipulation.yaml file.
 
     :return: The file path.
     """

@@ -32,7 +32,8 @@ class PassiveNode(Node):
 
     @property
     def ip_address(self) -> str:
-        """Gets the node IP address as an empty string.
+        """
+        Gets the node IP address as an empty string.
 
         No concept of IP address for passive nodes for now.
 
