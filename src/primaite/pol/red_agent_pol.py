@@ -296,11 +296,17 @@ def apply_red_agent_node_pol(
             pass
 
 
-def is_red_ier_incoming(node, iers, node_pol_type):
-    """
-    Checks if the RED IER is incoming.
+def is_red_ier_incoming(node: NodeUnion, iers: Dict[str, IER], node_pol_type: NodePOLType) -> bool:
+    """Checks if the RED IER is incoming.
 
-    TODO: Write more descriptive docstring with params and returns.
+    :param node: Destination node of the IER
+    :type node: NodeUnion
+    :param iers: Directory of IERs
+    :type iers: Dict[str,IER]
+    :param node_pol_type: Type of Pattern-Of-Life
+    :type node_pol_type: NodePOLType
+    :return: Whether the RED IER is incoming.
+    :rtype: bool
     """
     node_id = node.node_id
 
