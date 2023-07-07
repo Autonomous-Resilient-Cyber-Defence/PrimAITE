@@ -52,20 +52,20 @@ observation_space:
 
 
 # Number of episodes for training to run per session
-num_train_episodes: 30
+num_train_episodes: 3
 
 # Number of time_steps for training per episode
-num_train_steps: 1
+num_train_steps: 25
 
 # Number of episodes for evaluation to run per session
-num_eval_episodes: 10
+num_eval_episodes: 1
 
 # Number of time_steps for evaluation per episode
-num_eval_steps: 10
+num_eval_steps: 17
 
 # Sets how often the agent will save a checkpoint (every n time episodes).
 # Set to 0 if no checkpoints are required. Default is 10
-checkpoint_every_n_episodes: 10
+checkpoint_every_n_episodes: 0
 
 # Time delay (milliseconds) between steps for CUSTOM agents.
 time_delay: 5
@@ -74,7 +74,7 @@ time_delay: 5
 # "TRAIN" (Trains an agent)
 # "EVAL" (Evaluates an agent)
 # "TRAIN_EVAL" (Trains then evaluates an agent)
-session_type: EVAL
+session_type: TRAIN_EVAL
 
 # Environment config values
 # The high value for the observation space

@@ -66,7 +66,7 @@ class TrainingConfig:
     num_train_steps: int = 256
     "The number of steps in an episode during an training session"
 
-    num_eval_episodes: int = 10
+    num_eval_episodes: int = 1
     "The number of episodes to train over during an evaluation session"
 
     num_eval_steps: int = 256
@@ -242,10 +242,10 @@ class TrainingConfig:
             tc += f"{self.hard_coded_agent_view}, "
         tc += f"{self.action_type}, "
         tc += f"observation_space={self.observation_space}, "
-        if self.session_type.name == "TRAIN":
+        if self.session_type is SessionType.TRAIN:
             tc += f"{self.num_train_episodes} episodes @ "
             tc += f"{self.num_train_steps} steps"
-        elif self.session_type.name == "EVAL":
+        elif self.session_type is SessionType.EVAL:
             tc += f"{self.num_eval_episodes} episodes @ "
             tc += f"{self.num_eval_steps} steps"
         else:

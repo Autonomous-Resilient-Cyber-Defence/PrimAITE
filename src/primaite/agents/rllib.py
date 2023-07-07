@@ -85,8 +85,12 @@ class RLlibAgent(AgentSessionABC):
             metadata_dict = json.load(file)
 
         metadata_dict["end_datetime"] = datetime.now().isoformat()
-        metadata_dict["total_episodes"] = self._current_result["episodes_total"]
-        metadata_dict["total_time_steps"] = self._current_result["timesteps_total"]
+        if not self.is_eval:
+            metadata_dict["learning"]["total_episodes"] = self._current_result["episodes_total"]  # noqa
+            metadata_dict["learning"]["total_time_steps"] = self._current_result["timesteps_total"]  # noqa
+        else:
+            metadata_dict["evaluation"]["total_episodes"] = self._current_result["episodes_total"]  # noqa
+            metadata_dict["evaluation"]["total_time_steps"] = self._current_result["timesteps_total"]  # noqa
 
         filepath = self.session_path / "session_metadata.json"
         _LOGGER.debug(f"Updating Session Metadata file: {filepath}")
@@ -149,7 +153,6 @@ class RLlibAgent(AgentSessionABC):
         self._agent.stop()
 
         super().learn()
-
 
     def evaluate(
         self,

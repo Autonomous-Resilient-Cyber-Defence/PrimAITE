@@ -68,7 +68,7 @@ num_train_episodes: 10
 num_train_steps: 256
 
 # Number of episodes for evaluation to run per session
-num_eval_episodes: 10
+num_eval_episodes: 1
 
 # Number of time_steps for evaluation per episode
 num_eval_steps: 256
