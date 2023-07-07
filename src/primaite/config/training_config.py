@@ -104,64 +104,64 @@ class TrainingConfig:
 
     # Reward values
     # Generic
-    all_ok: int = 0
+    all_ok: float = 0
 
     # Node Hardware State
-    off_should_be_on: int = -10
-    off_should_be_resetting: int = -5
-    on_should_be_off: int = -2
-    on_should_be_resetting: int = -5
-    resetting_should_be_on: int = -5
-    resetting_should_be_off: int = -2
-    resetting: int = -3
+    off_should_be_on: float = -0.001
+    off_should_be_resetting: float = -0.0005
+    on_should_be_off: float = -0.0002
+    on_should_be_resetting: float = -0.0005
+    resetting_should_be_on: float = -0.0005
+    resetting_should_be_off: float = -0.0002
+    resetting: float = -0.0003
 
     # Node Software or Service State
-    good_should_be_patching: int = 2
-    good_should_be_compromised: int = 5
-    good_should_be_overwhelmed: int = 5
-    patching_should_be_good: int = -5
-    patching_should_be_compromised: int = 2
-    patching_should_be_overwhelmed: int = 2
-    patching: int = -3
-    compromised_should_be_good: int = -20
-    compromised_should_be_patching: int = -20
-    compromised_should_be_overwhelmed: int = -20
-    compromised: int = -20
-    overwhelmed_should_be_good: int = -20
-    overwhelmed_should_be_patching: int = -20
-    overwhelmed_should_be_compromised: int = -20
-    overwhelmed: int = -20
+    good_should_be_patching: float = 0.0002
+    good_should_be_compromised: float = 0.0005
+    good_should_be_overwhelmed: float = 0.0005
+    patching_should_be_good: float = -0.0005
+    patching_should_be_compromised: float = 0.0002
+    patching_should_be_overwhelmed: float = 0.0002
+    patching: float = -0.0003
+    compromised_should_be_good: float = -0.002
+    compromised_should_be_patching: float = -0.002
+    compromised_should_be_overwhelmed: float = -0.002
+    compromised: float = -0.002
+    overwhelmed_should_be_good: float = -0.002
+    overwhelmed_should_be_patching: float = -0.002
+    overwhelmed_should_be_compromised: float = -0.002
+    overwhelmed: float = -0.002
 
     # Node File System State
-    good_should_be_repairing: int = 2
-    good_should_be_restoring: int = 2
-    good_should_be_corrupt: int = 5
-    good_should_be_destroyed: int = 10
-    repairing_should_be_good: int = -5
-    repairing_should_be_restoring: int = 2
-    repairing_should_be_corrupt: int = 2
-    repairing_should_be_destroyed: int = 0
-    repairing: int = -3
-    restoring_should_be_good: int = -10
-    restoring_should_be_repairing: int = -2
-    restoring_should_be_corrupt: int = 1
-    restoring_should_be_destroyed: int = 2
-    restoring: int = -6
-    corrupt_should_be_good: int = -10
-    corrupt_should_be_repairing: int = -10
-    corrupt_should_be_restoring: int = -10
-    corrupt_should_be_destroyed: int = 2
-    corrupt: int = -10
-    destroyed_should_be_good: int = -20
-    destroyed_should_be_repairing: int = -20
-    destroyed_should_be_restoring: int = -20
-    destroyed_should_be_corrupt: int = -20
-    destroyed: int = -20
-    scanning: int = -2
+    good_should_be_repairing: float = 0.0002
+    good_should_be_restoring: float = 0.0002
+    good_should_be_corrupt: float = 0.0005
+    good_should_be_destroyed: float = 0.001
+    repairing_should_be_good: float = -0.0005
+    repairing_should_be_restoring: float = 0.0002
+    repairing_should_be_corrupt: float = 0.0002
+    repairing_should_be_destroyed: float = 0.0000
+    repairing: float = -0.0003
+    restoring_should_be_good: float = -0.001
+    restoring_should_be_repairing: float = -0.0002
+    restoring_should_be_corrupt: float = 0.0001
+    restoring_should_be_destroyed: float = 0.0002
+    restoring: float = -0.0006
+    corrupt_should_be_good: float = -0.001
+    corrupt_should_be_repairing: float = -0.001
+    corrupt_should_be_restoring: float = -0.001
+    corrupt_should_be_destroyed: float = 0.0002
+    corrupt: float = -0.001
+    destroyed_should_be_good: float = -0.002
+    destroyed_should_be_repairing: float = -0.002
+    destroyed_should_be_restoring: float = -0.002
+    destroyed_should_be_corrupt: float = -0.002
+    destroyed: float = -0.002
+    scanning: float = -0.0002
 
     # IER status
-    red_ier_running: int = -5
-    green_ier_blocked: int = -10
+    red_ier_running: float = -0.0005
+    green_ier_blocked: float = -0.001
 
     # Patching / Reset durations
     os_patching_duration: int = 5
@@ -187,6 +187,12 @@ class TrainingConfig:
 
     file_system_scanning_limit: int = 5
     "The time taken to scan the file system"
+
+    deterministic: bool = False
+    "If true, the training will be deterministic"
+
+    seed: Optional[int] = None
+    "The random number generator seed to be used while training the agent"
 
     @classmethod
     def from_dict(cls, config_dict: Dict[str, Union[str, int, bool]]) -> TrainingConfig:
