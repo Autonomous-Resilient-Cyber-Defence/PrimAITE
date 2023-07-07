@@ -12,7 +12,8 @@ _LOGGER = getLogger(__name__)
 
 
 def run(overwrite_existing: bool = True):
-    """Resets the demo jupyter notebooks in the users app notebooks directory.
+    """
+    Resets the demo jupyter notebooks in the users app notebooks directory.
 
     :param overwrite_existing: A bool to toggle replacing existing edited notebooks on or off.
     """

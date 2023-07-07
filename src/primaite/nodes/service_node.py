@@ -53,14 +53,16 @@ class ServiceNode(ActiveNode):
         self.services: Dict[str, Service] = {}
 
     def add_service(self, service: Service):
-        """Adds a service to the node.
+        """
+        Adds a service to the node.
 
         :param service: The service to add
         """
         self.services[service.name] = service
 
     def has_service(self, protocol_name: str) -> bool:
-        """Indicates whether a service is on a node.
+        """
+        Indicates whether a service is on a node.
 
         :param protocol_name: The service (protocol)e.
         :return: True if service (protocol) is on the node, otherwise False.
@@ -71,7 +73,8 @@ class ServiceNode(ActiveNode):
         return False
 
     def service_running(self, protocol_name: str) -> bool:
-        """Indicates whether a service is in a running state on the node.
+        """
+        Indicates whether a service is in a running state on the node.
 
         :param protocol_name: The service (protocol)
         :return: True if service (protocol) is in a running state on the node, otherwise False.
@@ -85,7 +88,8 @@ class ServiceNode(ActiveNode):
         return False
 
     def service_is_overwhelmed(self, protocol_name: str) -> bool:
-        """Indicates whether a service is in an overwhelmed state on the node.
+        """
+        Indicates whether a service is in an overwhelmed state on the node.
 
         :param protocol_name: The service (protocol)
         :return: True if service (protocol) is in an overwhelmed state on the node, otherwise False.
@@ -99,7 +103,8 @@ class ServiceNode(ActiveNode):
         return False
 
     def set_service_state(self, protocol_name: str, software_state: SoftwareState):
-        """Sets the software_state of a service (protocol) on the node.
+        """
+        Sets the software_state of a service (protocol) on the node.
 
         :param protocol_name: The service (protocol).
         :param software_state: The software_state.
@@ -127,7 +132,8 @@ class ServiceNode(ActiveNode):
             )
 
     def set_service_state_if_not_compromised(self, protocol_name: str, software_state: SoftwareState):
-        """Sets the software_state of a service (protocol) on the node.
+        """
+        Sets the software_state of a service (protocol) on the node.
 
         Done if the software_state is not "compromised".
 
@@ -153,7 +159,8 @@ class ServiceNode(ActiveNode):
             )
 
     def get_service_state(self, protocol_name):
-        """Gets the state of a service.
+        """
+        Gets the state of a service.
 
         :return: The software_state of the service.
         """

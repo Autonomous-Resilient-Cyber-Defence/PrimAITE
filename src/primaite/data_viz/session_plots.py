@@ -22,7 +22,8 @@ def plot_av_reward_per_episode(
     title: Optional[str] = None,
     subtitle: Optional[str] = None,
 ) -> Figure:
-    """Plot the average reward per episode from a csv session output.
+    """
+    Plot the average reward per episode from a csv session output.
 
     :param av_reward_per_episode_csv: The average reward per episode csv
         file path.

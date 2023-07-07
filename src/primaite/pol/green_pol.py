@@ -25,7 +25,8 @@ def apply_iers(
     acl: AccessControlList,
     step: int,
 ):
-    """Applies IERs to the links (link pattern of life).
+    """
+    Applies IERs to the links (link pattern of life).
 
     Args:
         network: The network modelled in the environment
@@ -217,7 +218,8 @@ def apply_node_pol(
     node_pol: Dict[any, Union[NodeStateInstructionGreen, NodeStateInstructionRed]],
     step: int,
 ):
-    """Applies node pattern of life.
+    """
+    Applies node pattern of life.
 
     Args:
         nodes: The nodes within the environment

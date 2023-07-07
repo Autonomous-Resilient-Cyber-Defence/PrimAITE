@@ -125,7 +125,8 @@ class PrimaiteSession:
         self,
         **kwargs,
     ):
-        """Train the agent.
+        """
+        Train the agent.
 
         :param kwargs: Any agent-framework specific key word args.
         """
@@ -136,7 +137,8 @@ class PrimaiteSession:
         self,
         **kwargs,
     ):
-        """Evaluate the agent.
+        """
+        Evaluate the agent.
 
         :param kwargs: Any agent-framework specific key word args.
         """

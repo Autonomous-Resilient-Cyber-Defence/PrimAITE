@@ -11,7 +11,8 @@ _LOGGER = getLogger(__name__)
 
 
 def start_jupyter_session():
-    """Starts a new Jupyter notebook session in the app notebooks directory.
+    """
+    Starts a new Jupyter notebook session in the app notebooks directory.
 
     Currently only works on Windows OS.
 

@@ -66,7 +66,8 @@ Users PrimAITE Sessions are stored at: ``~/primaite/sessions``.
 
 # region Setup Logging
 class _LevelFormatter(Formatter):
-    """A custom level-specific formatter.
+    """
+    A custom level-specific formatter.
 
     Credit to: https://stackoverflow.com/a/68154386
     """
@@ -134,7 +135,8 @@ _LOGGER.addHandler(_FILE_HANDLER)
 
 
 def getLogger(name: str) -> Logger:  # noqa
-    """Get a PrimAITE logger.
+    """
+    Get a PrimAITE logger.
 
     :param name: The logger name. Use ``__name__``.
     :return: An instance of :py:class:`logging.Logger` with the PrimAITE

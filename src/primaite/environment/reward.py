@@ -21,7 +21,8 @@ def calculate_reward_function(
     step_count,
     config_values,
 ):
-    """Compares the states of the initial and final nodes/links to get a reward.
+    """
+    Compares the states of the initial and final nodes/links to get a reward.
 
     Args:
         initial_nodes: The nodes before red and blue agents take effect
@@ -94,7 +95,8 @@ def calculate_reward_function(
 
 
 def score_node_operating_state(final_node, initial_node, reference_node, config_values):
-    """Calculates score relating to the hardware state of a node.
+    """
+    Calculates score relating to the hardware state of a node.
 
     Args:
         final_node: The node after red and blue agents take effect
@@ -142,7 +144,8 @@ def score_node_operating_state(final_node, initial_node, reference_node, config_
 
 
 def score_node_os_state(final_node, initial_node, reference_node, config_values):
-    """Calculates score relating to the Software State of a node.
+    """
+    Calculates score relating to the Software State of a node.
 
     Args:
         final_node: The node after red and blue agents take effect
@@ -192,7 +195,8 @@ def score_node_os_state(final_node, initial_node, reference_node, config_values)
 
 
 def score_node_service_state(final_node, initial_node, reference_node, config_values):
-    """Calculates score relating to the service state(s) of a node.
+    """
+    Calculates score relating to the service state(s) of a node.
 
     Args:
         final_node: The node after red and blue agents take effect
@@ -263,7 +267,8 @@ def score_node_service_state(final_node, initial_node, reference_node, config_va
 
 
 def score_node_file_system(final_node, initial_node, reference_node, config_values):
-    """Calculates score relating to the file system state of a node.
+    """
+    Calculates score relating to the file system state of a node.
 
     Args:
         final_node: The node after red and blue agents take effect

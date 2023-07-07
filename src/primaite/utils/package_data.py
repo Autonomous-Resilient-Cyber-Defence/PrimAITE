@@ -10,7 +10,8 @@ _LOGGER = getLogger(__name__)
 
 
 def get_file_path(path: str) -> Path:
-    """Get PrimAITE package data.
+    """
+    Get PrimAITE package data.
 
     :Example:
 

@@ -180,7 +180,8 @@ class TrainingConfig:
 
     @classmethod
     def from_dict(cls, config_dict: Dict[str, Union[str, int, bool]]) -> TrainingConfig:
-        """Create an instance of TrainingConfig from a dict.
+        """
+        Create an instance of TrainingConfig from a dict.
 
         :param config_dict: The training config dict.
         :return: The instance of TrainingConfig.
