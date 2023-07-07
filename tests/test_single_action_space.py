@@ -12,8 +12,8 @@ def run_generic_set_actions(env: Primaite):
     # Reset the environment at the start of the episode
     # env.reset()
     training_config = env.training_config
-    for episode in range(0, training_config.num_episodes):
-        for step in range(0, training_config.num_steps):
+    for episode in range(0, training_config.num_train_episodes):
+        for step in range(0, training_config.num_train_steps):
             # Send the observation space to the agent to get an action
             # TEMP - random action for now
             # action = env.blue_agent_action(obs)

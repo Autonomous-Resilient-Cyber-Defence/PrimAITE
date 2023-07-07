@@ -53,11 +53,12 @@ class SB3Agent(AgentSessionABC):
             session_path=self.session_path,
             timestamp_str=self.timestamp_str,
         )
+
         self._agent = self._agent_class(
             PPOMlp,
             self._env,
             verbose=self.sb3_output_verbose_level,
-            n_steps=self._training_config.num_steps,
+            n_steps=self._training_config.num_eval_steps,
             tensorboard_log=str(self._tensorboard_log_path),
         )
 
@@ -82,8 +83,8 @@ class SB3Agent(AgentSessionABC):
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
-        time_steps = self._training_config.num_steps
-        episodes = self._training_config.num_episodes
+        time_steps = self._training_config.num_train_steps
+        episodes = self._training_config.num_train_episodes
         self.is_eval = False
         _LOGGER.info(f"Beginning learning for {episodes} episodes @" f" {time_steps} time steps...")
         for i in range(episodes):
@@ -104,8 +105,8 @@ class SB3Agent(AgentSessionABC):
         :param deterministic: Whether the evaluation is deterministic.
         :param kwargs: Any agent-specific key-word args to be passed.
         """
-        time_steps = self._training_config.num_steps
-        episodes = self._training_config.num_episodes
+        time_steps = self._training_config.num_eval_steps
+        episodes = self._training_config.num_eval_episodes
         self._env.set_as_eval()
         self.is_eval = True
         if deterministic:
