@@ -308,6 +308,14 @@ Rewards are calculated based on the difference between the current state and ref
 
     The number of steps to take when scanning the file system
 
+* **deterministic** [bool]
+
+   Set to true if the agent evaluation should be deterministic. Default is ``False``
+
+* **seed** [int]
+
+   Seed used in the randomisation in agent training. Default is ``None``
+
 The Lay Down Config
 *******************
 

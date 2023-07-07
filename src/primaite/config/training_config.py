@@ -178,6 +178,12 @@ class TrainingConfig:
     file_system_scanning_limit: int = 5
     "The time taken to scan the file system"
 
+    deterministic: bool = False
+    "If true, the training will be deterministic"
+
+    seed: Optional[int] = None
+    "The random number generator seed to be used while training the agent"
+
     @classmethod
     def from_dict(cls, config_dict: Dict[str, Union[str, int, bool]]) -> TrainingConfig:
         """
