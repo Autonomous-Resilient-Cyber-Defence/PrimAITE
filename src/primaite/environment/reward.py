@@ -20,7 +20,7 @@ def calculate_reward_function(
     red_iers,
     step_count,
     config_values,
-):
+) -> float:
     """
     Compares the states of the initial and final nodes/links to get a reward.
 
@@ -33,7 +33,7 @@ def calculate_reward_function(
         step_count: current step
         config_values: Config values
     """
-    reward_value = 0
+    reward_value: float = 0.0
 
     # For each node, compare hardware state, SoftwareState, service states
     for node_key, final_node in final_nodes.items():
@@ -94,7 +94,7 @@ def calculate_reward_function(
     return reward_value
 
 
-def score_node_operating_state(final_node, initial_node, reference_node, config_values):
+def score_node_operating_state(final_node, initial_node, reference_node, config_values) -> float:
     """
     Calculates score relating to the hardware state of a node.
 
@@ -104,7 +104,7 @@ def score_node_operating_state(final_node, initial_node, reference_node, config_
         reference_node: The node if there had been no red or blue effect
         config_values: Config values
     """
-    score = 0
+    score: float = 0.0
     final_node_operating_state = final_node.hardware_state
     reference_node_operating_state = reference_node.hardware_state
 
@@ -143,7 +143,7 @@ def score_node_operating_state(final_node, initial_node, reference_node, config_
     return score
 
 
-def score_node_os_state(final_node, initial_node, reference_node, config_values):
+def score_node_os_state(final_node, initial_node, reference_node, config_values) -> float:
     """
     Calculates score relating to the Software State of a node.
 
@@ -153,7 +153,7 @@ def score_node_os_state(final_node, initial_node, reference_node, config_values)
         reference_node: The node if there had been no red or blue effect
         config_values: Config values
     """
-    score = 0
+    score: float = 0.0
     final_node_os_state = final_node.software_state
     reference_node_os_state = reference_node.software_state
 
@@ -194,7 +194,7 @@ def score_node_os_state(final_node, initial_node, reference_node, config_values)
     return score
 
 
-def score_node_service_state(final_node, initial_node, reference_node, config_values):
+def score_node_service_state(final_node, initial_node, reference_node, config_values) -> float:
     """
     Calculates score relating to the service state(s) of a node.
 
@@ -204,7 +204,7 @@ def score_node_service_state(final_node, initial_node, reference_node, config_va
         reference_node: The node if there had been no red or blue effect
         config_values: Config values
     """
-    score = 0
+    score: float = 0.0
     final_node_services: Dict[str, Service] = final_node.services
     reference_node_services: Dict[str, Service] = reference_node.services
 
@@ -266,7 +266,7 @@ def score_node_service_state(final_node, initial_node, reference_node, config_va
     return score
 
 
-def score_node_file_system(final_node, initial_node, reference_node, config_values):
+def score_node_file_system(final_node, initial_node, reference_node, config_values) -> float:
     """
     Calculates score relating to the file system state of a node.
 
@@ -275,7 +275,7 @@ def score_node_file_system(final_node, initial_node, reference_node, config_valu
         initial_node: The node before red and blue agents take effect
         reference_node: The node if there had been no red or blue effect
     """
-    score = 0
+    score: float = 0.0
     final_node_file_system_state = final_node.file_system_state_actual
     reference_node_file_system_state = reference_node.file_system_state_actual
 

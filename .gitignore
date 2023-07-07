@@ -138,5 +138,9 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# IDE
 .idea/
 docs/source/primaite-dependencies.rst
+
+# outputs
+src/primaite/outputs/
