@@ -82,203 +82,203 @@ The environment config file consists of the following attributes:
 
 Rewards are calculated based on the difference between the current state and reference state (the 'should be' state) of the environment.
 
-* **Generic [all_ok]** [int]
+* **Generic [all_ok]** [float]
 
     The score to give when the current situation (for a given component) is no different from that expected in the baseline (i.e. as though no blue or red agent actions had been undertaken)
 
-* **Node Hardware State [off_should_be_on]** [int]
+* **Node Hardware State [off_should_be_on]** [float]
 
     The score to give when the node should be on, but is off
 
-* **Node Hardware State [off_should_be_resetting]** [int]
+* **Node Hardware State [off_should_be_resetting]** [float]
 
     The score to give when the node should be resetting, but is off
 
-* **Node Hardware State [on_should_be_off]** [int]
+* **Node Hardware State [on_should_be_off]** [float]
 
     The score to give when the node should be off, but is on
 
-* **Node Hardware State [on_should_be_resetting]** [int]
+* **Node Hardware State [on_should_be_resetting]** [float]
 
     The score to give when the node should be resetting, but is on
 
-* **Node Hardware State [resetting_should_be_on]** [int]
+* **Node Hardware State [resetting_should_be_on]** [float]
 
     The score to give when the node should be on, but is resetting
 
-* **Node Hardware State [resetting_should_be_off]** [int]
+* **Node Hardware State [resetting_should_be_off]** [float]
 
     The score to give when the node should be off, but is resetting
 
-* **Node Hardware State [resetting]** [int]
+* **Node Hardware State [resetting]** [float]
 
     The score to give when the node is resetting
 
-* **Node Operating System or Service State [good_should_be_patching]** [int]
+* **Node Operating System or Service State [good_should_be_patching]** [float]
 
     The score to give when the state should be patching, but is good
 
-* **Node Operating System or Service State [good_should_be_compromised]** [int]
+* **Node Operating System or Service State [good_should_be_compromised]** [float]
 
     The score to give when the state should be compromised, but is good
 
-* **Node Operating System or Service State [good_should_be_overwhelmed]** [int]
+* **Node Operating System or Service State [good_should_be_overwhelmed]** [float]
 
     The score to give when the state should be overwhelmed, but is good
 
-* **Node Operating System or Service State [patching_should_be_good]** [int]
+* **Node Operating System or Service State [patching_should_be_good]** [float]
 
     The score to give when the state should be good, but is patching
 
-* **Node Operating System or Service State [patching_should_be_compromised]** [int]
+* **Node Operating System or Service State [patching_should_be_compromised]** [float]
 
     The score to give when the state should be compromised, but is patching
 
-* **Node Operating System or Service State [patching_should_be_overwhelmed]** [int]
+* **Node Operating System or Service State [patching_should_be_overwhelmed]** [float]
 
     The score to give when the state should be overwhelmed, but is patching
 
-* **Node Operating System or Service State [patching]** [int]
+* **Node Operating System or Service State [patching]** [float]
 
     The score to give when the state is patching
 
-* **Node Operating System or Service State [compromised_should_be_good]** [int]
+* **Node Operating System or Service State [compromised_should_be_good]** [float]
 
     The score to give when the state should be good, but is compromised
 
-* **Node Operating System or Service State [compromised_should_be_patching]** [int]
+* **Node Operating System or Service State [compromised_should_be_patching]** [float]
 
     The score to give when the state should be patching, but is compromised
 
-* **Node Operating System or Service State [compromised_should_be_overwhelmed]** [int]
+* **Node Operating System or Service State [compromised_should_be_overwhelmed]** [float]
 
     The score to give when the state should be overwhelmed, but is compromised
 
-* **Node Operating System or Service State [compromised]** [int]
+* **Node Operating System or Service State [compromised]** [float]
 
     The score to give when the state is compromised
 
-* **Node Operating System or Service State [overwhelmed_should_be_good]** [int]
+* **Node Operating System or Service State [overwhelmed_should_be_good]** [float]
 
     The score to give when the state should be good, but is overwhelmed
 
-* **Node Operating System or Service State [overwhelmed_should_be_patching]** [int]
+* **Node Operating System or Service State [overwhelmed_should_be_patching]** [float]
 
     The score to give when the state should be patching, but is overwhelmed
 
-* **Node Operating System or Service State [overwhelmed_should_be_compromised]** [int]
+* **Node Operating System or Service State [overwhelmed_should_be_compromised]** [float]
 
     The score to give when the state should be compromised, but is overwhelmed
 
-* **Node Operating System or Service State [overwhelmed]** [int]
+* **Node Operating System or Service State [overwhelmed]** [float]
 
     The score to give when the state is overwhelmed
 
-* **Node File System State [good_should_be_repairing]** [int]
+* **Node File System State [good_should_be_repairing]** [float]
 
     The score to give when the state should be repairing, but is good
 
-* **Node File System State [good_should_be_restoring]** [int]
+* **Node File System State [good_should_be_restoring]** [float]
 
     The score to give when the state should be restoring, but is good
 
-* **Node File System State [good_should_be_corrupt]** [int]
+* **Node File System State [good_should_be_corrupt]** [float]
 
     The score to give when the state should be corrupt, but is good
 
-* **Node File System State [good_should_be_destroyed]** [int]
+* **Node File System State [good_should_be_destroyed]** [float]
 
     The score to give when the state should be destroyed, but is good
 
-* **Node File System State [repairing_should_be_good]** [int]
+* **Node File System State [repairing_should_be_good]** [float]
 
     The score to give when the state should be good, but is repairing
 
-* **Node File System State [repairing_should_be_restoring]** [int]
+* **Node File System State [repairing_should_be_restoring]** [float]
 
     The score to give when the state should be restoring, but is repairing
 
-* **Node File System State [repairing_should_be_corrupt]** [int]
+* **Node File System State [repairing_should_be_corrupt]** [float]
 
     The score to give when the state should be corrupt, but is repairing
 
-* **Node File System State [repairing_should_be_destroyed]** [int]
+* **Node File System State [repairing_should_be_destroyed]** [float]
 
     The score to give when the state should be destroyed, but is repairing
 
-* **Node File System State [repairing]** [int]
+* **Node File System State [repairing]** [float]
 
     The score to give when the state is repairing
 
-* **Node File System State [restoring_should_be_good]** [int]
+* **Node File System State [restoring_should_be_good]** [float]
 
     The score to give when the state should be good, but is restoring
 
-* **Node File System State [restoring_should_be_repairing]** [int]
+* **Node File System State [restoring_should_be_repairing]** [float]
 
     The score to give when the state should be repairing, but is restoring
 
-* **Node File System State [restoring_should_be_corrupt]** [int]
+* **Node File System State [restoring_should_be_corrupt]** [float]
 
     The score to give when the state should be corrupt, but is restoring
 
-* **Node File System State [restoring_should_be_destroyed]** [int]
+* **Node File System State [restoring_should_be_destroyed]** [float]
 
     The score to give when the state should be destroyed, but is restoring
 
-* **Node File System State [restoring]** [int]
+* **Node File System State [restoring]** [float]
 
     The score to give when the state is restoring
 
-* **Node File System State [corrupt_should_be_good]** [int]
+* **Node File System State [corrupt_should_be_good]** [float]
 
     The score to give when the state should be good, but is corrupt
 
-* **Node File System State [corrupt_should_be_repairing]** [int]
+* **Node File System State [corrupt_should_be_repairing]** [float]
 
     The score to give when the state should be repairing, but is corrupt
 
-* **Node File System State [corrupt_should_be_restoring]** [int]
+* **Node File System State [corrupt_should_be_restoring]** [float]
 
     The score to give when the state should be restoring, but is corrupt
 
-* **Node File System State [corrupt_should_be_destroyed]** [int]
+* **Node File System State [corrupt_should_be_destroyed]** [float]
 
     The score to give when the state should be destroyed, but is corrupt
 
-* **Node File System State [corrupt]** [int]
+* **Node File System State [corrupt]** [float]
 
     The score to give when the state is corrupt
 
-* **Node File System State [destroyed_should_be_good]** [int]
+* **Node File System State [destroyed_should_be_good]** [float]
 
     The score to give when the state should be good, but is destroyed
 
-* **Node File System State [destroyed_should_be_repairing]** [int]
+* **Node File System State [destroyed_should_be_repairing]** [float]
 
     The score to give when the state should be repairing, but is destroyed
 
-* **Node File System State [destroyed_should_be_restoring]** [int]
+* **Node File System State [destroyed_should_be_restoring]** [float]
 
     The score to give when the state should be restoring, but is destroyed
 
-* **Node File System State [destroyed_should_be_corrupt]** [int]
+* **Node File System State [destroyed_should_be_corrupt]** [float]
 
     The score to give when the state should be corrupt, but is destroyed
 
-* **Node File System State [destroyed]** [int]
+* **Node File System State [destroyed]** [float]
 
     The score to give when the state is destroyed
 
-* **Node File System State [scanning]** [int]
+* **Node File System State [scanning]** [float]
 
     The score to give when the state is scanning
 
-* **IER Status [red_ier_running]** [int]
+* **IER Status [red_ier_running]** [float]
 
     The score to give when a red agent IER is permitted to run
 
-* **IER Status [green_ier_blocked]** [int]
+* **IER Status [green_ier_blocked]** [float]
 
     The score to give when a green agent IER is prevented from running
 
@@ -307,6 +307,14 @@ Rewards are calculated based on the difference between the current state and ref
 * **file_system_scanning_limit** [int]
 
     The number of steps to take when scanning the file system
+
+* **deterministic** [bool]
+
+   Set to true if the agent evaluation should be deterministic. Default is ``False``
+
+* **seed** [int]
+
+   Seed used in the randomisation in agent training. Default is ``None``
 
 The Lay Down Config
 *******************
