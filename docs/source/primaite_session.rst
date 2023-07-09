@@ -78,9 +78,9 @@ PrimAITE automatically creates two sets of results from each session:
     * Timestamp
     * Episode number
     * Step number
-    * Initial observation space (what the blue agent observed when it decided its action)
     * Reward value
     * Action taken (as presented by the blue agent on this step). Individual elements of the action space are presented in the format AS_X
+    * Initial observation space (what the blue agent observed when it decided its action)
 
 **Diagrams**
 
