@@ -10,11 +10,11 @@ PrimAITE provides the following features:
 
 * A flexible network / system laydown based on the Python networkx framework
 * Nodes and links (edges) host Python classes in order to present attributes and methods (and hence, a more representative model of a platform / system)
-* A ‘green agent’ Information Exchange Requirement (IER) function allows the representation of traffic (protocols and loading) on any / all links. Application of IERs is based on the status of node operating systems and services
-* A ‘green agent’ node Pattern-of-Life (PoL) function allows the representation of core behaviours on nodes (e.g. Hardware state, Software State, Service state, File System state)
+* A 'green agent' Information Exchange Requirement (IER) function allows the representation of traffic (protocols and loading) on any / all links. Application of IERs is based on the status of node operating systems and services
+* A 'green agent' node Pattern-of-Life (PoL) function allows the representation of core behaviours on nodes (e.g. changing the Hardware state, Software State, Service state, or File System state)
 * An Access Control List (ACL) function, mimicking the behaviour of a network firewall, is applied across the model, following standard ACL rule format (e.g. DENY/ALLOW, source IP, destination IP, protocol and port). Application of IERs adheres to any ACL restrictions
 * Presents an OpenAI Gym interface to the environment, allowing integration with any OpenAI Gym compliant defensive agents
-* Red agent activity based on ‘red’ IERs and ‘red’ PoL
+* Red agent activity based on 'red' IERs and 'red' PoL
 * Defined reward function for use with RL agents (based on nodes status, and green / red IER success)
 * Fully configurable (network / system laydown, IERs, node PoL, ACL, episode step period, episode max steps) and repeatable to suit the training requirements of agents. Therefore, not bound to a representation of any particular platform, system or technology
 * Full capture of discrete metrics relating to agent training (full system state, agent actions taken, average reward)
@@ -201,7 +201,7 @@ An example observation space is provided below:
    * -
      - ID
      - Hardware State
-     - SoftwareState
+     - Software State
      - File System State
      - Service / Protocol A
      - Service / Protocol B
@@ -250,48 +250,35 @@ An example observation space is provided below:
 
 For the nodes, the following values are represented:
 
- * ID
- * Hardware State:
+.. code-block::
 
-    * 1 = ON
-    * 2 = OFF
-    * 3 = RESETTING
-    * 4 = SHUTTING_DOWN
-    * 5 = BOOTING
-
- * SoftwareState:
-
-    * 1 = GOOD
-    * 2 = PATCHING
-    * 3 = COMPROMISED
-
- * Service State:
-
-    * 1 = GOOD
-    * 2 = PATCHING
-    * 3 = COMPROMISED
-    * 4 = OVERWHELMED
-
- * File System State:
-
-    * 1 = GOOD
-    * 2 = CORRUPT
-    * 3 = DESTROYED
-    * 4 = REPAIRING
-    * 5 = RESTORING
+  [
+    ID
+    Hardware State            (1=ON,   2=OFF,  3=RESETTING,  4=SHUTTING_DOWN, 5=BOOTING)
+    Operating System State    (0=none, 1=GOOD, 2=PATCHING,   3=COMPROMISED)
+    File System State         (0=none, 1=GOOD, 2=CORRUPT,    3=DESTROYED,  4=REPAIRING, 5=RESTORING)
+    Service1/Protocol1 state  (0=none, 1=GOOD, 2=PATCHING,   3=COMPROMISED)
+    Service2/Protocol2 state  (0=none, 1=GOOD, 2=PATCHING,   3=COMPROMISED)
+  ]
 
 (Note that each service available in the network is provided as a column, although not all nodes may utilise all services)
 
 For the links, the following statuses are represented:
 
- * ID
- * Hardware State = N/A
- * SoftwareState = N/A
- * Protocol = loading in bits/s
+.. code-block::
+
+  [
+    ID
+    Hardware State            (0=not applicable)
+    Operating System State    (0=not applicable)
+    File System State         (0=not applicable)
+    Service1/Protocol1 state  (Traffic load from this protocol on this link)
+    Service2/Protocol2 state  (Traffic load from this protocol on this link)
+  ]
 
 NodeStatus component
 ----------------------
-This is a MultiDiscrete observation space that can be though of as a one-dimensional vector of discrete states, represented by integers.
+This is a MultiDiscrete observation space that can be though of as a one-dimensional vector of discrete states.
 The example above would have the following structure:
 
 .. code-block::
@@ -307,9 +294,9 @@ Each ``node_info`` contains the following:
 .. code-block::
 
   [
-    hardware_state    (0=none, 1=ON, 2=OFF, 3=RESETTING, 4=SHUTTING_DOWN, 5=BOOTING)
+    hardware_state    (0=none, 1=ON,   2=OFF,      3=RESETTING, 4=SHUTTING_DOWN, 5=BOOTING)
     software_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)
-    file_system_state (0=none, 1=GOOD, 2=CORRUPT, 3=DESTROYED, 4=REPAIRING, 5=RESTORING)
+    file_system_state (0=none, 1=GOOD, 2=CORRUPT,  3=DESTROYED, 4=REPAIRING, 5=RESTORING)
     service1_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)
     service2_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)
   ]
@@ -320,10 +307,18 @@ In a network with three nodes and two services, the full observation space would
 
   gym.spaces.MultiDiscrete([4,5,6,4,4,4,5,6,4,4,4,5,6,4,4])
 
+.. note::
+  NodeStatus observation component provides information only about nodes. Links are not considered.
+
 LinkTrafficLevels
 -----------------
 This component is a MultiDiscrete space showing the traffic flow levels on the links in the network, after applying a threshold to convert it from a continuous to a discrete value.
-The number of bins can be customised with 5 being the default. It has the following strucutre:
+There are two configurable parameters:
+* ``quantisation_levels`` determines how many discrete bins to use for converting the continuous traffic value to discrete (default is 5).
+* ``combine_service_traffic`` determines whether to separately output traffic use for each network protocol or whether to combine them into an overall value for the link. (default is ``True``)
+
+For example, with default parameters and a network with three links, the structure of this component would be:
+
 .. code-block::
 
   [
@@ -337,16 +332,13 @@ Each ``link_status`` is a number from 0-4 representing the network load in relat
 .. code-block::
 
   0 = No traffic (0%)
-  1 = low traffic (<33%)
-  2 = medium traffic (<66%)
-  3 = high traffic (<100%)
+  1 = low traffic (1%-33%)
+  2 = medium traffic (33%-66%)
+  3 = high traffic (66%-99%)
   4 = max traffic/ overwhelmed (100%)
 
-If the network has three links, the full observation space would have 3 elements. It can be written with ``gym`` notation to indicate the number of discrete options for each of the elements of the observation space. For example:
+Using ``gym`` notation, the shape of the obs space is: ``gym.spaces.MultiDiscrete([5,5,5])``.
 
-.. code-block::
-
-  gym.spaces.MultiDiscrete([5,5,5])
 
 Action Spaces
 **************
