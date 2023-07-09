@@ -1,3 +1,5 @@
+import numpy as np
+
 from primaite.agents.agent import HardCodedAgentSessionABC
 from primaite.agents.utils import get_new_action, transform_action_node_enum, transform_change_obs_readable
 
@@ -5,12 +7,14 @@ from primaite.agents.utils import get_new_action, transform_action_node_enum, tr
 class HardCodedNodeAgent(HardCodedAgentSessionABC):
     """An Agent Session class that implements a deterministic Node agent."""
 
-    def _calculate_action(self, obs):
+    def _calculate_action(self, obs: np.ndarray) -> int:
         """
         Calculate a good node-based action for the blue agent to take.
 
-        TODO: Add params and return in docstring.
-        TODO: Typehint params and return.
+        :param obs: current observation from the gym environment
+        :type obs: np.ndarray
+        :return: Optimal action to take in the environment (chosen from the discrete action space)
+        :rtype: int
         """
         action_dict = self._env.action_dict
         r_obs = transform_change_obs_readable(obs)

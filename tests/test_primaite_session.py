@@ -33,6 +33,9 @@ def test_primaite_session(temp_primaite_session):
         # Check that the network png file exists
         assert (session_path / f"network_{session.timestamp_str}.png").exists()
 
+        # Check that the saved agent exists
+        assert session._agent_session._saved_agent_path.exists()
+
         # Check that both the transactions and av reward csv files exist
         for file in session.learning_path.iterdir():
             if file.suffix == ".csv":

@@ -33,7 +33,7 @@ random_red_agent: False
 
 # The (integer) seed to be used in random number generation
 # Default is None (null)
-seed: null
+seed: None
 
 # Set whether the agent will be deterministic instead of stochastic
 # Options are:
@@ -67,7 +67,7 @@ num_steps: 256
 
 # Sets how often the agent will save a checkpoint (every n time episodes).
 # Set to 0 if no checkpoints are required. Default is 10
-checkpoint_every_n_episodes: 10
+checkpoint_every_n_episodes: 0
 
 # Time delay (milliseconds) between steps for CUSTOM agents.
 time_delay: 5
@@ -91,7 +91,7 @@ sb3_output_verbose_level: NONE
 
 # Reward values
 # Generic
-all_ok: 0
+all_ok: 0.0000
 # Node Hardware State
 off_should_be_on: -0.001
 off_should_be_resetting: -0.0005
