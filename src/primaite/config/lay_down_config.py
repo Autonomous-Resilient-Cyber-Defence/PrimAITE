@@ -26,8 +26,7 @@ def load(file_path: Union[str, Path], legacy_file: bool = False) -> Dict:
     Read in a lay down config yaml file.
 
     :param file_path: The config file path.
-    :param legacy_file: True if the config file is legacy format, otherwise
-        False.
+    :param legacy_file: True if the config file is legacy format, otherwise False.
     :return: The lay down config as a dict.
     :raises ValueError: If the file_path does not exist.
     """
