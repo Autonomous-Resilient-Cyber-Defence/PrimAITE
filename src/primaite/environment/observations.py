@@ -25,6 +25,12 @@ class AbstractObservationComponent(ABC):
 
     @abstractmethod
     def __init__(self, env: "Primaite"):
+        """
+        Initialise observation component.
+
+        :param env: Primaite training environment.
+        :type env: Primaite
+        """
         _LOGGER.info(f"Initialising {self} observation component")
         self.env: "Primaite" = env
         self.space: spaces.Space
@@ -44,11 +50,13 @@ class AbstractObservationComponent(ABC):
 
 
 class NodeLinkTable(AbstractObservationComponent):
-    """Table with nodes and links as rows and hardware/software status as cols.
+    """
+    Table with nodes and links as rows and hardware/software status as cols.
 
     This will create the observation space formatted as a table of integers.
     There is one row per node, followed by one row per link.
     The number of columns is 4 plus one per service. They are:
+
         * node/link ID
         * node hardware status / 0 for links
         * node operating system status (if active/service) / 0 for links
@@ -67,6 +75,12 @@ class NodeLinkTable(AbstractObservationComponent):
     _DATA_TYPE: type = np.int64
 
     def __init__(self, env: "Primaite"):
+        """
+        Initialise a NodeLinkTable observation space component.
+
+        :param env: Training environment.
+        :type env: Primaite
+        """
         super().__init__(env)
 
         # 1. Define the shape of your observation space component
@@ -88,7 +102,8 @@ class NodeLinkTable(AbstractObservationComponent):
         self.structure = self.generate_structure()
 
     def update(self):
-        """Update the observation based on current environment state.
+        """
+        Update the observation based on current environment state.
 
         The structure of the observation space is described in :class:`.NodeLinkTable`
         """
@@ -169,12 +184,14 @@ class NodeLinkTable(AbstractObservationComponent):
 
 
 class NodeStatuses(AbstractObservationComponent):
-    """Flat list of nodes' hardware, OS, file system, and service states.
+    """
+    Flat list of nodes' hardware, OS, file system, and service states.
 
     The MultiDiscrete observation space can be though of as a one-dimensional vector of discrete states, represented by
     integers.
     Each node has 3 elements plus 1 per service. It will have the following structure:
     .. code-block::
+
         [
             node1 hardware state,
             node1 OS state,
@@ -190,14 +207,17 @@ class NodeStatuses(AbstractObservationComponent):
             node2 serviceN state (one for each service),
             ...
         ]
-
-    :param env: The environment that forms the basis of the observations
-    :type env: Primaite
     """
 
     _DATA_TYPE: type = np.int64
 
     def __init__(self, env: "Primaite"):
+        """
+        Initialise a NodeStatuses observation component.
+
+        :param env: Training environment.
+        :type env: Primaite
+        """
         super().__init__(env)
 
         # 1. Define the shape of your observation space component
@@ -218,7 +238,8 @@ class NodeStatuses(AbstractObservationComponent):
         self.structure = self.generate_structure()
 
     def update(self):
-        """Update the observation based on current environment state.
+        """
+        Update the observation based on current environment state.
 
         The structure of the observation space is described in :class:`.NodeStatuses`
         """
@@ -271,28 +292,22 @@ class NodeStatuses(AbstractObservationComponent):
 
 
 class LinkTrafficLevels(AbstractObservationComponent):
-    """Flat list of traffic levels encoded into banded categories.
+    """
+    Flat list of traffic levels encoded into banded categories.
 
     For each link, total traffic or traffic per service is encoded into a categorical value.
     For example, if ``quantisation_levels=5``, the traffic levels represent these values:
-        0 = No traffic (0% of bandwidth)
-        1 = No traffic (0%-33% of bandwidth)
-        2 = No traffic (33%-66% of bandwidth)
-        3 = No traffic (66%-100% of bandwidth)
-        4 = No traffic (100% of bandwidth)
+
+        * 0 = No traffic (0% of bandwidth)
+        * 1 = No traffic (0%-33% of bandwidth)
+        * 2 = No traffic (33%-66% of bandwidth)
+        * 3 = No traffic (66%-100% of bandwidth)
+        * 4 = No traffic (100% of bandwidth)
 
     .. note::
         The lowest category always corresponds to no traffic and the highest category to the link being at max capacity.
         Any amount of traffic between 0% and 100% (exclusive) is divided evenly into the remaining categories.
 
-    :param env: The environment that forms the basis of the observations
-    :type env: Primaite
-    :param combine_service_traffic: Whether to consider total traffic on the link, or each protocol individually,
-    defaults to False
-    :type combine_service_traffic: bool, optional
-    :param quantisation_levels: How many bands to consider when converting the traffic amount to a categorical value ,
-    defaults to 5
-    :type quantisation_levels: int, optional
     """
 
     _DATA_TYPE: type = np.int64
@@ -303,6 +318,18 @@ class LinkTrafficLevels(AbstractObservationComponent):
         combine_service_traffic: bool = False,
         quantisation_levels: int = 5,
     ):
+        """
+        Initialise a LinkTrafficLevels observation component.
+
+        :param env: The environment that forms the basis of the observations
+        :type env: Primaite
+        :param combine_service_traffic: Whether to consider total traffic on the link, or each protocol individually,
+            defaults to False
+        :type combine_service_traffic: bool, optional
+        :param quantisation_levels: How many bands to consider when converting the traffic amount to a categorical
+            value, defaults to 5
+        :type quantisation_levels: int, optional
+        """
         if quantisation_levels < 3:
             _msg = (
                 f"quantisation_levels must be 3 or more because the lowest and highest levels are "
@@ -333,7 +360,8 @@ class LinkTrafficLevels(AbstractObservationComponent):
         self.structure = self.generate_structure()
 
     def update(self):
-        """Update the observation based on current environment state.
+        """
+        Update the observation based on current environment state.
 
         The structure of the observation space is described in :class:`.LinkTrafficLevels`
         """
@@ -374,10 +402,11 @@ class LinkTrafficLevels(AbstractObservationComponent):
 
 
 class ObservationsHandler:
-    """Component-based observation space handler.
+    """
+    Component-based observation space handler.
 
-    This allows users to configure observation spaces by mixing and matching components.
-    Each component can also define further parameters to make them more flexible.
+    This allows users to configure observation spaces by mixing and matching components. Each component can also define
+    further parameters to make them more flexible.
     """
 
     _REGISTRY: Final[Dict[str, type]] = {
@@ -387,6 +416,7 @@ class ObservationsHandler:
     }
 
     def __init__(self):
+        """Initialise the observation handler."""
         self.registered_obs_components: List[AbstractObservationComponent] = []
 
         # internal the observation space (unflattened version of space if flatten=True)
@@ -414,7 +444,8 @@ class ObservationsHandler:
         self._flat_observation = spaces.flatten(self._space, self._observation)
 
     def register(self, obs_component: AbstractObservationComponent):
-        """Add a component for this handler to track.
+        """
+        Add a component for this handler to track.
 
         :param obs_component: The component to add.
         :type obs_component: AbstractObservationComponent
@@ -423,10 +454,11 @@ class ObservationsHandler:
         self.update_space()
 
     def deregister(self, obs_component: AbstractObservationComponent):
-        """Remove a component from this handler.
+        """
+        Remove a component from this handler.
 
         :param obs_component: Which component to remove. It must exist within this object's
-        ``registered_obs_components`` attribute.
+            ``registered_obs_components`` attribute.
         :type obs_component: AbstractObservationComponent
         """
         self.registered_obs_components.remove(obs_component)
@@ -466,11 +498,13 @@ class ObservationsHandler:
 
     @classmethod
     def from_config(cls, env: "Primaite", obs_space_config: dict):
-        """Parse a config dictinary, return a new observation handler populated with new observation component objects.
+        """
+        Parse a config dictinary, return a new observation handler populated with new observation component objects.
 
         The expected format for the config dictionary is:
 
-        ..code-block::python
+        .. code-block:: python
+
             config = {
                 components: [
                     {
@@ -510,7 +544,8 @@ class ObservationsHandler:
         return handler
 
     def describe_structure(self):
-        """Create a list of names for the features of the obs space.
+        """
+        Create a list of names for the features of the obs space.
 
         The order of labels follows the flattened version of the space.
         """

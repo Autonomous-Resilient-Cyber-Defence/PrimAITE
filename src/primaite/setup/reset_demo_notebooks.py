@@ -15,8 +15,7 @@ def run(overwrite_existing: bool = True):
     """
     Resets the demo jupyter notebooks in the users app notebooks directory.
 
-    :param overwrite_existing: A bool to toggle replacing existing edited
-        notebooks on or off.
+    :param overwrite_existing: A bool to toggle replacing existing edited notebooks on or off.
     """
     notebooks_package_data_root = pkg_resources.resource_filename("primaite", "notebooks/_package_data")
     for subdir, dirs, files in os.walk(notebooks_package_data_root):

@@ -9,20 +9,20 @@ class AccessControlList:
     """Access Control List class."""
 
     def __init__(self):
-        """Init."""
-        self.acl: Dict[str, AccessControlList] = {}  # A dictionary of ACL Rules
+        """Initialise an empty AccessControlList."""
+        self.acl: Dict[str, ACLRule] = {}  # A dictionary of ACL Rules
 
-    def check_address_match(self, _rule, _source_ip_address, _dest_ip_address):
-        """
-        Checks for IP address matches.
+    def check_address_match(self, _rule: ACLRule, _source_ip_address: str, _dest_ip_address: str) -> bool:
+        """Checks for IP address matches.
 
-        Args:
-            _rule: The rule being checked
-            _source_ip_address: the source IP address to compare
-            _dest_ip_address: the destination IP address to compare
-
-        Returns:
-             True if match; False otherwise.
+        :param _rule: The rule object to check
+        :type _rule: ACLRule
+        :param _source_ip_address: Source IP address to compare
+        :type _source_ip_address: str
+        :param _dest_ip_address: Destination IP address to compare
+        :type _dest_ip_address: str
+        :return: True if there is a match, otherwise False.
+        :rtype: bool
         """
         if (
             (_rule.get_source_ip() == _source_ip_address and _rule.get_dest_ip() == _dest_ip_address)
@@ -34,7 +34,7 @@ class AccessControlList:
         else:
             return False
 
-    def is_blocked(self, _source_ip_address, _dest_ip_address, _protocol, _port):
+    def is_blocked(self, _source_ip_address: str, _dest_ip_address: str, _protocol: str, _port: str) -> bool:
         """
         Checks for rules that block a protocol / port.
 
@@ -116,3 +116,27 @@ class AccessControlList:
         rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
         hash_value = hash(rule)
         return hash_value
+
+    def get_relevant_rules(self, _source_ip_address, _dest_ip_address, _protocol, _port):
+        """Get all ACL rules that relate to the given arguments.
+
+        :param _source_ip_address: the source IP address to check
+        :param _dest_ip_address: the destination IP address to check
+        :param _protocol: the protocol to check
+        :param _port: the port to check
+        :return: Dictionary of all ACL rules that relate to the given arguments
+        :rtype: Dict[str, ACLRule]
+        """
+        relevant_rules = {}
+
+        for rule_key, rule_value in self.acl.items():
+            if self.check_address_match(rule_value, _source_ip_address, _dest_ip_address):
+                if (
+                    rule_value.get_protocol() == _protocol or rule_value.get_protocol() == "ANY" or _protocol == "ANY"
+                ) and (
+                    str(rule_value.get_port()) == str(_port) or rule_value.get_port() == "ANY" or str(_port) == "ANY"
+                ):
+                    # There's a matching rule.
+                    relevant_rules[rule_key] = rule_value
+
+        return relevant_rules
