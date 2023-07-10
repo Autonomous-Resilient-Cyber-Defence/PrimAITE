@@ -86,8 +86,7 @@ def _turn_obs_space_to_array(obs_space, obs_assets, obs_features) -> List[str]:
     Turns observation space into a string array so it can be saved to csv.
 
     :param obs_space: The observation space
-    :param obs_assets: The number of assets (i.e. nodes or links) in the
-        observation space
+    :param obs_assets: The number of assets (i.e. nodes or links) in the observation space
     :param obs_features: The number of features associated with the asset
     :return: The observation space as an array of strings
     """

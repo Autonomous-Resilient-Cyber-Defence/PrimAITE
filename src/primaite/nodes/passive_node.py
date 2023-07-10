@@ -18,7 +18,7 @@ class PassiveNode(Node):
         config_values: TrainingConfig,
     ):
         """
-        Init.
+        Initialise a passive node.
 
         :param node_id: The node id.
         :param name: The name of the node.
