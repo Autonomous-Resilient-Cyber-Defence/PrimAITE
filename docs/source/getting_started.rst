@@ -8,9 +8,9 @@ Getting Started
 
 About The Project
 PrimAITE (**PrimAITE**) simulation environment for training AI under the ARCD programme.It incorporates the functionality required
-of a Primary-level environment, as specified in the Dstl ARCD Training Environment 
+of a Primary-level environment, as specified in the Dstl ARCD Training Environment
 
-**PrimAITE** is currently under a closed development stage. 
+**PrimAITE** is currently under a closed development stage.
 
 **What's PrimAITE built with**
 
@@ -49,7 +49,7 @@ Windows
 ``.\<name_of_venv>\Scripts\activate``
 
 3. Install `PrimAITE` into the venv along with all of it's dependencies
-   
+
 ``python3 -m pip install -e .``
 
 This will install all the dependencies including algorithm libraries. These libraries
@@ -64,38 +64,3 @@ Development Installation
 To install the development dependencies, postfix the command in step 3 above with the ``[dev]`` extra. Example:
 
 ``python3 -m pip install -e .[dev]``
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
