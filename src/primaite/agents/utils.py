@@ -67,7 +67,8 @@ def transform_action_acl_readable(action: List[str]) -> List[Union[str, int]]:
 
 
 def is_valid_node_action(action: List[int]) -> bool:
-    """Is the node action an actual valid action.
+    """
+    Is the node action an actual valid action.
 
     Only uses information about the action to determine if the action has an effect
 
