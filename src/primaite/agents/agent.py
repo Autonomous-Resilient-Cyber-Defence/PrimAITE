@@ -377,6 +377,7 @@ class HardCodedAgentSessionABC(AgentSessionABC):
                 time.sleep(self._training_config.time_delay / 1000)
             obs = self._env.reset()
         self._env.close()
+        super().evaluate()
 
     @classmethod
     def load(cls):

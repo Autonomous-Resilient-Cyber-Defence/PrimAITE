@@ -32,14 +32,6 @@
   - name: ftp
     port: '21'
     state: COMPROMISED
-- item_type: POSITION
-  positions:
-  - node: '1'
-    x_pos: 309
-    y_pos: 78
-  - node: '2'
-    x_pos: 200
-    y_pos: 78
 - item_type: RED_IER
   id: '3'
   start_step: 2
