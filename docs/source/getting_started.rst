@@ -6,7 +6,7 @@ Getting Started
 
 **PrimAITE**
 
-## About The Project
+About The Project
 PrimAITE (**PrimAITE**) simulation environment for training AI under the ARCD programme.It incorporates the functionality required
 of a Primary-level environment, as specified in the Dstl ARCD Training Environment 
 
@@ -36,18 +36,21 @@ Installation from source
 1. Navigate to the PrimAITE folder and create a new python virtual environment (venv)
 
 
-`python3 -m venv <name_of_venv>`
+``python3 -m venv <name_of_venv>``
 
 2. Activate the venv
 
-`source <name_of_venv>/bin/activate`
+Unix
+
+``source <name_of_venv>/bin/activate``
 
 Windows
-`.\<name_of_venv>\Scripts\activate`
 
-3. Install `PrimAITE` into the venv along with all of it's dependencies
+``.\<name_of_venv>\Scripts\activate``
+
+1. Install `PrimAITE` into the venv along with all of it's dependencies
    
-`python3 -m pip install -e .`
+``python3 -m pip install -e .``
 
 This will install all the dependencies including algorithm libraries. These libraries
 all use `torch`. If you'd like to install `tensorflow` for use with Rllib, you can do this manually
@@ -55,12 +58,12 @@ or install `tensorflow` as an optional dependency by postfixing the command in s
 
 To see all PrimAITE dependencies have a look at the dependencies page (:ref:`Dependencies`)
 
-`python3 -m pip install -e .[tensorflow]`
+``python3 -m pip install -e .[tensorflow]``
 
 Development Installation
 To install the development dependencies, postfix the command in step 3 above with the `[dev]` extra. Example:
 
-`python3 -m pip install -e .[dev]`
+``python3 -m pip install -e .[dev]``
 
 
 
