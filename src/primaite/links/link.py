@@ -10,14 +10,13 @@ class Link(object):
 
     def __init__(self, _id, _bandwidth, _source_node_name, _dest_node_name, _services):
         """
-        Init.
+        Initialise a Link within the simulated network.
 
-        Args:
-            _id: The IER id
-            _bandwidth: The bandwidth of the link (bps)
-            _source_node_name: The name of the source node
-            _dest_node_name: The name of the destination node
-            _protocols: The protocols to add to the link
+        :param _id: The IER id
+        :param _bandwidth: The bandwidth of the link (bps)
+        :param _source_node_name: The name of the source node
+        :param _dest_node_name: The name of the destination node
+        :param _protocols: The protocols to add to the link
         """
         self.id = _id
         self.bandwidth = _bandwidth
