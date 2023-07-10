@@ -7,14 +7,13 @@ class ACLRule:
 
     def __init__(self, _permission, _source_ip, _dest_ip, _protocol, _port):
         """
-        Init.
+        Initialise an ACL Rule.
 
-        Args:
-            _permission: The permission (ALLOW or DENY)
-            _source_ip: The source IP address
-            _dest_ip: The destination IP address
-            _protocol: The rule protocol
-            _port: The rule port
+        :param _permission: The permission (ALLOW or DENY)
+        :param _source_ip: The source IP address
+        :param _dest_ip: The destination IP address
+        :param _protocol: The rule protocol
+        :param _port: The rule port
         """
         self.permission = _permission
         self.source_ip = _source_ip

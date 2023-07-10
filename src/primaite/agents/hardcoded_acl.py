@@ -439,7 +439,8 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         return action
 
     def _calculate_action_basic_view(self, obs: np.ndarray) -> int:
-        """Calculate a good acl-based action for the blue agent to take.
+        """
+        Calculate a good acl-based action for the blue agent to take.
 
         Uses ONLY information from the current observation with NO knowledge
         of previous actions taken and NO reward feedback.

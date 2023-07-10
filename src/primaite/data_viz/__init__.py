@@ -1,3 +1,4 @@
+"""Utility to generate plots of sessions metrics after PrimAITE."""
 from enum import Enum
 
 

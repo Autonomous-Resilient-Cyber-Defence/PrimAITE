@@ -27,7 +27,7 @@ class ServiceNode(ActiveNode):
         config_values: TrainingConfig,
     ):
         """
-        Init.
+        Initialise a Service Node.
 
         :param node_id: The node ID
         :param name: The node name
@@ -77,8 +77,7 @@ class ServiceNode(ActiveNode):
         Indicates whether a service is in a running state on the node.
 
         :param protocol_name: The service (protocol)
-        :return: True if service (protocol) is in a running state on the
-            node, otherwise False.
+        :return: True if service (protocol) is in a running state on the node, otherwise False.
         """
         for service_key, service_value in self.services.items():
             if service_key == protocol_name:
@@ -93,8 +92,7 @@ class ServiceNode(ActiveNode):
         Indicates whether a service is in an overwhelmed state on the node.
 
         :param protocol_name: The service (protocol)
-        :return: True if service (protocol) is in an overwhelmed state on the
-            node, otherwise False.
+        :return: True if service (protocol) is in an overwhelmed state on the node, otherwise False.
         """
         for service_key, service_value in self.services.items():
             if service_key == protocol_name:
