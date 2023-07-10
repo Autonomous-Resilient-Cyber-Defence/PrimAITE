@@ -14,10 +14,10 @@ of a Primary-level environment, as specified in the Dstl ARCD Training Environme
 
 **What's PrimAITE built with**
 
-- [OpenAI's Gym](https://gym.openai.com/)
-- [Networkx](https://github.com/networkx/networkx)
-- [Stable Baselines 3](https://github.com/DLR-RM/stable-baselines3)
-- [Rllib (part of Ray)](https://github.com/ray-project/ray)
+- OpenAI's Gym (https://gym.openai.com/)
+- Networkx (https://github.com/networkx/networkx)
+- Stable Baselines 3 (https://github.com/DLR-RM/stable-baselines3)
+- Rllib (part of Ray) (https://github.com/ray-project/ray)
 
 
 **Getting Started with PrimAITE**
@@ -48,20 +48,20 @@ Windows
 
 ``.\<name_of_venv>\Scripts\activate``
 
-1. Install `PrimAITE` into the venv along with all of it's dependencies
+3. Install `PrimAITE` into the venv along with all of it's dependencies
    
 ``python3 -m pip install -e .``
 
 This will install all the dependencies including algorithm libraries. These libraries
-all use `torch`. If you'd like to install `tensorflow` for use with Rllib, you can do this manually
-or install `tensorflow` as an optional dependency by postfixing the command in step 3 above with the `[tensorflow]` extra. Example:
+all use ``torch``. If you'd like to install ``tensorflow`` for use with Rllib, you can do this manually
+or install ``tensorflow`` as an optional dependency by postfixing the command in step 3 above with the ``[tensorflow]`` extra. Example:
 
 To see all PrimAITE dependencies have a look at the dependencies page (:ref:`Dependencies`)
 
 ``python3 -m pip install -e .[tensorflow]``
 
 Development Installation
-To install the development dependencies, postfix the command in step 3 above with the `[dev]` extra. Example:
+To install the development dependencies, postfix the command in step 3 above with the ``[dev]`` extra. Example:
 
 ``python3 -m pip install -e .[dev]``
 
