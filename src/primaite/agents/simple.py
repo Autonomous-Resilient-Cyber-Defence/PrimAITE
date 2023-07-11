@@ -17,8 +17,7 @@ class DummyAgent(HardCodedAgentSessionABC):
     """
     A Dummy Agent.
 
-    All action spaces setup so dummy action is always 0 regardless of action
-    type used.
+    All action spaces setup so dummy action is always 0 regardless of action type used.
     """
 
     def _calculate_action(self, obs):

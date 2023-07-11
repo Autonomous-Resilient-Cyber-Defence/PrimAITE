@@ -26,7 +26,7 @@ class ActiveNode(Node):
         config_values: TrainingConfig,
     ):
         """
-        Init.
+        Initialise an active node.
 
         :param node_id: The node ID
         :param name: The node name

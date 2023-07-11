@@ -186,7 +186,7 @@ Observation Spaces
 ******************
 The observation space provides the blue agent with information about the current status of nodes and links.
 
-PrimAITE builds on top of Gym Spaces to create an observation space that is easily configurable for users. It's made up of components which are managed by the :py:class:`primaite.environment.observations.ObservationHandler`. Each training scenario can define its own observation space, and the user can choose which information to inlude, and how it should be formatted.
+PrimAITE builds on top of Gym Spaces to create an observation space that is easily configurable for users. It's made up of components which are managed by the :py:class:`primaite.environment.observations.ObservationsHandler`. Each training scenario can define its own observation space, and the user can choose which information to inlude, and how it should be formatted.
 
 NodeLinkTable component
 -----------------------
@@ -408,4 +408,3 @@ The PrimAITE project has an ambition to include the following enhancements in fu
 
 * Integration with a suitable standardised framework to allow multi-agent integration
 * Integration with external threat emulation tools, either using off-line data, or integrating at runtime
-* Provision of data such that agents can construct alternative observation spaces (as an alternative to the default PrimAITE observation space)
