@@ -38,6 +38,7 @@ The best place to start is :ref:`about`
    PrimAITE API <source/_autosummary/primaite>
    PrimAITE Tests <source/_autosummary/tests>
    source/dependencies
+   source/glossary
 
 .. toctree::
    :caption: Project Links:
