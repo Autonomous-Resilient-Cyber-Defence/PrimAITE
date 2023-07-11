@@ -39,6 +39,7 @@ The best place to start is :ref:`about`
    PrimAITE Tests <source/_autosummary/tests>
    source/dependencies
    source/glossary
+   source/migration_1.2_-_2.0
 
 .. toctree::
    :caption: Project Links:
