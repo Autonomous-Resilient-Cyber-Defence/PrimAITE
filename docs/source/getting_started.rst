@@ -7,7 +7,7 @@ Getting Started
 **PrimAITE**
 
 About The Project
-PrimAITE (**PrimAITE**) simulation environment for training AI under the ARCD programme.It incorporates the functionality required
+PrimAITE (**PrimAITE**) is a simulation environment for training AI under the ARCD programme.It incorporates the functionality required
 of a Primary-level environment, as specified in the Dstl ARCD Training Environment
 
 **PrimAITE** is currently under a closed development stage.
@@ -26,9 +26,9 @@ Pre-Requisites
 
 In order to get **PrimAITE** installed, you will need to have the following installed:
 
-- `python3.8+`
-- `python3-pip`
-- `virtualenv`
+- ``python3.8+``
+- ``python3-pip``
+- ``virtualenv``
 
 **PrimAITE** is designed to be OS-agnostic, and thus should work on most variations/distros of Linux, Windows, and MacOS.
 
@@ -54,13 +54,16 @@ Windows
 
 This will install all the dependencies including algorithm libraries. These libraries
 all use ``torch``. If you'd like to install ``tensorflow`` for use with Rllib, you can do this manually
-or install ``tensorflow`` as an optional dependency by postfixing the command in step 3 above with the ``[tensorflow]`` extra. Example:
-
-To see all PrimAITE dependencies have a look at the dependencies page (:ref:`Dependencies`)
+or install ``tensorflow`` as an optional dependency by postfixing the command in step 3 above with the ``[tensorflow]`` extra.
+Example:
 
 ``python3 -m pip install -e .[tensorflow]``
 
+To see all PrimAITE dependencies have a look at the dependencies page (:ref:`Dependencies`)
+
 Development Installation
-To install the development dependencies, postfix the command in step 3 above with the ``[dev]`` extra. Example:
+
+To install the development dependencies, postfix the command in step 3 above with the ``[dev]`` extra.
+Example:
 
 ``python3 -m pip install -e .[dev]``
