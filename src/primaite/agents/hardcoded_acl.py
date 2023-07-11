@@ -1,5 +1,9 @@
+from typing import Any, Dict, List, Union
+
 import numpy as np
 
+from primaite.acl.access_control_list import AccessControlList
+from primaite.acl.acl_rule import ACLRule
 from primaite.agents.agent import HardCodedAgentSessionABC
 from primaite.agents.utils import (
     get_new_action,
@@ -7,13 +11,17 @@ from primaite.agents.utils import (
     transform_action_acl_enum,
     transform_change_obs_readable,
 )
+from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import HardCodedAgentView
+from primaite.nodes.active_node import ActiveNode
+from primaite.nodes.service_node import ServiceNode
+from primaite.pol.ier import IER
 
 
 class HardCodedACLAgent(HardCodedAgentSessionABC):
     """An Agent Session class that implements a deterministic ACL agent."""
 
-    def _calculate_action(self, obs):
+    def _calculate_action(self, obs: np.ndarray) -> int:
         if self._training_config.hard_coded_agent_view == HardCodedAgentView.BASIC:
             # Basic view action using only the current observation
             return self._calculate_action_basic_view(obs)
@@ -22,12 +30,19 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
             # history and reward feedback
             return self._calculate_action_full_view(obs)
 
-    def get_blocked_green_iers(self, green_iers, acl, nodes):
-        """
-        Get blocked green IERs.
+    def get_blocked_green_iers(
+        self, green_iers: Dict[str, IER], acl: AccessControlList, nodes: Dict[str, NodeUnion]
+    ) -> Dict[Any, Any]:
+        """Get blocked green IERs.
 
-        TODO: Add params and return in docstring.
-        TODO: Typehint params and return.
+        :param green_iers: Green IERs to check for being
+        :type green_iers: Dict[str, IER]
+        :param acl: Firewall rules
+        :type acl: AccessControlList
+        :param nodes: Nodes in the network
+        :type nodes: Dict[str,NodeUnion]
+        :return: Same as `green_iers` input dict, but filtered to only contain the blocked ones.
+        :rtype: Dict[str, IER]
         """
         blocked_green_iers = {}
 
@@ -45,12 +60,17 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
         return blocked_green_iers
 
-    def get_matching_acl_rules_for_ier(self, ier, acl, nodes):
-        """
-        Get matching ACL rules for an IER.
+    def get_matching_acl_rules_for_ier(self, ier: IER, acl: AccessControlList, nodes: Dict[str, NodeUnion]):
+        """Get list of ACL rules which are relevant to an IER.
 
-        TODO: Add params and return in docstring.
-        TODO: Typehint params and return.
+        :param ier: Information Exchange Request to query against the ACL list
+        :type ier: IER
+        :param acl: Firewall rules
+        :type acl: AccessControlList
+        :param nodes: Nodes in the network
+        :type nodes: Dict[str,NodeUnion]
+        :return: _description_
+        :rtype: _type_
         """
         source_node_id = ier.get_source_node_id()
         source_node_address = nodes[source_node_id].ip_address
@@ -58,11 +78,12 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         dest_node_address = nodes[dest_node_id].ip_address
         protocol = ier.get_protocol()  # e.g. 'TCP'
         port = ier.get_port()
-
         matching_rules = acl.get_relevant_rules(source_node_address, dest_node_address, protocol, port)
         return matching_rules
 
-    def get_blocking_acl_rules_for_ier(self, ier, acl, nodes):
+    def get_blocking_acl_rules_for_ier(
+        self, ier: IER, acl: AccessControlList, nodes: Dict[str, NodeUnion]
+    ) -> Dict[str, Any]:
         """
         Get blocking ACL rules for an IER.
 
@@ -70,8 +91,14 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
             Can return empty dict but IER can still be blocked by default
             (No ALLOW rule, therefore blocked).
 
-        TODO: Add params and return in docstring.
-        TODO: Typehint params and return.
+        :param ier: Information Exchange Request to query against the ACL list
+        :type ier: IER
+        :param acl: Firewall rules
+        :type acl: AccessControlList
+        :param nodes: Nodes in the network
+        :type nodes: Dict[str,NodeUnion]
+        :return: _description_
+        :rtype: _type_
         """
         matching_rules = self.get_matching_acl_rules_for_ier(ier, acl, nodes)
 
@@ -82,12 +109,19 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
         return blocked_rules
 
-    def get_allow_acl_rules_for_ier(self, ier, acl, nodes):
-        """
-        Get all allowing ACL rules for an IER.
+    def get_allow_acl_rules_for_ier(
+        self, ier: IER, acl: AccessControlList, nodes: Dict[str, NodeUnion]
+    ) -> Dict[str, Any]:
+        """Get all allowing ACL rules for an IER.
 
-        TODO: Add params and return in docstring.
-        TODO: Typehint params and return.
+        :param ier: Information Exchange Request to query against the ACL list
+        :type ier: IER
+        :param acl: Firewall rules
+        :type acl: AccessControlList
+        :param nodes: Nodes in the network
+        :type nodes: Dict[str,NodeUnion]
+        :return: _description_
+        :rtype: _type_
         """
         matching_rules = self.get_matching_acl_rules_for_ier(ier, acl, nodes)
 
@@ -100,19 +134,32 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
     def get_matching_acl_rules(
         self,
-        source_node_id,
-        dest_node_id,
-        protocol,
-        port,
-        acl,
-        nodes,
-        services_list,
-    ):
-        """
-        Get matching ACL rules.
+        source_node_id: str,
+        dest_node_id: str,
+        protocol: str,
+        port: str,
+        acl: AccessControlList,
+        nodes: Dict[str, Union[ServiceNode, ActiveNode]],
+        services_list: List[str],
+    ) -> Dict[str, ACLRule]:
+        """Filter ACL rules to only those which are relevant to the specified nodes.
 
-        TODO: Add params and return in docstring.
-        TODO: Typehint params and return.
+        :param source_node_id: Source node
+        :type source_node_id: str
+        :param dest_node_id: Destination nodes
+        :type dest_node_id: str
+        :param protocol: Network protocol
+        :type protocol: str
+        :param port: Network port
+        :type port: str
+        :param acl: Access Control list which will be filtered
+        :type acl: AccessControlList
+        :param nodes: The environment's node directory.
+        :type nodes: Dict[str, Union[ServiceNode, ActiveNode]]
+        :param services_list: List of services registered for the environment.
+        :type services_list: List[str]
+        :return: Filtered version of 'acl'
+        :rtype: Dict[str, ACLRule]
         """
         if source_node_id != "ANY":
             source_node_address = nodes[str(source_node_id)].ip_address
@@ -132,19 +179,33 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
     def get_allow_acl_rules(
         self,
-        source_node_id,
-        dest_node_id,
-        protocol,
-        port,
-        acl,
-        nodes,
-        services_list,
-    ):
-        """
-        Get the ALLOW ACL rules.
+        source_node_id: int,
+        dest_node_id: str,
+        protocol: int,
+        port: str,
+        acl: AccessControlList,
+        nodes: Dict[str, NodeUnion],
+        services_list: List[str],
+    ) -> Dict[str, ACLRule]:
+        """List ALLOW rules relating to specified nodes.
 
-        TODO: Add params and return in docstring.
-        TODO: Typehint params and return.
+        :param source_node_id: Source node id
+        :type source_node_id: int
+        :param dest_node_id: Destination node
+        :type dest_node_id: str
+        :param protocol: Network protocol
+        :type protocol: int
+        :param port: Port
+        :type port: str
+        :param acl: Firewall ruleset which is applied to the network
+        :type acl: AccessControlList
+        :param nodes: The simulation's node store
+        :type nodes: Dict[str, NodeUnion]
+        :param services_list: Services list
+        :type services_list: List[str]
+        :return: Filtered ACL Rule directory which includes only those rules which affect the specified source and
+            desination nodes
+        :rtype: Dict[str, ACLRule]
         """
         matching_rules = self.get_matching_acl_rules(
             source_node_id,
@@ -165,19 +226,33 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
     def get_deny_acl_rules(
         self,
-        source_node_id,
-        dest_node_id,
-        protocol,
-        port,
-        acl,
-        nodes,
-        services_list,
-    ):
-        """
-        Get the DENY ACL rules.
+        source_node_id: int,
+        dest_node_id: str,
+        protocol: int,
+        port: str,
+        acl: AccessControlList,
+        nodes: Dict[str, NodeUnion],
+        services_list: List[str],
+    ) -> Dict[str, ACLRule]:
+        """List DENY rules relating to specified nodes.
 
-        TODO: Add params and return in docstring.
-        TODO: Typehint params and return.
+        :param source_node_id: Source node id
+        :type source_node_id: int
+        :param dest_node_id: Destination node
+        :type dest_node_id: str
+        :param protocol: Network protocol
+        :type protocol: int
+        :param port: Port
+        :type port: str
+        :param acl: Firewall ruleset which is applied to the network
+        :type acl: AccessControlList
+        :param nodes: The simulation's node store
+        :type nodes: Dict[str, NodeUnion]
+        :param services_list: Services list
+        :type services_list: List[str]
+        :return: Filtered ACL Rule directory which includes only those rules which affect the specified source and
+            desination nodes
+        :rtype: Dict[str, ACLRule]
         """
         matching_rules = self.get_matching_acl_rules(
             source_node_id,
@@ -196,7 +271,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
         return allowed_rules
 
-    def _calculate_action_full_view(self, obs):
+    def _calculate_action_full_view(self, obs: np.ndarray) -> int:
         """
         Calculate a good acl-based action for the blue agent to take.
 
@@ -224,8 +299,10 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         nodes once a service becomes overwhelmed. However currently the ACL action space has no way of reversing
         an overwhelmed state, so we don't do this.
 
-        TODO: Add params and return in docstring.
-        TODO: Typehint params and return.
+        :param obs: current observation from the gym environment
+        :type obs: np.ndarray
+        :return: Optimal action to take in the environment (chosen from the discrete action space)
+        :rtype: int
         """
         # obs = convert_to_old_obs(obs)
         r_obs = transform_change_obs_readable(obs)
@@ -361,8 +438,9 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
             action = get_new_action(action, self._env.action_dict)
         return action
 
-    def _calculate_action_basic_view(self, obs):
-        """Calculate a good acl-based action for the blue agent to take.
+    def _calculate_action_basic_view(self, obs: np.ndarray) -> int:
+        """
+        Calculate a good acl-based action for the blue agent to take.
 
         Uses ONLY information from the current observation with NO knowledge
         of previous actions taken and NO reward feedback.
@@ -379,8 +457,10 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         Currently, a deny rule does not overwrite an allow rule. The allow
         rules must be deleted.
 
-        TODO: Add params and return in docstring.
-        TODO: Typehint params and return.
+        :param obs: current observation from the gym environment
+        :type obs: np.ndarray
+        :return: Optimal action to take in the environment (chosen from the discrete action space)
+        :rtype: int
         """
         action_dict = self._env.action_dict
         r_obs = transform_change_obs_readable(obs)
