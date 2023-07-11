@@ -1,4 +1,4 @@
-from primaite.agents.agent import HardCodedAgentSessionABC
+from primaite.agents.hardcoded import HardCodedAgentSessionABC
 from primaite.agents.utils import get_new_action, transform_action_acl_enum, transform_action_node_enum
 
 
