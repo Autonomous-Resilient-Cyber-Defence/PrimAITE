@@ -1,24 +1,7 @@
-User Guide
-===========
+.. _getting-started:
 
 Getting Started
-****************
-
-**PrimAITE**
-
-About The Project
-PrimAITE (**PrimAITE**) is a simulation environment for training AI under the ARCD programme.It incorporates the functionality required
-of a Primary-level environment, as specified in the Dstl ARCD Training Environment
-
-**PrimAITE** is currently under a closed development stage.
-
-**What's PrimAITE built with**
-
-- OpenAI's Gym (https://gym.openai.com/)
-- Networkx (https://github.com/networkx/networkx)
-- Stable Baselines 3 (https://github.com/DLR-RM/stable-baselines3)
-- Rllib (part of Ray) (https://github.com/ray-project/ray)
-
+===============
 
 **Getting Started with PrimAITE**
 
@@ -26,44 +9,143 @@ Pre-Requisites
 
 In order to get **PrimAITE** installed, you will need to have the following installed:
 
-- ``python3.8+``
-- ``python3-pip``
-- ``virtualenv``
+
+.. tabs:: lang
+
+    .. code-tab:: bash
+        :caption: Unix
+
+        sudo add-apt-repository ppa:deadsnakes/ppa
+        sudo apt install python3.10
+        sudo apt-get install python3-pip
+        sudo apt-get install python3-venv
+
+    .. code-tab:: text
+        :caption: Windows (Powershell)
+
+        - Manual install from: https://www.python.org/downloads/release/python-31011/
 
 **PrimAITE** is designed to be OS-agnostic, and thus should work on most variations/distros of Linux, Windows, and MacOS.
 
-Installation from source
-1. Navigate to the PrimAITE folder and create a new python virtual environment (venv)
+Install PrimAITE
+****************
+
+1. Create a primaite directory in your home directory:
+
+.. tabs:: lang
+
+    .. code-tab:: bash
+        :caption: Unix
+
+        mkdir ~/primaite
+
+    .. code-tab:: powershell
+        :caption: Windows (Powershell)
+
+        mkdir ~\primaite
+
+2. Navigate to the primaite directory and create a new python virtual environment (venv)
+
+.. tabs:: lang
+
+    .. code-tab:: bash
+        :caption: Unix
+
+        cd ~/primaite
+        python3 -m venv .venv
+
+    .. code-tab:: powershell
+        :caption: Windows (Powershell)
+
+        cd ~\primaite
+        python3 -m venv .venv
+        attrib +h .venv /s /d # Hides the .venv directory
+
+3. Activate the venv
+
+.. tabs:: lang
+
+    .. code-tab:: bash
+        :caption: Unix
+
+        source .venv/bin/activate
+
+    .. code-tab:: powershell
+        :caption: Windows (Powershell)
+
+        .\.venv\Scripts\activate
 
 
-``python3 -m venv <name_of_venv>``
+4. Install PrimAITE using pip from PyPi
 
-2. Activate the venv
+.. tabs:: lang
 
-Unix
+    .. code-tab:: bash
+        :caption: Unix
 
-``source <name_of_venv>/bin/activate``
+        pip install primaite
 
-Windows
+    .. code-tab:: powershell
+        :caption: Windows (Powershell)
 
-``.\<name_of_venv>\Scripts\activate``
+        pip install primaite
 
-3. Install `PrimAITE` into the venv along with all of it's dependencies
+5. Perform the PrimAITE setup
 
-``python3 -m pip install -e .``
+.. tabs:: lang
 
-This will install all the dependencies including algorithm libraries. These libraries
-all use ``torch``. If you'd like to install ``tensorflow`` for use with Rllib, you can do this manually
-or install ``tensorflow`` as an optional dependency by postfixing the command in step 3 above with the ``[tensorflow]`` extra.
-Example:
+    .. code-tab:: bash
+        :caption: Unix
 
-``python3 -m pip install -e .[tensorflow]``
+        primaite setup
 
-To see all PrimAITE dependencies have a look at the dependencies page (:ref:`Dependencies`)
+    .. code-tab:: powershell
+        :caption: Windows (Powershell)
 
-Development Installation
+        primaite setup
 
-To install the development dependencies, postfix the command in step 3 above with the ``[dev]`` extra.
-Example:
+Clone & Install PrimAITE for Development
+****************************************
 
-``python3 -m pip install -e .[dev]``
+To be able to extend PrimAITE further, or to build wheels manually before install, clone the repository to a location
+of your choice:
+
+.. TODO:: Add repo path once we know what it is
+
+.. code-block:: bash
+
+    git clone <repo path>
+    cd primaite
+
+Create and activate your Python virtual environment (venv)
+
+.. tabs:: lang
+
+    .. code-tab:: bash
+        :caption: Unix
+
+        python3 -m venv venv
+        source venv/bin/activate
+
+    .. code-tab:: powershell
+        :caption: Windows (Powershell)
+
+        python3 -m venv venv
+        .\venv\Scripts\activate
+
+Install PrimAITE with the dev extra
+
+.. tabs:: lang
+
+    .. code-tab:: bash
+        :caption: Unix
+
+        pip install -e .[dev]
+
+    .. code-tab:: powershell
+        :caption: Windows (Powershell)
+
+        pip install -e .[dev]
+
+
+To view the complete list of packages installed during PrimAITE installation, go to the dependencies page (:ref:`Dependencies`).
