@@ -17,14 +17,17 @@ This is similar to the approach taken by FVEY international partners (e.g. AUS C
 What is PrimAITE built with
 --------------------------------------
 
+.. TODO:: Add the new dependencies that we've added since v1.1.0
+
 * `OpenAI's Gym <https://gym.openai.com/>`_ is used as the basis for AI blue agent interaction with the PrimAITE environment
 * `Networkx <https://github.com/networkx/networkx>`_ is used as the underlying data structure used for the PrimAITE environment
 * `Stable Baselines 3 <https://github.com/DLR-RM/stable-baselines3>`_ is used as a default source of RL algorithms (although PrimAITE is not limited to SB3 agents)
+* `Ray RLlib <https://github.com/ray-project/ray>`_ is used as an additional source of RL algorithms
 
 Where next?
 ------------
 
-The best place to start is :ref:`about`
+Head over to the :ref:`getting-started` page to install and setup PrimAITE!
 
 .. toctree::
    :maxdepth: 8
@@ -40,12 +43,15 @@ The best place to start is :ref:`about`
    PrimAITE Tests <source/_autosummary/tests>
    source/dependencies
 
+
+.. TODO: Add project links once public repo has been created
+
 .. toctree::
    :caption: Project Links:
    :hidden:
 
 ..
-   #Code <>
-   #Issues <>
-   #Pull Requests <>
-   #Discussions <>
+   Code <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE>
+   Issues <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/issues>
+   Pull Requests <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/pulls>
+   Discussions <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/discussions>

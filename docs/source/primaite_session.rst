@@ -8,6 +8,7 @@ A PrimAITE session can be ran either with the ``primaite session`` command from 
 (See :func:`primaite.cli.session`), or by calling :func:`primaite.main.run` from a Python terminal or Jupyter Notebook.
 Both the ``primaite session`` and :func:`primaite.main.run` take a training config and a lay down config as parameters.
 
+
 .. tabs::
 
     .. code-tab:: bash
@@ -17,7 +18,7 @@ Both the ``primaite session`` and :func:`primaite.main.run` take a training conf
         source ./.venv/bin/activate
         primaite session ./config/my_training_config.yaml ./config/my_lay_down_config.yaml
 
-    .. code-tab:: bash
+    .. code-tab:: powershell
         :caption: Powershell CLI
 
         cd ~\primaite
