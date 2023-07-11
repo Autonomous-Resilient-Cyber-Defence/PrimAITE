@@ -1,7 +1,15 @@
 v1.2 to v2.0 Migration guide
 ============================
 
-**1. Running a training session**
+**1. Installing PrimAITE**
+
+    Like before, you can install primaite from the repository by running ``pip install -e .``. But, there is now an additional setup step which does several things, like setting up user directories, copy default configs and notebooks, etc. Once you have installed PrimAITE to your virtual environment, run this command to finalise setup.
+
+    .. code-block:: bash
+
+        primaite setup
+
+**2. Running a training session**
 
     In version 1.2 of PrimAITE, the main entry point for training or evaluating agents was the ``src/primaite/main.py`` file. v2.0.0 introduced managed 'sessions' which are responsible for reading configuration files, performing training, and writing outputs.
 
@@ -17,11 +25,11 @@ v1.2 to v2.0 Migration guide
 
         primaite session --tc path/to/training-config.yaml --ldc path/to/laydown-config.yaml
 
-**2. Location of configs**
+**3. Location of configs**
 
     In version 1.2, training configs and laydown configs were all stored in the project repository under ``src/primaite/config``. Version 2.0.0 introduced user data directories, and now when you install and setup PrimAITE, config files are stored in your user data location. On Linux/OSX, this is stored in ``~/primaite/config``. On Windows, this is stored in ``C:\Users\<your username>\primaite\configs``. Upon first setup, the configs folder is populated with some default yaml files. It is recommended that you store all your custom configuration files here.
 
-**3. Contents of configs**
+**4. Contents of configs**
 
     Some things that were previously part of the laydown config are now part of the traning config.
 
