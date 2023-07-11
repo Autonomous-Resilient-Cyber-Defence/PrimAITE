@@ -14,6 +14,7 @@ from primaite.common.enums import (
     AgentIdentifier,
     DeepLearningFramework,
     HardCodedAgentView,
+    RulePermissionType,
     SB3OutputVerboseLevel,
     SessionType,
 )
@@ -96,7 +97,7 @@ class TrainingConfig:
     apply_implicit_rule: str = True
     "User choice to have Implicit ALLOW or DENY."
 
-    implicit_acl_rule: str = "DENY"
+    implicit_acl_rule: RulePermissionType = RulePermissionType.DENY
     "ALLOW or DENY implicit firewall rule to go at the end of list of ACL list."
 
     max_number_acl_rules: int = 0
@@ -210,6 +211,7 @@ class TrainingConfig:
             "session_type": SessionType,
             "sb3_output_verbose_level": SB3OutputVerboseLevel,
             "hard_coded_agent_view": HardCodedAgentView,
+            "implicit_acl_rule": RulePermissionType,
         }
 
         for key, value in field_enum_map.items():
@@ -234,6 +236,7 @@ class TrainingConfig:
             data["sb3_output_verbose_level"] = self.sb3_output_verbose_level.name
             data["session_type"] = self.session_type.name
             data["hard_coded_agent_view"] = self.hard_coded_agent_view.name
+            data["implicit_acl_rule"] = self.implicit_acl_rule.name
 
         return data
 

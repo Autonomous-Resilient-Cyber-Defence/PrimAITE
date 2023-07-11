@@ -1,55 +1,11 @@
 """Test env creation and behaviour with different observation spaces."""
 
-import time
-
 import numpy as np
 import pytest
 
 from primaite.environment.observations import NodeLinkTable, NodeStatuses, ObservationsHandler
 from tests import TEST_CONFIG_ROOT
 from tests.conftest import _get_primaite_env_from_config
-
-
-def run_generic_set_actions(env):
-    """Run against a generic agent with specified blue agent actions."""
-    # Reset the environment at the start of the episode
-    env.reset()
-    training_config = env.training_config
-    for episode in range(0, training_config.num_episodes):
-        for step in range(0, training_config.num_steps):
-            # Send the observation space to the agent to get an action
-            # TEMP - random action for now
-            # action = env.blue_agent_action(obs)
-            action = 0
-            print("\nStep:", step)
-            if step == 5:
-                # [1, 1, 2, 1, 1, 1, 2] ACL Action
-                # Creates an ACL rule
-                # Allows traffic from SERVER to PC1 on port TCP 80 and place ACL at position 2
-                # Rule in current observation: [2, 2, 3, 2, 2, 2]
-                action = 43
-            elif step == 7:
-                # [1, 1, 3, 1, 2, 2, 1] ACL Action
-                # Creates an ACL rule
-                # Allows traffic from PC1 to SWITCH 1 on port UDP at position 1
-                # 3, 1, 1, 1, 1,
-                action = 96
-            # Run the simulation step on the live environment
-            obs, reward, done, info = env.step(action)
-            # Update observations space and return
-            env.update_environent_obs()
-
-            # Break if done is True
-            if done:
-                break
-
-            # Introduce a delay between steps
-            time.sleep(training_config.time_delay / 1000)
-
-        # Reset the environment at the end of the episode
-        # env.reset()
-
-    # env.close()
 
 
 @pytest.fixture
@@ -344,7 +300,7 @@ class TestAccessControlList:
         # Used to use env from test fixture but AtrributeError function object has no 'training_config'
         with temp_primaite_session as session:
             env = session.env
-            run_generic_set_actions(env)
+            session.learn()
             obs = env.env_obs
         """
         Observation space at the end of the episode.

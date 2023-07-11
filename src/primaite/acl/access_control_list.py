@@ -4,6 +4,7 @@ import logging
 from typing import Final, List
 
 from primaite.acl.acl_rule import ACLRule
+from primaite.common.enums import RulePermissionType
 
 _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
@@ -25,9 +26,9 @@ class AccessControlList:
         # Implicit rule
         self.acl_implicit_rule = None
         if self.apply_implicit_rule:
-            if self.acl_implicit_permission == "DENY":
+            if self.acl_implicit_permission == RulePermissionType.DENY:
                 self.acl_implicit_rule = ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
-            elif self.acl_implicit_permission == "ALLOW":
+            elif self.acl_implicit_permission == RulePermissionType.ALLOW:
                 self.acl_implicit_rule = ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
 
     @property
