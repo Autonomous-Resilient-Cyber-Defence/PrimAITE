@@ -7,7 +7,7 @@ Getting Started
 **PrimAITE**
 
 About The Project
-PrimAITE (**PrimAITE**) is a simulation environment for training AI under the ARCD programme.It incorporates the functionality required
+PrimAITE (**PrimAITE**) is a simulation environment for training AI under the ARCD programme. It incorporates the functionality required
 of a Primary-level environment, as specified in the Dstl ARCD Training Environment
 
 **PrimAITE** is currently under a closed development stage.
