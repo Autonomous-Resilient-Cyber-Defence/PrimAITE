@@ -67,7 +67,8 @@ def transform_action_acl_readable(action: List[str]) -> List[Union[str, int]]:
 
 
 def is_valid_node_action(action: List[int]) -> bool:
-    """Is the node action an actual valid action.
+    """
+    Is the node action an actual valid action.
 
     Only uses information about the action to determine if the action has an effect
 
@@ -183,7 +184,6 @@ def transform_change_obs_readable(obs: np.ndarray) -> List[List[Union[str, int]]
     os_states = [SoftwareState(i).name for i in obs[:, 2]]
     new_obs = [ids, operating_states, os_states]
 
-    # changed range(3,...) to range(4,...) because we added file system which was new since ADSP
     for service in range(4, obs.shape[1]):
         # Links bit/s don't have a service state
         service_states = [SoftwareState(i).name if i <= 4 else i for i in obs[:, service]]

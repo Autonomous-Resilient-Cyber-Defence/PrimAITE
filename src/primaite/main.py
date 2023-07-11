@@ -14,7 +14,8 @@ def run(
     training_config_path: Union[str, Path],
     lay_down_config_path: Union[str, Path],
 ):
-    """Run the PrimAITE Session.
+    """
+    Run the PrimAITE Session.
 
     :param training_config_path: The training config filepath.
     :param lay_down_config_path: The lay down config filepath.
