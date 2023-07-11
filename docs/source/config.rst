@@ -83,13 +83,24 @@ The environment config file consists of the following attributes:
 
     The other configurable item is ``flatten`` which is false by default. When set to true, the observation space is flattened (turned into a 1-D vector). You should use this if your RL agent does not natively support observation space types like ``gym.Spaces.Tuple``.
 
-* **num_episodes** [int]
+* **num_train_episodes** [int]
 
-    This defines the number of episodes that the agent will train or be evaluated over.
+    This defines the number of episodes that the agent will train for.
 
-* **num_steps** [int]
 
-    Determines the number of steps to run in each episode of the session
+* **num_train_steps** [int]
+
+    Determines the number of steps to run in each episode of the training session.
+
+
+* **num_eval_episodes** [int]
+
+    This defines the number of episodes that the agent will be evaluated over.
+
+
+* **num_eval_steps** [int]
+
+    Determines the number of steps to run in each episode of the evaluation session.
 
 
 * **time_delay** [int]
