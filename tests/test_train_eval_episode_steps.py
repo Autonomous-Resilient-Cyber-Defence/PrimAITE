@@ -22,8 +22,8 @@ def test_eval_steps_differ_from_training(temp_primaite_session):
         num_eval_episodes = 1
     """
     expected_learning_metadata = {"total_episodes": 3, "total_time_steps": 75}
-
     expected_evaluation_metadata = {"total_episodes": 1, "total_time_steps": 17}
+
     with temp_primaite_session as session:
         # Run learning and check episode and step counts
         session.learn()
