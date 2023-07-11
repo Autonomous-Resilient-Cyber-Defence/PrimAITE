@@ -73,8 +73,7 @@ class Primaite(Env):
         :param training_config_path: The training config filepath.
         :param lay_down_config_path: The lay down config filepath.
         :param session_path: The directory path the session is writing to.
-        :param timestamp_str: The session timestamp in the format:
-            <yyyy-mm-dd>_<hh-mm-ss>.
+        :param timestamp_str: The session timestamp in the format: <yyyy-mm-dd>_<hh-mm- ss>.
         """
         self.session_path: Final[Path] = session_path
         self.timestamp_str: Final[str] = timestamp_str
@@ -668,7 +667,8 @@ class Primaite(Env):
                 pass
 
     def init_observations(self) -> Tuple[spaces.Space, np.ndarray]:
-        """Create the environment's observation handler.
+        """
+        Create the environment's observation handler.
 
         :return: The observation space, initial observation (zeroed out array with the correct shape)
         :rtype: Tuple[spaces.Space, np.ndarray]
@@ -1048,7 +1048,8 @@ class Primaite(Env):
         self.num_ports = len(self.ports_list)
 
     def get_observation_info(self, observation_info):
-        """Extracts observation_info.
+        """
+        Extracts observation_info.
 
         :param observation_info: Config item that defines which type of observation space to use
         :type observation_info: str
@@ -1065,7 +1066,8 @@ class Primaite(Env):
         self.action_type = ActionType[action_info["type"]]
 
     def save_obs_config(self, obs_config: dict):
-        """Cache the config for the observation space.
+        """
+        Cache the config for the observation space.
 
         This is necessary as the observation space can't be built while reading the config,
         it must be done after all the nodes, links, and services have been initialised.
@@ -1078,10 +1080,9 @@ class Primaite(Env):
 
     def reset_environment(self):
         """
-        # Resets environment.
+        Resets environment.
 
-        Uses config data config data in order to build the environment
-        configuration.
+        Uses config data config data in order to build the environment configuration.
         """
         for item in self.lay_down_config:
             if item["item_type"] == "NODE":
@@ -1165,7 +1166,6 @@ class Primaite(Env):
         5: [1, 3, 1, 0],
         ...
         }
-
         """
         # reserve 0 action to be a nothing action
         actions = {0: [1, 0, 0, 0]}
@@ -1221,7 +1221,6 @@ class Primaite(Env):
         Create a dictionary mapping each possible discrete action to a more readable mutlidiscrete action.
 
         The dictionary contains actions of both Node and ACL action types.
-
         """
         node_action_dict = self.create_node_action_dict()
         acl_action_dict = self.create_acl_action_dict()

@@ -19,6 +19,18 @@ class SB3Agent(AgentSessionABC):
     """An AgentSession class that implements a Stable Baselines3 agent."""
 
     def __init__(self, training_config_path, lay_down_config_path):
+        """
+        Initialise the SB3 Agent training session.
+
+        :param training_config_path: YAML file containing configurable items defined in
+            `primaite.config.training_config.TrainingConfig`
+        :type training_config_path: Union[path, str]
+        :param lay_down_config_path: YAML file containing configurable items for generating network laydown.
+        :type lay_down_config_path: Union[path, str]
+        :raises ValueError: If the training config contains an unexpected value for agent_framework (should be "SB3")
+        :raises ValueError: If the training config contains an unexpected value for agent_identifies (should be `PPO`
+            or `A2C`)
+        """
         super().__init__(training_config_path, lay_down_config_path)
         if not self._training_config.agent_framework == AgentFramework.SB3:
             msg = f"Expected SB3 agent_framework, " f"got {self._training_config.agent_framework}"

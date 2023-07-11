@@ -7,10 +7,10 @@ class Protocol(object):
 
     def __init__(self, _name):
         """
-        Init.
+        Initialise a protocol.
 
-        Args:
-            _name: The protocol name
+        :param _name: The name of the protocol
+        :type _name: str
         """
         self.name = _name
         self.load = 0  # bps
