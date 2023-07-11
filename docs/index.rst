@@ -50,7 +50,6 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    :caption: Project Links:
    :hidden:
 
-..
    Code <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE>
    Issues <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/issues>
    Pull Requests <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/pulls>
