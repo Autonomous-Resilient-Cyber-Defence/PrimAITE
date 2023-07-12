@@ -305,14 +305,11 @@ def convert_legacy_training_config_dict(
     Convert a legacy training config dict to the new format.
 
     :param legacy_config_dict: A legacy training config dict.
-    :param agent_framework: The agent framework to use as legacy training
-        configs don't have agent_framework values.
-    :param agent_identifier: The red agent identifier to use as legacy
-        training configs don't have agent_identifier values.
-    :param action_type: The action space type to set as legacy training configs
-        don't have action_type values.
-    :param num_steps: The number of steps to set as legacy training configs
-        don't have num_steps values.
+    :param agent_framework: The agent framework to use as legacy training configs don't have agent_framework values.
+    :param agent_identifier: The red agent identifier to use as legacy training configs don't have agent_identifier
+        values.
+    :param action_type: The action space type to set as legacy training configs don't have action_type values.
+    :param num_steps: The number of steps to set as legacy training configs don't have num_steps values.
     :return: The converted training config dict.
     """
     config_dict = {
