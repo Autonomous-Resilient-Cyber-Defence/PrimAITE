@@ -62,6 +62,7 @@ def test_check_acl_block_affirmative():
         acl_rule_port,
         acl_position_in_list,
     )
+    print(len(acl.acl), "len of acl list\n", acl.acl[0])
     assert acl.is_blocked("192.168.1.1", "192.168.1.2", "TCP", "80") == False
 
 
