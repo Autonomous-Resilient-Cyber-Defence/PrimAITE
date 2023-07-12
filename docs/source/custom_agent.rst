@@ -135,4 +135,4 @@ Finally, specify your agent in your training config.
     random_red_agent: False
     # ...
 
-Now you can `Run a PrimAITE Session<run a primaite session>` with your custom agent by passing in the custom ``config_main``.
+Now you can :ref:`run a primaite session<run a primaite session>` with your custom agent by passing in the custom ``config_main``.

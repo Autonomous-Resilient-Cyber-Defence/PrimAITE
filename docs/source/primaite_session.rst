@@ -1,3 +1,5 @@
+.. _run a primaite session:
+
 Run a PrimAITE Session
 ======================
 
