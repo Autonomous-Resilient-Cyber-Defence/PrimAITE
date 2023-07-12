@@ -162,12 +162,11 @@ class AgentSessionABC(ABC):
             metadata_dict = json.load(file)
 
         metadata_dict["end_datetime"] = datetime.now().isoformat()
-
         if not self.is_eval:
-            metadata_dict["learning"]["total_episodes"] = self._env.episode_count  # noqa
+            metadata_dict["learning"]["total_episodes"] = self._env.actual_episode_count  # noqa
             metadata_dict["learning"]["total_time_steps"] = self._env.total_step_count  # noqa
         else:
-            metadata_dict["evaluation"]["total_episodes"] = self._env.episode_count  # noqa
+            metadata_dict["evaluation"]["total_episodes"] = self._env.actual_episode_count  # noqa
             metadata_dict["evaluation"]["total_time_steps"] = self._env.total_step_count  # noqa
 
         filepath = self.session_path / "session_metadata.json"
@@ -218,10 +217,11 @@ class AgentSessionABC(ABC):
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
-        self._env.set_as_eval()  # noqa
-        self.is_eval = True
-        self._plot_av_reward_per_episode(learning_session=False)
-        _LOGGER.info("Finished evaluation")
+        if self._can_evaluate:
+            self._plot_av_reward_per_episode(learning_session=False)
+            self._update_session_metadata_file()
+            self.is_eval = True
+            _LOGGER.info("Finished evaluation")
 
     @abstractmethod
     def _get_latest_checkpoint(self):
@@ -375,8 +375,8 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         self._env.set_as_eval()  # noqa
         self.is_eval = True
 
-        time_steps = self._training_config.num_steps
-        episodes = self._training_config.num_episodes
+        time_steps = self._training_config.num_eval_steps
+        episodes = self._training_config.num_eval_episodes
 
         obs = self._env.reset()
         for episode in range(episodes):
@@ -395,6 +395,7 @@ class HardCodedAgentSessionABC(AgentSessionABC):
                 time.sleep(self._training_config.time_delay / 1000)
             obs = self._env.reset()
         self._env.close()
+        super().evaluate()
 
     @classmethod
     def load(cls):

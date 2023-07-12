@@ -15,5 +15,6 @@ def av_rewards_dict(av_rewards_csv_file: Union[str, Path]) -> Dict[int, float]:
     :param av_rewards_csv_file: The average rewards per episode csv file path.
     :return: The average rewards per episode cdv as a dict.
     """
-    d = pl.read_csv(av_rewards_csv_file).to_dict()
-    return {v: d["Average Reward"][i] for i, v in enumerate(d["Episode"])}
+    df = pl.read_csv(av_rewards_csv_file).to_dict()
+
+    return {v: df["Average Reward"][i] for i, v in enumerate(df["Episode"])}
