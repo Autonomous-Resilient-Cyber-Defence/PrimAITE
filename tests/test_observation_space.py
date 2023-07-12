@@ -90,7 +90,8 @@ class TestNodeLinkTable:
             assert env.env_obs.shape == (5, 6)
 
     def test_value(self, temp_primaite_session):
-        """Test that the observation is generated correctly.
+        """
+        Test that the observation is generated correctly.
 
         The laydown has:
             * 3 nodes (2 service nodes and 1 active node)
@@ -172,7 +173,8 @@ class TestNodeStatuses:
             assert env.env_obs.shape == (15,)
 
     def test_values(self, temp_primaite_session):
-        """Test that the hardware and software states are encoded correctly.
+        """
+        Test that the hardware and software states are encoded correctly.
 
         The laydown has:
             * one node with a compromised operating system state
@@ -228,7 +230,8 @@ class TestLinkTrafficLevels:
             assert env.env_obs.shape == (2 * 2,)
 
     def test_values(self, temp_primaite_session):
-        """Test that traffic values are encoded correctly.
+        """
+        Test that traffic values are encoded correctly.
 
         The laydown has:
             * two services
