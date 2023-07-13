@@ -5,7 +5,8 @@
 # "STABLE_BASELINES3_PPO"
 # "STABLE_BASELINES3_A2C"
 # "GENERIC"
-agent_identifier: STABLE_BASELINES3_A2C
+agent_framework: SB3
+agent_identifier: PPO
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
@@ -21,7 +22,7 @@ apply_implicit_rule: True
 # Implicit ACL firewall rule at end of lists to be default action or no rule can be selected (ALLOW or DENY)
 implicit_acl_rule: DENY
 # Total number of ACL rules allowed in the environment
-max_number_acl_rules: 10
+max_number_acl_rules: 3
 
 observation_space:
   components:
@@ -31,7 +32,7 @@ observation_space:
 time_delay: 1
 
 # Type of session to be run (TRAINING or EVALUATION)
-session_type: TRAINING
+session_type: TRAIN
 # Determine whether to load an agent from file
 load_agent: False
 # File path and file name of agent if you're loading one in

@@ -94,13 +94,13 @@ class TrainingConfig:
     "Stable Baselines3 learn/eval output verbosity level"
 
     # Access Control List/Rules
-    apply_implicit_rule: str = True
+    apply_implicit_rule: str = False
     "User choice to have Implicit ALLOW or DENY."
 
     implicit_acl_rule: RulePermissionType = RulePermissionType.DENY
     "ALLOW or DENY implicit firewall rule to go at the end of list of ACL list."
 
-    max_number_acl_rules: int = 0
+    max_number_acl_rules: int = 10
     "Sets a limit for number of acl rules allowed in the list and environment."
 
     # Reward values
