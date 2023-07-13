@@ -17,8 +17,6 @@ This is similar to the approach taken by FVEY international partners (e.g. AUS C
 What is PrimAITE built with
 --------------------------------------
 
-.. TODO:: Add the new dependencies that we've added since v1.1.0
-
 * `OpenAI's Gym <https://gym.openai.com/>`_ is used as the basis for AI blue agent interaction with the PrimAITE environment
 * `Networkx <https://github.com/networkx/networkx>`_ is used as the underlying data structure used for the PrimAITE environment
 * `Stable Baselines 3 <https://github.com/DLR-RM/stable-baselines3>`_ is used as a default source of RL algorithms (although PrimAITE is not limited to SB3 agents)
