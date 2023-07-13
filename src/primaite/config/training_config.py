@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Final, Optional, Union
+from typing import Any, Dict, Final, Optional, TYPE_CHECKING, Union
 
 import yaml
 
@@ -18,7 +18,10 @@ from primaite.common.enums import (
     SessionType,
 )
 
-_LOGGER = getLogger(__name__)
+if TYPE_CHECKING:
+    from logging import Logger
+
+_LOGGER: Logger = getLogger(__name__)
 
 _EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training"
 

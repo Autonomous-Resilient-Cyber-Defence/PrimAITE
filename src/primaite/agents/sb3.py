@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Union
+from typing import Any, TYPE_CHECKING, Union
 
 import numpy as np
 from stable_baselines3 import A2C, PPO
@@ -12,13 +12,16 @@ from primaite.agents.agent import AgentSessionABC
 from primaite.common.enums import AgentFramework, AgentIdentifier
 from primaite.environment.primaite_env import Primaite
 
-_LOGGER = getLogger(__name__)
+if TYPE_CHECKING:
+    from logging import Logger
+
+_LOGGER: "Logger" = getLogger(__name__)
 
 
 class SB3Agent(AgentSessionABC):
     """An AgentSession class that implements a Stable Baselines3 agent."""
 
-    def __init__(self, training_config_path, lay_down_config_path):
+    def __init__(self, training_config_path: Union[str, Path], lay_down_config_path: Union[str, Path]) -> None:
         """
         Initialise the SB3 Agent training session.
 
@@ -57,7 +60,7 @@ class SB3Agent(AgentSessionABC):
 
         self.is_eval = False
 
-    def _setup(self):
+    def _setup(self) -> None:
         super()._setup()
         self._env = Primaite(
             training_config_path=self._training_config_path,
@@ -75,7 +78,7 @@ class SB3Agent(AgentSessionABC):
             seed=self._training_config.seed,
         )
 
-    def _save_checkpoint(self):
+    def _save_checkpoint(self) -> None:
         checkpoint_n = self._training_config.checkpoint_every_n_episodes
         episode_count = self._env.episode_count
         save_checkpoint = False
@@ -86,13 +89,13 @@ class SB3Agent(AgentSessionABC):
             self._agent.save(checkpoint_path)
             _LOGGER.debug(f"Saved agent checkpoint: {checkpoint_path}")
 
-    def _get_latest_checkpoint(self):
+    def _get_latest_checkpoint(self) -> None:
         pass
 
     def learn(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Train the agent.
 
@@ -115,8 +118,8 @@ class SB3Agent(AgentSessionABC):
 
     def evaluate(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Evaluate the agent.
 
@@ -150,10 +153,10 @@ class SB3Agent(AgentSessionABC):
         """Load an agent from file."""
         raise NotImplementedError
 
-    def save(self):
+    def save(self) -> None:
         """Save the agent."""
         self._agent.save(self._saved_agent_path)
 
-    def export(self):
+    def export(self) -> None:
         """Export the agent to transportable file format."""
         raise NotImplementedError

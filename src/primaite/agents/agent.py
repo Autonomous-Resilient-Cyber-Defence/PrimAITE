@@ -5,7 +5,7 @@ import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Final, Union
+from typing import Any, Dict, Final, TYPE_CHECKING, Union
 from uuid import uuid4
 
 import yaml
@@ -17,7 +17,13 @@ from primaite.config.training_config import TrainingConfig
 from primaite.data_viz.session_plots import plot_av_reward_per_episode
 from primaite.environment.primaite_env import Primaite
 
-_LOGGER = getLogger(__name__)
+if TYPE_CHECKING:
+    from logging import Logger
+
+    import numpy as np
+
+
+_LOGGER: "Logger" = getLogger(__name__)
 
 
 def get_session_path(session_timestamp: datetime) -> Path:
@@ -47,7 +53,7 @@ class AgentSessionABC(ABC):
     """
 
     @abstractmethod
-    def __init__(self, training_config_path, lay_down_config_path):
+    def __init__(self, training_config_path: Union[str, Path], lay_down_config_path: Union[str, Path]) -> None:
         """
         Initialise an agent session from config files.
 
@@ -107,11 +113,11 @@ class AgentSessionABC(ABC):
         return path
 
     @property
-    def uuid(self):
+    def uuid(self) -> str:
         """The Agent Session UUID."""
         return self._uuid
 
-    def _write_session_metadata_file(self):
+    def _write_session_metadata_file(self) -> None:
         """
         Write the ``session_metadata.json`` file.
 
@@ -147,7 +153,7 @@ class AgentSessionABC(ABC):
             json.dump(metadata_dict, file)
             _LOGGER.debug("Finished writing session metadata file")
 
-    def _update_session_metadata_file(self):
+    def _update_session_metadata_file(self) -> None:
         """
         Update the ``session_metadata.json`` file.
 
@@ -176,7 +182,7 @@ class AgentSessionABC(ABC):
             _LOGGER.debug("Finished updating session metadata file")
 
     @abstractmethod
-    def _setup(self):
+    def _setup(self) -> None:
         _LOGGER.info(
             "Welcome to the Primary-level AI Training Environment " f"(PrimAITE) (version: {primaite.__version__})"
         )
@@ -186,14 +192,14 @@ class AgentSessionABC(ABC):
         self._can_evaluate = False
 
     @abstractmethod
-    def _save_checkpoint(self):
+    def _save_checkpoint(self) -> None:
         pass
 
     @abstractmethod
     def learn(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Train the agent.
 
@@ -210,8 +216,8 @@ class AgentSessionABC(ABC):
     @abstractmethod
     def evaluate(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Evaluate the agent.
 
@@ -224,7 +230,7 @@ class AgentSessionABC(ABC):
             _LOGGER.info("Finished evaluation")
 
     @abstractmethod
-    def _get_latest_checkpoint(self):
+    def _get_latest_checkpoint(self) -> None:
         pass
 
     @classmethod
@@ -264,7 +270,6 @@ class AgentSessionABC(ABC):
             msg = f"Failed to load PrimAITE Session, path does not exist: {path}"
             _LOGGER.error(msg)
             raise FileNotFoundError(msg)
-        pass
 
     @property
     def _saved_agent_path(self) -> Path:
@@ -276,21 +281,21 @@ class AgentSessionABC(ABC):
         return self.learning_path / file_name
 
     @abstractmethod
-    def save(self):
+    def save(self) -> None:
         """Save the agent."""
         pass
 
     @abstractmethod
-    def export(self):
+    def export(self) -> None:
         """Export the agent to transportable file format."""
         pass
 
-    def close(self):
+    def close(self) -> None:
         """Closes the agent."""
         self._env.episode_av_reward_writer.close()  # noqa
         self._env.transaction_writer.close()  # noqa
 
-    def _plot_av_reward_per_episode(self, learning_session: bool = True):
+    def _plot_av_reward_per_episode(self, learning_session: bool = True) -> None:
         # self.close()
         title = f"PrimAITE Session {self.timestamp_str} "
         subtitle = str(self._training_config)
@@ -318,7 +323,7 @@ class HardCodedAgentSessionABC(AgentSessionABC):
     implemented.
     """
 
-    def __init__(self, training_config_path, lay_down_config_path):
+    def __init__(self, training_config_path: Union[str, Path], lay_down_config_path: Union[str, Path]) -> None:
         """
         Initialise a hardcoded agent session.
 
@@ -331,7 +336,7 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         super().__init__(training_config_path, lay_down_config_path)
         self._setup()
 
-    def _setup(self):
+    def _setup(self) -> None:
         self._env: Primaite = Primaite(
             training_config_path=self._training_config_path,
             lay_down_config_path=self._lay_down_config_path,
@@ -342,16 +347,16 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         self._can_learn = False
         self._can_evaluate = True
 
-    def _save_checkpoint(self):
+    def _save_checkpoint(self) -> None:
         pass
 
-    def _get_latest_checkpoint(self):
+    def _get_latest_checkpoint(self) -> None:
         pass
 
     def learn(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Train the agent.
 
@@ -360,13 +365,13 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         _LOGGER.warning("Deterministic agents cannot learn")
 
     @abstractmethod
-    def _calculate_action(self, obs):
+    def _calculate_action(self, obs: np.ndarray) -> None:
         pass
 
     def evaluate(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Evaluate the agent.
 
@@ -398,14 +403,14 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         super().evaluate()
 
     @classmethod
-    def load(cls):
+    def load(cls) -> None:
         """Load an agent from file."""
         _LOGGER.warning("Deterministic agents cannot be loaded")
 
-    def save(self):
+    def save(self) -> None:
         """Save the agent."""
         _LOGGER.warning("Deterministic agents cannot be saved")
 
-    def export(self):
+    def export(self) -> None:
         """Export the agent to transportable file format."""
         _LOGGER.warning("Deterministic agents cannot be exported")
