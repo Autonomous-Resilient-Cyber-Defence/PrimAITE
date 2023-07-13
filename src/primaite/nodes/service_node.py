@@ -25,7 +25,7 @@ class ServiceNode(ActiveNode):
         software_state: SoftwareState,
         file_system_state: FileSystemState,
         config_values: TrainingConfig,
-    ):
+    ) -> None:
         """
         Initialise a Service Node.
 
@@ -52,7 +52,7 @@ class ServiceNode(ActiveNode):
         )
         self.services: Dict[str, Service] = {}
 
-    def add_service(self, service: Service):
+    def add_service(self, service: Service) -> None:
         """
         Adds a service to the node.
 
@@ -102,7 +102,7 @@ class ServiceNode(ActiveNode):
                     return False
         return False
 
-    def set_service_state(self, protocol_name: str, software_state: SoftwareState):
+    def set_service_state(self, protocol_name: str, software_state: SoftwareState) -> None:
         """
         Sets the software_state of a service (protocol) on the node.
 
@@ -131,7 +131,7 @@ class ServiceNode(ActiveNode):
                 f"Node.services[<key>].software_state:{software_state}"
             )
 
-    def set_service_state_if_not_compromised(self, protocol_name: str, software_state: SoftwareState):
+    def set_service_state_if_not_compromised(self, protocol_name: str, software_state: SoftwareState) -> None:
         """
         Sets the software_state of a service (protocol) on the node.
 
@@ -158,7 +158,7 @@ class ServiceNode(ActiveNode):
                 f"Node.services[<key>].software_state:{software_state}"
             )
 
-    def get_service_state(self, protocol_name):
+    def get_service_state(self, protocol_name: str) -> SoftwareState:
         """
         Gets the state of a service.
 
@@ -169,20 +169,20 @@ class ServiceNode(ActiveNode):
         if service_value:
             return service_value.software_state
 
-    def update_services_patching_status(self):
+    def update_services_patching_status(self) -> None:
         """Updates the patching counter for any service that are patching."""
         for service_key, service_value in self.services.items():
             if service_value.software_state == SoftwareState.PATCHING:
                 service_value.reduce_patching_count()
 
-    def update_resetting_status(self):
+    def update_resetting_status(self) -> None:
         """Update resetting counter and set software state if it reached 0."""
         super().update_resetting_status()
         if self.resetting_count <= 0:
             for service in self.services.values():
                 service.software_state = SoftwareState.GOOD
 
-    def update_booting_status(self):
+    def update_booting_status(self) -> None:
         """Update booting counter and set software to good if it reached 0."""
         super().update_booting_status()
         if self.booting_count <= 0:

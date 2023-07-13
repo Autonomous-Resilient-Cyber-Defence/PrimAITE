@@ -1,5 +1,9 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Defines node behaviour for Green PoL."""
+from typing import TYPE_CHECKING, Union
+
+if TYPE_CHECKING:
+    from primaite.common.enums import HardwareState, NodePOLType, SoftwareState
 
 
 class NodeStateInstructionGreen(object):
@@ -7,10 +11,10 @@ class NodeStateInstructionGreen(object):
 
     def __init__(
         self,
-        _id,
-        _start_step,
-        _end_step,
-        _node_id,
+        _id: str,
+        _start_step: int,
+        _end_step: int,
+        _node_id: str,
         _node_pol_type,
         _service_name,
         _state,
@@ -30,9 +34,10 @@ class NodeStateInstructionGreen(object):
         self.start_step = _start_step
         self.end_step = _end_step
         self.node_id = _node_id
-        self.node_pol_type = _node_pol_type
-        self.service_name = _service_name  # Not used when not a service instruction
-        self.state = _state
+        self.node_pol_type: "NodePOLType" = _node_pol_type
+        self.service_name: str = _service_name  # Not used when not a service instruction
+        # TODO: confirm type of state
+        self.state: Union["HardwareState", "SoftwareState"] = _state
 
     def get_start_step(self):
         """

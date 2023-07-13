@@ -562,7 +562,7 @@ class Primaite(Env):
         else:
             return
 
-    def apply_actions_to_acl(self, _action):
+    def apply_actions_to_acl(self, _action: int) -> None:
         """
         Applies agent actions to the Access Control List [TO DO].
 
@@ -640,7 +640,7 @@ class Primaite(Env):
             else:
                 return
 
-    def apply_time_based_updates(self):
+    def apply_time_based_updates(self) -> None:
         """
         Updates anything that needs to count down and then change state.
 
@@ -696,12 +696,12 @@ class Primaite(Env):
 
         return self.obs_handler.space, self.obs_handler.current_observation
 
-    def update_environent_obs(self):
+    def update_environent_obs(self) -> None:
         """Updates the observation space based on the node and link status."""
         self.obs_handler.update_obs()
         self.env_obs = self.obs_handler.current_observation
 
-    def load_lay_down_config(self):
+    def load_lay_down_config(self) -> None:
         """Loads config data in order to build the environment configuration."""
         for item in self.lay_down_config:
             if item["item_type"] == "NODE":
@@ -739,7 +739,7 @@ class Primaite(Env):
         _LOGGER.info("Environment configuration loaded")
         print("Environment configuration loaded")
 
-    def create_node(self, item):
+    def create_node(self, item: Dict) -> None:
         """
         Creates a node from config data.
 
@@ -820,7 +820,7 @@ class Primaite(Env):
         # Add node to network (reference)
         self.network_reference.add_nodes_from([node_ref])
 
-    def create_link(self, item: Dict):
+    def create_link(self, item: Dict) -> None:
         """
         Creates a link from config data.
 
@@ -864,7 +864,7 @@ class Primaite(Env):
             self.services_list,
         )
 
-    def create_green_ier(self, item):
+    def create_green_ier(self, item: Dict) -> None:
         """
         Creates a green IER from config data.
 
@@ -905,7 +905,7 @@ class Primaite(Env):
             ier_mission_criticality,
         )
 
-    def create_red_ier(self, item):
+    def create_red_ier(self, item: Dict) -> None:
         """
         Creates a red IER from config data.
 
@@ -935,7 +935,7 @@ class Primaite(Env):
             ier_mission_criticality,
         )
 
-    def create_green_pol(self, item):
+    def create_green_pol(self, item: Dict) -> None:
         """
         Creates a green PoL object from config data.
 
@@ -969,7 +969,7 @@ class Primaite(Env):
             pol_state,
         )
 
-    def create_red_pol(self, item):
+    def create_red_pol(self, item: Dict) -> None:
         """
         Creates a red PoL object from config data.
 
@@ -1010,7 +1010,7 @@ class Primaite(Env):
             pol_source_node_service_state,
         )
 
-    def create_acl_rule(self, item):
+    def create_acl_rule(self, item: Dict) -> None:
         """
         Creates an ACL rule from config data.
 
@@ -1031,7 +1031,8 @@ class Primaite(Env):
             acl_rule_port,
         )
 
-    def create_services_list(self, services):
+    # TODO: confirm typehint using runtime
+    def create_services_list(self, services: Dict) -> None:
         """
         Creates a list of services (enum) from config data.
 
@@ -1047,7 +1048,7 @@ class Primaite(Env):
         # Set the number of services
         self.num_services = len(self.services_list)
 
-    def create_ports_list(self, ports):
+    def create_ports_list(self, ports: Dict) -> None:
         """
         Creates a list of ports from config data.
 
@@ -1063,7 +1064,8 @@ class Primaite(Env):
         # Set the number of ports
         self.num_ports = len(self.ports_list)
 
-    def get_observation_info(self, observation_info):
+    # TODO: this is not used anymore, write a ticket to delete it
+    def get_observation_info(self, observation_info: Dict) -> None:
         """
         Extracts observation_info.
 
@@ -1072,7 +1074,8 @@ class Primaite(Env):
         """
         self.observation_type = ObservationType[observation_info["type"]]
 
-    def get_action_info(self, action_info):
+    # TODO: this is not used anymore, write a ticket to delete it.
+    def get_action_info(self, action_info: Dict) -> None:
         """
         Extracts action_info.
 
@@ -1081,7 +1084,7 @@ class Primaite(Env):
         """
         self.action_type = ActionType[action_info["type"]]
 
-    def save_obs_config(self, obs_config: dict):
+    def save_obs_config(self, obs_config: dict) -> None:
         """
         Cache the config for the observation space.
 
@@ -1094,7 +1097,7 @@ class Primaite(Env):
         """
         self.obs_config = obs_config
 
-    def reset_environment(self):
+    def reset_environment(self) -> None:
         """
         Resets environment.
 
@@ -1119,7 +1122,7 @@ class Primaite(Env):
         for ier_key, ier_value in self.red_iers.items():
             ier_value.set_is_running(False)
 
-    def reset_node(self, item):
+    def reset_node(self, item: Dict) -> None:
         """
         Resets the statuses of a node.
 
@@ -1167,7 +1170,7 @@ class Primaite(Env):
             # Bad formatting
             pass
 
-    def create_node_action_dict(self):
+    def create_node_action_dict(self) -> Dict[int, List[int]]:
         """
         Creates a dictionary mapping each possible discrete action to more readable multidiscrete action.
 
@@ -1202,7 +1205,7 @@ class Primaite(Env):
 
         return actions
 
-    def create_acl_action_dict(self):
+    def create_acl_action_dict(self) -> Dict[int, List[int]]:
         """Creates a dictionary mapping each possible discrete action to more readable multidiscrete action."""
         # reserve 0 action to be a nothing action
         actions = {0: [0, 0, 0, 0, 0, 0]}
@@ -1232,7 +1235,7 @@ class Primaite(Env):
 
         return actions
 
-    def create_node_and_acl_action_dict(self):
+    def create_node_and_acl_action_dict(self) -> Dict[int, List[int]]:
         """
         Create a dictionary mapping each possible discrete action to a more readable mutlidiscrete action.
 
@@ -1249,7 +1252,7 @@ class Primaite(Env):
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
         return combined_action_dict
 
-    def _create_random_red_agent(self):
+    def _create_random_red_agent(self) -> None:
         """Decide on random red agent for the episode to be called in env.reset()."""
         # Reset the current red iers and red node pol
         self.red_iers = {}
