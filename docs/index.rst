@@ -23,6 +23,12 @@ What is PrimAITE built with
 * `Networkx <https://github.com/networkx/networkx>`_ is used as the underlying data structure used for the PrimAITE environment
 * `Stable Baselines 3 <https://github.com/DLR-RM/stable-baselines3>`_ is used as a default source of RL algorithms (although PrimAITE is not limited to SB3 agents)
 * `Ray RLlib <https://github.com/ray-project/ray>`_ is used as an additional source of RL algorithms
+* `Typer <https://github.com/tiangolo/typer>`_ is used for building CLIs (Command Line Interface applications)
+* `Tensorflow <https://github.com/ray-project/ray>`_ is used for training and inference of neural networks in machine learning
+* `Jupyterlab <https://github.com/jupyterlab/jupyterlab>`_ is used an extensible environment for interactive and reproducible computing, based on the Jupyter Notebook and Architecture
+* `Platformdirs <https://github.com/platformdirs/platformdirs>`_ is used for finding the right location to store user data and configuration but varies per platform
+* `Plotly <https://github.com/plotly/plotly.py>`_ is used for building high level charts
+
 
 Where next?
 ------------
