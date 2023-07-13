@@ -51,14 +51,15 @@ hard_coded_agent_view: FULL
 # "NODE"
 # "ACL"
 # "ANY" node and acl actions
-action_type: NODE
+action_type: ANY
 # observation space
 observation_space:
   # flatten: true
   components:
-    - name: NODE_LINK_TABLE
+    # - name: NODE_LINK_TABLE
     # - name: NODE_STATUSES
     # - name: LINK_TRAFFIC_LEVELS
+    - name: ACCESS_CONTROL_LIST
 
 
 # Number of episodes for training to run per session

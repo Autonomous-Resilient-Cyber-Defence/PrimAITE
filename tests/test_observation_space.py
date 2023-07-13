@@ -5,20 +5,6 @@ import pytest
 
 from primaite.environment.observations import NodeLinkTable, NodeStatuses, ObservationsHandler
 from tests import TEST_CONFIG_ROOT
-from tests.conftest import _get_primaite_env_from_config
-
-
-@pytest.fixture
-def env(request):
-    """Build Primaite environment for integration tests of observation space."""
-    marker = request.node.get_closest_marker("env_config_paths")
-    training_config_path = marker.args[0]["training_config_path"]
-    lay_down_config_path = marker.args[0]["lay_down_config_path"]
-    env = _get_primaite_env_from_config(
-        training_config_path=training_config_path,
-        lay_down_config_path=lay_down_config_path,
-    )
-    yield env
 
 
 @pytest.mark.parametrize(
@@ -314,5 +300,5 @@ class TestAccessControlList:
         THINK THE RULES SHOULD BE THE OTHER WAY AROUND IN THE CURRENT OBSERVATION
         """
         # np.array_equal(obs, [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2])
-        # assert np.array_equal(obs, [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2])
-        assert obs == [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2]
+        assert np.array_equal(obs, [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2])
+        # assert obs == [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2]

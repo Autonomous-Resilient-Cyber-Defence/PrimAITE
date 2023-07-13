@@ -18,7 +18,6 @@ _PLATFORM_DIRS: Final[PlatformDirs] = PlatformDirs(appname="primaite")
 
 def _get_primaite_config():
     config_path = _PLATFORM_DIRS.user_config_path / "primaite_config.yaml"
-    print("config path", config_path)
     if not config_path.exists():
         config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
     with open(config_path, "r") as file:

@@ -62,7 +62,7 @@ class TempPrimaiteSession(PrimaiteSession):
 
     def __exit__(self, type, value, tb):
         shutil.rmtree(self.session_path)
-        shutil.rmtree(self.session_path.parent)
+        # shutil.rmtree(self.session_path.parent)
         _LOGGER.debug(f"Deleted temp session directory: {self.session_path}")
 
 
