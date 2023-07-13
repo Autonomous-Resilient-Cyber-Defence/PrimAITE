@@ -22,10 +22,13 @@ agent_identifier: DUMMY
 # "ACL"
 # "ANY" node and acl actions
 action_type: NODE
-# Number of episodes to run per session
-num_episodes: 1
-# Number of time_steps per episode
-num_steps: 15
+
+
+# Number of episodes for evaluation to run per session
+num_eval_episodes: 1
+
+# Number of time_steps for evaluation per episode
+num_eval_steps: 15
 # Time delay between steps (for generic agents)
 time_delay: 1
 

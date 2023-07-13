@@ -84,7 +84,12 @@ class Primaite(Env):
         _LOGGER.info(f"Using: {str(self.training_config)}")
 
         # Number of steps in an episode
-        self.episode_steps = self.training_config.num_steps
+        if self.training_config.session_type == SessionType.TRAIN:
+            self.episode_steps = self.training_config.num_train_steps
+        elif self.training_config.session_type == SessionType.EVAL:
+            self.episode_steps = self.training_config.num_eval_steps
+        else:
+            self.episode_steps = self.training_config.num_train_steps
 
         super(Primaite, self).__init__()
 
@@ -259,6 +264,12 @@ class Primaite(Env):
         self.episode_count = 0
         self.step_count = 0
         self.total_step_count = 0
+        self.episode_steps = self.training_config.num_eval_steps
+
+    def _write_av_reward_per_episode(self):
+        if self.actual_episode_count > 0:
+            csv_data = self.actual_episode_count, self.average_reward
+            self.episode_av_reward_writer.write(csv_data)
 
     def reset(self):
         """
@@ -267,10 +278,7 @@ class Primaite(Env):
         Returns:
              Environment observation space (reset)
         """
-        if self.actual_episode_count > 0:
-            csv_data = self.actual_episode_count, self.average_reward
-            self.episode_av_reward_writer.write(csv_data)
-
+        self._write_av_reward_per_episode()
         self.episode_count += 1
 
         # Don't need to reset links, as they are cleared and recalculated every
