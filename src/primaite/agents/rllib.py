@@ -4,7 +4,7 @@ import json
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Any, Callable, Dict, TYPE_CHECKING, Union
 from uuid import uuid4
 
 from ray.rllib.algorithms import Algorithm
@@ -18,10 +18,14 @@ from primaite.agents.agent import AgentSessionABC
 from primaite.common.enums import AgentFramework, AgentIdentifier
 from primaite.environment.primaite_env import Primaite
 
-_LOGGER = getLogger(__name__)
+if TYPE_CHECKING:
+    from logging import Logger
+
+_LOGGER: "Logger" = getLogger(__name__)
 
 
-def _env_creator(env_config):
+# TODO: verify type of env_config
+def _env_creator(env_config: Dict[str, Any]) -> Primaite:
     return Primaite(
         training_config_path=env_config["training_config_path"],
         lay_down_config_path=env_config["lay_down_config_path"],
@@ -30,11 +34,12 @@ def _env_creator(env_config):
     )
 
 
-def _custom_log_creator(session_path: Path):
+# TODO: verify type hint return type
+def _custom_log_creator(session_path: Path) -> Callable[[Dict], UnifiedLogger]:
     logdir = session_path / "ray_results"
     logdir.mkdir(parents=True, exist_ok=True)
 
-    def logger_creator(config):
+    def logger_creator(config: Dict) -> UnifiedLogger:
         return UnifiedLogger(config, logdir, loggers=None)
 
     return logger_creator
@@ -43,7 +48,7 @@ def _custom_log_creator(session_path: Path):
 class RLlibAgent(AgentSessionABC):
     """An AgentSession class that implements a Ray RLlib agent."""
 
-    def __init__(self, training_config_path, lay_down_config_path):
+    def __init__(self, training_config_path: Union[str, Path], lay_down_config_path: Union[str, Path]) -> None:
         """
         Initialise the RLLib Agent training session.
 
@@ -82,7 +87,7 @@ class RLlibAgent(AgentSessionABC):
             f"{self._training_config.deep_learning_framework}"
         )
 
-    def _update_session_metadata_file(self):
+    def _update_session_metadata_file(self) -> None:
         """
         Update the ``session_metadata.json`` file.
 
@@ -110,7 +115,7 @@ class RLlibAgent(AgentSessionABC):
             json.dump(metadata_dict, file)
             _LOGGER.debug("Finished updating session metadata file")
 
-    def _setup(self):
+    def _setup(self) -> None:
         super()._setup()
         register_env("primaite", _env_creator)
         self._agent_config = self._agent_config_class()
@@ -147,8 +152,8 @@ class RLlibAgent(AgentSessionABC):
 
     def learn(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Evaluate the agent.
 
@@ -168,8 +173,8 @@ class RLlibAgent(AgentSessionABC):
 
     def evaluate(
         self,
-        **kwargs,
-    ):
+        **kwargs: None,
+    ) -> None:
         """
         Evaluate the agent.
 
@@ -177,7 +182,7 @@ class RLlibAgent(AgentSessionABC):
         """
         raise NotImplementedError
 
-    def _get_latest_checkpoint(self):
+    def _get_latest_checkpoint(self) -> None:
         raise NotImplementedError
 
     @classmethod
@@ -185,7 +190,7 @@ class RLlibAgent(AgentSessionABC):
         """Load an agent from file."""
         raise NotImplementedError
 
-    def save(self, overwrite_existing: bool = True):
+    def save(self, overwrite_existing: bool = True) -> None:
         """Save the agent."""
         # Make temp dir to save in isolation
         temp_dir = self.learning_path / str(uuid4())
@@ -205,6 +210,6 @@ class RLlibAgent(AgentSessionABC):
         # Drop the temp directory
         shutil.rmtree(temp_dir)
 
-    def export(self):
+    def export(self) -> None:
         """Export the agent to transportable file format."""
         raise NotImplementedError

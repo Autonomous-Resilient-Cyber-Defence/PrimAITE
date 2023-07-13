@@ -15,12 +15,12 @@ class Service(object):
         :param port: The service port.
         :param software_state: The service SoftwareState.
         """
-        self.name = name
-        self.port = port
-        self.software_state = software_state
-        self.patching_count = 0
+        self.name: str = name
+        self.port: str = port
+        self.software_state: SoftwareState = software_state
+        self.patching_count: int = 0
 
-    def reduce_patching_count(self):
+    def reduce_patching_count(self) -> None:
         """Reduces the patching count for the service."""
         self.patching_count -= 1
         if self.patching_count <= 0:
