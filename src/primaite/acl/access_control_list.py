@@ -80,11 +80,8 @@ class AccessControlList:
              Indicates block if all conditions are satisfied.
         """
         for rule in self.acl:
-            print("loops through rule", rule, isinstance(rule, ACLRule))
             if isinstance(rule, ACLRule):
-                print("finds rule")
                 if self.check_address_match(rule, _source_ip_address, _dest_ip_address):
-                    print("source and dest ip match")
                     if (rule.get_protocol() == _protocol or rule.get_protocol() == "ANY") and (
                         str(rule.get_port()) == str(_port) or rule.get_port() == "ANY"
                     ):
