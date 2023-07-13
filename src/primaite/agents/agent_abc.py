@@ -4,7 +4,7 @@ import json
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Final, Union
+from typing import Dict, Optional, Union
 from uuid import uuid4
 
 import yaml
@@ -46,38 +46,63 @@ class AgentSessionABC(ABC):
     """
 
     @abstractmethod
-    def __init__(self, training_config_path, lay_down_config_path):
+    def __init__(
+        self,
+        training_config_path: Optional[Union[str, Path]] = "",
+        lay_down_config_path: Optional[Union[str, Path]] = "",
+        session_path: Optional[Union[str, Path]] = None,
+    ):
         """
-        Initialise an agent session from config files.
+        Initialise an agent session from config files, or load a previous session.
+
+        If training configuration and laydown configuration are provided with a session path,
+        the session path will be used.
 
         :param training_config_path: YAML file containing configurable items defined in
             `primaite.config.training_config.TrainingConfig`
         :type training_config_path: Union[path, str]
         :param lay_down_config_path: YAML file containing configurable items for generating network laydown.
         :type lay_down_config_path: Union[path, str]
+        :param session_path: directory path of the session to load
         """
-        if not isinstance(training_config_path, Path):
-            training_config_path = Path(training_config_path)
-        self._training_config_path: Final[Union[Path, str]] = training_config_path
-        self._training_config: Final[TrainingConfig] = training_config.load(self._training_config_path)
-
-        if not isinstance(lay_down_config_path, Path):
-            lay_down_config_path = Path(lay_down_config_path)
-        self._lay_down_config_path: Final[Union[Path, str]] = lay_down_config_path
-        self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)
-        self.sb3_output_verbose_level = self._training_config.sb3_output_verbose_level
-
+        # initialise variables
         self._env: Primaite
         self._agent = None
         self._can_learn: bool = False
         self._can_evaluate: bool = False
         self.is_eval = False
 
-        self._uuid = str(uuid4())
         self.session_timestamp: datetime = datetime.now()
-        "The session timestamp"
-        self.session_path = get_session_path(self.session_timestamp)
-        "The Session path"
+
+        # convert session to path
+        if session_path is not None:
+            if not isinstance(session_path, Path):
+                session_path = Path(session_path)
+
+            # if a session path is provided, load it
+            if not session_path.exists():
+                raise Exception(f"Session could not be loaded. Path does not exist: {session_path}")
+
+            # load session
+            self.load(session_path)
+        else:
+            # set training config path
+            if not isinstance(training_config_path, Path):
+                training_config_path = Path(training_config_path)
+            self._training_config_path: Union[Path, str] = training_config_path
+            self._training_config: TrainingConfig = training_config.load(self._training_config_path)
+
+            if not isinstance(lay_down_config_path, Path):
+                lay_down_config_path = Path(lay_down_config_path)
+            self._lay_down_config_path: Union[Path, str] = lay_down_config_path
+            self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)
+            self.sb3_output_verbose_level = self._training_config.sb3_output_verbose_level
+
+            # set random UUID for session
+            self._uuid = str(uuid4())
+            "The session timestamp"
+            self.session_path = get_session_path(self.session_timestamp)
+            "The Session path"
 
     @property
     def timestamp_str(self) -> str:
@@ -226,9 +251,7 @@ class AgentSessionABC(ABC):
     def _get_latest_checkpoint(self):
         pass
 
-    @classmethod
-    @abstractmethod
-    def load(cls, path: Union[str, Path]) -> AgentSessionABC:
+    def load(self, path: Union[str, Path]):
         """Load an agent from file."""
         if not isinstance(path, Path):
             path = Path(path)
@@ -252,26 +275,29 @@ class AgentSessionABC(ABC):
             with open(temp_ldc, "w") as file:
                 yaml.dump(md_dict["env"]["lay_down_config"], file)
 
-            agent = cls(temp_tc, temp_ldc)
+            # set training config path
+            self._training_config_path: Union[Path, str] = temp_tc
+            self._training_config: TrainingConfig = training_config.load(self._training_config_path)
+            self._lay_down_config_path: Union[Path, str] = temp_ldc
+            self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)
+            self.sb3_output_verbose_level = self._training_config.sb3_output_verbose_level
 
-            agent.session_path = path
+            # set random UUID for session
+            self._uuid = md_dict["uuid"]
 
-            return agent
+            # set the session path
+            self.session_path = path
+            "The Session path"
 
         else:
             # Session path does not exist
             msg = f"Failed to load PrimAITE Session, path does not exist: {path}"
             _LOGGER.error(msg)
             raise FileNotFoundError(msg)
-        pass
 
     @property
     def _saved_agent_path(self) -> Path:
-        file_name = (
-            f"{self._training_config.agent_framework}_"
-            f"{self._training_config.agent_identifier}_"
-            f"{self.timestamp_str}.zip"
-        )
+        file_name = f"{self._training_config.agent_framework}_" f"{self._training_config.agent_identifier}_" f".zip"
         return self.learning_path / file_name
 
     @abstractmethod

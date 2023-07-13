@@ -14,7 +14,7 @@ from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import register_env
 
 from primaite import getLogger
-from primaite.agents.agent import AgentSessionABC
+from primaite.agents.agent_abc import AgentSessionABC
 from primaite.common.enums import AgentFramework, AgentIdentifier
 from primaite.environment.primaite_env import Primaite
 
