@@ -2,7 +2,7 @@ import time
 from abc import abstractmethod
 
 from primaite import getLogger
-from primaite.agents.agent import AgentSessionABC
+from primaite.agents.agent_abc import AgentSessionABC
 from primaite.environment.primaite_env import Primaite
 
 _LOGGER = getLogger(__name__)
