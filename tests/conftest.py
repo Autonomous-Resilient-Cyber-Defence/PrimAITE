@@ -1,17 +1,16 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 import datetime
+import json
 import shutil
 import tempfile
-import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Union
+from typing import Any, Dict, Union
 from unittest.mock import patch
 
 import pytest
 
 from primaite import getLogger
-from primaite.common.enums import AgentIdentifier
 from primaite.environment.primaite_env import Primaite
 from primaite.primaite_session import PrimaiteSession
 from primaite.utils.session_output_reader import av_rewards_dict
@@ -48,6 +47,11 @@ class TempPrimaiteSession(PrimaiteSession):
         csv_file = f"average_reward_per_episode_{self.timestamp_str}.csv"
         return av_rewards_dict(self.evaluation_path / csv_file)
 
+    def metadata_file_as_dict(self) -> Dict[str, Any]:
+        """Read the session_metadata.json file and return as a dict."""
+        with open(self.session_path / "session_metadata.json", "r") as file:
+            return json.load(file)
+
     @property
     def env(self) -> Primaite:
         """Direct access to the env for ease of testing."""
@@ -58,6 +62,7 @@ class TempPrimaiteSession(PrimaiteSession):
 
     def __exit__(self, type, value, tb):
         shutil.rmtree(self.session_path)
+        shutil.rmtree(self.session_path.parent)
         _LOGGER.debug(f"Deleted temp session directory: {self.session_path}")
 
 
@@ -129,58 +134,3 @@ def temp_session_path() -> Path:
     session_path.mkdir(exist_ok=True, parents=True)
 
     return session_path
-
-
-def _get_primaite_env_from_config(
-    training_config_path: Union[str, Path],
-    lay_down_config_path: Union[str, Path],
-    temp_session_path,
-):
-    """Takes a config path and returns the created instance of Primaite."""
-    session_timestamp: datetime = datetime.now()
-    session_path = temp_session_path(session_timestamp)
-
-    timestamp_str = session_timestamp.strftime("%Y-%m-%d_%H-%M-%S")
-    env = Primaite(
-        training_config_path=training_config_path,
-        lay_down_config_path=lay_down_config_path,
-        session_path=session_path,
-        timestamp_str=timestamp_str,
-    )
-    config_values = env.training_config
-    config_values.num_steps = env.episode_steps
-
-    # TOOD: This needs t be refactored to happen outside. Should be part of
-    # a main Session class.
-    if env.training_config.agent_identifier is AgentIdentifier.RANDOM:
-        run_generic(env, config_values)
-
-    return env
-
-
-def run_generic(env, config_values):
-    """Run against a generic agent."""
-    # Reset the environment at the start of the episode
-    # env.reset()
-    for episode in range(0, config_values.num_episodes):
-        for step in range(0, config_values.num_steps):
-            # Send the observation space to the agent to get an action
-            # TEMP - random action for now
-            # action = env.blue_agent_action(obs)
-            # action = env.action_space.sample()
-            action = 0
-
-            # Run the simulation step on the live environment
-            obs, reward, done, info = env.step(action)
-
-            # Break if done is True
-            if done:
-                break
-
-            # Introduce a delay between steps
-            time.sleep(config_values.time_delay / 1000)
-
-        # Reset the environment at the end of the episode
-        # env.reset()
-
-    # env.close()

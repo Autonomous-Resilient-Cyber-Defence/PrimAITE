@@ -28,10 +28,17 @@ random_red_agent: True
 # "ACL"
 # "ANY" node and acl actions
 action_type: NODE
-# Number of episodes to run per session
-num_episodes: 2
-# Number of time_steps per episode
-num_steps: 15
+# Number of episodes for training to run per session
+num_train_episodes: 2
+
+# Number of time_steps for training per episode
+num_train_steps: 15
+
+# Number of episodes for evaluation to run per session
+num_eval_episodes: 2
+
+# Number of time_steps for evaluation per episode
+num_eval_steps: 15
 # Time delay between steps (for generic agents)
 time_delay: 1
 
