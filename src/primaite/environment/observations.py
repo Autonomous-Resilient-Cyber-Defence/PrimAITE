@@ -519,30 +519,26 @@ class AccessControlList(AbstractObservationComponent):
                         port_int = self.env.ports_list.index(port) + 2
                     else:
                         _LOGGER.info(f"Port {port} could not be found.")
+                        port_int = None
 
                 # Either do the multiply on the obs space
                 # Change the obs to
-                items_to_add = [
-                    permission_int,
-                    source_ip_int,
-                    dest_ip_int,
-                    protocol_int,
-                    port_int,
-                    position,
-                ]
-                position = position * 6
-                for item in items_to_add:
-                    # print("position", position, "\nitem", int(item))
-                    obs.insert(position, int(item))
-                    position += 1
+                obs.extend(
+                    [
+                        permission_int,
+                        source_ip_int,
+                        dest_ip_int,
+                        protocol_int,
+                        port_int,
+                        position,
+                    ]
+                )
+
             else:
-                starting_position = index * 6
-                for placeholder in range(6):
-                    obs.insert(starting_position, 0)
-                    starting_position += 1
+                obs.extend([0, 0, 0, 0, 0, 0])
 
         # print("current obs", obs, "\n" ,len(obs))
-        self.current_observation = obs
+        self.current_observation[:] = obs
 
     def generate_structure(self):
         """Return a list of labels for the components of the flattened observation space."""

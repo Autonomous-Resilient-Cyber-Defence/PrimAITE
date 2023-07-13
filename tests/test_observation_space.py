@@ -257,7 +257,7 @@ class TestLinkTrafficLevels:
     "temp_primaite_session",
     [
         [
-            TEST_CONFIG_ROOT / "single_action_space_fixed_blue_actions_main_config.yaml",
+            TEST_CONFIG_ROOT / "obs_tests/main_config_ACCESS_CONTROL_LIST.yaml",
             TEST_CONFIG_ROOT / "obs_tests/laydown_ACL.yaml",
         ]
     ],
@@ -273,7 +273,7 @@ class TestAccessControlList:
             env.update_environent_obs()
 
         # we have two ACLs
-        assert env.env_obs.shape == (6 * 3)
+        assert env.env_obs.shape == (18,)
 
     def test_values(self, temp_primaite_session):
         """Test that traffic values are encoded correctly.
@@ -296,7 +296,7 @@ class TestAccessControlList:
         # therefore the first and third elements should be 6 and all others 0
         # (`7` corresponds to 100% utiilsation and `6` corresponds to 87.5%-100%)
         print(obs)
-        assert np.array_equal(obs, [])
+        assert np.array_equal(obs, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2])
 
     def test_observation_space_with_implicit_rule(self, temp_primaite_session):
         """Test observation space is what is expected when an agent adds ACLs during an episode."""
