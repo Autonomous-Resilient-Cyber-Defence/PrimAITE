@@ -2,6 +2,7 @@ import time
 
 import pytest
 
+from primaite.acl.acl_rule import ACLRule
 from primaite.common.enums import HardwareState
 from primaite.environment.primaite_env import Primaite
 from tests import TEST_CONFIG_ROOT
@@ -112,7 +113,7 @@ def test_agent_is_executing_actions_from_both_spaces(temp_primaite_session):
         # This 1 rule added to the implicit deny means there should be 2 rules in total.
         rules_count = 0
         for rule in acl_rules_list:
-            if rule != -1:
+            if isinstance(rule, ACLRule):
                 rules_count += 1
         # Therefore these statements below MUST be true
         assert computer_node_hardware_state == HardwareState.OFF

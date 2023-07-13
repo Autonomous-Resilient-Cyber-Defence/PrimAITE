@@ -444,12 +444,11 @@ class Primaite(Env):
             _action: The action space from the agent
         """
         # At the moment, actions are only affecting nodes
-
         if self.training_config.action_type == ActionType.NODE:
             self.apply_actions_to_nodes(_action)
         elif self.training_config.action_type == ActionType.ACL:
             self.apply_actions_to_acl(_action)
-        elif len(self.action_dict[_action]) == 7:  # ACL actions in multidiscrete form have len 6
+        elif len(self.action_dict[_action]) == 7:  # ACL actions in multidiscrete form have len 7
             self.apply_actions_to_acl(_action)
         elif len(self.action_dict[_action]) == 4:  # Node actions in multdiscrete (array) from have len 4
             self.apply_actions_to_nodes(_action)
@@ -1248,7 +1247,6 @@ class Primaite(Env):
 
         # Combine the Node dict and ACL dict
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
-        print("combined dict", combined_action_dict.items())
         return combined_action_dict
 
     def _create_random_red_agent(self):
