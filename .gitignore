@@ -50,6 +50,9 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+tests/assets/**/*.png
+tests/assets/**/tensorboard_logs/
+tests/assets/**/checkpoints/
 
 # Translations
 *.mo

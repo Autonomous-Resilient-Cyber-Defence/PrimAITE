@@ -4,7 +4,7 @@ import numpy as np
 
 from primaite.acl.access_control_list import AccessControlList
 from primaite.acl.acl_rule import ACLRule
-from primaite.agents.hardcoded import HardCodedAgentSessionABC
+from primaite.agents.hardcoded_abc import HardCodedAgentSessionABC
 from primaite.agents.utils import (
     get_new_action,
     get_node_of_ip,

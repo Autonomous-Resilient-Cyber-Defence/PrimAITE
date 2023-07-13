@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, Final, Union
 
 from primaite import getLogger
-from primaite.agents.agent import AgentSessionABC
+from primaite.agents.agent_abc import AgentSessionABC
 from primaite.agents.hardcoded_acl import HardCodedACLAgent
 from primaite.agents.hardcoded_node import HardCodedNodeAgent
 from primaite.agents.rllib import RLlibAgent
