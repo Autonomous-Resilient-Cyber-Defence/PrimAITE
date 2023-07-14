@@ -429,8 +429,8 @@ class AccessControlList(AbstractObservationComponent):
 
     Terms (for ACL Observation Space):
         [0, 1, 2] - Permission (0 = NA, 1 = DENY, 2 = ALLOW)
-        [0, num nodes] - Source IP (0 = NA, 1 = any, then 2 -> x resolving to IP addresses)
-        [0, num nodes] - Dest IP (0 = NA, 1 = any, then 2 -> x resolving to IP addresses)
+        [0, num nodes] - Source IP (0 = NA, 1 = any, then 2 -> x resolving to Node IDs)
+        [0, num nodes] - Dest IP (0 = NA, 1 = any, then 2 -> x resolving to Node IDs)
         [0, num services] - Protocol (0 = NA, 1 = any, then 2 -> x resolving to protocol)
         [0, num ports] - Port (0 = NA, 1 = any, then 2 -> x resolving to port)
         [0, max acl rules - 1] - Position (0 = NA, 1 = first index, then 2 -> x index resolving to acl rule in acl list)
