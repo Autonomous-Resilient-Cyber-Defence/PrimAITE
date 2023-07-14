@@ -72,7 +72,7 @@ class _LevelFormatter(Formatter):
     Credit to: https://stackoverflow.com/a/68154386
     """
 
-    def __init__(self, formats: Dict[int, str], **kwargs: Any) -> str:
+    def __init__(self, formats: Dict[int, str], **kwargs: Any) -> None:
         super().__init__()
 
         if "fmt" in kwargs:

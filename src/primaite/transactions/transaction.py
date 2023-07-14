@@ -1,7 +1,7 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """The Transaction class."""
 from datetime import datetime
-from typing import List, Tuple, TYPE_CHECKING, Union
+from typing import List, Optional, Tuple, TYPE_CHECKING, Union
 
 from primaite.common.enums import AgentIdentifier
 
@@ -31,15 +31,15 @@ class Transaction(object):
         "The step number"
         self.obs_space: "spaces.Space" = None
         "The observation space (pre)"
-        self.obs_space_pre: Union["np.ndarray", Tuple["np.ndarray"]] = None
+        self.obs_space_pre: Optional[Union["np.ndarray", Tuple["np.ndarray"]]] = None
         "The observation space before any actions are taken"
-        self.obs_space_post: Union["np.ndarray", Tuple["np.ndarray"]] = None
+        self.obs_space_post: Optional[Union["np.ndarray", Tuple["np.ndarray"]]] = None
         "The observation space after any actions are taken"
-        self.reward: float = None
+        self.reward: Optional[float] = None
         "The reward value"
-        self.action_space: int = None
+        self.action_space: Optional[int] = None
         "The action space invoked by the agent"
-        self.obs_space_description: List[str] = None
+        self.obs_space_description: Optional[List[str]] = None
         "The env observation space description"
 
     def as_csv_data(self) -> Tuple[List, List]:

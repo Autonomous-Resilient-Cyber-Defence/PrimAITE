@@ -1,6 +1,6 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """A class that implements the access control list implementation for the network."""
-from typing import Dict, Optional
+from typing import Dict
 
 from primaite.acl.acl_rule import ACLRule
 
@@ -76,9 +76,7 @@ class AccessControlList:
         hash_value = hash(new_rule)
         self.acl[hash_value] = new_rule
 
-    def remove_rule(
-        self, _permission: str, _source_ip: str, _dest_ip: str, _protocol: str, _port: str
-    ) -> Optional[int]:
+    def remove_rule(self, _permission: str, _source_ip: str, _dest_ip: str, _protocol: str, _port: str) -> None:
         """
         Removes a rule.
 
