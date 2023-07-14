@@ -4,7 +4,7 @@ import json
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 from uuid import uuid4
 
 from ray.rllib.algorithms import Algorithm
@@ -43,7 +43,12 @@ def _custom_log_creator(session_path: Path):
 class RLlibAgent(AgentSessionABC):
     """An AgentSession class that implements a Ray RLlib agent."""
 
-    def __init__(self, training_config_path, lay_down_config_path):
+    def __init__(
+        self,
+        training_config_path: Optional[Union[str, Path]] = "",
+        lay_down_config_path: Optional[Union[str, Path]] = "",
+        session_path: Optional[Union[str, Path]] = None,
+    ):
         """
         Initialise the RLLib Agent training session.
 
@@ -56,6 +61,13 @@ class RLlibAgent(AgentSessionABC):
         :raises ValueError: If the training config contains an unexpected value for agent_identifies (should be `PPO`
             or `A2C`)
         """
+        # TODO: implement RLlib agent loading
+        if session_path is not None:
+            msg = "RLlib agent loading has not been implemented yet"
+            _LOGGER.error(msg)
+            print(msg)
+            raise NotImplementedError
+
         super().__init__(training_config_path, lay_down_config_path)
         if not self._training_config.agent_framework == AgentFramework.RLLIB:
             msg = f"Expected RLLIB agent_framework, " f"got {self._training_config.agent_framework}"
