@@ -42,6 +42,36 @@ The sub-directory is formatted as such: ``~/primaite/sessions/<yyyy-mm-dd>/<yyyy
 For example, when running a session at 17:30:00 on 31st January 2023, the session will output to:
 ``~/primaite/sessions/2023-01-31/2023-01-31_17-30-00/``.
 
+Loading a session
+-------
+A previous session can be loaded by providing the **directory** of the previous session to either the ``primaite session`` command from the cli
+(See :func:`primaite.cli.session`), or by calling :func:`primaite.main.run` with session_path.
+
+.. tabs::
+
+    .. code-tab:: bash
+        :caption: Unix CLI
+
+        cd ~/primaite
+        source ./.venv/bin/activate
+        primaite session --load "path/to/session"
+
+    .. code-tab:: bash
+        :caption: Powershell CLI
+
+        cd ~\primaite
+        .\.venv\Scripts\activate
+        primaite session --load "path\to\session"
+
+
+    .. code-tab:: python
+        :caption: Python
+
+        from primaite.main import run
+
+        run(session_path=<previous session directory>)
+
+When PrimAITE runs a loaded session, PrimAITE will output in the provided session directory
 
 Outputs
 -------

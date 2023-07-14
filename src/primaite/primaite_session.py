@@ -35,8 +35,12 @@ class PrimaiteSession:
         """
         The PrimaiteSession constructor.
 
-        :param training_config_path: The training config path.
-        :param lay_down_config_path: The lay down config path.
+        :param training_config_path: YAML file containing configurable items defined in
+            `primaite.config.training_config.TrainingConfig`
+        :type training_config_path: Union[path, str]
+        :param lay_down_config_path: YAML file containing configurable items for generating network laydown.
+        :type lay_down_config_path: Union[path, str]
+        :param session_path: directory path of the session to load
         """
         self._agent_session: AgentSessionABC = None  # noqa
         self.session_path: Path = session_path  # noqa
