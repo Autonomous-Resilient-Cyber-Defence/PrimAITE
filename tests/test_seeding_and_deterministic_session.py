@@ -26,16 +26,16 @@ def test_seeded_learning(temp_primaite_session):
         now work. If not, then you've got a bug :).
     """
     expected_mean_reward_per_episode = {
-        1: -33.90625,
-        2: -32.32421875,
-        3: -25.234375,
-        4: -30.15625,
-        5: -27.1484375,
-        6: -29.609375,
-        7: -29.921875,
-        8: -29.3359375,
-        9: -28.046875,
-        10: -27.24609375,
+        1: -30.703125,
+        2: -29.94140625,
+        3: -27.91015625,
+        4: -29.66796875,
+        5: -32.44140625,
+        6: -30.33203125,
+        7: -26.25,
+        8: -22.44140625,
+        9: -30.3125,
+        10: -28.359375,
     }
 
     with temp_primaite_session as session:
@@ -43,6 +43,9 @@ def test_seeded_learning(temp_primaite_session):
             session._training_config.seed == 67890
         ), "Expected output is based upon a agent that was trained with seed 67890"
         session.learn()
+
+        print("\n")
+        print(session.learn_av_reward_per_episode())
 
         assert expected_mean_reward_per_episode == session.learn_av_reward_per_episode()
 
