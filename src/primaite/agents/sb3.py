@@ -66,8 +66,7 @@ class SB3Agent(AgentSessionABC):
         self._setup()
 
     def _setup(self):
-        super()._setup()
-
+        """Set up the SB3 Agent."""
         self._env = Primaite(
             training_config_path=self._training_config_path,
             lay_down_config_path=self._lay_down_config_path,
@@ -85,18 +84,16 @@ class SB3Agent(AgentSessionABC):
                 PPOMlp,
                 self._env,
                 verbose=self.sb3_output_verbose_level,
-                n_steps=self._training_config.num_steps,
+                n_steps=self._training_config.num_train_steps,
                 tensorboard_log=str(self._tensorboard_log_path),
                 seed=self._training_config.seed,
             )
         else:
-            # load the file
-            self._agent = self._agent_class.load(load_file)
-
             # set env values from session metadata
             with open(self.session_path / "session_metadata.json", "r") as file:
                 md_dict = json.load(file)
 
+            # load environment values
             if self.is_eval:
                 # evaluation always starts at 0
                 self._env.episode_count = 0
@@ -105,6 +102,15 @@ class SB3Agent(AgentSessionABC):
                 # carry on from previous learning sessions
                 self._env.episode_count = md_dict["learning"]["total_episodes"]
                 self._env.total_step_count = md_dict["learning"]["total_time_steps"]
+
+            # load the file
+            self._agent = self._agent_class.load(load_file, env=self._env)
+
+            # set agent values
+            self._agent.verbose = self.sb3_output_verbose_level
+            self._agent.tensorboard_log = self.session_path / "learning/tensorboard_logs"
+
+        super()._setup()
 
     def _save_checkpoint(self):
         checkpoint_n = self._training_config.checkpoint_every_n_episodes

@@ -297,7 +297,7 @@ class AgentSessionABC(ABC):
 
     @property
     def _saved_agent_path(self) -> Path:
-        file_name = f"{self._training_config.agent_framework}_" f"{self._training_config.agent_identifier}_" f".zip"
+        file_name = f"{self._training_config.agent_framework}_" f"{self._training_config.agent_identifier}" f".zip"
         return self.learning_path / file_name
 
     @abstractmethod

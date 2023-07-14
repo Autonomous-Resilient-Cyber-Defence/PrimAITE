@@ -40,16 +40,41 @@ def copy_session_asset(asset_path: Union[str, Path]) -> str:
 
 def test_load_sb3_session():
     """Test that loading an SB3 agent works."""
+    expected_learn_mean_reward_per_episode = {
+        10: 0,
+        11: -0.008037109374999995,
+        12: -0.007978515624999988,
+        13: -0.008191406249999991,
+        14: -0.00817578124999999,
+        15: -0.008085937499999998,
+        16: -0.007837890624999982,
+        17: -0.007798828124999992,
+        18: -0.007777343749999998,
+        19: -0.007958984374999988,
+        20: -0.0077499999999999835,
+    }
+
     test_path = copy_session_asset(TEST_ASSETS_ROOT / "example_sb3_agent_session")
 
     loaded_agent = SB3Agent(session_path=test_path)
 
     # loaded agent should have the same UUID as the previous agent
-    assert loaded_agent.uuid == "8c196c83-b77d-4ef7-af4b-0a3ada30221c"
+    assert loaded_agent.uuid == "301874d3-2e14-43c2-ba7f-e2b03ad05dde"
     assert loaded_agent._training_config.agent_framework == AgentFramework.SB3.name
     assert loaded_agent._training_config.agent_identifier == AgentIdentifier.PPO.name
     assert loaded_agent._training_config.deterministic
+    assert loaded_agent._training_config.seed == 12345
     assert str(loaded_agent.session_path) == str(test_path)
+
+    # run another learn session
+    loaded_agent.learn()
+
+    learn_mean_rewards = av_rewards_dict(
+        loaded_agent.learning_path / f"average_reward_per_episode_{loaded_agent.timestamp_str}.csv"
+    )
+
+    # run is seeded so should have the expected learn value
+    assert learn_mean_rewards == expected_learn_mean_reward_per_episode
 
     # run an evaluation
     loaded_agent.evaluate()
@@ -63,38 +88,12 @@ def test_load_sb3_session():
     assert len(set(eval_mean_reward.values())) == 1
 
     # the evaluation should be the same as a previous run
-    assert next(iter(set(eval_mean_reward.values()))) == -0.009857999999999992
+    assert next(iter(set(eval_mean_reward.values()))) == -0.009896484374999988
 
     # delete the test directory
     shutil.rmtree(test_path)
 
 
-def test_load_rllib_session():
-    """Test that loading an RLlib agent works."""
-    # test_path = copy_session_asset(TEST_ASSETS_ROOT)
-    #
-    # loaded_agent = RLlibAgent(session_path=test_path)
-    #
-    # # loaded agent should have the same UUID as the previous agent
-    # assert loaded_agent.uuid == "58c7e648-c784-44e8-bec0-a1db95898270"
-    # assert loaded_agent._training_config.agent_framework == AgentFramework.SB3.name
-    # assert loaded_agent._training_config.agent_identifier == AgentIdentifier.PPO.name
-    # assert loaded_agent._training_config.deterministic
-    # assert str(loaded_agent.session_path) == str(test_path)
-    #
-    # # run an evaluation
-    # loaded_agent.evaluate()
-    #
-    # # load the evaluation average reward csv file
-    # eval_mean_reward = av_rewards_dict(
-    #     loaded_agent.evaluation_path / f"average_reward_per_episode_{loaded_agent.timestamp_str}.csv"
-    # )
-    #
-    # # the agent config ran the evaluation in deterministic mode, so should have the same reward value
-    # assert len(set(eval_mean_reward.values())) == 1
-    #
-    # # the evaluation should be the same as a previous run
-    # assert next(iter(set(eval_mean_reward.values()))) == -0.00011132812500000003
-    #
-    # # delete the test directory
-    # shutil.rmtree(test_path)
+def test_load_primaite_session():
+    """Test that loading a Primaite session works."""
+    pass
