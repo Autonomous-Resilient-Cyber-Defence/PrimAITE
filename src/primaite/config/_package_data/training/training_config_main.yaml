@@ -93,7 +93,7 @@ observation_space_high_value: 1000000000
 
 # Choice whether to have an ALLOW or DENY implicit rule or not (TRUE or FALSE)
 apply_implicit_rule: False
-# Implicit ACL firewall rule at end of lists to be default action or no rule can be selected (ALLOW or DENY)
+# Implicit ACL firewall rule at end of ACL list to be the default action (ALLOW or DENY)
 implicit_acl_rule: DENY
 # Total number of ACL rules allowed in the environment
 max_number_acl_rules: 30
