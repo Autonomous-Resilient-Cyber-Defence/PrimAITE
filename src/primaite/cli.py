@@ -151,7 +151,7 @@ def setup(overwrite_existing: bool = True):
 
 
 @app.command()
-def session(tc: Optional[str] = None, ldc: Optional[str] = None):
+def session(tc: Optional[str] = None, ldc: Optional[str] = None, load: Optional[str] = None):
     """
     Run a PrimAITE session.
 
@@ -166,6 +166,9 @@ def session(tc: Optional[str] = None, ldc: Optional[str] = None):
     from primaite.config.lay_down_config import dos_very_basic_config_path
     from primaite.config.training_config import main_training_config_path
     from primaite.main import run
+
+    if load is not None:
+        run(session_path=load)
 
     if not tc:
         tc = main_training_config_path()
