@@ -73,8 +73,8 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         self._env.set_as_eval()  # noqa
         self.is_eval = True
 
-        time_steps = self._training_config.num_steps
-        episodes = self._training_config.num_episodes
+        time_steps = self._training_config.num_eval_steps
+        episodes = self._training_config.num_eval_episodes
 
         obs = self._env.reset()
         for episode in range(episodes):

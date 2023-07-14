@@ -62,7 +62,6 @@ class TempPrimaiteSession(PrimaiteSession):
 
     def __exit__(self, type, value, tb):
         shutil.rmtree(self.session_path)
-        shutil.rmtree(self.session_path.parent)
         _LOGGER.debug(f"Deleted temp session directory: {self.session_path}")
 
 
@@ -114,7 +113,7 @@ def temp_primaite_session(request):
     """
     training_config_path = request.param[0]
     lay_down_config_path = request.param[1]
-    with patch("primaite.agents.agent.get_session_path", get_temp_session_path) as mck:
+    with patch("primaite.agents.agent_abc.get_session_path", get_temp_session_path) as mck:
         mck.session_timestamp = datetime.now()
 
         return TempPrimaiteSession(training_config_path, lay_down_config_path)
