@@ -18,11 +18,6 @@
   - name: ftp
     port: '21'
     state: GOOD
-- item_type: POSITION
-  positions:
-  - node: '1'
-    x_pos: 309
-    y_pos: 78
 - item_type: RED_POL
   id: '1'
   start_step: 1

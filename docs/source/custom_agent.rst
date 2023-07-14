@@ -2,64 +2,137 @@
 =============
 
 
-**Integrating a user defined blue agent**
+Integrating a user defined blue agent
+*************************************
 
-Integrating a blue agent with PrimAITE requires some modification of the code within the main.py file. The main.py file
-consists of a number of functions, each of which will invoke training for a particular agent. These are:
+.. note::
 
-* Generic (run_generic)
-* Stable Baselines 3 PPO (:func:`~primaite.main.run_stable_baselines3_ppo)
-* Stable Baselines 3 A2C (:func:`~primaite.main.run_stable_baselines3_a2c)
+    If you are planning to implement custom RL agents into PrimAITE, you must use the project as a repository. If you install PrimAITE as a python package from wheel, custom agents are not supported.
 
-The selection of which agent type to use is made via the training config file. In order to train a user generated agent,
-the run_generic function should be selected, and should be modified (typically) to be:
+PrimAITE has integration with Ray RLLib and StableBaselines3 agents. All agents interface with PrimAITE through an :py:class:`primaite.agents.agent.AgentSessionABC<Agent Session>` which provides Input/Output of agent savefiles, as well as capturing and plotting performance metrics during training and evaluation. If you wish to integrate a custom blue agent, it is recommended to create a subclass of the :py:class:`primaite.agents.agent.AgentSessionABC` and implement the ``__init__()``, ``_setup()``,  ``_save_checkpoint()``, ``learn()``, ``evaluate()``, ``_get_latest_checkpoint``, ``load()``, and ``save()`` methods.
 
-.. code:: python
-
-    agent = MyAgent(environment, num_steps)
-    for episode in range(0, num_episodes):
-        agent.learn()
-    env.close()
-    save_agent(agent)
-
-Where:
-
-* *MyAgent* is the user created agent
-* *environment* is the :class:`~primaite.environment.primaite_env.Primaite` environment
-* *num_episodes* is the number of episodes in the session, as defined in the training config file
-* *num_steps* is the number of steps in an episode, as defined in the training config file
-* the *.learn()* function should be defined in the user created agent
-* the *env.close()* function is defined within PrimAITE
-* the *save_agent()* assumes that a *save()* function has been defined in the user created agent. If not, this line can
-  be ommitted (although it is encouraged, since it will allow the agent to be saved and ported)
-
-The code below provides a suggested format for the learn() function within the user created agent.
-It's important to include the *self.environment.reset()* call within the episode loop in order that the
-environment is reset between episodes. Note that the example below should not be considered exhaustive.
+Below is a barebones example of a custom agent implementation:
 
 .. code:: python
 
-    def learn(self) :
+    # src/primaite/agents/my_custom_agent.py
 
-    # pre-reqs
+    from primaite.agents.agent import AgentSessionABC
+    from primaite.common.enums import AgentFramework, AgentIdentifier
 
-    # reset the environment
-    self.environment.reset()
-    done = False
+    class CustomAgent(AgentSessionABC):
+        def __init__(self, training_config_path, lay_down_config_path):
+            super().__init__(training_config_path, lay_down_config_path)
+            assert self._training_config.agent_framework == AgentFramework.CUSTOM
+            assert self._training_config.agent_identifier == AgentIdentifier.MY_AGENT
+            self._setup()
 
-    for step in range(max_steps):
-        # calculate the action
-        action = ...
+        def _setup(self):
+            super()._setup()
+            self._env = Primaite(
+                training_config_path=self._training_config_path,
+                lay_down_config_path=self._lay_down_config_path,
+                session_path=self.session_path,
+                timestamp_str=self.timestamp_str,
+        )
+            self._agent = ... # your code to setup agent
 
-        # execute the environment step
-        new_state, reward, done, info = self.environment.step(action)
+        def _save_checkpoint(self):
+            checkpoint_num = self._training_config.checkpoint_every_n_episodes
+            episode_count = self._env.episode_count
+            save_checkpoint = False
+            if checkpoint_num:
+                save_checkpoint = episode_count % checkpoint_num == 0
+            # saves checkpoint if the episode count is not 0 and save_checkpoint flag was set to true
+            if episode_count and save_checkpoint:
+                ...
+                # your code to save checkpoint goes here.
+                # The path should start with self.checkpoints_path and include the episode number.
 
-        # algorithm updates
-        ...
+        def learn(self):
+            ...
+            # call your agent's learning function here.
 
-        # update to our new state
-        state = new_state
+            super().learn() # this will finalise learning and output session metadata
+            self.save()
 
-        # if done, finish episode
-        if done == True:
-            break
+        def evaluate(self):
+            ...
+            # call your agent's evaluation function here.
+
+            self._env.close()
+            super().evaluate()
+
+        def _get_latest_checkpoint(self):
+            ...
+            # Load an agent from file.
+
+        @classmethod
+        def load(cls, path):
+            ...
+            # Create a CustomAgent object which loads model weights from file.
+
+        def save(self):
+            ...
+            # Call your agent's function that saves it to a file
+
+
+You will also need to modify :py:class:`primaite.primaite_session.PrimaiteSession<PrimaiteSession>` and :py:mod:`primaite.common.enums` to capture your new agent identifiers.
+
+.. code-block:: python
+    :emphasize-lines: 17, 18
+
+    # src/primaite/common/enums.py
+
+    class AgentIdentifier(Enum):
+        """The Red Agent algo/class."""
+        A2C = 1
+        "Advantage Actor Critic"
+        PPO = 2
+        "Proximal Policy Optimization"
+        HARDCODED = 3
+        "The Hardcoded agents"
+        DO_NOTHING = 4
+        "The DoNothing agents"
+        RANDOM = 5
+        "The RandomAgent"
+        DUMMY = 6
+        "The DummyAgent"
+        CUSTOM_AGENT = 7
+        "Your custom agent"
+
+.. code-block:: python
+    :emphasize-lines: 3, 11, 12
+
+    # src/primaite_session.py
+
+    from primaite.agents.my_custom_agent import CustomAgent
+
+    # ...
+
+        def setup(self):
+        """Performs the session setup."""
+        if self._training_config.agent_framework == AgentFramework.CUSTOM:
+            _LOGGER.debug(f"PrimaiteSession Setup: Agent Framework = {AgentFramework.CUSTOM}")
+            if self._training_config.agent_identifier == AgentIdentifier.CUSTOM_AGENT:
+                self._agent_session = CustomAgent(self._training_config_path, self._lay_down_config_path)
+            if self._training_config.agent_identifier == AgentIdentifier.HARDCODED:
+                _LOGGER.debug(f"PrimaiteSession Setup: Agent Identifier =" f" {AgentIdentifier.HARDCODED}")
+                if self._training_config.action_type == ActionType.NODE:
+                    # Deterministic Hardcoded Agent with Node Action Space
+                    self._agent_session = HardCodedNodeAgent(self._training_config_path, self._lay_down_config_path)
+
+Finally, specify your agent in your training config.
+
+.. code-block:: yaml
+
+    # ~/primaite/config/path/to/your/config_main.yaml
+
+    # Training Config File
+
+    agent_framework: CUSTOM
+    agent_identifier: CUSTOM_AGENT
+    random_red_agent: False
+    # ...
+
+Now you can :ref:`run a primaite session<run a primaite session>` with your custom agent by passing in the custom ``config_main``.
