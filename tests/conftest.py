@@ -120,60 +120,6 @@ def temp_primaite_session(request):
 
 
 @pytest.fixture
-def temp_primaite_session_2(request):
-    """
-    Provides a temporary PrimaiteSession instance.
-
-    It's temporary as it uses a temporary directory as the session path.
-
-    To use this fixture you need to:
-
-    - parametrize your test function with:
-
-      - "temp_primaite_session"
-      - [[path to training config, path to lay down config]]
-    - Include the temp_primaite_session fixture as a param in your test
-    function.
-    - use the temp_primaite_session as a context manager assigning is the
-    name 'session'.
-
-    .. code:: python
-
-        from primaite.config.lay_down_config import dos_very_basic_config_path
-        from primaite.config.training_config import main_training_config_path
-        @pytest.mark.parametrize(
-            "temp_primaite_session",
-            [
-                [main_training_config_path(), dos_very_basic_config_path()]
-            ],
-            indirect=True
-        )
-        def test_primaite_session(temp_primaite_session):
-            with temp_primaite_session as session:
-                # Learning outputs are saved in session.learning_path
-                session.learn()
-
-                # Evaluation outputs are saved in session.evaluation_path
-                session.evaluate()
-
-                # To ensure that all files are written, you must call .close()
-                session.close()
-
-                # If you need to inspect any session outputs, it must be done
-                # inside the context manager
-
-            # Now that we've exited the context manager, the
-            # session.session_path directory and its contents are deleted
-    """
-    training_config_path = request.param[0]
-    lay_down_config_path = request.param[1]
-    with patch("primaite.agents.agent.get_session_path", get_temp_session_path) as mck:
-        mck.session_timestamp = datetime.now()
-
-        return TempPrimaiteSession(training_config_path, lay_down_config_path)
-
-
-@pytest.fixture
 def temp_session_path() -> Path:
     """
     Get a temp directory session path the test session will output to.

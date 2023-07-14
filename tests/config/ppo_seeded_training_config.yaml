@@ -35,7 +35,7 @@ random_red_agent: False
 # Default is None (null)
 seed: 67890
 
-# Set whether the agent will be deterministic instead of stochastic
+# Set whether the agent evaluation will be deterministic instead of stochastic
 # Options are:
 # True
 # False
@@ -66,7 +66,7 @@ num_train_episodes: 10
 num_train_steps: 256
 
 # Number of episodes to run per session
-num_eval_episodes: 1
+num_eval_episodes: 5
 
 # Number of time_steps per episode
 num_eval_steps: 256
