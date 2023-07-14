@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
-    from primaite.common.enums import HardwareState, NodePOLType, SoftwareState
+    from primaite.common.enums import FileSystemState, HardwareState, NodePOLType, SoftwareState
 
 
 class NodeStateInstructionGreen(object):
@@ -15,9 +15,9 @@ class NodeStateInstructionGreen(object):
         _start_step: int,
         _end_step: int,
         _node_id: str,
-        _node_pol_type,
-        _service_name,
-        _state,
+        _node_pol_type: "NodePOLType",
+        _service_name: str,
+        _state: Union["HardwareState", "SoftwareState", "FileSystemState"],
     ):
         """
         Initialise the Node State Instruction.
@@ -37,9 +37,9 @@ class NodeStateInstructionGreen(object):
         self.node_pol_type: "NodePOLType" = _node_pol_type
         self.service_name: str = _service_name  # Not used when not a service instruction
         # TODO: confirm type of state
-        self.state: Union["HardwareState", "SoftwareState"] = _state
+        self.state: Union["HardwareState", "SoftwareState", "FileSystemState"] = _state
 
-    def get_start_step(self):
+    def get_start_step(self) -> int:
         """
         Gets the start step.
 
@@ -48,7 +48,7 @@ class NodeStateInstructionGreen(object):
         """
         return self.start_step
 
-    def get_end_step(self):
+    def get_end_step(self) -> int:
         """
         Gets the end step.
 
@@ -57,7 +57,7 @@ class NodeStateInstructionGreen(object):
         """
         return self.end_step
 
-    def get_node_id(self):
+    def get_node_id(self) -> str:
         """
         Gets the node ID.
 
@@ -66,7 +66,7 @@ class NodeStateInstructionGreen(object):
         """
         return self.node_id
 
-    def get_node_pol_type(self):
+    def get_node_pol_type(self) -> "NodePOLType":
         """
         Gets the node pattern of life type (enum).
 
@@ -75,7 +75,7 @@ class NodeStateInstructionGreen(object):
         """
         return self.node_pol_type
 
-    def get_service_name(self):
+    def get_service_name(self) -> str:
         """
         Gets the service name.
 
@@ -84,7 +84,7 @@ class NodeStateInstructionGreen(object):
         """
         return self.service_name
 
-    def get_state(self):
+    def get_state(self) -> Union["HardwareState", "SoftwareState", "FileSystemState"]:
         """
         Gets the state (node or service).
 

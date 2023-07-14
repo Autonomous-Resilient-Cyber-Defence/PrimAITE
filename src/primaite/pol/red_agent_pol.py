@@ -13,7 +13,7 @@ from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.service_node import ServiceNode
 from primaite.pol.ier import IER
 
-_VERBOSE = False
+_VERBOSE: bool = False
 
 
 def apply_red_agent_iers(
@@ -23,7 +23,7 @@ def apply_red_agent_iers(
     iers: Dict[str, IER],
     acl: AccessControlList,
     step: int,
-):
+) -> None:
     """
     Applies IERs to the links (link POL) resulting from red agent attack.
 
@@ -213,7 +213,7 @@ def apply_red_agent_node_pol(
     iers: Dict[str, IER],
     node_pol: Dict[str, NodeStateInstructionRed],
     step: int,
-):
+) -> None:
     """
     Applies node pattern of life.
 

@@ -1,12 +1,16 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pkg_resources
 
 from primaite import getLogger
 
-_LOGGER = getLogger(__name__)
+if TYPE_CHECKING:
+    from logging import Logger
+
+_LOGGER: "Logger" = getLogger(__name__)
 
 
 def get_file_path(path: str) -> Path:

@@ -4,13 +4,17 @@ import importlib.util
 import os
 import subprocess
 import sys
+from typing import TYPE_CHECKING
 
 from primaite import getLogger, NOTEBOOKS_DIR
 
-_LOGGER = getLogger(__name__)
+if TYPE_CHECKING:
+    from logging import Logger
+
+_LOGGER: "Logger" = getLogger(__name__)
 
 
-def start_jupyter_session():
+def start_jupyter_session() -> None:
     """
     Starts a new Jupyter notebook session in the app notebooks directory.
 

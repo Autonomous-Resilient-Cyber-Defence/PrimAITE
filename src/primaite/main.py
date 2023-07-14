@@ -13,7 +13,7 @@ _LOGGER = getLogger(__name__)
 def run(
     training_config_path: Union[str, Path],
     lay_down_config_path: Union[str, Path],
-):
+) -> None:
     """
     Run the PrimAITE Session.
 

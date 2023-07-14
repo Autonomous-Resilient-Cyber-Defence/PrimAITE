@@ -14,7 +14,7 @@ from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.service_node import ServiceNode
 from primaite.pol.ier import IER
 
-_VERBOSE = False
+_VERBOSE: bool = False
 
 
 def apply_iers(
@@ -24,7 +24,7 @@ def apply_iers(
     iers: Dict[str, IER],
     acl: AccessControlList,
     step: int,
-):
+) -> None:
     """
     Applies IERs to the links (link pattern of life).
 
@@ -217,7 +217,7 @@ def apply_node_pol(
     nodes: Dict[str, NodeUnion],
     node_pol: Dict[any, Union[NodeStateInstructionGreen, NodeStateInstructionRed]],
     step: int,
-):
+) -> None:
     """
     Applies node pattern of life.
 
