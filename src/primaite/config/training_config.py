@@ -106,7 +106,7 @@ class TrainingConfig:
     implicit_acl_rule: RulePermissionType = RulePermissionType.DENY
     "ALLOW or DENY implicit firewall rule to go at the end of list of ACL list."
 
-    max_number_acl_rules: int = 10
+    max_number_acl_rules: int = 30
     "Sets a limit for number of acl rules allowed in the list and environment."
 
     # Reward values

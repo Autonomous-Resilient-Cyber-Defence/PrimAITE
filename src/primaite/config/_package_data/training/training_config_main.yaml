@@ -91,6 +91,13 @@ session_type: TRAIN_EVAL
 # The high value for the observation space
 observation_space_high_value: 1000000000
 
+# Choice whether to have an ALLOW or DENY implicit rule or not (TRUE or FALSE)
+apply_implicit_rule: False
+# Implicit ACL firewall rule at end of lists to be default action or no rule can be selected (ALLOW or DENY)
+implicit_acl_rule: DENY
+# Total number of ACL rules allowed in the environment
+max_number_acl_rules: 30
+
 # The Stable Baselines3 learn/eval output verbosity level:
 # Options are:
 # "NONE" (No Output)

@@ -448,8 +448,8 @@ class AccessControlList(AbstractObservationComponent):
             len(RulePermissionType),
             len(env.nodes) + 2,
             len(env.nodes) + 2,
-            len(env.services_list) + 1,
-            len(env.ports_list) + 1,
+            len(env.services_list) + 2,
+            len(env.ports_list) + 2,
             env.max_number_acl_rules + 1,
         ]
         shape = acl_shape * self.env.max_number_acl_rules
@@ -523,6 +523,7 @@ class AccessControlList(AbstractObservationComponent):
 
                 # Either do the multiply on the obs space
                 # Change the obs to
+                print("current obs", port_int)
                 obs.extend(
                     [
                         permission_int,
