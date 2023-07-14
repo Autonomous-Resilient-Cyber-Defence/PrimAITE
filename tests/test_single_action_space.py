@@ -58,6 +58,10 @@ def run_generic_set_actions(env: Primaite):
 )
 def test_single_action_space_is_valid(temp_primaite_session):
     """Test single action space is valid."""
+    # TODO: Refactor this at some point to build a custom ACL Hardcoded
+    #  Agent and then patch the AgentIdentifier Enum class so that it
+    #  has ACL_AGENT. This then allows us to set the agent identified in
+    #  the main config and is a bit cleaner.
     with temp_primaite_session as session:
         env = session.env
 
@@ -95,6 +99,10 @@ def test_single_action_space_is_valid(temp_primaite_session):
 )
 def test_agent_is_executing_actions_from_both_spaces(temp_primaite_session):
     """Test to ensure the blue agent is carrying out both kinds of operations (NODE & ACL)."""
+    # TODO: Refactor this at some point to build a custom ACL Hardcoded
+    #  Agent and then patch the AgentIdentifier Enum class so that it
+    #  has ACL_AGENT. This then allows us to set the agent identified in
+    #  the main config and is a bit cleaner.
     with temp_primaite_session as session:
         env = session.env
         # Run environment with specified fixed blue agent actions only

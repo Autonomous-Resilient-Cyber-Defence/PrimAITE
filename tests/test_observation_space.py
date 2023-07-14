@@ -4,39 +4,7 @@ import numpy as np
 import pytest
 
 from primaite.environment.observations import NodeLinkTable, NodeStatuses, ObservationsHandler
-from primaite.environment.primaite_env import Primaite
 from tests import TEST_CONFIG_ROOT
-
-
-def run_generic_set_actions(env: Primaite):
-    """Run against a generic agent with specified blue agent actions."""
-    # Reset the environment at the start of the episode
-    # env.reset()
-    training_config = env.training_config
-    for episode in range(0, training_config.num_train_episodes):
-        for step in range(0, training_config.num_train_steps):
-            # Send the observation space to the agent to get an action
-            # TEMP - random action for now
-            # action = env.blue_agent_action(obs)
-            action = 0
-            print("Episode:", episode, "\nStep:", step)
-            if step == 2:
-                # [1, 1, 2, 1, 1, 1, 1(position)]
-                # NEED [1, 1, 1, 2, 1, 1, 1]
-                # Creates an ACL rule
-                # Allows traffic from server_1 to node_1 on port FTP
-                action = 43
-            elif step == 4:
-                action = 96
-
-            # Run the simulation step on the live environment
-            obs, reward, done, info = env.step(action)
-
-            # Break if done is True
-            if done:
-                break
-
-    return env
 
 
 @pytest.mark.parametrize(
@@ -317,13 +285,9 @@ class TestAccessControlList:
         assert np.array_equal(obs, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2])
 
     def test_observation_space_with_implicit_rule(self, temp_primaite_session):
-        """Test observation space is what is expected when an agent adds ACLs during an episode."""
-        # Used to use env from test fixture but AtrributeError function object has no 'training_config'
-        with temp_primaite_session as session:
-            env = session.env
-            env = run_generic_set_actions(env)
-            obs = env.env_obs
         """
+        Test observation space is what is expected when an agent adds ACLs during an episode.
+
         Observation space at the end of the episode.
         At the start of the episode, there is a single implicit Deny rule = 1,1,1,1,1,0
         (0 represents its initial position at top of ACL list)
@@ -333,6 +297,38 @@ class TestAccessControlList:
         On Step 7, there is a second rule added at POSITION 1: 2,4,2,3,3,1
         THINK THE RULES SHOULD BE THE OTHER WAY AROUND IN THE CURRENT OBSERVATION
         """
+        # TODO: Refactor this at some point to build a custom ACL Hardcoded
+        #  Agent and then patch the AgentIdentifier Enum class so that it
+        #  has ACL_AGENT. This then allows us to set the agent identified in
+        #  the main config and is a bit cleaner.
+        # Used to use env from test fixture but AtrributeError function object has no 'training_config'
+        with temp_primaite_session as session:
+            env = session.env
+
+            training_config = env.training_config
+            for episode in range(0, training_config.num_train_episodes):
+                for step in range(0, training_config.num_train_steps):
+                    # Send the observation space to the agent to get an action
+                    # TEMP - random action for now
+                    # action = env.blue_agent_action(obs)
+                    action = 0
+                    print("Episode:", episode, "\nStep:", step)
+                    if step == 2:
+                        # [1, 1, 2, 1, 1, 1, 1(position)]
+                        # NEED [1, 1, 1, 2, 1, 1, 1]
+                        # Creates an ACL rule
+                        # Allows traffic from server_1 to node_1 on port FTP
+                        action = 43
+                    elif step == 4:
+                        action = 96
+
+                    # Run the simulation step on the live environment
+                    obs, reward, done, info = env.step(action)
+
+                    # Break if done is True
+                    if done:
+                        break
+            obs = env.env_obs
         print("what i am testing", obs)
         # acl rule 1
         # source is 1 should be 4
