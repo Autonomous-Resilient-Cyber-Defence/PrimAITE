@@ -18,7 +18,7 @@ class NodeStateInstructionGreen(object):
         _node_pol_type: "NodePOLType",
         _service_name: str,
         _state: Union["HardwareState", "SoftwareState", "FileSystemState"],
-    ):
+    ) -> None:
         """
         Initialise the Node State Instruction.
 
