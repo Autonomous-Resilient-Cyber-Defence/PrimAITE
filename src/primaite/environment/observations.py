@@ -428,15 +428,15 @@ class AccessControlList(AbstractObservationComponent):
             acl_rule2 position,
             ...
         ]
-    """
 
-    # Terms (for ACL observation space):
-    # [0, 1, 2] - Permission (0 = NA, 1 = DENY, 2 = ALLOW)
-    # [0, num nodes] - Source IP (0 = NA, 1 = any, then 2 -> x resolving to IP addresses)
-    # [0, num nodes] - Dest IP (0 = NA, 1 = any, then 2 -> x resolving to IP addresses)
-    # [0, num services] - Protocol (0 = NA, 1 = any, then 2 -> x resolving to protocol)
-    # [0, num ports] - Port (0 = NA, 1 = any, then 2 -> x resolving to port)
-    # [0, max acl rules - 1] - Position (0 = NA, 1 = first index, then 2 -> x index resolving to acl rule in acl list)
+    Terms (for ACL Observation Space):
+        [0, 1, 2] - Permission (0 = NA, 1 = DENY, 2 = ALLOW)
+        [0, num nodes] - Source IP (0 = NA, 1 = any, then 2 -> x resolving to IP addresses)
+        [0, num nodes] - Dest IP (0 = NA, 1 = any, then 2 -> x resolving to IP addresses)
+        [0, num services] - Protocol (0 = NA, 1 = any, then 2 -> x resolving to protocol)
+        [0, num ports] - Port (0 = NA, 1 = any, then 2 -> x resolving to port)
+        [0, max acl rules - 1] - Position (0 = NA, 1 = first index, then 2 -> x index resolving to acl rule in acl list)
+    """
 
     _DATA_TYPE: type = np.int64
 
@@ -521,9 +521,6 @@ class AccessControlList(AbstractObservationComponent):
                         _LOGGER.info(f"Port {port} could not be found.")
                         port_int = None
 
-                # Either do the multiply on the obs space
-                # Change the obs to
-                print("current obs", port_int)
                 obs.extend(
                     [
                         permission_int,
