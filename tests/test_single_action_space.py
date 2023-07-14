@@ -19,7 +19,7 @@ def run_generic_set_actions(env: Primaite):
             # TEMP - random action for now
             # action = env.blue_agent_action(obs)
             action = 0
-            print("Episode:", episode, "\nStep:", step)
+            # print("Episode:", episode, "\nStep:", step)
             if step == 5:
                 # [1, 1, 2, 1, 1, 1, 1(position)]
                 # Creates an ACL rule

@@ -408,9 +408,6 @@ class AccessControlList(AbstractObservationComponent):
     The MultiDiscrete observation space can be though of as a one-dimensional vector of discrete states, represented by
     integers.
 
-    :param env: The environment that forms the basis of the observations
-    :type env: Primaite
-
     Each ACL Rule has 6 elements. It will have the following structure:
     .. code-block::
         [
@@ -429,6 +426,7 @@ class AccessControlList(AbstractObservationComponent):
             ...
         ]
 
+
     Terms (for ACL Observation Space):
         [0, 1, 2] - Permission (0 = NA, 1 = DENY, 2 = ALLOW)
         [0, num nodes] - Source IP (0 = NA, 1 = any, then 2 -> x resolving to IP addresses)
@@ -436,27 +434,37 @@ class AccessControlList(AbstractObservationComponent):
         [0, num services] - Protocol (0 = NA, 1 = any, then 2 -> x resolving to protocol)
         [0, num ports] - Port (0 = NA, 1 = any, then 2 -> x resolving to port)
         [0, max acl rules - 1] - Position (0 = NA, 1 = first index, then 2 -> x index resolving to acl rule in acl list)
+
+    NOTE: NA is Non-Applicable - this means the ACL Rule in the list is a NoneType and NOT an ACLRule object.
     """
 
     _DATA_TYPE: type = np.int64
 
     def __init__(self, env: "Primaite"):
+        """
+        Initialise an AccessControlList observation component.
+
+        :param env: The environment that forms the basis of the observations
+        :type env: Primaite
+        """
         super().__init__(env)
 
         # 1. Define the shape of your observation space component
+        # The NA and ANY types means that there are 2 extra items for Nodes, Services and Ports.
+        # Number of ACL rules incremented by 1 for positions starting at index 0.
         acl_shape = [
             len(RulePermissionType),
             len(env.nodes) + 2,
             len(env.nodes) + 2,
             len(env.services_list) + 2,
             len(env.ports_list) + 2,
-            env.max_number_acl_rules + 1,
+            env.max_number_acl_rules,
         ]
         shape = acl_shape * self.env.max_number_acl_rules
 
         # 2. Create Observation space
         self.space = spaces.MultiDiscrete(shape)
-        # print("obs space:", self.space)
+
         # 3. Initialise observation with zeroes
         self.current_observation = np.zeros(len(shape), dtype=self._DATA_TYPE)
 
@@ -468,7 +476,7 @@ class AccessControlList(AbstractObservationComponent):
         The structure of the observation space is described in :class:`.AccessControlList`
         """
         obs = []
-        # print("starting len", len(self.env.acl.acl))
+
         for index in range(0, len(self.env.acl.acl)):
             acl_rule = self.env.acl.acl[index]
             if isinstance(acl_rule, ACLRule):
@@ -478,7 +486,7 @@ class AccessControlList(AbstractObservationComponent):
                 protocol = acl_rule.protocol
                 port = acl_rule.port
                 position = index
-
+                # Map each ACL attribute from what it was to an integer to fit the observation space
                 source_ip_int = None
                 dest_ip_int = None
                 if permission == "DENY":
@@ -488,6 +496,7 @@ class AccessControlList(AbstractObservationComponent):
                 if source_ip == "ANY":
                     source_ip_int = 1
                 else:
+                    # Map Node ID (+ 1) to source IP address
                     nodes = list(self.env.nodes.values())
                     for node in nodes:
                         if (
@@ -498,6 +507,8 @@ class AccessControlList(AbstractObservationComponent):
                 if dest_ip == "ANY":
                     dest_ip_int = 1
                 else:
+                    # Map Node ID (+ 1) to dest IP address
+                    # Index of Nodes start at 1 so + 1 is needed so NA can be added.
                     nodes = list(self.env.nodes.values())
                     for node in nodes:
                         if (
@@ -507,6 +518,7 @@ class AccessControlList(AbstractObservationComponent):
                 if protocol == "ANY":
                     protocol_int = 1
                 else:
+                    # Index of protocols and ports start from 0 so + 2 is needed to add NA and ANY
                     try:
                         protocol_int = self.env.services_list.index(protocol) + 2
                     except AttributeError:
@@ -520,7 +532,7 @@ class AccessControlList(AbstractObservationComponent):
                     else:
                         _LOGGER.info(f"Port {port} could not be found.")
                         port_int = None
-
+                # Add to current obs
                 obs.extend(
                     [
                         permission_int,
@@ -533,9 +545,9 @@ class AccessControlList(AbstractObservationComponent):
                 )
 
             else:
+                # The Nothing or NA representation of 'NONE' ACL rules
                 obs.extend([0, 0, 0, 0, 0, 0])
 
-        # print("current obs", obs, "\n" ,len(obs))
         self.current_observation[:] = obs
 
     def generate_structure(self):
