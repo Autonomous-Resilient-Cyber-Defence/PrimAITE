@@ -7,7 +7,7 @@ from primaite.common.enums import SoftwareState
 class Service(object):
     """Service class."""
 
-    def __init__(self, name: str, port: str, software_state: SoftwareState):
+    def __init__(self, name: str, port: str, software_state: SoftwareState) -> None:
         """
         Initialise a service.
 

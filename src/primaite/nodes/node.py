@@ -17,7 +17,7 @@ class Node:
         priority: Priority,
         hardware_state: HardwareState,
         config_values: TrainingConfig,
-    ):
+    ) -> None:
         """
         Initialise a node.
 

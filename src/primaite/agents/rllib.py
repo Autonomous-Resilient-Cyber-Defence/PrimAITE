@@ -141,7 +141,7 @@ class RLlibAgent(AgentSessionABC):
         )
         self._agent: Algorithm = self._agent_config.build(logger_creator=_custom_log_creator(self.learning_path))
 
-    def _save_checkpoint(self):
+    def _save_checkpoint(self) -> None:
         checkpoint_n = self._training_config.checkpoint_every_n_episodes
         episode_count = self._current_result["episodes_total"]
         save_checkpoint = False

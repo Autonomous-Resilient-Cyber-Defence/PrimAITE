@@ -216,7 +216,7 @@ class TrainingConfig:
                 config_dict[key] = value[config_dict[key]]
         return TrainingConfig(**config_dict)
 
-    def to_dict(self, json_serializable: bool = True):
+    def to_dict(self, json_serializable: bool = True) -> Dict:
         """
         Serialise the ``TrainingConfig`` as dict.
 
