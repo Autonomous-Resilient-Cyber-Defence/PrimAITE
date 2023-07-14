@@ -1,6 +1,6 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Implements reward function."""
-from typing import Dict, TYPE_CHECKING
+from typing import Dict, TYPE_CHECKING, Union
 
 from primaite import getLogger
 from primaite.common.custom_typing import NodeUnion
@@ -152,7 +152,10 @@ def score_node_operating_state(
 
 
 def score_node_os_state(
-    final_node: NodeUnion, initial_node: NodeUnion, reference_node: NodeUnion, config_values: "TrainingConfig"
+    final_node: Union[ActiveNode, ServiceNode],
+    initial_node: Union[ActiveNode, ServiceNode],
+    reference_node: Union[ActiveNode, ServiceNode],
+    config_values: "TrainingConfig",
 ) -> float:
     """
     Calculates score relating to the Software State of a node.
@@ -205,7 +208,7 @@ def score_node_os_state(
 
 
 def score_node_service_state(
-    final_node: NodeUnion, initial_node: NodeUnion, reference_node: NodeUnion, config_values: "TrainingConfig"
+    final_node: ServiceNode, initial_node: ServiceNode, reference_node: ServiceNode, config_values: "TrainingConfig"
 ) -> float:
     """
     Calculates score relating to the service state(s) of a node.
@@ -279,7 +282,10 @@ def score_node_service_state(
 
 
 def score_node_file_system(
-    final_node: NodeUnion, initial_node: NodeUnion, reference_node: NodeUnion, config_values: "TrainingConfig"
+    final_node: Union[ActiveNode, ServiceNode],
+    initial_node: Union[ActiveNode, ServiceNode],
+    reference_node: Union[ActiveNode, ServiceNode],
+    config_values: "TrainingConfig",
 ) -> float:
     """
     Calculates score relating to the file system state of a node.

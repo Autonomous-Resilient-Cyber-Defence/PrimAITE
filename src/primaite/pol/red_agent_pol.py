@@ -74,6 +74,9 @@ def apply_red_agent_iers(
                 pass
             else:
                 # It's not a switch or an actuator (so active node)
+                # TODO: this occurs after ruling out the possibility that the node is a switch or an actuator, but it
+                # could still be a passive/active node, therefore it won't have a hardware_state. The logic here needs
+                # to change according to duck typing.
                 if source_node.hardware_state == HardwareState.ON:
                     if source_node.has_service(protocol):
                         # Red agents IERs can only be valid if the source service is in a compromised state
