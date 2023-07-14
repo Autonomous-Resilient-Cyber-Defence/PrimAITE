@@ -2,15 +2,19 @@ import filecmp
 import os
 import shutil
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pkg_resources
 
 from primaite import getLogger, USERS_CONFIG_DIR
 
-_LOGGER = getLogger(__name__)
+if TYPE_CHECKING:
+    from logging import Logger
+
+_LOGGER: "Logger" = getLogger(__name__)
 
 
-def run(overwrite_existing=True):
+def run(overwrite_existing: bool = True) -> None:
     """
     Resets the example config files in the users app config directory.
 

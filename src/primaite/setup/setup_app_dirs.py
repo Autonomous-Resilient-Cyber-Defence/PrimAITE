@@ -1,10 +1,15 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+from typing import TYPE_CHECKING
+
 from primaite import _USER_DIRS, getLogger, LOG_DIR, NOTEBOOKS_DIR
 
-_LOGGER = getLogger(__name__)
+if TYPE_CHECKING:
+    from logging import Logger
+
+_LOGGER: "Logger" = getLogger(__name__)
 
 
-def run():
+def run() -> None:
     """
     Handles creation of application directories and user directories.
 
