@@ -1,5 +1,7 @@
 import time
 from abc import abstractmethod
+from pathlib import Path
+from typing import Optional, Union
 
 from primaite import getLogger
 from primaite.agents.agent_abc import AgentSessionABC
@@ -16,7 +18,12 @@ class HardCodedAgentSessionABC(AgentSessionABC):
     implemented.
     """
 
-    def __init__(self, training_config_path, lay_down_config_path):
+    def __init__(
+        self,
+        training_config_path: Optional[Union[str, Path]] = "",
+        lay_down_config_path: Optional[Union[str, Path]] = "",
+        session_path: Optional[Union[str, Path]] = None,
+    ):
         """
         Initialise a hardcoded agent session.
 
@@ -26,7 +33,7 @@ class HardCodedAgentSessionABC(AgentSessionABC):
         :param lay_down_config_path: YAML file containing configurable items for generating network laydown.
         :type lay_down_config_path: Union[path, str]
         """
-        super().__init__(training_config_path, lay_down_config_path)
+        super().__init__(training_config_path, lay_down_config_path, session_path)
         self._setup()
 
     def _setup(self):

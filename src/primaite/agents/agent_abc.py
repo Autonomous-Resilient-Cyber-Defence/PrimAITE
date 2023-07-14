@@ -7,14 +7,13 @@ from pathlib import Path
 from typing import Dict, Optional, Union
 from uuid import uuid4
 
-import yaml
-
 import primaite
 from primaite import getLogger, SESSIONS_DIR
 from primaite.config import lay_down_config, training_config
 from primaite.config.training_config import TrainingConfig
 from primaite.data_viz.session_plots import plot_av_reward_per_episode
 from primaite.environment.primaite_env import Primaite
+from primaite.utils.session_metadata_parser import parse_session_metadata
 
 _LOGGER = getLogger(__name__)
 
@@ -253,47 +252,21 @@ class AgentSessionABC(ABC):
 
     def load(self, path: Union[str, Path]):
         """Load an agent from file."""
-        if not isinstance(path, Path):
-            path = Path(path)
+        md_dict, training_config_path, laydown_config_path = parse_session_metadata(path)
 
-        if path.exists():
-            # Unpack the session_metadata.json file
-            md_file = path / "session_metadata.json"
-            with open(md_file, "r") as file:
-                md_dict = json.load(file)
+        # set training config path
+        self._training_config_path: Union[Path, str] = training_config_path
+        self._training_config: TrainingConfig = training_config.load(self._training_config_path)
+        self._lay_down_config_path: Union[Path, str] = laydown_config_path
+        self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)
+        self.sb3_output_verbose_level = self._training_config.sb3_output_verbose_level
 
-            # Create a temp directory and dump the training and lay down
-            # configs into it
-            temp_dir = path / ".temp"
-            temp_dir.mkdir(exist_ok=True)
+        # set random UUID for session
+        self._uuid = md_dict["uuid"]
 
-            temp_tc = temp_dir / "tc.yaml"
-            with open(temp_tc, "w") as file:
-                yaml.dump(md_dict["env"]["training_config"], file)
-
-            temp_ldc = temp_dir / "ldc.yaml"
-            with open(temp_ldc, "w") as file:
-                yaml.dump(md_dict["env"]["lay_down_config"], file)
-
-            # set training config path
-            self._training_config_path: Union[Path, str] = temp_tc
-            self._training_config: TrainingConfig = training_config.load(self._training_config_path)
-            self._lay_down_config_path: Union[Path, str] = temp_ldc
-            self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)
-            self.sb3_output_verbose_level = self._training_config.sb3_output_verbose_level
-
-            # set random UUID for session
-            self._uuid = md_dict["uuid"]
-
-            # set the session path
-            self.session_path = path
-            "The Session path"
-
-        else:
-            # Session path does not exist
-            msg = f"Failed to load PrimAITE Session, path does not exist: {path}"
-            _LOGGER.error(msg)
-            raise FileNotFoundError(msg)
+        # set the session path
+        self.session_path = path
+        "The Session path"
 
     @property
     def _saved_agent_path(self) -> Path:
