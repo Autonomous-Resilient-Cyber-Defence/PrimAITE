@@ -1,3 +1,5 @@
+import time
+
 import pytest as pytest
 
 from primaite.config.lay_down_config import dos_very_basic_config_path
@@ -9,7 +11,12 @@ from tests import TEST_CONFIG_ROOT
     [[TEST_CONFIG_ROOT / "ppo_seeded_training_config.yaml", dos_very_basic_config_path()]],
     indirect=True,
 )
-def test_seeded_learning(temp_primaite_session):
+@pytest.mark.parametrize(
+    "temp_primaite_session_2",
+    [[TEST_CONFIG_ROOT / "ppo_seeded_training_config.yaml", dos_very_basic_config_path()]],
+    indirect=True,
+)
+def test_seeded_learning(temp_primaite_session, temp_primaite_session_2):
     """Test running seeded learning produces the same output when ran twice."""
     """
     expected_mean_reward_per_episode = {
@@ -31,8 +38,8 @@ def test_seeded_learning(temp_primaite_session):
         )
         session.learn()
         actual_mean_reward_per_episode_run_1 = session.learn_av_reward_per_episode()
-
-    with temp_primaite_session as session:
+    time.sleep(2)
+    with temp_primaite_session_2 as session:
         assert session._training_config.seed == 67890, (
             "Expected output is based upon a agent that was trained with " "seed 67890"
         )

@@ -4,7 +4,39 @@ import numpy as np
 import pytest
 
 from primaite.environment.observations import NodeLinkTable, NodeStatuses, ObservationsHandler
+from primaite.environment.primaite_env import Primaite
 from tests import TEST_CONFIG_ROOT
+
+
+def run_generic_set_actions(env: Primaite):
+    """Run against a generic agent with specified blue agent actions."""
+    # Reset the environment at the start of the episode
+    # env.reset()
+    training_config = env.training_config
+    for episode in range(0, training_config.num_train_episodes):
+        for step in range(0, training_config.num_train_steps):
+            # Send the observation space to the agent to get an action
+            # TEMP - random action for now
+            # action = env.blue_agent_action(obs)
+            action = 0
+            print("Episode:", episode, "\nStep:", step)
+            if step == 2:
+                # [1, 1, 2, 1, 1, 1, 1(position)]
+                # NEED [1, 1, 1, 2, 1, 1, 1]
+                # Creates an ACL rule
+                # Allows traffic from server_1 to node_1 on port FTP
+                action = 43
+            elif step == 4:
+                action = 96
+
+            # Run the simulation step on the live environment
+            obs, reward, done, info = env.step(action)
+
+            # Break if done is True
+            if done:
+                break
+
+    return env
 
 
 @pytest.mark.parametrize(
@@ -289,16 +321,23 @@ class TestAccessControlList:
         # Used to use env from test fixture but AtrributeError function object has no 'training_config'
         with temp_primaite_session as session:
             env = session.env
-            session.learn()
+            env = run_generic_set_actions(env)
             obs = env.env_obs
         """
         Observation space at the end of the episode.
         At the start of the episode, there is a single implicit Deny rule = 1,1,1,1,1,0
         (0 represents its initial position at top of ACL list)
+        (1, 1, 1, 2, 1, 2, 0) - ACTION
         On Step 5, there is a rule added at POSITION 2: 2,2,3,2,3,0
+        (1, 3, 1, 2, 2, 1) - SECOND ACTION
         On Step 7, there is a second rule added at POSITION 1: 2,4,2,3,3,1
         THINK THE RULES SHOULD BE THE OTHER WAY AROUND IN THE CURRENT OBSERVATION
         """
+        print("what i am testing", obs)
+        # acl rule 1
+        # source is 1 should be 4
+        # dest is 3 should be 2
+        # [2 2 3 2 3 0            2     1?4 3?2 3 3 1 1 1 1 1 1 2]
         # np.array_equal(obs, [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2])
         assert np.array_equal(obs, [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2])
         # assert obs == [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2]
