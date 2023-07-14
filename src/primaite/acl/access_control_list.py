@@ -35,13 +35,14 @@ class AccessControlList:
     def acl(self):
         """Public access method for private _acl.
 
-        Adds implicit rule to end of acl list and
-        Pads out rest of list (if empty) with -1.
+        Adds implicit rule to the BACK of the list after ALL the OTHER ACL rules and
+        pads out rest of list (if it is empty) with None.
         """
         if self.acl_implicit_rule is not None:
             acl_list = self._acl + [self.acl_implicit_rule]
         else:
             acl_list = self._acl
+
         return acl_list + [None] * (self.max_acl_rules - len(acl_list))
 
     def check_address_match(self, _rule: ACLRule, _source_ip_address: str, _dest_ip_address: str) -> bool:
@@ -113,13 +114,17 @@ class AccessControlList:
             return
 
         new_rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
+        # Checks position is in correct range
         if self.max_acl_rules - 1 > position_index > -1:
             try:
                 _LOGGER.info(f"Position {position_index} is valid.")
+                # Check to see Agent will not overwrite current ACL in ACL list
                 if self._acl[position_index] is None:
                     _LOGGER.info(f"Inserting rule {new_rule} at position {position_index}")
+                    # Adds rule
                     self._acl[position_index] = new_rule
                 else:
+                    # Cannot overwrite it
                     _LOGGER.info(f"Error: inserting rule at non-empty position {position_index}")
                     return
             except Exception:
@@ -140,7 +145,7 @@ class AccessControlList:
         """
         # Add check so you cant remove implicit rule
         rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
-        # There will not always be something 'popable' since the agent will be trying random things
+        # There will not always be something removable since the agent will be trying random things
         try:
             self.acl.remove(rule)
         except Exception:
