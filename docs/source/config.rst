@@ -62,11 +62,11 @@ The environment config file consists of the following attributes:
     .. code-block:: yaml
 
         observation_space:
-        flatten: true
         components:
           - name: NODE_LINK_TABLE
           - name: NODE_STATUSES
           - name: LINK_TRAFFIC_LEVELS
+          - name: ACCESS_CONTROL_LIST
             options:
               combine_service_traffic : False
               quantisation_levels: 99
@@ -76,6 +76,7 @@ The environment config file consists of the following attributes:
 
       * :py:mod:`NODE_LINK_TABLE<primaite.environment.observations.NodeLinkTable>` this does not accept any additional options
       * :py:mod:`NODE_STATUSES<primaite.environment.observations.NodeStatuses>`, this does not accept any additional options
+      * :py:mod:`ACCESS_CONTROL_LIST<primaite.environment.observations.AccessControlList>`, this does not accept additional options
       * :py:mod:`LINK_TRAFFIC_LEVELS<primaite.environment.observations.LinkTrafficLevels>`, this accepts the following options:
 
         * ``combine_service_traffic`` - whether to consider bandwidth use separately for each network protocol or combine them into a single bandwidth reading (boolean)
