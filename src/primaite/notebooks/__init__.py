@@ -1,5 +1,6 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Contains default jupyter notebooks which demonstrate PrimAITE functionality."""
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+
 import importlib.util
 import os
 import subprocess

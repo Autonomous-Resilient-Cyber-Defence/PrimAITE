@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 from primaite import _USER_DIRS, getLogger, LOG_DIR, NOTEBOOKS_DIR
 
 _LOGGER = getLogger(__name__)

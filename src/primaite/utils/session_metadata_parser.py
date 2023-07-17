@@ -1,3 +1,4 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 import json
 from pathlib import Path
 from typing import Union
