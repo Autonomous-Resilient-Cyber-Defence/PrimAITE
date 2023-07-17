@@ -12,23 +12,16 @@ _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 class AccessControlList:
     """Access Control List class."""
 
-    def __init__(self, apply_implicit_rule, implicit_permission, max_acl_rules):
+    def __init__(self, implicit_permission, max_acl_rules):
         """Init."""
-        # Bool option in main_config to decide to use implicit rule or not
-        self.apply_implicit_rule: bool = apply_implicit_rule
         # Implicit ALLOW or DENY firewall spec
-        if self.apply_implicit_rule:
-            self.acl_implicit_permission = implicit_permission
-        else:
-            self.acl_implicit_permission = "NA"
-        # Last rule in the ACL list
-        # Implicit rule
+        self.acl_implicit_permission = implicit_permission
+        # Implicit rule in ACL list
         self.acl_implicit_rule = None
-        if self.apply_implicit_rule:
-            if self.acl_implicit_permission == RulePermissionType.DENY:
-                self.acl_implicit_rule = ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
-            elif self.acl_implicit_permission == RulePermissionType.ALLOW:
-                self.acl_implicit_rule = ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
+        if self.acl_implicit_permission == RulePermissionType.DENY:
+            self.acl_implicit_rule = ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
+        elif self.acl_implicit_permission == RulePermissionType.ALLOW:
+            self.acl_implicit_rule = ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
 
         # Maximum number of ACL Rules in ACL
         self.max_acl_rules: int = max_acl_rules
@@ -37,17 +30,8 @@ class AccessControlList:
 
     @property
     def acl(self):
-        """Public access method for private _acl.
-
-        Adds implicit rule to the BACK of the list after ALL the OTHER ACL rules and
-        pads out rest of list (if it is empty) with None.
-        """
-        if self.acl_implicit_rule is not None:
-            acl_list = self._acl + [self.acl_implicit_rule]
-        else:
-            acl_list = self._acl
-
-        return acl_list + [None] * (self.max_acl_rules - len(acl_list))
+        """Public access method for private _acl."""
+        return self._acl + [self.acl_implicit_rule]
 
     def check_address_match(self, _rule: ACLRule, _source_ip_address: str, _dest_ip_address: str) -> bool:
         """Checks for IP address matches.
@@ -136,7 +120,7 @@ class AccessControlList:
         else:
             _LOGGER.info(f"Position {position_index} is an invalid/overwrites implicit firewall rule")
 
-    def remove_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port):
+    def remove_rule(self, _permission: str, _source_ip: str, _dest_ip: str, _protocol: str, _port: str) -> None:
         """
         Removes a rule.
 
@@ -147,17 +131,17 @@ class AccessControlList:
             _protocol: the protocol
             _port: the port
         """
-        # Add check so you cant remove implicit rule
-        rule = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
-        # There will not always be something removable since the agent will be trying random things
-        try:
-            self.acl.remove(rule)
-        except Exception:
-            return
+        rule_to_delete = ACLRule(_permission, _source_ip, _dest_ip, _protocol, str(_port))
+        delete_rule_hash = hash(rule_to_delete)
+
+        for index in range(0, len(self._acl)):
+            if isinstance(self._acl[index], ACLRule) and hash(self._acl[index]) == delete_rule_hash:
+                self._acl[index] = None
 
     def remove_all_rules(self):
         """Removes all rules."""
-        self.acl.clear()
+        for i in range(len(self._acl)):
+            self._acl[i] = None
 
     def get_dictionary_hash(self, _permission, _source_ip, _dest_ip, _protocol, _port):
         """
@@ -188,15 +172,12 @@ class AccessControlList:
         :rtype: Dict[str, ACLRule]
         """
         relevant_rules = {}
-
-        for rule_key, rule_value in self.acl.items():
-            if self.check_address_match(rule_value, _source_ip_address, _dest_ip_address):
-                if (
-                    rule_value.get_protocol() == _protocol or rule_value.get_protocol() == "ANY" or _protocol == "ANY"
-                ) and (
-                    str(rule_value.get_port()) == str(_port) or rule_value.get_port() == "ANY" or str(_port) == "ANY"
+        for rule in self.acl:
+            if self.check_address_match(rule, _source_ip_address, _dest_ip_address):
+                if (rule.get_protocol() == _protocol or rule.get_protocol() == "ANY" or _protocol == "ANY") and (
+                    str(rule.get_port()) == str(_port) or rule.get_port() == "ANY" or str(_port) == "ANY"
                 ):
                     # There's a matching rule.
-                    relevant_rules[rule_key] = rule_value
+                    relevant_rules[self._acl.index(rule)] = rule
 
         return relevant_rules

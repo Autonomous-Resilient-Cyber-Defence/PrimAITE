@@ -91,6 +91,7 @@
   destination: 192.168.1.2
   protocol: TCP
   port: 80
+  position: 0
 - item_type: ACL_RULE
   id: '7'
   permission: ALLOW
@@ -98,3 +99,4 @@
   destination: 192.168.1.1
   protocol: TCP
   port: 80
+  position: 0

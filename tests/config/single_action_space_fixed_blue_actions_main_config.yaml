@@ -37,10 +37,6 @@ load_agent: False
 # File path and file name of agent if you're loading one in
 agent_load_file: C:\[Path]\[agent_saved_filename.zip]
 
-
-
-# Choice whether to have an ALLOW or DENY implicit rule or not (True or False)
-apply_implicit_rule: True
 # Implicit ACL firewall rule at end of lists to be default action or no rule can be selected (ALLOW or DENY)
 implicit_acl_rule: DENY
 # Total number of ACL rules allowed in the environment

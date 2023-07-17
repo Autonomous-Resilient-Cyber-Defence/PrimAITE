@@ -99,11 +99,7 @@ class TrainingConfig:
     sb3_output_verbose_level: SB3OutputVerboseLevel = SB3OutputVerboseLevel.NONE
     "Stable Baselines3 learn/eval output verbosity level"
 
-    # Access Control List/Rules
-    apply_implicit_rule: str = True
-    "User choice to have Implicit ALLOW or DENY."
-
-    implicit_acl_rule: RulePermissionType = RulePermissionType.ALLOW
+    implicit_acl_rule: RulePermissionType = RulePermissionType.DENY
     "ALLOW or DENY implicit firewall rule to go at the end of list of ACL list."
 
     max_number_acl_rules: int = 30

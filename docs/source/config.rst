@@ -485,3 +485,4 @@ The lay down config file consists of the following attributes:
       * **destination** [IP address]: Defines the destination IP address for the rule in xxx.xxx.xxx.xxx format
       * **protocol** [freetext]: Defines the protocol for the rule. Must match a value in the services list
       * **port** [int]: Defines the port for the rule. Must match a value in the ports list
+      * **position** [int]: Defines where to place the ACL rule in the list. Lower index or (higher up in the list) means they are checked first. Index starts at 0 (Python indexes).

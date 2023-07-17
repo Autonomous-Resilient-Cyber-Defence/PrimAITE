@@ -123,7 +123,6 @@ class Primaite(Env):
 
         # Create the Access Control List
         self.acl = AccessControlList(
-            self.training_config.apply_implicit_rule,
             self.training_config.implicit_acl_rule,
             self.training_config.max_number_acl_rules,
         )
@@ -1013,6 +1012,7 @@ class Primaite(Env):
         acl_rule_destination = item["destination"]
         acl_rule_protocol = item["protocol"]
         acl_rule_port = item["port"]
+        acl_rule_position = item["position"]
 
         self.acl.add_rule(
             acl_rule_permission,
@@ -1020,7 +1020,7 @@ class Primaite(Env):
             acl_rule_destination,
             acl_rule_protocol,
             acl_rule_port,
-            0,
+            acl_rule_position,
         )
 
     def create_services_list(self, services):
