@@ -489,7 +489,7 @@ class AccessControlList(AbstractObservationComponent):
                 # Map each ACL attribute from what it was to an integer to fit the observation space
                 source_ip_int = None
                 dest_ip_int = None
-                if permission == "DENY":
+                if permission == RulePermissionType.DENY:
                     permission_int = 1
                 else:
                     permission_int = 2
