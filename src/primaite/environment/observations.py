@@ -702,7 +702,6 @@ class ObservationsHandler:
         # Instantiate the handler
         handler = cls()
 
-
         for component_cfg in obs_space_config["components"]:
             # Figure out which class can instantiate the desired component
             comp_type = component_cfg["name"]
