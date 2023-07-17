@@ -54,11 +54,11 @@ hard_coded_agent_view: FULL
 action_type: ANY
 # observation space
 observation_space:
-  # flatten: true
+  flatten: true
   components:
-    # - name: NODE_LINK_TABLE
-    # - name: NODE_STATUSES
-    # - name: LINK_TRAFFIC_LEVELS
+    - name: NODE_LINK_TABLE
+    - name: NODE_STATUSES
+    - name: LINK_TRAFFIC_LEVELS
     - name: ACCESS_CONTROL_LIST
 
 
