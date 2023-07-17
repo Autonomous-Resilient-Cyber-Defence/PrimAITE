@@ -47,8 +47,8 @@ class AgentSessionABC(ABC):
     @abstractmethod
     def __init__(
         self,
-        training_config_path: Optional[Union[str, Path]] = "",
-        lay_down_config_path: Optional[Union[str, Path]] = "",
+        training_config_path: Optional[Union[str, Path]] = None,
+        lay_down_config_path: Optional[Union[str, Path]] = None,
         session_path: Optional[Union[str, Path]] = None,
     ):
         """
