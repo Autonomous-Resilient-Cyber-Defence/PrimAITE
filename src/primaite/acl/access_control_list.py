@@ -4,6 +4,7 @@ import logging
 from typing import Final, List, Union
 
 from primaite.acl.acl_rule import ACLRule
+from primaite.common.enums import RulePermissionType
 
 _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
@@ -15,12 +16,11 @@ class AccessControlList:
         """Init."""
         # Implicit ALLOW or DENY firewall spec
         self.acl_implicit_permission = implicit_permission
-        print(self.acl_implicit_permission, "ACL IMPLICIT PERMISSION")
         # Implicit rule in ACL list
-        if self.acl_implicit_permission == "DENY":
-            self.acl_implicit_rule = ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
-        elif self.acl_implicit_permission == "ALLOW":
-            self.acl_implicit_rule = ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
+        if self.acl_implicit_permission == RulePermissionType.DENY:
+            self.acl_implicit_rule = ACLRule(RulePermissionType.DENY, "ANY", "ANY", "ANY", "ANY")
+        elif self.acl_implicit_permission == RulePermissionType.ALLOW:
+            self.acl_implicit_rule = ACLRule(RulePermissionType.ALLOW, "ANY", "ANY", "ANY", "ANY")
         else:
             raise ValueError(f"implicit permission must be ALLOW or DENY, got {self.acl_implicit_permission}")
 
@@ -76,9 +76,9 @@ class AccessControlList:
                         str(rule.get_port()) == str(_port) or rule.get_port() == "ANY"
                     ):
                         # There's a matching rule. Get the permission
-                        if rule.get_permission() == "DENY":
+                        if rule.get_permission() == RulePermissionType.DENY:
                             return True
-                        elif rule.get_permission() == "ALLOW":
+                        elif rule.get_permission() == RulePermissionType.ALLOW:
                             return False
 
         # If there has been no rule to allow the IER through, it will return a blocked signal by default
@@ -121,7 +121,9 @@ class AccessControlList:
         else:
             _LOGGER.info(f"Position {position_index} is an invalid/overwrites implicit firewall rule")
 
-    def remove_rule(self, _permission: str, _source_ip: str, _dest_ip: str, _protocol: str, _port: str) -> None:
+    def remove_rule(
+        self, _permission: RulePermissionType, _source_ip: str, _dest_ip: str, _protocol: str, _port: str
+    ) -> None:
         """
         Removes a rule.
 

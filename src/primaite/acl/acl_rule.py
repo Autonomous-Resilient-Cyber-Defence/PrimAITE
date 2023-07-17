@@ -1,11 +1,12 @@
 # Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """A class that implements an access control list rule."""
+from primaite.common.enums import RulePermissionType
 
 
 class ACLRule:
     """Access Control List Rule class."""
 
-    def __init__(self, _permission, _source_ip, _dest_ip, _protocol, _port):
+    def __init__(self, _permission: RulePermissionType, _source_ip, _dest_ip, _protocol, _port):
         """
         Initialise an ACL Rule.
 
