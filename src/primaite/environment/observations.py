@@ -606,8 +606,6 @@ class ObservationsHandler:
         # used for transactions and when flatten=true
         self._flat_observation: np.ndarray
 
-        self.flatten: bool = False
-
     def update_obs(self):
         """Fetch fresh information about the environment."""
         current_obs = []
@@ -661,7 +659,7 @@ class ObservationsHandler:
     @property
     def space(self):
         """Observation space, return the flattened version if flatten is True."""
-        if self.flatten:
+        if len(self.registered_obs_components) > 1:
             return self._flat_space
         else:
             return self._space
@@ -669,7 +667,7 @@ class ObservationsHandler:
     @property
     def current_observation(self):
         """Current observation, return the flattened version if flatten is True."""
-        if self.flatten:
+        if len(self.registered_obs_components) > 1:
             return self._flat_observation
         else:
             return self._observation
