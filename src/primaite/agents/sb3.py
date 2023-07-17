@@ -39,6 +39,7 @@ class SB3Agent(AgentSessionABC):
             msg = f"Expected SB3 agent_framework, " f"got {self._training_config.agent_framework}"
             _LOGGER.error(msg)
             raise ValueError(msg)
+        self._agent_class: Union[PPO, A2C]
         if self._training_config.agent_identifier == AgentIdentifier.PPO:
             self._agent_class = PPO
         elif self._training_config.agent_identifier == AgentIdentifier.A2C:
