@@ -7,7 +7,7 @@ Getting Started
 
 Pre-Requisites
 
-In order to get **PrimAITE** installed, you will need to have the following installed:
+In order to get **PrimAITE** installed, you will need to have a python version between 3.8 and 3.10 installed. If you don't already have it, this is how to install it:
 
 
 .. tabs:: lang
