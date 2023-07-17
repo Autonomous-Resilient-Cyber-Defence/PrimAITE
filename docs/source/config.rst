@@ -124,6 +124,18 @@ The environment config file consists of the following attributes:
 
     The high value to use for values in the observation space. This is set to 1000000000 by default, and should not need changing in most cases
 
+* **apply_implicit_rule** [bool]
+
+    The True or False value decides if the ACL list will have an Explicit Deny (DENY ANY ANY ANY rule) or an Explicit Allow rule. It is set to False by default, and no Explicit rule is added to the list.
+
+* **implicit_acl_rule** [str]
+
+    Determines which Explicit rule the ACL list has - two options are: DENY or ALLOW.
+
+* **max_number_acl_rules** [int]
+
+    Sets a limit on how many ACL rules there can be in the ACL list throughout the training session.
+
 **Reward-Based Config Values**
 
 Rewards are calculated based on the difference between the current state and reference state (the 'should be' state) of the environment.
