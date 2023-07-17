@@ -45,6 +45,8 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    PrimAITE API <source/_autosummary/primaite>
    PrimAITE Tests <source/_autosummary/tests>
    source/dependencies
+   source/glossary
+   source/migration_1.2_-_2.0
 
 
 .. TODO: Add project links once public repo has been created
