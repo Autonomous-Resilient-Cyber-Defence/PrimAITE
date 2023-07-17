@@ -4,7 +4,6 @@ import logging
 from typing import Final, List, Union
 
 from primaite.acl.acl_rule import ACLRule
-from primaite.common.enums import RulePermissionType
 
 _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
@@ -16,11 +15,11 @@ class AccessControlList:
         """Init."""
         # Implicit ALLOW or DENY firewall spec
         self.acl_implicit_permission = implicit_permission
+        print(self.acl_implicit_permission, "ACL IMPLICIT PERMISSION")
         # Implicit rule in ACL list
-        self.acl_implicit_rule = None
-        if self.acl_implicit_permission == RulePermissionType.DENY:
+        if self.acl_implicit_permission == "DENY":
             self.acl_implicit_rule = ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
-        elif self.acl_implicit_permission == RulePermissionType.ALLOW:
+        elif self.acl_implicit_permission == "ALLOW":
             self.acl_implicit_rule = ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
 
         # Maximum number of ACL Rules in ACL
