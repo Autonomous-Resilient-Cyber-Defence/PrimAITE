@@ -5,7 +5,7 @@
 # "SB3" (Stable Baselines3)
 # "RLLIB" (Ray RLlib)
 # "CUSTOM" (Custom Agent)
-agent_framework: SB3
+agent_framework: RLLIB
 
 # Sets which deep learning framework will be used (by RLlib ONLY).
 # Default is TF (Tensorflow).
@@ -29,7 +29,7 @@ agent_identifier: PPO
 # Options are:
 # True
 # False
-random_red_agent: True
+random_red_agent: False
 
 # The (integer) seed to be used in random number generation
 # Default is None (null)

@@ -43,11 +43,9 @@ def test_seeded_learning(temp_primaite_session):
             session._training_config.seed == 67890
         ), "Expected output is based upon a agent that was trained with seed 67890"
         session.learn()
+        actual_mean_reward_per_episode = session.learn_av_reward_per_episode_dict()
 
-        print("\n")
-        print(session.learn_av_reward_per_episode())
-
-        assert expected_mean_reward_per_episode == session.learn_av_reward_per_episode()
+    assert actual_mean_reward_per_episode == expected_mean_reward_per_episode
 
 
 @pytest.mark.skip(reason="Inconsistent results. Needs someone with RL knowledge to investigate further.")
@@ -62,5 +60,5 @@ def test_deterministic_evaluation(temp_primaite_session):
         # do stuff
         session.learn()
         session.evaluate()
-        eval_mean_reward = session.eval_av_reward_per_episode_csv()
+        eval_mean_reward = session.eval_av_reward_per_episode_dict()
         assert len(set(eval_mean_reward.values())) == 1

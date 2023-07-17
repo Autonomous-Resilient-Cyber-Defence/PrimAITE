@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.ppo import MlpPolicy as PPOMlp
 
 from primaite import getLogger
-from primaite.agents.agent import AgentSessionABC
+from primaite.agents.agent_abc import AgentSessionABC
 from primaite.common.enums import AgentFramework, AgentIdentifier
 from primaite.environment.primaite_env import Primaite
 
@@ -18,7 +19,12 @@ _LOGGER = getLogger(__name__)
 class SB3Agent(AgentSessionABC):
     """An AgentSession class that implements a Stable Baselines3 agent."""
 
-    def __init__(self, training_config_path, lay_down_config_path):
+    def __init__(
+        self,
+        training_config_path: Optional[Union[str, Path]] = None,
+        lay_down_config_path: Optional[Union[str, Path]] = None,
+        session_path: Optional[Union[str, Path]] = None,
+    ):
         """
         Initialise the SB3 Agent training session.
 
@@ -31,7 +37,7 @@ class SB3Agent(AgentSessionABC):
         :raises ValueError: If the training config contains an unexpected value for agent_identifies (should be `PPO`
             or `A2C`)
         """
-        super().__init__(training_config_path, lay_down_config_path)
+        super().__init__(training_config_path, lay_down_config_path, session_path)
         if not self._training_config.agent_framework == AgentFramework.SB3:
             msg = f"Expected SB3 agent_framework, " f"got {self._training_config.agent_framework}"
             _LOGGER.error(msg)
@@ -47,7 +53,7 @@ class SB3Agent(AgentSessionABC):
 
         self._tensorboard_log_path = self.learning_path / "tensorboard_logs"
         self._tensorboard_log_path.mkdir(parents=True, exist_ok=True)
-        self._setup()
+
         _LOGGER.debug(
             f"Created {self.__class__.__name__} using: "
             f"agent_framework={self._training_config.agent_framework}, "
@@ -57,8 +63,10 @@ class SB3Agent(AgentSessionABC):
 
         self.is_eval = False
 
+        self._setup()
+
     def _setup(self):
-        super()._setup()
+        """Set up the SB3 Agent."""
         self._env = Primaite(
             training_config_path=self._training_config_path,
             lay_down_config_path=self._lay_down_config_path,
@@ -66,14 +74,43 @@ class SB3Agent(AgentSessionABC):
             timestamp_str=self.timestamp_str,
         )
 
-        self._agent = self._agent_class(
-            PPOMlp,
-            self._env,
-            verbose=self.sb3_output_verbose_level,
-            n_steps=self._training_config.num_train_steps,
-            tensorboard_log=str(self._tensorboard_log_path),
-            seed=self._training_config.seed,
-        )
+        # check if there is a zip file that needs to be loaded
+        load_file = next(self.session_path.rglob("*.zip"), None)
+
+        if not load_file:
+            # create a new env and agent
+
+            self._agent = self._agent_class(
+                PPOMlp,
+                self._env,
+                verbose=self.sb3_output_verbose_level,
+                n_steps=self._training_config.num_train_steps,
+                tensorboard_log=str(self._tensorboard_log_path),
+                seed=self._training_config.seed,
+            )
+        else:
+            # set env values from session metadata
+            with open(self.session_path / "session_metadata.json", "r") as file:
+                md_dict = json.load(file)
+
+            # load environment values
+            if self.is_eval:
+                # evaluation always starts at 0
+                self._env.episode_count = 0
+                self._env.total_step_count = 0
+            else:
+                # carry on from previous learning sessions
+                self._env.episode_count = md_dict["learning"]["total_episodes"]
+                self._env.total_step_count = md_dict["learning"]["total_time_steps"]
+
+            # load the file
+            self._agent = self._agent_class.load(load_file, env=self._env)
+
+            # set agent values
+            self._agent.verbose = self.sb3_output_verbose_level
+            self._agent.tensorboard_log = self.session_path / "learning/tensorboard_logs"
+
+        super()._setup()
 
     def _save_checkpoint(self):
         checkpoint_n = self._training_config.checkpoint_every_n_episodes
@@ -144,11 +181,6 @@ class SB3Agent(AgentSessionABC):
         self._env._write_av_reward_per_episode()  # noqa
         self._env.close()
         super().evaluate()
-
-    @classmethod
-    def load(cls, path: Union[str, Path]) -> SB3Agent:
-        """Load an agent from file."""
-        raise NotImplementedError
 
     def save(self):
         """Save the agent."""
