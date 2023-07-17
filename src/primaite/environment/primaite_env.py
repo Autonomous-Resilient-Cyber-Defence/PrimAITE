@@ -5,7 +5,7 @@ import logging
 import uuid as uuid
 from pathlib import Path
 from random import choice, randint, sample, uniform
-from typing import Dict, Final, List, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, Final, List, Tuple, TYPE_CHECKING, Union
 
 import networkx as nx
 import numpy as np
@@ -118,8 +118,7 @@ class Primaite(Env):
         self.green_iers_reference: Dict[str, IER] = {}
 
         # Create a dictionary to hold all the node PoLs (this will come from an external source)
-        # TODO: figure out type
-        self.node_pol = {}
+        self.node_pol: Dict[str, NodeStateInstructionGreen] = {}
 
         # Create a dictionary to hold all the red agent IERs (this will come from an external source)
         self.red_iers: Dict[str, IER] = {}
@@ -149,8 +148,7 @@ class Primaite(Env):
         """The total number of time steps completed."""
 
         # Create step info dictionary
-        # TODO: figure out type
-        self.step_info = {}
+        self.step_info: Dict[Any] = {}
 
         # Total reward
         self.total_reward: float = 0
@@ -315,7 +313,7 @@ class Primaite(Env):
 
         return self.env_obs
 
-    def step(self, action: int) -> tuple(np.ndarray, float, bool, Dict):
+    def step(self, action: int) -> Tuple[np.ndarray, float, bool, Dict]:
         """
         AI Gym Step function.
 

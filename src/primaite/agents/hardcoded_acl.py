@@ -175,6 +175,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
         if protocol != "ANY":
             protocol = services_list[protocol - 1]  # -1 as dont have to account for ANY in list of services
+            # TODO: This should throw an error because protocol is a string
 
         matching_rules = acl.get_relevant_rules(source_node_address, dest_node_address, protocol, port)
         return matching_rules

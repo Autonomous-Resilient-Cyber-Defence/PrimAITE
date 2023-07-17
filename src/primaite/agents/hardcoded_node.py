@@ -101,6 +101,7 @@ class HardCodedNodeAgent(HardCodedAgentSessionABC):
                     property_action,
                     action_service_index,
                 ]
+                # TODO: transform_action_node_enum takes only one argument, not sure why two are given here.
                 action = transform_action_node_enum(action, action_dict)
                 action = get_new_action(action, action_dict)
                 # We can only perform 1 action on each step
