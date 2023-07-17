@@ -21,6 +21,8 @@ class AccessControlList:
             self.acl_implicit_rule = ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
         elif self.acl_implicit_permission == "ALLOW":
             self.acl_implicit_rule = ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
+        else:
+            raise ValueError(f"implicit permission must be ALLOW or DENY, got {self.acl_implicit_permission}")
 
         # Maximum number of ACL Rules in ACL
         self.max_acl_rules: int = max_acl_rules
