@@ -17,12 +17,11 @@ class AccessControlList:
         # Bool option in main_config to decide to use implicit rule or not
         self.apply_implicit_rule: bool = apply_implicit_rule
         # Implicit ALLOW or DENY firewall spec
+        if self.apply_implicit_rule:
+            self.acl_implicit_permission = implicit_permission
+        else:
+            self.acl_implicit_permission = "NA"
         # Last rule in the ACL list
-        self.acl_implicit_permission = implicit_permission
-        # Maximum number of ACL Rules in ACL
-        self.max_acl_rules: int = max_acl_rules
-        # A list of ACL Rules
-        self._acl: List[Union[ACLRule, None]] = [None] * (self.max_acl_rules - 1)
         # Implicit rule
         self.acl_implicit_rule = None
         if self.apply_implicit_rule:
@@ -30,6 +29,11 @@ class AccessControlList:
                 self.acl_implicit_rule = ACLRule("DENY", "ANY", "ANY", "ANY", "ANY")
             elif self.acl_implicit_permission == RulePermissionType.ALLOW:
                 self.acl_implicit_rule = ACLRule("ALLOW", "ANY", "ANY", "ANY", "ANY")
+
+        # Maximum number of ACL Rules in ACL
+        self.max_acl_rules: int = max_acl_rules
+        # A list of ACL Rules
+        self._acl: List[Union[ACLRule, None]] = [None] * (self.max_acl_rules - 1)
 
     @property
     def acl(self):
