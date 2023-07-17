@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 import numpy as np
 
 from primaite.agents.hardcoded_abc import HardCodedAgentSessionABC
