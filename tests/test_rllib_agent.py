@@ -19,4 +19,5 @@ def test_primaite_session(temp_primaite_session):
         assert session_path.exists()
         session.learn()
 
-        assert len(session.learn_av_reward_per_episode().keys()) == 10
+        assert len(session.learn_av_reward_per_episode_dict().keys()) == 10
+        assert len(session.learn_all_transactions_dict().keys()) == 10 * 256
