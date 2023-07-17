@@ -97,8 +97,12 @@ class RLlibAgent(AgentSessionABC):
             metadata_dict = json.load(file)
 
         metadata_dict["end_datetime"] = datetime.now().isoformat()
-        metadata_dict["total_episodes"] = self._current_result["episodes_total"]
-        metadata_dict["total_time_steps"] = self._current_result["timesteps_total"]
+        if not self.is_eval:
+            metadata_dict["learning"]["total_episodes"] = self._current_result["episodes_total"]  # noqa
+            metadata_dict["learning"]["total_time_steps"] = self._current_result["timesteps_total"]  # noqa
+        else:
+            metadata_dict["evaluation"]["total_episodes"] = self._current_result["episodes_total"]  # noqa
+            metadata_dict["evaluation"]["total_time_steps"] = self._current_result["timesteps_total"]  # noqa
 
         filepath = self.session_path / "session_metadata.json"
         _LOGGER.debug(f"Updating Session Metadata file: {filepath}")
@@ -122,13 +126,13 @@ class RLlibAgent(AgentSessionABC):
         )
         self._agent_config.seed = self._training_config.seed
 
-        self._agent_config.training(train_batch_size=self._training_config.num_steps)
+        self._agent_config.training(train_batch_size=self._training_config.num_train_steps)
         self._agent_config.framework(framework="tf")
 
         self._agent_config.rollouts(
             num_rollout_workers=1,
             num_envs_per_worker=1,
-            horizon=self._training_config.num_steps,
+            horizon=self._training_config.num_train_steps,
         )
         self._agent: Algorithm = self._agent_config.build(logger_creator=_custom_log_creator(self.learning_path))
 
@@ -150,8 +154,8 @@ class RLlibAgent(AgentSessionABC):
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
-        time_steps = self._training_config.num_steps
-        episodes = self._training_config.num_episodes
+        time_steps = self._training_config.num_train_steps
+        episodes = self._training_config.num_train_episodes
 
         _LOGGER.info(f"Beginning learning for {episodes} episodes @" f" {time_steps} time steps...")
         for i in range(episodes):
@@ -161,9 +165,6 @@ class RLlibAgent(AgentSessionABC):
         self._agent.stop()
 
         super().learn()
-
-        # save agent
-        self.save()
 
     def evaluate(
         self,

@@ -65,11 +65,12 @@ class SB3Agent(AgentSessionABC):
             session_path=self.session_path,
             timestamp_str=self.timestamp_str,
         )
+
         self._agent = self._agent_class(
             PPOMlp,
             self._env,
             verbose=self.sb3_output_verbose_level,
-            n_steps=self._training_config.num_steps,
+            n_steps=self._training_config.num_train_steps,
             tensorboard_log=str(self._tensorboard_log_path),
             seed=self._training_config.seed,
         )
@@ -97,14 +98,14 @@ class SB3Agent(AgentSessionABC):
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
-        time_steps = self._training_config.num_steps
-        episodes = self._training_config.num_episodes
+        time_steps = self._training_config.num_train_steps
+        episodes = self._training_config.num_train_episodes
         self.is_eval = False
         _LOGGER.info(f"Beginning learning for {episodes} episodes @" f" {time_steps} time steps...")
         for i in range(episodes):
             self._agent.learn(total_timesteps=time_steps)
             self._save_checkpoint()
-        self._env.reset()
+        self._env._write_av_reward_per_episode()  # noqa
         self.save()
         self._env.close()
         super().learn()
@@ -121,8 +122,8 @@ class SB3Agent(AgentSessionABC):
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
-        time_steps = self._training_config.num_steps
-        episodes = self._training_config.num_episodes
+        time_steps = self._training_config.num_eval_steps
+        episodes = self._training_config.num_eval_episodes
         self._env.set_as_eval()
         self.is_eval = True
         if self._training_config.deterministic:
@@ -140,7 +141,7 @@ class SB3Agent(AgentSessionABC):
                 if isinstance(action, np.ndarray):
                     action = np.int64(action)
                 obs, rewards, done, info = self._env.step(action)
-        self._env.reset()
+        self._env._write_av_reward_per_episode()  # noqa
         self._env.close()
         super().evaluate()
 
