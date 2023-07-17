@@ -702,8 +702,6 @@ class ObservationsHandler:
         # Instantiate the handler
         handler = cls()
 
-        if obs_space_config.get("flatten"):
-            handler.flatten = True
 
         for component_cfg in obs_space_config["components"]:
             # Figure out which class can instantiate the desired component
