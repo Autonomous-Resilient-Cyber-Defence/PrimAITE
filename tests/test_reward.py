@@ -48,5 +48,5 @@ def test_rewards_are_being_penalised_at_each_step_function(
     """
     with temp_primaite_session as session:
         session.evaluate()
-        ev_rewards = session.eval_av_reward_per_episode_csv()
+        ev_rewards = session.eval_av_reward_per_episode_dict()
         assert ev_rewards[1] == -8.0
