@@ -61,7 +61,6 @@ observation_space:
     - name: LINK_TRAFFIC_LEVELS
     - name: ACCESS_CONTROL_LIST
 
-
 # Number of episodes for training to run per session
 num_train_episodes: 10
 
