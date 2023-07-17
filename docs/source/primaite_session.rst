@@ -1,3 +1,7 @@
+.. only:: comment
+
+    Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+
 .. _run a primaite session:
 
 Run a PrimAITE Session
@@ -44,7 +48,8 @@ For example, when running a session at 17:30:00 on 31st January 2023, the sessio
 ``~/primaite/sessions/2023-01-31/2023-01-31_17-30-00/``.
 
 Loading a session
--------
+-----------------
+
 A previous session can be loaded by providing the **directory** of the previous session to either the ``primaite session`` command from the cli
 (See :func:`primaite.cli.session`), or by calling :func:`primaite.main.run` with session_path.
 

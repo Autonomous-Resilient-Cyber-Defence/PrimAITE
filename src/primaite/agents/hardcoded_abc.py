@@ -1,3 +1,4 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 import time
 from abc import abstractmethod
 from pathlib import Path
