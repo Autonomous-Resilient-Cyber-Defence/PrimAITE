@@ -1,3 +1,7 @@
+.. only:: comment
+
+    Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+
 .. _config:
 
 The Config Files Explained

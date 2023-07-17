@@ -1,3 +1,4 @@
+# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:

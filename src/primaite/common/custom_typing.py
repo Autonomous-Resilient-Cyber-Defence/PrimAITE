@@ -1,3 +1,4 @@
+# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 from typing import Type, Union
 
 from primaite.nodes.active_node import ActiveNode

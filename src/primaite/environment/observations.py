@@ -1,3 +1,4 @@
+# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
 """Module for handling configurable observation spaces in PrimAITE."""
 import logging
 from abc import ABC, abstractmethod
