@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Main entry point to PrimAITE. Configure training/evaluation experiments and input/output."""
 from __future__ import annotations
 

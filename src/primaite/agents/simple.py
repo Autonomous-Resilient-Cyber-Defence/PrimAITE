@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 from primaite.agents.hardcoded_abc import HardCodedAgentSessionABC
 from primaite.agents.utils import get_new_action, transform_action_acl_enum, transform_action_node_enum
 

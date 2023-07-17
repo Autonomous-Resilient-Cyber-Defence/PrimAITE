@@ -1,6 +1,6 @@
 .. only:: comment
 
-    Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+    Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 
 v1.2 to v2.0 Migration guide
 ============================

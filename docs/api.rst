@@ -1,6 +1,6 @@
 .. only:: comment
 
-    Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+    Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 
 ..
    DO NOT DELETE THIS FILE! It contains the all-important `.. autosummary::` directive with `:recursive:` option, without
