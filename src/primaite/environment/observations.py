@@ -2,12 +2,14 @@
 """Module for handling configurable observation spaces in PrimAITE."""
 import logging
 from abc import ABC, abstractmethod
+from logging import Logger
 from typing import Dict, Final, List, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 from gym import spaces
 
-from primaite.common.enums import FileSystemState, HardwareState, SoftwareState
+from primaite.acl.acl_rule import ACLRule
+from primaite.common.enums import FileSystemState, HardwareState, RulePermissionType, SoftwareState
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.service_node import ServiceNode
 
@@ -18,14 +20,14 @@ if TYPE_CHECKING:
     from primaite.environment.primaite_env import Primaite
 
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Logger = logging.getLogger(__name__)
 
 
 class AbstractObservationComponent(ABC):
     """Represents a part of the PrimAITE observation space."""
 
     @abstractmethod
-    def __init__(self, env: "Primaite"):
+    def __init__(self, env: "Primaite") -> None:
         """
         Initialise observation component.
 
@@ -40,7 +42,7 @@ class AbstractObservationComponent(ABC):
         return NotImplemented
 
     @abstractmethod
-    def update(self):
+    def update(self) -> None:
         """Update the observation based on the current state of the environment."""
         self.current_observation = NotImplemented
 
@@ -75,7 +77,7 @@ class NodeLinkTable(AbstractObservationComponent):
     _MAX_VAL: int = 1_000_000_000
     _DATA_TYPE: type = np.int64
 
-    def __init__(self, env: "Primaite"):
+    def __init__(self, env: "Primaite") -> None:
         """
         Initialise a NodeLinkTable observation space component.
 
@@ -102,7 +104,7 @@ class NodeLinkTable(AbstractObservationComponent):
 
         self.structure = self.generate_structure()
 
-    def update(self):
+    def update(self) -> None:
         """
         Update the observation based on current environment state.
 
@@ -149,7 +151,7 @@ class NodeLinkTable(AbstractObservationComponent):
                 protocol_index += 1
             item_index += 1
 
-    def generate_structure(self):
+    def generate_structure(self) -> List[str]:
         """Return a list of labels for the components of the flattened observation space."""
         nodes = self.env.nodes.values()
         links = self.env.links.values()
@@ -212,7 +214,7 @@ class NodeStatuses(AbstractObservationComponent):
 
     _DATA_TYPE: type = np.int64
 
-    def __init__(self, env: "Primaite"):
+    def __init__(self, env: "Primaite") -> None:
         """
         Initialise a NodeStatuses observation component.
 
@@ -238,7 +240,7 @@ class NodeStatuses(AbstractObservationComponent):
         self.current_observation = np.zeros(len(shape), dtype=self._DATA_TYPE)
         self.structure = self.generate_structure()
 
-    def update(self):
+    def update(self) -> None:
         """
         Update the observation based on current environment state.
 
@@ -269,11 +271,12 @@ class NodeStatuses(AbstractObservationComponent):
             )
         self.current_observation[:] = obs
 
-    def generate_structure(self):
+    def generate_structure(self) -> List[str]:
         """Return a list of labels for the components of the flattened observation space."""
         services = self.env.services_list
 
         structure = []
+
         for _, node in self.env.nodes.items():
             node_id = node.node_id
             structure.append(f"node_{node_id}_hardware_state_NONE")
@@ -318,7 +321,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
         env: "Primaite",
         combine_service_traffic: bool = False,
         quantisation_levels: int = 5,
-    ):
+    ) -> None:
         """
         Initialise a LinkTrafficLevels observation component.
 
@@ -360,7 +363,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
 
         self.structure = self.generate_structure()
 
-    def update(self):
+    def update(self) -> None:
         """
         Update the observation based on current environment state.
 
@@ -386,7 +389,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
 
         self.current_observation[:] = obs
 
-    def generate_structure(self):
+    def generate_structure(self) -> List[str]:
         """Return a list of labels for the components of the flattened observation space."""
         structure = []
         for _, link in self.env.links.items():
@@ -402,6 +405,182 @@ class LinkTrafficLevels(AbstractObservationComponent):
         return structure
 
 
+class AccessControlList(AbstractObservationComponent):
+    """Flat list of all the Access Control Rules in the Access Control List.
+
+    The MultiDiscrete observation space can be though of as a one-dimensional vector of discrete states, represented by
+    integers.
+
+    Each ACL Rule has 6 elements. It will have the following structure:
+    .. code-block::
+        [
+            acl_rule1 permission,
+            acl_rule1 source_ip,
+            acl_rule1 dest_ip,
+            acl_rule1 protocol,
+            acl_rule1 port,
+            acl_rule1 position,
+            acl_rule2 permission,
+            acl_rule2 source_ip,
+            acl_rule2 dest_ip,
+            acl_rule2 protocol,
+            acl_rule2 port,
+            acl_rule2 position,
+            ...
+        ]
+
+
+    Terms (for ACL Observation Space):
+        [0, 1, 2] - Permission (0 = NA, 1 = DENY, 2 = ALLOW)
+        [0, num nodes] - Source IP (0 = NA, 1 = any, then 2 -> x resolving to Node IDs)
+        [0, num nodes] - Dest IP (0 = NA, 1 = any, then 2 -> x resolving to Node IDs)
+        [0, num services] - Protocol (0 = NA, 1 = any, then 2 -> x resolving to protocol)
+        [0, num ports] - Port (0 = NA, 1 = any, then 2 -> x resolving to port)
+        [0, max acl rules - 1] - Position (0 = NA, 1 = first index, then 2 -> x index resolving to acl rule in acl list)
+
+    NOTE: NA is Non-Applicable - this means the ACL Rule in the list is a NoneType and NOT an ACLRule object.
+    """
+
+    _DATA_TYPE: type = np.int64
+
+    def __init__(self, env: "Primaite"):
+        """
+        Initialise an AccessControlList observation component.
+
+        :param env: The environment that forms the basis of the observations
+        :type env: Primaite
+        """
+        super().__init__(env)
+
+        # 1. Define the shape of your observation space component
+        # The NA and ANY types means that there are 2 extra items for Nodes, Services and Ports.
+        # Number of ACL rules incremented by 1 for positions starting at index 0.
+        acl_shape = [
+            len(RulePermissionType),
+            len(env.nodes) + 2,
+            len(env.nodes) + 2,
+            len(env.services_list) + 2,
+            len(env.ports_list) + 2,
+            env.max_number_acl_rules,
+        ]
+        shape = acl_shape * self.env.max_number_acl_rules
+
+        # 2. Create Observation space
+        self.space = spaces.MultiDiscrete(shape)
+
+        # 3. Initialise observation with zeroes
+        self.current_observation = np.zeros(len(shape), dtype=self._DATA_TYPE)
+
+        self.structure = self.generate_structure()
+
+    def update(self) -> None:
+        """Update the observation based on current environment state.
+
+        The structure of the observation space is described in :class:`.AccessControlList`
+        """
+        obs = []
+
+        for index in range(0, len(self.env.acl.acl)):
+            acl_rule = self.env.acl.acl[index]
+            if isinstance(acl_rule, ACLRule):
+                permission = acl_rule.permission
+                source_ip = acl_rule.source_ip
+                dest_ip = acl_rule.dest_ip
+                protocol = acl_rule.protocol
+                port = acl_rule.port
+                position = index
+                # Map each ACL attribute from what it was to an integer to fit the observation space
+                source_ip_int = None
+                dest_ip_int = None
+                if permission == RulePermissionType.DENY:
+                    permission_int = 1
+                else:
+                    permission_int = 2
+                if source_ip == "ANY":
+                    source_ip_int = 1
+                else:
+                    # Map Node ID (+ 1) to source IP address
+                    nodes = list(self.env.nodes.values())
+                    for node in nodes:
+                        if (
+                            isinstance(node, ServiceNode) or isinstance(node, ActiveNode)
+                        ) and node.ip_address == source_ip:
+                            source_ip_int = int(node.node_id) + 1
+                            break
+                if dest_ip == "ANY":
+                    dest_ip_int = 1
+                else:
+                    # Map Node ID (+ 1) to dest IP address
+                    # Index of Nodes start at 1 so + 1 is needed so NA can be added.
+                    nodes = list(self.env.nodes.values())
+                    for node in nodes:
+                        if (
+                            isinstance(node, ServiceNode) or isinstance(node, ActiveNode)
+                        ) and node.ip_address == dest_ip:
+                            dest_ip_int = int(node.node_id) + 1
+                if protocol == "ANY":
+                    protocol_int = 1
+                else:
+                    # Index of protocols and ports start from 0 so + 2 is needed to add NA and ANY
+                    try:
+                        protocol_int = self.env.services_list.index(protocol) + 2
+                    except AttributeError:
+                        _LOGGER.info(f"Service {protocol} could not be found")
+                        protocol_int = None
+                if port == "ANY":
+                    port_int = 1
+                else:
+                    if port in self.env.ports_list:
+                        port_int = self.env.ports_list.index(port) + 2
+                    else:
+                        _LOGGER.info(f"Port {port} could not be found.")
+                        port_int = None
+                # Add to current obs
+                obs.extend(
+                    [
+                        permission_int,
+                        source_ip_int,
+                        dest_ip_int,
+                        protocol_int,
+                        port_int,
+                        position,
+                    ]
+                )
+
+            else:
+                # The Nothing or NA representation of 'NONE' ACL rules
+                obs.extend([0, 0, 0, 0, 0, 0])
+
+        self.current_observation[:] = obs
+
+    def generate_structure(self) -> List[str]:
+        """Return a list of labels for the components of the flattened observation space."""
+        structure = []
+        for acl_rule in self.env.acl.acl:
+            acl_rule_id = self.env.acl.acl.index(acl_rule)
+
+            for permission in RulePermissionType:
+                structure.append(f"acl_rule_{acl_rule_id}_permission_{permission.name}")
+
+            structure.append(f"acl_rule_{acl_rule_id}_source_ip_ANY")
+            for node in self.env.nodes.keys():
+                structure.append(f"acl_rule_{acl_rule_id}_source_ip_{node}")
+
+            structure.append(f"acl_rule_{acl_rule_id}_dest_ip_ANY")
+            for node in self.env.nodes.keys():
+                structure.append(f"acl_rule_{acl_rule_id}_dest_ip_{node}")
+
+            structure.append(f"acl_rule_{acl_rule_id}_service_ANY")
+            for service in self.env.services_list:
+                structure.append(f"acl_rule_{acl_rule_id}_service_{service}")
+
+            structure.append(f"acl_rule_{acl_rule_id}_port_ANY")
+            for port in self.env.ports_list:
+                structure.append(f"acl_rule_{acl_rule_id}_port_{port}")
+
+        return structure
+
+
 class ObservationsHandler:
     """
     Component-based observation space handler.
@@ -414,9 +593,10 @@ class ObservationsHandler:
         "NODE_LINK_TABLE": NodeLinkTable,
         "NODE_STATUSES": NodeStatuses,
         "LINK_TRAFFIC_LEVELS": LinkTrafficLevels,
+        "ACCESS_CONTROL_LIST": AccessControlList,
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise the observation handler."""
         self.registered_obs_components: List[AbstractObservationComponent] = []
 
@@ -429,9 +609,7 @@ class ObservationsHandler:
         # used for transactions and when flatten=true
         self._flat_observation: np.ndarray
 
-        self.flatten: bool = False
-
-    def update_obs(self):
+    def update_obs(self) -> None:
         """Fetch fresh information about the environment."""
         current_obs = []
         for obs in self.registered_obs_components:
@@ -444,7 +622,7 @@ class ObservationsHandler:
             self._observation = tuple(current_obs)
         self._flat_observation = spaces.flatten(self._space, self._observation)
 
-    def register(self, obs_component: AbstractObservationComponent):
+    def register(self, obs_component: AbstractObservationComponent) -> None:
         """
         Add a component for this handler to track.
 
@@ -454,7 +632,7 @@ class ObservationsHandler:
         self.registered_obs_components.append(obs_component)
         self.update_space()
 
-    def deregister(self, obs_component: AbstractObservationComponent):
+    def deregister(self, obs_component: AbstractObservationComponent) -> None:
         """
         Remove a component from this handler.
 
@@ -465,7 +643,7 @@ class ObservationsHandler:
         self.registered_obs_components.remove(obs_component)
         self.update_space()
 
-    def update_space(self):
+    def update_space(self) -> None:
         """Rebuild the handler's composite observation space from its components."""
         component_spaces = []
         for obs_comp in self.registered_obs_components:
@@ -482,23 +660,23 @@ class ObservationsHandler:
             self._flat_space = spaces.Box(0, 1, (0,))
 
     @property
-    def space(self):
+    def space(self) -> spaces.Space:
         """Observation space, return the flattened version if flatten is True."""
-        if self.flatten:
+        if len(self.registered_obs_components) > 1:
             return self._flat_space
         else:
             return self._space
 
     @property
-    def current_observation(self):
+    def current_observation(self) -> Union[np.ndarray, Tuple[np.ndarray]]:
         """Current observation, return the flattened version if flatten is True."""
-        if self.flatten:
+        if len(self.registered_obs_components) > 1:
             return self._flat_observation
         else:
             return self._observation
 
     @classmethod
-    def from_config(cls, env: "Primaite", obs_space_config: dict):
+    def from_config(cls, env: "Primaite", obs_space_config: dict) -> "ObservationsHandler":
         """
         Parse a config dictinary, return a new observation handler populated with new observation component objects.
 
@@ -527,9 +705,6 @@ class ObservationsHandler:
         # Instantiate the handler
         handler = cls()
 
-        if obs_space_config.get("flatten"):
-            handler.flatten = True
-
         for component_cfg in obs_space_config["components"]:
             # Figure out which class can instantiate the desired component
             comp_type = component_cfg["name"]
@@ -544,7 +719,7 @@ class ObservationsHandler:
         handler.update_obs()
         return handler
 
-    def describe_structure(self):
+    def describe_structure(self) -> List[str]:
         """
         Create a list of names for the features of the obs space.
 

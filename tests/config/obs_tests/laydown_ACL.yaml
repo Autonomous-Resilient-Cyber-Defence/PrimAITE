@@ -1,12 +1,11 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 - item_type: PORTS
   ports_list:
     - port: '80'
-    - port: '53'
+    - port: '21'
 - item_type: SERVICES
   service_list:
     - name: TCP
-    - name: UDP
+    - name: FTP
 
 ########################################
 # Nodes
@@ -24,8 +23,8 @@
     - name: TCP
       port: '80'
       state: GOOD
-    - name: UDP
-      port: '53'
+    - name: FTP
+      port: '21'
       state: GOOD
 - item_type: NODE
   node_id: '2'
@@ -41,8 +40,8 @@
     - name: TCP
       port: '80'
       state: GOOD
-    - name: UDP
-      port: '53'
+    - name: FTP
+      port: '21'
       state: OVERWHELMED
 - item_type: NODE
   node_id: '3'
@@ -85,19 +84,3 @@
 
 #########################################
 # ACL Rules
-- item_type: ACL_RULE
-  id: '6'
-  permission: ALLOW
-  source: 192.168.1.1
-  destination: 192.168.1.2
-  protocol: TCP
-  port: 80
-  position: 0
-- item_type: ACL_RULE
-  id: '7'
-  permission: ALLOW
-  source: 192.168.1.2
-  destination: 192.168.1.1
-  protocol: TCP
-  port: 80
-  position: 0

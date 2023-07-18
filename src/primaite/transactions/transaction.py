@@ -1,15 +1,19 @@
 # Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """The Transaction class."""
 from datetime import datetime
-from typing import List, Tuple
+from typing import List, Optional, Tuple, TYPE_CHECKING, Union
 
 from primaite.common.enums import AgentIdentifier
+
+if TYPE_CHECKING:
+    import numpy as np
+    from gym import spaces
 
 
 class Transaction(object):
     """Transaction class."""
 
-    def __init__(self, agent_identifier: AgentIdentifier, episode_number: int, step_number: int):
+    def __init__(self, agent_identifier: AgentIdentifier, episode_number: int, step_number: int) -> None:
         """
         Transaction constructor.
 
@@ -17,7 +21,7 @@ class Transaction(object):
         :param episode_number: The episode number
         :param step_number: The step number
         """
-        self.timestamp = datetime.now()
+        self.timestamp: datetime = datetime.now()
         "The datetime of the transaction"
         self.agent_identifier: AgentIdentifier = agent_identifier
         "The agent identifier"
@@ -25,17 +29,17 @@ class Transaction(object):
         "The episode number"
         self.step_number: int = step_number
         "The step number"
-        self.obs_space = None
+        self.obs_space: "spaces.Space" = None
         "The observation space (pre)"
-        self.obs_space_pre = None
+        self.obs_space_pre: Optional[Union["np.ndarray", Tuple["np.ndarray"]]] = None
         "The observation space before any actions are taken"
-        self.obs_space_post = None
+        self.obs_space_post: Optional[Union["np.ndarray", Tuple["np.ndarray"]]] = None
         "The observation space after any actions are taken"
-        self.reward: float = None
+        self.reward: Optional[float] = None
         "The reward value"
-        self.action_space = None
+        self.action_space: Optional[int] = None
         "The action space invoked by the agent"
-        self.obs_space_description = None
+        self.obs_space_description: Optional[List[str]] = None
         "The env observation space description"
 
     def as_csv_data(self) -> Tuple[List, List]:
@@ -68,7 +72,7 @@ class Transaction(object):
         return header, row
 
 
-def _turn_action_space_to_array(action_space) -> List[str]:
+def _turn_action_space_to_array(action_space: Union[int, List[int]]) -> List[str]:
     """
     Turns action space into a string array so it can be saved to csv.
 
@@ -81,7 +85,7 @@ def _turn_action_space_to_array(action_space) -> List[str]:
         return [str(action_space)]
 
 
-def _turn_obs_space_to_array(obs_space, obs_assets, obs_features) -> List[str]:
+def _turn_obs_space_to_array(obs_space: "np.ndarray", obs_assets: int, obs_features: int) -> List[str]:
     """
     Turns observation space into a string array so it can be saved to csv.
 

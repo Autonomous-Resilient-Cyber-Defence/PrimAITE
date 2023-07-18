@@ -345,6 +345,7 @@
   destination: 192.168.2.10
   protocol: ANY
   port: ANY
+  position: 0
 - item_type: ACL_RULE
   id: '34'
   permission: ALLOW
@@ -352,6 +353,7 @@
   destination: 192.168.2.14
   protocol: ANY
   port: ANY
+  position: 1
 - item_type: ACL_RULE
   id: '35'
   permission: ALLOW
@@ -359,6 +361,7 @@
   destination: 192.168.2.14
   protocol: ANY
   port: ANY
+  position: 2
 - item_type: ACL_RULE
   id: '36'
   permission: ALLOW
@@ -366,6 +369,7 @@
   destination: 192.168.2.10
   protocol: ANY
   port: ANY
+  position: 3
 - item_type: ACL_RULE
   id: '37'
   permission: ALLOW
@@ -373,6 +377,7 @@
   destination: 192.168.10.11
   protocol: ANY
   port: ANY
+  position: 4
 - item_type: ACL_RULE
   id: '38'
   permission: ALLOW
@@ -380,6 +385,7 @@
   destination: 192.168.10.12
   protocol: ANY
   port: ANY
+  position: 5
 - item_type: ACL_RULE
   id: '39'
   permission: ALLOW
@@ -387,6 +393,7 @@
   destination: 192.168.2.14
   protocol: ANY
   port: ANY
+  position: 6
 - item_type: ACL_RULE
   id: '40'
   permission: ALLOW
@@ -394,6 +401,7 @@
   destination: 192.168.2.10
   protocol: ANY
   port: ANY
+  position: 7
 - item_type: ACL_RULE
   id: '41'
   permission: ALLOW
@@ -401,6 +409,7 @@
   destination: 192.168.2.16
   protocol: ANY
   port: ANY
+  position: 8
 - item_type: ACL_RULE
   id: '42'
   permission: ALLOW
@@ -408,6 +417,7 @@
   destination: 192.168.2.16
   protocol: ANY
   port: ANY
+  position: 9
 - item_type: ACL_RULE
   id: '43'
   permission: ALLOW
@@ -415,6 +425,7 @@
   destination: 192.168.2.10
   protocol: ANY
   port: ANY
+  position: 10
 - item_type: ACL_RULE
   id: '44'
   permission: ALLOW
@@ -422,6 +433,7 @@
   destination: 192.168.2.14
   protocol: ANY
   port: ANY
+  position: 11
 - item_type: ACL_RULE
   id: '45'
   permission: ALLOW
@@ -429,6 +441,7 @@
   destination: 192.168.2.16
   protocol: ANY
   port: ANY
+  position: 12
 - item_type: ACL_RULE
   id: '46'
   permission: ALLOW
@@ -436,6 +449,7 @@
   destination: 192.168.1.12
   protocol: ANY
   port: ANY
+  position: 13
 - item_type: ACL_RULE
   id: '47'
   permission: ALLOW
@@ -443,6 +457,7 @@
   destination: 192.168.1.12
   protocol: ANY
   port: ANY
+  position: 14
 - item_type: ACL_RULE
   id: '48'
   permission: ALLOW
@@ -450,6 +465,7 @@
   destination: 192.168.1.12
   protocol: ANY
   port: ANY
+  position: 15
 - item_type: ACL_RULE
   id: '49'
   permission: DENY
@@ -457,6 +473,7 @@
   destination: ANY
   protocol: ANY
   port: ANY
+  position: 16
 - item_type: RED_POL
   id: '50'
   start_step: 50

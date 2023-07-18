@@ -39,6 +39,11 @@ observation_space:
 # Time delay between steps (for generic agents)
 time_delay: 1
 
+# Implicit ACL firewall rule at end of lists to be default action or no rule can be selected (ALLOW or DENY)
+implicit_acl_rule: ALLOW
+# Total number of ACL rules allowed in the environment
+max_number_acl_rules: 4
+
 # Type of session to be run (TRAINING or EVALUATION)
 session_type: TRAIN
 # Determine whether to load an agent from file

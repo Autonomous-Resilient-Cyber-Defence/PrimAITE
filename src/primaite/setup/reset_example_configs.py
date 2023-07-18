@@ -11,7 +11,7 @@ from primaite import getLogger, USERS_CONFIG_DIR
 _LOGGER = getLogger(__name__)
 
 
-def run(overwrite_existing=True):
+def run(overwrite_existing: bool = True) -> None:
     """
     Resets the example config files in the users app config directory.
 

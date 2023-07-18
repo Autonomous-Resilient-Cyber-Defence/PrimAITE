@@ -2,16 +2,17 @@
 import filecmp
 import os
 import shutil
+from logging import Logger
 from pathlib import Path
 
 import pkg_resources
 
 from primaite import getLogger, NOTEBOOKS_DIR
 
-_LOGGER = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
-def run(overwrite_existing: bool = True):
+def run(overwrite_existing: bool = True) -> None:
     """
     Resets the demo jupyter notebooks in the users app notebooks directory.
 
