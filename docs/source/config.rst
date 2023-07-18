@@ -66,11 +66,11 @@ The environment config file consists of the following attributes:
     .. code-block:: yaml
 
         observation_space:
-        flatten: true
         components:
           - name: NODE_LINK_TABLE
           - name: NODE_STATUSES
           - name: LINK_TRAFFIC_LEVELS
+          - name: ACCESS_CONTROL_LIST
             options:
               combine_service_traffic : False
               quantisation_levels: 99
@@ -80,6 +80,7 @@ The environment config file consists of the following attributes:
 
       * :py:mod:`NODE_LINK_TABLE<primaite.environment.observations.NodeLinkTable>` this does not accept any additional options
       * :py:mod:`NODE_STATUSES<primaite.environment.observations.NodeStatuses>`, this does not accept any additional options
+      * :py:mod:`ACCESS_CONTROL_LIST<primaite.environment.observations.AccessControlList>`, this does not accept additional options
       * :py:mod:`LINK_TRAFFIC_LEVELS<primaite.environment.observations.LinkTrafficLevels>`, this accepts the following options:
 
         * ``combine_service_traffic`` - whether to consider bandwidth use separately for each network protocol or combine them into a single bandwidth reading (boolean)
@@ -127,6 +128,14 @@ The environment config file consists of the following attributes:
 * **observation_space_high_value** [int]
 
     The high value to use for values in the observation space. This is set to 1000000000 by default, and should not need changing in most cases
+
+* **implicit_acl_rule** [str]
+
+    Determines which Explicit rule the ACL list has - two options are: DENY or ALLOW.
+
+* **max_number_acl_rules** [int]
+
+    Sets a limit on how many ACL rules there can be in the ACL list throughout the training session.
 
 **Reward-Based Config Values**
 
@@ -477,3 +486,4 @@ The lay down config file consists of the following attributes:
       * **destination** [IP address]: Defines the destination IP address for the rule in xxx.xxx.xxx.xxx format
       * **protocol** [freetext]: Defines the protocol for the rule. Must match a value in the services list
       * **port** [int]: Defines the port for the rule. Must match a value in the ports list
+      * **position** [int]: Defines where to place the ACL rule in the list. Lower index or (higher up in the list) means they are checked first. Index starts at 0 (Python indexes).

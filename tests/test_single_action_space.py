@@ -3,6 +3,7 @@ import time
 
 import pytest
 
+from primaite.acl.acl_rule import ACLRule
 from primaite.common.enums import HardwareState
 from primaite.environment.primaite_env import Primaite
 from tests import TEST_CONFIG_ROOT
@@ -19,16 +20,17 @@ def run_generic_set_actions(env: Primaite):
             # TEMP - random action for now
             # action = env.blue_agent_action(obs)
             action = 0
+            # print("Episode:", episode, "\nStep:", step)
             if step == 5:
-                # [1, 1, 2, 1, 1, 1]
+                # [1, 1, 2, 1, 1, 1, 1(position)]
                 # Creates an ACL rule
                 # Allows traffic from server_1 to node_1 on port FTP
-                action = 7
+                action = 56
             elif step == 7:
                 # [1, 1, 2, 0] Node Action
                 # Sets Node 1 Hardware State to OFF
                 # Does not resolve any service
-                action = 16
+                action = 128
             # Run the simulation step on the live environment
             obs, reward, done, info = env.step(action)
 
@@ -57,6 +59,10 @@ def run_generic_set_actions(env: Primaite):
 )
 def test_single_action_space_is_valid(temp_primaite_session):
     """Test single action space is valid."""
+    # TODO: Refactor this at some point to build a custom ACL Hardcoded
+    #  Agent and then patch the AgentIdentifier Enum class so that it
+    #  has ACL_AGENT. This then allows us to set the agent identified in
+    #  the main config and is a bit cleaner.
     with temp_primaite_session as session:
         env = session.env
 
@@ -73,7 +79,7 @@ def test_single_action_space_is_valid(temp_primaite_session):
             if len(dict_item) == 4:
                 contains_node_actions = True
             # Link action detected
-            elif len(dict_item) == 6:
+            elif len(dict_item) == 7:
                 contains_acl_actions = True
         # If both are there then the ANY action type is working
         if contains_node_actions and contains_acl_actions:
@@ -94,6 +100,10 @@ def test_single_action_space_is_valid(temp_primaite_session):
 )
 def test_agent_is_executing_actions_from_both_spaces(temp_primaite_session):
     """Test to ensure the blue agent is carrying out both kinds of operations (NODE & ACL)."""
+    # TODO: Refactor this at some point to build a custom ACL Hardcoded
+    #  Agent and then patch the AgentIdentifier Enum class so that it
+    #  has ACL_AGENT. This then allows us to set the agent identified in
+    #  the main config and is a bit cleaner.
     with temp_primaite_session as session:
         env = session.env
         # Run environment with specified fixed blue agent actions only
@@ -105,11 +115,15 @@ def test_agent_is_executing_actions_from_both_spaces(temp_primaite_session):
         access_control_list = env.acl
         # Use the Access Control List object acl object attribute to get dictionary
         # Use dictionary.values() to get total list of all items in the dictionary
-        acl_rules_list = access_control_list.acl.values()
+        acl_rules_list = access_control_list.acl
         # Length of this list tells you how many items are in the dictionary
         # This number is the frequency of Access Control Rules in the environment
         # In the scenario, we specified that the agent should create only 1 acl rule
-        num_of_rules = len(acl_rules_list)
+        # This 1 rule added to the implicit deny means there should be 2 rules in total.
+        rules_count = 0
+        for rule in acl_rules_list:
+            if isinstance(rule, ACLRule):
+                rules_count += 1
         # Therefore these statements below MUST be true
         assert computer_node_hardware_state == HardwareState.OFF
-        assert num_of_rules == 1
+        assert rules_count == 2

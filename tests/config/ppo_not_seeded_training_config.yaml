@@ -36,7 +36,7 @@ random_red_agent: False
 # Default is None (null)
 seed: None
 
-# Set whether the agent will be deterministic instead of stochastic
+# Set whether the agent evaluation will be deterministic instead of stochastic
 # Options are:
 # True
 # False
@@ -55,11 +55,11 @@ hard_coded_agent_view: FULL
 action_type: NODE
 # observation space
 observation_space:
-  # flatten: true
   components:
     - name: NODE_LINK_TABLE
     # - name: NODE_STATUSES
     # - name: LINK_TRAFFIC_LEVELS
+    # - name: ACCESS_CONTROL_LIST
 # Number of episodes to run per session
 num_train_episodes: 10
 

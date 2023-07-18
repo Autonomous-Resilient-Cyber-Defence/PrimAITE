@@ -91,6 +91,8 @@ session_type: EVAL
 # The high value for the observation space
 observation_space_high_value: 1000000000
 
+implicit_acl_rule: DENY
+max_number_acl_rules: 10
 # The Stable Baselines3 learn/eval output verbosity level:
 # Options are:
 # "NONE" (No Output)

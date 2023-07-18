@@ -15,6 +15,7 @@ from primaite.common.enums import (
     AgentIdentifier,
     DeepLearningFramework,
     HardCodedAgentView,
+    RulePermissionType,
     SB3OutputVerboseLevel,
     SessionType,
 )
@@ -98,6 +99,12 @@ class TrainingConfig:
 
     sb3_output_verbose_level: SB3OutputVerboseLevel = SB3OutputVerboseLevel.NONE
     "Stable Baselines3 learn/eval output verbosity level"
+
+    implicit_acl_rule: RulePermissionType = RulePermissionType.DENY
+    "ALLOW or DENY implicit firewall rule to go at the end of list of ACL list."
+
+    max_number_acl_rules: int = 30
+    "Sets a limit for number of acl rules allowed in the list and environment."
 
     # Reward values
     # Generic
@@ -207,6 +214,7 @@ class TrainingConfig:
             "session_type": SessionType,
             "sb3_output_verbose_level": SB3OutputVerboseLevel,
             "hard_coded_agent_view": HardCodedAgentView,
+            "implicit_acl_rule": RulePermissionType,
         }
 
         # convert the string representation of enums into the actual enum values themselves?
@@ -233,6 +241,7 @@ class TrainingConfig:
             data["sb3_output_verbose_level"] = self.sb3_output_verbose_level.name
             data["session_type"] = self.session_type.name
             data["hard_coded_agent_view"] = self.hard_coded_agent_view.name
+            data["implicit_acl_rule"] = self.implicit_acl_rule.name
 
         return data
 
