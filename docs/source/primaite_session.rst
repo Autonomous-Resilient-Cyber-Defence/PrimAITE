@@ -47,6 +47,105 @@ The sub-directory is formatted as such: ``~/primaite/sessions/<yyyy-mm-dd>/<yyyy
 For example, when running a session at 17:30:00 on 31st January 2023, the session will output to:
 ``~/primaite/sessions/2023-01-31/2023-01-31_17-30-00/``.
 
+
+Outputs
+-------
+
+PrimAITE produces four types of outputs:
+
+* Session Metadata
+* Results
+* Diagrams
+* Saved agents (training checkpoints and a final trained agent)
+
+
+**Session Metadata**
+
+PrimAITE creates a ``session_metadata.json`` file that contains the following metadata:
+
+    * **uuid** - The UUID assigned to the session upon instantiation.
+    * **start_datetime** - The date & time the session started in iso format.
+    * **end_datetime** - The date & time the session ended in iso format.
+    * **learning**
+        * **total_episodes** - The total number of training episodes completed.
+        * **total_time_steps** - The total number of training time steps completed.
+    * **evaluation**
+        * **total_episodes** - The total number of evaluation episodes completed.
+        * **total_time_steps** - The total number of evaluation time steps completed.
+    * **env**
+        * **training_config**
+            * **All training config items**
+        * **lay_down_config**
+            * **All lay down config items**
+
+
+**Results**
+
+PrimAITE automatically creates two sets of results from each learning and evaluation session:
+
+* Average reward per episode - a csv file listing the average reward for each episode of the session. This provides, for example, an indication of the change over a training session of the reward value
+* All transactions - a csv file listing the following values for every step of every episode:
+
+    * Timestamp
+    * Episode number
+    * Step number
+    * Reward value
+    * Action taken (as presented by the blue agent on this step). Individual elements of the action space are presented in the format AS_X
+    * Initial observation space (what the blue agent observed when it decided its action)
+
+**Diagrams**
+
+* For each session, PrimAITE automatically creates a visualisation of the system / network lay down configuration.
+* For each learning and evaluation task within the session, PrimAITE automatically plots the average reward per episode using PlotLY and saves it to the learning or evaluation subdirectory in the session directory.
+
+**Saved agents**
+
+For each training session, assuming the agent being trained implements the *save()* function and this function is called by the code, PrimAITE automatically saves the agent state.
+
+**Example Session Directory Structure**
+
+.. code-block:: text
+
+    ~/
+    └── primaite/
+        └── sessions/
+            └── 2023-07-18/
+                └── 2023-07-18_11-06-04/
+                    ├── evaluation/
+                    │   ├── all_transactions_2023-07-18_11-06-04.csv
+                    │   ├── average_reward_per_episode_2023-07-18_11-06-04.csv
+                    │   └── average_reward_per_episode_2023-07-18_11-06-04.png
+                    ├── learning/
+                    │   ├── all_transactions_2023-07-18_11-06-04.csv
+                    │   ├── average_reward_per_episode_2023-07-18_11-06-04.csv
+                    │   ├── average_reward_per_episode_2023-07-18_11-06-04.png
+                    │   ├── checkpoints/
+                    │   │   └── sb3ppo_10.zip
+                    │   ├── SB3_PPO.zip
+                    │   └── tensorboard_logs/
+                    │       ├── PPO_1/
+                    │       │   └── events.out.tfevents.1689674765.METD-9PMRFB3.42960.0
+                    │       ├── PPO_2/
+                    │       │   └── events.out.tfevents.1689674766.METD-9PMRFB3.42960.1
+                    │       ├── PPO_3/
+                    │       │   └── events.out.tfevents.1689674766.METD-9PMRFB3.42960.2
+                    │       ├── PPO_4/
+                    │       │   └── events.out.tfevents.1689674767.METD-9PMRFB3.42960.3
+                    │       ├── PPO_5/
+                    │       │   └── events.out.tfevents.1689674767.METD-9PMRFB3.42960.4
+                    │       ├── PPO_6/
+                    │       │   └── events.out.tfevents.1689674768.METD-9PMRFB3.42960.5
+                    │       ├── PPO_7/
+                    │       │   └── events.out.tfevents.1689674768.METD-9PMRFB3.42960.6
+                    │       ├── PPO_8/
+                    │       │   └── events.out.tfevents.1689674769.METD-9PMRFB3.42960.7
+                    │       ├── PPO_9/
+                    │       │   └── events.out.tfevents.1689674770.METD-9PMRFB3.42960.8
+                    │       └── PPO_10/
+                    │           └── events.out.tfevents.1689674770.METD-9PMRFB3.42960.9
+                    ├── network_2023-07-18_11-06-04.png
+                    └── session_metadata.json
+
 Loading a session
 -----------------
 
@@ -78,52 +177,3 @@ A previous session can be loaded by providing the **directory** of the previous 
         run(session_path=<previous session directory>)
 
 When PrimAITE runs a loaded session, PrimAITE will output in the provided session directory
-
-Outputs
--------
-
-PrimAITE produces four types of outputs:
-
-* Session Metadata
-* Results
-* Diagrams
-* Saved agents
-
-
-**Session Metadata**
-
-PrimAITE creates a ``session_metadata.json`` file that contains the following metadata:
-
-    * **uuid** - The UUID assigned to the session upon instantiation.
-    * **start_datetime** - The date & time the session started in iso format.
-    * **end_datetime** - The date & time the session ended in iso format.
-    * **total_episodes** - The total number of training episodes completed.
-    * **total_time_steps** - The total number of training time steps completed.
-    * **env**
-        * **training_config**
-            * **All training config items**
-        * **lay_down_config**
-            * **All lay down config items**
-
-
-**Results**
-
-PrimAITE automatically creates two sets of results from each session:
-
-* Average reward per episode - a csv file listing the average reward for each episode of the session. This provides, for example, an indication of the change over a training session of the reward value
-* All transactions - a csv file listing the following values for every step of every episode:
-
-    * Timestamp
-    * Episode number
-    * Step number
-    * Reward value
-    * Action taken (as presented by the blue agent on this step). Individual elements of the action space are presented in the format AS_X
-    * Initial observation space (what the blue agent observed when it decided its action)
-
-**Diagrams**
-
-For each session, PrimAITE automatically creates a visualisation of the system / network lay down configuration.
-
-**Saved agents**
-
-For each training session, assuming the agent being trained implements the *save()* function and this function is called by the code, PrimAITE automatically saves the agent state.
