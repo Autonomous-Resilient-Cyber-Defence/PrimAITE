@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 import logging
 import logging.config
 import sys
@@ -6,7 +6,7 @@ from bisect import bisect
 from logging import Formatter, Logger, LogRecord, StreamHandler
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Dict, Final
+from typing import Any, Dict, Final
 
 import pkg_resources
 import yaml
@@ -16,7 +16,7 @@ _PLATFORM_DIRS: Final[PlatformDirs] = PlatformDirs(appname="primaite")
 """An instance of `PlatformDirs` set with appname='primaite'."""
 
 
-def _get_primaite_config():
+def _get_primaite_config() -> Dict:
     config_path = _PLATFORM_DIRS.user_config_path / "primaite_config.yaml"
     if not config_path.exists():
         config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
@@ -72,7 +72,7 @@ class _LevelFormatter(Formatter):
     Credit to: https://stackoverflow.com/a/68154386
     """
 
-    def __init__(self, formats: Dict[int, str], **kwargs):
+    def __init__(self, formats: Dict[int, str], **kwargs: Any) -> None:
         super().__init__()
 
         if "fmt" in kwargs:

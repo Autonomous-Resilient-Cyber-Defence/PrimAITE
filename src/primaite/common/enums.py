@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Enumerations for APE."""
 
 from enum import Enum, IntEnum
@@ -148,6 +148,7 @@ class ActionType(Enum):
     ANY = 2
 
 
+# TODO: this is not used anymore, write a ticket to delete it.
 class ObservationType(Enum):
     """Observation type enumeration."""
 

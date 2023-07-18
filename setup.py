@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 from setuptools import setup
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel  # noqa
 

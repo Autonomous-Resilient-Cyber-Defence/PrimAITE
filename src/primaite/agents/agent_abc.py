@@ -1,10 +1,12 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 from __future__ import annotations
 
 import json
 from abc import ABC, abstractmethod
 from datetime import datetime
+from logging import Logger
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 from uuid import uuid4
 
 import primaite
@@ -15,7 +17,7 @@ from primaite.data_viz.session_plots import plot_av_reward_per_episode
 from primaite.environment.primaite_env import Primaite
 from primaite.utils.session_metadata_parser import parse_session_metadata
 
-_LOGGER = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 def get_session_path(session_timestamp: datetime) -> Path:
@@ -50,7 +52,7 @@ class AgentSessionABC(ABC):
         training_config_path: Optional[Union[str, Path]] = None,
         lay_down_config_path: Optional[Union[str, Path]] = None,
         session_path: Optional[Union[str, Path]] = None,
-    ):
+    ) -> None:
         """
         Initialise an agent session from config files, or load a previous session.
 
@@ -130,11 +132,11 @@ class AgentSessionABC(ABC):
         return path
 
     @property
-    def uuid(self):
+    def uuid(self) -> str:
         """The Agent Session UUID."""
         return self._uuid
 
-    def _write_session_metadata_file(self):
+    def _write_session_metadata_file(self) -> None:
         """
         Write the ``session_metadata.json`` file.
 
@@ -170,7 +172,7 @@ class AgentSessionABC(ABC):
             json.dump(metadata_dict, file)
             _LOGGER.debug("Finished writing session metadata file")
 
-    def _update_session_metadata_file(self):
+    def _update_session_metadata_file(self) -> None:
         """
         Update the ``session_metadata.json`` file.
 
@@ -199,7 +201,7 @@ class AgentSessionABC(ABC):
             _LOGGER.debug("Finished updating session metadata file")
 
     @abstractmethod
-    def _setup(self):
+    def _setup(self) -> None:
         _LOGGER.info(
             "Welcome to the Primary-level AI Training Environment " f"(PrimAITE) (version: {primaite.__version__})"
         )
@@ -209,14 +211,14 @@ class AgentSessionABC(ABC):
         self._can_evaluate = False
 
     @abstractmethod
-    def _save_checkpoint(self):
+    def _save_checkpoint(self) -> None:
         pass
 
     @abstractmethod
     def learn(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Train the agent.
 
@@ -233,8 +235,8 @@ class AgentSessionABC(ABC):
     @abstractmethod
     def evaluate(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Evaluate the agent.
 
@@ -247,10 +249,10 @@ class AgentSessionABC(ABC):
             _LOGGER.info("Finished evaluation")
 
     @abstractmethod
-    def _get_latest_checkpoint(self):
+    def _get_latest_checkpoint(self) -> None:
         pass
 
-    def load(self, path: Union[str, Path]):
+    def load(self, path: Union[str, Path]) -> None:
         """Load an agent from file."""
         md_dict, training_config_path, laydown_config_path = parse_session_metadata(path)
 
@@ -274,21 +276,21 @@ class AgentSessionABC(ABC):
         return self.learning_path / file_name
 
     @abstractmethod
-    def save(self):
+    def save(self) -> None:
         """Save the agent."""
         pass
 
     @abstractmethod
-    def export(self):
+    def export(self) -> None:
         """Export the agent to transportable file format."""
         pass
 
-    def close(self):
+    def close(self) -> None:
         """Closes the agent."""
         self._env.episode_av_reward_writer.close()  # noqa
         self._env.transaction_writer.close()  # noqa
 
-    def _plot_av_reward_per_episode(self, learning_session: bool = True):
+    def _plot_av_reward_per_episode(self, learning_session: bool = True) -> None:
         # self.close()
         title = f"PrimAITE Session {self.timestamp_str} "
         subtitle = str(self._training_config)

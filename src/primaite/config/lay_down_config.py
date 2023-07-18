@@ -1,4 +1,5 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+from logging import Logger
 from pathlib import Path
 from typing import Any, Dict, Final, Union
 
@@ -6,7 +7,7 @@ import yaml
 
 from primaite import getLogger, USERS_CONFIG_DIR
 
-_LOGGER = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 _EXAMPLE_LAY_DOWN: Final[Path] = USERS_CONFIG_DIR / "example_config" / "lay_down"
 

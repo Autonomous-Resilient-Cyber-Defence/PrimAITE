@@ -1,6 +1,6 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Implements Pattern of Life on the network (nodes and links)."""
-from typing import Dict, Union
+from typing import Dict
 
 from networkx import MultiGraph, shortest_path
 
@@ -10,11 +10,10 @@ from primaite.common.enums import HardwareState, NodePOLType, NodeType, Software
 from primaite.links.link import Link
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.node_state_instruction_green import NodeStateInstructionGreen
-from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.service_node import ServiceNode
 from primaite.pol.ier import IER
 
-_VERBOSE = False
+_VERBOSE: bool = False
 
 
 def apply_iers(
@@ -24,7 +23,7 @@ def apply_iers(
     iers: Dict[str, IER],
     acl: AccessControlList,
     step: int,
-):
+) -> None:
     """
     Applies IERs to the links (link pattern of life).
 
@@ -65,6 +64,8 @@ def apply_iers(
             dest_node = nodes[dest_node_id]
 
             # 1. Check the source node situation
+            # TODO: should be using isinstance rather than checking node type attribute. IE. just because it's a switch
+            # doesn't mean it has a software state? It could be a PassiveNode or ActiveNode
             if source_node.node_type == NodeType.SWITCH:
                 # It's a switch
                 if (
@@ -215,9 +216,9 @@ def apply_iers(
 
 def apply_node_pol(
     nodes: Dict[str, NodeUnion],
-    node_pol: Dict[any, Union[NodeStateInstructionGreen, NodeStateInstructionRed]],
+    node_pol: Dict[str, NodeStateInstructionGreen],
     step: int,
-):
+) -> None:
     """
     Applies node pattern of life.
 

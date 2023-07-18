@@ -1,7 +1,7 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """A class that implements the access control list implementation for the network."""
 import logging
-from typing import Final, List, Union
+from typing import Dict, Final, List, Union
 
 from primaite.acl.acl_rule import ACLRule
 from primaite.common.enums import RulePermissionType
@@ -12,7 +12,7 @@ _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 class AccessControlList:
     """Access Control List class."""
 
-    def __init__(self, implicit_permission, max_acl_rules):
+    def __init__(self, implicit_permission: RulePermissionType, max_acl_rules: int) -> None:
         """Init."""
         # Implicit ALLOW or DENY firewall spec
         self.acl_implicit_permission = implicit_permission
@@ -30,7 +30,7 @@ class AccessControlList:
         self._acl: List[Union[ACLRule, None]] = [None] * (self.max_acl_rules - 1)
 
     @property
-    def acl(self):
+    def acl(self) -> List[Union[ACLRule, None]]:
         """Public access method for private _acl."""
         return self._acl + [self.acl_implicit_rule]
 
@@ -84,7 +84,9 @@ class AccessControlList:
         # If there has been no rule to allow the IER through, it will return a blocked signal by default
         return True
 
-    def add_rule(self, _permission, _source_ip, _dest_ip, _protocol, _port, _position):
+    def add_rule(
+        self, _permission: str, _source_ip: str, _dest_ip: str, _protocol: str, _port: str, _position: int
+    ) -> None:
         """
         Adds a new rule.
 
@@ -141,12 +143,12 @@ class AccessControlList:
             if isinstance(self._acl[index], ACLRule) and hash(self._acl[index]) == delete_rule_hash:
                 self._acl[index] = None
 
-    def remove_all_rules(self):
+    def remove_all_rules(self) -> None:
         """Removes all rules."""
         for i in range(len(self._acl)):
             self._acl[i] = None
 
-    def get_dictionary_hash(self, _permission, _source_ip, _dest_ip, _protocol, _port):
+    def get_dictionary_hash(self, _permission: str, _source_ip: str, _dest_ip: str, _protocol: str, _port: str) -> int:
         """
         Produces a hash value for a rule.
 
@@ -164,7 +166,9 @@ class AccessControlList:
         hash_value = hash(rule)
         return hash_value
 
-    def get_relevant_rules(self, _source_ip_address, _dest_ip_address, _protocol, _port):
+    def get_relevant_rules(
+        self, _source_ip_address: str, _dest_ip_address: str, _protocol: str, _port: str
+    ) -> Dict[int, ACLRule]:
         """Get all ACL rules that relate to the given arguments.
 
         :param _source_ip_address: the source IP address to check
@@ -172,7 +176,7 @@ class AccessControlList:
         :param _protocol: the protocol to check
         :param _port: the port to check
         :return: Dictionary of all ACL rules that relate to the given arguments
-        :rtype: Dict[str, ACLRule]
+        :rtype: Dict[int, ACLRule]
         """
         relevant_rules = {}
         for rule in self.acl:

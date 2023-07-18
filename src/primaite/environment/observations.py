@@ -1,6 +1,8 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Module for handling configurable observation spaces in PrimAITE."""
 import logging
 from abc import ABC, abstractmethod
+from logging import Logger
 from typing import Dict, Final, List, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
@@ -17,14 +19,15 @@ from primaite.nodes.service_node import ServiceNode
 if TYPE_CHECKING:
     from primaite.environment.primaite_env import Primaite
 
-_LOGGER = logging.getLogger(__name__)
+
+_LOGGER: Logger = logging.getLogger(__name__)
 
 
 class AbstractObservationComponent(ABC):
     """Represents a part of the PrimAITE observation space."""
 
     @abstractmethod
-    def __init__(self, env: "Primaite"):
+    def __init__(self, env: "Primaite") -> None:
         """
         Initialise observation component.
 
@@ -39,7 +42,7 @@ class AbstractObservationComponent(ABC):
         return NotImplemented
 
     @abstractmethod
-    def update(self):
+    def update(self) -> None:
         """Update the observation based on the current state of the environment."""
         self.current_observation = NotImplemented
 
@@ -74,7 +77,7 @@ class NodeLinkTable(AbstractObservationComponent):
     _MAX_VAL: int = 1_000_000_000
     _DATA_TYPE: type = np.int64
 
-    def __init__(self, env: "Primaite"):
+    def __init__(self, env: "Primaite") -> None:
         """
         Initialise a NodeLinkTable observation space component.
 
@@ -101,7 +104,7 @@ class NodeLinkTable(AbstractObservationComponent):
 
         self.structure = self.generate_structure()
 
-    def update(self):
+    def update(self) -> None:
         """
         Update the observation based on current environment state.
 
@@ -148,7 +151,7 @@ class NodeLinkTable(AbstractObservationComponent):
                 protocol_index += 1
             item_index += 1
 
-    def generate_structure(self):
+    def generate_structure(self) -> List[str]:
         """Return a list of labels for the components of the flattened observation space."""
         nodes = self.env.nodes.values()
         links = self.env.links.values()
@@ -211,7 +214,7 @@ class NodeStatuses(AbstractObservationComponent):
 
     _DATA_TYPE: type = np.int64
 
-    def __init__(self, env: "Primaite"):
+    def __init__(self, env: "Primaite") -> None:
         """
         Initialise a NodeStatuses observation component.
 
@@ -237,7 +240,7 @@ class NodeStatuses(AbstractObservationComponent):
         self.current_observation = np.zeros(len(shape), dtype=self._DATA_TYPE)
         self.structure = self.generate_structure()
 
-    def update(self):
+    def update(self) -> None:
         """
         Update the observation based on current environment state.
 
@@ -268,7 +271,7 @@ class NodeStatuses(AbstractObservationComponent):
             )
         self.current_observation[:] = obs
 
-    def generate_structure(self):
+    def generate_structure(self) -> List[str]:
         """Return a list of labels for the components of the flattened observation space."""
         services = self.env.services_list
 
@@ -318,7 +321,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
         env: "Primaite",
         combine_service_traffic: bool = False,
         quantisation_levels: int = 5,
-    ):
+    ) -> None:
         """
         Initialise a LinkTrafficLevels observation component.
 
@@ -360,7 +363,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
 
         self.structure = self.generate_structure()
 
-    def update(self):
+    def update(self) -> None:
         """
         Update the observation based on current environment state.
 
@@ -386,7 +389,7 @@ class LinkTrafficLevels(AbstractObservationComponent):
 
         self.current_observation[:] = obs
 
-    def generate_structure(self):
+    def generate_structure(self) -> List[str]:
         """Return a list of labels for the components of the flattened observation space."""
         structure = []
         for _, link in self.env.links.items():
@@ -470,7 +473,7 @@ class AccessControlList(AbstractObservationComponent):
 
         self.structure = self.generate_structure()
 
-    def update(self):
+    def update(self) -> None:
         """Update the observation based on current environment state.
 
         The structure of the observation space is described in :class:`.AccessControlList`
@@ -550,7 +553,7 @@ class AccessControlList(AbstractObservationComponent):
 
         self.current_observation[:] = obs
 
-    def generate_structure(self):
+    def generate_structure(self) -> List[str]:
         """Return a list of labels for the components of the flattened observation space."""
         structure = []
         for acl_rule in self.env.acl.acl:
@@ -593,7 +596,7 @@ class ObservationsHandler:
         "ACCESS_CONTROL_LIST": AccessControlList,
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialise the observation handler."""
         self.registered_obs_components: List[AbstractObservationComponent] = []
 
@@ -606,7 +609,7 @@ class ObservationsHandler:
         # used for transactions and when flatten=true
         self._flat_observation: np.ndarray
 
-    def update_obs(self):
+    def update_obs(self) -> None:
         """Fetch fresh information about the environment."""
         current_obs = []
         for obs in self.registered_obs_components:
@@ -619,7 +622,7 @@ class ObservationsHandler:
             self._observation = tuple(current_obs)
         self._flat_observation = spaces.flatten(self._space, self._observation)
 
-    def register(self, obs_component: AbstractObservationComponent):
+    def register(self, obs_component: AbstractObservationComponent) -> None:
         """
         Add a component for this handler to track.
 
@@ -629,7 +632,7 @@ class ObservationsHandler:
         self.registered_obs_components.append(obs_component)
         self.update_space()
 
-    def deregister(self, obs_component: AbstractObservationComponent):
+    def deregister(self, obs_component: AbstractObservationComponent) -> None:
         """
         Remove a component from this handler.
 
@@ -640,7 +643,7 @@ class ObservationsHandler:
         self.registered_obs_components.remove(obs_component)
         self.update_space()
 
-    def update_space(self):
+    def update_space(self) -> None:
         """Rebuild the handler's composite observation space from its components."""
         component_spaces = []
         for obs_comp in self.registered_obs_components:
@@ -657,7 +660,7 @@ class ObservationsHandler:
             self._flat_space = spaces.Box(0, 1, (0,))
 
     @property
-    def space(self):
+    def space(self) -> spaces.Space:
         """Observation space, return the flattened version if flatten is True."""
         if len(self.registered_obs_components) > 1:
             return self._flat_space
@@ -665,7 +668,7 @@ class ObservationsHandler:
             return self._space
 
     @property
-    def current_observation(self):
+    def current_observation(self) -> Union[np.ndarray, Tuple[np.ndarray]]:
         """Current observation, return the flattened version if flatten is True."""
         if len(self.registered_obs_components) > 1:
             return self._flat_observation
@@ -673,7 +676,7 @@ class ObservationsHandler:
             return self._observation
 
     @classmethod
-    def from_config(cls, env: "Primaite", obs_space_config: dict):
+    def from_config(cls, env: "Primaite", obs_space_config: dict) -> "ObservationsHandler":
         """
         Parse a config dictinary, return a new observation handler populated with new observation component objects.
 
@@ -716,7 +719,7 @@ class ObservationsHandler:
         handler.update_obs()
         return handler
 
-    def describe_structure(self):
+    def describe_structure(self) -> List[str]:
         """
         Create a list of names for the features of the obs space.
 

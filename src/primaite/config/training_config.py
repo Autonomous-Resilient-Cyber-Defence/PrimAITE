@@ -1,7 +1,8 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from logging import Logger
 from pathlib import Path
 from typing import Any, Dict, Final, Optional, Union
 
@@ -19,7 +20,7 @@ from primaite.common.enums import (
     SessionType,
 )
 
-_LOGGER = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 _EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training"
 
@@ -86,7 +87,7 @@ class TrainingConfig:
     session_type: SessionType = SessionType.TRAIN
     "The type of PrimAITE session to run"
 
-    load_agent: str = False
+    load_agent: bool = False
     "Determine whether to load an agent from file"
 
     agent_load_file: Optional[str] = None
@@ -198,7 +199,7 @@ class TrainingConfig:
     "The random number generator seed to be used while training the agent"
 
     @classmethod
-    def from_dict(cls, config_dict: Dict[str, Union[str, int, bool]]) -> TrainingConfig:
+    def from_dict(cls, config_dict: Dict[str, Any]) -> TrainingConfig:
         """
         Create an instance of TrainingConfig from a dict.
 
@@ -216,12 +217,14 @@ class TrainingConfig:
             "implicit_acl_rule": RulePermissionType,
         }
 
+        # convert the string representation of enums into the actual enum values themselves?
         for key, value in field_enum_map.items():
             if key in config_dict:
                 config_dict[key] = value[config_dict[key]]
+
         return TrainingConfig(**config_dict)
 
-    def to_dict(self, json_serializable: bool = True):
+    def to_dict(self, json_serializable: bool = True) -> Dict:
         """
         Serialise the ``TrainingConfig`` as dict.
 
@@ -341,7 +344,7 @@ def convert_legacy_training_config_dict(
     return config_dict
 
 
-def _get_new_key_from_legacy(legacy_key: str) -> str:
+def _get_new_key_from_legacy(legacy_key: str) -> Optional[str]:
     """
     Maps legacy training config keys to the new format keys.
 

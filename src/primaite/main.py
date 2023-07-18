@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """The main PrimAITE session runner module."""
 import argparse
 from pathlib import Path
@@ -14,7 +14,7 @@ def run(
     training_config_path: Optional[Union[str, Path]] = "",
     lay_down_config_path: Optional[Union[str, Path]] = "",
     session_path: Optional[Union[str, Path]] = None,
-):
+) -> None:
     """
     Run the PrimAITE Session.
 

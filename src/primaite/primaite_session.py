@@ -1,8 +1,9 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Main entry point to PrimAITE. Configure training/evaluation experiments and input/output."""
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Final, Optional, Union
+from typing import Any, Dict, Final, Optional, Union
 
 from primaite import getLogger
 from primaite.agents.agent_abc import AgentSessionABC
@@ -31,7 +32,7 @@ class PrimaiteSession:
         training_config_path: Optional[Union[str, Path]] = "",
         lay_down_config_path: Optional[Union[str, Path]] = "",
         session_path: Optional[Union[str, Path]] = None,
-    ):
+    ) -> None:
         """
         The PrimaiteSession constructor.
 
@@ -71,7 +72,13 @@ class PrimaiteSession:
         self._lay_down_config_path: Final[Union[Path, str]] = lay_down_config_path
         self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)
 
-    def setup(self):
+        self._agent_session: AgentSessionABC = None  # noqa
+        self.session_path: Path = None  # noqa
+        self.timestamp_str: str = None  # noqa
+        self.learning_path: Path = None  # noqa
+        self.evaluation_path: Path = None  # noqa
+
+    def setup(self) -> None:
         """Performs the session setup."""
         if self._training_config.agent_framework == AgentFramework.CUSTOM:
             _LOGGER.debug(f"PrimaiteSession Setup: Agent Framework = {AgentFramework.CUSTOM}")
@@ -154,8 +161,8 @@ class PrimaiteSession:
 
     def learn(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Train the agent.
 
@@ -166,8 +173,8 @@ class PrimaiteSession:
 
     def evaluate(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Evaluate the agent.
 
@@ -176,6 +183,6 @@ class PrimaiteSession:
         if not self._training_config.session_type == SessionType.TRAIN:
             self._agent_session.evaluate(**kwargs)
 
-    def close(self):
+    def close(self) -> None:
         """Closes the agent."""
         self._agent_session.close()

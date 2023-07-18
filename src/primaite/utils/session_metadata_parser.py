@@ -1,6 +1,7 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 import json
 from pathlib import Path
-from typing import Union
+from typing import Any, Dict, Union
 
 import yaml
 
@@ -9,7 +10,7 @@ from primaite import getLogger
 _LOGGER = getLogger(__name__)
 
 
-def parse_session_metadata(session_path: Union[Path, str], dict_only=False):
+def parse_session_metadata(session_path: Union[Path, str], dict_only: bool = False) -> Dict[str, Any]:
     """
     Loads a session metadata from the given directory path.
 
