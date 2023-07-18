@@ -24,7 +24,7 @@ class ActiveNode(Node):
         software_state: SoftwareState,
         file_system_state: FileSystemState,
         config_values: TrainingConfig,
-    ):
+    ) -> None:
         """
         Initialise an active node.
 
@@ -60,7 +60,7 @@ class ActiveNode(Node):
         return self._software_state
 
     @software_state.setter
-    def software_state(self, software_state: SoftwareState):
+    def software_state(self, software_state: SoftwareState) -> None:
         """
         Get the software_state.
 
@@ -79,7 +79,7 @@ class ActiveNode(Node):
                 f"Node.software_state:{self._software_state}"
             )
 
-    def set_software_state_if_not_compromised(self, software_state: SoftwareState):
+    def set_software_state_if_not_compromised(self, software_state: SoftwareState) -> None:
         """
         Sets Software State if the node is not compromised.
 
@@ -99,14 +99,14 @@ class ActiveNode(Node):
                 f"Node.software_state:{self._software_state}"
             )
 
-    def update_os_patching_status(self):
+    def update_os_patching_status(self) -> None:
         """Updates operating system status based on patching cycle."""
         self.patching_count -= 1
         if self.patching_count <= 0:
             self.patching_count = 0
             self._software_state = SoftwareState.GOOD
 
-    def set_file_system_state(self, file_system_state: FileSystemState):
+    def set_file_system_state(self, file_system_state: FileSystemState) -> None:
         """
         Sets the file system state (actual and observed).
 
@@ -133,7 +133,7 @@ class ActiveNode(Node):
                 f"Node.file_system_state.actual:{self.file_system_state_actual}"
             )
 
-    def set_file_system_state_if_not_compromised(self, file_system_state: FileSystemState):
+    def set_file_system_state_if_not_compromised(self, file_system_state: FileSystemState) -> None:
         """
         Sets the file system state (actual and observed) if not in a compromised state.
 
@@ -166,12 +166,12 @@ class ActiveNode(Node):
                 f"Node.file_system_state.actual:{self.file_system_state_actual}"
             )
 
-    def start_file_system_scan(self):
+    def start_file_system_scan(self) -> None:
         """Starts a file system scan."""
         self.file_system_scanning = True
         self.file_system_scanning_count = self.config_values.file_system_scanning_limit
 
-    def update_file_system_state(self):
+    def update_file_system_state(self) -> None:
         """Updates file system status based on scanning/restore/repair cycle."""
         # Deprecate both the action count (for restoring or reparing) and the scanning count
         self.file_system_action_count -= 1
@@ -193,14 +193,14 @@ class ActiveNode(Node):
             self.file_system_scanning = False
             self.file_system_scanning_count = 0
 
-    def update_resetting_status(self):
+    def update_resetting_status(self) -> None:
         """Updates the reset count & makes software and file state to GOOD."""
         super().update_resetting_status()
         if self.resetting_count <= 0:
             self.file_system_state_actual = FileSystemState.GOOD
             self.software_state = SoftwareState.GOOD
 
-    def update_booting_status(self):
+    def update_booting_status(self) -> None:
         """Updates the booting software and file state to GOOD."""
         super().update_booting_status()
         if self.booting_count <= 0:

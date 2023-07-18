@@ -35,11 +35,11 @@ def transform_action_node_readable(action: List[int]) -> List[Union[int, str]]:
     else:
         property_action = "NONE"
 
-    new_action = [action[0], action_node_property, property_action, action[3]]
+    new_action: list[Union[int, str]] = [action[0], action_node_property, property_action, action[3]]
     return new_action
 
 
-def transform_action_acl_readable(action: List[str]) -> List[Union[str, int]]:
+def transform_action_acl_readable(action: List[int]) -> List[Union[str, int]]:
     """
     Transform an ACL action to a more readable format.
 

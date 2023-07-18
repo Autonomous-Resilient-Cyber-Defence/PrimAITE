@@ -5,7 +5,7 @@
 class ACLRule:
     """Access Control List Rule class."""
 
-    def __init__(self, _permission, _source_ip, _dest_ip, _protocol, _port):
+    def __init__(self, _permission: str, _source_ip: str, _dest_ip: str, _protocol: str, _port: str) -> None:
         """
         Initialise an ACL Rule.
 
@@ -15,13 +15,13 @@ class ACLRule:
         :param _protocol: The rule protocol
         :param _port: The rule port
         """
-        self.permission = _permission
-        self.source_ip = _source_ip
-        self.dest_ip = _dest_ip
-        self.protocol = _protocol
-        self.port = _port
+        self.permission: str = _permission
+        self.source_ip: str = _source_ip
+        self.dest_ip: str = _dest_ip
+        self.protocol: str = _protocol
+        self.port: str = _port
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """
         Override the hash function.
 
@@ -38,7 +38,7 @@ class ACLRule:
             )
         )
 
-    def get_permission(self):
+    def get_permission(self) -> str:
         """
         Gets the permission attribute.
 
@@ -47,7 +47,7 @@ class ACLRule:
         """
         return self.permission
 
-    def get_source_ip(self):
+    def get_source_ip(self) -> str:
         """
         Gets the source IP address attribute.
 
@@ -56,7 +56,7 @@ class ACLRule:
         """
         return self.source_ip
 
-    def get_dest_ip(self):
+    def get_dest_ip(self) -> str:
         """
         Gets the desintation IP address attribute.
 
@@ -65,7 +65,7 @@ class ACLRule:
         """
         return self.dest_ip
 
-    def get_protocol(self):
+    def get_protocol(self) -> str:
         """
         Gets the protocol attribute.
 
@@ -74,7 +74,7 @@ class ACLRule:
         """
         return self.protocol
 
-    def get_port(self):
+    def get_port(self) -> str:
         """
         Gets the port attribute.
 

@@ -19,7 +19,7 @@ app = typer.Typer()
 
 
 @app.command()
-def build_dirs():
+def build_dirs() -> None:
     """Build the PrimAITE app directories."""
     from primaite.setup import setup_app_dirs
 
@@ -27,7 +27,7 @@ def build_dirs():
 
 
 @app.command()
-def reset_notebooks(overwrite: bool = True):
+def reset_notebooks(overwrite: bool = True) -> None:
     """
     Force a reset of the demo notebooks in the users notebooks directory.
 
@@ -39,7 +39,7 @@ def reset_notebooks(overwrite: bool = True):
 
 
 @app.command()
-def logs(last_n: Annotated[int, typer.Option("-n")]):
+def logs(last_n: Annotated[int, typer.Option("-n")]) -> None:
     """
     Print the PrimAITE log file.
 
@@ -60,7 +60,7 @@ _LogLevel = Enum("LogLevel", {k: k for k in logging._levelToName.values()})  # n
 
 
 @app.command()
-def log_level(level: Annotated[Optional[_LogLevel], typer.Argument()] = None):
+def log_level(level: Annotated[Optional[_LogLevel], typer.Argument()] = None) -> None:
     """
     View or set the PrimAITE Log Level.
 
@@ -88,7 +88,7 @@ def log_level(level: Annotated[Optional[_LogLevel], typer.Argument()] = None):
 
 
 @app.command()
-def notebooks():
+def notebooks() -> None:
     """Start Jupyter Lab in the users PrimAITE notebooks directory."""
     from primaite.notebooks import start_jupyter_session
 
@@ -96,7 +96,7 @@ def notebooks():
 
 
 @app.command()
-def version():
+def version() -> None:
     """Get the installed PrimAITE version number."""
     import primaite
 
@@ -104,7 +104,7 @@ def version():
 
 
 @app.command()
-def clean_up():
+def clean_up() -> None:
     """Cleans up left over files from previous version installations."""
     from primaite.setup import old_installation_clean_up
 
@@ -112,7 +112,7 @@ def clean_up():
 
 
 @app.command()
-def setup(overwrite_existing: bool = True):
+def setup(overwrite_existing: bool = True) -> None:
     """
     Perform the PrimAITE first-time setup.
 
@@ -151,7 +151,7 @@ def setup(overwrite_existing: bool = True):
 
 
 @app.command()
-def session(tc: Optional[str] = None, ldc: Optional[str] = None, load: Optional[str] = None):
+def session(tc: Optional[str] = None, ldc: Optional[str] = None, load: Optional[str] = None) -> None:
     """
     Run a PrimAITE session.
 
@@ -185,7 +185,7 @@ def session(tc: Optional[str] = None, ldc: Optional[str] = None, load: Optional[
 
 
 @app.command()
-def plotly_template(template: Annotated[Optional[PlotlyTemplate], typer.Argument()] = None):
+def plotly_template(template: Annotated[Optional[PlotlyTemplate], typer.Argument()] = None) -> None:
     """
     View or set the plotly template for Session plots.
 

@@ -1,12 +1,13 @@
 # Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 import os
+from logging import Logger
 from pathlib import Path
 
 import pkg_resources
 
 from primaite import getLogger
 
-_LOGGER = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 def get_file_path(path: str) -> Path:

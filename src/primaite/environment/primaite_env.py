@@ -3,9 +3,10 @@
 import copy
 import logging
 import uuid as uuid
+from logging import Logger
 from pathlib import Path
 from random import choice, randint, sample, uniform
-from typing import Dict, Final, Tuple, Union
+from typing import Any, Dict, Final, List, Tuple, Union
 
 import networkx as nx
 import numpy as np
@@ -20,6 +21,7 @@ from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import (
     ActionType,
     AgentFramework,
+    AgentIdentifier,
     FileSystemState,
     HardwareState,
     NodePOLInitiator,
@@ -48,7 +50,7 @@ from primaite.pol.red_agent_pol import apply_red_agent_iers, apply_red_agent_nod
 from primaite.transactions.transaction import Transaction
 from primaite.utils.session_output_writer import SessionOutputWriter
 
-_LOGGER = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 class Primaite(Env):
@@ -66,7 +68,7 @@ class Primaite(Env):
         lay_down_config_path: Union[str, Path],
         session_path: Path,
         timestamp_str: str,
-    ):
+    ) -> None:
         """
         The Primaite constructor.
 
@@ -77,13 +79,14 @@ class Primaite(Env):
         """
         self.session_path: Final[Path] = session_path
         self.timestamp_str: Final[str] = timestamp_str
-        self._training_config_path = training_config_path
-        self._lay_down_config_path = lay_down_config_path
+        self._training_config_path: Union[str, Path] = training_config_path
+        self._lay_down_config_path: Union[str, Path] = lay_down_config_path
 
         self.training_config: TrainingConfig = training_config.load(training_config_path)
         _LOGGER.info(f"Using: {str(self.training_config)}")
 
         # Number of steps in an episode
+        self.episode_steps: int
         if self.training_config.session_type == SessionType.TRAIN:
             self.episode_steps = self.training_config.num_train_steps
         elif self.training_config.session_type == SessionType.EVAL:
@@ -94,7 +97,7 @@ class Primaite(Env):
         super(Primaite, self).__init__()
 
         # The agent in use
-        self.agent_identifier = self.training_config.agent_identifier
+        self.agent_identifier: AgentIdentifier = self.training_config.agent_identifier
 
         # Create a dictionary to hold all the nodes
         self.nodes: Dict[str, NodeUnion] = {}
@@ -113,37 +116,37 @@ class Primaite(Env):
         self.green_iers_reference: Dict[str, IER] = {}
 
         # Create a dictionary to hold all the node PoLs (this will come from an external source)
-        self.node_pol = {}
+        self.node_pol: Dict[str, NodeStateInstructionGreen] = {}
 
         # Create a dictionary to hold all the red agent IERs (this will come from an external source)
-        self.red_iers = {}
+        self.red_iers: Dict[str, IER] = {}
 
         # Create a dictionary to hold all the red agent node PoLs (this will come from an external source)
-        self.red_node_pol = {}
+        self.red_node_pol: Dict[str, NodeStateInstructionRed] = {}
 
         # Create the Access Control List
-        self.acl = AccessControlList()
+        self.acl: AccessControlList = AccessControlList()
 
         # Create a list of services (enums)
-        self.services_list = []
+        self.services_list: List[str] = []
 
         # Create a list of ports
-        self.ports_list = []
+        self.ports_list: List[str] = []
 
         # Create graph (network)
-        self.network = nx.MultiGraph()
+        self.network: nx.Graph = nx.MultiGraph()
 
         # Create a graph (network) reference
-        self.network_reference = nx.MultiGraph()
+        self.network_reference: nx.Graph = nx.MultiGraph()
 
         # Create step count
-        self.step_count = 0
+        self.step_count: int = 0
 
         self.total_step_count: int = 0
         """The total number of time steps completed."""
 
         # Create step info dictionary
-        self.step_info = {}
+        self.step_info: Dict[Any] = {}
 
         # Total reward
         self.total_reward: float = 0
@@ -152,22 +155,23 @@ class Primaite(Env):
         self.average_reward: float = 0
 
         # Episode count
-        self.episode_count = 0
+        self.episode_count: int = 0
 
         # Number of nodes - gets a value by examining the nodes dictionary after it's been populated
-        self.num_nodes = 0
+        self.num_nodes: int = 0
 
         # Number of links - gets a value by examining the links dictionary after it's been populated
-        self.num_links = 0
+        self.num_links: int = 0
 
         # Number of services - gets a value when config is loaded
-        self.num_services = 0
+        self.num_services: int = 0
 
         # Number of ports - gets a value when config is loaded
-        self.num_ports = 0
+        self.num_ports: int = 0
 
         # The action type
-        self.action_type = 0
+        # TODO: confirm type
+        self.action_type: int = 0
 
         # TODO fix up with TrainingConfig
         # stores the observation config from the yaml, default is NODE_LINK_TABLE
@@ -179,7 +183,7 @@ class Primaite(Env):
         # It will be initialised later.
         self.obs_handler: ObservationsHandler
 
-        self._obs_space_description = None
+        self._obs_space_description: List[str] = None
         "The env observation space description for transactions writing"
 
         # Open the config file and build the environment laydown
@@ -211,9 +215,13 @@ class Primaite(Env):
             _LOGGER.error("Could not save network diagram", exc_info=True)
 
         # Initiate observation space
+        self.observation_space: spaces.Space
+        self.env_obs: np.ndarray
         self.observation_space, self.env_obs = self.init_observations()
 
         # Define Action Space - depends on action space type (Node or ACL)
+        self.action_dict: Dict[int, List[int]]
+        self.action_space: spaces.Space
         if self.training_config.action_type == ActionType.NODE:
             _LOGGER.debug("Action space type NODE selected")
             # Terms (for node action space):
@@ -241,8 +249,12 @@ class Primaite(Env):
         else:
             _LOGGER.error(f"Invalid action type selected: {self.training_config.action_type}")
 
-        self.episode_av_reward_writer = SessionOutputWriter(self, transaction_writer=False, learning_session=True)
-        self.transaction_writer = SessionOutputWriter(self, transaction_writer=True, learning_session=True)
+        self.episode_av_reward_writer: SessionOutputWriter = SessionOutputWriter(
+            self, transaction_writer=False, learning_session=True
+        )
+        self.transaction_writer: SessionOutputWriter = SessionOutputWriter(
+            self, transaction_writer=True, learning_session=True
+        )
 
     @property
     def actual_episode_count(self) -> int:
@@ -251,7 +263,7 @@ class Primaite(Env):
             return self.episode_count - 1
         return self.episode_count
 
-    def set_as_eval(self):
+    def set_as_eval(self) -> None:
         """Set the writers to write to eval directories."""
         self.episode_av_reward_writer = SessionOutputWriter(self, transaction_writer=False, learning_session=False)
         self.transaction_writer = SessionOutputWriter(self, transaction_writer=True, learning_session=False)
@@ -260,12 +272,12 @@ class Primaite(Env):
         self.total_step_count = 0
         self.episode_steps = self.training_config.num_eval_steps
 
-    def _write_av_reward_per_episode(self):
+    def _write_av_reward_per_episode(self) -> None:
         if self.actual_episode_count > 0:
             csv_data = self.actual_episode_count, self.average_reward
             self.episode_av_reward_writer.write(csv_data)
 
-    def reset(self):
+    def reset(self) -> np.ndarray:
         """
         AI Gym Reset function.
 
@@ -299,7 +311,7 @@ class Primaite(Env):
 
         return self.env_obs
 
-    def step(self, action):
+    def step(self, action: int) -> Tuple[np.ndarray, float, bool, Dict]:
         """
         AI Gym Step function.
 
@@ -418,7 +430,7 @@ class Primaite(Env):
         # Return
         return self.env_obs, reward, done, self.step_info
 
-    def close(self):
+    def close(self) -> None:
         """Override parent close and close writers."""
         # Close files if last episode/step
         # if self.can_finish:
@@ -427,18 +439,18 @@ class Primaite(Env):
         self.transaction_writer.close()
         self.episode_av_reward_writer.close()
 
-    def init_acl(self):
+    def init_acl(self) -> None:
         """Initialise the Access Control List."""
         self.acl.remove_all_rules()
 
-    def output_link_status(self):
+    def output_link_status(self) -> None:
         """Output the link status of all links to the console."""
         for link_key, link_value in self.links.items():
             _LOGGER.debug("Link ID: " + link_value.get_id())
             for protocol in link_value.protocol_list:
                 print("    Protocol: " + protocol.get_name().name + ", Load: " + str(protocol.get_load()))
 
-    def interpret_action_and_apply(self, _action):
+    def interpret_action_and_apply(self, _action: int) -> None:
         """
         Applies agent actions to the nodes and Access Control List.
 
@@ -458,7 +470,7 @@ class Primaite(Env):
         else:
             logging.error("Invalid action type found")
 
-    def apply_actions_to_nodes(self, _action):
+    def apply_actions_to_nodes(self, _action: int) -> None:
         """
         Applies agent actions to the nodes.
 
@@ -546,7 +558,7 @@ class Primaite(Env):
         else:
             return
 
-    def apply_actions_to_acl(self, _action):
+    def apply_actions_to_acl(self, _action: int) -> None:
         """
         Applies agent actions to the Access Control List [TO DO].
 
@@ -624,7 +636,7 @@ class Primaite(Env):
             else:
                 return
 
-    def apply_time_based_updates(self):
+    def apply_time_based_updates(self) -> None:
         """
         Updates anything that needs to count down and then change state.
 
@@ -680,12 +692,12 @@ class Primaite(Env):
 
         return self.obs_handler.space, self.obs_handler.current_observation
 
-    def update_environent_obs(self):
+    def update_environent_obs(self) -> None:
         """Updates the observation space based on the node and link status."""
         self.obs_handler.update_obs()
         self.env_obs = self.obs_handler.current_observation
 
-    def load_lay_down_config(self):
+    def load_lay_down_config(self) -> None:
         """Loads config data in order to build the environment configuration."""
         for item in self.lay_down_config:
             if item["item_type"] == "NODE":
@@ -723,7 +735,7 @@ class Primaite(Env):
         _LOGGER.info("Environment configuration loaded")
         print("Environment configuration loaded")
 
-    def create_node(self, item):
+    def create_node(self, item: Dict) -> None:
         """
         Creates a node from config data.
 
@@ -804,7 +816,7 @@ class Primaite(Env):
         # Add node to network (reference)
         self.network_reference.add_nodes_from([node_ref])
 
-    def create_link(self, item: Dict):
+    def create_link(self, item: Dict) -> None:
         """
         Creates a link from config data.
 
@@ -848,7 +860,7 @@ class Primaite(Env):
             self.services_list,
         )
 
-    def create_green_ier(self, item):
+    def create_green_ier(self, item: Dict) -> None:
         """
         Creates a green IER from config data.
 
@@ -889,7 +901,7 @@ class Primaite(Env):
             ier_mission_criticality,
         )
 
-    def create_red_ier(self, item):
+    def create_red_ier(self, item: Dict) -> None:
         """
         Creates a red IER from config data.
 
@@ -919,7 +931,7 @@ class Primaite(Env):
             ier_mission_criticality,
         )
 
-    def create_green_pol(self, item):
+    def create_green_pol(self, item: Dict) -> None:
         """
         Creates a green PoL object from config data.
 
@@ -953,7 +965,7 @@ class Primaite(Env):
             pol_state,
         )
 
-    def create_red_pol(self, item):
+    def create_red_pol(self, item: Dict) -> None:
         """
         Creates a red PoL object from config data.
 
@@ -994,7 +1006,7 @@ class Primaite(Env):
             pol_source_node_service_state,
         )
 
-    def create_acl_rule(self, item):
+    def create_acl_rule(self, item: Dict) -> None:
         """
         Creates an ACL rule from config data.
 
@@ -1015,7 +1027,8 @@ class Primaite(Env):
             acl_rule_port,
         )
 
-    def create_services_list(self, services):
+    # TODO: confirm typehint using runtime
+    def create_services_list(self, services: Dict) -> None:
         """
         Creates a list of services (enum) from config data.
 
@@ -1031,7 +1044,7 @@ class Primaite(Env):
         # Set the number of services
         self.num_services = len(self.services_list)
 
-    def create_ports_list(self, ports):
+    def create_ports_list(self, ports: Dict) -> None:
         """
         Creates a list of ports from config data.
 
@@ -1047,7 +1060,8 @@ class Primaite(Env):
         # Set the number of ports
         self.num_ports = len(self.ports_list)
 
-    def get_observation_info(self, observation_info):
+    # TODO: this is not used anymore, write a ticket to delete it
+    def get_observation_info(self, observation_info: Dict) -> None:
         """
         Extracts observation_info.
 
@@ -1056,7 +1070,8 @@ class Primaite(Env):
         """
         self.observation_type = ObservationType[observation_info["type"]]
 
-    def get_action_info(self, action_info):
+    # TODO: this is not used anymore, write a ticket to delete it.
+    def get_action_info(self, action_info: Dict) -> None:
         """
         Extracts action_info.
 
@@ -1065,7 +1080,7 @@ class Primaite(Env):
         """
         self.action_type = ActionType[action_info["type"]]
 
-    def save_obs_config(self, obs_config: dict):
+    def save_obs_config(self, obs_config: dict) -> None:
         """
         Cache the config for the observation space.
 
@@ -1078,7 +1093,7 @@ class Primaite(Env):
         """
         self.obs_config = obs_config
 
-    def reset_environment(self):
+    def reset_environment(self) -> None:
         """
         Resets environment.
 
@@ -1103,7 +1118,7 @@ class Primaite(Env):
         for ier_key, ier_value in self.red_iers.items():
             ier_value.set_is_running(False)
 
-    def reset_node(self, item):
+    def reset_node(self, item: Dict) -> None:
         """
         Resets the statuses of a node.
 
@@ -1151,7 +1166,7 @@ class Primaite(Env):
             # Bad formatting
             pass
 
-    def create_node_action_dict(self):
+    def create_node_action_dict(self) -> Dict[int, List[int]]:
         """
         Creates a dictionary mapping each possible discrete action to more readable multidiscrete action.
 
@@ -1186,7 +1201,7 @@ class Primaite(Env):
 
         return actions
 
-    def create_acl_action_dict(self):
+    def create_acl_action_dict(self) -> Dict[int, List[int]]:
         """Creates a dictionary mapping each possible discrete action to more readable multidiscrete action."""
         # reserve 0 action to be a nothing action
         actions = {0: [0, 0, 0, 0, 0, 0]}
@@ -1216,7 +1231,7 @@ class Primaite(Env):
 
         return actions
 
-    def create_node_and_acl_action_dict(self):
+    def create_node_and_acl_action_dict(self) -> Dict[int, List[int]]:
         """
         Create a dictionary mapping each possible discrete action to a more readable mutlidiscrete action.
 
@@ -1233,7 +1248,7 @@ class Primaite(Env):
         combined_action_dict = {**acl_action_dict, **new_node_action_dict}
         return combined_action_dict
 
-    def _create_random_red_agent(self):
+    def _create_random_red_agent(self) -> None:
         """Decide on random red agent for the episode to be called in env.reset()."""
         # Reset the current red iers and red node pol
         self.red_iers = {}
