@@ -125,7 +125,12 @@ class Primaite(Env):
         self.red_node_pol: Dict[str, NodeStateInstructionRed] = {}
 
         # Create the Access Control List
-        self.acl: AccessControlList = AccessControlList()
+        self.acl: AccessControlList = AccessControlList(
+            self.training_config.implicit_acl_rule,
+            self.training_config.max_number_acl_rules,
+        )
+        # Sets limit for number of ACL rules in environment
+        self.max_number_acl_rules: int = self.training_config.max_number_acl_rules
 
         # Create a list of services (enums)
         self.services_list: List[str] = []
@@ -458,12 +463,11 @@ class Primaite(Env):
             _action: The action space from the agent
         """
         # At the moment, actions are only affecting nodes
-
         if self.training_config.action_type == ActionType.NODE:
             self.apply_actions_to_nodes(_action)
         elif self.training_config.action_type == ActionType.ACL:
             self.apply_actions_to_acl(_action)
-        elif len(self.action_dict[_action]) == 6:  # ACL actions in multidiscrete form have len 6
+        elif len(self.action_dict[_action]) == 7:  # ACL actions in multidiscrete form have len 7
             self.apply_actions_to_acl(_action)
         elif len(self.action_dict[_action]) == 4:  # Node actions in multdiscrete (array) from have len 4
             self.apply_actions_to_nodes(_action)
@@ -574,6 +578,7 @@ class Primaite(Env):
         action_destination_ip = readable_action[3]
         action_protocol = readable_action[4]
         action_port = readable_action[5]
+        acl_rule_position = readable_action[6]
 
         if action_decision == 0:
             # It's decided to do nothing
@@ -623,6 +628,7 @@ class Primaite(Env):
                     acl_rule_destination,
                     acl_rule_protocol,
                     acl_rule_port,
+                    acl_rule_position,
                 )
             elif action_decision == 2:
                 # Remove the rule
@@ -1018,6 +1024,7 @@ class Primaite(Env):
         acl_rule_destination = item["destination"]
         acl_rule_protocol = item["protocol"]
         acl_rule_port = item["port"]
+        acl_rule_position = item["position"]
 
         self.acl.add_rule(
             acl_rule_permission,
@@ -1025,6 +1032,7 @@ class Primaite(Env):
             acl_rule_destination,
             acl_rule_protocol,
             acl_rule_port,
+            acl_rule_position,
         )
 
     # TODO: confirm typehint using runtime
@@ -1182,6 +1190,11 @@ class Primaite(Env):
         ...
         }
         """
+        # Terms (for node action space):
+        # [0, num nodes] - node ID (0 = nothing, node ID)
+        # [0, 4] - what property it's acting on (0 = nothing, state, SoftwareState, service state, file system state) # noqa
+        # [0, 3] - action on property (0 = nothing, On / Scan, Off / Repair, Reset / Patch / Restore) # noqa
+        # [0, num services] - resolves to service ID (0 = nothing, resolves to service) # noqa
         # reserve 0 action to be a nothing action
         actions = {0: [1, 0, 0, 0]}
         action_key = 1
@@ -1203,8 +1216,16 @@ class Primaite(Env):
 
     def create_acl_action_dict(self) -> Dict[int, List[int]]:
         """Creates a dictionary mapping each possible discrete action to more readable multidiscrete action."""
+        # Terms (for ACL action space):
+        # [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
+        # [0, 1] - Permission (0 = DENY, 1 = ALLOW)
+        # [0, num nodes] - Source IP (0 = any, then 1 -> x resolving to IP addresses)
+        # [0, num nodes] - Dest IP (0 = any, then 1 -> x resolving to IP addresses)
+        # [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)
+        # [0, num ports] - Port (0 = any, then 1 -> x resolving to port)
+        # [0, max acl rules - 1] - Position (0 = first index, then 1 -> x index resolving to acl rule in acl list)
         # reserve 0 action to be a nothing action
-        actions = {0: [0, 0, 0, 0, 0, 0]}
+        actions = {0: [0, 0, 0, 0, 0, 0, 0]}
 
         action_key = 1
         # 3 possible action decisions, 0=NOTHING, 1=CREATE, 2=DELETE
@@ -1216,18 +1237,21 @@ class Primaite(Env):
                     for dest_ip in range(self.num_nodes + 1):
                         for protocol in range(self.num_services + 1):
                             for port in range(self.num_ports + 1):
-                                action = [
-                                    action_decision,
-                                    action_permission,
-                                    source_ip,
-                                    dest_ip,
-                                    protocol,
-                                    port,
-                                ]
-                                # Check to see if its an action we want to include as possible i.e. not a nothing action
-                                if is_valid_acl_action_extra(action):
-                                    actions[action_key] = action
-                                    action_key += 1
+                                for position in range(self.max_number_acl_rules - 1):
+                                    action = [
+                                        action_decision,
+                                        action_permission,
+                                        source_ip,
+                                        dest_ip,
+                                        protocol,
+                                        port,
+                                        position,
+                                    ]
+                                    # Check to see if it is an action we want to include as possible
+                                    # i.e. not a nothing action
+                                    if is_valid_acl_action_extra(action):
+                                        actions[action_key] = action
+                                        action_key += 1
 
         return actions
 
