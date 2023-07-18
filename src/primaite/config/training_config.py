@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from logging import Logger
 from pathlib import Path
-from typing import Any, Dict, Final, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, Final, Optional, Union
 
 import yaml
 
@@ -17,9 +18,6 @@ from primaite.common.enums import (
     SB3OutputVerboseLevel,
     SessionType,
 )
-
-if TYPE_CHECKING:
-    from logging import Logger
 
 _LOGGER: Logger = getLogger(__name__)
 

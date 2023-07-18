@@ -2,17 +2,14 @@
 import filecmp
 import os
 import shutil
+from logging import Logger
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pkg_resources
 
 from primaite import getLogger, NOTEBOOKS_DIR
 
-if TYPE_CHECKING:
-    from logging import Logger
-
-_LOGGER: "Logger" = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 def run(overwrite_existing: bool = True) -> None:

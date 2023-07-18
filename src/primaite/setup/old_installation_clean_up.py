@@ -6,7 +6,7 @@ from primaite import getLogger
 if TYPE_CHECKING:
     from logging import Logger
 
-_LOGGER: "Logger" = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 def run() -> None:

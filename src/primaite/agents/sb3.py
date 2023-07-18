@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import json
+from logging import Logger
 from pathlib import Path
-from typing import Any, Optional, TYPE_CHECKING, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 from stable_baselines3 import A2C, PPO
@@ -14,10 +15,7 @@ from primaite.agents.agent_abc import AgentSessionABC
 from primaite.common.enums import AgentFramework, AgentIdentifier
 from primaite.environment.primaite_env import Primaite
 
-if TYPE_CHECKING:
-    from logging import Logger
-
-_LOGGER: "Logger" = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 class SB3Agent(AgentSessionABC):

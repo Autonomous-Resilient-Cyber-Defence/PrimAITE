@@ -1,5 +1,6 @@
 # Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Implements reward function."""
+from logging import Logger
 from typing import Dict, TYPE_CHECKING, Union
 
 from primaite import getLogger
@@ -10,12 +11,10 @@ from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.service_node import ServiceNode
 
 if TYPE_CHECKING:
-    from logging import Logger
-
     from primaite.config.training_config import TrainingConfig
     from primaite.pol.ier import IER
 
-_LOGGER: "Logger" = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 def calculate_reward_function(
