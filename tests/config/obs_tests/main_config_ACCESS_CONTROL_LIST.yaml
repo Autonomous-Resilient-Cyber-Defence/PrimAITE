@@ -1,23 +1,12 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
-# Training Config File
+# Main Config File
 
-# Sets which agent algorithm framework will be used.
-# Options are:
-# "SB3" (Stable Baselines3)
-# "RLLIB" (Ray RLlib)
-# "CUSTOM" (Custom Agent)
-agent_framework: CUSTOM
-
-# Sets which Agent class will be used.
-# Options are:
-# "A2C" (Advantage Actor Critic coupled with either SB3 or RLLIB agent_framework)
-# "PPO" (Proximal Policy Optimization coupled with either SB3 or RLLIB agent_framework)
-# "HARDCODED" (The HardCoded agents coupled with an ACL or NODE action_type)
-# "DO_NOTHING" (The DoNothing agents coupled with an ACL or NODE action_type)
-# "RANDOM" (primaite.agents.simple.RandomAgent)
-# "DUMMY" (primaite.agents.simple.DummyAgent)
-agent_identifier: RANDOM
-
+# Generic config values
+# Choose one of these (dependent on Agent being trained)
+# "STABLE_BASELINES3_PPO"
+# "STABLE_BASELINES3_A2C"
+# "GENERIC"
+agent_framework: SB3
+agent_identifier: PPO
 # Sets How the Action Space is defined:
 # "NODE"
 # "ACL"
@@ -25,36 +14,36 @@ agent_identifier: RANDOM
 action_type: ANY
 # Number of episodes for training to run per session
 num_train_episodes: 1
-
 # Number of time_steps for training per episode
-num_train_steps: 15
-
-# Time delay between steps (for generic agents)
-time_delay: 1
-# Type of session to be run (TRAINING or EVALUATION)
-session_type: EVAL
-# Determine whether to load an agent from file
-load_agent: False
-# File path and file name of agent if you're loading one in
-agent_load_file: C:\[Path]\[agent_saved_filename.zip]
+num_train_steps: 5
 
 # Implicit ACL firewall rule at end of lists to be default action or no rule can be selected (ALLOW or DENY)
 implicit_acl_rule: DENY
 # Total number of ACL rules allowed in the environment
-max_number_acl_rules: 10
+max_number_acl_rules: 3
 
 observation_space:
   components:
     - name: ACCESS_CONTROL_LIST
 
+# Time delay between steps (for generic agents)
+time_delay: 1
+
+# Type of session to be run (TRAINING or EVALUATION)
+session_type: TRAIN
+# Determine whether to load an agent from file
+load_agent: False
+# File path and file name of agent if you're loading one in
+agent_load_file: C:\[Path]\[agent_saved_filename.zip]
+
 # Environment config values
 # The high value for the observation space
-observation_space_high_value: 1000000000
+observation_space_high_value: 1_000_000_000
 
 # Reward values
 # Generic
 all_ok: 0
-# Node Operating State
+# Node Hardware State
 off_should_be_on: -10
 off_should_be_resetting: -5
 on_should_be_off: -2
@@ -62,7 +51,7 @@ on_should_be_resetting: -5
 resetting_should_be_on: -5
 resetting_should_be_off: -2
 resetting: -3
-# Node O/S or Service State
+# Node Software or Service State
 good_should_be_patching: 2
 good_should_be_compromised: 5
 good_should_be_overwhelmed: 5
@@ -112,6 +101,6 @@ green_ier_blocked: -10
 os_patching_duration: 5            # The time taken to patch the OS
 node_reset_duration: 5             # The time taken to reset a node (hardware)
 service_patching_duration: 5       # The time taken to patch a service
-file_system_repairing_limit: 5     # The time take to repair the file system
-file_system_restoring_limit: 5     # The time take to restore the file system
-file_system_scanning_limit: 5      # The time taken to scan the file system
+file_system_repairing_limit: 5      # The time take to repair the file system
+file_system_restoring_limit: 5      # The time take to restore the file system
+file_system_scanning_limit: 5       # The time taken to scan the file system

@@ -47,6 +47,9 @@ agent_load_file: C:\[Path]\[agent_saved_filename.zip]
 # The high value for the observation space
 observation_space_high_value: 1000000000
 
+# Choice whether to have an ALLOW or DENY implicit rule or not (TRUE or FALSE)
+implicit_acl_rule: DENY
+max_number_acl_rules: 10
 # Reward values
 # Generic
 all_ok: 0

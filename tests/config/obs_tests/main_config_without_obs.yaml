@@ -40,7 +40,8 @@ agent_load_file: C:\[Path]\[agent_saved_filename.zip]
 # Environment config values
 # The high value for the observation space
 observation_space_high_value: 1_000_000_000
-
+# Implicit ACL firewall rule at end of lists to be default action or no rule can be selected (ALLOW or DENY)
+implicit_acl_rule: DENY
 # Reward values
 # Generic
 all_ok: 0

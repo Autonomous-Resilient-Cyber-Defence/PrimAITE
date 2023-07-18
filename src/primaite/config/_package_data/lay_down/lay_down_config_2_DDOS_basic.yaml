@@ -243,6 +243,7 @@
   destination: 192.168.10.14
   protocol: TCP
   port: 80
+  position: 0
 - item_type: ACL_RULE
   id: '26'
   permission: ALLOW
@@ -250,6 +251,7 @@
   destination: 192.168.10.14
   protocol: TCP
   port: 80
+  position: 1
 - item_type: ACL_RULE
   id: '27'
   permission: ALLOW
@@ -257,6 +259,7 @@
   destination: 192.168.10.14
   protocol: TCP
   port: 80
+  position: 2
 - item_type: ACL_RULE
   id: '28'
   permission: ALLOW
@@ -264,6 +267,7 @@
   destination: 192.168.20.15
   protocol: TCP
   port: 80
+  position: 3
 - item_type: ACL_RULE
   id: '29'
   permission: ALLOW
@@ -271,6 +275,7 @@
   destination: 192.168.10.13
   protocol: TCP
   port: 80
+  position: 4
 - item_type: ACL_RULE
   id: '30'
   permission: DENY
@@ -278,6 +283,7 @@
   destination: 192.168.20.15
   protocol: TCP
   port: 80
+  position: 5
 - item_type: ACL_RULE
   id: '31'
   permission: DENY
@@ -285,6 +291,7 @@
   destination: 192.168.20.15
   protocol: TCP
   port: 80
+  position: 6
 - item_type: ACL_RULE
   id: '32'
   permission: DENY
@@ -292,6 +299,7 @@
   destination: 192.168.20.15
   protocol: TCP
   port: 80
+  position: 7
 - item_type: ACL_RULE
   id: '33'
   permission: DENY
@@ -299,6 +307,7 @@
   destination: 192.168.10.14
   protocol: TCP
   port: 80
+  position: 8
 - item_type: RED_POL
   id: '34'
   start_step: 20
