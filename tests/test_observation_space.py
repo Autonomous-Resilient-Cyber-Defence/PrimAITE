@@ -1,5 +1,6 @@
 # Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Test env creation and behaviour with different observation spaces."""
+
 import numpy as np
 import pytest
 
@@ -237,3 +238,140 @@ class TestLinkTrafficLevels:
             # therefore the first and third elements should be 6 and all others 0
             # (`7` corresponds to 100% utiilsation and `6` corresponds to 87.5%-100%)
             assert np.array_equal(obs, [6, 0, 6, 0])
+
+
+@pytest.mark.parametrize(
+    "temp_primaite_session",
+    [
+        [
+            TEST_CONFIG_ROOT / "obs_tests/main_config_ACCESS_CONTROL_LIST.yaml",
+            TEST_CONFIG_ROOT / "obs_tests/laydown_ACL.yaml",
+        ]
+    ],
+    indirect=True,
+)
+class TestAccessControlList:
+    """Test the AccessControlList observation component (in isolation)."""
+
+    def test_obs_shape(self, temp_primaite_session):
+        """Try creating env with MultiDiscrete observation space.
+
+        The laydown has 3 ACL Rules - that is the maximum_acl_rules it can have.
+        Each ACL Rule in the observation space has 6 different elements:
+
+        6 * 3 = 18
+        """
+        with temp_primaite_session as session:
+            env = session.env
+            env.update_environent_obs()
+
+        assert env.env_obs.shape == (18,)
+
+    def test_values(self, temp_primaite_session):
+        """Test that traffic values are encoded correctly.
+
+        The laydown has:
+            * one ACL IMPLICIT DENY rule
+
+        Therefore, the ACL is full of NAs aka zeros and just 6 non-zero elements representing DENY ANY ANY ANY at
+        Position 2.
+        """
+        with temp_primaite_session as session:
+            env = session.env
+            obs, reward, done, info = env.step(0)
+            obs, reward, done, info = env.step(0)
+
+        assert np.array_equal(obs, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2])
+
+    def test_observation_space_with_implicit_rule(self, temp_primaite_session):
+        """
+        Test observation space is what is expected when an agent adds ACLs during an episode.
+
+        At the start of the episode, there is a single implicit DENY rule
+        In the observation space IMPLICIT DENY: 1,1,1,1,1,0
+        0 shows the rule is the start (when episode began no other rules were created) so this is correct.
+
+        On Step 2, there is an ACL rule added at Position 0: 2,2,3,2,3,0
+
+        On Step 4, there is a second ACL rule added at POSITION 1: 2,4,2,3,3,1
+
+        The final observation space should be this:
+            [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2]
+
+        The ACL Rule from Step 2 is added first and has a HIGHER position than the ACL rule from Step 4
+        but both come before the IMPLICIT DENY which will ALWAYS be at the end of the ACL List.
+        """
+        # TODO: Refactor this at some point to build a custom ACL Hardcoded
+        #  Agent and then patch the AgentIdentifier Enum class so that it
+        #  has ACL_AGENT. This then allows us to set the agent identified in
+        #  the main config and is a bit cleaner.
+
+        with temp_primaite_session as session:
+            env = session.env
+            training_config = env.training_config
+            for episode in range(0, training_config.num_train_episodes):
+                for step in range(0, training_config.num_train_steps):
+                    # Do nothing action
+                    action = 0
+                    if step == 2:
+                        # Action to add the first ACL rule
+                        action = 43
+                    elif step == 4:
+                        # Action to add the second ACL rule
+                        action = 96
+
+                    # Run the simulation step on the live environment
+                    obs, reward, done, info = env.step(action)
+
+                    # Break if done is True
+                    if done:
+                        break
+            obs = env.env_obs
+
+        assert np.array_equal(obs, [2, 2, 3, 2, 3, 0, 2, 4, 2, 3, 3, 1, 1, 1, 1, 1, 1, 2])
+
+    def test_observation_space_with_different_positions(self, temp_primaite_session):
+        """
+        Test observation space is what is expected when an agent adds ACLs during an episode.
+
+        At the start of the episode, there is a single implicit DENY rule
+        In the observation space IMPLICIT DENY: 1,1,1,1,1,0
+        0 shows the rule is the start (when episode began no other rules were created) so this is correct.
+
+        On Step 2, there is an ACL rule added at Position 1: 2,2,3,2,3,1
+
+        On Step 4 there is a second ACL rule added at Position 0: 2,4,2,3,3,0
+
+        The final observation space should be this:
+            [2 , 4, 2, 3, 3, 0, 2, 2, 3, 2, 3, 1, 1, 1, 1, 1, 1, 2]
+
+        The ACL Rule from Step 2 is added before and has a LOWER position than the ACL rule from Step 4
+        but both come before the IMPLICIT DENY which will ALWAYS be at the end of the ACL List.
+        """
+        # TODO: Refactor this at some point to build a custom ACL Hardcoded
+        #  Agent and then patch the AgentIdentifier Enum class so that it
+        #  has ACL_AGENT. This then allows us to set the agent identified in
+        #  the main config and is a bit cleaner.
+
+        with temp_primaite_session as session:
+            env = session.env
+            training_config = env.training_config
+            for episode in range(0, training_config.num_train_episodes):
+                for step in range(0, training_config.num_train_steps):
+                    # Do nothing action
+                    action = 0
+                    if step == 2:
+                        # Action to add the first ACL rule
+                        action = 44
+                    elif step == 4:
+                        # Action to add the second ACL rule
+                        action = 95
+                    # Run the simulation step on the live environment
+                    obs, reward, done, info = env.step(action)
+
+                    # Break if done is True
+                    if done:
+                        break
+            obs = env.env_obs
+
+        assert np.array_equal(obs, [2, 4, 2, 3, 3, 0, 2, 2, 3, 2, 3, 1, 1, 1, 1, 1, 1, 2])

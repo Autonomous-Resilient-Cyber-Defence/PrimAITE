@@ -35,7 +35,7 @@ random_red_agent: False
 # Default is None (null)
 seed: null
 
-# Set whether the agent will be deterministic instead of stochastic
+# Set whether the agent evaluation will be deterministic instead of stochastic
 # Options are:
 # True
 # False
@@ -51,15 +51,15 @@ hard_coded_agent_view: FULL
 # "NODE"
 # "ACL"
 # "ANY" node and acl actions
-action_type: NODE
+action_type: ANY
 # observation space
 observation_space:
-  # flatten: true
+  flatten: true
   components:
     - name: NODE_LINK_TABLE
-    # - name: NODE_STATUSES
-    # - name: LINK_TRAFFIC_LEVELS
-
+    - name: NODE_STATUSES
+    - name: LINK_TRAFFIC_LEVELS
+    - name: ACCESS_CONTROL_LIST
 
 # Number of episodes for training to run per session
 num_train_episodes: 10
@@ -89,6 +89,11 @@ session_type: TRAIN_EVAL
 # Environment config values
 # The high value for the observation space
 observation_space_high_value: 1000000000
+
+# Implicit ACL firewall rule at end of ACL list to be the default action (ALLOW or DENY)
+implicit_acl_rule: DENY
+# Total number of ACL rules allowed in the environment
+max_number_acl_rules: 30
 
 # The Stable Baselines3 learn/eval output verbosity level:
 # Options are:
