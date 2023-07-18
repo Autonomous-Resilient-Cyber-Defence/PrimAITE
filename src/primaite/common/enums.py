@@ -148,6 +148,7 @@ class ActionType(Enum):
     ANY = 2
 
 
+# TODO: this is not used anymore, write a ticket to delete it.
 class ObservationType(Enum):
     """Observation type enumeration."""
 
@@ -197,3 +198,11 @@ class SB3OutputVerboseLevel(IntEnum):
     NONE = 0
     INFO = 1
     DEBUG = 2
+
+
+class RulePermissionType(Enum):
+    """Any firewall rule type."""
+
+    NONE = 0
+    DENY = 1
+    ALLOW = 2

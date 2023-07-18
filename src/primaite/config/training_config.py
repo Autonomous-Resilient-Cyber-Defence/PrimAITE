@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from logging import Logger
 from pathlib import Path
 from typing import Any, Dict, Final, Optional, Union
 
@@ -14,11 +15,12 @@ from primaite.common.enums import (
     AgentIdentifier,
     DeepLearningFramework,
     HardCodedAgentView,
+    RulePermissionType,
     SB3OutputVerboseLevel,
     SessionType,
 )
 
-_LOGGER = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 _EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training"
 
@@ -85,7 +87,7 @@ class TrainingConfig:
     session_type: SessionType = SessionType.TRAIN
     "The type of PrimAITE session to run"
 
-    load_agent: str = False
+    load_agent: bool = False
     "Determine whether to load an agent from file"
 
     agent_load_file: Optional[str] = None
@@ -97,6 +99,12 @@ class TrainingConfig:
 
     sb3_output_verbose_level: SB3OutputVerboseLevel = SB3OutputVerboseLevel.NONE
     "Stable Baselines3 learn/eval output verbosity level"
+
+    implicit_acl_rule: RulePermissionType = RulePermissionType.DENY
+    "ALLOW or DENY implicit firewall rule to go at the end of list of ACL list."
+
+    max_number_acl_rules: int = 30
+    "Sets a limit for number of acl rules allowed in the list and environment."
 
     # Reward values
     # Generic
@@ -191,7 +199,7 @@ class TrainingConfig:
     "The random number generator seed to be used while training the agent"
 
     @classmethod
-    def from_dict(cls, config_dict: Dict[str, Union[str, int, bool]]) -> TrainingConfig:
+    def from_dict(cls, config_dict: Dict[str, Any]) -> TrainingConfig:
         """
         Create an instance of TrainingConfig from a dict.
 
@@ -206,14 +214,17 @@ class TrainingConfig:
             "session_type": SessionType,
             "sb3_output_verbose_level": SB3OutputVerboseLevel,
             "hard_coded_agent_view": HardCodedAgentView,
+            "implicit_acl_rule": RulePermissionType,
         }
 
+        # convert the string representation of enums into the actual enum values themselves?
         for key, value in field_enum_map.items():
             if key in config_dict:
                 config_dict[key] = value[config_dict[key]]
+
         return TrainingConfig(**config_dict)
 
-    def to_dict(self, json_serializable: bool = True):
+    def to_dict(self, json_serializable: bool = True) -> Dict:
         """
         Serialise the ``TrainingConfig`` as dict.
 
@@ -230,6 +241,7 @@ class TrainingConfig:
             data["sb3_output_verbose_level"] = self.sb3_output_verbose_level.name
             data["session_type"] = self.session_type.name
             data["hard_coded_agent_view"] = self.hard_coded_agent_view.name
+            data["implicit_acl_rule"] = self.implicit_acl_rule.name
 
         return data
 
@@ -332,7 +344,7 @@ def convert_legacy_training_config_dict(
     return config_dict
 
 
-def _get_new_key_from_legacy(legacy_key: str) -> str:
+def _get_new_key_from_legacy(legacy_key: str) -> Optional[str]:
     """
     Maps legacy training config keys to the new format keys.
 
