@@ -4,8 +4,9 @@ from __future__ import annotations
 import json
 from abc import ABC, abstractmethod
 from datetime import datetime
+from logging import Logger
 from pathlib import Path
-from typing import Any, Dict, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, Optional, Union
 from uuid import uuid4
 
 import primaite
@@ -16,10 +17,7 @@ from primaite.data_viz.session_plots import plot_av_reward_per_episode
 from primaite.environment.primaite_env import Primaite
 from primaite.utils.session_metadata_parser import parse_session_metadata
 
-if TYPE_CHECKING:
-    from logging import Logger
-
-_LOGGER: "Logger" = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 def get_session_path(session_timestamp: datetime) -> Path:

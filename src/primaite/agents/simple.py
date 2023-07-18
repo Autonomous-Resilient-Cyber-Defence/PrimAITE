@@ -1,11 +1,9 @@
 # Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
-from typing import TYPE_CHECKING
+
+import numpy as np
 
 from primaite.agents.hardcoded_abc import HardCodedAgentSessionABC
 from primaite.agents.utils import get_new_action, transform_action_acl_enum, transform_action_node_enum
-
-if TYPE_CHECKING:
-    import numpy as np
 
 
 class RandomAgent(HardCodedAgentSessionABC):
@@ -15,7 +13,7 @@ class RandomAgent(HardCodedAgentSessionABC):
     Get a completely random action from the action space.
     """
 
-    def _calculate_action(self, obs: "np.ndarray") -> int:
+    def _calculate_action(self, obs: np.ndarray) -> int:
         return self._env.action_space.sample()
 
 
@@ -26,7 +24,7 @@ class DummyAgent(HardCodedAgentSessionABC):
     All action spaces setup so dummy action is always 0 regardless of action type used.
     """
 
-    def _calculate_action(self, obs: "np.ndarray") -> int:
+    def _calculate_action(self, obs: np.ndarray) -> int:
         return 0
 
 
@@ -37,7 +35,7 @@ class DoNothingACLAgent(HardCodedAgentSessionABC):
     A valid ACL action that has no effect; does nothing.
     """
 
-    def _calculate_action(self, obs: "np.ndarray") -> int:
+    def _calculate_action(self, obs: np.ndarray) -> int:
         nothing_action = ["NONE", "ALLOW", "ANY", "ANY", "ANY", "ANY"]
         nothing_action = transform_action_acl_enum(nothing_action)
         nothing_action = get_new_action(nothing_action, self._env.action_dict)
@@ -52,7 +50,7 @@ class DoNothingNodeAgent(HardCodedAgentSessionABC):
     A valid Node action that has no effect; does nothing.
     """
 
-    def _calculate_action(self, obs: "np.ndarray") -> int:
+    def _calculate_action(self, obs: np.ndarray) -> int:
         nothing_action = [1, "NONE", "ON", 0]
         nothing_action = transform_action_node_enum(nothing_action)
         nothing_action = get_new_action(nothing_action, self._env.action_dict)

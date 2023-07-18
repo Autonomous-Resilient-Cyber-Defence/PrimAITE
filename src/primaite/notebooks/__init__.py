@@ -5,14 +5,11 @@ import importlib.util
 import os
 import subprocess
 import sys
-from typing import TYPE_CHECKING
+from logging import Logger
 
 from primaite import getLogger, NOTEBOOKS_DIR
 
-if TYPE_CHECKING:
-    from logging import Logger
-
-_LOGGER: "Logger" = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 def start_jupyter_session() -> None:

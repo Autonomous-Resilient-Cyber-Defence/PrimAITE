@@ -4,8 +4,9 @@ from __future__ import annotations
 import json
 import shutil
 from datetime import datetime
+from logging import Logger
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, TYPE_CHECKING, Union
+from typing import Any, Callable, Dict, Optional, Union
 from uuid import uuid4
 
 from ray.rllib.algorithms import Algorithm
@@ -19,10 +20,7 @@ from primaite.agents.agent_abc import AgentSessionABC
 from primaite.common.enums import AgentFramework, AgentIdentifier
 from primaite.environment.primaite_env import Primaite
 
-if TYPE_CHECKING:
-    from logging import Logger
-
-_LOGGER: "Logger" = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 # TODO: verify type of env_config

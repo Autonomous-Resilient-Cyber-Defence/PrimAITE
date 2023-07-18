@@ -1,15 +1,13 @@
 # Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+from logging import Logger
 from pathlib import Path
-from typing import Any, Dict, Final, TYPE_CHECKING, Union
+from typing import Any, Dict, Final, Union
 
 import yaml
 
 from primaite import getLogger, USERS_CONFIG_DIR
 
-if TYPE_CHECKING:
-    from logging import Logger
-
-_LOGGER: "Logger" = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 _EXAMPLE_LAY_DOWN: Final[Path] = USERS_CONFIG_DIR / "example_config" / "lay_down"
 

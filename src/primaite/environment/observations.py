@@ -2,6 +2,7 @@
 """Module for handling configurable observation spaces in PrimAITE."""
 import logging
 from abc import ABC, abstractmethod
+from logging import Logger
 from typing import Dict, Final, List, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
@@ -15,12 +16,10 @@ from primaite.nodes.service_node import ServiceNode
 # TYPE_CHECKING is False at runtime and True when typecheckers are performing typechecking
 # Therefore, this avoids circular dependency problem.
 if TYPE_CHECKING:
-    from logging import Logger
-
     from primaite.environment.primaite_env import Primaite
 
 
-_LOGGER: "Logger" = logging.getLogger(__name__)
+_LOGGER: Logger = logging.getLogger(__name__)
 
 
 class AbstractObservationComponent(ABC):

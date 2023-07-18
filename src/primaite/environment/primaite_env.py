@@ -3,9 +3,10 @@
 import copy
 import logging
 import uuid as uuid
+from logging import Logger
 from pathlib import Path
 from random import choice, randint, sample, uniform
-from typing import Any, Dict, Final, List, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, Final, List, Tuple, Union
 
 import networkx as nx
 import numpy as np
@@ -49,10 +50,7 @@ from primaite.pol.red_agent_pol import apply_red_agent_iers, apply_red_agent_nod
 from primaite.transactions.transaction import Transaction
 from primaite.utils.session_output_writer import SessionOutputWriter
 
-if TYPE_CHECKING:
-    from logging import Logger
-
-_LOGGER: "Logger" = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 class Primaite(Env):
