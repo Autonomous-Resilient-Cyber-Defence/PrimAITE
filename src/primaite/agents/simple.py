@@ -1,6 +1,7 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 from typing import TYPE_CHECKING
 
-from primaite.agents.agent import HardCodedAgentSessionABC
+from primaite.agents.hardcoded_abc import HardCodedAgentSessionABC
 from primaite.agents.utils import get_new_action, transform_action_acl_enum, transform_action_node_enum
 
 if TYPE_CHECKING:

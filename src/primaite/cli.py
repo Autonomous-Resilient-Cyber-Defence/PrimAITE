@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Provides a CLI using Typer as an entry point."""
 import logging
 import os
@@ -151,7 +151,7 @@ def setup(overwrite_existing: bool = True) -> None:
 
 
 @app.command()
-def session(tc: Optional[str] = None, ldc: Optional[str] = None) -> None:
+def session(tc: Optional[str] = None, ldc: Optional[str] = None, load: Optional[str] = None) -> None:
     """
     Run a PrimAITE session.
 
@@ -162,10 +162,18 @@ def session(tc: Optional[str] = None, ldc: Optional[str] = None) -> None:
     ldc: The lay down config file path. Optional. If no value is passed then
     example default lay down config is used from:
     ~/primaite/config/example_config/lay_down/lay_down_config_3_doc_very_basic.yaml.
+
+    load: The directory of a previous session. Optional. If no value is passed, then the session
+    will use the default training config and laydown config. Inversely, if a training config and laydown config
+    is passed while a session directory is passed, PrimAITE will load the session and ignore the training config
+    and laydown config.
     """
     from primaite.config.lay_down_config import dos_very_basic_config_path
     from primaite.config.training_config import main_training_config_path
     from primaite.main import run
+
+    if load is not None:
+        run(session_path=load)
 
     if not tc:
         tc = main_training_config_path()
