@@ -1,25 +1,31 @@
 # Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Implements reward function."""
-from typing import Dict
+from logging import Logger
+from typing import Dict, TYPE_CHECKING, Union
 
 from primaite import getLogger
+from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import FileSystemState, HardwareState, SoftwareState
 from primaite.common.service import Service
 from primaite.nodes.active_node import ActiveNode
 from primaite.nodes.service_node import ServiceNode
 
-_LOGGER = getLogger(__name__)
+if TYPE_CHECKING:
+    from primaite.config.training_config import TrainingConfig
+    from primaite.pol.ier import IER
+
+_LOGGER: Logger = getLogger(__name__)
 
 
 def calculate_reward_function(
-    initial_nodes,
-    final_nodes,
-    reference_nodes,
-    green_iers,
-    green_iers_reference,
-    red_iers,
-    step_count,
-    config_values,
+    initial_nodes: Dict[str, NodeUnion],
+    final_nodes: Dict[str, NodeUnion],
+    reference_nodes: Dict[str, NodeUnion],
+    green_iers: Dict[str, "IER"],
+    green_iers_reference: Dict[str, "IER"],
+    red_iers: Dict[str, "IER"],
+    step_count: int,
+    config_values: "TrainingConfig",
 ) -> float:
     """
     Compares the states of the initial and final nodes/links to get a reward.
@@ -93,7 +99,9 @@ def calculate_reward_function(
     return reward_value
 
 
-def score_node_operating_state(final_node, initial_node, reference_node, config_values) -> float:
+def score_node_operating_state(
+    final_node: NodeUnion, initial_node: NodeUnion, reference_node: NodeUnion, config_values: "TrainingConfig"
+) -> float:
     """
     Calculates score relating to the hardware state of a node.
 
@@ -142,7 +150,12 @@ def score_node_operating_state(final_node, initial_node, reference_node, config_
     return score
 
 
-def score_node_os_state(final_node, initial_node, reference_node, config_values) -> float:
+def score_node_os_state(
+    final_node: Union[ActiveNode, ServiceNode],
+    initial_node: Union[ActiveNode, ServiceNode],
+    reference_node: Union[ActiveNode, ServiceNode],
+    config_values: "TrainingConfig",
+) -> float:
     """
     Calculates score relating to the Software State of a node.
 
@@ -193,7 +206,9 @@ def score_node_os_state(final_node, initial_node, reference_node, config_values)
     return score
 
 
-def score_node_service_state(final_node, initial_node, reference_node, config_values) -> float:
+def score_node_service_state(
+    final_node: ServiceNode, initial_node: ServiceNode, reference_node: ServiceNode, config_values: "TrainingConfig"
+) -> float:
     """
     Calculates score relating to the service state(s) of a node.
 
@@ -265,7 +280,12 @@ def score_node_service_state(final_node, initial_node, reference_node, config_va
     return score
 
 
-def score_node_file_system(final_node, initial_node, reference_node, config_values) -> float:
+def score_node_file_system(
+    final_node: Union[ActiveNode, ServiceNode],
+    initial_node: Union[ActiveNode, ServiceNode],
+    reference_node: Union[ActiveNode, ServiceNode],
+    config_values: "TrainingConfig",
+) -> float:
     """
     Calculates score relating to the file system state of a node.
 

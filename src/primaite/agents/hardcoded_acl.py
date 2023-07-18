@@ -1,5 +1,5 @@
 # Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
-from typing import Any, Dict, List, Union
+from typing import Dict, List, Union
 
 import numpy as np
 
@@ -33,7 +33,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
     def get_blocked_green_iers(
         self, green_iers: Dict[str, IER], acl: AccessControlList, nodes: Dict[str, NodeUnion]
-    ) -> Dict[Any, Any]:
+    ) -> Dict[str, IER]:
         """Get blocked green IERs.
 
         :param green_iers: Green IERs to check for being
@@ -61,7 +61,9 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
         return blocked_green_iers
 
-    def get_matching_acl_rules_for_ier(self, ier: IER, acl: AccessControlList, nodes: Dict[str, NodeUnion]):
+    def get_matching_acl_rules_for_ier(
+        self, ier: IER, acl: AccessControlList, nodes: Dict[str, NodeUnion]
+    ) -> Dict[int, ACLRule]:
         """Get list of ACL rules which are relevant to an IER.
 
         :param ier: Information Exchange Request to query against the ACL list
@@ -84,7 +86,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
     def get_blocking_acl_rules_for_ier(
         self, ier: IER, acl: AccessControlList, nodes: Dict[str, NodeUnion]
-    ) -> Dict[str, Any]:
+    ) -> Dict[int, ACLRule]:
         """
         Get blocking ACL rules for an IER.
 
@@ -112,7 +114,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
     def get_allow_acl_rules_for_ier(
         self, ier: IER, acl: AccessControlList, nodes: Dict[str, NodeUnion]
-    ) -> Dict[str, Any]:
+    ) -> Dict[int, ACLRule]:
         """Get all allowing ACL rules for an IER.
 
         :param ier: Information Exchange Request to query against the ACL list
@@ -142,7 +144,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         acl: AccessControlList,
         nodes: Dict[str, Union[ServiceNode, ActiveNode]],
         services_list: List[str],
-    ) -> Dict[str, ACLRule]:
+    ) -> Dict[int, ACLRule]:
         """Filter ACL rules to only those which are relevant to the specified nodes.
 
         :param source_node_id: Source node
@@ -174,6 +176,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
 
         if protocol != "ANY":
             protocol = services_list[protocol - 1]  # -1 as dont have to account for ANY in list of services
+            # TODO: This should throw an error because protocol is a string
 
         matching_rules = acl.get_relevant_rules(source_node_address, dest_node_address, protocol, port)
         return matching_rules
@@ -187,7 +190,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         acl: AccessControlList,
         nodes: Dict[str, NodeUnion],
         services_list: List[str],
-    ) -> Dict[str, ACLRule]:
+    ) -> Dict[int, ACLRule]:
         """List ALLOW rules relating to specified nodes.
 
         :param source_node_id: Source node id
@@ -234,7 +237,7 @@ class HardCodedACLAgent(HardCodedAgentSessionABC):
         acl: AccessControlList,
         nodes: Dict[str, NodeUnion],
         services_list: List[str],
-    ) -> Dict[str, ACLRule]:
+    ) -> Dict[int, ACLRule]:
         """List DENY rules relating to specified nodes.
 
         :param source_node_id: Source node id

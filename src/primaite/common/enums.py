@@ -148,6 +148,7 @@ class ActionType(Enum):
     ANY = 2
 
 
+# TODO: this is not used anymore, write a ticket to delete it.
 class ObservationType(Enum):
     """Observation type enumeration."""
 

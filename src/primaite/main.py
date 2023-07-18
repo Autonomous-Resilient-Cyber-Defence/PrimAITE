@@ -14,7 +14,7 @@ def run(
     training_config_path: Optional[Union[str, Path]] = "",
     lay_down_config_path: Optional[Union[str, Path]] = "",
     session_path: Optional[Union[str, Path]] = None,
-):
+) -> None:
     """
     Run the PrimAITE Session.
 
