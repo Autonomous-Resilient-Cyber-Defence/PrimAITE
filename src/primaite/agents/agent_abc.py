@@ -254,7 +254,7 @@ class AgentSessionABC(ABC):
     def _get_latest_checkpoint(self) -> None:
         pass
 
-    def load(self, path: Union[str, Path]):
+    def load(self, path: Union[str, Path]) -> None:
         """Load an agent from file."""
         md_dict, training_config_path, laydown_config_path = parse_session_metadata(path)
 
