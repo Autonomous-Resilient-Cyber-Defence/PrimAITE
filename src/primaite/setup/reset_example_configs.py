@@ -2,14 +2,13 @@
 import filecmp
 import os
 import shutil
-from logging import Logger
 from pathlib import Path
 
 import pkg_resources
 
 from primaite import getLogger, USERS_CONFIG_DIR
 
-_LOGGER: Logger = getLogger(__name__)
+_LOGGER = getLogger(__name__)
 
 
 def run(overwrite_existing: bool = True) -> None:

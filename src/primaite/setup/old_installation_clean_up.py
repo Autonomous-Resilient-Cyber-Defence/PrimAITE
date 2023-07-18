@@ -1,9 +1,8 @@
 # Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
-from logging import Logger
 
 from primaite import getLogger
 
-_LOGGER: Logger = getLogger(__name__)
+_LOGGER = getLogger(__name__)
 
 
 def run() -> None:

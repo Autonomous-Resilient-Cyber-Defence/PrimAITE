@@ -85,7 +85,13 @@ class AccessControlList:
         return True
 
     def add_rule(
-        self, _permission: str, _source_ip: str, _dest_ip: str, _protocol: str, _port: str, _position: int
+        self,
+        _permission: RulePermissionType,
+        _source_ip: str,
+        _dest_ip: str,
+        _protocol: str,
+        _port: str,
+        _position: str,
     ) -> None:
         """
         Adds a new rule.
@@ -148,7 +154,9 @@ class AccessControlList:
         for i in range(len(self._acl)):
             self._acl[i] = None
 
-    def get_dictionary_hash(self, _permission: str, _source_ip: str, _dest_ip: str, _protocol: str, _port: str) -> int:
+    def get_dictionary_hash(
+        self, _permission: RulePermissionType, _source_ip: str, _dest_ip: str, _protocol: str, _port: str
+    ) -> int:
         """
         Produces a hash value for a rule.
 
