@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Defines node behaviour for Green PoL."""
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Union

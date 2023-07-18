@@ -1,10 +1,11 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 from __future__ import annotations
 
 import json
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, TYPE_CHECKING, Union
+from typing import Any, Callable, Dict, Optional, TYPE_CHECKING, Union
 from uuid import uuid4
 
 from ray.rllib.algorithms import Algorithm
@@ -14,7 +15,7 @@ from ray.tune.logger import UnifiedLogger
 from ray.tune.registry import register_env
 
 from primaite import getLogger
-from primaite.agents.agent import AgentSessionABC
+from primaite.agents.agent_abc import AgentSessionABC
 from primaite.common.enums import AgentFramework, AgentIdentifier
 from primaite.environment.primaite_env import Primaite
 
@@ -48,7 +49,12 @@ def _custom_log_creator(session_path: Path) -> Callable[[Dict], UnifiedLogger]:
 class RLlibAgent(AgentSessionABC):
     """An AgentSession class that implements a Ray RLlib agent."""
 
-    def __init__(self, training_config_path: Union[str, Path], lay_down_config_path: Union[str, Path]) -> None:
+    def __init__(
+        self,
+        training_config_path: Optional[Union[str, Path]] = "",
+        lay_down_config_path: Optional[Union[str, Path]] = "",
+        session_path: Optional[Union[str, Path]] = None,
+    ) -> None:
         """
         Initialise the RLLib Agent training session.
 
@@ -61,6 +67,13 @@ class RLlibAgent(AgentSessionABC):
         :raises ValueError: If the training config contains an unexpected value for agent_identifies (should be `PPO`
             or `A2C`)
         """
+        # TODO: implement RLlib agent loading
+        if session_path is not None:
+            msg = "RLlib agent loading has not been implemented yet"
+            _LOGGER.error(msg)
+            print(msg)
+            raise NotImplementedError
+
         super().__init__(training_config_path, lay_down_config_path)
         if not self._training_config.agent_framework == AgentFramework.RLLIB:
             msg = f"Expected RLLIB agent_framework, " f"got {self._training_config.agent_framework}"
