@@ -1,9 +1,10 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Implements POL on the network (nodes and links) resulting from the red agent attack."""
 from typing import Dict
 
 from networkx import MultiGraph, shortest_path
 
+from primaite import getLogger
 from primaite.acl.access_control_list import AccessControlList
 from primaite.common.custom_typing import NodeUnion
 from primaite.common.enums import HardwareState, NodePOLInitiator, NodePOLType, NodeType, SoftwareState
@@ -13,7 +14,9 @@ from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from primaite.nodes.service_node import ServiceNode
 from primaite.pol.ier import IER
 
-_VERBOSE = False
+_LOGGER = getLogger(__name__)
+
+_VERBOSE: bool = False
 
 
 def apply_red_agent_iers(
@@ -23,7 +26,7 @@ def apply_red_agent_iers(
     iers: Dict[str, IER],
     acl: AccessControlList,
     step: int,
-):
+) -> None:
     """
     Applies IERs to the links (link POL) resulting from red agent attack.
 
@@ -74,6 +77,9 @@ def apply_red_agent_iers(
                 pass
             else:
                 # It's not a switch or an actuator (so active node)
+                # TODO: this occurs after ruling out the possibility that the node is a switch or an actuator, but it
+                # could still be a passive/active node, therefore it won't have a hardware_state. The logic here needs
+                # to change according to duck typing.
                 if source_node.hardware_state == HardwareState.ON:
                     if source_node.has_service(protocol):
                         # Red agents IERs can only be valid if the source service is in a compromised state
@@ -213,7 +219,7 @@ def apply_red_agent_node_pol(
     iers: Dict[str, IER],
     node_pol: Dict[str, NodeStateInstructionRed],
     step: int,
-):
+) -> None:
     """
     Applies node pattern of life.
 
@@ -267,8 +273,7 @@ def apply_red_agent_node_pol(
                     # Do nothing, service not on this node
                     pass
             else:
-                if _VERBOSE:
-                    print("Node Red Agent PoL not allowed - misconfiguration")
+                _LOGGER.warning("Node Red Agent PoL not allowed - misconfiguration")
 
             # Only apply the PoL if the checks have passed (based on the initiator type)
             if passed_checks:
@@ -289,8 +294,7 @@ def apply_red_agent_node_pol(
                     if isinstance(target_node, ActiveNode) or isinstance(target_node, ServiceNode):
                         target_node.set_file_system_state(state)
             else:
-                if _VERBOSE:
-                    print("Node Red Agent PoL not allowed - did not pass checks")
+                _LOGGER.debug("Node Red Agent PoL not allowed - did not pass checks")
         else:
             # PoL is not valid in this time step
             pass

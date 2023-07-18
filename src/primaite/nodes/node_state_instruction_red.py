@@ -1,8 +1,12 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Defines node behaviour for Green PoL."""
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Union
 
 from primaite.common.enums import NodePOLType
+
+if TYPE_CHECKING:
+    from primaite.common.enums import FileSystemState, HardwareState, NodePOLInitiator, SoftwareState
 
 
 @dataclass()
@@ -11,18 +15,18 @@ class NodeStateInstructionRed(object):
 
     def __init__(
         self,
-        _id,
-        _start_step,
-        _end_step,
-        _target_node_id,
-        _pol_initiator,
+        _id: str,
+        _start_step: int,
+        _end_step: int,
+        _target_node_id: str,
+        _pol_initiator: "NodePOLInitiator",
         _pol_type: NodePOLType,
-        pol_protocol,
-        _pol_state,
-        _pol_source_node_id,
-        _pol_source_node_service,
-        _pol_source_node_service_state,
-    ):
+        pol_protocol: str,
+        _pol_state: Union["HardwareState", "SoftwareState", "FileSystemState"],
+        _pol_source_node_id: str,
+        _pol_source_node_service: str,
+        _pol_source_node_service_state: str,
+    ) -> None:
         """
         Initialise the Node State Instruction for the red agent.
 
@@ -38,19 +42,19 @@ class NodeStateInstructionRed(object):
         :param _pol_source_node_service: The source node service (used for initiator type SERVICE)
         :param _pol_source_node_service_state: The source node service state (used for initiator type SERVICE)
         """
-        self.id = _id
-        self.start_step = _start_step
-        self.end_step = _end_step
-        self.target_node_id = _target_node_id
-        self.initiator = _pol_initiator
+        self.id: str = _id
+        self.start_step: int = _start_step
+        self.end_step: int = _end_step
+        self.target_node_id: str = _target_node_id
+        self.initiator: "NodePOLInitiator" = _pol_initiator
         self.pol_type: NodePOLType = _pol_type
-        self.service_name = pol_protocol  # Not used when not a service instruction
-        self.state = _pol_state
-        self.source_node_id = _pol_source_node_id
-        self.source_node_service = _pol_source_node_service
+        self.service_name: str = pol_protocol  # Not used when not a service instruction
+        self.state: Union["HardwareState", "SoftwareState", "FileSystemState"] = _pol_state
+        self.source_node_id: str = _pol_source_node_id
+        self.source_node_service: str = _pol_source_node_service
         self.source_node_service_state = _pol_source_node_service_state
 
-    def get_start_step(self):
+    def get_start_step(self) -> int:
         """
         Gets the start step.
 
@@ -59,7 +63,7 @@ class NodeStateInstructionRed(object):
         """
         return self.start_step
 
-    def get_end_step(self):
+    def get_end_step(self) -> int:
         """
         Gets the end step.
 
@@ -68,7 +72,7 @@ class NodeStateInstructionRed(object):
         """
         return self.end_step
 
-    def get_target_node_id(self):
+    def get_target_node_id(self) -> str:
         """
         Gets the node ID.
 
@@ -77,7 +81,7 @@ class NodeStateInstructionRed(object):
         """
         return self.target_node_id
 
-    def get_initiator(self):
+    def get_initiator(self) -> "NodePOLInitiator":
         """
         Gets the initiator.
 
@@ -95,7 +99,7 @@ class NodeStateInstructionRed(object):
         """
         return self.pol_type
 
-    def get_service_name(self):
+    def get_service_name(self) -> str:
         """
         Gets the service name.
 
@@ -104,7 +108,7 @@ class NodeStateInstructionRed(object):
         """
         return self.service_name
 
-    def get_state(self):
+    def get_state(self) -> Union["HardwareState", "SoftwareState", "FileSystemState"]:
         """
         Gets the state (node or service).
 
@@ -113,7 +117,7 @@ class NodeStateInstructionRed(object):
         """
         return self.state
 
-    def get_source_node_id(self):
+    def get_source_node_id(self) -> str:
         """
         Gets the source node id (used for initiator type SERVICE).
 
@@ -122,7 +126,7 @@ class NodeStateInstructionRed(object):
         """
         return self.source_node_id
 
-    def get_source_node_service(self):
+    def get_source_node_service(self) -> str:
         """
         Gets the source node service (used for initiator type SERVICE).
 
@@ -131,7 +135,7 @@ class NodeStateInstructionRed(object):
         """
         return self.source_node_service
 
-    def get_source_node_service_state(self):
+    def get_source_node_service_state(self) -> str:
         """
         Gets the source node service state (used for initiator type SERVICE).
 

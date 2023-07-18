@@ -1,3 +1,4 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Test env creation and behaviour with different observation spaces."""
 
 import numpy as np

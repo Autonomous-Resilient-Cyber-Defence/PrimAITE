@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """
 Information Exchange Requirements for APE.
 
@@ -11,17 +11,17 @@ class IER(object):
 
     def __init__(
         self,
-        _id,
-        _start_step,
-        _end_step,
-        _load,
-        _protocol,
-        _port,
-        _source_node_id,
-        _dest_node_id,
-        _mission_criticality,
-        _running=False,
-    ):
+        _id: str,
+        _start_step: int,
+        _end_step: int,
+        _load: int,
+        _protocol: str,
+        _port: str,
+        _source_node_id: str,
+        _dest_node_id: str,
+        _mission_criticality: int,
+        _running: bool = False,
+    ) -> None:
         """
         Initialise an Information Exchange Request.
 
@@ -36,18 +36,18 @@ class IER(object):
         :param _mission_criticality: Criticality of this IER to the mission (0 none, 5 mission critical)
         :param _running: Indicates whether the IER is currently running
         """
-        self.id = _id
-        self.start_step = _start_step
-        self.end_step = _end_step
-        self.source_node_id = _source_node_id
-        self.dest_node_id = _dest_node_id
-        self.load = _load
-        self.protocol = _protocol
-        self.port = _port
-        self.mission_criticality = _mission_criticality
-        self.running = _running
+        self.id: str = _id
+        self.start_step: int = _start_step
+        self.end_step: int = _end_step
+        self.source_node_id: str = _source_node_id
+        self.dest_node_id: str = _dest_node_id
+        self.load: int = _load
+        self.protocol: str = _protocol
+        self.port: str = _port
+        self.mission_criticality: int = _mission_criticality
+        self.running: bool = _running
 
-    def get_id(self):
+    def get_id(self) -> str:
         """
         Gets IER ID.
 
@@ -56,7 +56,7 @@ class IER(object):
         """
         return self.id
 
-    def get_start_step(self):
+    def get_start_step(self) -> int:
         """
         Gets IER start step.
 
@@ -65,7 +65,7 @@ class IER(object):
         """
         return self.start_step
 
-    def get_end_step(self):
+    def get_end_step(self) -> int:
         """
         Gets IER end step.
 
@@ -74,7 +74,7 @@ class IER(object):
         """
         return self.end_step
 
-    def get_load(self):
+    def get_load(self) -> int:
         """
         Gets IER load.
 
@@ -83,7 +83,7 @@ class IER(object):
         """
         return self.load
 
-    def get_protocol(self):
+    def get_protocol(self) -> str:
         """
         Gets IER protocol.
 
@@ -92,7 +92,7 @@ class IER(object):
         """
         return self.protocol
 
-    def get_port(self):
+    def get_port(self) -> str:
         """
         Gets IER port.
 
@@ -101,7 +101,7 @@ class IER(object):
         """
         return self.port
 
-    def get_source_node_id(self):
+    def get_source_node_id(self) -> str:
         """
         Gets IER source node ID.
 
@@ -110,7 +110,7 @@ class IER(object):
         """
         return self.source_node_id
 
-    def get_dest_node_id(self):
+    def get_dest_node_id(self) -> str:
         """
         Gets IER destination node ID.
 
@@ -119,7 +119,7 @@ class IER(object):
         """
         return self.dest_node_id
 
-    def get_is_running(self):
+    def get_is_running(self) -> bool:
         """
         Informs whether the IER is currently running.
 
@@ -128,7 +128,7 @@ class IER(object):
         """
         return self.running
 
-    def set_is_running(self, _value):
+    def set_is_running(self, _value: bool) -> None:
         """
         Sets the running state of the IER.
 
@@ -137,7 +137,7 @@ class IER(object):
         """
         self.running = _value
 
-    def get_mission_criticality(self):
+    def get_mission_criticality(self) -> int:
         """
         Gets the IER mission criticality (used in the reward function).
 

@@ -1,3 +1,4 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """Utility to generate plots of sessions metrics after PrimAITE."""
 from enum import Enum
 

@@ -1,4 +1,4 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 """The link class."""
 from typing import List
 
@@ -8,7 +8,7 @@ from primaite.common.protocol import Protocol
 class Link(object):
     """Link class."""
 
-    def __init__(self, _id, _bandwidth, _source_node_name, _dest_node_name, _services):
+    def __init__(self, _id: str, _bandwidth: int, _source_node_name: str, _dest_node_name: str, _services: str) -> None:
         """
         Initialise a Link within the simulated network.
 
@@ -18,17 +18,17 @@ class Link(object):
         :param _dest_node_name: The name of the destination node
         :param _protocols: The protocols to add to the link
         """
-        self.id = _id
-        self.bandwidth = _bandwidth
-        self.source_node_name = _source_node_name
-        self.dest_node_name = _dest_node_name
+        self.id: str = _id
+        self.bandwidth: int = _bandwidth
+        self.source_node_name: str = _source_node_name
+        self.dest_node_name: str = _dest_node_name
         self.protocol_list: List[Protocol] = []
 
         # Add the default protocols
         for protocol_name in _services:
             self.add_protocol(protocol_name)
 
-    def add_protocol(self, _protocol):
+    def add_protocol(self, _protocol: str) -> None:
         """
         Adds a new protocol to the list of protocols on this link.
 
@@ -37,7 +37,7 @@ class Link(object):
         """
         self.protocol_list.append(Protocol(_protocol))
 
-    def get_id(self):
+    def get_id(self) -> str:
         """
         Gets link ID.
 
@@ -46,7 +46,7 @@ class Link(object):
         """
         return self.id
 
-    def get_source_node_name(self):
+    def get_source_node_name(self) -> str:
         """
         Gets source node name.
 
@@ -55,7 +55,7 @@ class Link(object):
         """
         return self.source_node_name
 
-    def get_dest_node_name(self):
+    def get_dest_node_name(self) -> str:
         """
         Gets destination node name.
 
@@ -64,7 +64,7 @@ class Link(object):
         """
         return self.dest_node_name
 
-    def get_bandwidth(self):
+    def get_bandwidth(self) -> int:
         """
         Gets bandwidth of link.
 
@@ -73,7 +73,7 @@ class Link(object):
         """
         return self.bandwidth
 
-    def get_protocol_list(self):
+    def get_protocol_list(self) -> List[Protocol]:
         """
         Gets list of protocols on this link.
 
@@ -82,7 +82,7 @@ class Link(object):
         """
         return self.protocol_list
 
-    def get_current_load(self):
+    def get_current_load(self) -> int:
         """
         Gets current total load on this link.
 
@@ -94,7 +94,7 @@ class Link(object):
             total_load += protocol.get_load()
         return total_load
 
-    def add_protocol_load(self, _protocol, _load):
+    def add_protocol_load(self, _protocol: str, _load: int) -> None:
         """
         Adds a loading to a protocol on this link.
 
@@ -108,7 +108,7 @@ class Link(object):
             else:
                 pass
 
-    def clear_traffic(self):
+    def clear_traffic(self) -> None:
         """Clears all traffic on this link."""
         for protocol in self.protocol_list:
             protocol.clear_load()

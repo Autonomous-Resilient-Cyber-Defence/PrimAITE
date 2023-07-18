@@ -1,8 +1,10 @@
+# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 from __future__ import annotations
 
 import json
+from logging import Logger
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 from stable_baselines3 import A2C, PPO
@@ -13,7 +15,7 @@ from primaite.agents.agent_abc import AgentSessionABC
 from primaite.common.enums import AgentFramework, AgentIdentifier
 from primaite.environment.primaite_env import Primaite
 
-_LOGGER = getLogger(__name__)
+_LOGGER: Logger = getLogger(__name__)
 
 
 class SB3Agent(AgentSessionABC):
@@ -24,7 +26,7 @@ class SB3Agent(AgentSessionABC):
         training_config_path: Optional[Union[str, Path]] = None,
         lay_down_config_path: Optional[Union[str, Path]] = None,
         session_path: Optional[Union[str, Path]] = None,
-    ):
+    ) -> None:
         """
         Initialise the SB3 Agent training session.
 
@@ -42,6 +44,7 @@ class SB3Agent(AgentSessionABC):
             msg = f"Expected SB3 agent_framework, " f"got {self._training_config.agent_framework}"
             _LOGGER.error(msg)
             raise ValueError(msg)
+        self._agent_class: Union[PPO, A2C]
         if self._training_config.agent_identifier == AgentIdentifier.PPO:
             self._agent_class = PPO
         elif self._training_config.agent_identifier == AgentIdentifier.A2C:
@@ -65,7 +68,7 @@ class SB3Agent(AgentSessionABC):
 
         self._setup()
 
-    def _setup(self):
+    def _setup(self) -> None:
         """Set up the SB3 Agent."""
         self._env = Primaite(
             training_config_path=self._training_config_path,
@@ -112,7 +115,7 @@ class SB3Agent(AgentSessionABC):
 
         super()._setup()
 
-    def _save_checkpoint(self):
+    def _save_checkpoint(self) -> None:
         checkpoint_n = self._training_config.checkpoint_every_n_episodes
         episode_count = self._env.episode_count
         save_checkpoint = False
@@ -123,13 +126,13 @@ class SB3Agent(AgentSessionABC):
             self._agent.save(checkpoint_path)
             _LOGGER.debug(f"Saved agent checkpoint: {checkpoint_path}")
 
-    def _get_latest_checkpoint(self):
+    def _get_latest_checkpoint(self) -> None:
         pass
 
     def learn(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Train the agent.
 
@@ -152,8 +155,8 @@ class SB3Agent(AgentSessionABC):
 
     def evaluate(
         self,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Evaluate the agent.
 
@@ -182,10 +185,10 @@ class SB3Agent(AgentSessionABC):
         self._env.close()
         super().evaluate()
 
-    def save(self):
+    def save(self) -> None:
         """Save the agent."""
         self._agent.save(self._saved_agent_path)
 
-    def export(self):
+    def export(self) -> None:
         """Export the agent to transportable file format."""
         raise NotImplementedError
