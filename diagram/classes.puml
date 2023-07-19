@@ -1,0 +1,521 @@
+@startuml classes
+set namespaceSeparator none
+class "ACLRule" as primaite.acl.acl_rule.ACLRule {
+  dest_ip : str
+  permission
+  port : str
+  protocol : str
+  source_ip : str
+  get_dest_ip() -> str
+  get_permission() -> str
+  get_port() -> str
+  get_protocol() -> str
+  get_source_ip() -> str
+}
+class "AbstractObservationComponent" as primaite.environment.observations.AbstractObservationComponent {
+  current_observation : NotImplementedType, ndarray
+  env : str
+  space : Space
+  structure : List[str]
+  {abstract}generate_structure() -> List[str]
+  {abstract}update() -> None
+}
+class "AccessControlList" as primaite.acl.access_control_list.AccessControlList {
+  acl
+  acl_implicit_permission
+  acl_implicit_rule
+  max_acl_rules : int
+  add_rule(_permission: RulePermissionType, _source_ip: str, _dest_ip: str, _protocol: str, _port: str, _position: str) -> None
+  check_address_match(_rule: ACLRule, _source_ip_address: str, _dest_ip_address: str) -> bool
+  get_dictionary_hash(_permission: RulePermissionType, _source_ip: str, _dest_ip: str, _protocol: str, _port: str) -> int
+  get_relevant_rules(_source_ip_address: str, _dest_ip_address: str, _protocol: str, _port: str) -> Dict[int, ACLRule]
+  is_blocked(_source_ip_address: str, _dest_ip_address: str, _protocol: str, _port: str) -> bool
+  remove_all_rules() -> None
+  remove_rule(_permission: RulePermissionType, _source_ip: str, _dest_ip: str, _protocol: str, _port: str) -> None
+}
+class "AccessControlList_" as primaite.environment.observations.AccessControlList_ {
+  current_observation : ndarray
+  space : MultiDiscrete
+  structure : list
+  generate_structure() -> List[str]
+  update() -> None
+}
+
+class "ActiveNode" as primaite.nodes.active_node.ActiveNode {
+  file_system_action_count : int
+  file_system_scanning : bool
+  file_system_scanning_count : int
+  file_system_state_actual : GOOD
+  file_system_state_observed : REPAIRING, RESTORING, GOOD
+  ip_address : str
+  patching_count : int
+  software_state
+  software_state : GOOD
+  set_file_system_state(file_system_state: FileSystemState) -> None
+  set_file_system_state_if_not_compromised(file_system_state: FileSystemState) -> None
+  set_software_state_if_not_compromised(software_state: SoftwareState) -> None
+  start_file_system_scan() -> None
+  update_booting_status() -> None
+  update_file_system_state() -> None
+  update_os_patching_status() -> None
+  update_resetting_status() -> None
+}
+class "AgentSessionABC" as primaite.agents.agent_abc.AgentSessionABC {
+  checkpoints_path
+  evaluation_path
+  is_eval : bool
+  learning_path
+  sb3_output_verbose_level : NONE
+  session_path : Union[str, Path]
+  session_timestamp : datetime
+  timestamp_str
+  uuid
+  close() -> None
+  {abstract}evaluate() -> None
+  {abstract}export() -> None
+  {abstract}learn() -> None
+  load(path: Union[str, Path]) -> None
+  {abstract}save() -> None
+}
+
+class "DoNothingACLAgent" as primaite.agents.simple.DoNothingACLAgent {
+}
+class "DoNothingNodeAgent" as primaite.agents.simple.DoNothingNodeAgent {
+}
+class "DummyAgent" as primaite.agents.simple.DummyAgent {
+}
+class "HardCodedACLAgent" as primaite.agents.hardcoded_acl.HardCodedACLAgent {
+  get_allow_acl_rules(source_node_id: int, dest_node_id: str, protocol: int, port: str, acl: AccessControlList, nodes: Dict[str, NodeUnion], services_list: List[str]) -> Dict[int, ACLRule]
+  get_allow_acl_rules_for_ier(ier: IER, acl: AccessControlList, nodes: Dict[str, NodeUnion]) -> Dict[int, ACLRule]
+  get_blocked_green_iers(green_iers: Dict[str, IER], acl: AccessControlList, nodes: Dict[str, NodeUnion]) -> Dict[str, IER]
+  get_blocking_acl_rules_for_ier(ier: IER, acl: AccessControlList, nodes: Dict[str, NodeUnion]) -> Dict[int, ACLRule]
+  get_deny_acl_rules(source_node_id: int, dest_node_id: str, protocol: int, port: str, acl: AccessControlList, nodes: Dict[str, NodeUnion], services_list: List[str]) -> Dict[int, ACLRule]
+  get_matching_acl_rules(source_node_id: str, dest_node_id: str, protocol: str, port: str, acl: AccessControlList, nodes: Dict[str, Union[ServiceNode, ActiveNode]], services_list: List[str]) -> Dict[int, ACLRule]
+  get_matching_acl_rules_for_ier(ier: IER, acl: AccessControlList, nodes: Dict[str, NodeUnion]) -> Dict[int, ACLRule]
+}
+class "HardCodedAgentSessionABC" as primaite.agents.hardcoded_abc.HardCodedAgentSessionABC {
+  is_eval : bool
+  evaluate() -> None
+  export() -> None
+  learn() -> None
+  load(path: Union[str, Path]) -> None
+  save() -> None
+}
+class "HardCodedNodeAgent" as primaite.agents.hardcoded_node.HardCodedNodeAgent {
+}
+class "IER" as primaite.pol.ier.IER {
+  dest_node_id : str
+  end_step : int
+  id : str
+  load : int
+  mission_criticality : int
+  port : str
+  protocol : str
+  running : bool
+  source_node_id : str
+  start_step : int
+  get_dest_node_id() -> str
+  get_end_step() -> int
+  get_id() -> str
+  get_is_running() -> bool
+  get_load() -> int
+  get_mission_criticality() -> int
+  get_port() -> str
+  get_protocol() -> str
+  get_source_node_id() -> str
+  get_start_step() -> int
+  set_is_running(_value: bool) -> None
+}
+class "Link" as primaite.links.link.Link {
+  bandwidth : int
+  dest_node_name : str
+  id : str
+  protocol_list : List[Protocol]
+  source_node_name : str
+  add_protocol(_protocol: str) -> None
+  add_protocol_load(_protocol: str, _load: int) -> None
+  clear_traffic() -> None
+  get_bandwidth() -> int
+  get_current_load() -> int
+  get_dest_node_name() -> str
+  get_id() -> str
+  get_protocol_list() -> List[Protocol]
+  get_source_node_name() -> str
+}
+class "LinkTrafficLevels" as primaite.environment.observations.LinkTrafficLevels {
+  current_observation : ndarray
+  space : MultiDiscrete
+  structure : list
+  generate_structure() -> List[str]
+  update() -> None
+}
+class "Node" as primaite.nodes.node.Node {
+  booting_count : int
+  config_values
+  hardware_state : BOOTING, ON, RESETTING, OFF
+  name : Final[str]
+  node_id : Final[str]
+  node_type : Final[NodeType]
+  priority
+  resetting_count : int
+  shutting_down_count : int
+  reset() -> None
+  turn_off() -> None
+  turn_on() -> None
+  update_booting_status() -> None
+  update_resetting_status() -> None
+  update_shutdown_status() -> None
+}
+class "NodeLinkTable" as primaite.environment.observations.NodeLinkTable {
+  current_observation : ndarray
+  space : Box
+  structure : list
+  generate_structure() -> List[str]
+  update() -> None
+}
+class "NodeStateInstructionGreen" as primaite.nodes.node_state_instruction_green.NodeStateInstructionGreen {
+  end_step : int
+  id : str
+  node_id : str
+  node_pol_type : str
+  service_name : str
+  start_step : int
+  state : Union['HardwareState', 'SoftwareState', 'FileSystemState']
+  get_end_step() -> int
+  get_node_id() -> str
+  get_node_pol_type() -> 'NodePOLType'
+  get_service_name() -> str
+  get_start_step() -> int
+  get_state() -> Union['HardwareState', 'SoftwareState', 'FileSystemState']
+}
+class "NodeStateInstructionRed" as primaite.nodes.node_state_instruction_red.NodeStateInstructionRed {
+  end_step : int
+  id : str
+  initiator : str
+  pol_type
+  service_name : str
+  source_node_id : str
+  source_node_service : str
+  source_node_service_state : str
+  start_step : int
+  state : Union['HardwareState', 'SoftwareState', 'FileSystemState']
+  target_node_id : str
+  get_end_step() -> int
+  get_initiator() -> 'NodePOLInitiator'
+  get_pol_type() -> NodePOLType
+  get_service_name() -> str
+  get_source_node_id() -> str
+  get_source_node_service() -> str
+  get_source_node_service_state() -> str
+  get_start_step() -> int
+  get_state() -> Union['HardwareState', 'SoftwareState', 'FileSystemState']
+  get_target_node_id() -> str
+}
+class "NodeStatuses" as primaite.environment.observations.NodeStatuses {
+  current_observation : ndarray
+  space : MultiDiscrete
+  structure : list
+  generate_structure() -> List[str]
+  update() -> None
+}
+class "ObservationsHandler" as primaite.environment.observations.ObservationsHandler {
+  current_observation
+  registered_obs_components : List[AbstractObservationComponent]
+  space
+  deregister(obs_component: AbstractObservationComponent) -> None
+  describe_structure() -> List[str]
+  from_config(env: 'Primaite', obs_space_config: dict) -> 'ObservationsHandler'
+  register(obs_component: AbstractObservationComponent) -> None
+  update_obs() -> None
+  update_space() -> None
+}
+class "PassiveNode" as primaite.nodes.passive_node.PassiveNode {
+  ip_address
+}
+class "Primaite" as primaite.environment.primaite_env.Primaite {
+  ACTION_SPACE_ACL_ACTION_VALUES : int
+  ACTION_SPACE_ACL_PERMISSION_VALUES : int
+  ACTION_SPACE_NODE_ACTION_VALUES : int
+  ACTION_SPACE_NODE_PROPERTY_VALUES : int
+  acl
+  action_dict : dict, Dict[int, List[int]]
+  action_space : Discrete, Space
+  action_type : int
+  actual_episode_count
+  agent_identifier
+  average_reward : float
+  env_obs : ndarray, tuple
+  episode_av_reward_writer
+  episode_count : int
+  episode_steps : int
+  green_iers : Dict[str, IER]
+  green_iers_reference : Dict[str, IER]
+  lay_down_config
+  links : Dict[str, Link]
+  links_post_blue : dict
+  links_post_pol : dict
+  links_post_red : dict
+  links_reference : Dict[str, Link]
+  max_number_acl_rules : int
+  network : Graph
+  network_reference : Graph
+  node_pol : Dict[str, NodeStateInstructionGreen]
+  nodes : Dict[str, NodeUnion]
+  nodes_post_blue : dict
+  nodes_post_pol : dict
+  nodes_post_red : dict
+  nodes_reference : Dict[str, NodeUnion]
+  num_links : int
+  num_nodes : int
+  num_ports : int
+  num_services : int
+  obs_config : dict
+  obs_handler
+  observation_space : Tuple, Box, Space
+  observation_type
+  ports_list : List[str]
+  red_iers : Dict[str, IER], dict
+  red_node_pol : dict, Dict[str, NodeStateInstructionRed]
+  services_list : List[str]
+  session_path : Final[Path]
+  step_count : int
+  step_info : Dict[Any]
+  timestamp_str : Final[str]
+  total_reward : float
+  total_step_count : int
+  training_config
+  transaction_writer
+  apply_actions_to_acl(_action: int) -> None
+  apply_actions_to_nodes(_action: int) -> None
+  apply_time_based_updates() -> None
+  close() -> None
+  create_acl_action_dict() -> Dict[int, List[int]]
+  create_acl_rule(item: Dict) -> None
+  create_green_ier(item: Dict) -> None
+  create_green_pol(item: Dict) -> None
+  create_link(item: Dict) -> None
+  create_node(item: Dict) -> None
+  create_node_action_dict() -> Dict[int, List[int]]
+  create_node_and_acl_action_dict() -> Dict[int, List[int]]
+  create_ports_list(ports: Dict) -> None
+  create_red_ier(item: Dict) -> None
+  create_red_pol(item: Dict) -> None
+  create_services_list(services: Dict) -> None
+  get_action_info(action_info: Dict) -> None
+  get_observation_info(observation_info: Dict) -> None
+  init_acl() -> None
+  init_observations() -> Tuple[spaces.Space, np.ndarray]
+  interpret_action_and_apply(_action: int) -> None
+  load_lay_down_config() -> None
+  output_link_status() -> None
+  reset() -> np.ndarray
+  reset_environment() -> None
+  reset_node(item: Dict) -> None
+  save_obs_config(obs_config: dict) -> None
+  set_as_eval() -> None
+  step(action: int) -> Tuple[np.ndarray, float, bool, Dict]
+  update_environent_obs() -> None
+}
+class "PrimaiteSession" as primaite.primaite_session.PrimaiteSession {
+  evaluation_path : Optional[Path], Path
+  is_load_session : bool
+  learning_path : Optional[Path], Path
+  session_path : Optional[Path], Path
+  timestamp_str : str, Optional[str]
+  close() -> None
+  evaluate() -> None
+  learn() -> None
+  setup() -> None
+}
+class "Protocol" as primaite.common.protocol.Protocol {
+  load : int
+  name : str
+  add_load(_load: int) -> None
+  clear_load() -> None
+  get_load() -> int
+  get_name() -> str
+}
+class "RLlibAgent" as primaite.agents.rllib.RLlibAgent {
+  {abstract}evaluate() -> None
+  {abstract}export() -> None
+  learn() -> None
+  {abstract}load(path: Union[str, Path]) -> RLlibAgent
+  save(overwrite_existing: bool) -> None
+}
+class "RandomAgent" as primaite.agents.simple.RandomAgent {
+}
+class "SB3Agent" as primaite.agents.sb3.SB3Agent {
+  is_eval : bool
+  evaluate() -> None
+  {abstract}export() -> None
+  learn() -> None
+  save() -> None
+}
+class "Service" as primaite.common.service.Service {
+  name : str
+  patching_count : int
+  port : str
+  software_state : GOOD
+  reduce_patching_count() -> None
+}
+class "ServiceNode" as primaite.nodes.service_node.ServiceNode {
+  services : Dict[str, Service]
+  add_service(service: Service) -> None
+  get_service_state(protocol_name: str) -> SoftwareState
+  has_service(protocol_name: str) -> bool
+  service_is_overwhelmed(protocol_name: str) -> bool
+  service_running(protocol_name: str) -> bool
+  set_service_state(protocol_name: str, software_state: SoftwareState) -> None
+  set_service_state_if_not_compromised(protocol_name: str, software_state: SoftwareState) -> None
+  update_booting_status() -> None
+  update_resetting_status() -> None
+  update_services_patching_status() -> None
+}
+class "SessionOutputWriter" as primaite.utils.session_output_writer.SessionOutputWriter {
+  learning_session : bool
+  transaction_writer : bool
+  close() -> None
+  write(data: Union[Tuple, Transaction]) -> None
+}
+class "TrainingConfig" as primaite.config.training_config.TrainingConfig {
+  action_type
+  agent_framework
+  agent_identifier
+  agent_load_file : Optional[str]
+  all_ok : float
+  checkpoint_every_n_episodes : int
+  compromised : float
+  compromised_should_be_good : float
+  compromised_should_be_overwhelmed : float
+  compromised_should_be_patching : float
+  corrupt : float
+  corrupt_should_be_destroyed : float
+  corrupt_should_be_good : float
+  corrupt_should_be_repairing : float
+  corrupt_should_be_restoring : float
+  deep_learning_framework
+  destroyed : float
+  destroyed_should_be_corrupt : float
+  destroyed_should_be_good : float
+  destroyed_should_be_repairing : float
+  destroyed_should_be_restoring : float
+  deterministic : bool
+  file_system_repairing_limit : int
+  file_system_restoring_limit : int
+  file_system_scanning_limit : int
+  good_should_be_compromised : float
+  good_should_be_corrupt : float
+  good_should_be_destroyed : float
+  good_should_be_overwhelmed : float
+  good_should_be_patching : float
+  good_should_be_repairing : float
+  good_should_be_restoring : float
+  green_ier_blocked : float
+  hard_coded_agent_view
+  implicit_acl_rule
+  load_agent : bool
+  max_number_acl_rules : int
+  node_booting_duration : int
+  node_reset_duration : int
+  node_shutdown_duration : int
+  num_eval_episodes : int
+  num_eval_steps : int
+  num_train_episodes : int
+  num_train_steps : int
+  observation_space : dict
+  observation_space_high_value : int
+  off_should_be_on : float
+  off_should_be_resetting : float
+  on_should_be_off : float
+  on_should_be_resetting : float
+  os_patching_duration : int
+  overwhelmed : float
+  overwhelmed_should_be_compromised : float
+  overwhelmed_should_be_good : float
+  overwhelmed_should_be_patching : float
+  patching : float
+  patching_should_be_compromised : float
+  patching_should_be_good : float
+  patching_should_be_overwhelmed : float
+  random_red_agent : bool
+  red_ier_running : float
+  repairing : float
+  repairing_should_be_corrupt : float
+  repairing_should_be_destroyed : float
+  repairing_should_be_good : float
+  repairing_should_be_restoring : float
+  resetting : float
+  resetting_should_be_off : float
+  resetting_should_be_on : float
+  restoring : float
+  restoring_should_be_corrupt : float
+  restoring_should_be_destroyed : float
+  restoring_should_be_good : float
+  restoring_should_be_repairing : float
+  sb3_output_verbose_level
+  scanning : float
+  seed : Optional[int]
+  service_patching_duration : int
+  session_type
+  time_delay : int
+  from_dict(config_dict: Dict[str, Any]) -> TrainingConfig
+  to_dict(json_serializable: bool) -> Dict
+}
+class "Transaction" as primaite.transactions.transaction.Transaction {
+  action_space : Optional[int]
+  agent_identifier
+  episode_number : int
+  obs_space : str
+  obs_space_description : NoneType, Optional[List[str]], list
+  obs_space_post : Optional[Union['np.ndarray', Tuple['np.ndarray']]]
+  obs_space_pre : Optional[Union['np.ndarray', Tuple['np.ndarray']]]
+  reward : Optional[float], float
+  step_number : int
+  timestamp : datetime
+  as_csv_data() -> Tuple[List, List]
+}
+primaite.agents.hardcoded_abc.HardCodedAgentSessionABC --|> primaite.agents.agent_abc.AgentSessionABC
+primaite.agents.hardcoded_acl.HardCodedACLAgent --|> primaite.agents.hardcoded_abc.HardCodedAgentSessionABC
+primaite.agents.hardcoded_node.HardCodedNodeAgent --|> primaite.agents.hardcoded_abc.HardCodedAgentSessionABC
+primaite.agents.rllib.RLlibAgent --|> primaite.agents.agent_abc.AgentSessionABC
+primaite.agents.sb3.SB3Agent --|> primaite.agents.agent_abc.AgentSessionABC
+primaite.agents.simple.DoNothingACLAgent --|> primaite.agents.hardcoded_abc.HardCodedAgentSessionABC
+primaite.agents.simple.DoNothingNodeAgent --|> primaite.agents.hardcoded_abc.HardCodedAgentSessionABC
+primaite.agents.simple.DummyAgent --|> primaite.agents.hardcoded_abc.HardCodedAgentSessionABC
+primaite.agents.simple.RandomAgent --|> primaite.agents.hardcoded_abc.HardCodedAgentSessionABC
+primaite.environment.observations.AccessControlList_ --|> primaite.environment.observations.AbstractObservationComponent
+primaite.environment.observations.LinkTrafficLevels --|> primaite.environment.observations.AbstractObservationComponent
+primaite.environment.observations.NodeLinkTable --|> primaite.environment.observations.AbstractObservationComponent
+primaite.environment.observations.NodeStatuses --|> primaite.environment.observations.AbstractObservationComponent
+primaite.nodes.active_node.ActiveNode --|> primaite.nodes.node.Node
+primaite.nodes.passive_node.PassiveNode --|> primaite.nodes.node.Node
+primaite.nodes.service_node.ServiceNode --|> primaite.nodes.active_node.ActiveNode
+primaite.common.service.Service --|> primaite.nodes.service_node.ServiceNode
+primaite.acl.access_control_list.AccessControlList --* primaite.environment.primaite_env.Primaite : acl
+primaite.acl.acl_rule.ACLRule --* primaite.acl.access_control_list.AccessControlList : acl_implicit_rule
+primaite.agents.hardcoded_acl.HardCodedACLAgent --* primaite.primaite_session.PrimaiteSession : _agent_session
+primaite.agents.hardcoded_node.HardCodedNodeAgent --* primaite.primaite_session.PrimaiteSession : _agent_session
+primaite.agents.rllib.RLlibAgent --* primaite.primaite_session.PrimaiteSession : _agent_session
+primaite.agents.sb3.SB3Agent --* primaite.primaite_session.PrimaiteSession : _agent_session
+primaite.agents.simple.DoNothingACLAgent --* primaite.primaite_session.PrimaiteSession : _agent_session
+primaite.agents.simple.DoNothingNodeAgent --* primaite.primaite_session.PrimaiteSession : _agent_session
+primaite.agents.simple.DummyAgent --* primaite.primaite_session.PrimaiteSession : _agent_session
+primaite.agents.simple.RandomAgent --* primaite.primaite_session.PrimaiteSession : _agent_session
+primaite.config.training_config.TrainingConfig --* primaite.agents.agent_abc.AgentSessionABC : _training_config
+primaite.config.training_config.TrainingConfig --* primaite.environment.primaite_env.Primaite : training_config
+primaite.environment.observations.ObservationsHandler --* primaite.environment.primaite_env.Primaite : obs_handler
+primaite.environment.primaite_env.Primaite --* primaite.agents.agent_abc.AgentSessionABC : _env
+primaite.environment.primaite_env.Primaite --* primaite.agents.hardcoded_abc.HardCodedAgentSessionABC : _env
+primaite.environment.primaite_env.Primaite --* primaite.agents.sb3.SB3Agent : _env
+primaite.utils.session_output_writer.SessionOutputWriter --* primaite.environment.primaite_env.Primaite : episode_av_reward_writer
+primaite.utils.session_output_writer.SessionOutputWriter --* primaite.environment.primaite_env.Primaite : episode_av_reward_writer
+primaite.utils.session_output_writer.SessionOutputWriter --* primaite.environment.primaite_env.Primaite : transaction_writer
+primaite.utils.session_output_writer.SessionOutputWriter --* primaite.environment.primaite_env.Primaite : transaction_writer
+primaite.config.training_config.TrainingConfig --o primaite.nodes.node.Node : config_values
+primaite.nodes.node_state_instruction_green.NodeStateInstructionGreen --* primaite.environment.primaite_env.Primaite
+primaite.nodes.node_state_instruction_red.NodeStateInstructionRed --* primaite.environment.primaite_env.Primaite
+primaite.pol.ier.IER --* primaite.environment.primaite_env.Primaite
+primaite.common.protocol.Protocol --o primaite.links.link.Link
+primaite.links.link.Link --* primaite.environment.primaite_env.Primaite
+primaite.config.training_config.TrainingConfig --o primaite.nodes.active_node.ActiveNode
+@enduml
