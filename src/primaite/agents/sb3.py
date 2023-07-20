@@ -153,6 +153,8 @@ class SB3Agent(AgentSessionABC):
         # save agent
         self.save()
 
+        self._plot_av_reward_per_episode(learning_session=True)
+
     def evaluate(
         self,
         **kwargs: Any,
