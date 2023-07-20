@@ -10,7 +10,7 @@ from plotly.graph_objs import Figure
 from primaite import _PLATFORM_DIRS
 
 
-def _get_plotly_config() -> Dict:
+def get_plotly_config() -> Dict:
     """Get the plotly config from primaite_config.yaml."""
     user_config_path = _PLATFORM_DIRS.user_config_path / "primaite_config.yaml"
     with open(user_config_path, "r") as file:
@@ -41,7 +41,7 @@ def plot_av_reward_per_episode(
         if subtitle:
             title = subtitle
 
-    config = _get_plotly_config()
+    config = get_plotly_config()
     layout = go.Layout(
         autosize=config["size"]["auto_size"],
         width=config["size"]["width"],

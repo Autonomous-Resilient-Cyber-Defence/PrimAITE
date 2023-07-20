@@ -2,8 +2,9 @@
 """Main entry point to PrimAITE. Configure training/evaluation experiments and input/output."""
 from __future__ import annotations
 
+import json
 from pathlib import Path
-from typing import Any, Dict, Final, Optional, Union
+from typing import Any, Dict, Final, Optional, Tuple, Union
 
 from primaite import getLogger
 from primaite.agents.agent_abc import AgentSessionABC
@@ -16,6 +17,7 @@ from primaite.common.enums import ActionType, AgentFramework, AgentIdentifier, S
 from primaite.config import lay_down_config, training_config
 from primaite.config.training_config import TrainingConfig
 from primaite.utils.session_metadata_parser import parse_session_metadata
+from primaite.utils.session_output_reader import all_transactions_dict, av_rewards_dict
 
 _LOGGER = getLogger(__name__)
 
@@ -186,3 +188,28 @@ class PrimaiteSession:
     def close(self) -> None:
         """Closes the agent."""
         self._agent_session.close()
+
+    def learn_av_reward_per_episode_dict(self) -> Dict[int, float]:
+        """Get the learn av reward per episode from file."""
+        csv_file = f"average_reward_per_episode_{self.timestamp_str}.csv"
+        return av_rewards_dict(self.learning_path / csv_file)
+
+    def eval_av_reward_per_episode_dict(self) -> Dict[int, float]:
+        """Get the eval av reward per episode from file."""
+        csv_file = f"average_reward_per_episode_{self.timestamp_str}.csv"
+        return av_rewards_dict(self.evaluation_path / csv_file)
+
+    def learn_all_transactions_dict(self) -> Dict[Tuple[int, int], Dict[str, Any]]:
+        """Get the learn all transactions from file."""
+        csv_file = f"all_transactions_{self.timestamp_str}.csv"
+        return all_transactions_dict(self.learning_path / csv_file)
+
+    def eval_all_transactions_dict(self) -> Dict[Tuple[int, int], Dict[str, Any]]:
+        """Get the eval all transactions from file."""
+        csv_file = f"all_transactions_{self.timestamp_str}.csv"
+        return all_transactions_dict(self.evaluation_path / csv_file)
+
+    def metadata_file_as_dict(self) -> Dict[str, Any]:
+        """Read the session_metadata.json file and return as a dict."""
+        with open(self.session_path / "session_metadata.json", "r") as file:
+            return json.load(file)
