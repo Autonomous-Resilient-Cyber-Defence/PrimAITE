@@ -246,6 +246,7 @@ class TrainingConfig:
         return data
 
     def __str__(self) -> str:
+        obs_str = ",".join([c["name"] for c in self.observation_space["components"]])
         tc = f"{self.agent_framework}, "
         if self.agent_framework is AgentFramework.RLLIB:
             tc += f"{self.deep_learning_framework}, "
@@ -253,7 +254,7 @@ class TrainingConfig:
         if self.agent_identifier is AgentIdentifier.HARDCODED:
             tc += f"{self.hard_coded_agent_view}, "
         tc += f"{self.action_type}, "
-        tc += f"observation_space={self.observation_space}, "
+        tc += f"observation_space={obs_str}, "
         if self.session_type is SessionType.TRAIN:
             tc += f"{self.num_train_episodes} episodes @ "
             tc += f"{self.num_train_steps} steps"

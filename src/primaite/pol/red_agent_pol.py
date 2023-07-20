@@ -250,6 +250,11 @@ def apply_red_agent_node_pol(
             # continue --------------------------
             target_node: NodeUnion = nodes[target_node_id]
 
+            # check if the initiator type is a str, and if so, cast it as
+            # NodePOLInitiator
+            if isinstance(initiator, str):
+                initiator = NodePOLInitiator[initiator]
+
             # Based the action taken on the initiator type
             if initiator == NodePOLInitiator.DIRECT:
                 # No conditions required, just apply the change

@@ -152,4 +152,4 @@ def getLogger(name: str) -> Logger:  # noqa
 
 
 with open(Path(__file__).parent.resolve() / "VERSION", "r") as file:
-    __version__ = file.readline()
+    __version__ = file.readline().strip()
