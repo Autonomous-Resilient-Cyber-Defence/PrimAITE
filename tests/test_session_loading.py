@@ -7,9 +7,11 @@ from typing import Union
 from uuid import uuid4
 
 import pytest
+from typer.testing import CliRunner
 
 from primaite import getLogger
 from primaite.agents.sb3 import SB3Agent
+from primaite.cli import app
 from primaite.common.enums import AgentFramework, AgentIdentifier
 from primaite.main import run
 from primaite.primaite_session import PrimaiteSession
@@ -17,6 +19,22 @@ from primaite.utils.session_output_reader import av_rewards_dict
 from tests import TEST_ASSETS_ROOT
 
 _LOGGER = getLogger(__name__)
+
+runner = CliRunner()
+
+sb3_expected_avg_reward_per_episode = {
+    10: 0,
+    11: -0.008037109374999995,
+    12: -0.007978515624999988,
+    13: -0.008191406249999991,
+    14: -0.00817578124999999,
+    15: -0.008085937499999998,
+    16: -0.007837890624999982,
+    17: -0.007798828124999992,
+    18: -0.007777343749999998,
+    19: -0.007958984374999988,
+    20: -0.0077499999999999835,
+}
 
 
 def copy_session_asset(asset_path: Union[str, Path]) -> str:
@@ -48,20 +66,6 @@ def copy_session_asset(asset_path: Union[str, Path]) -> str:
 )
 def test_load_sb3_session():
     """Test that loading an SB3 agent works."""
-    expected_learn_mean_reward_per_episode = {
-        10: 0,
-        11: -0.008037109374999995,
-        12: -0.007978515624999988,
-        13: -0.008191406249999991,
-        14: -0.00817578124999999,
-        15: -0.008085937499999998,
-        16: -0.007837890624999982,
-        17: -0.007798828124999992,
-        18: -0.007777343749999998,
-        19: -0.007958984374999988,
-        20: -0.0077499999999999835,
-    }
-
     test_path = copy_session_asset(TEST_ASSETS_ROOT / "example_sb3_agent_session")
 
     loaded_agent = SB3Agent(session_path=test_path)
@@ -82,7 +86,7 @@ def test_load_sb3_session():
     )
 
     # run is seeded so should have the expected learn value
-    assert learn_mean_rewards == expected_learn_mean_reward_per_episode
+    assert learn_mean_rewards == sb3_expected_avg_reward_per_episode
 
     # run an evaluation
     loaded_agent.evaluate()
@@ -105,20 +109,6 @@ def test_load_sb3_session():
 @pytest.mark.xfail(reason="Temporarily don't worry about this not working")
 def test_load_primaite_session():
     """Test that loading a Primaite session works."""
-    expected_learn_mean_reward_per_episode = {
-        10: 0,
-        11: -0.008037109374999995,
-        12: -0.007978515624999988,
-        13: -0.008191406249999991,
-        14: -0.00817578124999999,
-        15: -0.008085937499999998,
-        16: -0.007837890624999982,
-        17: -0.007798828124999992,
-        18: -0.007777343749999998,
-        19: -0.007958984374999988,
-        20: -0.0077499999999999835,
-    }
-
     test_path = copy_session_asset(TEST_ASSETS_ROOT / "example_sb3_agent_session")
 
     # create loaded session
@@ -143,7 +133,7 @@ def test_load_primaite_session():
     )
 
     # run is seeded so should have the expected learn value
-    assert learn_mean_rewards == expected_learn_mean_reward_per_episode
+    assert learn_mean_rewards == sb3_expected_avg_reward_per_episode
 
     # run an evaluation
     session.evaluate()
@@ -166,20 +156,6 @@ def test_load_primaite_session():
 @pytest.mark.xfail(reason="Temporarily don't worry about this not working")
 def test_run_loading():
     """Test loading session via main.run."""
-    expected_learn_mean_reward_per_episode = {
-        10: 0,
-        11: -0.008037109374999995,
-        12: -0.007978515624999988,
-        13: -0.008191406249999991,
-        14: -0.00817578124999999,
-        15: -0.008085937499999998,
-        16: -0.007837890624999982,
-        17: -0.007798828124999992,
-        18: -0.007777343749999998,
-        19: -0.007958984374999988,
-        20: -0.0077499999999999835,
-    }
-
     test_path = copy_session_asset(TEST_ASSETS_ROOT / "example_sb3_agent_session")
 
     # create loaded session
@@ -190,7 +166,27 @@ def test_run_loading():
     )
 
     # run is seeded so should have the expected learn value
-    assert learn_mean_rewards == expected_learn_mean_reward_per_episode
+    assert learn_mean_rewards == sb3_expected_avg_reward_per_episode
+
+    # delete the test directory
+    shutil.rmtree(test_path)
+
+
+@pytest.mark.xfail(reason="Temporarily don't worry about this not working")
+def test_cli():
+    """Test loading session via CLI."""
+    test_path = copy_session_asset(TEST_ASSETS_ROOT / "example_sb3_agent_session")
+    result = runner.invoke(app, ["session", "--load", test_path])
+
+    # cli should work
+    assert result.exit_code == 0
+
+    learn_mean_rewards = av_rewards_dict(
+        next(Path(test_path).rglob("**/learning/average_reward_per_episode_*.csv"), None)
+    )
+
+    # run is seeded so should have the expected learn value
+    assert learn_mean_rewards == sb3_expected_avg_reward_per_episode
 
     # delete the test directory
     shutil.rmtree(test_path)
