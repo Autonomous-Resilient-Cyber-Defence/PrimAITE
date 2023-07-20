@@ -22,14 +22,14 @@ Both the ``primaite session`` and :func:`primaite.main.run` take a training conf
 
         cd ~/primaite
         source ./.venv/bin/activate
-        primaite session ./config/my_training_config.yaml ./config/my_lay_down_config.yaml
+        primaite session --tc ./config/my_training_config.yaml --ldc ./config/my_lay_down_config.yaml
 
     .. code-tab:: powershell
         :caption: Powershell CLI
 
         cd ~\primaite
         .\.venv\Scripts\activate
-        primaite session .\config\my_training_config.yaml .\config\my_lay_down_config.yaml
+        primaite session --tc .\config\my_training_config.yaml --ldc .\config\my_lay_down_config.yaml
 
 
     .. code-tab:: python
@@ -46,6 +46,8 @@ The sub-directory is formatted as such: ``~/primaite/sessions/<yyyy-mm-dd>/<yyyy
 
 For example, when running a session at 17:30:00 on 31st January 2023, the session will output to:
 ``~/primaite/sessions/2023-01-31/2023-01-31_17-30-00/``.
+
+``primaite session`` can be ran in the terminal/command prompt without arguments. It will use the default configs in the directory ``primaite/config/example_config``.
 
 
 Outputs
