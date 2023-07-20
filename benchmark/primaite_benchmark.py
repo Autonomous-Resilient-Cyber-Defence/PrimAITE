@@ -32,7 +32,8 @@ _RESULTS_ROOT.mkdir(exist_ok=True, parents=True)
 
 _OUTPUT_ROOT: Final[Path] = _BENCHMARK_ROOT / "output"
 # Clear and recreate the output directory
-shutil.rmtree(_OUTPUT_ROOT)
+if _OUTPUT_ROOT.exists():
+    shutil.rmtree(_OUTPUT_ROOT)
 _OUTPUT_ROOT.mkdir()
 
 _TRAINING_CONFIG_PATH = _BENCHMARK_ROOT / "config" / "benchmark_training_config.yaml"
