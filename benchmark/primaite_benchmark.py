@@ -1,6 +1,7 @@
 import json
 import platform
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Final, Optional, Tuple, Union
@@ -117,9 +118,14 @@ def _build_benchmark_latex_report(
         )
 
     with doc.create(Section("System Information")):
+        with doc.create(Subsection("Python")):
+            with doc.create(Tabular("|l|l|")) as table:
+                table.add_hline()
+                table.add_row((bold("Version"), sys.version))
+                table.add_hline()
         for section, section_data in data["system_info"].items():
             if section_data:
-                with doc.create(Subsection(section.capitalize())):
+                with doc.create(Subsection(section)):
                     if isinstance(section_data, dict):
                         with doc.create(Tabular("|l|l|")) as table:
                             table.add_hline()
