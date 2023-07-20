@@ -6,11 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "primaite"
 description = "PrimAITE (Primary-level AI Training Environment) is a simulation environment for training AI under the ARCD programme."
 authors = [{name="QinetiQ Training and Simulation Ltd"}]
-license = {text = "GFX"}
+license = {file = "LICENSE"}
 requires-python = ">=3.8, <3.11"
 dynamic = ["version", "readme"]
 classifiers = [
-    "License :: GFX",
+    "License :: OSI Approved :: MIT License",
     "Development Status :: 4 - Beta",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: MacOS",
