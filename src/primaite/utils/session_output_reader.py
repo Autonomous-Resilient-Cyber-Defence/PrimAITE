@@ -18,7 +18,7 @@ def av_rewards_dict(av_rewards_csv_file: Union[str, Path]) -> Dict[int, float]:
     """
     df_dict = pl.read_csv(av_rewards_csv_file).to_dict()
 
-    return {v: df_dict["Average Reward"][i] for i, v in enumerate(df_dict["Episode"])}
+    return {int(v): df_dict["Average Reward"][i] for i, v in enumerate(df_dict["Episode"])}
 
 
 def all_transactions_dict(all_transactions_csv_file: Union[str, Path]) -> Dict[Tuple[int, int], Dict[str, Any]]:
