@@ -508,8 +508,6 @@ primaite.environment.primaite_env.Primaite --* primaite.agents.agent_abc.AgentSe
 primaite.environment.primaite_env.Primaite --* primaite.agents.hardcoded_abc.HardCodedAgentSessionABC : _env
 primaite.environment.primaite_env.Primaite --* primaite.agents.sb3.SB3Agent : _env
 primaite.utils.session_output_writer.SessionOutputWriter --* primaite.environment.primaite_env.Primaite : episode_av_reward_writer
-primaite.utils.session_output_writer.SessionOutputWriter --* primaite.environment.primaite_env.Primaite : episode_av_reward_writer
-primaite.utils.session_output_writer.SessionOutputWriter --* primaite.environment.primaite_env.Primaite : transaction_writer
 primaite.utils.session_output_writer.SessionOutputWriter --* primaite.environment.primaite_env.Primaite : transaction_writer
 primaite.config.training_config.TrainingConfig --o primaite.nodes.node.Node : config_values
 primaite.nodes.node_state_instruction_green.NodeStateInstructionGreen --* primaite.environment.primaite_env.Primaite
@@ -518,4 +516,6 @@ primaite.pol.ier.IER --* primaite.environment.primaite_env.Primaite
 primaite.common.protocol.Protocol --o primaite.links.link.Link
 primaite.links.link.Link --* primaite.environment.primaite_env.Primaite
 primaite.config.training_config.TrainingConfig --o primaite.nodes.active_node.ActiveNode
+primaite.utils.session_output_writer.SessionOutputWriter --> primaite.transactions.transaction.Transaction
+primaite.transactions.transaction.Transaction --> primaite.environment.primaite_env.Primaite
 @enduml
