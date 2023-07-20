@@ -10,7 +10,7 @@ license = {file = "LICENSE"}
 requires-python = ">=3.8, <3.11"
 dynamic = ["version", "readme"]
 classifiers = [
-    "License :: MIT",
+    "License :: OSI Approved :: MIT License",
     "Development Status :: 4 - Beta",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: MacOS",
