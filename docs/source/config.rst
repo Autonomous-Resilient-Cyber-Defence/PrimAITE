@@ -17,10 +17,10 @@ PrimAITE uses two configuration files for its operation:
 
     Used to define the low-level settings of a session, including the network laydown, green / red agent information exchange requirements (IERSs) and Access Control Rules.
 
-Environment Config:
+Training Config:
 *******************
 
-The environment config file consists of the following attributes:
+The Training Config file consists of the following attributes:
 
 **Generic Config Values**
 
