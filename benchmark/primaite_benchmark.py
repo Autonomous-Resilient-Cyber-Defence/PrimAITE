@@ -112,7 +112,7 @@ def _build_benchmark_latex_report(
         doc.append(
             f"\nThe mean reward per episode from each session is captured. This is then used to calculate a "
             f"combined average reward per episode from the {sessions} individual sessions for smoothing. "
-            f"Finally, a 5-widow rolling average of the combined average reward per session is calculated for "
+            f"Finally, a 25-widow rolling average of the combined average reward per session is calculated for "
             f"further smoothing."
         )
 
@@ -282,7 +282,7 @@ def _get_df_from_episode_av_reward_dict(data: Dict):
 
     return (
         pl.from_dict(data)
-        .with_columns(rolling_mean=pl.col("av_reward").rolling_mean(window_size=5))
+        .with_columns(rolling_mean=pl.col("av_reward").rolling_mean(window_size=25))
         .rename({"rolling_mean": "rolling_av_reward"})
     )
 
