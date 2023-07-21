@@ -1,23 +1,126 @@
 # Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
 import logging
 import logging.config
+import shutil
 import sys
 from bisect import bisect
 from logging import Formatter, Logger, LogRecord, StreamHandler
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Dict, Final
+from typing import Any, Dict, Final, List
 
 import pkg_resources
 import yaml
 from platformdirs import PlatformDirs
 
-_PLATFORM_DIRS: Final[PlatformDirs] = PlatformDirs(appname="primaite")
-"""An instance of `PlatformDirs` set with appname='primaite'."""
+with open(Path(__file__).parent.resolve() / "VERSION", "r") as file:
+    __version__ = file.readline().strip()
+
+
+class _PrimaitePaths:
+    """
+    A Primaite paths class that leverages PlatformDirs.
+
+    The PlatformDirs appname is 'primaite' and the version is ``primaite.__version__`.
+    """
+
+    def __init__(self):
+        self._dirs: Final[PlatformDirs] = PlatformDirs(appname="primaite", version=__version__)
+
+    def _get_dirs_properties(self) -> List[str]:
+        class_items = self.__class__.__dict__.items()
+        return [k for k, v in class_items if isinstance(v, property)]
+
+    def mkdirs(self):
+        """
+        Creates all Primaite directories.
+
+        Does this by retrieving all properties in the PrimaiteDirs class and calls each one.
+        """
+        for p in self._get_dirs_properties():
+            getattr(self, p)
+
+    @property
+    def user_home_path(self) -> Path:
+        """The PrimAITE user home path."""
+        path = Path.home() / "primaite" / __version__
+        path.mkdir(exist_ok=True, parents=True)
+        return path
+
+    @property
+    def user_sessions_path(self) -> Path:
+        """The PrimAITE user sessions path."""
+        path = self.user_home_path / "sessions"
+        path.mkdir(exist_ok=True, parents=True)
+        return path
+
+    @property
+    def user_config_path(self) -> Path:
+        """The PrimAITE user config path."""
+        path = self.user_home_path / "config"
+        path.mkdir(exist_ok=True, parents=True)
+        return path
+
+    @property
+    def user_notebooks_path(self) -> Path:
+        """The PrimAITE user notebooks path."""
+        path = self.user_home_path / "notebooks"
+        path.mkdir(exist_ok=True, parents=True)
+        return path
+
+    @property
+    def app_home_path(self) -> Path:
+        """The PrimAITE app home path."""
+        path = self._dirs.user_data_path
+        path.mkdir(exist_ok=True, parents=True)
+        return path
+
+    @property
+    def app_config_dir_path(self) -> Path:
+        """The PrimAITE app config directory path."""
+        path = self._dirs.user_config_path
+        path.mkdir(exist_ok=True, parents=True)
+        return path
+
+    @property
+    def app_config_file_path(self) -> Path:
+        """The PrimAITE app config file path."""
+        return self.app_config_dir_path / "primaite_config.yaml"
+
+    @property
+    def app_log_dir_path(self) -> Path:
+        """The PrimAITE app log directory path."""
+        if sys.platform == "win32":
+            path = self.app_home_path / "logs"
+        else:
+            path = self._dirs.user_log_path
+        path.mkdir(exist_ok=True, parents=True)
+        return path
+
+    @property
+    def app_log_file_path(self) -> Path:
+        """The PrimAITE app log file path."""
+        return self.app_log_dir_path / "primaite.log"
+
+    def __repr__(self):
+        properties_str = ", ".join([f"{p}='{getattr(self, p)}'" for p in self._get_dirs_properties()])
+        return f"{self.__class__.__name__}({properties_str})"
+
+
+PRIMAITE_PATHS: Final[_PrimaitePaths] = _PrimaitePaths()
+
+
+def _host_primaite_config():
+    if not PRIMAITE_PATHS.app_config_file_path.exists():
+        pkg_config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
+        shutil.copy2(pkg_config_path, PRIMAITE_PATHS.app_config_file_path)
+
+
+_host_primaite_config()
 
 
 def _get_primaite_config() -> Dict:
-    config_path = _PLATFORM_DIRS.user_config_path / "primaite_config.yaml"
+    config_path = PRIMAITE_PATHS.app_config_file_path
     if not config_path.exists():
         config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
     with open(config_path, "r") as file:
@@ -36,35 +139,7 @@ def _get_primaite_config() -> Dict:
 
 _PRIMAITE_CONFIG = _get_primaite_config()
 
-_USER_DIRS: Final[Path] = Path.home() / "primaite"
-"""The users home space for PrimAITE which is located at: ~/primaite."""
 
-NOTEBOOKS_DIR: Final[Path] = _USER_DIRS / "notebooks"
-"""
-The path to the users notebooks directory as an instance of `Path` or
-`PosixPath`, depending on the OS.
-
-Users notebooks are stored at: ``~/primaite/notebooks``.
-"""
-
-USERS_CONFIG_DIR: Final[Path] = _USER_DIRS / "config"
-"""
-The path to the users config directory as an instance of `Path` or
-`PosixPath`, depending on the OS.
-
-Users config files are stored at: ``~/primaite/config``.
-"""
-
-SESSIONS_DIR: Final[Path] = _USER_DIRS / "sessions"
-"""
-The path to the users PrimAITE Sessions directory as an instance of `Path` or
-`PosixPath`, depending on the OS.
-
-Users PrimAITE Sessions are stored at: ``~/primaite/sessions``.
-"""
-
-
-# region Setup Logging
 class _LevelFormatter(Formatter):
     """
     A custom level-specific formatter.
@@ -87,14 +162,6 @@ class _LevelFormatter(Formatter):
         return formatter.format(record)
 
 
-def _log_dir() -> Path:
-    if sys.platform == "win32":
-        dir_path = _PLATFORM_DIRS.user_data_path / "logs"
-    else:
-        dir_path = _PLATFORM_DIRS.user_log_path
-    return dir_path
-
-
 _LEVEL_FORMATTER: Final[_LevelFormatter] = _LevelFormatter(
     {
         logging.DEBUG: _PRIMAITE_CONFIG["logging"]["logger_format"]["DEBUG"],
@@ -105,18 +172,10 @@ _LEVEL_FORMATTER: Final[_LevelFormatter] = _LevelFormatter(
     }
 )
 
-LOG_DIR: Final[Path] = _log_dir()
-"""The path to the app log directory as an instance of `Path` or `PosixPath`, depending on the OS."""
-
-LOG_DIR.mkdir(exist_ok=True, parents=True)
-
-LOG_PATH: Final[Path] = LOG_DIR / "primaite.log"
-"""The primaite.log file path as an instance of `Path` or `PosixPath`, depending on the OS."""
-
 _STREAM_HANDLER: Final[StreamHandler] = StreamHandler()
 
 _FILE_HANDLER: Final[RotatingFileHandler] = RotatingFileHandler(
-    filename=LOG_PATH,
+    filename=PRIMAITE_PATHS.app_log_file_path,
     maxBytes=10485760,  # 10MB
     backupCount=9,  # Max 100MB of logs
     encoding="utf8",
@@ -146,10 +205,3 @@ def getLogger(name: str) -> Logger:  # noqa
     logger.setLevel(_PRIMAITE_CONFIG["log_level"])
 
     return logger
-
-
-# endregion
-
-
-with open(Path(__file__).parent.resolve() / "VERSION", "r") as file:
-    __version__ = file.readline().strip()

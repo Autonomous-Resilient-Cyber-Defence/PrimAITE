@@ -7,7 +7,7 @@ import subprocess
 import sys
 from logging import Logger
 
-from primaite import getLogger, NOTEBOOKS_DIR
+from primaite import getLogger, PRIMAITE_PATHS
 
 _LOGGER: Logger = getLogger(__name__)
 
@@ -26,7 +26,7 @@ def start_jupyter_session() -> None:
             jupyter_cmd = "jupyter lab"
 
         working_dir = os.getcwd()
-        os.chdir(NOTEBOOKS_DIR)
+        os.chdir(PRIMAITE_PATHS.user_notebooks_path)
         subprocess.Popen(jupyter_cmd)
         os.chdir(working_dir)
     else:
