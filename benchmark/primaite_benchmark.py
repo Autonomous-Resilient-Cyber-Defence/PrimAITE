@@ -393,11 +393,7 @@ def _plot_all_benchmarks_combined_session_av():
                 metadata_dict = json.load(file)
             df = _get_df_from_episode_av_reward_dict(metadata_dict["combined_av_reward_per_episode"])
 
-            fig.add_trace(
-                go.Scatter(
-                    x=df["episode"], y=df["rolling_av_reward"], mode="lines", name=dir.name, line={"color": "#FF0000"}
-                )
-            )
+            fig.add_trace(go.Scatter(x=df["episode"], y=df["rolling_av_reward"], mode="lines", name=dir.name))
 
     # Set the layout of the graph
     fig.update_layout(
@@ -417,7 +413,7 @@ def run():
     """Run the PrimAITE benchmark."""
     start_datetime = datetime.now()
     av_reward_per_episode_dicts = {}
-    for i in range(1, 11):
+    for i in range(1, 3):
         print(f"Starting Benchmark Session: {i}")
         with _get_benchmark_primaite_session() as session:
             session.learn()
