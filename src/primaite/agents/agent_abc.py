@@ -25,7 +25,7 @@ def get_session_path(session_timestamp: datetime) -> Path:
     Get the directory path the session will output to.
 
     This is set in the format of:
-        ~/primaite/sessions/<yyyy-mm-dd>/<yyyy-mm-dd>_<hh-mm-ss>.
+        ~/primaite/2.0.0rc2/sessions/<yyyy-mm-dd>/<yyyy-mm-dd>_<hh-mm-ss>.
 
     :param session_timestamp: This is the datetime that the session started.
     :return: The session directory path.

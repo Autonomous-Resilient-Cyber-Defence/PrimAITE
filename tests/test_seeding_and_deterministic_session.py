@@ -50,7 +50,7 @@ def test_seeded_learning(temp_primaite_session):
     assert actual_mean_reward_per_episode == expected_mean_reward_per_episode
 
 
-@pytest.mark.skip(reason="Inconsistent results. Needs someone with RL knowledge to investigate further.")
+# @pytest.mark.skip(reason="Inconsistent results. Needs someone with RL knowledge to investigate further.")
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [[TEST_CONFIG_ROOT / "ppo_seeded_training_config.yaml", dos_very_basic_config_path()]],
