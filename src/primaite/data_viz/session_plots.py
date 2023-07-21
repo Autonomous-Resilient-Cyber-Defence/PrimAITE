@@ -7,13 +7,12 @@ import polars as pl
 import yaml
 from plotly.graph_objs import Figure
 
-from primaite import _PLATFORM_DIRS
+from primaite import PRIMAITE_PATHS
 
 
 def get_plotly_config() -> Dict:
     """Get the plotly config from primaite_config.yaml."""
-    user_config_path = _PLATFORM_DIRS.user_config_path / "primaite_config.yaml"
-    with open(user_config_path, "r") as file:
+    with open(PRIMAITE_PATHS.app_config_file_path, "r") as file:
         primaite_config = yaml.safe_load(file)
     return primaite_config["session"]["outputs"]["plots"]
 

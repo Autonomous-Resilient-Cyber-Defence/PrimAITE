@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional, Union
 from uuid import uuid4
 
 import primaite
-from primaite import getLogger, SESSIONS_DIR
+from primaite import getLogger, PRIMAITE_PATHS
 from primaite.config import lay_down_config, training_config
 from primaite.config.training_config import TrainingConfig
 from primaite.data_viz.session_plots import plot_av_reward_per_episode
@@ -32,7 +32,7 @@ def get_session_path(session_timestamp: datetime) -> Path:
     """
     date_dir = session_timestamp.strftime("%Y-%m-%d")
     session_path = session_timestamp.strftime("%Y-%m-%d_%H-%M-%S")
-    session_path = SESSIONS_DIR / date_dir / session_path
+    session_path = PRIMAITE_PATHS.user_sessions_path / date_dir / session_path
     session_path.mkdir(exist_ok=True, parents=True)
 
     return session_path

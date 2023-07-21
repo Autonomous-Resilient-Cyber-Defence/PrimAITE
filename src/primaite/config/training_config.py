@@ -8,7 +8,7 @@ from typing import Any, Dict, Final, Optional, Union
 
 import yaml
 
-from primaite import getLogger, USERS_CONFIG_DIR
+from primaite import getLogger, PRIMAITE_PATHS
 from primaite.common.enums import (
     ActionType,
     AgentFramework,
@@ -22,7 +22,7 @@ from primaite.common.enums import (
 
 _LOGGER: Logger = getLogger(__name__)
 
-_EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training"
+_EXAMPLE_TRAINING: Final[Path] = PRIMAITE_PATHS.user_config_path / "example_config" / "training"
 
 
 def main_training_config_path() -> Path:
