@@ -62,7 +62,7 @@ observation_space:
     - name: LINK_TRAFFIC_LEVELS
 
 # Number of episodes for training to run per session
-num_train_episodes: 500
+num_train_episodes: 10
 
 # Number of time_steps for training per episode
 num_train_steps: 256

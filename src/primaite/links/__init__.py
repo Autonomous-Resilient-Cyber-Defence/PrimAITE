@@ -1,2 +1,2 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 """Network connections between nodes in the simulation."""
