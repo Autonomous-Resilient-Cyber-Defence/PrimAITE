@@ -41,12 +41,12 @@ Install PrimAITE
     .. code-tab:: bash
         :caption: Unix
 
-        mkdir ~/primaite
+        mkdir ~/primaite/2.0.0rc2
 
     .. code-tab:: powershell
         :caption: Windows (Powershell)
 
-        mkdir ~\primaite
+        mkdir ~\primaite\2.0.0rc2
 
 2. Navigate to the primaite directory and create a new python virtual environment (venv)
 
@@ -55,13 +55,13 @@ Install PrimAITE
     .. code-tab:: bash
         :caption: Unix
 
-        cd ~/primaite
+        cd ~/primaite/2.0.0rc2
         python3 -m venv .venv
 
     .. code-tab:: powershell
         :caption: Windows (Powershell)
 
-        cd ~\primaite
+        cd ~\primaite\2.0.0rc2
         python3 -m venv .venv
         attrib +h .venv /s /d # Hides the .venv directory
 

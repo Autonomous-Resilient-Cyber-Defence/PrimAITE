@@ -130,7 +130,7 @@ Finally, specify your agent in your training config.
 
 .. code-block:: yaml
 
-    # ~/primaite/config/path/to/your/config_main.yaml
+    # ~/primaite/2.0.0rc2/config/path/to/your/config_main.yaml
 
     # Training Config File
 
