@@ -230,7 +230,6 @@ class AgentSessionABC(ABC):
             self._update_session_metadata_file()
             self._can_evaluate = True
             self.is_eval = False
-            self._plot_av_reward_per_episode(learning_session=True)
 
     @abstractmethod
     def evaluate(
@@ -243,9 +242,9 @@ class AgentSessionABC(ABC):
         :param kwargs: Any agent-specific key-word args to be passed.
         """
         if self._can_evaluate:
-            self._plot_av_reward_per_episode(learning_session=False)
             self._update_session_metadata_file()
             self.is_eval = True
+            self._plot_av_reward_per_episode(learning_session=False)
             _LOGGER.info("Finished evaluation")
 
     @abstractmethod
