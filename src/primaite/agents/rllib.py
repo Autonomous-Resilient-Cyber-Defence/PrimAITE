@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import zipfile
 from datetime import datetime
 from logging import Logger
 from pathlib import Path
@@ -17,8 +18,9 @@ from ray.tune.registry import register_env
 
 from primaite import getLogger
 from primaite.agents.agent_abc import AgentSessionABC
-from primaite.common.enums import AgentFramework, AgentIdentifier
+from primaite.common.enums import AgentFramework, AgentIdentifier, SessionType
 from primaite.environment.primaite_env import Primaite
+from primaite.exceptions import RLlibAgentError
 
 _LOGGER: Logger = getLogger(__name__)
 
@@ -68,11 +70,14 @@ class RLlibAgent(AgentSessionABC):
         # TODO: implement RLlib agent loading
         if session_path is not None:
             msg = "RLlib agent loading has not been implemented yet"
-            _LOGGER.error(msg)
-            print(msg)
-            raise NotImplementedError
+            _LOGGER.critical(msg)
+            raise NotImplementedError(msg)
 
         super().__init__(training_config_path, lay_down_config_path)
+        if self._training_config.session_type == SessionType.EVAL:
+            msg = "Cannot evaluate an RLlib agent that hasn't been through training yet."
+            _LOGGER.critical(msg)
+            raise RLlibAgentError(msg)
         if not self._training_config.agent_framework == AgentFramework.RLLIB:
             msg = f"Expected RLLIB agent_framework, " f"got {self._training_config.agent_framework}"
             _LOGGER.error(msg)
@@ -98,6 +103,7 @@ class RLlibAgent(AgentSessionABC):
             f"deep_learning_framework="
             f"{self._training_config.deep_learning_framework}"
         )
+        self._train_agent = None  # Required to capture the learning agent to close after eval
 
     def _update_session_metadata_file(self) -> None:
         """
@@ -179,20 +185,73 @@ class RLlibAgent(AgentSessionABC):
             self._current_result = self._agent.train()
             self._save_checkpoint()
         self.save()
-        self._agent.stop()
-
         super().learn()
+        # Done this way as the RLlib eval can only be performed if the session hasn't been stopped
+        if self._training_config.session_type is not SessionType.TRAIN:
+            self._train_agent = self._agent
+        else:
+            self._agent.stop()
+            self._plot_av_reward_per_episode(learning_session=True)
+
+    def _unpack_saved_agent_into_eval(self) -> Path:
+        """Unpacks the pre-trained and saved RLlib agent so that it can be reloaded by Ray for eval."""
+        agent_restore_path = self.evaluation_path / "agent_restore"
+        if agent_restore_path.exists():
+            shutil.rmtree(agent_restore_path)
+        agent_restore_path.mkdir()
+        with zipfile.ZipFile(self._saved_agent_path, "r") as zip_file:
+            zip_file.extractall(agent_restore_path)
+        return agent_restore_path
+
+    def _setup_eval(self):
+        self._can_learn = False
+        self._can_evaluate = True
+        self._agent.restore(str(self._unpack_saved_agent_into_eval()))
 
     def evaluate(
         self,
-        **kwargs: None,
-    ) -> None:
+        **kwargs,
+    ):
         """
         Evaluate the agent.
 
         :param kwargs: Any agent-specific key-word args to be passed.
         """
-        raise NotImplementedError
+        time_steps = self._training_config.num_eval_steps
+        episodes = self._training_config.num_eval_episodes
+
+        self._setup_eval()
+
+        self._env: Primaite = Primaite(
+            self._training_config_path, self._lay_down_config_path, self.session_path, self.timestamp_str
+        )
+
+        self._env.set_as_eval()
+        self.is_eval = True
+        if self._training_config.deterministic:
+            deterministic_str = "deterministic"
+        else:
+            deterministic_str = "non-deterministic"
+        _LOGGER.info(
+            f"Beginning {deterministic_str} evaluation for " f"{episodes} episodes @ {time_steps} time steps..."
+        )
+        for episode in range(episodes):
+            obs = self._env.reset()
+            for step in range(time_steps):
+                action = self._agent.compute_single_action(observation=obs, explore=False)
+
+                obs, rewards, done, info = self._env.step(action)
+
+        self._env.reset()
+        self._env.close()
+        super().evaluate()
+        # Now we're safe to close the learning agent and write the mean rewards per episode for it
+        if self._training_config.session_type is not SessionType.TRAIN:
+            self._train_agent.stop()
+            self._plot_av_reward_per_episode(learning_session=True)
+        # Perform a clean-up of the unpacked agent
+        if (self.evaluation_path / "agent_restore").exists():
+            shutil.rmtree((self.evaluation_path / "agent_restore"))
 
     def _get_latest_checkpoint(self) -> None:
         raise NotImplementedError

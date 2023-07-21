@@ -261,10 +261,12 @@ class Primaite(Env):
             self, transaction_writer=True, learning_session=True
         )
 
+        self.is_eval = False
+
     @property
     def actual_episode_count(self) -> int:
-        """Shifts the episode_count by -1 for RLlib."""
-        if self.training_config.agent_framework is AgentFramework.RLLIB:
+        """Shifts the episode_count by -1 for RLlib learning session."""
+        if self.training_config.agent_framework is AgentFramework.RLLIB and not self.is_eval:
             return self.episode_count - 1
         return self.episode_count
 
@@ -276,6 +278,7 @@ class Primaite(Env):
         self.step_count = 0
         self.total_step_count = 0
         self.episode_steps = self.training_config.num_eval_steps
+        self.is_eval = True
 
     def _write_av_reward_per_episode(self) -> None:
         if self.actual_episode_count > 0:
