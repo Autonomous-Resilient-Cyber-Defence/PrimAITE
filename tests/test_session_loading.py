@@ -35,7 +35,7 @@ sb3_expected_avg_reward_per_episode = {
     20: -0.0010292968750000007,
 }
 
-sb3_expected_mean_rewards = -0.0018515625000000014
+sb3_expected_eval_rewards = -0.0018515625000000014
 
 
 def copy_session_asset(asset_path: Union[str, Path]) -> str:
@@ -98,7 +98,7 @@ def test_load_sb3_session():
     assert len(set(eval_mean_reward.values())) == 1
 
     # the evaluation should be the same as a previous run
-    assert next(iter(set(eval_mean_reward.values()))) == sb3_expected_mean_rewards
+    assert next(iter(set(eval_mean_reward.values()))) == sb3_expected_eval_rewards
 
     # delete the test directory
     shutil.rmtree(test_path)
@@ -144,7 +144,7 @@ def test_load_primaite_session():
     assert len(set(eval_mean_reward.values())) == 1
 
     # the evaluation should be the same as a previous run
-    assert next(iter(set(eval_mean_reward.values()))) == sb3_expected_mean_rewards
+    assert next(iter(set(eval_mean_reward.values()))) == sb3_expected_eval_rewards
 
     # delete the test directory
     shutil.rmtree(test_path)
