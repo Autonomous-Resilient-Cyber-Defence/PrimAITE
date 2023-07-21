@@ -2,17 +2,14 @@
 """Provides a CLI using Typer as an entry point."""
 import logging
 import os
-import shutil
 from enum import Enum
-from pathlib import Path
 from typing import Optional
 
-import pkg_resources
 import typer
 import yaml
-from platformdirs import PlatformDirs
 from typing_extensions import Annotated
 
+from primaite import PRIMAITE_PATHS
 from primaite.data_viz import PlotlyTemplate
 
 app = typer.Typer()
@@ -47,10 +44,10 @@ def logs(last_n: Annotated[int, typer.Option("-n")]) -> None:
     """
     import re
 
-    from primaite import LOG_PATH
+    from primaite import PRIMAITE_PATHS
 
-    if os.path.isfile(LOG_PATH):
-        with open(LOG_PATH) as file:
+    if os.path.isfile(PRIMAITE_PATHS.app_log_file_path):
+        with open(PRIMAITE_PATHS.app_log_file_path) as file:
             lines = file.readlines()
         for line in lines[-last_n:]:
             print(re.sub(r"\n*", "", line))
@@ -70,16 +67,13 @@ def log_level(level: Annotated[Optional[_LogLevel], typer.Argument()] = None) ->
 
     For example, to set the to debug, call: primaite log-level DEBUG
     """
-    app_dirs = PlatformDirs(appname="primaite")
-    app_dirs.user_config_path.mkdir(exist_ok=True, parents=True)
-    user_config_path = app_dirs.user_config_path / "primaite_config.yaml"
-    if user_config_path.exists():
-        with open(user_config_path, "r") as file:
+    if PRIMAITE_PATHS.app_config_file_path.exists():
+        with open(PRIMAITE_PATHS.app_config_file_path, "r") as file:
             primaite_config = yaml.safe_load(file)
 
         if level:
             primaite_config["logging"]["log_level"] = level.value
-            with open(user_config_path, "w") as file:
+            with open(PRIMAITE_PATHS.app_config_file_path, "w") as file:
                 yaml.dump(primaite_config, file)
             print(f"PrimAITE Log Level: {level}")
         else:
@@ -118,16 +112,8 @@ def setup(overwrite_existing: bool = True) -> None:
 
     WARNING: All user-data will be lost.
     """
-    # Does this way to avoid using PrimAITE package before config is loaded
-    app_dirs = PlatformDirs(appname="primaite")
-    app_dirs.user_config_path.mkdir(exist_ok=True, parents=True)
-    user_config_path = app_dirs.user_config_path / "primaite_config.yaml"
-    pkg_config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
-
-    shutil.copy2(pkg_config_path, user_config_path)
-
     from primaite import getLogger
-    from primaite.setup import old_installation_clean_up, reset_demo_notebooks, reset_example_configs, setup_app_dirs
+    from primaite.setup import old_installation_clean_up, reset_demo_notebooks, reset_example_configs
 
     _LOGGER = getLogger(__name__)
 
@@ -136,7 +122,7 @@ def setup(overwrite_existing: bool = True) -> None:
     _LOGGER.info("Building primaite_config.yaml...")
 
     _LOGGER.info("Building the PrimAITE app directories...")
-    setup_app_dirs.run()
+    PRIMAITE_PATHS.mkdirs()
 
     _LOGGER.info("Rebuilding the demo notebooks...")
     reset_demo_notebooks.run(overwrite_existing=True)
@@ -195,16 +181,13 @@ def plotly_template(template: Annotated[Optional[PlotlyTemplate], typer.Argument
 
     For example, to set as plotly_dark, call: primaite plotly-template PLOTLY_DARK
     """
-    app_dirs = PlatformDirs(appname="primaite")
-    app_dirs.user_config_path.mkdir(exist_ok=True, parents=True)
-    user_config_path = app_dirs.user_config_path / "primaite_config.yaml"
-    if user_config_path.exists():
-        with open(user_config_path, "r") as file:
+    if PRIMAITE_PATHS.app_config_file_path.exists():
+        with open(PRIMAITE_PATHS.app_config_file_path, "r") as file:
             primaite_config = yaml.safe_load(file)
 
         if template:
             primaite_config["session"]["outputs"]["plots"]["template"] = template.value
-            with open(user_config_path, "w") as file:
+            with open(PRIMAITE_PATHS.app_config_file_path, "w") as file:
                 yaml.dump(primaite_config, file)
             print(f"PrimAITE plotly template: {template.value}")
         else:
