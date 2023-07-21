@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 import json
 import platform
 import shutil
