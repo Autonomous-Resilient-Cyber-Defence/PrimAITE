@@ -72,13 +72,7 @@ class PrimaiteSession:
         if not isinstance(lay_down_config_path, Path):
             lay_down_config_path = Path(lay_down_config_path)
         self._lay_down_config_path: Final[Union[Path, str]] = lay_down_config_path
-        self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)
-
-        self._agent_session: AgentSessionABC = None  # noqa
-        self.session_path: Path = None  # noqa
-        self.timestamp_str: str = None  # noqa
-        self.learning_path: Path = None  # noqa
-        self.evaluation_path: Path = None  # noqa
+        self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)  # noqa
 
     def setup(self) -> None:
         """Performs the session setup."""

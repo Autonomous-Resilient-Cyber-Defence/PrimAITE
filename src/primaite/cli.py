@@ -173,15 +173,18 @@ def session(tc: Optional[str] = None, ldc: Optional[str] = None, load: Optional[
     from primaite.main import run
 
     if load is not None:
+        # run a loaded session
         run(session_path=load)
 
-    if not tc:
-        tc = main_training_config_path()
+    else:
+        # start a new session using tc and ldc
+        if not tc:
+            tc = main_training_config_path()
 
-    if not ldc:
-        ldc = dos_very_basic_config_path()
+        if not ldc:
+            ldc = dos_very_basic_config_path()
 
-    run(training_config_path=tc, lay_down_config_path=ldc)
+        run(training_config_path=tc, lay_down_config_path=ldc)
 
 
 @app.command()
