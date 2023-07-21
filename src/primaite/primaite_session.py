@@ -1,4 +1,4 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 """Main entry point to PrimAITE. Configure training/evaluation experiments and input/output."""
 from __future__ import annotations
 

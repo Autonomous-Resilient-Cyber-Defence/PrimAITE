@@ -1,4 +1,4 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 """Main environment module containing the PRIMmary AI Training Evironment (Primaite) class."""
 import copy
 import logging
