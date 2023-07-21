@@ -1,4 +1,4 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 """The Passive Node class (i.e. an actuator)."""
 from primaite.common.enums import HardwareState, NodeType, Priority
 from primaite.config.training_config import TrainingConfig

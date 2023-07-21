@@ -1,4 +1,4 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 """Implements POL on the network (nodes and links) resulting from the red agent attack."""
 from typing import Dict
 

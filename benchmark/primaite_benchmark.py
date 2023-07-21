@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 import json
 import platform
 import shutil
@@ -393,11 +394,7 @@ def _plot_all_benchmarks_combined_session_av():
                 metadata_dict = json.load(file)
             df = _get_df_from_episode_av_reward_dict(metadata_dict["combined_av_reward_per_episode"])
 
-            fig.add_trace(
-                go.Scatter(
-                    x=df["episode"], y=df["rolling_av_reward"], mode="lines", name=dir.name, line={"color": "#FF0000"}
-                )
-            )
+            fig.add_trace(go.Scatter(x=df["episode"], y=df["rolling_av_reward"], mode="lines", name=dir.name))
 
     # Set the layout of the graph
     fig.update_layout(
