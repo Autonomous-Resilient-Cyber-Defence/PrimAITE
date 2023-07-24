@@ -1,4 +1,4 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 """A class that implements the access control list implementation for the network."""
 import logging
 from typing import Dict, Final, List, Union

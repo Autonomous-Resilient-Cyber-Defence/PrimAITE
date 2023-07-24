@@ -1,4 +1,4 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -8,7 +8,7 @@ from typing import Any, Dict, Final, Optional, Union
 
 import yaml
 
-from primaite import getLogger, USERS_CONFIG_DIR
+from primaite import getLogger, PRIMAITE_PATHS
 from primaite.common.enums import (
     ActionType,
     AgentFramework,
@@ -22,7 +22,7 @@ from primaite.common.enums import (
 
 _LOGGER: Logger = getLogger(__name__)
 
-_EXAMPLE_TRAINING: Final[Path] = USERS_CONFIG_DIR / "example_config" / "training"
+_EXAMPLE_TRAINING: Final[Path] = PRIMAITE_PATHS.user_config_path / "example_config" / "training"
 
 
 def main_training_config_path() -> Path:
@@ -246,6 +246,7 @@ class TrainingConfig:
         return data
 
     def __str__(self) -> str:
+        obs_str = ",".join([c["name"] for c in self.observation_space["components"]])
         tc = f"{self.agent_framework}, "
         if self.agent_framework is AgentFramework.RLLIB:
             tc += f"{self.deep_learning_framework}, "
@@ -253,7 +254,7 @@ class TrainingConfig:
         if self.agent_identifier is AgentIdentifier.HARDCODED:
             tc += f"{self.hard_coded_agent_view}, "
         tc += f"{self.action_type}, "
-        tc += f"observation_space={self.observation_space}, "
+        tc += f"observation_space={obs_str}, "
         if self.session_type is SessionType.TRAIN:
             tc += f"{self.num_train_episodes} episodes @ "
             tc += f"{self.num_train_steps} steps"

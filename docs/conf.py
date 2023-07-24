@@ -1,4 +1,4 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -19,8 +19,8 @@ sys.path.insert(0, os.path.abspath("../"))
 # -- Project information -----------------------------------------------------
 year = datetime.datetime.now().year
 project = "PrimAITE"
-copyright = f"Copyright (C) QinetiQ Training and Simulation Ltd 2021 - {year}"
-author = "QinetiQ Training and Simulation Ltd"
+copyright = f"Copyright (C) Defence Science and Technology Laboratory UK 2021 - {year}"
+author = "Defence Science and Technology Laboratory UK"
 
 # The short Major.Minor.Build version
 with open("../src/primaite/VERSION", "r") as file:
