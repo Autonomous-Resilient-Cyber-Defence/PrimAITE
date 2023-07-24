@@ -1,11 +1,10 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 import datetime
-import json
 import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Tuple, Union
+from typing import Union
 from unittest.mock import patch
 
 import pytest
@@ -13,7 +12,6 @@ import pytest
 from primaite import getLogger
 from primaite.environment.primaite_env import Primaite
 from primaite.primaite_session import PrimaiteSession
-from primaite.utils.session_output_reader import all_transactions_dict, av_rewards_dict
 from tests.mock_and_patch.get_session_path_mock import get_temp_session_path
 
 ACTION_SPACE_NODE_VALUES = 1
@@ -36,31 +34,6 @@ class TempPrimaiteSession(PrimaiteSession):
     ):
         super().__init__(training_config_path, lay_down_config_path)
         self.setup()
-
-    def learn_av_reward_per_episode_dict(self) -> Dict[int, float]:
-        """Get the learn av reward per episode from file."""
-        csv_file = f"average_reward_per_episode_{self.timestamp_str}.csv"
-        return av_rewards_dict(self.learning_path / csv_file)
-
-    def eval_av_reward_per_episode_dict(self) -> Dict[int, float]:
-        """Get the eval av reward per episode from file."""
-        csv_file = f"average_reward_per_episode_{self.timestamp_str}.csv"
-        return av_rewards_dict(self.evaluation_path / csv_file)
-
-    def learn_all_transactions_dict(self) -> Dict[Tuple[int, int], Dict[str, Any]]:
-        """Get the learn all transactions from file."""
-        csv_file = f"all_transactions_{self.timestamp_str}.csv"
-        return all_transactions_dict(self.learning_path / csv_file)
-
-    def eval_all_transactions_dict(self) -> Dict[Tuple[int, int], Dict[str, Any]]:
-        """Get the eval all transactions from file."""
-        csv_file = f"all_transactions_{self.timestamp_str}.csv"
-        return all_transactions_dict(self.evaluation_path / csv_file)
-
-    def metadata_file_as_dict(self) -> Dict[str, Any]:
-        """Read the session_metadata.json file and return as a dict."""
-        with open(self.session_path / "session_metadata.json", "r") as file:
-            return json.load(file)
 
     @property
     def env(self) -> Primaite:

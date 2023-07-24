@@ -1,6 +1,5 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 """Defines node behaviour for Green PoL."""
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Union
 
 from primaite.common.enums import NodePOLType
@@ -9,8 +8,7 @@ if TYPE_CHECKING:
     from primaite.common.enums import FileSystemState, HardwareState, NodePOLInitiator, SoftwareState
 
 
-@dataclass()
-class NodeStateInstructionRed(object):
+class NodeStateInstructionRed:
     """The Node State Instruction class."""
 
     def __init__(

@@ -1,6 +1,6 @@
 .. only:: comment
 
-    Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 
 .. _run a primaite session:
 
@@ -20,16 +20,16 @@ Both the ``primaite session`` and :func:`primaite.main.run` take a training conf
     .. code-tab:: bash
         :caption: Unix CLI
 
-        cd ~/primaite
+        cd ~/primaite/2.0.0rc2
         source ./.venv/bin/activate
-        primaite session ./config/my_training_config.yaml ./config/my_lay_down_config.yaml
+        primaite session --tc ./config/my_training_config.yaml --ldc ./config/my_lay_down_config.yaml
 
     .. code-tab:: powershell
         :caption: Powershell CLI
 
-        cd ~\primaite
+        cd ~\primaite\2.0.0rc2
         .\.venv\Scripts\activate
-        primaite session .\config\my_training_config.yaml .\config\my_lay_down_config.yaml
+        primaite session --tc .\config\my_training_config.yaml --ldc .\config\my_lay_down_config.yaml
 
 
     .. code-tab:: python
@@ -41,11 +41,13 @@ Both the ``primaite session`` and :func:`primaite.main.run` take a training conf
         lay_down_config = <path to lay down config yaml file>
         run(training_config, lay_down_config)
 
-When a session is ran, a session output sub-directory is created in the users app sessions directory (``~/primaite/sessions``).
-The sub-directory is formatted as such: ``~/primaite/sessions/<yyyy-mm-dd>/<yyyy-mm-dd>_<hh-mm-dd>/``
+When a session is ran, a session output sub-directory is created in the users app sessions directory (``~/primaite/2.0.0rc2/sessions``).
+The sub-directory is formatted as such: ``~/primaite/2.0.0rc2/sessions/<yyyy-mm-dd>/<yyyy-mm-dd>_<hh-mm-dd>/``
 
 For example, when running a session at 17:30:00 on 31st January 2023, the session will output to:
-``~/primaite/sessions/2023-01-31/2023-01-31_17-30-00/``.
+``~/primaite/2.0.0rc2/sessions/2023-01-31/2023-01-31_17-30-00/``.
+
+``primaite session`` can be ran in the terminal/command prompt without arguments. It will use the default configs in the directory ``primaite/config/example_config``.
 
 
 Outputs
@@ -108,43 +110,44 @@ For each training session, assuming the agent being trained implements the *save
 
     ~/
     └── primaite/
-        └── sessions/
-            └── 2023-07-18/
-                └── 2023-07-18_11-06-04/
-                    ├── evaluation/
-                    │   ├── all_transactions_2023-07-18_11-06-04.csv
-                    │   ├── average_reward_per_episode_2023-07-18_11-06-04.csv
-                    │   └── average_reward_per_episode_2023-07-18_11-06-04.png
-                    ├── learning/
-                    │   ├── all_transactions_2023-07-18_11-06-04.csv
-                    │   ├── average_reward_per_episode_2023-07-18_11-06-04.csv
-                    │   ├── average_reward_per_episode_2023-07-18_11-06-04.png
-                    │   ├── checkpoints/
-                    │   │   └── sb3ppo_10.zip
-                    │   ├── SB3_PPO.zip
-                    │   └── tensorboard_logs/
-                    │       ├── PPO_1/
-                    │       │   └── events.out.tfevents.1689674765.METD-9PMRFB3.42960.0
-                    │       ├── PPO_2/
-                    │       │   └── events.out.tfevents.1689674766.METD-9PMRFB3.42960.1
-                    │       ├── PPO_3/
-                    │       │   └── events.out.tfevents.1689674766.METD-9PMRFB3.42960.2
-                    │       ├── PPO_4/
-                    │       │   └── events.out.tfevents.1689674767.METD-9PMRFB3.42960.3
-                    │       ├── PPO_5/
-                    │       │   └── events.out.tfevents.1689674767.METD-9PMRFB3.42960.4
-                    │       ├── PPO_6/
-                    │       │   └── events.out.tfevents.1689674768.METD-9PMRFB3.42960.5
-                    │       ├── PPO_7/
-                    │       │   └── events.out.tfevents.1689674768.METD-9PMRFB3.42960.6
-                    │       ├── PPO_8/
-                    │       │   └── events.out.tfevents.1689674769.METD-9PMRFB3.42960.7
-                    │       ├── PPO_9/
-                    │       │   └── events.out.tfevents.1689674770.METD-9PMRFB3.42960.8
-                    │       └── PPO_10/
-                    │           └── events.out.tfevents.1689674770.METD-9PMRFB3.42960.9
-                    ├── network_2023-07-18_11-06-04.png
-                    └── session_metadata.json
+        └── 2.0.0rc2/
+            └── sessions/
+                └── 2023-07-18/
+                    └── 2023-07-18_11-06-04/
+                        ├── evaluation/
+                        │   ├── all_transactions_2023-07-18_11-06-04.csv
+                        │   ├── average_reward_per_episode_2023-07-18_11-06-04.csv
+                        │   └── average_reward_per_episode_2023-07-18_11-06-04.png
+                        ├── learning/
+                        │   ├── all_transactions_2023-07-18_11-06-04.csv
+                        │   ├── average_reward_per_episode_2023-07-18_11-06-04.csv
+                        │   ├── average_reward_per_episode_2023-07-18_11-06-04.png
+                        │   ├── checkpoints/
+                        │   │   └── sb3ppo_10.zip
+                        │   ├── SB3_PPO.zip
+                        │   └── tensorboard_logs/
+                        │       ├── PPO_1/
+                        │       │   └── events.out.tfevents.1689674765.METD-9PMRFB3.42960.0
+                        │       ├── PPO_2/
+                        │       │   └── events.out.tfevents.1689674766.METD-9PMRFB3.42960.1
+                        │       ├── PPO_3/
+                        │       │   └── events.out.tfevents.1689674766.METD-9PMRFB3.42960.2
+                        │       ├── PPO_4/
+                        │       │   └── events.out.tfevents.1689674767.METD-9PMRFB3.42960.3
+                        │       ├── PPO_5/
+                        │       │   └── events.out.tfevents.1689674767.METD-9PMRFB3.42960.4
+                        │       ├── PPO_6/
+                        │       │   └── events.out.tfevents.1689674768.METD-9PMRFB3.42960.5
+                        │       ├── PPO_7/
+                        │       │   └── events.out.tfevents.1689674768.METD-9PMRFB3.42960.6
+                        │       ├── PPO_8/
+                        │       │   └── events.out.tfevents.1689674769.METD-9PMRFB3.42960.7
+                        │       ├── PPO_9/
+                        │       │   └── events.out.tfevents.1689674770.METD-9PMRFB3.42960.8
+                        │       └── PPO_10/
+                        │           └── events.out.tfevents.1689674770.METD-9PMRFB3.42960.9
+                        ├── network_2023-07-18_11-06-04.png
+                        └── session_metadata.json
 
 Loading a session
 -----------------
@@ -157,14 +160,14 @@ A previous session can be loaded by providing the **directory** of the previous 
     .. code-tab:: bash
         :caption: Unix CLI
 
-        cd ~/primaite
+        cd ~/primaite/2.0.0rc2
         source ./.venv/bin/activate
         primaite session --load "path/to/session"
 
     .. code-tab:: bash
         :caption: Powershell CLI
 
-        cd ~\primaite
+        cd ~\primaite\2.0.0rc2
         .\.venv\Scripts\activate
         primaite session --load "path\to\session"
 

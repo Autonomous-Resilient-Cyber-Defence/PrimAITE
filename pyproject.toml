@@ -5,13 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "primaite"
 description = "PrimAITE (Primary-level AI Training Environment) is a simulation environment for training AI under the ARCD programme."
-authors = [{name="QinetiQ Training and Simulation Ltd"}]
-license = {text = "MIT License"}
+authors = [{name="Defence Science and Technology Laboratory UK", email="oss@dstl.gov.uk"}]
+license = {file = "LICENSE"}
 requires-python = ">=3.8, <3.11"
 dynamic = ["version", "readme"]
 classifiers = [
-    "License :: MIT License",
-    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 5 - Production/Stable",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: MacOS",
     "Operating System :: POSIX :: Linux",
@@ -55,8 +55,10 @@ dev = [
     "build==0.10.0",
     "flake8==6.0.0",
     "furo==2023.3.27",
+    "gputil==1.4.0",
     "pip-licenses==4.3.0",
     "pre-commit==2.20.0",
+    "pylatex==1.4.1",
     "pytest==7.2.0",
     "pytest-xdist==3.3.1",
     "pytest-cov==4.0.0",

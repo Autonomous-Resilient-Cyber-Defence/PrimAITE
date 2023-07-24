@@ -1,6 +1,6 @@
 .. only:: comment
 
-    Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 
 Glossary
 =============
@@ -77,5 +77,5 @@ Glossary
     Gym
         PrimAITE uses the Gym reinforcement learning framework API to create a training environment and interface with RL agents. Gym defines a common way of creating observations, actions, and rewards.
 
-    User data directory
-        PrimAITE supports upgrading software version while retaining user data. The user data directory is where configs, notebooks, and results are stored, this location is `~/primaite` on linux/darwin and `C:\Users\<username>\primaite` on Windows.
+    User app home
+        PrimAITE supports upgrading software version while retaining user data. The user data directory is where configs, notebooks, and results are stored, this location is `~/primaite<version>` on linux/darwin and `C:\Users\<username>\primaite\<version>` on Windows.

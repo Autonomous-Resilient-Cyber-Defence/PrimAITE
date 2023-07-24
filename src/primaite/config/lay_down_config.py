@@ -1,15 +1,15 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 from logging import Logger
 from pathlib import Path
 from typing import Any, Dict, Final, Union
 
 import yaml
 
-from primaite import getLogger, USERS_CONFIG_DIR
+from primaite import getLogger, PRIMAITE_PATHS
 
 _LOGGER: Logger = getLogger(__name__)
 
-_EXAMPLE_LAY_DOWN: Final[Path] = USERS_CONFIG_DIR / "example_config" / "lay_down"
+_EXAMPLE_LAY_DOWN: Final[Path] = PRIMAITE_PATHS.user_config_path / "example_config" / "lay_down"
 
 
 def convert_legacy_lay_down_config_dict(legacy_config_dict: Dict[str, Any]) -> Dict[str, Any]:

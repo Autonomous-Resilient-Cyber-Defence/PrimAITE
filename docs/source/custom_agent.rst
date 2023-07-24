@@ -1,6 +1,6 @@
 ﻿.. only:: comment
 
-    Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 
 Custom Agents
 =============
@@ -130,7 +130,7 @@ Finally, specify your agent in your training config.
 
 .. code-block:: yaml
 
-    # ~/primaite/config/path/to/your/config_main.yaml
+    # ~/primaite/2.0.0rc2/config/path/to/your/config_main.yaml
 
     # Training Config File
 

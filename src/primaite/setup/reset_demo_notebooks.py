@@ -1,4 +1,4 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 import filecmp
 import os
 import shutil
@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pkg_resources
 
-from primaite import getLogger, NOTEBOOKS_DIR
+from primaite import getLogger, PRIMAITE_PATHS
 
 _LOGGER: Logger = getLogger(__name__)
 
@@ -23,7 +23,7 @@ def run(overwrite_existing: bool = True) -> None:
         for file in files:
             fp = os.path.join(subdir, file)
             path_split = os.path.relpath(fp, notebooks_package_data_root).split(os.sep)
-            target_fp = NOTEBOOKS_DIR / Path(*path_split)
+            target_fp = PRIMAITE_PATHS.user_notebooks_path / Path(*path_split)
             target_fp.parent.mkdir(exist_ok=True, parents=True)
             copy_file = not target_fp.is_file()
 

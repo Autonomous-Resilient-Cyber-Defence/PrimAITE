@@ -1,4 +1,4 @@
-# Crown Owned Copyright (C) Dstl 2023. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 import json
@@ -152,6 +152,8 @@ class SB3Agent(AgentSessionABC):
 
         # save agent
         self.save()
+
+        self._plot_av_reward_per_episode(learning_session=True)
 
     def evaluate(
         self,
