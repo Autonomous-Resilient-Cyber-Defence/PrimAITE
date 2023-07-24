@@ -147,3 +147,6 @@ docs/source/primaite-dependencies.rst
 
 # outputs
 src/primaite/outputs/
+
+# benchmark session outputs
+benchmark/output
