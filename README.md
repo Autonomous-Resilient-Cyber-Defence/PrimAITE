@@ -58,7 +58,3 @@ make html
 cd docs
 .\make.bat html
 ```
-
-This will build the documentation as a collection of HTML files which uses the Read The Docs sphinx theme. Other build
-options are available but may require additional dependencies such as LaTeX and PDF. Please refer to the Sphinx documentation
-for your specific output requirements.
