@@ -1,0 +1,22 @@
+# The main PrimAITE application config file
+
+# Logging
+logging:
+  log_level: INFO
+  logger_format:
+    DEBUG: '%(asctime)s: %(message)s'
+    INFO: '%(asctime)s: %(message)s'
+    WARNING: '%(asctime)s::%(levelname)s::%(name)s::%(lineno)s::%(message)s'
+    ERROR: '%(asctime)s::%(levelname)s::%(name)s::%(lineno)s::%(message)s'
+    CRITICAL: '%(asctime)s::%(levelname)s::%(name)s::%(lineno)s::%(message)s'
+
+# Session
+session:
+  outputs:
+    plots:
+      size:
+        auto_size: false
+        width: 1500
+        height: 900
+      template: plotly_white
+      range_slider: false
