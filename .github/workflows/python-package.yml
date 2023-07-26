@@ -1,0 +1,66 @@
+name: Python package
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - dev-gui
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - dev
+      - dev-gui
+      - 'release/**'
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install python dev
+        run: |
+          sudo apt update
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+          sudo apt install python${{ matrix.python-version}}-dev -y
+
+      - name: Install Build Dependencies
+        run: |
+          python -m pip install --upgrade pip==23.0.1
+          pip install wheel==0.38.4 --upgrade
+          pip install setuptools==66 --upgrade
+          pip install build
+
+      - name: Build PrimAITE
+        run: |
+          python -m build
+
+      - name: Install Yawning-Titan
+        run: |
+          PRIMAITE_WHEEL=$(ls ./dist/primaite*.whl)
+          python -m pip install $PRIMAITE_WHEEL[dev]
+          
+      - name: Perform PrimAITE Setup
+        run: |
+          primaite setup
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings.
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+
+      - name: Run unmarked tests
+        run: |
+          pytest tests/
