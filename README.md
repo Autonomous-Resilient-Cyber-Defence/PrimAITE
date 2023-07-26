@@ -25,6 +25,12 @@ pip install https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/relea
 primaite setup
 ```
 
+**Run:**
+
+``` bash
+primaite session
+```
+
 #### Unix
 
 **Prerequisites:**
@@ -45,6 +51,12 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/releases/download/v2.0.0/primaite-2.0.0-py3-none-any.whl
 primaite setup
+```
+
+**Run:**
+
+``` bash
+primaite session
 ```
 
 
