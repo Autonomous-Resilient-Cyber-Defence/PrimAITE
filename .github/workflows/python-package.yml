@@ -45,11 +45,11 @@ jobs:
         run: |
           python -m build
 
-      - name: Install Yawning-Titan
+      - name: Install PrimAITE
         run: |
           PRIMAITE_WHEEL=$(ls ./dist/primaite*.whl)
           python -m pip install $PRIMAITE_WHEEL[dev]
-          
+
       - name: Perform PrimAITE Setup
         run: |
           primaite setup
@@ -61,6 +61,6 @@ jobs:
           # exit-zero treats all errors as warnings.
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
 
-      - name: Run unmarked tests
+      - name: Run tests
         run: |
           pytest tests/
