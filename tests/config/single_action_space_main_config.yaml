@@ -1,0 +1,116 @@
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+# Training Config File
+
+# Sets which agent algorithm framework will be used.
+# Options are:
+# "SB3" (Stable Baselines3)
+# "RLLIB" (Ray RLlib)
+# "CUSTOM" (Custom Agent)
+agent_framework: CUSTOM
+
+# Sets which Agent class will be used.
+# Options are:
+# "A2C" (Advantage Actor Critic coupled with either SB3 or RLLIB agent_framework)
+# "PPO" (Proximal Policy Optimization coupled with either SB3 or RLLIB agent_framework)
+# "HARDCODED" (The HardCoded agents coupled with an ACL or NODE action_type)
+# "DO_NOTHING" (The DoNothing agents coupled with an ACL or NODE action_type)
+# "RANDOM" (primaite.agents.simple.RandomAgent)
+# "DUMMY" (primaite.agents.simple.DummyAgent)
+agent_identifier: RANDOM
+
+# Sets How the Action Space is defined:
+# "NODE"
+# "ACL"
+# "ANY" node and acl actions
+action_type: ANY
+# Number of episodes for training to run per session
+num_train_episodes: 10
+
+# Number of time_steps for training per episode
+num_train_steps: 256
+
+# Number of episodes for evaluation to run per session
+num_eval_episodes: 10
+
+# Number of time_steps for evaluation per episode
+num_eval_steps: 256
+# Time delay between steps (for generic agents)
+time_delay: 1
+# Type of session to be run (TRAINING or EVALUATION)
+session_type: EVAL
+# Determine whether to load an agent from file
+load_agent: False
+# File path and file name of agent if you're loading one in
+agent_load_file: C:\[Path]\[agent_saved_filename.zip]
+
+# Environment config values
+# The high value for the observation space
+observation_space_high_value: 1000000000
+
+# Choice whether to have an ALLOW or DENY implicit rule or not (TRUE or FALSE)
+implicit_acl_rule: DENY
+max_number_acl_rules: 10
+# Reward values
+# Generic
+all_ok: 0
+# Node Operating State
+off_should_be_on: -10
+off_should_be_resetting: -5
+on_should_be_off: -2
+on_should_be_resetting: -5
+resetting_should_be_on: -5
+resetting_should_be_off: -2
+resetting: -3
+# Node O/S or Service State
+good_should_be_patching: 2
+good_should_be_compromised: 5
+good_should_be_overwhelmed: 5
+patching_should_be_good: -5
+patching_should_be_compromised: 2
+patching_should_be_overwhelmed: 2
+patching: -3
+compromised_should_be_good: -20
+compromised_should_be_patching: -20
+compromised_should_be_overwhelmed: -20
+compromised: -20
+overwhelmed_should_be_good: -20
+overwhelmed_should_be_patching: -20
+overwhelmed_should_be_compromised: -20
+overwhelmed: -20
+# Node File System State
+good_should_be_repairing: 2
+good_should_be_restoring: 2
+good_should_be_corrupt: 5
+good_should_be_destroyed: 10
+repairing_should_be_good: -5
+repairing_should_be_restoring: 2
+repairing_should_be_corrupt: 2
+repairing_should_be_destroyed: 0
+repairing: -3
+restoring_should_be_good: -10
+restoring_should_be_repairing: -2
+restoring_should_be_corrupt: 1
+restoring_should_be_destroyed: 2
+restoring: -6
+corrupt_should_be_good: -10
+corrupt_should_be_repairing: -10
+corrupt_should_be_restoring: -10
+corrupt_should_be_destroyed: 2
+corrupt: -10
+destroyed_should_be_good: -20
+destroyed_should_be_repairing: -20
+destroyed_should_be_restoring: -20
+destroyed_should_be_corrupt: -20
+destroyed: -20
+scanning: -2
+# IER status
+red_ier_running: -5
+green_ier_blocked: -10
+
+# Patching / Reset durations
+os_patching_duration: 5            # The time taken to patch the OS
+node_reset_duration: 5             # The time taken to reset a node (hardware)
+service_patching_duration: 5       # The time taken to patch a service
+file_system_repairing_limit: 5      # The time take to repair the file system
+file_system_restoring_limit: 5      # The time take to restore the file system
+file_system_scanning_limit: 5       # The time taken to scan the file system

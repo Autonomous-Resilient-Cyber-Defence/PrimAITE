@@ -1,1 +1,2 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+"""Gym/Gymnasium environment for RL agents consisting of a simulated computer network."""

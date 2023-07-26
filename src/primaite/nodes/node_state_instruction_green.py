@@ -1,5 +1,9 @@
-# Crown Copyright (C) Dstl 2022. DEFCON 703. Shared in confidence.
+# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 """Defines node behaviour for Green PoL."""
+from typing import TYPE_CHECKING, Union
+
+if TYPE_CHECKING:
+    from primaite.common.enums import FileSystemState, HardwareState, NodePOLType, SoftwareState
 
 
 class NodeStateInstructionGreen(object):
@@ -7,35 +11,35 @@ class NodeStateInstructionGreen(object):
 
     def __init__(
         self,
-        _id,
-        _start_step,
-        _end_step,
-        _node_id,
-        _node_pol_type,
-        _service_name,
-        _state,
-    ):
+        _id: str,
+        _start_step: int,
+        _end_step: int,
+        _node_id: str,
+        _node_pol_type: "NodePOLType",
+        _service_name: str,
+        _state: Union["HardwareState", "SoftwareState", "FileSystemState"],
+    ) -> None:
         """
-        Init.
+        Initialise the Node State Instruction.
 
-        Args:
-            _id: The node state instruction id
-            _start_step: The start step of the instruction
-            _end_step: The end step of the instruction
-            _node_id: The id of the associated node
-            _node_pol_type: The pattern of life type
-            _service_name: The service name
-            _state: The state (node or service)
+        :param _id: The node state instruction id
+        :param _start_step: The start step of the instruction
+        :param _end_step: The end step of the instruction
+        :param _node_id: The id of the associated node
+        :param _node_pol_type: The pattern of life type
+        :param _service_name: The service name
+        :param _state: The state (node or service)
         """
         self.id = _id
         self.start_step = _start_step
         self.end_step = _end_step
         self.node_id = _node_id
-        self.node_pol_type = _node_pol_type
-        self.service_name = _service_name  # Not used when not a service instruction
-        self.state = _state
+        self.node_pol_type: "NodePOLType" = _node_pol_type
+        self.service_name: str = _service_name  # Not used when not a service instruction
+        # TODO: confirm type of state
+        self.state: Union["HardwareState", "SoftwareState", "FileSystemState"] = _state
 
-    def get_start_step(self):
+    def get_start_step(self) -> int:
         """
         Gets the start step.
 
@@ -44,7 +48,7 @@ class NodeStateInstructionGreen(object):
         """
         return self.start_step
 
-    def get_end_step(self):
+    def get_end_step(self) -> int:
         """
         Gets the end step.
 
@@ -53,7 +57,7 @@ class NodeStateInstructionGreen(object):
         """
         return self.end_step
 
-    def get_node_id(self):
+    def get_node_id(self) -> str:
         """
         Gets the node ID.
 
@@ -62,7 +66,7 @@ class NodeStateInstructionGreen(object):
         """
         return self.node_id
 
-    def get_node_pol_type(self):
+    def get_node_pol_type(self) -> "NodePOLType":
         """
         Gets the node pattern of life type (enum).
 
@@ -71,7 +75,7 @@ class NodeStateInstructionGreen(object):
         """
         return self.node_pol_type
 
-    def get_service_name(self):
+    def get_service_name(self) -> str:
         """
         Gets the service name.
 
@@ -80,7 +84,7 @@ class NodeStateInstructionGreen(object):
         """
         return self.service_name
 
-    def get_state(self):
+    def get_state(self) -> Union["HardwareState", "SoftwareState", "FileSystemState"]:
         """
         Gets the state (node or service).
 
