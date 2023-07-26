@@ -1,0 +1,13 @@
+[flake8]
+max-line-length=120
+extend-ignore =
+    D105
+    D107
+    D100
+    D104
+    E203
+    E712
+    D401
+    F811
+exclude =
+    docs/source/*
