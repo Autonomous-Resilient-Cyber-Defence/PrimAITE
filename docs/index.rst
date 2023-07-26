@@ -14,9 +14,7 @@ PrimAITE (Primary-level AI Training Environment) is a simulation environment for
 * The ability to model key characteristics of a platform / system by representing connections, IP addresses, ports, traffic loading, operating systems, file system, services and processes;
 * Operates at machine-speed to enable fast training cycles.
 
-PrimAITE aims to evolve into an ARCD environment that could be used as the follow-on from Reception level approaches (e.g. YAWNING TITAN), and help bridge the Sim-to-Real gap into Secondary level environments (e.g. IMAGINARY YAK).
-
-This is similar to the approach taken by FVEY international partners (e.g. AUS CyBORG, US NSA FARLAND and CAN CyGil). These environments are referenced by the Dstl ARCD Agent Training Environments Knowledge Transfer document (TR141342).
+PrimAITE aims to evolve into an ARCD environment that could be used as the follow-on from Reception level approaches (e.g. `Yawning-Titan <https://github.com/dstl/YAWNING-TITAN>`_), and help bridge the Sim-to-Real gap into Secondary level environments.
 
 What is PrimAITE built with
 --------------------------------------
