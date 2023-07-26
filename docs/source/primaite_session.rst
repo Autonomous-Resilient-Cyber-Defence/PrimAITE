@@ -20,14 +20,14 @@ Both the ``primaite session`` and :func:`primaite.main.run` take a training conf
     .. code-tab:: bash
         :caption: Unix CLI
 
-        cd ~/primaite/2.0.0rc2
+        cd ~/primaite/2.0.0
         source ./.venv/bin/activate
         primaite session --tc ./config/my_training_config.yaml --ldc ./config/my_lay_down_config.yaml
 
     .. code-tab:: powershell
         :caption: Powershell CLI
 
-        cd ~\primaite\2.0.0rc2
+        cd ~\primaite\2.0.0
         .\.venv\Scripts\activate
         primaite session --tc .\config\my_training_config.yaml --ldc .\config\my_lay_down_config.yaml
 
@@ -41,11 +41,11 @@ Both the ``primaite session`` and :func:`primaite.main.run` take a training conf
         lay_down_config = <path to lay down config yaml file>
         run(training_config, lay_down_config)
 
-When a session is ran, a session output sub-directory is created in the users app sessions directory (``~/primaite/2.0.0rc2/sessions``).
-The sub-directory is formatted as such: ``~/primaite/2.0.0rc2/sessions/<yyyy-mm-dd>/<yyyy-mm-dd>_<hh-mm-dd>/``
+When a session is ran, a session output sub-directory is created in the users app sessions directory (``~/primaite/2.0.0/sessions``).
+The sub-directory is formatted as such: ``~/primaite/2.0.0/sessions/<yyyy-mm-dd>/<yyyy-mm-dd>_<hh-mm-dd>/``
 
 For example, when running a session at 17:30:00 on 31st January 2023, the session will output to:
-``~/primaite/2.0.0rc2/sessions/2023-01-31/2023-01-31_17-30-00/``.
+``~/primaite/2.0.0/sessions/2023-01-31/2023-01-31_17-30-00/``.
 
 ``primaite session`` can be ran in the terminal/command prompt without arguments. It will use the default configs in the directory ``primaite/config/example_config``.
 
@@ -110,7 +110,7 @@ For each training session, assuming the agent being trained implements the *save
 
     ~/
     └── primaite/
-        └── 2.0.0rc2/
+        └── 2.0.0/
             └── sessions/
                 └── 2023-07-18/
                     └── 2023-07-18_11-06-04/
@@ -160,14 +160,14 @@ A previous session can be loaded by providing the **directory** of the previous 
     .. code-tab:: bash
         :caption: Unix CLI
 
-        cd ~/primaite/2.0.0rc2
+        cd ~/primaite/2.0.0
         source ./.venv/bin/activate
         primaite session --load "path/to/session"
 
     .. code-tab:: bash
         :caption: Powershell CLI
 
-        cd ~\primaite\2.0.0rc2
+        cd ~\primaite\2.0.0
         .\.venv\Scripts\activate
         primaite session --load "path\to\session"
 

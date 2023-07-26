@@ -143,11 +143,11 @@ def session(tc: Optional[str] = None, ldc: Optional[str] = None, load: Optional[
 
     tc: The training config filepath. Optional. If no value is passed then
     example default training config is used from:
-    ~/primaite/2.0.0rc2/config/example_config/training/training_config_main.yaml.
+    ~/primaite/2.0.0/config/example_config/training/training_config_main.yaml.
 
     ldc: The lay down config file path. Optional. If no value is passed then
     example default lay down config is used from:
-    ~/primaite/2.0.0rc2/config/example_config/lay_down/lay_down_config_3_doc_very_basic.yaml.
+    ~/primaite/2.0.0/config/example_config/lay_down/lay_down_config_3_doc_very_basic.yaml.
 
     load: The directory of a previous session. Optional. If no value is passed, then the session
     will use the default training config and laydown config. Inversely, if a training config and laydown config
