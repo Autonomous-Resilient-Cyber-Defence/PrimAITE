@@ -2,6 +2,7 @@
 
 ## Getting Started with PrimAITE
 
+
 ### Pre-Requisites
 
 In order to get **PrimAITE** installed, you will need to have the following installed:
@@ -12,36 +13,35 @@ In order to get **PrimAITE** installed, you will need to have the following inst
 
 **PrimAITE** is designed to be OS-agnostic, and thus should work on most variations/distros of Linux, Windows, and MacOS.
 
-### Installation from source
-#### 1. Navigate to the PrimAITE folder and create a new python virtual environment (venv)
+### Installation from source (Developer Install)
+#### 1. Create a new python virtual environment (venv)
 
 ```unix
-python3 -m venv <name_of_venv>
+python3 -m venv venv
 ```
 
 #### 2. Activate the venv
 
 ##### Unix
 ```bash
-source <name_of_venv>/bin/activate
+source venv/bin/activate
 ```
 
-##### Windows
+##### Windows (Powershell)
 ```powershell
-.\<name_of_venv>\Scripts\activate
+.\venv\Scripts\activate
 ```
 
-#### 3. Install `primaite` into the venv along with all of it's dependencies
-
-```bash
-python3 -m pip install -e .
-```
-
-### Development Installation
-To install the development dependencies, postfix the command in step 3 above with the `[dev]` extra. Example:
+#### 3. Install `primaite` with the dev extra into the venv along with all of it's dependencies
 
 ```bash
 python3 -m pip install -e .[dev]
+```
+
+#### 4. Perform the PrimAITE setup:
+
+```bash
+primaite setup
 ```
 
 ## Building documentation
@@ -53,7 +53,7 @@ cd docs
 make html
 ```
 
-##### Windows
+##### Windows (Powershell)
 ```powershell
 cd docs
 .\make.bat html
