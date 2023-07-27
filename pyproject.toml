@@ -81,3 +81,9 @@ order_by_type = "False"
 
 [tool.black]
 line-length = 120
+
+[project.urls]
+Homepage = "https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE"
+Documentation = "https://Autonomous-Resilient-Cyber-Defence.github.io/PrimAITE/"
+Repository = "https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE"
+Changelog = "https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/blob/dev/CHANGELOG.md"
