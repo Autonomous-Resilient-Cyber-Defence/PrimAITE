@@ -1,7 +1,5 @@
 # PrimAITE
 
-PrimAITE (Primary-level AI Training Environment) is a simulation environment for training AI under the ARCD programme.
-
 The ARCD Primary-level AI Training Environment (PrimAITE) provides an effective simulation capability for the purposes of training and evaluating AI in a cyber-defensive role. It incorporates the functionality required of a primary-level ARCD environment, which includes: 
 
 - The ability to model a relevant platform / system context; 
