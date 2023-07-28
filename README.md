@@ -1,7 +1,6 @@
 # PrimAITE
 
-![image](https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/assets/107395948/c59cc1c2-b5eb-4e0f-91a1-ce0036295e54)
-
+![image](https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/assets/107395948/0a14464b-82ba-455e-bc90-5def52f2ce88)
 
 The ARCD Primary-level AI Training Environment (**PrimAITE**) provides an effective simulation capability for the purposes of training and evaluating AI in a cyber-defensive role. It incorporates the functionality required of a primary-level ARCD environment, which includes:
 
