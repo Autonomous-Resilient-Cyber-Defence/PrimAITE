@@ -1,6 +1,6 @@
 """Core of the PrimAITE Simulator."""
 from abc import abstractmethod
-from typing import Dict, List
+from typing import Callable, Dict, List
 
 from pydantic import BaseModel
 
@@ -19,7 +19,6 @@ class SimComponent(BaseModel):
         """
         return {}
 
-    @abstractmethod
     def apply_action(self, action: List[str]) -> None:
         """
         Apply an action to a simulation component. Action data is passed in as a 'namespaced' list of strings.
@@ -35,4 +34,13 @@ class SimComponent(BaseModel):
         :param action: List describing the action to apply to this object.
         :type action: List[str]
         """
-        return
+        possible_actions = self._possible_actions()
+        if action[0] in possible_actions:
+            # take the first element off the action list and pass the remaining arguments to the corresponding action
+            # funciton
+            possible_actions[action.pop(0)](action)
+        else:
+            raise ValueError(f"{self} received invalid action {action}")
+
+    def _possible_actions(self) -> Dict[str, Callable[[List[str]], None]]:
+        return {}

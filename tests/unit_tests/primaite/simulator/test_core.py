@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal, Tuple
+from typing import Callable, Dict, List, Literal, Tuple
 
 import pytest
 from pydantic import ValidationError
@@ -25,9 +25,6 @@ class TestIsolatedSimComponent:
             def describe_state(self) -> Dict:
                 return {}
 
-            def apply_action(self, action: List[str]) -> None:
-                pass
-
         comp = TestComponent(name="computer", size=(5, 10))
         assert isinstance(comp, TestComponent)
 
@@ -44,9 +41,6 @@ class TestIsolatedSimComponent:
             def describe_state(self) -> Dict:
                 return {}
 
-            def apply_action(self, action: List[str]) -> None:
-                pass
-
         comp = TestComponent(name="computer", size=(5, 10))
         dump = comp.model_dump()
         assert dump == {"name": "computer", "size": (5, 10)}
@@ -61,20 +55,18 @@ class TestIsolatedSimComponent:
             def describe_state(self) -> Dict:
                 return {}
 
-            def apply_action(self, action: List[str]) -> None:
-                possible_actions = {
+            def _possible_actions(self) -> Dict[str, Callable[[List[str]], None]]:
+                return {
                     "turn_off": self._turn_off,
                     "turn_on": self._turn_on,
                 }
-                if action[0] in possible_actions:
-                    possible_actions[action[0]](action[1:])
-                else:
-                    raise ValueError(f"{self} received invalid action {action}")
 
-            def _turn_off(self):
+            def _turn_off(self, options: List[str]) -> None:
+                assert len(options) == 0, "This action does not support options."
                 self.status = "off"
 
-            def _turn_on(self):
+            def _turn_on(self, options: List[str]) -> None:
+                assert len(options) == 0, "This action does not support options."
                 self.status = "on"
 
         comp = TestComponent(name="computer", status="off")
