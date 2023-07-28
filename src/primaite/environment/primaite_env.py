@@ -1027,7 +1027,7 @@ class Primaite(Env):
         acl_rule_destination = item["destination"]
         acl_rule_protocol = item["protocol"]
         acl_rule_port = item["port"]
-        acl_rule_position = item["position"]
+        acl_rule_position = item.get("position")
 
         self.acl.add_rule(
             acl_rule_permission,
