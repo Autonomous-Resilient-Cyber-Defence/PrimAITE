@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 from logging import Logger
 from pathlib import Path
-from typing import Any, Dict, Final, Union
+from typing import Any, Dict, Final, List, Union
 
 import yaml
 
@@ -12,14 +12,43 @@ _LOGGER: Logger = getLogger(__name__)
 _EXAMPLE_LAY_DOWN: Final[Path] = PRIMAITE_PATHS.user_config_path / "example_config" / "lay_down"
 
 
-def convert_legacy_lay_down_config_dict(legacy_config_dict: Dict[str, Any]) -> Dict[str, Any]:
+def convert_legacy_lay_down_config(legacy_config: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Convert a legacy lay down config dict to the new format.
+    Convert a legacy lay down config to the new format.
 
-    :param legacy_config_dict: A legacy lay down config dict.
+    :param legacy_config: A legacy lay down config.
     """
-    _LOGGER.warning("Legacy lay down config conversion not yet implemented")
-    return legacy_config_dict
+    field_conversion_map = {
+        "itemType": "item_type",
+        "portsList": "ports_list",
+        "serviceList": "service_list",
+        "baseType": "node_class",
+        "nodeType": "node_type",
+        "hardwareState": "hardware_state",
+        "softwareState": "software_state",
+        "startStep": "start_step",
+        "endStep": "end_step",
+        "fileSystemState": "file_system_state",
+        "ipAddress": "ip_address",
+        "missionCriticality": "mission_criticality",
+    }
+    new_config = []
+    for item in legacy_config:
+        if "itemType" in item:
+            if item["itemType"] in ["ACTIONS", "STEPS"]:
+                continue
+        new_dict = {}
+        for key in item.keys():
+            conversion_key = field_conversion_map.get(key)
+            if key == "id" and "itemType" in item:
+                if item["itemType"] == "NODE":
+                    conversion_key = "node_id"
+            if conversion_key:
+                new_dict[conversion_key] = item[key]
+            else:
+                new_dict[key] = item[key]
+        new_config.append(new_dict)
+    return new_config
 
 
 def load(file_path: Union[str, Path], legacy_file: bool = False) -> Dict:
@@ -39,7 +68,7 @@ def load(file_path: Union[str, Path], legacy_file: bool = False) -> Dict:
             _LOGGER.debug(f"Loading lay down config file: {file_path}")
         if legacy_file:
             try:
-                config = convert_legacy_lay_down_config_dict(config)
+                config = convert_legacy_lay_down_config(config)
             except KeyError:
                 msg = (
                     f"Failed to convert lay down config file {file_path} "
