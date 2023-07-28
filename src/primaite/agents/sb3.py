@@ -26,6 +26,8 @@ class SB3Agent(AgentSessionABC):
         training_config_path: Optional[Union[str, Path]] = None,
         lay_down_config_path: Optional[Union[str, Path]] = None,
         session_path: Optional[Union[str, Path]] = None,
+        legacy_training_config: bool = False,
+        legacy_lay_down_config: bool = False,
     ) -> None:
         """
         Initialise the SB3 Agent training session.
@@ -35,11 +37,17 @@ class SB3Agent(AgentSessionABC):
         :type training_config_path: Union[path, str]
         :param lay_down_config_path: YAML file containing configurable items for generating network laydown.
         :type lay_down_config_path: Union[path, str]
+        :param legacy_training_config: True if the training config file is a legacy file from PrimAITE < 2.0,
+            otherwise False.
+        :param legacy_lay_down_config: True if the lay_down config file is a legacy file from PrimAITE < 2.0,
+            otherwise False.
         :raises ValueError: If the training config contains an unexpected value for agent_framework (should be "SB3")
         :raises ValueError: If the training config contains an unexpected value for agent_identifies (should be `PPO`
             or `A2C`)
         """
-        super().__init__(training_config_path, lay_down_config_path, session_path)
+        super().__init__(
+            training_config_path, lay_down_config_path, session_path, legacy_training_config, legacy_lay_down_config
+        )
         if not self._training_config.agent_framework == AgentFramework.SB3:
             msg = f"Expected SB3 agent_framework, " f"got {self._training_config.agent_framework}"
             _LOGGER.error(msg)
@@ -75,6 +83,8 @@ class SB3Agent(AgentSessionABC):
             lay_down_config_path=self._lay_down_config_path,
             session_path=self.session_path,
             timestamp_str=self.timestamp_str,
+            legacy_training_config=self.legacy_training_config,
+            legacy_lay_down_config=self.legacy_lay_down_config,
         )
 
         # check if there is a zip file that needs to be loaded
