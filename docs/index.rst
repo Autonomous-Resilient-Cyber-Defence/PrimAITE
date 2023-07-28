@@ -6,7 +6,7 @@ Welcome to PrimAITE's documentation
 ====================================
 
 What is PrimAITE?
-------------------------
+-----------------
 
 PrimAITE (Primary-level AI Training Environment) is a simulation environment for training AI under the ARCD programme. It incorporates the functionality required of a Primary-level environment, as specified in the Dstl ARCD Training Environment Matrix document:
 
@@ -14,10 +14,9 @@ PrimAITE (Primary-level AI Training Environment) is a simulation environment for
 * The ability to model key characteristics of a platform / system by representing connections, IP addresses, ports, traffic loading, operating systems, file system, services and processes;
 * Operates at machine-speed to enable fast training cycles.
 
-PrimAITE aims to evolve into an ARCD environment that could be used as the follow-on from Reception level approaches (e.g. `Yawning-Titan <https://github.com/dstl/YAWNING-TITAN>`_), and help bridge the Sim-to-Real gap into Secondary level environments.
 
 What is PrimAITE built with
---------------------------------------
+---------------------------
 
 * `OpenAI's Gym <https://gym.openai.com/>`_ is used as the basis for AI blue agent interaction with the PrimAITE environment
 * `Networkx <https://github.com/networkx/networkx>`_ is used as the underlying data structure used for the PrimAITE environment
@@ -29,8 +28,8 @@ What is PrimAITE built with
 * `Plotly <https://github.com/plotly/plotly.py>`_ is used for building high level charts
 
 
-Where next?
-------------
+Getting Started with PrimAITE
+-----------------------------
 
 Head over to the :ref:`getting-started` page to install and setup PrimAITE!
 
