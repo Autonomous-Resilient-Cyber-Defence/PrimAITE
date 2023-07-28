@@ -14,18 +14,26 @@ def run(
     training_config_path: Optional[Union[str, Path]] = "",
     lay_down_config_path: Optional[Union[str, Path]] = "",
     session_path: Optional[Union[str, Path]] = None,
+    legacy_training_config: bool = False,
+    legacy_lay_down_config: bool = False,
 ) -> None:
     """
     Run the PrimAITE Session.
 
     :param training_config_path: YAML file containing configurable items defined in
             `primaite.config.training_config.TrainingConfig`
-        :type training_config_path: Union[path, str]
-        :param lay_down_config_path: YAML file containing configurable items for generating network laydown.
-        :type lay_down_config_path: Union[path, str]
-        :param session_path: directory path of the session to load
+    :type training_config_path: Union[path, str]
+    :param lay_down_config_path: YAML file containing configurable items for generating network laydown.
+    :type lay_down_config_path: Union[path, str]
+    :param session_path: directory path of the session to load
+    :param legacy_training_config: True if the training config file is a legacy file from PrimAITE < 2.0,
+        otherwise False.
+    :param legacy_lay_down_config: True if the lay_down config file is a legacy file from PrimAITE < 2.0,
+        otherwise False.
     """
-    session = PrimaiteSession(training_config_path, lay_down_config_path, session_path)
+    session = PrimaiteSession(
+        training_config_path, lay_down_config_path, session_path, legacy_training_config, legacy_lay_down_config
+    )
 
     session.setup()
     session.learn()

@@ -291,12 +291,14 @@ def load(file_path: Union[str, Path], legacy_file: bool = False) -> TrainingConf
         if legacy_file:
             try:
                 config = convert_legacy_training_config_dict(config)
-            except KeyError:
+
+            except KeyError as e:
                 msg = (
                     f"Failed to convert training config file {file_path} "
                     f"from legacy format. Attempting to use file as is."
                 )
                 _LOGGER.error(msg)
+                raise e
         try:
             return TrainingConfig.from_dict(config)
         except TypeError as e:

@@ -34,6 +34,8 @@ class PrimaiteSession:
         training_config_path: Optional[Union[str, Path]] = "",
         lay_down_config_path: Optional[Union[str, Path]] = "",
         session_path: Optional[Union[str, Path]] = None,
+        legacy_training_config: bool = False,
+        legacy_lay_down_config: bool = False,
     ) -> None:
         """
         The PrimaiteSession constructor.
@@ -44,12 +46,18 @@ class PrimaiteSession:
         :param lay_down_config_path: YAML file containing configurable items for generating network laydown.
         :type lay_down_config_path: Union[path, str]
         :param session_path: directory path of the session to load
+        :param legacy_training_config: True if the training config file is a legacy file from PrimAITE < 2.0,
+            otherwise False.
+        :param legacy_lay_down_config: True if the lay_down config file is a legacy file from PrimAITE < 2.0,
+            otherwise False.
         """
         self._agent_session: AgentSessionABC = None  # noqa
         self.session_path: Path = session_path  # noqa
         self.timestamp_str: str = None  # noqa
         self.learning_path: Path = None  # noqa
         self.evaluation_path: Path = None  # noqa
+        self.legacy_training_config = legacy_training_config
+        self.legacy_lay_down_config = legacy_lay_down_config
 
         # check if session path is provided
         if session_path is not None:
@@ -67,12 +75,14 @@ class PrimaiteSession:
         if not isinstance(training_config_path, Path):
             training_config_path = Path(training_config_path)
         self._training_config_path: Final[Union[Path, str]] = training_config_path
-        self._training_config: Final[TrainingConfig] = training_config.load(self._training_config_path)
+        self._training_config: Final[TrainingConfig] = training_config.load(
+            self._training_config_path, legacy_training_config
+        )
 
         if not isinstance(lay_down_config_path, Path):
             lay_down_config_path = Path(lay_down_config_path)
         self._lay_down_config_path: Final[Union[Path, str]] = lay_down_config_path
-        self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)  # noqa
+        self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path, legacy_lay_down_config)  # noqa
 
     def setup(self) -> None:
         """Performs the session setup."""
@@ -139,12 +149,24 @@ class PrimaiteSession:
         elif self._training_config.agent_framework == AgentFramework.SB3:
             _LOGGER.debug(f"PrimaiteSession Setup: Agent Framework = {AgentFramework.SB3}")
             # Stable Baselines3 Agent
-            self._agent_session = SB3Agent(self._training_config_path, self._lay_down_config_path, self.session_path)
+            self._agent_session = SB3Agent(
+                self._training_config_path,
+                self._lay_down_config_path,
+                self.session_path,
+                self.legacy_training_config,
+                self.legacy_lay_down_config,
+            )
 
         elif self._training_config.agent_framework == AgentFramework.RLLIB:
             _LOGGER.debug(f"PrimaiteSession Setup: Agent Framework = {AgentFramework.RLLIB}")
             # Ray RLlib Agent
-            self._agent_session = RLlibAgent(self._training_config_path, self._lay_down_config_path, self.session_path)
+            self._agent_session = RLlibAgent(
+                self._training_config_path,
+                self._lay_down_config_path,
+                self.session_path,
+                self.legacy_training_config,
+                self.legacy_lay_down_config,
+            )
 
         else:
             # Invalid AgentFramework
