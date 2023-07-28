@@ -20,7 +20,7 @@ def test_legacy_training_config_run_session(legacy_file):
     legacy_training_config_path = TEST_CONFIG_ROOT / "legacy_conversion" / "legacy_training_config.yaml"
     legacy_lay_down_config_path = TEST_CONFIG_ROOT / "legacy_conversion" / legacy_file
 
-    # Run a PrimAITE session using the paths of both the converted training and lay down config files
+    # Run a PrimAITE session using legacy training and lay down config file paths
     run(
         legacy_training_config_path,
         legacy_lay_down_config_path,

@@ -160,13 +160,7 @@ class PrimaiteSession:
         elif self._training_config.agent_framework == AgentFramework.RLLIB:
             _LOGGER.debug(f"PrimaiteSession Setup: Agent Framework = {AgentFramework.RLLIB}")
             # Ray RLlib Agent
-            self._agent_session = RLlibAgent(
-                self._training_config_path,
-                self._lay_down_config_path,
-                self.session_path,
-                self.legacy_training_config,
-                self.legacy_lay_down_config,
-            )
+            self._agent_session = RLlibAgent(self._training_config_path, self._lay_down_config_path, self.session_path)
 
         else:
             # Invalid AgentFramework
