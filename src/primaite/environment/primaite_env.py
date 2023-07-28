@@ -10,7 +10,6 @@ from typing import Any, Dict, Final, List, Tuple, Union
 
 import networkx as nx
 import numpy as np
-import yaml
 from gym import Env, spaces
 from matplotlib import pyplot as plt
 
@@ -34,6 +33,7 @@ from primaite.common.enums import (
 )
 from primaite.common.service import Service
 from primaite.config import training_config
+from primaite.config.lay_down_config import load
 from primaite.config.training_config import TrainingConfig
 from primaite.environment.observations import ObservationsHandler
 from primaite.environment.reward import calculate_reward_function
@@ -68,6 +68,8 @@ class Primaite(Env):
         lay_down_config_path: Union[str, Path],
         session_path: Path,
         timestamp_str: str,
+        legacy_training_config: bool = False,
+        legacy_lay_down_config: bool = False,
     ) -> None:
         """
         The Primaite constructor.
@@ -76,13 +78,19 @@ class Primaite(Env):
         :param lay_down_config_path: The lay down config filepath.
         :param session_path: The directory path the session is writing to.
         :param timestamp_str: The session timestamp in the format: <yyyy-mm-dd>_<hh-mm- ss>.
+        :param legacy_training_config: True if the training config file is a legacy file from PrimAITE < 2.0,
+            otherwise False.
+        :param legacy_lay_down_config: True if the lay_down config file is a legacy file from PrimAITE < 2.0,
+            otherwise False.
         """
         self.session_path: Final[Path] = session_path
         self.timestamp_str: Final[str] = timestamp_str
         self._training_config_path: Union[str, Path] = training_config_path
         self._lay_down_config_path: Union[str, Path] = lay_down_config_path
+        self.legacy_training_config = legacy_training_config
+        self.legacy_lay_down_config = legacy_lay_down_config
 
-        self.training_config: TrainingConfig = training_config.load(training_config_path)
+        self.training_config: TrainingConfig = training_config.load(training_config_path, self.legacy_training_config)
         _LOGGER.info(f"Using: {str(self.training_config)}")
 
         # Number of steps in an episode
@@ -191,11 +199,8 @@ class Primaite(Env):
         self._obs_space_description: List[str] = None
         "The env observation space description for transactions writing"
 
-        # Open the config file and build the environment laydown
-        with open(self._lay_down_config_path, "r") as file:
-            # Open the config file and build the environment laydown
-            self.lay_down_config = yaml.safe_load(file)
-            self.load_lay_down_config()
+        self.lay_down_config = load(self._lay_down_config_path, self.legacy_lay_down_config)
+        self.load_lay_down_config()
 
         # Store the node objects as node attributes
         # (This is so we can access them as objects)
@@ -1027,7 +1032,7 @@ class Primaite(Env):
         acl_rule_destination = item["destination"]
         acl_rule_protocol = item["protocol"]
         acl_rule_port = item["port"]
-        acl_rule_position = item["position"]
+        acl_rule_position = item.get("position")
 
         self.acl.add_rule(
             acl_rule_permission,
