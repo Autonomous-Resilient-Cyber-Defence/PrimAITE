@@ -49,6 +49,34 @@ For example, when running a session at 17:30:00 on 31st January 2023, the sessio
 
 ``primaite session`` can be ran in the terminal/command prompt without arguments. It will use the default configs in the directory ``primaite/config/example_config``.
 
+To run a PrimAITE session using legacy training or laydown config files, add the ``--legacy-tc`` and/or ``legacy-ldc`` options.
+
+.. tabs::
+
+    .. code-tab:: bash
+        :caption: Unix CLI
+
+        cd ~/primaite/2.0.0
+        source ./.venv/bin/activate
+        primaite session --tc ./config/my_legacy_training_config.yaml --legacy-tc --ldc ./config/my_legacy_lay_down_config.yaml --legacy-ldc
+
+    .. code-tab:: powershell
+        :caption: Powershell CLI
+
+        cd ~\primaite\2.0.0
+        .\.venv\Scripts\activate
+        primaite session --tc .\config\my_legacy_training_config.yaml --legacy-tc --ldc .\config\my_legacy_lay_down_config.yaml --legacy-ldc
+
+
+    .. code-tab:: python
+        :caption: Python
+
+        from primaite.main import run
+
+        training_config = <path to legacy training config yaml file>
+        lay_down_config = <path to legacy lay down config yaml file>
+        run(training_config, lay_down_config, legacy_training_config=True, legacy_lay_down_config=True)
+
 
 Outputs
 -------
