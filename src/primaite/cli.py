@@ -18,9 +18,9 @@ app = typer.Typer()
 @app.command()
 def build_dirs() -> None:
     """Build the PrimAITE app directories."""
-    from primaite.setup import setup_app_dirs
+    from primaite import PRIMAITE_PATHS
 
-    setup_app_dirs.run()
+    PRIMAITE_PATHS.mkdirs()
 
 
 @app.command()
@@ -137,7 +137,13 @@ def setup(overwrite_existing: bool = True) -> None:
 
 
 @app.command()
-def session(tc: Optional[str] = None, ldc: Optional[str] = None, load: Optional[str] = None) -> None:
+def session(
+    tc: Optional[str] = None,
+    ldc: Optional[str] = None,
+    load: Optional[str] = None,
+    legacy_tc: bool = False,
+    legacy_ldc: bool = False,
+) -> None:
     """
     Run a PrimAITE session.
 
@@ -153,6 +159,10 @@ def session(tc: Optional[str] = None, ldc: Optional[str] = None, load: Optional[
     will use the default training config and laydown config. Inversely, if a training config and laydown config
     is passed while a session directory is passed, PrimAITE will load the session and ignore the training config
     and laydown config.
+
+    legacy_tc: If the training config file is a legacy file from PrimAITE < 2.0.
+
+    legacy_ldf: If the lay down config file is a legacy file from PrimAITE < 2.0.
     """
     from primaite.config.lay_down_config import dos_very_basic_config_path
     from primaite.config.training_config import main_training_config_path
@@ -170,7 +180,12 @@ def session(tc: Optional[str] = None, ldc: Optional[str] = None, load: Optional[
         if not ldc:
             ldc = dos_very_basic_config_path()
 
-        run(training_config_path=tc, lay_down_config_path=ldc)
+        run(
+            training_config_path=tc,
+            lay_down_config_path=ldc,
+            legacy_training_config=legacy_tc,
+            legacy_lay_down_config=legacy_ldc,
+        )
 
 
 @app.command()

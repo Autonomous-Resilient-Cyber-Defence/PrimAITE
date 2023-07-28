@@ -291,12 +291,14 @@ def load(file_path: Union[str, Path], legacy_file: bool = False) -> TrainingConf
         if legacy_file:
             try:
                 config = convert_legacy_training_config_dict(config)
-            except KeyError:
+
+            except KeyError as e:
                 msg = (
                     f"Failed to convert training config file {file_path} "
                     f"from legacy format. Attempting to use file as is."
                 )
                 _LOGGER.error(msg)
+                raise e
         try:
             return TrainingConfig.from_dict(config)
         except TypeError as e:
@@ -314,6 +316,9 @@ def convert_legacy_training_config_dict(
     agent_identifier: AgentIdentifier = AgentIdentifier.PPO,
     action_type: ActionType = ActionType.ANY,
     num_train_steps: int = 256,
+    num_eval_steps: int = 256,
+    num_train_episodes: int = 10,
+    num_eval_episodes: int = 1,
 ) -> Dict[str, Any]:
     """
     Convert a legacy training config dict to the new format.
@@ -325,8 +330,14 @@ def convert_legacy_training_config_dict(
         training configs don't have agent_identifier values.
     :param action_type: The action space type to set as legacy training configs
         don't have action_type values.
-    :param num_train_steps: The number of steps to set as legacy training configs
+    :param num_train_steps: The number of train steps to set as legacy training configs
         don't have num_train_steps values.
+    :param num_eval_steps: The number of eval steps to set as legacy training configs
+        don't have num_eval_steps values.
+    :param num_train_episodes: The number of train episodes to set as legacy training configs
+        don't have num_train_episodes values.
+    :param num_eval_episodes: The number of eval episodes to set as legacy training configs
+        don't have num_eval_episodes values.
     :return: The converted training config dict.
     """
     config_dict = {
@@ -334,6 +345,9 @@ def convert_legacy_training_config_dict(
         "agent_identifier": agent_identifier.name,
         "action_type": action_type.name,
         "num_train_steps": num_train_steps,
+        "num_eval_steps": num_eval_steps,
+        "num_train_episodes": num_train_episodes,
+        "num_eval_episodes": num_eval_episodes,
         "sb3_output_verbose_level": SB3OutputVerboseLevel.INFO.name,
     }
     session_type_map = {"TRAINING": "TRAIN", "EVALUATION": "EVAL"}

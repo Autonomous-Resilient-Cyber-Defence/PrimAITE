@@ -52,6 +52,8 @@ class AgentSessionABC(ABC):
         training_config_path: Optional[Union[str, Path]] = None,
         lay_down_config_path: Optional[Union[str, Path]] = None,
         session_path: Optional[Union[str, Path]] = None,
+        legacy_training_config: bool = False,
+        legacy_lay_down_config: bool = False,
     ) -> None:
         """
         Initialise an agent session from config files, or load a previous session.
@@ -64,6 +66,10 @@ class AgentSessionABC(ABC):
         :type training_config_path: Union[path, str]
         :param lay_down_config_path: YAML file containing configurable items for generating network laydown.
         :type lay_down_config_path: Union[path, str]
+        :param legacy_training_config: True if the training config file is a legacy file from PrimAITE < 2.0,
+            otherwise False.
+        :param legacy_lay_down_config: True if the lay_down config file is a legacy file from PrimAITE < 2.0,
+            otherwise False.
         :param session_path: directory path of the session to load
         """
         # initialise variables
@@ -72,6 +78,8 @@ class AgentSessionABC(ABC):
         self._can_learn: bool = False
         self._can_evaluate: bool = False
         self.is_eval = False
+        self.legacy_training_config = legacy_training_config
+        self.legacy_lay_down_config = legacy_lay_down_config
 
         self.session_timestamp: datetime = datetime.now()
 
@@ -91,12 +99,14 @@ class AgentSessionABC(ABC):
             if not isinstance(training_config_path, Path):
                 training_config_path = Path(training_config_path)
             self._training_config_path: Union[Path, str] = training_config_path
-            self._training_config: TrainingConfig = training_config.load(self._training_config_path)
+            self._training_config: TrainingConfig = training_config.load(
+                self._training_config_path, legacy_file=legacy_training_config
+            )
 
             if not isinstance(lay_down_config_path, Path):
                 lay_down_config_path = Path(lay_down_config_path)
             self._lay_down_config_path: Union[Path, str] = lay_down_config_path
-            self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path)
+            self._lay_down_config: Dict = lay_down_config.load(self._lay_down_config_path, legacy_lay_down_config)
             self.sb3_output_verbose_level = self._training_config.sb3_output_verbose_level
 
             # set random UUID for session
