@@ -24,7 +24,7 @@ PrimAITE presents the following features:
 
 - Application of IERs to the platform / system laydown adheres to the ACL ruleset;
 
-- Presents an OpenAI gym or RLLib interface to the environment, allowing integration with any OpenAI gym compliant defensive agents;
+- Presents an OpenAI gym or RLLib interface to the environment, allowing integration with any compliant defensive agents;
 
 - Full capture of discrete logs relating to agent training (full system state, agent actions taken, instantaneous and average reward for every step of every episode);
 
