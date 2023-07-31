@@ -43,76 +43,6 @@ def generate_mac_address(oui: Optional[str] = None) -> str:
     return ":".join(f"{b:02x}" for b in mac)
 
 
-class Link(SimComponent):
-    """
-    Represents a network link between two network interface cards (NICs).
-
-    :param endpoint_a: The first NIC connected to the Link.
-    :type endpoint_a: NIC
-    :param endpoint_b: The second NIC connected to the Link.
-    :type endpoint_b: NIC
-    :param bandwidth: The bandwidth of the Link in Mbps (default is 100 Mbps).
-    :type bandwidth: int
-    """
-
-    endpoint_a: NIC
-    endpoint_b: NIC
-    bandwidth: int = 100
-    current_load: int = 0
-
-    def model_post_init(self, __context: Any) -> None:
-        """
-        Ensure that endpoint_a and endpoint_b are not the same :class:`~primaite.simulator.network.physical_layer.NIC`.
-
-        :raises ValueError: If endpoint_a and endpoint_b are the same NIC.
-        """
-        if self.endpoint_a == self.endpoint_b:
-            msg = "endpoint_a and endpoint_b cannot be the same NIC"
-            _LOGGER.error(msg)
-            raise ValueError(msg)
-        self.endpoint_a.connect_link(self)
-        self.endpoint_b.connect_link(self)
-
-    def send_frame(self, sender_nic: NIC, frame):
-        """
-        Send a network frame from one NIC to another connected NIC.
-
-        :param sender_nic: The NIC sending the frame.
-        :type sender_nic: NIC
-        :param frame: The network frame to be sent.
-        :type frame: Frame
-        """
-        pass
-
-    def receive_frame(self, sender_nic: NIC, frame):
-        """
-        Receive a network frame from a connected NIC.
-
-        :param sender_nic: The NIC sending the frame.
-        :type sender_nic: NIC
-        :param frame: The network frame being received.
-        :type frame: Frame
-        """
-        pass
-
-    def describe_state(self) -> Dict:
-        """
-        Get the current state of the Libk as a dict.
-
-        :return: A dict containing the current state of the Link.
-        """
-        pass
-
-    def apply_action(self, action: str):
-        """
-        Apply an action to the Link.
-
-        :param action: The action to be applied.
-        :type action: str
-        """
-        pass
-
-
 class NIC(SimComponent):
     """
     Models a Network Interface Card (NIC) in a computer or network device.
@@ -121,13 +51,11 @@ class NIC(SimComponent):
     :param subnet_mask: The subnet mask assigned to the NIC.
     :param gateway: The default gateway IP address for forwarding network traffic to other networks.
     :param mac_address: The MAC address of the NIC. Defaults to a randomly set MAC address.
-    :param speed: The speed of the NIC in Mbps.
+    :param speed: The speed of the NIC in Mbps (default is 100 Mbps).
     :param mtu: The Maximum Transmission Unit (MTU) of the NIC in Bytes, representing the largest data packet size it
-        can handle without fragmentation.
+        can handle without fragmentation (default is 1500 B).
     :param wake_on_lan: Indicates if the NIC supports Wake-on-LAN functionality.
     :param dns_servers: List of IP addresses of DNS servers used for name resolution.
-    :param connected_link: The link to which the NIC is connected (default is None).
-    :param enabled: Indicates whether the NIC is enabled.
     """
 
     ip_address: Union[str, IPv4Address]
@@ -204,7 +132,11 @@ class NIC(SimComponent):
 
     def disconnect_link(self):
         """Disconnect the NIC from the connected :class:`~primaite.simulator.network.physical_layer.Link`."""
-        pass
+        if self.connected_link.endpoint_a == self:
+            self.connected_link.endpoint_a = None
+        if self.connected_link.endpoint_b == self:
+            self.connected_link.endpoint_b = None
+        self.connected_link = None
 
     def add_dns_server(self, ip_address: IPv4Address):
         """
@@ -255,6 +187,80 @@ class NIC(SimComponent):
     def apply_action(self, action: str):
         """
         Apply an action to the NIC.
+
+        :param action: The action to be applied.
+        :type action: str
+        """
+        pass
+
+
+class Link(SimComponent):
+    """
+    Represents a network link between two network interface cards (NICs).
+
+    :param endpoint_a: The first NIC connected to the Link.
+    :type endpoint_a: NIC
+    :param endpoint_b: The second NIC connected to the Link.
+    :type endpoint_b: NIC
+    :param bandwidth: The bandwidth of the Link in Mbps (default is 100 Mbps).
+    :type bandwidth: int
+    """
+
+    endpoint_a: NIC
+    "The first NIC connected to the Link."
+    endpoint_b: NIC
+    "The second NIC connected to the Link."
+    bandwidth: int = 100
+    "The bandwidth of the Link in Mbps (default is 100 Mbps)."
+    current_load: int = 0
+    "The current load on the link in Mbps."
+
+    def model_post_init(self, __context: Any) -> None:
+        """
+        Ensure that endpoint_a and endpoint_b are not the same :class:`~primaite.simulator.network.physical_layer.NIC`.
+
+        :raises ValueError: If endpoint_a and endpoint_b are the same NIC.
+        """
+        if self.endpoint_a == self.endpoint_b:
+            msg = "endpoint_a and endpoint_b cannot be the same NIC"
+            _LOGGER.error(msg)
+            raise ValueError(msg)
+        self.endpoint_a.connect_link(self)
+        self.endpoint_b.connect_link(self)
+
+    def send_frame(self, sender_nic: NIC, frame):
+        """
+        Send a network frame from one NIC to another connected NIC.
+
+        :param sender_nic: The NIC sending the frame.
+        :type sender_nic: NIC
+        :param frame: The network frame to be sent.
+        :type frame: Frame
+        """
+        pass
+
+    def receive_frame(self, sender_nic: NIC, frame):
+        """
+        Receive a network frame from a connected NIC.
+
+        :param sender_nic: The NIC sending the frame.
+        :type sender_nic: NIC
+        :param frame: The network frame being received.
+        :type frame: Frame
+        """
+        pass
+
+    def describe_state(self) -> Dict:
+        """
+        Get the current state of the Libk as a dict.
+
+        :return: A dict containing the current state of the Link.
+        """
+        pass
+
+    def apply_action(self, action: str):
+        """
+        Apply an action to the Link.
 
         :param action: The action to be applied.
         :type action: str
