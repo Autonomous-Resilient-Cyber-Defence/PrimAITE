@@ -443,7 +443,7 @@ class AccessControlList(AbstractObservationComponent):
 
     _DATA_TYPE: type = np.int64
 
-    def __init__(self, env: "Primaite"):
+    def __init__(self, env: "Primaite") -> None:
         """
         Initialise an AccessControlList observation component.
 

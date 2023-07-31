@@ -54,6 +54,7 @@ license-files = ["LICENSE"]
 dev = [
     "build==0.10.0",
     "flake8==6.0.0",
+    "flake8-annotations",
     "furo==2023.3.27",
     "gputil==1.4.0",
     "pip-licenses==4.3.0",

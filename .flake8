@@ -9,5 +9,8 @@ extend-ignore =
     E712
     D401
     F811
+    ANN101
+    ANN102
 exclude =
     docs/source/*
+    tests/*

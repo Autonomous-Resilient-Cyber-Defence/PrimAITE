@@ -9,4 +9,5 @@
 - [ ] I have performed **self-review** of the code
 - [ ] I have written **tests** for any new functionality added with this PR
 - [ ] I have updated the **documentation** if this PR changes or adds functionality
+- [ ] I have written/updated **design docs** if this PR implements new functionality.
 - [ ] I have run **pre-commit** checks for code style
