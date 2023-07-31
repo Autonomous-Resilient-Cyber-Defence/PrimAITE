@@ -248,8 +248,8 @@ class TrainingConfig:
     def __str__(self) -> str:
         obs_str = ",".join([c["name"] for c in self.observation_space["components"]])
         tc = f"{self.agent_framework}, "
-        if self.agent_framework is AgentFramework.RLLIB:
-            tc += f"{self.deep_learning_framework}, "
+        # if self.agent_framework is AgentFramework.RLLIB:
+        #     tc += f"{self.deep_learning_framework}, "
         tc += f"{self.agent_identifier}, "
         if self.agent_identifier is AgentIdentifier.HARDCODED:
             tc += f"{self.hard_coded_agent_view}, "
