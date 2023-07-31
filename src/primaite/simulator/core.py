@@ -44,3 +44,12 @@ class SimComponent(BaseModel):
 
     def _possible_actions(self) -> Dict[str, Callable[[List[str]], None]]:
         return {}
+
+    def apply_timestep(self) -> None:
+        """
+        Apply a timestep evolution to this component.
+
+        Override this method with anything that happens automatically in the component such as scheduled restarts or
+        sending data.
+        """
+        pass
