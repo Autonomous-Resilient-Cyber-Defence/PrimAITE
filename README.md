@@ -6,7 +6,7 @@ The ARCD Primary-level AI Training Environment (**PrimAITE**) provides an effect
 
 - The ability to model a relevant platform / system context;
 
-- The ability to model key characteristics of a platform / system by representing connections, IP addresses, ports, traffic loading, operating systems, services and processes;
+- The ability to model key characteristics of a platform / system by representing connections, IP addresses, ports, traffic loading, operating systems and services;
 
 - Operates at machine-speed to enable fast training cycles.
 
