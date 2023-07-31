@@ -411,7 +411,7 @@ def _plot_all_benchmarks_combined_session_av() -> Figure:
     return fig
 
 
-def run() -> NotImplementedError:
+def run() -> None:
     """Run the PrimAITE benchmark."""
     start_datetime = datetime.now()
     av_reward_per_episode_dicts = {}
