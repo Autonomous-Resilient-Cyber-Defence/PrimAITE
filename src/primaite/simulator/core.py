@@ -40,7 +40,7 @@ class SimComponent(BaseModel):
             # funciton
             possible_actions[action.pop(0)](action)
         else:
-            raise ValueError(f"{self} received invalid action {action}")
+            raise ValueError(f"{self.__class__.__name__} received invalid action {action}")
 
     def _possible_actions(self) -> Dict[str, Callable[[List[str]], None]]:
         return {}
