@@ -43,6 +43,7 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    source/config
    source/primaite_session
    source/custom_agent
+   source/simulation
    PrimAITE API <source/_autosummary/primaite>
    PrimAITE Tests <source/_autosummary/tests>
    source/dependencies

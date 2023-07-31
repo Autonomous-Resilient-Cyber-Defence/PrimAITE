@@ -13,7 +13,7 @@ _LOGGER = getLogger(__name__)
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [
-        [TEST_CONFIG_ROOT / "session_test/training_config_main_rllib.yaml", dos_very_basic_config_path()],
+        # [TEST_CONFIG_ROOT / "session_test/training_config_main_rllib.yaml", dos_very_basic_config_path()],
         [TEST_CONFIG_ROOT / "session_test/training_config_main_sb3.yaml", dos_very_basic_config_path()],
     ],
     indirect=True,

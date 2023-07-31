@@ -99,8 +99,8 @@ class AgentFramework(Enum):
     "Custom Agent"
     SB3 = 1
     "Stable Baselines3"
-    RLLIB = 2
-    "Ray RLlib"
+    # RLLIB = 2
+    # "Ray RLlib"
 
 
 class DeepLearningFramework(Enum):

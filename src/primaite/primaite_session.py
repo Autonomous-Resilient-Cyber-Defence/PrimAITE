@@ -10,7 +10,8 @@ from primaite import getLogger
 from primaite.agents.agent_abc import AgentSessionABC
 from primaite.agents.hardcoded_acl import HardCodedACLAgent
 from primaite.agents.hardcoded_node import HardCodedNodeAgent
-from primaite.agents.rllib import RLlibAgent
+
+# from primaite.agents.rllib import RLlibAgent
 from primaite.agents.sb3 import SB3Agent
 from primaite.agents.simple import DoNothingACLAgent, DoNothingNodeAgent, DummyAgent, RandomAgent
 from primaite.common.enums import ActionType, AgentFramework, AgentIdentifier, SessionType
@@ -157,10 +158,12 @@ class PrimaiteSession:
                 self.legacy_lay_down_config,
             )
 
-        elif self._training_config.agent_framework == AgentFramework.RLLIB:
-            _LOGGER.debug(f"PrimaiteSession Setup: Agent Framework = {AgentFramework.RLLIB}")
-            # Ray RLlib Agent
-            self._agent_session = RLlibAgent(self._training_config_path, self._lay_down_config_path, self.session_path)
+        # elif self._training_config.agent_framework == AgentFramework.RLLIB:
+        #     _LOGGER.debug(f"PrimaiteSession Setup: Agent Framework = {AgentFramework.RLLIB}")
+        #     # Ray RLlib Agent
+        #     self._agent_session = RLlibAgent(
+        #         self._training_config_path, self._lay_down_config_path, self.session_path
+        #         )
 
         else:
             # Invalid AgentFramework

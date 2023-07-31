@@ -34,10 +34,10 @@ dependencies = [
     "plotly==5.15.0",
     "polars==0.18.4",
     "PyYAML==6.0",
-    "ray[rllib]==2.2.0",
     "stable-baselines3==1.6.2",
     "tensorflow==2.12.0",
-    "typer[all]==0.9.0"
+    "typer[all]==0.9.0",
+    "pydantic"
 ]
 
 [tool.setuptools.dynamic]

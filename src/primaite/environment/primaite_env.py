@@ -17,9 +17,8 @@ from primaite import getLogger
 from primaite.acl.access_control_list import AccessControlList
 from primaite.agents.utils import is_valid_acl_action_extra, is_valid_node_action
 from primaite.common.custom_typing import NodeUnion
-from primaite.common.enums import (
+from primaite.common.enums import (  # AgentFramework,
     ActionType,
-    AgentFramework,
     AgentIdentifier,
     FileSystemState,
     HardwareState,
@@ -236,7 +235,8 @@ class Primaite(Env):
             _LOGGER.debug("Action space type NODE selected")
             # Terms (for node action space):
             # [0, num nodes] - node ID (0 = nothing, node ID)
-            # [0, 4] - what property it's acting on (0 = nothing, state, SoftwareState, service state, file system state) # noqa
+            # [0, 4] - what property it's acting on (0 = nothing, state, SoftwareState, # noqa
+            # service state, file system state) # noqa
             # [0, 3] - action on property (0 = nothing, On / Scan, Off / Repair, Reset / Patch / Restore) # noqa
             # [0, num services] - resolves to service ID (0 = nothing, resolves to service) # noqa
             self.action_dict = self.create_node_action_dict()
@@ -271,8 +271,8 @@ class Primaite(Env):
     @property
     def actual_episode_count(self) -> int:
         """Shifts the episode_count by -1 for RLlib learning session."""
-        if self.training_config.agent_framework is AgentFramework.RLLIB and not self.is_eval:
-            return self.episode_count - 1
+        # if self.training_config.agent_framework is AgentFramework.RLLIB and not self.is_eval:
+        #     return self.episode_count - 1
         return self.episode_count
 
     def set_as_eval(self) -> None:
