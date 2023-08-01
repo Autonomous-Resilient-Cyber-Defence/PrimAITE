@@ -9,3 +9,9 @@ class RLlibAgentError(PrimaiteError):
     """Raised when there is a generic error with a RLlib agent that is specific to PRimAITE."""
 
     pass
+
+
+class NetworkError(PrimaiteError):
+    """Raised when an error occurs at the network level."""
+
+    pass

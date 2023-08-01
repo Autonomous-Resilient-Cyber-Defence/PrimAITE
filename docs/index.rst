@@ -36,7 +36,6 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
 .. toctree::
    :maxdepth: 8
    :caption: Contents:
-   :hidden:
 
    source/getting_started
    source/about
