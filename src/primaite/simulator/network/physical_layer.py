@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import secrets
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
@@ -62,7 +62,7 @@ class NIC(SimComponent):
     "The IP address assigned to the NIC for communication on an IP-based network."
     subnet_mask: str
     "The subnet mask assigned to the NIC."
-    gateway: IPV4Address
+    gateway: IPv4Address
     "The default gateway IP address for forwarding network traffic to other networks. Randomly generated upon creation."
     mac_address: str = generate_mac_address()
     "The MAC address of the NIC. Defaults to a randomly set MAC address."
