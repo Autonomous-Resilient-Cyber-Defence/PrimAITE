@@ -37,7 +37,7 @@ class SimComponent(BaseModel):
         possible_actions = self._possible_actions()
         if action[0] in possible_actions:
             # take the first element off the action list and pass the remaining arguments to the corresponding action
-            # funciton
+            # function
             possible_actions[action.pop(0)](action)
         else:
             raise ValueError(f"{self.__class__.__name__} received invalid action {action}")
@@ -45,11 +45,19 @@ class SimComponent(BaseModel):
     def _possible_actions(self) -> Dict[str, Callable[[List[str]], None]]:
         return {}
 
-    def apply_timestep(self) -> None:
+    def apply_timestep(self, timestep: int) -> None:
         """
         Apply a timestep evolution to this component.
 
         Override this method with anything that happens automatically in the component such as scheduled restarts or
         sending data.
+        """
+        pass
+
+    def reset_component_for_episode(self):
+        """
+        Reset this component to its original state for a new episode.
+
+        Override this method with anything that needs to happen within the component for it to be reset.
         """
         pass
