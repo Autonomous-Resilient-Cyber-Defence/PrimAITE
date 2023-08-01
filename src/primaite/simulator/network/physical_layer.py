@@ -66,9 +66,9 @@ class NIC(SimComponent):
     "The default gateway IP address for forwarding network traffic to other networks. Randomly generated upon creation."
     mac_address: str = generate_mac_address()
     "The MAC address of the NIC. Defaults to a randomly set MAC address."
-    speed: Optional[int] = 100
+    speed: int = 100
     "The speed of the NIC in Mbps. Default is 100 Mbps."
-    mtu: Optional[int] = 1500
+    mtu: int = 1500
     "The Maximum Transmission Unit (MTU) of the NIC in Bytes. Default is 1500 B"
     wake_on_lan: bool = False
     "Indicates if the NIC supports Wake-on-LAN functionality."
