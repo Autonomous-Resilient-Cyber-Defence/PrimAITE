@@ -96,7 +96,7 @@ def temp_primaite_session(request):
     """
     training_config_path = request.param[0]
     lay_down_config_path = request.param[1]
-    with patch("primaite.agents.agent_abc.get_session_path", get_temp_session_path) as mck:
+    with patch("_primaite.agents.agent_abc.get_session_path", get_temp_session_path) as mck:
         mck.session_timestamp = datetime.now()
 
         return TempPrimaiteSession(training_config_path, lay_down_config_path)
@@ -112,7 +112,7 @@ def temp_session_path() -> Path:
     session_timestamp = datetime.now()
     date_dir = session_timestamp.strftime("%Y-%m-%d")
     session_path = session_timestamp.strftime("%Y-%m-%d_%H-%M-%S")
-    session_path = Path(tempfile.gettempdir()) / "primaite" / date_dir / session_path
+    session_path = Path(tempfile.gettempdir()) / "_primaite" / date_dir / session_path
     session_path.mkdir(exist_ok=True, parents=True)
 
     return session_path

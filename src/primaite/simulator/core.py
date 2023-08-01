@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 
 class SimComponent(BaseModel):
-    """Extension of pydantic BaseModel with additional methods that must be defined by all classes in  the simulator."""
+    """Extension of pydantic BaseModel with additional methods that must be defined by all classes in the simulator."""
 
     @abstractmethod
     def describe_state(self) -> Dict:
