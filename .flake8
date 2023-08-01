@@ -14,3 +14,5 @@ extend-ignore =
 exclude =
     docs/source/*
     tests/*
+suppress-none-returning=True
+suppress-dummy-args=True

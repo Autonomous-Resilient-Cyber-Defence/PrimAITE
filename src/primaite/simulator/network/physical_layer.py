@@ -156,7 +156,7 @@ class NIC(SimComponent):
         """
         pass
 
-    def send_frame(self, frame):
+    def send_frame(self, frame: Any):
         """
         Send a network frame from the NIC to the connected link.
 
@@ -165,7 +165,7 @@ class NIC(SimComponent):
         """
         pass
 
-    def receive_frame(self, frame):
+    def receive_frame(self, frame: Any):
         """
         Receive a network frame from the connected link.
 
@@ -228,7 +228,7 @@ class Link(SimComponent):
         self.endpoint_a.connect_link(self)
         self.endpoint_b.connect_link(self)
 
-    def send_frame(self, sender_nic: NIC, frame):
+    def send_frame(self, sender_nic: NIC, frame: Any):
         """
         Send a network frame from one NIC to another connected NIC.
 
@@ -239,7 +239,7 @@ class Link(SimComponent):
         """
         pass
 
-    def receive_frame(self, sender_nic: NIC, frame):
+    def receive_frame(self, sender_nic: NIC, frame: Any):
         """
         Receive a network frame from a connected NIC.
 
