@@ -58,11 +58,11 @@ class NIC(SimComponent):
     :param dns_servers: List of IP addresses of DNS servers used for name resolution.
     """
 
-    ip_address: Union[str, IPv4Address]
+    ip_address: Union[IPv4Address]
     "The IP address assigned to the NIC for communication on an IP-based network."
     subnet_mask: str
     "The subnet mask assigned to the NIC."
-    gateway: Union[str, IPv4Address]
+    gateway: Union[IPv4Address]
     "The default gateway IP address for forwarding network traffic to other networks. Randomly generated upon creation."
     mac_address: str = generate_mac_address()
     "The MAC address of the NIC. Defaults to a randomly set MAC address."
@@ -70,7 +70,7 @@ class NIC(SimComponent):
     "The speed of the NIC in Mbps. Default is 100 Mbps."
     mtu: Optional[int] = 1500
     "The Maximum Transmission Unit (MTU) of the NIC in Bytes. Default is 1500 B"
-    wake_on_lan: Optional[bool] = False
+    wake_on_lan: bool = False
     "Indicates if the NIC supports Wake-on-LAN functionality."
     dns_servers: List[IPv4Address] = []
     "List of IP addresses of DNS servers used for name resolution."
@@ -79,17 +79,22 @@ class NIC(SimComponent):
     enabled: bool = False
     "Indicates whether the NIC is enabled."
 
-    def model_post_init(self, __context: Any) -> None:
+    def __init__(self, **kwargs):
         """
-        Post init function converts string IPs to IPv$Address and checks for proper IP address and gateway config.
+        NIC constructor.
+
+        Performs some type conversion the calls ``super().__init__()``. Then performs some checking on the ip_address
+        and gateway just to check that it's all been configured correctly.
 
         :raises ValueError: When the ip_address and gateway are the same. And when the ip_address/subnet mask are a
-        network address.
+            network address.
         """
-        if not isinstance(self.ip_address, IPv4Address):
-            self.ip_address: IPv4Address = IPv4Address(self.ip_address)
-        if not isinstance(self.gateway, IPv4Address):
-            self.gateway: IPv4Address = IPv4Address(self.gateway)
+        if not isinstance(kwargs["ip_address"], IPv4Address):
+            kwargs["ip_address"] = IPv4Address(kwargs["ip_address"])
+        if not isinstance(kwargs["gateway"], IPv4Address):
+            kwargs["gateway"] = IPv4Address(kwargs["gateway"])
+        super().__init__(**kwargs)
+
         if self.ip_address == self.gateway:
             msg = f"NIC ip address {self.ip_address} cannot be the same as the gateway {self.gateway}"
             _LOGGER.error(msg)

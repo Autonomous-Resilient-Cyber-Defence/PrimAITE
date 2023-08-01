@@ -9,6 +9,8 @@ extend-ignore =
     E712
     D401
     F811
+    ANN002
+    ANN003
     ANN101
     ANN102
 exclude =

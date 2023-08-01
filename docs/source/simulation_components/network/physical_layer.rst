@@ -5,7 +5,7 @@
 Physical Layer
 ==============
 
-The physical layer components are mode of a ``NIC`` (Network Interface Card) and a ``Link``. These components allow
+The physical layer components are models of a ``NIC`` (Network Interface Card) and a ``Link``. These components allow
 modelling of layer 1 (physical layer) in the OSI model.
 
 NIC
