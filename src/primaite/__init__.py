@@ -24,14 +24,14 @@ class _PrimaitePaths:
     The PlatformDirs appname is 'primaite' and the version is ``primaite.__version__`.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._dirs: Final[PlatformDirs] = PlatformDirs(appname="primaite", version=__version__)
 
     def _get_dirs_properties(self) -> List[str]:
         class_items = self.__class__.__dict__.items()
         return [k for k, v in class_items if isinstance(v, property)]
 
-    def mkdirs(self):
+    def mkdirs(self) -> None:
         """
         Creates all Primaite directories.
 
@@ -102,7 +102,7 @@ class _PrimaitePaths:
         """The PrimAITE app log file path."""
         return self.app_log_dir_path / "primaite.log"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         properties_str = ", ".join([f"{p}='{getattr(self, p)}'" for p in self._get_dirs_properties()])
         return f"{self.__class__.__name__}({properties_str})"
 
@@ -110,7 +110,7 @@ class _PrimaitePaths:
 PRIMAITE_PATHS: Final[_PrimaitePaths] = _PrimaitePaths()
 
 
-def _host_primaite_config():
+def _host_primaite_config() -> None:
     if not PRIMAITE_PATHS.app_config_file_path.exists():
         pkg_config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
         shutil.copy2(pkg_config_path, PRIMAITE_PATHS.app_config_file_path)
