@@ -120,17 +120,22 @@ def get_icmp_type_code_description(icmp_type: ICMPType, icmp_code: int) -> Union
     return icmp_code_descriptions[icmp_type].get(icmp_code)
 
 
-class ICMPHeader(BaseModel):
-    """Models an ICMP Header."""
+class ICMPPacket(BaseModel):
+    """Models an ICMP Packet."""
 
     icmp_type: ICMPType = ICMPType.ECHO_REQUEST
     "ICMP Type."
     icmp_code: int = 0
     "ICMP Code."
-    identifier: str = secrets.randbits(16)
+    identifier: int
     "ICMP identifier (16 bits randomly generated)."
-    sequence: int = 1
+    sequence: int = 0
     "ICMP message sequence number."
+
+    def __init__(self, **kwargs):
+        if not kwargs.get("identifier"):
+            kwargs["identifier"] = secrets.randbits(16)
+        super().__init__(**kwargs)
 
     @field_validator("icmp_code")  # noqa
     @classmethod

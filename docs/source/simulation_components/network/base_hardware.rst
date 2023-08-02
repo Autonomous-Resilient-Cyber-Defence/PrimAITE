@@ -2,8 +2,8 @@
 
     © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 
-Physical Layer
-==============
+Base Hardware
+=============
 
 The physical layer components are models of a ``NIC`` (Network Interface Card) and a ``Link``. These components allow
 modelling of layer 1 (physical layer) in the OSI model.

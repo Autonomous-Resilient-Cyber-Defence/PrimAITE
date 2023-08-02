@@ -34,7 +34,7 @@ specify the priority of IP packets for Quality of Service handling.
 **ICMPType:** Enumeration of common ICMP (Internet Control Message Protocol) types. It defines various types of ICMP
 messages used for network troubleshooting and error reporting.
 
-**ICMPHeader:** Models an ICMP header and includes ICMP type, code, identifier, and sequence number. It is used to
+**ICMPPacket:** Models an ICMP header and includes ICMP type, code, identifier, and sequence number. It is used to
 create ICMP packets for network control and error reporting.
 
 **IPPacket:** Represents the IP layer of a network frame. It includes source and destination IP addresses, protocol
@@ -59,7 +59,7 @@ Data Link Layer (Layer 2)
 This header is used to identify the physical hardware addresses of devices on a local network.
 
 **Frame:** Represents a complete network frame with all layers. It includes an ``EthernetHeader``, an ``IPPacket``, an
-optional ``TCPHeader``, ``UDPHeader``, or ``ICMPHeader``, a ``PrimaiteHeader`` and an optional payload. This class
+optional ``TCPHeader``, ``UDPHeader``, or ``ICMPPacket``, a ``PrimaiteHeader`` and an optional payload. This class
 combines all the headers and data to create a complete network frame that can be sent over the network and used in the
 PrimAITE simulation.
 

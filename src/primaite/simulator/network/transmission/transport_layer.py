@@ -33,6 +33,8 @@ class Port(Enum):
     "Simple Network Management Protocol (SNMP) - Used for network device management."
     SNMP_TRAP = 162
     "SNMP Trap - Used for sending SNMP notifications (traps) to a network management system."
+    ARP = 219
+    "Address resolution Protocol - Used to connect a MAC address to an IP address."
     LDAP = 389
     "Lightweight Directory Access Protocol (LDAP) - Used for accessing and modifying directory information."
     HTTPS = 443
@@ -114,6 +116,6 @@ class TCPHeader(BaseModel):
     ... )
     """
 
-    src_port: int
-    dst_port: int
+    src_port: Port
+    dst_port: Port
     flags: List[TCPFlags] = [TCPFlags.SYN]

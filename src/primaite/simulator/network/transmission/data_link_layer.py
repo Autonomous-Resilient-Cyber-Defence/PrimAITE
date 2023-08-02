@@ -3,9 +3,11 @@ from typing import Any, Optional
 from pydantic import BaseModel
 
 from primaite import getLogger
-from primaite.simulator.network.transmission.network_layer import ICMPHeader, IPPacket, IPProtocol
+from primaite.simulator.network.protocols.arp import ARPPacket
+from primaite.simulator.network.transmission.network_layer import ICMPPacket, IPPacket, IPProtocol
 from primaite.simulator.network.transmission.primaite_layer import PrimaiteHeader
 from primaite.simulator.network.transmission.transport_layer import TCPHeader, UDPHeader
+from primaite.simulator.network.utils import convert_bytes_to_megabits
 
 _LOGGER = getLogger(__name__)
 
@@ -74,9 +76,11 @@ class Frame(BaseModel):
             _LOGGER.error(msg)
             raise ValueError(msg)
         if kwargs["ip"].protocol == IPProtocol.ICMP and not kwargs.get("icmp"):
-            msg = "Cannot build a Frame using the ICMP IP Protocol without a ICMPHeader"
+            msg = "Cannot build a Frame using the ICMP IP Protocol without a ICMPPacket"
             _LOGGER.error(msg)
             raise ValueError(msg)
+        kwargs["primaite"] = PrimaiteHeader()
+
         super().__init__(**kwargs)
 
     ethernet: EthernetHeader
@@ -87,14 +91,21 @@ class Frame(BaseModel):
     "TCP header."
     udp: Optional[UDPHeader] = None
     "UDP header."
-    icmp: Optional[ICMPHeader] = None
+    icmp: Optional[ICMPPacket] = None
     "ICMP header."
-    primaite: PrimaiteHeader = PrimaiteHeader()
+    arp: Optional[ARPPacket] = None
+    "ARP packet."
+    primaite: PrimaiteHeader
     "PrimAITE header."
     payload: Optional[Any] = None
     "Raw data payload."
 
     @property
-    def size(self) -> int:
-        """The size in Bytes."""
-        return len(self.model_dump_json().encode("utf-8"))
+    def size(self) -> float:  # noqa - Keep it as MBits as this is how they're expressed
+        """The size of the Frame in Bytes."""
+        return float(len(self.model_dump_json().encode("utf-8")))
+
+    @property
+    def size_Mbits(self) -> float:  # noqa - Keep it as MBits as this is how they're expressed
+        """The daa transfer size of the Frame in MBits."""
+        return convert_bytes_to_megabits(self.size)
