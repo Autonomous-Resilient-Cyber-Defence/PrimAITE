@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import secrets
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
@@ -221,16 +221,19 @@ class Link(SimComponent):
     current_load: int = 0
     "The current load on the link in Mbps."
 
-    def model_post_init(self, __context: Any) -> None:
+    def __init__(self, **kwargs):
         """
         Ensure that endpoint_a and endpoint_b are not the same NIC.
 
+        Connect the link to the NICs after creation.
+
         :raises ValueError: If endpoint_a and endpoint_b are the same NIC.
         """
-        if self.endpoint_a == self.endpoint_b:
+        if kwargs["endpoint_a"] == kwargs["endpoint_b"]:
             msg = "endpoint_a and endpoint_b cannot be the same NIC"
             _LOGGER.error(msg)
             raise ValueError(msg)
+        super().__init__(**kwargs)
         self.endpoint_a.connect_link(self)
         self.endpoint_b.connect_link(self)
 

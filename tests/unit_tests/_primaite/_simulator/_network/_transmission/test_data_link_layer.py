@@ -26,8 +26,8 @@ def test_frame_minimal_instantiation():
     assert frame.tcp.flags == [TCPFlags.SYN]
 
     # Check primaite custom header default values
-    assert frame.primaite_header.agent_source == AgentSource.GREEN
-    assert frame.primaite_header.data_status == DataStatus.GOOD
+    assert frame.primaite.agent_source == AgentSource.GREEN
+    assert frame.primaite.data_status == DataStatus.GOOD
 
     # Check that model can be dumped down to json and returned as size in Bytes
     assert frame.size

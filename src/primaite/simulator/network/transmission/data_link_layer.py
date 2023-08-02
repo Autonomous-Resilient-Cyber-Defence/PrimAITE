@@ -89,12 +89,12 @@ class Frame(BaseModel):
     "UDP header."
     icmp: Optional[ICMPHeader] = None
     "ICMP header."
-    primaite_header: PrimaiteHeader = PrimaiteHeader()
+    primaite: PrimaiteHeader = PrimaiteHeader()
     "PrimAITE header."
     payload: Optional[Any] = None
     "Raw data payload."
 
     @property
     def size(self) -> int:
-        """The size of the Frame in Bytes."""
+        """The size in Bytes."""
         return len(self.model_dump_json().encode("utf-8"))
