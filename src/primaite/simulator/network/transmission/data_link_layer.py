@@ -107,5 +107,5 @@ class Frame(BaseModel):
 
     @property
     def size_Mbits(self) -> float:  # noqa - Keep it as MBits as this is how they're expressed
-        """The daa transfer size of the Frame in MBits."""
+        """The daa transfer size of the Frame in Mbits."""
         return convert_bytes_to_megabits(self.size)

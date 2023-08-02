@@ -321,12 +321,13 @@ class Link(SimComponent):
         receiver_nic = self.endpoint_a
         if receiver_nic == sender_nic:
             receiver_nic = self.endpoint_b
-        frame_size = frame.size
+        frame_size = frame.size_Mbits
         sent = receiver_nic.receive_frame(frame)
         if sent:
             # Frame transmitted successfully
             # Load the frame size on the link
             self.current_load += frame_size
+            _LOGGER.info(f"Link added {frame_size} Mbits, current load {self.current_load} Mbits")
             return True
         # Received NIC disabled, reply
 
@@ -633,6 +634,7 @@ class Node(SimComponent):
             _LOGGER.info(f"Node {self.hostname} attempting to ping {target_ip_address}")
             self._ping(target_ip_address)
             return True
+        _LOGGER.info(f"Node {self.hostname} ping failed as the node is turned off")
         return False
 
     def send_frame(self, frame: Frame):
