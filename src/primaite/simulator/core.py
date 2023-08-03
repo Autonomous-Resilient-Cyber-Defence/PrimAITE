@@ -1,11 +1,11 @@
 """Core of the PrimAITE Simulator."""
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List, Optional
+from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Extra
 
 from primaite import getLogger
-from primaite.simulator.domain import AccountGroup
 
 _LOGGER = getLogger(__name__)
 
@@ -31,23 +31,6 @@ class AllowAllValidator(ActionPermissionValidator):
     def __call__(self, request: List[str], context: Dict) -> bool:
         """Always allow the action."""
         return True
-
-
-class GroupMembershipValidator(ActionPermissionValidator):
-    """Permit actions based on group membership."""
-
-    def __init__(self, allowed_groups: List[AccountGroup]) -> None:
-        """TODO."""
-        self.allowed_groups = allowed_groups
-
-    def __call__(self, request: List[str], context: Dict) -> bool:
-        """Permit the action if the request comes from an account which belongs to the right group."""
-        # if context request source is part of any groups mentioned in self.allow_groups, return true, otherwise false
-        requestor_groups: List[str] = context["request_source"]["groups"]
-        for allowed_group in self.allowed_groups:
-            if allowed_group.name in requestor_groups:
-                return True
-        return False
 
 
 class Action:
@@ -83,7 +66,7 @@ class ActionManager:
 
     def __init__(self) -> None:
         """TODO."""
-        self.actions: Dict[str, Action]
+        self.actions: Dict[str, Action] = {}
 
     def process_request(self, request: List[str], context: Dict) -> None:
         """Process action request."""
@@ -106,17 +89,20 @@ class ActionManager:
 
         action.func(action_options, context)
 
+    def add_action(self, name: str, action: Action) -> None:
+        self.actions[name] = action
+
 
 class SimComponent(BaseModel):
     """Extension of pydantic BaseModel with additional methods that must be defined by all classes in  the simulator."""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    uuid: str
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra=Extra.allow)
+    uuid: str = str(uuid4())
     "The component UUID."
 
     def __init__(self, **kwargs) -> None:
-        self.action_manager: Optional[ActionManager] = None
         super().__init__(**kwargs)
+        self.action_manager: Optional[ActionManager] = None
 
     @abstractmethod
     def describe_state(self) -> Dict:

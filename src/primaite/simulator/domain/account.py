@@ -1,14 +1,11 @@
 """User account simulation."""
 from enum import Enum
-from typing import Callable, Dict, List, TypeAlias
+from typing import Any, Callable, Dict, List
 
 from primaite import getLogger
 from primaite.simulator.core import SimComponent
 
 _LOGGER = getLogger(__name__)
-
-
-__temp_node = TypeAlias()  # placeholder while nodes don't exist
 
 
 class AccountType(Enum):
@@ -18,19 +15,6 @@ class AccountType(Enum):
     "Service accounts are used to grant permissions to software on nodes to perform actions"
     user = 2
     "User accounts are used to allow agents to log in and perform actions"
-
-
-class AccountGroup(Enum):
-    """Permissions are set at group-level and accounts can belong to these groups."""
-
-    local_user = 1
-    "For performing basic actions on a node"
-    domain_user = 2
-    "For performing basic actions to the domain"
-    local_admin = 3
-    "For full access to actions on a node"
-    domain_admin = 4
-    "For full access"
 
 
 class AccountStatus(Enum):
