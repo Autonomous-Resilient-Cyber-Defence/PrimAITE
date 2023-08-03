@@ -1,17 +1,17 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Optional
+
+from pydantic import PrivateAttr
 
 from primaite.simulator.core import SimComponent
 from primaite.simulator.file_system.file_system_file import FileSystemFile
+from primaite.simulator.file_system.file_system_file_type import FileSystemFileType
 from primaite.simulator.file_system.file_system_folder import FileSystemFolder
 
 
 class FileSystem(SimComponent):
     """Class that contains all the simulation File System."""
 
-    files: List[FileSystemFile]
-    """List containing all the files in the file system."""
-
-    folders: List[FileSystemFolder]
+    _folders: List[FileSystemFolder] = PrivateAttr([])
     """List containing all the folders in the file system."""
 
     def describe_state(self) -> Dict:
@@ -22,56 +22,107 @@ class FileSystem(SimComponent):
         """
         pass
 
-    def create_file(self):
-        """Creates a FileSystemFile and adds it to the list of files."""
-        pass
+    def get_folders(self) -> List[FileSystemFolder]:
+        """Returns the list of folders."""
+        return self._folders
 
-    def create_folder(self):
+    def create_file(self, file_size: float, folder_uuid: Optional[str] = None) -> FileSystemFile:
+        """
+        Creates a FileSystemFile and adds it to the list of files.
+
+        :param: folder_uuid: The uuid of the folder to add the file to
+        :type: folder_uuid: str
+        """
+        file = None
+        # if no folder uuid provided, create a folder and add file to it
+        if folder_uuid is None:
+            folder = FileSystemFolder()
+
+            file = FileSystemFile(item_parent=folder.uuid, file_size=file_size, file_type=FileSystemFileType.TBD)
+            folder.add_file(file)
+            self._folders.append(folder)
+        else:
+            # otherwise check for existence and add file
+            folder = self.get_folder_by_id(folder_uuid)
+            if folder is not None:
+                file = FileSystemFile(file_size=file_size, file_type=FileSystemFileType.TBD)
+                folder.add_file(file=file)
+        return file
+
+    def create_folder(self) -> FileSystemFolder:
         """Creates a FileSystemFolder and adds it to the list of folders."""
-        pass
+        folder = FileSystemFolder(item_parent=None)
+        self._folders.append(folder)
+        return folder
 
-    def delete_file(self, file_item: str):
+    def delete_file(self, file_id: str):
         """
         Deletes a file and removes it from the files list.
 
-        :param file_item: The UUID of the file item to delete
-        :type file_item: str
+        :param file_id: The UUID of the file item to delete
+        :type file_id: str
         """
-        self.files = list(filter(lambda x: (x.get_item_uuid() != file_item), self.files))
+        # iterate through folders to delete the item with the matching uuid
+        for folder in self._folders:
+            folder.remove_file(file_id)
 
-    def delete_folder(self, file_item: str):
+    def delete_folder(self, folder_id: str):
         """
-        Deletes a folder, removes it frdom the folders list and removes any child folders and files.
+        Deletes a folder, removes it from the folders list and removes any child folders and files.
 
-        :param file_item: The UUID of the file item to delete
-        :type file_item: str
+        :param folder_id: The UUID of the file item to delete
+        :type folder_id: str
         """
-        self.files = list(filter(lambda x: (x.get_item_parent() != file_item), self.files))
-        self.folders = list(filter(lambda x: (x.get_item_uuid() != file_item), self.folders))
+        self._folders = list(filter(lambda f: (f.uuid != folder_id), self._folders))
 
-    def move_file_item(self, file_item: str, target_directory: str):
-        """
-        Check to see if the file_item and target_directory exists then moves the item by changing its parent item uuid.
+    def move_file(self, src_folder_id: str, target_folder_id: str, file_id: str):
+        """Moves a file from one folder to another."""
+        # check that both folders and the file exists
+        src = self.get_folder_by_id(src_folder_id)
+        target = self.get_folder_by_id(target_folder_id)
 
-        :param file_item: The UUID of the file item to move
-        :type file_item: str
+        if src is None:
+            raise Exception(f"src folder with UUID {src_folder_id} could not be found")
 
-        :param target_directory: The UUID of the directory the item should be moved into
-        :type target_directory: str
-        """
-        item = self._file_item_exists(file_item)
-        if item and any(f for f in self.folders if f.get_item_uuid() == target_directory):
-            item.move(target_directory)
+        if target is None:
+            raise Exception(f"src folder with UUID {target_folder_id} could not be found")
 
-    def _file_item_exists(self, file_item_uuid: str) -> Union[FileSystemFile, FileSystemFolder, None]:
-        """Returns true if the file or folder UUID exists."""
-        item = next((x for x in self.files if x.get_item_uuid() == file_item_uuid), None)
-        if item:
-            return item
+        file = src.get_file(file_id=file_id)
+        if file is None:
+            raise Exception(f"file with UUID {file_id} could not be found")
 
-        next((x for x in self.folders if x.get_item_uuid() == file_item_uuid), None)
+        # remove file from src
+        src.remove_file(file_id)
 
-        if item:
-            return item
+        # add file to target
+        target.add_file(file)
 
-        raise Exception(f"No file or folder found with id: {file_item_uuid}")
+    def copy_file(self, src_folder_id: str, target_folder_id: str, file_id: str):
+        """Copies a file from one folder to another."""
+        # check that both folders and the file exists
+        src = self.get_folder_by_id(src_folder_id)
+        target = self.get_folder_by_id(target_folder_id)
+
+        if src is None:
+            raise Exception(f"src folder with UUID {src_folder_id} could not be found")
+
+        if target is None:
+            raise Exception(f"src folder with UUID {target_folder_id} could not be found")
+
+        file = src.get_file(file_id=file_id)
+        if file is None:
+            raise Exception(f"file with UUID {file_id} could not be found")
+
+        # add file to target
+        target.add_file(file)
+
+    def get_file_by_id(self, file_id: str) -> FileSystemFile:
+        """Checks if the file exists in any file system folders."""
+        for folder in self._folders:
+            file = folder.get_file(file_id=file_id)
+            if file is not None:
+                return file
+
+    def get_folder_by_id(self, folder_id: str) -> FileSystemFolder:
+        """Checks if the folder exists."""
+        return next((f for f in self._folders if f.uuid == folder_id), None)
