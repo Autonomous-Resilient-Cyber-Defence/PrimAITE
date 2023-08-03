@@ -78,3 +78,18 @@ def test_copy_file():
 
     assert len(file_system.get_folder_by_id(src_folder.uuid).get_files()) is 1
     assert len(file_system.get_folder_by_id(target_folder.uuid).get_files()) is 1
+
+
+def test_serialisation():
+    """Test to check that the object serialisation works correctly."""
+    file_system = FileSystem()
+    folder = file_system.create_folder()
+    assert len(file_system.get_folders()) is 1
+
+    file_system.create_file(file_size=10, folder_uuid=folder.uuid)
+    assert len(file_system.get_folders()[0].get_files()) is 1
+
+    serialised_file_sys = file_system.model_dump_json()
+    deserialised_file_sys = FileSystem().model_validate_json(serialised_file_sys)
+
+    assert file_system == deserialised_file_sys

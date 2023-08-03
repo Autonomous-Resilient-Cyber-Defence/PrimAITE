@@ -1,7 +1,5 @@
 from typing import Dict, List, Optional
 
-from pydantic import PrivateAttr
-
 from primaite.simulator.core import SimComponent
 from primaite.simulator.file_system.file_system_file import FileSystemFile
 from primaite.simulator.file_system.file_system_file_type import FileSystemFileType
@@ -11,7 +9,7 @@ from primaite.simulator.file_system.file_system_folder import FileSystemFolder
 class FileSystem(SimComponent):
     """Class that contains all the simulation File System."""
 
-    _folders: List[FileSystemFolder] = PrivateAttr([])
+    folders: List[FileSystemFolder] = []
     """List containing all the folders in the file system."""
 
     def describe_state(self) -> Dict:
@@ -24,7 +22,7 @@ class FileSystem(SimComponent):
 
     def get_folders(self) -> List[FileSystemFolder]:
         """Returns the list of folders."""
-        return self._folders
+        return self.folders
 
     def create_file(self, file_size: float, folder_uuid: Optional[str] = None) -> FileSystemFile:
         """
@@ -40,7 +38,7 @@ class FileSystem(SimComponent):
 
             file = FileSystemFile(item_parent=folder.uuid, file_size=file_size, file_type=FileSystemFileType.TBD)
             folder.add_file(file)
-            self._folders.append(folder)
+            self.folders.append(folder)
         else:
             # otherwise check for existence and add file
             folder = self.get_folder_by_id(folder_uuid)
@@ -52,7 +50,7 @@ class FileSystem(SimComponent):
     def create_folder(self) -> FileSystemFolder:
         """Creates a FileSystemFolder and adds it to the list of folders."""
         folder = FileSystemFolder(item_parent=None)
-        self._folders.append(folder)
+        self.folders.append(folder)
         return folder
 
     def delete_file(self, file_id: str):
@@ -63,7 +61,7 @@ class FileSystem(SimComponent):
         :type file_id: str
         """
         # iterate through folders to delete the item with the matching uuid
-        for folder in self._folders:
+        for folder in self.folders:
             folder.remove_file(file_id)
 
     def delete_folder(self, folder_id: str):
@@ -73,7 +71,7 @@ class FileSystem(SimComponent):
         :param folder_id: The UUID of the file item to delete
         :type folder_id: str
         """
-        self._folders = list(filter(lambda f: (f.uuid != folder_id), self._folders))
+        self.folders = list(filter(lambda f: (f.uuid != folder_id), self.folders))
 
     def move_file(self, src_folder_id: str, target_folder_id: str, file_id: str):
         """Moves a file from one folder to another."""
@@ -118,11 +116,11 @@ class FileSystem(SimComponent):
 
     def get_file_by_id(self, file_id: str) -> FileSystemFile:
         """Checks if the file exists in any file system folders."""
-        for folder in self._folders:
+        for folder in self.folders:
             file = folder.get_file(file_id=file_id)
             if file is not None:
                 return file
 
     def get_folder_by_id(self, folder_id: str) -> FileSystemFolder:
         """Checks if the folder exists."""
-        return next((f for f in self._folders if f.uuid == folder_id), None)
+        return next((f for f in self.folders if f.uuid == folder_id), None)
