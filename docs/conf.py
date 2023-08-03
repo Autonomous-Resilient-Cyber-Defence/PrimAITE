@@ -43,7 +43,6 @@ extensions = [
     "sphinx.ext.viewcode",  # Add a link to the Python source code for classes, functions etc.
     "sphinx.ext.todo",
     "sphinx_copybutton",  # Adds a copy button to code blocks
-    "sphinx_code_tabs",  # Enables tabbed code blocks
 ]
 
 
