@@ -25,11 +25,11 @@ class DomainController(SimComponent):
     folders: List(__temp_folder) = []
     files: List(__temp_file) = []
 
-    def register_account(self, account: Account) -> None:
+    def _register_account(self, account: Account) -> None:
         """TODO."""
         ...
 
-    def deregister_account(self, account: Account) -> None:
+    def _deregister_account(self, account: Account) -> None:
         """TODO."""
         ...
 
