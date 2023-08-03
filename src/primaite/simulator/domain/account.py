@@ -1,6 +1,6 @@
 """User account simulation."""
 from enum import Enum
-from typing import Dict, List, Set, TypeAlias
+from typing import Callable, Dict, List, TypeAlias
 
 from primaite import getLogger
 from primaite.simulator.core import SimComponent
@@ -40,6 +40,14 @@ class AccountStatus(Enum):
     disabled = 2
 
 
+class PasswordPolicyLevel(Enum):
+    """Complexity requirements for account passwords."""
+
+    low = 1
+    medium = 2
+    high = 3
+
+
 class Account(SimComponent):
     """User accounts."""
 
@@ -55,38 +63,18 @@ class Account(SimComponent):
     "Account password."
     account_type: AccountType
     "Account Type, currently this can be service account (used by apps) or user account."
-    domain_groups: Set[AccountGroup] = []
-    "Domain-wide groups that this account belongs to."
-    local_groups: Dict[__temp_node, List[AccountGroup]]
-    "For each node, whether this account has local/admin privileges on that node."
     status: AccountStatus = AccountStatus.disabled
 
-    def add_to_domain_group(self, group: AccountGroup) -> None:
-        """
-        Add this account to a domain group.
-
-        If the account is already a member of this group, nothing happens.
-
-        :param group: The group to which to add this account.
-        :type group: AccountGroup
-        """
-        self.domain_groups.add(group)
-
-    def remove_from_domain_group(self, group: AccountGroup) -> None:
-        """
-        Remove this account from a domain group.
-
-        If the account is already not a member of that group, nothing happens.
-
-        :param group: The group from which this account should be removed.
-        :type group: AccountGroup
-        """
-        self.domain_groups.discard(group)
-
-    def enable_account(self):
+    def enable(self):
         """Set the status to enabled."""
         self.status = AccountStatus.enabled
 
-    def disable_account(self):
+    def disable(self):
         """Set the status to disabled."""
         self.status = AccountStatus.disabled
+
+    def _possible_actions(self) -> Dict[str, Callable[[List[str]], None]]:
+        return {
+            "enable": self.enable,
+            "disable": self.disable,
+        }
