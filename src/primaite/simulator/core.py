@@ -3,12 +3,13 @@ from abc import abstractmethod
 from typing import Callable, Dict, List
 from uuid import uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class SimComponent(BaseModel):
     """Extension of pydantic BaseModel with additional methods that must be defined by all classes in  the simulator."""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     uuid: str
     "The component UUID."
 

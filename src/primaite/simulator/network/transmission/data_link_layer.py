@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Optional
 
 from pydantic import BaseModel
@@ -99,6 +100,29 @@ class Frame(BaseModel):
     "PrimAITE header."
     payload: Optional[Any] = None
     "Raw data payload."
+    sent_timestamp: Optional[datetime] = None
+    "The time the Frame was sent from the original source NIC."
+    received_timestamp: Optional[datetime] = None
+    "The time the Frame was received at the final destination NIC."
+
+    def decrement_ttl(self):
+        """Decrement the IPPacket ttl by 1."""
+        self.ip.ttl -= 1
+
+    @property
+    def can_transmit(self) -> bool:
+        """Informs whether the Frame can transmit based on the IPPacket tll being >= 1."""
+        return self.ip.ttl >= 1
+
+    def set_sent_timestamp(self):
+        """Set the sent_timestamp."""
+        if not self.sent_timestamp:
+            self.sent_timestamp = datetime.now()
+
+    def set_received_timestamp(self):
+        """Set the received_timestamp."""
+        if not self.received_timestamp:
+            self.received_timestamp = datetime.now()
 
     @property
     def size(self) -> float:  # noqa - Keep it as MBits as this is how they're expressed
