@@ -8,24 +8,26 @@ class _JSONFilter(logging.Filter):
         return record.getMessage().startswith("{") and record.getMessage().endswith("}")
 
 
-class PCAP:
+class PacketCapture:
     """
-    A logger class for logging Frames as json strings.
+    Represents a PacketCapture component on a Node in the simulation environment.
 
-    This is essentially a PrimAITE simulated version of PCAP.
+    PacketCapture is a service that logs Frames as json strings; It's Wireshark for PrimAITE.
 
     The PCAPs are logged to: <simulation output directory>/<hostname>/<hostname>_<ip address>_pcap.log
     """
 
     def __init__(self, hostname: str, ip_address: str):
         """
-        Initialize the PCAP instance.
+        Initialize the PacketCapture process.
 
         :param hostname: The hostname for which PCAP logs are being recorded.
         :param ip_address: The IP address associated with the PCAP logs.
         """
-        self.hostname = hostname
-        self.ip_address = str(ip_address)
+        self.hostname: str = hostname
+        "The hostname for which PCAP logs are being recorded."
+        self.ip_address: str = ip_address
+        "The IP address associated with the PCAP logs."
         self._setup_logger()
 
     def _setup_logger(self):
@@ -51,7 +53,7 @@ class PCAP:
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self.hostname}_{self.ip_address}_pcap.log"
 
-    def capture(self, frame):  # noqa Please don't make me, I'll have a circular import and cant use if TYPE_CHECKING ;(
+    def capture(self, frame):  # noqa - I'll have a circular import and cant use if TYPE_CHECKING ;(
         """
         Capture a Frame and log it.
 

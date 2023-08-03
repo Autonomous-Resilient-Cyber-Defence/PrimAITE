@@ -13,8 +13,8 @@ from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
-from primaite.simulator.system.processes.pcap import PCAP
-from primaite.simulator.system.processes.sys_log import SysLog
+from primaite.simulator.system.packet_capture import PacketCapture
+from primaite.simulator.system.sys_log import SysLog
 
 _LOGGER = getLogger(__name__)
 
@@ -87,7 +87,7 @@ class NIC(SimComponent):
     "The Link to which the NIC is connected."
     enabled: bool = False
     "Indicates whether the NIC is enabled."
-    pcap: Optional[PCAP] = None
+    pcap: Optional[PacketCapture] = None
 
     def __init__(self, **kwargs):
         """
@@ -132,10 +132,10 @@ class NIC(SimComponent):
         """Attempt to enable the NIC."""
         if not self.enabled:
             if self.connected_node:
-                if self.connected_node.hardware_state == NodeOperatingState.ON:
+                if self.connected_node.operating_state == NodeOperatingState.ON:
                     self.enabled = True
                     _LOGGER.info(f"NIC {self} enabled")
-                    self.pcap = PCAP(hostname=self.connected_node.hostname, ip_address=self.ip_address)
+                    self.pcap = PacketCapture(hostname=self.connected_node.hostname, ip_address=self.ip_address)
                     if self.connected_link:
                         self.connected_link.endpoint_up()
                 else:
@@ -393,7 +393,7 @@ class Node(SimComponent):
     A basic Node class.
 
     :param hostname: The node hostname on the network.
-    :param hardware_state: The hardware state of the node.
+    :param operating_state: The node operating state.
     """
 
     hostname: str
