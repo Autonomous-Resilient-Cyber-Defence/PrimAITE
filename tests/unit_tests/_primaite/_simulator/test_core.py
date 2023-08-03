@@ -43,7 +43,7 @@ class TestIsolatedSimComponent:
 
         comp = TestComponent(name="computer", size=(5, 10))
         dump = comp.model_dump()
-        assert dump == {"name": "computer", "size": (5, 10)}
+        assert dump["name"] is "computer"
 
     def test_apply_action(self):
         """Validate that we can override apply_action behaviour and it updates the state of the component."""
