@@ -1,6 +1,8 @@
 import logging
 from pathlib import Path
 
+from primaite.simulator import TEMP_SIM_OUTPUT
+
 
 class _NotJSONFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
@@ -31,8 +33,10 @@ class SysLog:
 
     def _setup_logger(self):
         """
-        Configures the logger for this SysLog instance. The logger is set to the DEBUG level,
-        and is equipped with a handler that writes to a file and filters out JSON-like messages.
+        Configures the logger for this SysLog instance.
+
+        The logger is set to the DEBUG level, and is equipped with a handler that writes to a file and filters out
+        JSON-like messages.
         """
         log_path = self._get_log_path()
 
@@ -54,7 +58,7 @@ class SysLog:
 
         :return: Path object representing the location of the log file.
         """
-        root = Path(__file__).parent.parent.parent.parent.parent.parent / "simulation_output" / self.hostname
+        root = TEMP_SIM_OUTPUT / self.hostname
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self.hostname}_sys.log"
 

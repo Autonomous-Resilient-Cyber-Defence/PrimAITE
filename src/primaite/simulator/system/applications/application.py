@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, List, Dict, Set
+from typing import Any, Dict, List, Set
 
 from primaite.simulator.system.software import IOSoftware
 
@@ -22,6 +22,7 @@ class Application(IOSoftware):
 
     Applications are user-facing programs that may perform input/output operations.
     """
+
     operating_state: ApplicationOperatingState
     "The current operating state of the Application."
     execution_control_status: str
@@ -61,9 +62,9 @@ class Application(IOSoftware):
         """
         pass
 
-    def send(self, payload: Any) -> bool:
+    def send(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
-        Sends a payload to the SessionManager
+        Sends a payload to the SessionManager.
 
         The specifics of how the payload is processed and whether a response payload
         is generated should be implemented in subclasses.
@@ -73,7 +74,7 @@ class Application(IOSoftware):
         """
         pass
 
-    def receive(self, payload: Any) -> bool:
+    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
         Receives a payload from the SessionManager.
 

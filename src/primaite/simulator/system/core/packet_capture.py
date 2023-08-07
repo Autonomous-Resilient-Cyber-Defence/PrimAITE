@@ -1,5 +1,8 @@
 import logging
 from pathlib import Path
+from typing import Optional
+
+from primaite.simulator import TEMP_SIM_OUTPUT
 
 
 class _JSONFilter(logging.Filter):
@@ -17,7 +20,7 @@ class PacketCapture:
     The PCAPs are logged to: <simulation output directory>/<hostname>/<hostname>_<ip address>_pcap.log
     """
 
-    def __init__(self, hostname: str, ip_address: str):
+    def __init__(self, hostname: str, ip_address: Optional[str] = None):
         """
         Initialize the PacketCapture process.
 
@@ -40,7 +43,7 @@ class PacketCapture:
         log_format = "%(message)s"
         file_handler.setFormatter(logging.Formatter(log_format))
 
-        logger_name = f"{self.hostname}_{self.ip_address}_pcap"
+        logger_name = f"{self.hostname}_{self.ip_address}_pcap" if self.ip_address else f"{self.hostname}_pcap"
         self.logger = logging.getLogger(logger_name)
         self.logger.setLevel(60)  # Custom log level > CRITICAL to prevent any unwanted standard DEBUG-CRITICAL logs
         self.logger.addHandler(file_handler)
@@ -49,9 +52,11 @@ class PacketCapture:
 
     def _get_log_path(self) -> Path:
         """Get the path for the log file."""
-        root = Path(__file__).parent.parent.parent.parent.parent.parent / "simulation_output" / self.hostname
+        root = TEMP_SIM_OUTPUT / self.hostname
         root.mkdir(exist_ok=True, parents=True)
-        return root / f"{self.hostname}_{self.ip_address}_pcap.log"
+        if self.ip_address:
+            return root / f"{self.hostname}_{self.ip_address}_pcap.log"
+        return root / f"{self.hostname}_pcap.log"
 
     def capture(self, frame):  # noqa - I'll have a circular import and cant use if TYPE_CHECKING ;(
         """

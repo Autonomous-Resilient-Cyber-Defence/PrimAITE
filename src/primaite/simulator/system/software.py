@@ -6,6 +6,24 @@ from primaite.simulator.core import SimComponent
 from primaite.simulator.network.transmission.transport_layer import Port
 
 
+class SoftwareType(Enum):
+    """
+    An enumeration representing the different types of software within a simulated environment.
+
+    Members:
+    - APPLICATION: User-facing programs that may perform input/output operations.
+    - SERVICE: Represents programs that run in the background and may perform input/output operations.
+    - PROCESS: Software executed by a Node that does not have the ability to performing input/output operations.
+    """
+
+    APPLICATION = 1
+    "User-facing software that may perform input/output operations."
+    SERVICE = 2
+    "Software that runs in the background and may perform input/output operations."
+    PROCESS = 3
+    "Software executed by a Node that does not have the ability to performing input/output operations."
+
+
 class SoftwareHealthState(Enum):
     """Enumeration of the Software Health States."""
 
@@ -41,6 +59,7 @@ class Software(SimComponent):
     This class is intended to be subclassed by specific types of software entities.
     It outlines the fundamental attributes and behaviors expected of any software in the simulation.
     """
+
     name: str
     "The name of the software."
     health_state_actual: SoftwareHealthState
@@ -100,6 +119,7 @@ class IOSoftware(Software):
     OSI Model), process them according to their internals, and send a response payload back to the SessionManager if
     required.
     """
+
     installing_count: int = 0
     "The number of times the software has been installed. Default is 0."
     max_sessions: int = 1
@@ -111,26 +131,44 @@ class IOSoftware(Software):
     ports: Set[Port]
     "The set of ports to which the software is connected."
 
-    def send(self, payload: Any) -> bool:
+    @abstractmethod
+    def describe_state(self) -> Dict:
         """
-        Sends a payload to the SessionManager
+        Describes the current state of the software.
+
+        The specifics of the software's state, including its health, criticality,
+        and any other pertinent information, should be implemented in subclasses.
+
+        :return: A dictionary containing key-value pairs representing the current state of the software.
+        :rtype: Dict
+        """
+        pass
+
+    def send(self, payload: Any, session_id: str, **kwargs) -> bool:
+        """
+        Sends a payload to the SessionManager.
 
         The specifics of how the payload is processed and whether a response payload
         is generated should be implemented in subclasses.
 
         :param payload: The payload to send.
-        :return: True if successful, False otherwise.
+        :param session_id: The identifier of the session that the payload is associated with.
+        :param kwargs: Additional keyword arguments specific to the implementation.
+        :return: True if the payload was successfully sent, False otherwise.
         """
         pass
 
-    def receive(self, payload: Any) -> bool:
+    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
         Receives a payload from the SessionManager.
 
         The specifics of how the payload is processed and whether a response payload
         is generated should be implemented in subclasses.
 
+
         :param payload: The payload to receive.
-        :return: True if successful, False otherwise.
+        :param session_id: The identifier of the session that the payload is associated with.
+        :param kwargs: Additional keyword arguments specific to the implementation.
+        :return: True if the payload was successfully received and processed, False otherwise.
         """
         pass

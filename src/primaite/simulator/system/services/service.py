@@ -28,6 +28,7 @@ class Service(IOSoftware):
 
     Services are programs that run in the background and may perform input/output operations.
     """
+
     operating_state: ServiceOperatingState
     "The current operating state of the Service."
 
@@ -61,9 +62,9 @@ class Service(IOSoftware):
         """
         pass
 
-    def send(self, payload: Any) -> bool:
+    def send(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
-        Sends a payload to the SessionManager
+        Sends a payload to the SessionManager.
 
         The specifics of how the payload is processed and whether a response payload
         is generated should be implemented in subclasses.
@@ -73,7 +74,7 @@ class Service(IOSoftware):
         """
         pass
 
-    def receive(self, payload: Any) -> bool:
+    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
         Receives a payload from the SessionManager.
 
@@ -84,4 +85,3 @@ class Service(IOSoftware):
         :return: True if successful, False otherwise.
         """
         pass
-

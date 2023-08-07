@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import List, Dict, Any
+from typing import Dict
 
 from primaite.simulator.system.software import Software
 
@@ -20,6 +20,7 @@ class Process(Software):
 
     Processes are executed by a Node and do not have the ability to performing input/output operations.
     """
+
     operating_state: ProcessOperatingState
     "The current operating state of the Process."
 

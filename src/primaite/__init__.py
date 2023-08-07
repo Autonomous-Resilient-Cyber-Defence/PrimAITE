@@ -16,6 +16,8 @@ from platformdirs import PlatformDirs
 with open(Path(__file__).parent.resolve() / "VERSION", "r") as file:
     __version__ = file.readline().strip()
 
+_PRIMAITE_ROOT: Path = Path(__file__).parent
+
 
 class _PrimaitePaths:
     """
