@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Permission System - each agent action can define criteria that will be used to permit or deny agent actions.
+
+
 ## [2.0.0] - 2023-07-26
 
 ### Added
