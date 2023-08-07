@@ -16,31 +16,18 @@ class FileSystemFolder(FileSystemItem):
     is_quarantined: bool = False
     """Flag that marks the folder as quarantined if true."""
 
-    def get_folder_name(self) -> str:
-        """Returns the item_name of the folder."""
-        return self.item_name
-
-    def get_folder_size(self) -> float:
-        """Returns the item_size of the folder."""
-        return self.item_size
-
-    def get_files(self) -> Dict:
-        """Returns the files dictionary."""
-        return self.files
-
-    def get_file(self, file_id: str) -> FileSystemFile:
+    def get_file_by_id(self, file_id: str) -> FileSystemFile:
         """Return a FileSystemFile with the matching id."""
-        return self.files[file_id]
+        return self.files.get(file_id)
 
     def add_file(self, file: FileSystemFile):
         """Adds a file to the folder list."""
         if file is None or not isinstance(file, FileSystemFile):
             raise Exception(f"Invalid file: {file}")
 
-        self.item_size += file.get_file_size()
-
         # add to list
         self.files[file.uuid] = file
+        self.size += file.size
 
     def remove_file(self, file: Optional[FileSystemFile]):
         """
@@ -57,8 +44,7 @@ class FileSystemFolder(FileSystemItem):
         if self.files.get(file.uuid):
             del self.files[file.uuid]
 
-            # remove folder size from folder
-            self.item_size -= file.get_file_size()
+            self.size -= file.size
         else:
             _LOGGER.debug(f"File with UUID {file.uuid} was not found.")
 

@@ -10,7 +10,7 @@ class SimComponent(BaseModel):
     """Extension of pydantic BaseModel with additional methods that must be defined by all classes in the simulator."""
 
     uuid: str
-    "The component UUID."
+    """The component UUID."""
 
     def __init__(self, **kwargs):
         if not kwargs.get("uuid"):

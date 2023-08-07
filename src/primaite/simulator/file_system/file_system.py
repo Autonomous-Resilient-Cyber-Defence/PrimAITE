@@ -31,7 +31,7 @@ class FileSystem(SimComponent):
     def create_file(
         self,
         file_name: str,
-        file_size: Optional[float] = None,
+        size: Optional[float] = None,
         file_type: Optional[FileSystemFileType] = None,
         folder: Optional[FileSystemFolder] = None,
         folder_uuid: Optional[str] = None,
@@ -39,14 +39,14 @@ class FileSystem(SimComponent):
         """
         Creates a FileSystemFile and adds it to the list of files.
 
-        If no file_size or file_type are provided, one will be chosen randomly.
+        If no size or file_type are provided, one will be chosen randomly.
         If no folder_uuid or folder is provided, a new folder will be created.
 
         :param: file_name: The file name
         :type: file_name: str
 
-        :param: file_size: The size the file takes on disk.
-        :type: file_size: Optional[float]
+        :param: size: The size the file takes on disk.
+        :type: size: Optional[float]
 
         :param: file_type: The type of the file
         :type: Optional[FileSystemFileType]
@@ -69,17 +69,17 @@ class FileSystem(SimComponent):
             folder = self.get_folder_by_id(folder_uuid)
 
         if folder is not None:
-            file = FileSystemFile(item_name=file_name, item_size=file_size, file_type=file_type)
+            file = FileSystemFile(name=file_name, size=size, file_type=file_type)
             folder.add_file(file=file)
         else:
             # check if a "root" folder exists
             folder = self.get_folder_by_name("root")
             if folder is None:
                 # create a root folder
-                folder = FileSystemFolder(item_name="root")
+                folder = FileSystemFolder(name="root")
 
             # add file to root folder
-            file = FileSystemFile(item_name=file_name, item_size=file_size, file_type=file_type)
+            file = FileSystemFile(name=file_name, size=size, file_type=file_type)
             folder.add_file(file)
             self.folders[folder.uuid] = folder
         return file
@@ -94,7 +94,7 @@ class FileSystem(SimComponent):
         :param: folder_name: The name of the folder
         :type: folder_name: str
         """
-        folder = FileSystemFolder(item_name=folder_name)
+        folder = FileSystemFolder(name=folder_name)
         self.folders[folder.uuid] = folder
         return folder
 
@@ -185,7 +185,7 @@ class FileSystem(SimComponent):
     def get_file_by_id(self, file_id: str) -> FileSystemFile:
         """Checks if the file exists in any file system folders."""
         for key in self.folders:
-            file = self.folders[key].get_file(file_id=file_id)
+            file = self.folders[key].get_file_by_id(file_id=file_id)
             if file is not None:
                 return file
 
@@ -197,7 +197,7 @@ class FileSystem(SimComponent):
         """
         matching_folder = None
         for key in self.folders:
-            if self.folders[key].get_folder_name() == folder_name:
+            if self.folders[key].name == folder_name:
                 matching_folder = self.folders[key]
                 break
         return matching_folder
