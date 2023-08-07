@@ -10,11 +10,11 @@ def test_adding_removing_file():
     file = FileSystemFile(item_name="test_file", item_size=10, file_type=FileSystemFileType.DOC)
 
     folder.add_file(file)
-    assert folder.get_folder_size() is 10
+    assert folder.get_folder_size() == 10
     assert len(folder.get_files()) is 1
 
     folder.remove_file(file)
-    assert folder.get_folder_size() is 0
+    assert folder.get_folder_size() == 0
     assert len(folder.get_files()) is 0
 
 
@@ -27,7 +27,7 @@ def test_get_file_by_id():
 
     folder.add_file(file)
     folder.add_file(file2)
-    assert folder.get_folder_size() is 20
+    assert folder.get_folder_size() == 20
     assert len(folder.get_files()) is 2
 
     assert folder.get_file(file_id=file.uuid) is file
@@ -54,6 +54,6 @@ def test_serialisation():
 
     serialised_folder = folder.model_dump_json()
 
-    deserialised_folder = FileSystemFolder(item_name="test").model_validate_json(serialised_folder)
+    deserialised_folder = FileSystemFolder.model_validate_json(serialised_folder)
 
     assert folder == deserialised_folder

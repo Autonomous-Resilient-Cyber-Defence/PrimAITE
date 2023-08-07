@@ -1,10 +1,10 @@
 from typing import Dict, List, Optional
 
 from primaite.simulator.file_system.file_system_file import FileSystemFile
-from primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItem
 
 
-class FileSystemFolder(FileSystemItemABC):
+class FileSystemFolder(FileSystemItem):
     """Simulation FileSystemFolder."""
 
     files: List[FileSystemFile] = []

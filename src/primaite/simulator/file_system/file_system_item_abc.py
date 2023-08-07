@@ -1,9 +1,9 @@
-from abc import ABC
+from typing import Dict
 
 from primaite.simulator.core import SimComponent
 
 
-class FileSystemItemABC(SimComponent, ABC):
+class FileSystemItem(SimComponent):
     """Abstract base class for FileSystemItems used in the file system simulation."""
 
     item_size: float = 0
@@ -11,3 +11,7 @@ class FileSystemItemABC(SimComponent, ABC):
 
     item_name: str
     """The name of the file system item."""
+
+    def describe_state(self) -> Dict:
+        """Returns the state of the FileSystemItem."""
+        pass

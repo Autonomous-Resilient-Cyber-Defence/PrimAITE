@@ -10,7 +10,7 @@ def test_create_folder_and_file():
     file_system.create_file(file_name="test_file", file_size=10, folder_uuid=folder.uuid)
     assert len(file_system.get_folders()[0].get_files()) is 1
     assert file_system.get_folders()[0].get_files()[0].get_file_name() is "test_file"
-    assert file_system.get_folders()[0].get_files()[0].get_file_size() is 10
+    assert file_system.get_folders()[0].get_files()[0].get_file_size() == 10
 
 
 def test_create_file():
@@ -92,6 +92,6 @@ def test_serialisation():
     assert len(file_system.get_folders()[0].get_files()) is 1
 
     serialised_file_sys = file_system.model_dump_json()
-    deserialised_file_sys = FileSystem().model_validate_json(serialised_file_sys)
+    deserialised_file_sys = FileSystem.model_validate_json(serialised_file_sys)
 
     assert file_system == deserialised_file_sys

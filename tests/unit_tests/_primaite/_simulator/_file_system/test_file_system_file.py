@@ -11,13 +11,13 @@ def test_file_type():
 def test_get_file_size():
     """Tests that the file size is being returned properly."""
     file = FileSystemFile(item_name="test", item_size=1.5)
-    assert file.get_file_size() is 1.5
+    assert file.get_file_size() == 1.5
 
 
 def test_serialisation():
     """Test to check that the object serialisation works correctly."""
     file = FileSystemFile(item_name="test", item_size=1.5, file_type=FileSystemFileType.DOC)
     serialised_file = file.model_dump_json()
-    deserialised_file = FileSystemFile(item_name="test").model_validate_json(serialised_file)
+    deserialised_file = FileSystemFile.model_validate_json(serialised_file)
 
     assert file == deserialised_file

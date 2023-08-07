@@ -1,11 +1,11 @@
 from random import choice, randint
 from typing import Dict
 
-from primaite.simulator.file_system.file_system_file_type import FileSystemFileType
-from primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC
+from primaite.simulator.file_system.file_system_file_type import file_type_sizes_KB, FileSystemFileType
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItem
 
 
-class FileSystemFile(FileSystemItemABC):
+class FileSystemFile(FileSystemItem):
     """Class that represents a file in the simulation."""
 
     file_type: FileSystemFileType = None
@@ -24,23 +24,19 @@ class FileSystemFile(FileSystemItemABC):
         :param item_size: The size of the FileSystemItem
         :type item_size: Optional[float]
         """
-        super().__init__(**kwargs)
-
         # set random file type if none provided
         if kwargs.get("item_name") is None:
             raise Exception("File name not provided.")
-
-        # set random file size if non provided
-        if kwargs.get("item_size") is None:
-            kwargs["item_size"] = float(randint(1, 1000))
 
         # set random file type if none provided
         if kwargs.get("file_type") is None:
             kwargs["file_type"] = choice(list(FileSystemFileType))
 
-        self.item_name = kwargs.get("item_name")
-        self.item_size = kwargs.get("item_size")
-        self.file_type = kwargs.get("file_type")
+        # set random file size if none provided
+        if kwargs.get("item_size") is None:
+            kwargs["item_size"] = float(randint(1, file_type_sizes_KB[kwargs["file_type"]]))
+
+        super().__init__(**kwargs)
 
     def get_file_name(self) -> str:
         """Returns the name of the file."""
