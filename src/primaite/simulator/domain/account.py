@@ -1,6 +1,6 @@
 """User account simulation."""
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Dict
 
 from primaite import getLogger
 from primaite.simulator.core import SimComponent
@@ -49,6 +49,10 @@ class Account(SimComponent):
     "Account Type, currently this can be service account (used by apps) or user account."
     status: AccountStatus = AccountStatus.disabled
 
+    def describe_state(self) -> Dict:
+        """Describe state for agent observations."""
+        return super().describe_state()
+
     def enable(self):
         """Set the status to enabled."""
         self.status = AccountStatus.enabled
@@ -57,8 +61,10 @@ class Account(SimComponent):
         """Set the status to disabled."""
         self.status = AccountStatus.disabled
 
-    def _possible_actions(self) -> Dict[str, Callable[[List[str]], None]]:
-        return {
-            "enable": self.enable,
-            "disable": self.disable,
-        }
+    def log_on(self) -> None:
+        """TODO."""
+        self.num_logons += 1
+
+    def log_off(self) -> None:
+        """TODO."""
+        self.num_logoffs += 1

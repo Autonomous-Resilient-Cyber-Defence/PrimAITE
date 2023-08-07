@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, Final, List
+from typing import Dict, Final, List, Literal, Tuple
 
 from primaite.simulator.core import ActionPermissionValidator, SimComponent
 from primaite.simulator.domain.account import Account, AccountType
@@ -7,18 +7,26 @@ from primaite.simulator.domain.account import Account, AccountType
 
 # placeholder while these objects don't yet exist
 class temp_node:
+    """Placeholder for node class for type hinting purposes."""
+
     pass
 
 
 class temp_application:
+    """Placeholder for application class for type hinting purposes."""
+
     pass
 
 
 class temp_folder:
+    """Placeholder for folder class for type hinting purposes."""
+
     pass
 
 
 class temp_file:
+    """Placeholder for file class for type hinting purposes."""
+
     pass
 
 
@@ -59,9 +67,12 @@ class DomainController(SimComponent):
     accounts: List[Account] = []
     groups: Final[List[AccountGroup]] = list(AccountGroup)
 
-    group_membership: Dict[AccountGroup, List[Account]]
+    domain_group_membership: Dict[Literal[AccountGroup.domain_admin, AccountGroup.domain_user], List[Account]] = {}
+    local_group_membership: Dict[
+        Tuple(temp_node, Literal[AccountGroup.local_admin, AccountGroup.local_user]), List[Account]
+    ] = {}
 
-    # references to non-owned objects
+    # references to non-owned objects. Not sure if all are needed here.
     nodes: List[temp_node] = []
     applications: List[temp_application] = []
     folders: List[temp_folder] = []
@@ -79,6 +90,10 @@ class DomainController(SimComponent):
         """TODO."""
         ...
 
+    def delete_account(self, account: Account) -> None:
+        """TODO."""
+        ...
+
     def rotate_all_credentials(self) -> None:
         """TODO."""
         ...
@@ -92,5 +107,17 @@ class DomainController(SimComponent):
         ...
 
     def remove_account_from_group(self, account: Account, group: AccountGroup) -> None:
+        """TODO."""
+        ...
+
+    def check_account_permissions(self, account: Account, node: temp_node) -> List[AccountGroup]:
+        """Return a list of permission groups that this account has on this node."""
+        ...
+
+    def register_node(self, node: temp_node) -> None:
+        """TODO."""
+        ...
+
+    def deregister_node(self, node: temp_node) -> None:
         """TODO."""
         ...
