@@ -1,45 +1,54 @@
-from random import choice, random
+from random import choice, randint
 from typing import Dict
 
-from primaite.simulator.core import SimComponent
 from primaite.simulator.file_system.file_system_file_type import FileSystemFileType
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC
 
 
-class FileSystemFile(SimComponent):
+class FileSystemFile(FileSystemItemABC):
     """Class that represents a file in the simulation."""
 
     file_type: FileSystemFileType = None
     """The type of the FileSystemFile"""
 
-    file_size: float = 0
-    """Disk size of the FileSystemItem"""
-
     def __init__(self, **kwargs):
         """
         Initialise FileSystemFile class.
 
+        :param item_name: The name of the file.
+        :type item_name: str
+
         :param file_type: The FileSystemFileType of the file
         :type file_type: Optional[FileSystemFileType]
 
-        :param file_size: The size of the FileSystemItem
-        :type file_size: Optional[float]
+        :param item_size: The size of the FileSystemItem
+        :type item_size: Optional[float]
         """
         super().__init__(**kwargs)
 
-        self.file_type = choice(list(FileSystemFileType))
-        self.file_size = random()
+        # set random file type if none provided
+        if kwargs.get("item_name") is None:
+            raise Exception("File name not provided.")
 
         # set random file size if non provided
-        if kwargs.get("file_size") is not None:
-            self.file_size = kwargs.get("file_size")
+        if kwargs.get("item_size") is None:
+            kwargs["item_size"] = float(randint(1, 1000))
 
         # set random file type if none provided
         if kwargs.get("file_type") is None:
-            self.file_type = kwargs.get("file_type")
+            kwargs["file_type"] = choice(list(FileSystemFileType))
+
+        self.item_name = kwargs.get("item_name")
+        self.item_size = kwargs.get("item_size")
+        self.file_type = kwargs.get("file_type")
+
+    def get_file_name(self) -> str:
+        """Returns the name of the file."""
+        return self.item_name
 
     def get_file_size(self) -> float:
         """Returns the size of the file system item."""
-        return self.file_size
+        return self.item_size
 
     def get_file_type(self) -> FileSystemFileType:
         """Returns the FileSystemFileType of the file."""

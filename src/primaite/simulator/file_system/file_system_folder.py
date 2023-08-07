@@ -1,20 +1,25 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from primaite.simulator.core import SimComponent
 from primaite.simulator.file_system.file_system_file import FileSystemFile
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC
 
 
-class FileSystemFolder(SimComponent):
+class FileSystemFolder(FileSystemItemABC):
     """Simulation FileSystemFolder."""
 
     files: List[FileSystemFile] = []
     """List of files stored in the folder."""
 
-    folder_size: float = 0
-    """The current size of the folder"""
-
     is_quarantined: bool = False
     """Flag that marks the folder as quarantined if true."""
+
+    def get_folder_name(self) -> str:
+        """Returns the item_name of the folder."""
+        return self.item_name
+
+    def get_folder_size(self) -> float:
+        """Returns the item_size of the folder."""
+        return self.item_size
 
     def get_files(self) -> List[FileSystemFile]:
         """Returns the list of files the folder contains."""
@@ -26,18 +31,24 @@ class FileSystemFolder(SimComponent):
 
     def add_file(self, file: FileSystemFile):
         """Adds a file to the folder list."""
-        self.folder_size += file.get_file_size()
+        self.item_size += file.get_file_size()
 
         # add to list
         self.files.append(file)
 
-    def remove_file(self, file_id: str):
-        """Removes a file from the folder list."""
-        file = next((f for f in self.files if f.uuid == file_id), None)
+    def remove_file(self, file: Optional[FileSystemFile]):
+        """
+        Removes a file from the folder list.
+
+        The method can take a FileSystemFile object or a file id.
+
+        :param: file: The file to remove
+        :type: Optional[FileSystemFile]
+        """
         self.files.remove(file)
 
         # remove folder size from folder
-        self.folder_size -= file.get_file_size()
+        self.item_size -= file.get_file_size()
 
     def get_folder_size(self) -> float:
         """Returns a sum of all file sizes in the files list."""
