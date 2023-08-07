@@ -20,4 +20,4 @@ def test_serialisation():
     serialised_file = file.model_dump_json()
     deserialised_file = FileSystemFile.model_validate_json(serialised_file)
 
-    assert file == deserialised_file
+    assert file.model_dump_json() == deserialised_file.model_dump_json()

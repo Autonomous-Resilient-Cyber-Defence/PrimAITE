@@ -18,6 +18,22 @@ def test_adding_removing_file():
     assert len(folder.get_files()) is 0
 
 
+def test_remove_non_existent_file():
+    """Test the removing of a file that does not exist."""
+    folder = FileSystemFolder(item_name="test")
+
+    file = FileSystemFile(item_name="test_file", item_size=10, file_type=FileSystemFileType.DOC)
+    not_added_file = FileSystemFile(item_name="fake_file", item_size=10, file_type=FileSystemFileType.DOC)
+
+    folder.add_file(file)
+    assert folder.get_folder_size() == 10
+    assert len(folder.get_files()) is 1
+
+    folder.remove_file(not_added_file)
+    assert folder.get_folder_size() == 10
+    assert len(folder.get_files()) is 1
+
+
 def test_get_file_by_id():
     """Test to make sure that the correct file is returned."""
     folder = FileSystemFolder(item_name="test")
@@ -56,4 +72,4 @@ def test_serialisation():
 
     deserialised_folder = FileSystemFolder.model_validate_json(serialised_folder)
 
-    assert folder == deserialised_folder
+    assert folder.model_dump_json() == deserialised_folder.model_dump_json()

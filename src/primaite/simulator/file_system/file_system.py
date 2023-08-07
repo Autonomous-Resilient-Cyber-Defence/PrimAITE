@@ -1,16 +1,19 @@
 from random import choice
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
+from primaite import getLogger
 from primaite.simulator.core import SimComponent
 from primaite.simulator.file_system.file_system_file import FileSystemFile
 from primaite.simulator.file_system.file_system_file_type import FileSystemFileType
 from primaite.simulator.file_system.file_system_folder import FileSystemFolder
 
+_LOGGER = getLogger(__name__)
+
 
 class FileSystem(SimComponent):
     """Class that contains all the simulation File System."""
 
-    folders: List[FileSystemFolder] = []
+    folders: Dict = {}
     """List containing all the folders in the file system."""
 
     def describe_state(self) -> Dict:
@@ -21,7 +24,7 @@ class FileSystem(SimComponent):
         """
         pass
 
-    def get_folders(self) -> List[FileSystemFolder]:
+    def get_folders(self) -> Dict:
         """Returns the list of folders."""
         return self.folders
 
@@ -47,6 +50,9 @@ class FileSystem(SimComponent):
 
         :param: file_type: The type of the file
         :type: Optional[FileSystemFileType]
+
+        :param: folder: The folder to add the file to
+        :type: folder: Optional[FileSystemFolder]
 
         :param: folder_uuid: The uuid of the folder to add the file to
         :type: folder_uuid: Optional[str]
@@ -75,16 +81,21 @@ class FileSystem(SimComponent):
             # add file to root folder
             file = FileSystemFile(item_name=file_name, item_size=file_size, file_type=file_type)
             folder.add_file(file)
-            self.folders.append(folder)
+            self.folders[folder.uuid] = folder
         return file
 
     def create_folder(
         self,
         folder_name: str,
     ) -> FileSystemFolder:
-        """Creates a FileSystemFolder and adds it to the list of folders."""
+        """
+        Creates a FileSystemFolder and adds it to the list of folders.
+
+        :param: folder_name: The name of the folder
+        :type: folder_name: str
+        """
         folder = FileSystemFolder(item_name=folder_name)
-        self.folders.append(folder)
+        self.folders[folder.uuid] = folder
         return folder
 
     def delete_file(self, file: Optional[FileSystemFile] = None):
@@ -93,13 +104,10 @@ class FileSystem(SimComponent):
 
         :param file: The file to delete
         :type file: Optional[FileSystemFile]
-
-        :param file_id: The UUID of the file item to delete
-        :type file_id: Optional[str]
         """
         # iterate through folders to delete the item with the matching uuid
-        for folder in self.folders:
-            folder.remove_file(file=file)
+        for key in self.folders:
+            self.get_folder_by_id(key).remove_file(file)
 
     def delete_folder(self, folder: FileSystemFolder):
         """
@@ -108,7 +116,13 @@ class FileSystem(SimComponent):
         :param folder: The folder to remove
         :type folder: FileSystemFolder
         """
-        self.folders.remove(folder)
+        if folder is None or not isinstance(folder, FileSystemFolder):
+            raise Exception(f"Invalid folder: {folder}")
+
+        if self.folders.get(folder.uuid):
+            del self.folders[folder.uuid]
+        else:
+            _LOGGER.debug(f"File with UUID {folder.uuid} was not found.")
 
     def move_file(self, file: FileSystemFile, src_folder: FileSystemFolder, target_folder: FileSystemFolder):
         """
@@ -170,8 +184,8 @@ class FileSystem(SimComponent):
 
     def get_file_by_id(self, file_id: str) -> FileSystemFile:
         """Checks if the file exists in any file system folders."""
-        for folder in self.folders:
-            file = folder.get_file(file_id=file_id)
+        for key in self.folders:
+            file = self.folders[key].get_file(file_id=file_id)
             if file is not None:
                 return file
 
@@ -181,12 +195,26 @@ class FileSystem(SimComponent):
 
         :return: Returns the first FileSydtemFolder with a matching name
         """
-        return next((f for f in self.folders if f.get_folder_name() == folder_name), None)
+        matching_folder = None
+        for key in self.folders:
+            if self.folders[key].get_folder_name() == folder_name:
+                matching_folder = self.folders[key]
+                break
+        return matching_folder
 
     def get_folder_by_id(self, folder_id: str) -> FileSystemFolder:
-        """Checks if the folder exists."""
-        return next((f for f in self.folders if f.uuid == folder_id), None)
+        """
+        Checks if the folder exists.
+
+        :param: folder_id: The id of the folder to find
+        :type: folder_id: str
+        """
+        return self.folders[folder_id]
 
     def get_random_file_type(self) -> FileSystemFileType:
-        """Returns a random FileSystemFileTypeEnum."""
+        """
+        Returns a random FileSystemFileTypeEnum.
+
+        :return: A random file type Enum
+        """
         return choice(list(FileSystemFileType))

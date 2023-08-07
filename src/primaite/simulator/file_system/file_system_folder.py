@@ -1,13 +1,16 @@
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
+from primaite import getLogger
 from primaite.simulator.file_system.file_system_file import FileSystemFile
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItem
+
+_LOGGER = getLogger(__name__)
 
 
 class FileSystemFolder(FileSystemItem):
     """Simulation FileSystemFolder."""
 
-    files: List[FileSystemFile] = []
+    files: Dict = {}
     """List of files stored in the folder."""
 
     is_quarantined: bool = False
@@ -21,20 +24,23 @@ class FileSystemFolder(FileSystemItem):
         """Returns the item_size of the folder."""
         return self.item_size
 
-    def get_files(self) -> List[FileSystemFile]:
-        """Returns the list of files the folder contains."""
+    def get_files(self) -> Dict:
+        """Returns the files dictionary."""
         return self.files
 
     def get_file(self, file_id: str) -> FileSystemFile:
         """Return a FileSystemFile with the matching id."""
-        return next((f for f in self.files if f.uuid == file_id), None)
+        return self.files[file_id]
 
     def add_file(self, file: FileSystemFile):
         """Adds a file to the folder list."""
+        if file is None or not isinstance(file, FileSystemFile):
+            raise Exception(f"Invalid file: {file}")
+
         self.item_size += file.get_file_size()
 
         # add to list
-        self.files.append(file)
+        self.files[file.uuid] = file
 
     def remove_file(self, file: Optional[FileSystemFile]):
         """
@@ -45,10 +51,16 @@ class FileSystemFolder(FileSystemItem):
         :param: file: The file to remove
         :type: Optional[FileSystemFile]
         """
-        self.files.remove(file)
+        if file is None or not isinstance(file, FileSystemFile):
+            raise Exception(f"Invalid file: {file}")
 
-        # remove folder size from folder
-        self.item_size -= file.get_file_size()
+        if self.files.get(file.uuid):
+            del self.files[file.uuid]
+
+            # remove folder size from folder
+            self.item_size -= file.get_file_size()
+        else:
+            _LOGGER.debug(f"File with UUID {file.uuid} was not found.")
 
     def quarantine(self):
         """Quarantines the File System Folder."""

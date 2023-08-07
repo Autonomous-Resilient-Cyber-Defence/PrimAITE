@@ -42,8 +42,8 @@ class TestIsolatedSimComponent:
                 return {}
 
         comp = TestComponent(name="computer", size=(5, 10))
-        dump = comp.model_dump()
-        assert dump["name"] is "computer"
+        dump = comp.model_dump_json()
+        assert comp == TestComponent.model_validate_json(dump)
 
     def test_apply_action(self):
         """Validate that we can override apply_action behaviour and it updates the state of the component."""
