@@ -50,10 +50,6 @@ class FileSystemFolder(FileSystemItemABC):
         # remove folder size from folder
         self.item_size -= file.get_file_size()
 
-    def get_folder_size(self) -> float:
-        """Returns a sum of all file sizes in the files list."""
-        return sum([file.get_file_size() for file in self.files])
-
     def quarantine(self):
         """Quarantines the File System Folder."""
         self.is_quarantined = True
