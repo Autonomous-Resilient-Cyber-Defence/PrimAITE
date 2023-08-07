@@ -21,7 +21,7 @@ class ActionPermissionValidator(ABC):
 
     @abstractmethod
     def __call__(self, request: List[str], context: Dict) -> bool:
-        """TODO."""
+        """Use the request and context paramters to decide whether the action should be permitted."""
         pass
 
 
@@ -52,6 +52,10 @@ class Action:
         turning it off, then the SimComponent should have a turn_off(self) method that does not need to accept any args.
         Then, this Action will be given something like ``func = lambda request, context: self.turn_off()``.
 
+        ``validator`` is an instance of a subclass of `ActionPermissionValidator`. This is essentially a callable that
+        accepts `request` and `context` and returns a boolean to represent whether the permission is granted to perform
+        the action.
+
         :param func: Function that performs the request.
         :type func: Callable[[List[str], Dict], None]
         :param validator: Function that checks if the request is authenticated given the context.
@@ -62,14 +66,28 @@ class Action:
 
 
 class ActionManager:
-    """TODO."""
+    """
+    ActionManager is used by `SimComponent` instances to keep track of actions.
+
+    Its main purpose is to be a lookup from action name to action function and corresponding validation function. This
+    class is responsible for providing a consistent API for processing actions as well as helpful error messages.
+    """
 
     def __init__(self) -> None:
-        """TODO."""
+        """Initialise ActionManager with an empty action lookup."""
         self.actions: Dict[str, Action] = {}
 
     def process_request(self, request: List[str], context: Dict) -> None:
-        """Process action request."""
+        """Process an action request.
+
+        :param request: A list of strings which specify what action to take. The first string must be one of the allowed
+            actions, i.e. it must be a key of self.actions. The subsequent strings in the list are passed as parameters
+            to the action function.
+        :type request: List[str]
+        :param context: Dictionary of additional information necessary to process or validate the request.
+        :type context: Dict
+        :raises RuntimeError: If the request parameter does not have a valid action identifier as the first item.
+        """
         action_key = request[0]
 
         if action_key not in self.actions:
@@ -90,6 +108,18 @@ class ActionManager:
         action.func(action_options, context)
 
     def add_action(self, name: str, action: Action) -> None:
+        """Add an action to this action manager.
+
+        :param name: The string associated to this action.
+        :type name: str
+        :param action: Action object.
+        :type action: Action
+        """
+        if name in self.actions:
+            msg = f"Attempted to register an action but the action name {name} is already taken."
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
+
         self.actions[name] = action
 
 

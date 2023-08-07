@@ -47,7 +47,11 @@ class GroupMembershipValidator(ActionPermissionValidator):
     """Permit actions based on group membership."""
 
     def __init__(self, allowed_groups: List[AccountGroup]) -> None:
-        """TODO."""
+        """Store a list of groups that should be granted permission.
+
+        :param allowed_groups: List of AccountGroups that are permitted to perform some action.
+        :type allowed_groups: List[AccountGroup]
+        """
         self.allowed_groups = allowed_groups
 
     def __call__(self, request: List[str], context: Dict) -> bool:
@@ -64,7 +68,7 @@ class DomainController(SimComponent):
     """Main object for controlling the domain."""
 
     # owned objects
-    accounts: List[Account] = []
+    accounts: Dict[str, Account] = {}
     groups: Final[List[AccountGroup]] = list(AccountGroup)
 
     domain_group_membership: Dict[Literal[AccountGroup.domain_admin, AccountGroup.domain_user], List[Account]] = {}
@@ -73,10 +77,10 @@ class DomainController(SimComponent):
     ] = {}
 
     # references to non-owned objects. Not sure if all are needed here.
-    nodes: List[temp_node] = []
-    applications: List[temp_application] = []
-    folders: List[temp_folder] = []
-    files: List[temp_file] = []
+    nodes: Dict[str, temp_node] = {}
+    applications: Dict[str, temp_application] = {}
+    folders: List[temp_folder] = {}
+    files: List[temp_file] = {}
 
     def _register_account(self, account: Account) -> None:
         """TODO."""

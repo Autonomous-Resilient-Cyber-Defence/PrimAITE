@@ -11,25 +11,25 @@ _LOGGER = getLogger(__name__)
 class AccountType(Enum):
     """Whether the account is intended for a user to log in or for a service to use."""
 
-    service = 1
+    SERVICE = 1
     "Service accounts are used to grant permissions to software on nodes to perform actions"
-    user = 2
+    USER = 2
     "User accounts are used to allow agents to log in and perform actions"
 
 
 class AccountStatus(Enum):
     """Whether the account is active."""
 
-    enabled = 1
-    disabled = 2
+    ENABLED = 1
+    DISABLED = 2
 
 
 class PasswordPolicyLevel(Enum):
     """Complexity requirements for account passwords."""
 
-    low = 1
-    medium = 2
-    high = 3
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
 
 
 class Account(SimComponent):
@@ -47,7 +47,7 @@ class Account(SimComponent):
     "Account password."
     account_type: AccountType
     "Account Type, currently this can be service account (used by apps) or user account."
-    status: AccountStatus = AccountStatus.disabled
+    status: AccountStatus = AccountStatus.DISABLED
 
     def describe_state(self) -> Dict:
         """Describe state for agent observations."""
@@ -55,11 +55,11 @@ class Account(SimComponent):
 
     def enable(self):
         """Set the status to enabled."""
-        self.status = AccountStatus.enabled
+        self.status = AccountStatus.ENABLED
 
     def disable(self):
         """Set the status to disabled."""
-        self.status = AccountStatus.disabled
+        self.status = AccountStatus.DISABLED
 
     def log_on(self) -> None:
         """TODO."""
