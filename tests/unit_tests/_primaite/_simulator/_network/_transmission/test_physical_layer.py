@@ -3,7 +3,7 @@ from ipaddress import IPv4Address
 
 import pytest
 
-from primaite.simulator.network.physical_layer import generate_mac_address, NIC
+from primaite.simulator.network.transmission.physical_layer import generate_mac_address, NIC
 
 
 def test_mac_address_generation():

@@ -1,6 +1,6 @@
 import pytest
 
-from primaite.simulator.network.physical_layer import Link, NIC
+from primaite.simulator.network.transmission.physical_layer import Link, NIC
 
 
 def test_link_fails_with_same_nic():

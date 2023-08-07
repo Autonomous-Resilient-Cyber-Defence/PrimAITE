@@ -3,11 +3,12 @@ from __future__ import annotations
 import re
 import secrets
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
 from primaite.simulator.core import SimComponent
+from primaite.simulator.network.transmission.data_link_layer import Frame
 
 _LOGGER = getLogger(__name__)
 
@@ -121,7 +122,7 @@ class NIC(SimComponent):
         Connect the NIC to a link.
 
         :param link: The link to which the NIC is connected.
-        :type link: :class:`~primaite.simulator.network.physical_layer.Link`
+        :type link: :class:`~primaite.simulator.network.transmission.physical_layer.Link`
         :raise NetworkError: When an attempt to connect a Link is made while the NIC has a connected Link.
         """
         if not self.connected_link:
@@ -136,7 +137,7 @@ class NIC(SimComponent):
             raise NetworkError(msg)
 
     def disconnect_link(self):
-        """Disconnect the NIC from the connected :class:`~primaite.simulator.network.physical_layer.Link`."""
+        """Disconnect the NIC from the connected Link."""
         if self.connected_link.endpoint_a == self:
             self.connected_link.endpoint_a = None
         if self.connected_link.endpoint_b == self:
@@ -161,7 +162,7 @@ class NIC(SimComponent):
         """
         pass
 
-    def send_frame(self, frame: Any):
+    def send_frame(self, frame: Frame):
         """
         Send a network frame from the NIC to the connected link.
 
@@ -170,7 +171,7 @@ class NIC(SimComponent):
         """
         pass
 
-    def receive_frame(self, frame: Any):
+    def receive_frame(self, frame: Frame):
         """
         Receive a network frame from the connected link.
 
@@ -220,20 +221,23 @@ class Link(SimComponent):
     current_load: int = 0
     "The current load on the link in Mbps."
 
-    def model_post_init(self, __context: Any) -> None:
+    def __init__(self, **kwargs):
         """
-        Ensure that endpoint_a and endpoint_b are not the same :class:`~primaite.simulator.network.physical_layer.NIC`.
+        Ensure that endpoint_a and endpoint_b are not the same NIC.
+
+        Connect the link to the NICs after creation.
 
         :raises ValueError: If endpoint_a and endpoint_b are the same NIC.
         """
-        if self.endpoint_a == self.endpoint_b:
+        if kwargs["endpoint_a"] == kwargs["endpoint_b"]:
             msg = "endpoint_a and endpoint_b cannot be the same NIC"
             _LOGGER.error(msg)
             raise ValueError(msg)
+        super().__init__(**kwargs)
         self.endpoint_a.connect_link(self)
         self.endpoint_b.connect_link(self)
 
-    def send_frame(self, sender_nic: NIC, frame: Any):
+    def send_frame(self, sender_nic: NIC, frame: Frame):
         """
         Send a network frame from one NIC to another connected NIC.
 
@@ -244,7 +248,7 @@ class Link(SimComponent):
         """
         pass
 
-    def receive_frame(self, sender_nic: NIC, frame: Any):
+    def receive_frame(self, sender_nic: NIC, frame: Frame):
         """
         Receive a network frame from a connected NIC.
 
