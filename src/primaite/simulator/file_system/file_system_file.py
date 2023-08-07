@@ -25,8 +25,7 @@ class FileSystemFile(FileSystemItem):
         :type size: Optional[float]
         """
         # set random file type if none provided
-        if kwargs.get("name") is None:
-            raise Exception("File name not provided.")
+
 
         # set random file type if none provided
         if kwargs.get("file_type") is None:
