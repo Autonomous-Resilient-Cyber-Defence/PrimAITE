@@ -1,5 +1,4 @@
 from typing import Callable, Dict, List, Literal, Tuple
-from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
@@ -36,17 +35,15 @@ class TestIsolatedSimComponent:
         """Validate that our added functionality does not interfere with pydantic."""
 
         class TestComponent(SimComponent):
-            uuid: str
             name: str
             size: Tuple[float, float]
 
             def describe_state(self) -> Dict:
                 return {}
 
-        uuid = str(uuid4())
-        comp = TestComponent(uuid=uuid, name="computer", size=(5, 10))
-        dump = comp.model_dump()
-        assert dump == {"uuid": uuid, "name": "computer", "size": (5, 10)}
+        comp = TestComponent(name="computer", size=(5, 10))
+        dump = comp.model_dump_json()
+        assert comp == TestComponent.model_validate_json(dump)
 
     def test_apply_action(self):
         """Validate that we can override apply_action behaviour and it updates the state of the component."""

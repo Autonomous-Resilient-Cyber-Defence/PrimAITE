@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- File System - ability to emulate a node's file system during a simulation
+
 ## [2.0.0] - 2023-07-26
 
 ### Added

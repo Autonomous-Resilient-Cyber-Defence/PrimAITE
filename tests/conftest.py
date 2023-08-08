@@ -112,7 +112,7 @@ def temp_session_path() -> Path:
     session_timestamp = datetime.now()
     date_dir = session_timestamp.strftime("%Y-%m-%d")
     session_path = session_timestamp.strftime("%Y-%m-%d_%H-%M-%S")
-    session_path = Path(tempfile.gettempdir()) / "primaite" / date_dir / session_path
+    session_path = Path(tempfile.gettempdir()) / "_primaite" / date_dir / session_path
     session_path.mkdir(exist_ok=True, parents=True)
 
     return session_path
