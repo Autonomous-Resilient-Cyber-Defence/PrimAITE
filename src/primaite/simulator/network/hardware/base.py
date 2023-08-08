@@ -4,13 +4,14 @@ import re
 import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from prettytable import PrettyTable
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
 from primaite.simulator.core import SimComponent
+from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
@@ -784,7 +785,7 @@ class Node(SimComponent):
     "All services on the node."
     processes: Dict = {}
     "All processes on the node."
-    file_system: Any = None
+    file_system: FileSystem
     "The nodes file system."
     sys_log: SysLog
     arp: ARPCache
@@ -814,6 +815,8 @@ class Node(SimComponent):
             kwargs["software_manager"] = SoftwareManager(
                 sys_log=kwargs.get("sys_log"), session_manager=kwargs.get("session_manager")
             )
+        if not kwargs.get("file_system"):
+            kwargs["file_system"] = FileSystem()
         super().__init__(**kwargs)
         self.arp.nics = self.nics
 

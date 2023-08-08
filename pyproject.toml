@@ -33,6 +33,7 @@ dependencies = [
     "platformdirs==3.5.1",
     "plotly==5.15.0",
     "polars==0.18.4",
+    "prettytable==3.8.0",
     "PyYAML==6.0",
     "stable-baselines3==1.6.2",
     "tensorflow==2.12.0",
