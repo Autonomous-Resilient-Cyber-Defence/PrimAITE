@@ -6,7 +6,7 @@
 Simulation
 ==========
 
-.. TODO:: Add spiel here about what the simulation is.
+
 
 
 Contents

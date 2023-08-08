@@ -6,13 +6,13 @@ def test_link_up():
     node_a = Node(hostname="node_a")
     nic_a = NIC(ip_address="192.168.0.10", subnet_mask="255.255.255.0", gateway="192.168.0.1")
     node_a.connect_nic(nic_a)
-    node_a.turn_on()
+    node_a.power_on()
     assert nic_a.enabled
 
     node_b = Node(hostname="node_b")
     nic_b = NIC(ip_address="192.168.0.11", subnet_mask="255.255.255.0", gateway="192.168.0.1")
     node_b.connect_nic(nic_b)
-    node_b.turn_on()
+    node_b.power_on()
 
     assert nic_b.enabled
 

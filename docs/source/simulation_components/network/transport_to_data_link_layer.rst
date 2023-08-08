@@ -55,6 +55,19 @@ PrimAITE-specific metadata required for reinforcement learning (RL) purposes.
 Data Link Layer (Layer 2)
 #########################
 
+**ARPEntry:** Represents an entry in the ARP cache. It consists of the following fields:
+
+ - **mac_address:** The MAC address associated with the IP address.
+ - **nic_uuid:** The NIC (Network Interface Card) UUID through which the NIC with the IP address is reachable.
+
+**ARPPacket:** Represents the ARP layer of a network frame, and it includes the following fields:
+
+ - **request:** ARP operation. Set to True for a request and False for a reply.
+ - **sender_mac_addr:** Sender's MAC address.
+ - **sender_ip:** Sender's IP address (IPv4 format).
+ - **target_mac_addr:** Target's MAC address.
+ - **target_ip:** Target's IP address (IPv4 format).
+
 **EthernetHeader:** Represents the Ethernet layer of a network frame. It includes source and destination MAC addresses.
 This header is used to identify the physical hardware addresses of devices on a local network.
 
