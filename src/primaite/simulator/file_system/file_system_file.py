@@ -26,7 +26,6 @@ class FileSystemFile(FileSystemItem):
         """
         # set random file type if none provided
 
-
         # set random file type if none provided
         if kwargs.get("file_type") is None:
             kwargs["file_type"] = choice(list(FileSystemFileType))
