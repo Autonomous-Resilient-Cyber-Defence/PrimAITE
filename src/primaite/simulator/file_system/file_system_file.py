@@ -1,4 +1,4 @@
-from random import choice, randint
+from random import choice
 from typing import Dict
 
 from primaite.simulator.file_system.file_system_file_type import file_type_sizes_KB, FileSystemFileType
