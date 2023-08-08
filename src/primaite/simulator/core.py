@@ -1,12 +1,21 @@
 """Core of the PrimAITE Simulator."""
 from abc import abstractmethod
 from typing import Callable, Dict, List
+from uuid import uuid4
 
 from pydantic import BaseModel
 
 
 class SimComponent(BaseModel):
-    """Extension of pydantic BaseModel with additional methods that must be defined by all classes in  the simulator."""
+    """Extension of pydantic BaseModel with additional methods that must be defined by all classes in the simulator."""
+
+    uuid: str
+    """The component UUID."""
+
+    def __init__(self, **kwargs):
+        if not kwargs.get("uuid"):
+            kwargs["uuid"] = str(uuid4())
+        super().__init__(**kwargs)
 
     @abstractmethod
     def describe_state(self) -> Dict:
