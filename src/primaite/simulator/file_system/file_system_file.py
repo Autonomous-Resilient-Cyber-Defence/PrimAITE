@@ -32,7 +32,7 @@ class FileSystemFile(FileSystemItem):
 
         # set random file size if none provided
         if kwargs.get("size") is None:
-            kwargs["size"] = float(randint(1, file_type_sizes_KB[kwargs["file_type"]]))
+            kwargs["size"] = file_type_sizes_KB[kwargs["file_type"]]
 
         super().__init__(**kwargs)
 
