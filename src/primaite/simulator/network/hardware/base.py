@@ -46,6 +46,7 @@ def generate_mac_address(oui: Optional[str] = None) -> str:
         oui_pattern = re.compile(r"^([0-9A-Fa-f]{2}[:-]){2}[0-9A-Fa-f]{2}$")
         if not oui_pattern.match(oui):
             msg = f"Invalid oui. The oui should be in the format xx:xx:xx, where x is a hexadecimal digit, got '{oui}'"
+            _LOGGER.error(msg)
             raise ValueError(msg)
         oui_bytes = [int(chunk, 16) for chunk in oui.split(":")]
         mac = oui_bytes + random_bytes[len(oui_bytes) :]
@@ -401,7 +402,7 @@ class SwitchPort(SimComponent):
 
 class Link(SimComponent):
     """
-    Represents a network link between NIC<-->, NIC<-->SwitchPort, or SwitchPort<-->SwitchPort.
+    Represents a network link between NIC<-->NIC, NIC<-->SwitchPort, or SwitchPort<-->SwitchPort.
 
     :param endpoint_a: The first NIC or SwitchPort connected to the Link.
     :param endpoint_b: The second NIC or SwitchPort connected to the Link.
@@ -441,17 +442,17 @@ class Link(SimComponent):
 
     def endpoint_up(self):
         """Let the Link know and endpoint has been brought up."""
-        if self.up:
+        if self.is_up:
             _LOGGER.info(f"Link {self} up")
 
     def endpoint_down(self):
         """Let the Link know and endpoint has been brought down."""
-        if not self.up:
+        if not self.is_up:
             self.current_load = 0.0
             _LOGGER.info(f"Link {self} down")
 
     @property
-    def up(self) -> bool:
+    def is_up(self) -> bool:
         """
         Informs whether the link is up.
 
@@ -460,7 +461,7 @@ class Link(SimComponent):
         return self.endpoint_a.enabled and self.endpoint_b.enabled
 
     def _can_transmit(self, frame: Frame) -> bool:
-        if self.up:
+        if self.is_up:
             frame_size_Mbits = frame.size_Mbits  # noqa - Leaving it as Mbits as this is how they're expressed
             return self.current_load + frame_size_Mbits <= self.bandwidth
         return False

@@ -18,4 +18,4 @@ def test_link_up():
 
     link = Link(endpoint_a=nic_a, endpoint_b=nic_b)
 
-    assert link.up
+    assert link.is_up
