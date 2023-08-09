@@ -95,7 +95,13 @@ class FileSystem(SimComponent):
         :type: folder_name: str
         """
         folder = FileSystemFolder(name=folder_name)
-        self.folders[folder.uuid] = folder
+
+        if folder.uuid in self.folders:
+            # iterate until a folder with a non-matching uuid is added
+            # which is VERY unlikely but it'll be weird if it happens twice
+            return self.create_folder(folder_name=folder_name)
+        else:
+            self.folders[folder.uuid] = folder
         return folder
 
     def delete_file(self, file: Optional[FileSystemFile] = None):

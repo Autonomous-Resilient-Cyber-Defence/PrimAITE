@@ -26,7 +26,7 @@ class FileSystemFolder(FileSystemItem):
             raise Exception(f"Invalid file: {file}")
 
         # check if file with id already exists in folder
-        if self.get_file_by_id(file.uuid) is not None:
+        if file.uuid in self.files:
             _LOGGER.debug(f"File with id {file.uuid} already exists in folder")
         else:
             # add to list
