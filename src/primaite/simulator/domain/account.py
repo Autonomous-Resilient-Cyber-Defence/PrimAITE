@@ -17,13 +17,6 @@ class AccountType(Enum):
     "User accounts are used to allow agents to log in and perform actions"
 
 
-class AccountStatus(Enum):
-    """Whether the account is active."""
-
-    ENABLED = 1
-    DISABLED = 2
-
-
 class PasswordPolicyLevel(Enum):
     """Complexity requirements for account passwords."""
 
@@ -47,7 +40,7 @@ class Account(SimComponent):
     "Account password."
     account_type: AccountType
     "Account Type, currently this can be service account (used by apps) or user account."
-    status: AccountStatus = AccountStatus.DISABLED
+    enabled: bool = True
 
     def describe_state(self) -> Dict:
         """Describe state for agent observations."""
@@ -55,11 +48,11 @@ class Account(SimComponent):
 
     def enable(self):
         """Set the status to enabled."""
-        self.status = AccountStatus.ENABLED
+        self.enabled = True
 
     def disable(self):
         """Set the status to disabled."""
-        self.status = AccountStatus.DISABLED
+        self.enabled = False
 
     def log_on(self) -> None:
         """TODO."""
