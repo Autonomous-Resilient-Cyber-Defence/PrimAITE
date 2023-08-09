@@ -33,13 +33,13 @@ class temp_file:
 class AccountGroup(Enum):
     """Permissions are set at group-level and accounts can belong to these groups."""
 
-    local_user = 1
+    LOCAL_USER = 1
     "For performing basic actions on a node"
-    domain_user = 2
+    DOMAIN_USER = 2
     "For performing basic actions to the domain"
-    local_admin = 3
+    LOCAL_ADMIN = 3
     "For full access to actions on a node"
-    domain_admin = 4
+    DOMAIN_ADMIN = 4
     "For full access"
 
 
@@ -71,9 +71,9 @@ class DomainController(SimComponent):
     accounts: Dict[str, Account] = {}
     groups: Final[List[AccountGroup]] = list(AccountGroup)
 
-    domain_group_membership: Dict[Literal[AccountGroup.domain_admin, AccountGroup.domain_user], List[Account]] = {}
+    domain_group_membership: Dict[Literal[AccountGroup.DOMAIN_ADMIN, AccountGroup.DOMAIN_USER], List[Account]] = {}
     local_group_membership: Dict[
-        Tuple[temp_node, Literal[AccountGroup.local_admin, AccountGroup.local_user]], List[Account]
+        Tuple[temp_node, Literal[AccountGroup.LOCAL_ADMIN, AccountGroup.LOCAL_USER]], List[Account]
     ] = {}
 
     # references to non-owned objects. Not sure if all are needed here.

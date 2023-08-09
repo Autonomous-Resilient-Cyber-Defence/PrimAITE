@@ -34,7 +34,7 @@ def test_group_action_validation() -> None:
                 "create_folder",
                 Action(
                     func=lambda request, context: self.create_folder(request[0]),
-                    validator=GroupMembershipValidator([AccountGroup.local_admin, AccountGroup.domain_admin]),
+                    validator=GroupMembershipValidator([AccountGroup.LOCAL_ADMIN, AccountGroup.DOMAIN_ADMIN]),
                 ),
             )
 
@@ -49,14 +49,14 @@ def test_group_action_validation() -> None:
             self.folders = [x for x in self.folders if x is not folder]
 
     # check that the folder is created when a local admin tried to do it
-    permitted_context = {"request_source": {"agent": "BLUE", "account": "User1", "groups": ["local_admin"]}}
+    permitted_context = {"request_source": {"agent": "BLUE", "account": "User1", "groups": ["LOCAL_ADMIN"]}}
     my_node = Node(uuid="0000-0000-1234", name="pc")
     my_node.apply_action(["create_folder", "memes"], context=permitted_context)
     assert len(my_node.folders) == 1
     assert my_node.folders[0].name == "memes"
 
     # check that the number of folders is still 1 even after attempting to create a second one without permissions
-    invalid_context = {"request_source": {"agent": "BLUE", "account": "User1", "groups": ["local_user", "domain_user"]}}
+    invalid_context = {"request_source": {"agent": "BLUE", "account": "User1", "groups": ["LOCAL_USER", "DOMAIN_USER"]}}
     my_node.apply_action(["create_folder", "memes2"], context=invalid_context)
     assert len(my_node.folders) == 1
     assert my_node.folders[0].name == "memes"
@@ -97,14 +97,14 @@ def test_hierarchical_action_with_validation() -> None:
                 "disable",
                 Action(
                     func=lambda request, context: self.disable(),
-                    validator=GroupMembershipValidator([AccountGroup.local_admin, AccountGroup.domain_admin]),
+                    validator=GroupMembershipValidator([AccountGroup.LOCAL_ADMIN, AccountGroup.DOMAIN_ADMIN]),
                 ),
             )
             self.action_manager.add_action(
                 "enable",
                 Action(
                     func=lambda request, context: self.enable(),
-                    validator=GroupMembershipValidator([AccountGroup.local_admin, AccountGroup.domain_admin]),
+                    validator=GroupMembershipValidator([AccountGroup.LOCAL_ADMIN, AccountGroup.DOMAIN_ADMIN]),
                 ),
             )
 
@@ -164,14 +164,14 @@ def test_hierarchical_action_with_validation() -> None:
     my_node.install_app("Firefox")
 
     non_admin_context = {
-        "request_source": {"agent": "BLUE", "account": "User1", "groups": ["local_user", "domain_user"]}
+        "request_source": {"agent": "BLUE", "account": "User1", "groups": ["LOCAL_USER", "DOMAIN_USER"]}
     }
 
     admin_context = {
         "request_source": {
             "agent": "BLUE",
             "account": "User1",
-            "groups": ["local_admin", "domain_admin", "local_user", "domain_user"],
+            "groups": ["LOCAL_ADMIN", "DOMAIN_ADMIN", "LOCAL_USER", "DOMAIN_USER"],
         }
     }
 
