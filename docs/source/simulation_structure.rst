@@ -49,7 +49,7 @@ snippet demonstrates usage of the ``ActionPermissionValidator``.
                 "reset_factory_settings",
                 Action(
                     func = lambda request, context: self.reset_factory_settings(),
-                    validator = GroupMembershipValidator([AccountGroup.domain_admin]),
+                    validator = GroupMembershipValidator([AccountGroup.DOMAIN_ADMIN]),
                 ),
             )
 
@@ -59,7 +59,7 @@ snippet demonstrates usage of the ``ActionPermissionValidator``.
     phone = Smartphone(name="phone1")
 
     # try to wipe the phone as a domain user, this will have no effect
-    phone.apply_action(["reset_factory_settings"], context={"request_source":{"groups":["domain_user"]})
+    phone.apply_action(["reset_factory_settings"], context={"request_source":{"groups":["DOMAIN_USER"]})
 
     # try to wipe the phone as an admin user, this will wipe the phone
-    phone.apply_action(["reset_factory_settings"], context={"request_source":{"groups":["domain_admin"]})
+    phone.apply_action(["reset_factory_settings"], context={"request_source":{"groups":["DOMAIN_ADMIN"]})
