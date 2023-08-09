@@ -127,6 +127,7 @@ class SimComponent(BaseModel):
     """Extension of pydantic BaseModel with additional methods that must be defined by all classes in the simulator."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra=Extra.allow)
+    """Configure pydantic to allow arbitrary types and to let the instance have attributes not present in model."""
 
     uuid: str
     """The component UUID."""

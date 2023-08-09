@@ -55,9 +55,9 @@ class Account(SimComponent):
         self.enabled = False
 
     def log_on(self) -> None:
-        """TODO."""
+        """TODO. Once the accounts are integrated with nodes, populate this accordingly."""
         self.num_logons += 1
 
     def log_off(self) -> None:
-        """TODO."""
+        """TODO. Once the accounts are integrated with nodes, populate this accordingly."""
         self.num_logoffs += 1
