@@ -25,9 +25,13 @@ class FileSystemFolder(FileSystemItem):
         if file is None or not isinstance(file, FileSystemFile):
             raise Exception(f"Invalid file: {file}")
 
-        # add to list
-        self.files[file.uuid] = file
-        self.size += file.size
+        # check if file with id already exists in folder
+        if self.get_file_by_id(file.uuid) is not None:
+            _LOGGER.debug(f"File with id {file.uuid} already exists in folder")
+        else:
+            # add to list
+            self.files[file.uuid] = file
+            self.size += file.size
 
     def remove_file(self, file: Optional[FileSystemFile]):
         """

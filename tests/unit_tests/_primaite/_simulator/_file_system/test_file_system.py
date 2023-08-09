@@ -1,4 +1,5 @@
 from primaite.simulator.file_system.file_system import FileSystem
+from primaite.simulator.file_system.file_system_file import FileSystemFile
 from primaite.simulator.file_system.file_system_folder import FileSystemFolder
 
 
@@ -37,7 +38,7 @@ def test_delete_file():
 
     file_system.delete_file(file=file)
     assert len(file_system.folders) is 1
-    assert len(file_system.get_folder_by_id(folder.uuid).files) is 0
+    assert len(folder.files) is 0
 
 
 def test_delete_non_existent_file():
@@ -45,16 +46,20 @@ def test_delete_non_existent_file():
     file_system = FileSystem()
 
     file = file_system.create_file(file_name="test_file", size=10)
-    not_added_file = file_system.create_file(file_name="test_file", size=10)
+    not_added_file = FileSystemFile(name="not_added")
+    # folder should be created
     assert len(file_system.folders) is 1
-
+    # should only have 1 file in the file system
     folder_id = list(file_system.folders.keys())[0]
     folder = file_system.get_folder_by_id(folder_id)
+    assert len(list(folder.files)) is 1
+
     assert folder.get_file_by_id(file.uuid) is file
 
+    # deleting should not change how many files are in folder
     file_system.delete_file(file=not_added_file)
     assert len(file_system.folders) is 1
-    assert len(file_system.get_folder_by_id(folder.uuid).files) is 1
+    assert len(list(folder.files)) is 1
 
 
 def test_delete_folder():
