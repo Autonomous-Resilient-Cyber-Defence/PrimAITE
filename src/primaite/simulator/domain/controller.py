@@ -73,7 +73,7 @@ class DomainController(SimComponent):
 
     domain_group_membership: Dict[Literal[AccountGroup.domain_admin, AccountGroup.domain_user], List[Account]] = {}
     local_group_membership: Dict[
-        Tuple(temp_node, Literal[AccountGroup.local_admin, AccountGroup.local_user]), List[Account]
+        Tuple[temp_node, Literal[AccountGroup.local_admin, AccountGroup.local_user]], List[Account]
     ] = {}
 
     # references to non-owned objects. Not sure if all are needed here.

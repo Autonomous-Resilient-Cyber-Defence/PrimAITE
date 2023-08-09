@@ -124,7 +124,15 @@ class ActionManager:
 
 
 class SimComponent(BaseModel):
-    """Extension of pydantic BaseModel with additional methods that must be defined by all classes in  the simulator."""
+    """Extension of pydantic BaseModel with additional methods that must be defined by all classes in the simulator."""
+
+    uuid: str
+    """The component UUID."""
+
+    def __init__(self, **kwargs):
+        if not kwargs.get("uuid"):
+            kwargs["uuid"] = str(uuid4())
+        super().__init__(**kwargs)
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra=Extra.allow)
     uuid: str = str(uuid4())
