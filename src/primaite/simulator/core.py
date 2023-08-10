@@ -177,7 +177,7 @@ class SimComponent(BaseModel):
         """
         pass
 
-    def reset_component_for_episode(self):
+    def reset_component_for_episode(self, episode: int):
         """
         Reset this component to its original state for a new episode.
 
