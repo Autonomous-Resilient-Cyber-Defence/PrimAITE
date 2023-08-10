@@ -15,6 +15,7 @@ transmitting them from a Service/Application, down through the layers, over the 
 a Service/Application another machine.
 - system - Added the core structure of Application, Services, and Components. Also added a SoftwareManager and
 SessionManager.
+- Permission System - each action can define criteria that will be used to permit or deny agent actions.
 - File System - ability to emulate a node's file system during a simulation
 
 ## [2.0.0] - 2023-07-26

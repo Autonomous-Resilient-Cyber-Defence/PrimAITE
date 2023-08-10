@@ -44,36 +44,3 @@ class TestIsolatedSimComponent:
         comp = TestComponent(name="computer", size=(5, 10))
         dump = comp.model_dump_json()
         assert comp == TestComponent.model_validate_json(dump)
-
-    def test_apply_action(self):
-        """Validate that we can override apply_action behaviour and it updates the state of the component."""
-
-        class TestComponent(SimComponent):
-            name: str
-            status: Literal["on", "off"] = "off"
-
-            def describe_state(self) -> Dict:
-                return {}
-
-            def _possible_actions(self) -> Dict[str, Callable[[List[str]], None]]:
-                return {
-                    "turn_off": self._turn_off,
-                    "turn_on": self._turn_on,
-                }
-
-            def _turn_off(self, options: List[str]) -> None:
-                assert len(options) == 0, "This action does not support options."
-                self.status = "off"
-
-            def _turn_on(self, options: List[str]) -> None:
-                assert len(options) == 0, "This action does not support options."
-                self.status = "on"
-
-        comp = TestComponent(name="computer", status="off")
-
-        assert comp.status == "off"
-        comp.apply_action(["turn_on"])
-        assert comp.status == "on"
-
-        with pytest.raises(ValueError):
-            comp.apply_action(["do_nothing"])
