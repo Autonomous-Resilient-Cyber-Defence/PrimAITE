@@ -4,7 +4,7 @@ from primaite.simulator.domain.account import Account, AccountType
 
 def test_account_serialise():
     """Test that an account can be serialised. If pydantic throws error then this test fails."""
-    acct = Account(username="Jake", password="JakePass1!", account_type=AccountType.user)
+    acct = Account(username="Jake", password="JakePass1!", account_type=AccountType.USER)
     serialised = acct.model_dump_json()
     print(serialised)
 
