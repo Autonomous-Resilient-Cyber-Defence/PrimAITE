@@ -20,7 +20,7 @@ class PacketCapture:
     The PCAPs are logged to: <simulation output directory>/<hostname>/<hostname>_<ip address>_pcap.log
     """
 
-    def __init__(self, hostname: str, ip_address: Optional[str] = None):
+    def __init__(self, hostname: str, ip_address: Optional[str] = None, switch_port_number: Optional[int] = None):
         """
         Initialize the PacketCapture process.
 
@@ -31,6 +31,8 @@ class PacketCapture:
         "The hostname for which PCAP logs are being recorded."
         self.ip_address: str = ip_address
         "The IP address associated with the PCAP logs."
+        self.switch_port_number = switch_port_number
+        "The SwitchPort number."
         self._setup_logger()
 
     def _setup_logger(self):
@@ -43,20 +45,26 @@ class PacketCapture:
         log_format = "%(message)s"
         file_handler.setFormatter(logging.Formatter(log_format))
 
-        logger_name = f"{self.hostname}_{self.ip_address}_pcap" if self.ip_address else f"{self.hostname}_pcap"
-        self.logger = logging.getLogger(logger_name)
+        self.logger = logging.getLogger(self._logger_name)
         self.logger.setLevel(60)  # Custom log level > CRITICAL to prevent any unwanted standard DEBUG-CRITICAL logs
         self.logger.addHandler(file_handler)
 
         self.logger.addFilter(_JSONFilter())
 
+    @property
+    def _logger_name(self) -> str:
+        """Get PCAP the logger name."""
+        if self.ip_address:
+            return f"{self.hostname}_{self.ip_address}_pcap"
+        if self.switch_port_number:
+            return f"{self.hostname}_port-{self.switch_port_number}_pcap"
+        return f"{self.hostname}_pcap"
+
     def _get_log_path(self) -> Path:
         """Get the path for the log file."""
         root = TEMP_SIM_OUTPUT / self.hostname
         root.mkdir(exist_ok=True, parents=True)
-        if self.ip_address:
-            return root / f"{self.hostname}_{self.ip_address}_pcap.log"
-        return root / f"{self.hostname}_pcap.log"
+        return root / f"{self._logger_name}.log"
 
     def capture(self, frame):  # noqa - I'll have a circular import and cant use if TYPE_CHECKING ;(
         """

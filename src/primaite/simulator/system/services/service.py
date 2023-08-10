@@ -8,17 +8,17 @@ from primaite.simulator.system.software import IOSoftware
 class ServiceOperatingState(Enum):
     """Enumeration of Service Operating States."""
 
-    STOPPED = 0
-    "The service is not running."
     RUNNING = 1
     "The service is currently running."
-    RESTARTING = 2
-    "The service is in the process of restarting."
+    STOPPED = 2
+    "The service is not running."
     INSTALLING = 3
     "The service is being installed or updated."
-    PAUSED = 4
+    RESTARTING = 4
+    "The service is in the process of restarting."
+    PAUSED = 5
     "The service is temporarily paused."
-    DISABLED = 5
+    DISABLED = 6
     "The service is disabled and cannot be started."
 
 

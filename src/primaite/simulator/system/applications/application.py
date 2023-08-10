@@ -8,12 +8,13 @@ from primaite.simulator.system.software import IOSoftware
 class ApplicationOperatingState(Enum):
     """Enumeration of Application Operating States."""
 
-    CLOSED = 0
-    "The application is closed or not running."
-    RUNNING = 1
-    "The application is running."
-    INSTALLING = 3
-    "The application is being installed or updated."
+
+RUNNING = 1
+"The application is running."
+CLOSED = 2
+"The application is closed or not running."
+INSTALLING = 3
+"The application is being installed or updated."
 
 
 class Application(IOSoftware):

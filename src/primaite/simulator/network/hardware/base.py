@@ -308,7 +308,7 @@ class SwitchPort(SimComponent):
 
         self.enabled = True
         self.connected_node.sys_log.info(f"SwitchPort {self} enabled")
-        self.pcap = PacketCapture(hostname=self.connected_node.hostname)
+        self.pcap = PacketCapture(hostname=self.connected_node.hostname, switch_port_number=self.port_num)
         if self.connected_link:
             self.connected_link.endpoint_up()
 

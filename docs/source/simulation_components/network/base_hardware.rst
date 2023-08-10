@@ -324,7 +324,7 @@ This produces:
 Create Switches
 ***************
 
-Next, we'll create four six-port switches:
+Next, we'll create two six-port switches:
 
 .. code-block:: python
 
