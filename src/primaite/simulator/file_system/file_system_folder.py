@@ -20,6 +20,10 @@ class FileSystemFolder(FileSystemItem):
         """Return a FileSystemFile with the matching id."""
         return self.files.get(file_id)
 
+    def get_file_by_name(self, file_name: str) -> FileSystemFile:
+        """Return a FileSystemFile with the matching id."""
+        return next((f for f in list(self.files) if f.name == file_name), None)
+
     def add_file(self, file: FileSystemFile):
         """Adds a file to the folder list."""
         if file is None or not isinstance(file, FileSystemFile):
