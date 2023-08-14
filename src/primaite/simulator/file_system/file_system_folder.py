@@ -20,14 +20,22 @@ class FileSystemFolder(FileSystemItem):
         """Return a FileSystemFile with the matching id."""
         return self.files.get(file_id)
 
+    def get_file_by_name(self, file_name: str) -> FileSystemFile:
+        """Return a FileSystemFile with the matching id."""
+        return next((f for f in list(self.files) if f.name == file_name), None)
+
     def add_file(self, file: FileSystemFile):
         """Adds a file to the folder list."""
         if file is None or not isinstance(file, FileSystemFile):
             raise Exception(f"Invalid file: {file}")
 
-        # add to list
-        self.files[file.uuid] = file
-        self.size += file.size
+        # check if file with id already exists in folder
+        if file.uuid in self.files:
+            _LOGGER.debug(f"File with id {file.uuid} already exists in folder")
+        else:
+            # add to list
+            self.files[file.uuid] = file
+            self.size += file.size
 
     def remove_file(self, file: Optional[FileSystemFile]):
         """

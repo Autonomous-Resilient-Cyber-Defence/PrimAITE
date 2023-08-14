@@ -69,6 +69,10 @@ class FileSystem(SimComponent):
             folder = self.get_folder_by_id(folder_uuid)
 
         if folder is not None:
+            # check if file with name already exists
+            if folder.get_file_by_name(file_name):
+                raise Exception(f'File with name "{file_name}" already exists.')
+
             file = FileSystemFile(name=file_name, size=size, file_type=file_type)
             folder.add_file(file=file)
         else:
@@ -94,7 +98,12 @@ class FileSystem(SimComponent):
         :param: folder_name: The name of the folder
         :type: folder_name: str
         """
+        # check if folder with name already exists
+        if self.get_folder_by_name(folder_name):
+            raise Exception(f'Folder with name "{folder_name}" already exists.')
+
         folder = FileSystemFolder(name=folder_name)
+
         self.folders[folder.uuid] = folder
         return folder
 
@@ -149,6 +158,10 @@ class FileSystem(SimComponent):
         if file is None:
             raise Exception("File to be moved is None")
 
+        # check if file with name already exists
+        if target_folder.get_file_by_name(file.name):
+            raise Exception(f'Folder with name "{file.name}" already exists.')
+
         # remove file from src
         src_folder.remove_file(file)
 
@@ -178,6 +191,10 @@ class FileSystem(SimComponent):
 
         if file is None:
             raise Exception("File to be moved is None")
+
+        # check if file with name already exists
+        if target_folder.get_file_by_name(file.name):
+            raise Exception(f'Folder with name "{file.name}" already exists.')
 
         # add file to target
         target_folder.add_file(file)
