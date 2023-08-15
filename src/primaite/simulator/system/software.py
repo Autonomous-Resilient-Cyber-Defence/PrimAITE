@@ -109,6 +109,15 @@ class Software(SimComponent):
         """
         pass
 
+    @staticmethod
+    def get_install():
+        """
+        This method ensures the software has to have a way to install it.
+
+        This can be used by the software manager to install the software.
+        """
+        pass
+
 
 class IOSoftware(Software):
     """
