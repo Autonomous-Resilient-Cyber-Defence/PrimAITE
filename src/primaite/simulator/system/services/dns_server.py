@@ -7,7 +7,7 @@ from pydantic import BaseModel
 class DNSServer(BaseModel):
     """Represents a DNS Server as a Service."""
 
-    dns_table: dict[str:str] = {"https://google.co.uk": "8.8.8.8"}
+    dns_table: dict[str:str] = {}
 
     @abstractmethod
     def describe_state(self) -> Dict:
@@ -37,7 +37,7 @@ class DNSServer(BaseModel):
         This method ensures the Service is ready for a new episode, including resetting any
         stateful properties or statistics, and clearing any message queues.
         """
-        pass
+        self.dns_table = {}
 
     def send(self, payload: Any, session_id: str, **kwargs) -> bool:
         """

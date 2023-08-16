@@ -41,7 +41,8 @@ class DNSClient(BaseModel):
         This method ensures the Service is ready for a new episode, including resetting any
         stateful properties or statistics, and clearing any message queues.
         """
-        pass
+        self.target_url = ""
+        self.dns_cache = {}
 
     def send(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
