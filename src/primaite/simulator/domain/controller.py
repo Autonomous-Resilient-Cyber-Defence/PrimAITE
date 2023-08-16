@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Dict, Final, List, Literal, Tuple
 
-from primaite.simulator.core import ActionPermissionValidator, SimComponent
+from primaite.simulator.core import Action, ActionManager, ActionPermissionValidator, SimComponent
 from primaite.simulator.domain.account import Account, AccountType
 
 
@@ -81,6 +81,20 @@ class DomainController(SimComponent):
     applications: Dict[str, temp_application] = {}
     folders: List[temp_folder] = {}
     files: List[temp_file] = {}
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.action_manager = ActionManager()
+        # Action 'account' matches requests like:
+        # ['account', '<account-uuid>', *account_action]
+        self.action_manager.add_action(
+            "account",
+            Action(
+                func=lambda request, context: self.accounts[request.pop(0)].apply_action(request, context),
+                validator=GroupMembershipValidator([AccountGroup.DOMAIN_ADMIN]),
+            ),
+        )
 
     def _register_account(self, account: Account) -> None:
         """TODO."""
