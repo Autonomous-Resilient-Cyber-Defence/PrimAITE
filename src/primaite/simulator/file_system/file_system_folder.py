@@ -16,6 +16,23 @@ class FileSystemFolder(FileSystemItem):
     is_quarantined: bool = False
     """Flag that marks the folder as quarantined if true."""
 
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        return {
+            "uuid": self.uuid,
+            "name": self.name,
+            "size": self.size,
+            "files": {uuid: file for uuid, file in self.files.items()},
+            "is_quarantined": self.is_quarantined,
+        }
+
     def get_file_by_id(self, file_id: str) -> FileSystemFile:
         """Return a FileSystemFile with the matching id."""
         return self.files.get(file_id)
@@ -67,11 +84,3 @@ class FileSystemFolder(FileSystemItem):
     def quarantine_status(self) -> bool:
         """Returns true if the folder is being quarantined."""
         return self.is_quarantined
-
-    def describe_state(self) -> Dict:
-        """
-        Get the current state of the FileSystemFolder as a dict.
-
-        :return: A dict containing the current state of the FileSystemFile.
-        """
-        pass

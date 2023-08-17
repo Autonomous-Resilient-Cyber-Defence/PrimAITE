@@ -96,6 +96,19 @@ class DomainController(SimComponent):
             ),
         )
 
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update({"accounts": {uuid: acct.describe_state() for uuid, acct in self.accounts.items()}})
+        return state
+
     def _register_account(self, account: Account) -> None:
         """TODO."""
         ...

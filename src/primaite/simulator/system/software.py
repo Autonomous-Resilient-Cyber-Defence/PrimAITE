@@ -78,15 +78,25 @@ class Software(SimComponent):
     @abstractmethod
     def describe_state(self) -> Dict:
         """
-        Describes the current state of the software.
+        Produce a dictionary describing the current state of this object.
 
-        The specifics of the software's state, including its health, criticality,
-        and any other pertinent information, should be implemented in subclasses.
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
 
-        :return: A dictionary containing key-value pairs representing the current state of the software.
+        :return: Current state of this object and child objects.
         :rtype: Dict
         """
-        pass
+        state = super().describe_state()
+        state.update(
+            {
+                "health_state": self.health_state_actual.name,
+                "health_state_red_view": self.health_state_visible.name,
+                "criticality": self.criticality.name,
+                "patching_count": self.patching_count,
+                "scanning_count": self.scanning_count,
+                "revealed_to_red": self.revealed_to_red,
+            }
+        )
+        return state
 
     def apply_action(self, action: List[str]) -> None:
         """
@@ -134,12 +144,11 @@ class IOSoftware(Software):
     @abstractmethod
     def describe_state(self) -> Dict:
         """
-        Describes the current state of the software.
+        Produce a dictionary describing the current state of this object.
 
-        The specifics of the software's state, including its health, criticality,
-        and any other pertinent information, should be implemented in subclasses.
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
 
-        :return: A dictionary containing key-value pairs representing the current state of the software.
+        :return: Current state of this object and child objects.
         :rtype: Dict
         """
         pass

@@ -21,3 +21,21 @@ class NetworkContainer(SimComponent):
                 validator=AllowAllValidator(),
             ),
         )
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update(
+            {
+                "nodes": {uuid: node.describe_state() for uuid, node in self.nodes.items()},
+                "links": {uuid: link.describe_state() for uuid, link in self.links.items()},
+            }
+        )
+        return state

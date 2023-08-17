@@ -125,6 +125,31 @@ class NIC(SimComponent):
             _LOGGER.error(msg)
             raise ValueError(msg)
 
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update(
+            {
+                "ip_adress": self.ip_address,
+                "subnet_mask": self.subnet_mask,
+                "gateway": self.gateway,
+                "mac_address": self.mac_address,
+                "speed": self.speed,
+                "mtu": self.mtu,
+                "wake_on_lan": self.wake_on_lan,
+                "dns_servers": self.dns_servers,
+                "enabled": self.enabled,
+            }
+        )
+        return state
+
     @property
     def ip_network(self) -> IPv4Network:
         """
@@ -241,23 +266,6 @@ class NIC(SimComponent):
             return True
         return False
 
-    def describe_state(self) -> Dict:
-        """
-        Get the current state of the NIC as a dict.
-
-        :return: A dict containing the current state of the NIC.
-        """
-        pass
-
-    def apply_action(self, action: str):
-        """
-        Apply an action to the NIC.
-
-        :param action: The action to be applied.
-        :type action: str
-        """
-        pass
-
     def __str__(self) -> str:
         return f"{self.mac_address}/{self.ip_address}"
 
@@ -292,6 +300,25 @@ class SwitchPort(SimComponent):
         if "mac_address" not in kwargs:
             kwargs["mac_address"] = generate_mac_address()
         super().__init__(**kwargs)
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update(
+            {
+                "mac_address": self.mac_address,
+                "speed": self.speed,
+                "mtu": self.mtu,
+                "enabled": self.enabled,
+            }
+        )
 
     def enable(self):
         """Attempt to enable the SwitchPort."""
@@ -379,23 +406,6 @@ class SwitchPort(SimComponent):
             return True
         return False
 
-    def describe_state(self) -> Dict:
-        """
-        Get the current state of the SwitchPort as a dict.
-
-        :return: A dict containing the current state of the SwitchPort.
-        """
-        pass
-
-    def apply_action(self, action: str):
-        """
-        Apply an action to the SwitchPort.
-
-        :param action: The action to be applied.
-        :type action: str
-        """
-        pass
-
     def __str__(self) -> str:
         return f"{self.mac_address}"
 
@@ -434,6 +444,26 @@ class Link(SimComponent):
         self.endpoint_a.connect_link(self)
         self.endpoint_b.connect_link(self)
         self.endpoint_up()
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update(
+            {
+                "endpoint_a": self.endpoint_a.uuid,
+                "endpoint_b": self.endpoint_b.uuid,
+                "bandwidth": self.bandwidth,
+                "current_load": self.current_load,
+            }
+        )
+        return state
 
     @property
     def current_load_percent(self) -> str:
@@ -503,23 +533,6 @@ class Link(SimComponent):
          - returns the link current_load to 0.
         """
         self.current_load = 0
-
-    def describe_state(self) -> Dict:
-        """
-        Get the current state of the Link as a dict.
-
-        :return: A dict containing the current state of the Link.
-        """
-        pass
-
-    def apply_action(self, action: str):
-        """
-        Apply an action to the Link.
-
-        :param action: The action to be applied.
-        :type action: str
-        """
-        pass
 
     def __str__(self) -> str:
         return f"{self.endpoint_a}<-->{self.endpoint_b}"
@@ -832,6 +845,30 @@ class Node(SimComponent):
         super().__init__(**kwargs)
         self.arp.nics = self.nics
 
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update(
+            {
+                "hostname": self.hostname,
+                "operating_state": self.operating_state.value,
+                "NICs": {uuid: nic.describe_state() for uuid, nic in self.nics.items()},
+                # "switch_ports": {uuid, sp for uuid, sp in self.switch_ports.items()},
+                "file_system": self.file_system.describe_state(),
+                "applications": {uuid: app for uuid, app in self.applications.items()},
+                "services": {uuid: svc for uuid, svc in self.services.items()},
+                "process": {uuid: proc for uuid, proc in self.processes.items()},
+            }
+        )
+        return state
+
     def show(self):
         """Prints a table of the NICs on the Node.."""
         from prettytable import PrettyTable
@@ -950,14 +987,6 @@ class Node(SimComponent):
         elif frame.ip.protocol == IPProtocol.ICMP:
             self.icmp.process_icmp(frame=frame)
 
-    def describe_state(self) -> Dict:
-        """
-        Describe the state of the Node.
-
-        :return: A dictionary representing the state of the node.
-        """
-        pass
-
 
 class Switch(Node):
     """A class representing a Layer 2 network switch."""
@@ -966,8 +995,16 @@ class Switch(Node):
     "The number of ports on the switch."
     switch_ports: Dict[int, SwitchPort] = {}
     "The SwitchPorts on the switch."
-    dst_mac_table: Dict[str, SwitchPort] = {}
+    mac_address_table: Dict[str, SwitchPort] = {}
     "A MAC address table mapping destination MAC addresses to corresponding SwitchPorts."
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if not self.switch_ports:
+            self.switch_ports = {i: SwitchPort() for i in range(1, self.num_ports + 1)}
+        for port_num, port in self.switch_ports.items():
+            port.connected_node = self
+            port.port_num = port_num
 
     def show(self):
         """Prints a table of the SwitchPorts on the Switch."""
@@ -978,25 +1015,29 @@ class Switch(Node):
         print(table)
 
     def describe_state(self) -> Dict:
-        """TODO."""
-        pass
+        """
+        Produce a dictionary describing the current state of this object.
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not self.switch_ports:
-            self.switch_ports = {i: SwitchPort() for i in range(1, self.num_ports + 1)}
-        for port_num, port in self.switch_ports.items():
-            port.connected_node = self
-            port.port_num = port_num
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        return {
+            "uuid": self.uuid,
+            "num_ports": self.num_ports,  # redundant?
+            "ports": {port_num: port for port_num, port in self.switch_ports.items()},
+            "mac_address_table": {mac: port for mac, port in self.mac_address_table.items()},
+        }
 
     def _add_mac_table_entry(self, mac_address: str, switch_port: SwitchPort):
-        mac_table_port = self.dst_mac_table.get(mac_address)
+        mac_table_port = self.mac_address_table.get(mac_address)
         if not mac_table_port:
-            self.dst_mac_table[mac_address] = switch_port
+            self.mac_address_table[mac_address] = switch_port
             self.sys_log.info(f"Added MAC table entry: Port {switch_port.port_num} -> {mac_address}")
         else:
             if mac_table_port != switch_port:
-                self.dst_mac_table.pop(mac_address)
+                self.mac_address_table.pop(mac_address)
                 self.sys_log.info(f"Removed MAC table entry: Port {mac_table_port.port_num} -> {mac_address}")
                 self._add_mac_table_entry(mac_address, switch_port)
 
@@ -1011,7 +1052,7 @@ class Switch(Node):
         dst_mac = frame.ethernet.dst_mac_addr
         self._add_mac_table_entry(src_mac, incoming_port)
 
-        outgoing_port = self.dst_mac_table.get(dst_mac)
+        outgoing_port = self.mac_address_table.get(dst_mac)
         if outgoing_port or dst_mac != "ff:ff:ff:ff:ff:ff":
             outgoing_port.send_frame(frame)
         else:

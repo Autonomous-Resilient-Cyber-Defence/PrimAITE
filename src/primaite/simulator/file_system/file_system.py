@@ -18,11 +18,16 @@ class FileSystem(SimComponent):
 
     def describe_state(self) -> Dict:
         """
-        Get the current state of the FileSystem as a dict.
+        Produce a dictionary describing the current state of this object.
 
-        :return: A dict containing the current state of the FileSystemFile.
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
         """
-        pass
+        state = super().describe_state()
+        state.update({"folders": {uuid: folder for uuid, folder in self.folders.items()}})
+        return state
 
     def get_folders(self) -> Dict:
         """Returns the list of folders."""
