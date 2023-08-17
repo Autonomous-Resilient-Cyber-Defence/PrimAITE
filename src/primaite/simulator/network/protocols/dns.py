@@ -5,17 +5,18 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-
+"""
 class DNSEntry(BaseModel):
-    """
+
     Represents an entry in the DNS cache.
 
     :param domain_name: The domain name which a node would like to access.
     :param ip_address: The IP address through which the domain name is reachable.
-    """
+
 
     domain_name: str
     ip_address: IPv4Address
+"""
 
 
 class DNSRequest(BaseModel):
