@@ -1,0 +1,6 @@
+primaite.setup.reset\_demo\_notebooks.run
+=========================================
+
+.. currentmodule:: primaite.setup.reset_demo_notebooks
+
+.. autofunction:: run

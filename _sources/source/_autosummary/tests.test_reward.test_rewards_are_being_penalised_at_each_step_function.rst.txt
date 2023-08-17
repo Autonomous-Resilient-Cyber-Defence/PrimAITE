@@ -1,0 +1,6 @@
+tests.test\_reward.test\_rewards\_are\_being\_penalised\_at\_each\_step\_function
+=================================================================================
+
+.. currentmodule:: tests.test_reward
+
+.. autofunction:: test_rewards_are_being_penalised_at_each_step_function

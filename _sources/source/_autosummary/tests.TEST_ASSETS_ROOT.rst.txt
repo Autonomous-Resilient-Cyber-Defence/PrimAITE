@@ -1,0 +1,6 @@
+tests.TEST\_ASSETS\_ROOT
+========================
+
+.. currentmodule:: tests
+
+.. autodata:: TEST_ASSETS_ROOT

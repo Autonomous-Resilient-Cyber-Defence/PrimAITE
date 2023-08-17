@@ -1,0 +1,6 @@
+primaite.agents.utils.convert\_to\_new\_obs
+===========================================
+
+.. currentmodule:: primaite.agents.utils
+
+.. autofunction:: convert_to_new_obs

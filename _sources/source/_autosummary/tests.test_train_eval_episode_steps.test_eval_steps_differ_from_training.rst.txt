@@ -1,0 +1,6 @@
+tests.test\_train\_eval\_episode\_steps.test\_eval\_steps\_differ\_from\_training
+=================================================================================
+
+.. currentmodule:: tests.test_train_eval_episode_steps
+
+.. autofunction:: test_eval_steps_differ_from_training

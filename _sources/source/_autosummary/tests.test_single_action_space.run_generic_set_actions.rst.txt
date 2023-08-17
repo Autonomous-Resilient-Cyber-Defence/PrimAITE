@@ -1,0 +1,6 @@
+tests.test\_single\_action\_space.run\_generic\_set\_actions
+============================================================
+
+.. currentmodule:: tests.test_single_action_space
+
+.. autofunction:: run_generic_set_actions

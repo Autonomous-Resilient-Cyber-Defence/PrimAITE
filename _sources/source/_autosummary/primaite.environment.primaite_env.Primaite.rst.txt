@@ -1,0 +1,80 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.environment.primaite\_env.Primaite
+===========================================
+
+.. currentmodule:: primaite.environment.primaite_env
+
+.. autoclass:: Primaite
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Primaite.apply_actions_to_acl
+      ~Primaite.apply_actions_to_nodes
+      ~Primaite.apply_time_based_updates
+      ~Primaite.close
+      ~Primaite.create_acl_action_dict
+      ~Primaite.create_acl_rule
+      ~Primaite.create_green_ier
+      ~Primaite.create_green_pol
+      ~Primaite.create_link
+      ~Primaite.create_node
+      ~Primaite.create_node_action_dict
+      ~Primaite.create_node_and_acl_action_dict
+      ~Primaite.create_ports_list
+      ~Primaite.create_red_ier
+      ~Primaite.create_red_pol
+      ~Primaite.create_services_list
+      ~Primaite.get_action_info
+      ~Primaite.get_observation_info
+      ~Primaite.init_acl
+      ~Primaite.init_observations
+      ~Primaite.interpret_action_and_apply
+      ~Primaite.load_lay_down_config
+      ~Primaite.output_link_status
+      ~Primaite.render
+      ~Primaite.reset
+      ~Primaite.reset_environment
+      ~Primaite.reset_node
+      ~Primaite.save_obs_config
+      ~Primaite.seed
+      ~Primaite.set_as_eval
+      ~Primaite.step
+      ~Primaite.update_environent_obs
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Primaite.ACTION_SPACE_ACL_ACTION_VALUES
+      ~Primaite.ACTION_SPACE_ACL_PERMISSION_VALUES
+      ~Primaite.ACTION_SPACE_NODE_ACTION_VALUES
+      ~Primaite.ACTION_SPACE_NODE_PROPERTY_VALUES
+      ~Primaite.action_space
+      ~Primaite.actual_episode_count
+      ~Primaite.metadata
+      ~Primaite.observation_space
+      ~Primaite.reward_range
+      ~Primaite.spec
+      ~Primaite.unwrapped
+      ~Primaite.total_step_count
+   
+   

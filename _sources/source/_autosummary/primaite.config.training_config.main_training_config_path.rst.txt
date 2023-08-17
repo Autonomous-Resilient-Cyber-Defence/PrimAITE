@@ -1,0 +1,6 @@
+primaite.config.training\_config.main\_training\_config\_path
+=============================================================
+
+.. currentmodule:: primaite.config.training_config
+
+.. autofunction:: main_training_config_path

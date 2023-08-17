@@ -1,0 +1,44 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.acl.access\_control\_list.AccessControlList
+====================================================
+
+.. currentmodule:: primaite.acl.access_control_list
+
+.. autoclass:: AccessControlList
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~AccessControlList.add_rule
+      ~AccessControlList.check_address_match
+      ~AccessControlList.get_dictionary_hash
+      ~AccessControlList.get_relevant_rules
+      ~AccessControlList.is_blocked
+      ~AccessControlList.remove_all_rules
+      ~AccessControlList.remove_rule
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~AccessControlList.acl
+   
+   

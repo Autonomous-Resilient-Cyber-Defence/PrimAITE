@@ -1,0 +1,6 @@
+primaite.cli.clean\_up
+======================
+
+.. currentmodule:: primaite.cli
+
+.. autofunction:: clean_up

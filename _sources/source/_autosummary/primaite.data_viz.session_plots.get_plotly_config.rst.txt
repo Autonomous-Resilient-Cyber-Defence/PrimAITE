@@ -1,0 +1,6 @@
+primaite.data\_viz.session\_plots.get\_plotly\_config
+=====================================================
+
+.. currentmodule:: primaite.data_viz.session_plots
+
+.. autofunction:: get_plotly_config

@@ -1,0 +1,6 @@
+primaite.cli.notebooks
+======================
+
+.. currentmodule:: primaite.cli
+
+.. autofunction:: notebooks

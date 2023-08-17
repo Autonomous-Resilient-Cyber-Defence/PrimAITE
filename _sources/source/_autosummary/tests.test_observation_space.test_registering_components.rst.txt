@@ -1,0 +1,6 @@
+tests.test\_observation\_space.test\_registering\_components
+============================================================
+
+.. currentmodule:: tests.test_observation_space
+
+.. autofunction:: test_registering_components

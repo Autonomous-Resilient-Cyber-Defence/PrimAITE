@@ -1,0 +1,6 @@
+tests.test\_primaite\_session.test\_primaite\_session
+=====================================================
+
+.. currentmodule:: tests.test_primaite_session
+
+.. autofunction:: test_primaite_session

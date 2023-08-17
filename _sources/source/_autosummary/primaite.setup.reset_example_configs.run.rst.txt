@@ -1,0 +1,6 @@
+primaite.setup.reset\_example\_configs.run
+==========================================
+
+.. currentmodule:: primaite.setup.reset_example_configs
+
+.. autofunction:: run

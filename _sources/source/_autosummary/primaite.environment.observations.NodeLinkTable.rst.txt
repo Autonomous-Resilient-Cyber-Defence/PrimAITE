@@ -1,0 +1,33 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.environment.observations.NodeLinkTable
+===============================================
+
+.. currentmodule:: primaite.environment.observations
+
+.. autoclass:: NodeLinkTable
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~NodeLinkTable.generate_structure
+      ~NodeLinkTable.update
+   
+   
+
+   
+   
+   

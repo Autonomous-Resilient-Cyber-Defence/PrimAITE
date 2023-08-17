@@ -1,0 +1,49 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.nodes.active\_node.ActiveNode
+======================================
+
+.. currentmodule:: primaite.nodes.active_node
+
+.. autoclass:: ActiveNode
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ActiveNode.reset
+      ~ActiveNode.set_file_system_state
+      ~ActiveNode.set_file_system_state_if_not_compromised
+      ~ActiveNode.set_software_state_if_not_compromised
+      ~ActiveNode.start_file_system_scan
+      ~ActiveNode.turn_off
+      ~ActiveNode.turn_on
+      ~ActiveNode.update_booting_status
+      ~ActiveNode.update_file_system_state
+      ~ActiveNode.update_os_patching_status
+      ~ActiveNode.update_resetting_status
+      ~ActiveNode.update_shutdown_status
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ActiveNode.software_state
+   
+   

@@ -1,0 +1,42 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.pol.ier.IER
+====================
+
+.. currentmodule:: primaite.pol.ier
+
+.. autoclass:: IER
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~IER.get_dest_node_id
+      ~IER.get_end_step
+      ~IER.get_id
+      ~IER.get_is_running
+      ~IER.get_load
+      ~IER.get_mission_criticality
+      ~IER.get_port
+      ~IER.get_protocol
+      ~IER.get_source_node_id
+      ~IER.get_start_step
+      ~IER.set_is_running
+   
+   
+
+   
+   
+   

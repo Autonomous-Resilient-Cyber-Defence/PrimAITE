@@ -1,0 +1,44 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.environment.observations.ObservationsHandler
+=====================================================
+
+.. currentmodule:: primaite.environment.observations
+
+.. autoclass:: ObservationsHandler
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ObservationsHandler.deregister
+      ~ObservationsHandler.describe_structure
+      ~ObservationsHandler.from_config
+      ~ObservationsHandler.register
+      ~ObservationsHandler.update_obs
+      ~ObservationsHandler.update_space
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ObservationsHandler.current_observation
+      ~ObservationsHandler.space
+   
+   

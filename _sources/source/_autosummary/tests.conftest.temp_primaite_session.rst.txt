@@ -1,0 +1,6 @@
+tests.conftest.temp\_primaite\_session
+======================================
+
+.. currentmodule:: tests.conftest
+
+.. autofunction:: temp_primaite_session

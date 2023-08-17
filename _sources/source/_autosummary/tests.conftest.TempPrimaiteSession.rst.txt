@@ -1,0 +1,46 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+tests.conftest.TempPrimaiteSession
+==================================
+
+.. currentmodule:: tests.conftest
+
+.. autoclass:: TempPrimaiteSession
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~TempPrimaiteSession.close
+      ~TempPrimaiteSession.eval_all_transactions_dict
+      ~TempPrimaiteSession.eval_av_reward_per_episode_dict
+      ~TempPrimaiteSession.evaluate
+      ~TempPrimaiteSession.learn
+      ~TempPrimaiteSession.learn_all_transactions_dict
+      ~TempPrimaiteSession.learn_av_reward_per_episode_dict
+      ~TempPrimaiteSession.metadata_file_as_dict
+      ~TempPrimaiteSession.setup
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TempPrimaiteSession.env
+   
+   

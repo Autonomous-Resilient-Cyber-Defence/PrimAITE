@@ -1,0 +1,118 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.config.training\_config.TrainingConfig
+===============================================
+
+.. currentmodule:: primaite.config.training_config
+
+.. autoclass:: TrainingConfig
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~TrainingConfig.from_dict
+      ~TrainingConfig.to_dict
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TrainingConfig.action_type
+      ~TrainingConfig.agent_framework
+      ~TrainingConfig.agent_identifier
+      ~TrainingConfig.agent_load_file
+      ~TrainingConfig.all_ok
+      ~TrainingConfig.checkpoint_every_n_episodes
+      ~TrainingConfig.compromised
+      ~TrainingConfig.compromised_should_be_good
+      ~TrainingConfig.compromised_should_be_overwhelmed
+      ~TrainingConfig.compromised_should_be_patching
+      ~TrainingConfig.corrupt
+      ~TrainingConfig.corrupt_should_be_destroyed
+      ~TrainingConfig.corrupt_should_be_good
+      ~TrainingConfig.corrupt_should_be_repairing
+      ~TrainingConfig.corrupt_should_be_restoring
+      ~TrainingConfig.deep_learning_framework
+      ~TrainingConfig.destroyed
+      ~TrainingConfig.destroyed_should_be_corrupt
+      ~TrainingConfig.destroyed_should_be_good
+      ~TrainingConfig.destroyed_should_be_repairing
+      ~TrainingConfig.destroyed_should_be_restoring
+      ~TrainingConfig.deterministic
+      ~TrainingConfig.file_system_repairing_limit
+      ~TrainingConfig.file_system_restoring_limit
+      ~TrainingConfig.file_system_scanning_limit
+      ~TrainingConfig.good_should_be_compromised
+      ~TrainingConfig.good_should_be_corrupt
+      ~TrainingConfig.good_should_be_destroyed
+      ~TrainingConfig.good_should_be_overwhelmed
+      ~TrainingConfig.good_should_be_patching
+      ~TrainingConfig.good_should_be_repairing
+      ~TrainingConfig.good_should_be_restoring
+      ~TrainingConfig.green_ier_blocked
+      ~TrainingConfig.hard_coded_agent_view
+      ~TrainingConfig.implicit_acl_rule
+      ~TrainingConfig.load_agent
+      ~TrainingConfig.max_number_acl_rules
+      ~TrainingConfig.node_booting_duration
+      ~TrainingConfig.node_reset_duration
+      ~TrainingConfig.node_shutdown_duration
+      ~TrainingConfig.num_eval_episodes
+      ~TrainingConfig.num_eval_steps
+      ~TrainingConfig.num_train_episodes
+      ~TrainingConfig.num_train_steps
+      ~TrainingConfig.observation_space_high_value
+      ~TrainingConfig.off_should_be_on
+      ~TrainingConfig.off_should_be_resetting
+      ~TrainingConfig.on_should_be_off
+      ~TrainingConfig.on_should_be_resetting
+      ~TrainingConfig.os_patching_duration
+      ~TrainingConfig.overwhelmed
+      ~TrainingConfig.overwhelmed_should_be_compromised
+      ~TrainingConfig.overwhelmed_should_be_good
+      ~TrainingConfig.overwhelmed_should_be_patching
+      ~TrainingConfig.patching
+      ~TrainingConfig.patching_should_be_compromised
+      ~TrainingConfig.patching_should_be_good
+      ~TrainingConfig.patching_should_be_overwhelmed
+      ~TrainingConfig.random_red_agent
+      ~TrainingConfig.red_ier_running
+      ~TrainingConfig.repairing
+      ~TrainingConfig.repairing_should_be_corrupt
+      ~TrainingConfig.repairing_should_be_destroyed
+      ~TrainingConfig.repairing_should_be_good
+      ~TrainingConfig.repairing_should_be_restoring
+      ~TrainingConfig.resetting
+      ~TrainingConfig.resetting_should_be_off
+      ~TrainingConfig.resetting_should_be_on
+      ~TrainingConfig.restoring
+      ~TrainingConfig.restoring_should_be_corrupt
+      ~TrainingConfig.restoring_should_be_destroyed
+      ~TrainingConfig.restoring_should_be_good
+      ~TrainingConfig.restoring_should_be_repairing
+      ~TrainingConfig.sb3_output_verbose_level
+      ~TrainingConfig.scanning
+      ~TrainingConfig.seed
+      ~TrainingConfig.service_patching_duration
+      ~TrainingConfig.session_type
+      ~TrainingConfig.time_delay
+      ~TrainingConfig.observation_space
+   
+   

@@ -1,0 +1,6 @@
+primaite.pol.red\_agent\_pol.is\_red\_ier\_incoming
+===================================================
+
+.. currentmodule:: primaite.pol.red_agent_pol
+
+.. autofunction:: is_red_ier_incoming

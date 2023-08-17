@@ -1,0 +1,6 @@
+tests.test\_active\_node.test\_file\_system\_change\_if\_not\_compromised
+=========================================================================
+
+.. currentmodule:: tests.test_active_node
+
+.. autofunction:: test_file_system_change_if_not_compromised

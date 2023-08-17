@@ -1,0 +1,6 @@
+primaite.config.training\_config.convert\_legacy\_training\_config\_dict
+========================================================================
+
+.. currentmodule:: primaite.config.training_config
+
+.. autofunction:: convert_legacy_training_config_dict

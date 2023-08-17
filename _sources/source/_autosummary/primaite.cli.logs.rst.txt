@@ -1,0 +1,6 @@
+primaite.cli.logs
+=================
+
+.. currentmodule:: primaite.cli
+
+.. autofunction:: logs

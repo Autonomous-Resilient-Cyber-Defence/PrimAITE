@@ -1,0 +1,6 @@
+tests.test\_acl.test\_acl\_address\_match\_4
+============================================
+
+.. currentmodule:: tests.test_acl
+
+.. autofunction:: test_acl_address_match_4

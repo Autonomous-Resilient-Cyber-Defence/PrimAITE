@@ -1,0 +1,6 @@
+tests.test\_single\_action\_space.test\_single\_action\_space\_is\_valid
+========================================================================
+
+.. currentmodule:: tests.test_single_action_space
+
+.. autofunction:: test_single_action_space_is_valid

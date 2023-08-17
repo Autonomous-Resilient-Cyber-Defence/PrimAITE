@@ -1,0 +1,6 @@
+tests.test\_acl.test\_check\_acl\_block\_negative
+=================================================
+
+.. currentmodule:: tests.test_acl
+
+.. autofunction:: test_check_acl_block_negative

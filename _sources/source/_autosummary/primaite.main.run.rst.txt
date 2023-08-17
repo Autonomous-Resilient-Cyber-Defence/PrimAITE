@@ -1,0 +1,6 @@
+primaite.main.run
+=================
+
+.. currentmodule:: primaite.main
+
+.. autofunction:: run

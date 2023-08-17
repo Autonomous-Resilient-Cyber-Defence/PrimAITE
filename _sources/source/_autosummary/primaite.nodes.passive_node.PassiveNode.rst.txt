@@ -1,0 +1,43 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.nodes.passive\_node.PassiveNode
+========================================
+
+.. currentmodule:: primaite.nodes.passive_node
+
+.. autoclass:: PassiveNode
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~PassiveNode.reset
+      ~PassiveNode.turn_off
+      ~PassiveNode.turn_on
+      ~PassiveNode.update_booting_status
+      ~PassiveNode.update_resetting_status
+      ~PassiveNode.update_shutdown_status
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PassiveNode.ip_address
+   
+   

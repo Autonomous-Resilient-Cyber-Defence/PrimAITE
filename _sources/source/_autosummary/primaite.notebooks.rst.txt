@@ -1,0 +1,38 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.notebooks
+==================
+
+.. automodule:: primaite.notebooks
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      start_jupyter_session
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

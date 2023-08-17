@@ -1,0 +1,6 @@
+tests.test\_seeding\_and\_deterministic\_session.test\_deterministic\_evaluation
+================================================================================
+
+.. currentmodule:: tests.test_seeding_and_deterministic_session
+
+.. autofunction:: test_deterministic_evaluation

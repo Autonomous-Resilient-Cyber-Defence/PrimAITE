@@ -1,0 +1,6 @@
+primaite.cli.log\_level
+=======================
+
+.. currentmodule:: primaite.cli
+
+.. autofunction:: log_level

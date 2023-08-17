@@ -1,0 +1,6 @@
+primaite.agents.utils.describe\_obs\_change
+===========================================
+
+.. currentmodule:: primaite.agents.utils
+
+.. autofunction:: describe_obs_change

@@ -1,0 +1,6 @@
+primaite.config.training\_config.load
+=====================================
+
+.. currentmodule:: primaite.config.training_config
+
+.. autofunction:: load

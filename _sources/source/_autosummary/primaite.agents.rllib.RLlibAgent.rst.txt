@@ -1,0 +1,48 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.agents.rllib.RLlibAgent
+================================
+
+.. currentmodule:: primaite.agents.rllib
+
+.. autoclass:: RLlibAgent
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~RLlibAgent.close
+      ~RLlibAgent.evaluate
+      ~RLlibAgent.export
+      ~RLlibAgent.learn
+      ~RLlibAgent.load
+      ~RLlibAgent.save
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~RLlibAgent.checkpoints_path
+      ~RLlibAgent.evaluation_path
+      ~RLlibAgent.learning_path
+      ~RLlibAgent.timestamp_str
+      ~RLlibAgent.uuid
+      ~RLlibAgent.session_path
+   
+   

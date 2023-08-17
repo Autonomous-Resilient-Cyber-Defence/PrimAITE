@@ -1,0 +1,6 @@
+primaite.cli.setup
+==================
+
+.. currentmodule:: primaite.cli
+
+.. autofunction:: setup

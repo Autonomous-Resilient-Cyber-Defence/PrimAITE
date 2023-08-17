@@ -1,0 +1,6 @@
+tests.conftest.temp\_session\_path
+==================================
+
+.. currentmodule:: tests.conftest
+
+.. autofunction:: temp_session_path

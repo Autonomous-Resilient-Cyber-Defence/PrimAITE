@@ -1,0 +1,55 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.agents.hardcoded\_acl.HardCodedACLAgent
+================================================
+
+.. currentmodule:: primaite.agents.hardcoded_acl
+
+.. autoclass:: HardCodedACLAgent
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~HardCodedACLAgent.close
+      ~HardCodedACLAgent.evaluate
+      ~HardCodedACLAgent.export
+      ~HardCodedACLAgent.get_allow_acl_rules
+      ~HardCodedACLAgent.get_allow_acl_rules_for_ier
+      ~HardCodedACLAgent.get_blocked_green_iers
+      ~HardCodedACLAgent.get_blocking_acl_rules_for_ier
+      ~HardCodedACLAgent.get_deny_acl_rules
+      ~HardCodedACLAgent.get_matching_acl_rules
+      ~HardCodedACLAgent.get_matching_acl_rules_for_ier
+      ~HardCodedACLAgent.learn
+      ~HardCodedACLAgent.load
+      ~HardCodedACLAgent.save
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~HardCodedACLAgent.checkpoints_path
+      ~HardCodedACLAgent.evaluation_path
+      ~HardCodedACLAgent.learning_path
+      ~HardCodedACLAgent.timestamp_str
+      ~HardCodedACLAgent.uuid
+      ~HardCodedACLAgent.session_path
+   
+   

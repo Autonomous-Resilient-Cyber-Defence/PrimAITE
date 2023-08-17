@@ -1,0 +1,6 @@
+tests.test\_session\_loading.test\_run\_loading
+===============================================
+
+.. currentmodule:: tests.test_session_loading
+
+.. autofunction:: test_run_loading

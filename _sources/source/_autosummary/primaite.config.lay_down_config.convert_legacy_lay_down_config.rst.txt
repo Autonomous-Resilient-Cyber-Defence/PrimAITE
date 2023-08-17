@@ -1,0 +1,6 @@
+primaite.config.lay\_down\_config.convert\_legacy\_lay\_down\_config
+====================================================================
+
+.. currentmodule:: primaite.config.lay_down_config
+
+.. autofunction:: convert_legacy_lay_down_config

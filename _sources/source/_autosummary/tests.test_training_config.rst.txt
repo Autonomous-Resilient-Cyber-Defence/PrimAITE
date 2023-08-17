@@ -1,0 +1,40 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+tests.test\_training\_config
+============================
+
+.. automodule:: tests.test_training_config
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      test_create_config_values_main_from_file
+      test_create_config_values_main_from_legacy_file
+      test_legacy_lay_down_config_yaml_conversion
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

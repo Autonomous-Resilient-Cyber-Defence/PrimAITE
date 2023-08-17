@@ -1,0 +1,42 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+tests.test\_session\_loading
+============================
+
+.. automodule:: tests.test_session_loading
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      copy_session_asset
+      test_cli
+      test_load_primaite_session
+      test_load_sb3_session
+      test_run_loading
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

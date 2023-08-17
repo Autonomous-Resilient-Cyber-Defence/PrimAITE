@@ -1,0 +1,6 @@
+primaite.agents.utils.transform\_change\_obs\_readable
+======================================================
+
+.. currentmodule:: primaite.agents.utils
+
+.. autofunction:: transform_change_obs_readable

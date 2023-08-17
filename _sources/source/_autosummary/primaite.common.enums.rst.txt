@@ -1,0 +1,58 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.common.enums
+=====================
+
+.. automodule:: primaite.common.enums
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+      :toctree:
+      :template: custom-class-template.rst
+      :nosignatures:
+   
+      ActionType
+      AgentFramework
+      AgentIdentifier
+      DeepLearningFramework
+      FileSystemState
+      HardCodedAgentView
+      HardwareState
+      LinkStatus
+      NodeHardwareAction
+      NodePOLInitiator
+      NodePOLType
+      NodeSoftwareAction
+      NodeType
+      ObservationType
+      Priority
+      Protocol
+      RulePermissionType
+      SB3OutputVerboseLevel
+      SessionType
+      SoftwareState
+   
+   
+
+   
+   
+   
+
+
+

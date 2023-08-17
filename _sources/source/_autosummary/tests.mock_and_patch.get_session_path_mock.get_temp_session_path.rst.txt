@@ -1,0 +1,6 @@
+tests.mock\_and\_patch.get\_session\_path\_mock.get\_temp\_session\_path
+========================================================================
+
+.. currentmodule:: tests.mock_and_patch.get_session_path_mock
+
+.. autofunction:: get_temp_session_path

@@ -1,0 +1,6 @@
+tests.test\_lay\_down\_config.test\_legacy\_lay\_down\_config\_load
+===================================================================
+
+.. currentmodule:: tests.test_lay_down_config
+
+.. autofunction:: test_legacy_lay_down_config_load

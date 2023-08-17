@@ -1,0 +1,6 @@
+primaite.config.lay\_down\_config.load
+======================================
+
+.. currentmodule:: primaite.config.lay_down_config
+
+.. autofunction:: load

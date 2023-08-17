@@ -1,0 +1,6 @@
+tests.test\_active\_node.test\_os\_state\_change
+================================================
+
+.. currentmodule:: tests.test_active_node
+
+.. autofunction:: test_os_state_change

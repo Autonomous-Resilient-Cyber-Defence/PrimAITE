@@ -1,0 +1,6 @@
+primaite.config.lay\_down\_config.ddos\_basic\_two\_config\_path
+================================================================
+
+.. currentmodule:: primaite.config.lay_down_config
+
+.. autofunction:: ddos_basic_two_config_path

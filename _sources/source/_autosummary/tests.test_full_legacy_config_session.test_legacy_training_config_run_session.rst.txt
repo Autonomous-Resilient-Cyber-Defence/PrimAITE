@@ -1,0 +1,6 @@
+tests.test\_full\_legacy\_config\_session.test\_legacy\_training\_config\_run\_session
+======================================================================================
+
+.. currentmodule:: tests.test_full_legacy_config_session
+
+.. autofunction:: test_legacy_training_config_run_session

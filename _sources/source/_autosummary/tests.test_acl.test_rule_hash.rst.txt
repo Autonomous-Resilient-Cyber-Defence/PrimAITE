@@ -1,0 +1,6 @@
+tests.test\_acl.test\_rule\_hash
+================================
+
+.. currentmodule:: tests.test_acl
+
+.. autofunction:: test_rule_hash

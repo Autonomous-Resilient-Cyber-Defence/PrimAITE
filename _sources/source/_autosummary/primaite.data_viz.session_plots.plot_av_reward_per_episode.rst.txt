@@ -1,0 +1,6 @@
+primaite.data\_viz.session\_plots.plot\_av\_reward\_per\_episode
+================================================================
+
+.. currentmodule:: primaite.data_viz.session_plots
+
+.. autofunction:: plot_av_reward_per_episode

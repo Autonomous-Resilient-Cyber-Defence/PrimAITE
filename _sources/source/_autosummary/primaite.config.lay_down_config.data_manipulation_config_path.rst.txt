@@ -1,0 +1,6 @@
+primaite.config.lay\_down\_config.data\_manipulation\_config\_path
+==================================================================
+
+.. currentmodule:: primaite.config.lay_down_config
+
+.. autofunction:: data_manipulation_config_path

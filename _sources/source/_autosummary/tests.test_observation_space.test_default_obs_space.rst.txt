@@ -1,0 +1,6 @@
+tests.test\_observation\_space.test\_default\_obs\_space
+========================================================
+
+.. currentmodule:: tests.test_observation_space
+
+.. autofunction:: test_default_obs_space

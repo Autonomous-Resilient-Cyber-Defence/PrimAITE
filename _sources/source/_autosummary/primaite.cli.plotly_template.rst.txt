@@ -1,0 +1,6 @@
+primaite.cli.plotly\_template
+=============================
+
+.. currentmodule:: primaite.cli
+
+.. autofunction:: plotly_template

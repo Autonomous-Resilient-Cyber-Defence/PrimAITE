@@ -1,0 +1,6 @@
+primaite.cli.build\_dirs
+========================
+
+.. currentmodule:: primaite.cli
+
+.. autofunction:: build_dirs

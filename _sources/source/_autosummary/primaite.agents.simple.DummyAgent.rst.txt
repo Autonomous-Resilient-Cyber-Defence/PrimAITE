@@ -1,0 +1,48 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.agents.simple.DummyAgent
+=================================
+
+.. currentmodule:: primaite.agents.simple
+
+.. autoclass:: DummyAgent
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~DummyAgent.close
+      ~DummyAgent.evaluate
+      ~DummyAgent.export
+      ~DummyAgent.learn
+      ~DummyAgent.load
+      ~DummyAgent.save
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DummyAgent.checkpoints_path
+      ~DummyAgent.evaluation_path
+      ~DummyAgent.learning_path
+      ~DummyAgent.timestamp_str
+      ~DummyAgent.uuid
+      ~DummyAgent.session_path
+   
+   

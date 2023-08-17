@@ -1,0 +1,41 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.nodes.node\_state\_instruction\_red.NodeStateInstructionRed
+====================================================================
+
+.. currentmodule:: primaite.nodes.node_state_instruction_red
+
+.. autoclass:: NodeStateInstructionRed
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~NodeStateInstructionRed.get_end_step
+      ~NodeStateInstructionRed.get_initiator
+      ~NodeStateInstructionRed.get_pol_type
+      ~NodeStateInstructionRed.get_service_name
+      ~NodeStateInstructionRed.get_source_node_id
+      ~NodeStateInstructionRed.get_source_node_service
+      ~NodeStateInstructionRed.get_source_node_service_state
+      ~NodeStateInstructionRed.get_start_step
+      ~NodeStateInstructionRed.get_state
+      ~NodeStateInstructionRed.get_target_node_id
+   
+   
+
+   
+   
+   

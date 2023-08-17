@@ -1,0 +1,6 @@
+primaite.agents.utils.transform\_action\_acl\_readable
+======================================================
+
+.. currentmodule:: primaite.agents.utils
+
+.. autofunction:: transform_action_acl_readable

@@ -1,0 +1,61 @@
+﻿.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+tests
+=====
+
+.. automodule:: tests
+
+   
+   
+   .. rubric:: Module attributes
+
+   .. autosummary::
+      :toctree:
+   
+      TEST_CONFIG_ROOT
+      TEST_ASSETS_ROOT
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   tests.conftest
+   tests.mock_and_patch
+   tests.test_acl
+   tests.test_active_node
+   tests.test_full_legacy_config_session
+   tests.test_lay_down_config
+   tests.test_observation_space
+   tests.test_primaite_session
+   tests.test_red_random_agent_behaviour
+   tests.test_resetting_node
+   tests.test_reward
+   tests.test_seeding_and_deterministic_session
+   tests.test_service_node
+   tests.test_session_loading
+   tests.test_single_action_space
+   tests.test_train_eval_episode_steps
+   tests.test_training_config
+

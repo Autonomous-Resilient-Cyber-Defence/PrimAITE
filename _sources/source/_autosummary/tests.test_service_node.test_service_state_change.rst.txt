@@ -1,0 +1,6 @@
+tests.test\_service\_node.test\_service\_state\_change
+======================================================
+
+.. currentmodule:: tests.test_service_node
+
+.. autofunction:: test_service_state_change

@@ -1,0 +1,6 @@
+primaite.environment.reward.score\_node\_file\_system
+=====================================================
+
+.. currentmodule:: primaite.environment.reward
+
+.. autofunction:: score_node_file_system

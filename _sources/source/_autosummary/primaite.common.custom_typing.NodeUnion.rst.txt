@@ -1,0 +1,6 @@
+primaite.common.custom\_typing.NodeUnion
+========================================
+
+.. currentmodule:: primaite.common.custom_typing
+
+.. autodata:: NodeUnion

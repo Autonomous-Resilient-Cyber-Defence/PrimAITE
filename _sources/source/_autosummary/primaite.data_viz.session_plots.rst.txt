@@ -1,0 +1,39 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.data\_viz.session\_plots
+=================================
+
+.. automodule:: primaite.data_viz.session_plots
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      get_plotly_config
+      plot_av_reward_per_episode
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,6 @@
+primaite.utils.package\_data.get\_file\_path
+============================================
+
+.. currentmodule:: primaite.utils.package_data
+
+.. autofunction:: get_file_path

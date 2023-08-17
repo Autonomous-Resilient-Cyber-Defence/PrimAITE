@@ -1,0 +1,6 @@
+primaite.pol.red\_agent\_pol.apply\_red\_agent\_node\_pol
+=========================================================
+
+.. currentmodule:: primaite.pol.red_agent_pol
+
+.. autofunction:: apply_red_agent_node_pol

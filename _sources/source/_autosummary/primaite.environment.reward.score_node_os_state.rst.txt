@@ -1,0 +1,6 @@
+primaite.environment.reward.score\_node\_os\_state
+==================================================
+
+.. currentmodule:: primaite.environment.reward
+
+.. autofunction:: score_node_os_state

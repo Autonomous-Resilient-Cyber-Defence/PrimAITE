@@ -1,0 +1,6 @@
+tests.test\_single\_action\_space.test\_agent\_is\_executing\_actions\_from\_both\_spaces
+=========================================================================================
+
+.. currentmodule:: tests.test_single_action_space
+
+.. autofunction:: test_agent_is_executing_actions_from_both_spaces

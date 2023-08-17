@@ -1,0 +1,40 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.links.link.Link
+========================
+
+.. currentmodule:: primaite.links.link
+
+.. autoclass:: Link
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~Link.add_protocol
+      ~Link.add_protocol_load
+      ~Link.clear_traffic
+      ~Link.get_bandwidth
+      ~Link.get_current_load
+      ~Link.get_dest_node_name
+      ~Link.get_id
+      ~Link.get_protocol_list
+      ~Link.get_source_node_name
+   
+   
+
+   
+   
+   

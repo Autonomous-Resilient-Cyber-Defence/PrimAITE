@@ -1,0 +1,40 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.pol.red\_agent\_pol
+============================
+
+.. automodule:: primaite.pol.red_agent_pol
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      apply_red_agent_iers
+      apply_red_agent_node_pol
+      is_red_ier_incoming
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

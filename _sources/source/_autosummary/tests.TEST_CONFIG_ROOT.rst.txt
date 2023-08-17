@@ -1,0 +1,6 @@
+tests.TEST\_CONFIG\_ROOT
+========================
+
+.. currentmodule:: tests
+
+.. autodata:: TEST_CONFIG_ROOT

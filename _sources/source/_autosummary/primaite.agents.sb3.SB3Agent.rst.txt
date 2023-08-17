@@ -1,0 +1,48 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.agents.sb3.SB3Agent
+============================
+
+.. currentmodule:: primaite.agents.sb3
+
+.. autoclass:: SB3Agent
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~SB3Agent.close
+      ~SB3Agent.evaluate
+      ~SB3Agent.export
+      ~SB3Agent.learn
+      ~SB3Agent.load
+      ~SB3Agent.save
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~SB3Agent.checkpoints_path
+      ~SB3Agent.evaluation_path
+      ~SB3Agent.learning_path
+      ~SB3Agent.timestamp_str
+      ~SB3Agent.uuid
+      ~SB3Agent.session_path
+   
+   

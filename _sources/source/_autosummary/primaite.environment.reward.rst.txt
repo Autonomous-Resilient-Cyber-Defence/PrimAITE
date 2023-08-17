@@ -1,0 +1,42 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.environment.reward
+===========================
+
+.. automodule:: primaite.environment.reward
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      calculate_reward_function
+      score_node_file_system
+      score_node_operating_state
+      score_node_os_state
+      score_node_service_state
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

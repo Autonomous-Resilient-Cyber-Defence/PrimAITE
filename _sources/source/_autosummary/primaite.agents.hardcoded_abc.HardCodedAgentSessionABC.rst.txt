@@ -1,0 +1,48 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.agents.hardcoded\_abc.HardCodedAgentSessionABC
+=======================================================
+
+.. currentmodule:: primaite.agents.hardcoded_abc
+
+.. autoclass:: HardCodedAgentSessionABC
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~HardCodedAgentSessionABC.close
+      ~HardCodedAgentSessionABC.evaluate
+      ~HardCodedAgentSessionABC.export
+      ~HardCodedAgentSessionABC.learn
+      ~HardCodedAgentSessionABC.load
+      ~HardCodedAgentSessionABC.save
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~HardCodedAgentSessionABC.checkpoints_path
+      ~HardCodedAgentSessionABC.evaluation_path
+      ~HardCodedAgentSessionABC.learning_path
+      ~HardCodedAgentSessionABC.timestamp_str
+      ~HardCodedAgentSessionABC.uuid
+      ~HardCodedAgentSessionABC.session_path
+   
+   

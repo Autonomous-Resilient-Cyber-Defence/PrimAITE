@@ -1,0 +1,6 @@
+tests.test\_training\_config.test\_legacy\_lay\_down\_config\_yaml\_conversion
+==============================================================================
+
+.. currentmodule:: tests.test_training_config
+
+.. autofunction:: test_legacy_lay_down_config_yaml_conversion

@@ -1,0 +1,6 @@
+tests.test\_seeding\_and\_deterministic\_session.test\_seeded\_learning
+=======================================================================
+
+.. currentmodule:: tests.test_seeding_and_deterministic_session
+
+.. autofunction:: test_seeded_learning

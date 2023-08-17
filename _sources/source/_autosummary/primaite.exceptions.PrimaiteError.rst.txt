@@ -1,0 +1,6 @@
+primaite.exceptions.PrimaiteError
+=================================
+
+.. currentmodule:: primaite.exceptions
+
+.. autoexception:: PrimaiteError

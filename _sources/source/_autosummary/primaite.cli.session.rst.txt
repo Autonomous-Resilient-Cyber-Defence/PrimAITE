@@ -1,0 +1,6 @@
+primaite.cli.session
+====================
+
+.. currentmodule:: primaite.cli
+
+.. autofunction:: session

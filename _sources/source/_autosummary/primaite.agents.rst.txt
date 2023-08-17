@@ -1,0 +1,44 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.agents
+===============
+
+.. automodule:: primaite.agents
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primaite.agents.agent_abc
+   primaite.agents.hardcoded_abc
+   primaite.agents.hardcoded_acl
+   primaite.agents.hardcoded_node
+   primaite.agents.rllib
+   primaite.agents.sb3
+   primaite.agents.simple
+   primaite.agents.utils
+

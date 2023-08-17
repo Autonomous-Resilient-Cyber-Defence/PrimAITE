@@ -1,0 +1,6 @@
+tests.test\_session\_loading.test\_load\_sb3\_session
+=====================================================
+
+.. currentmodule:: tests.test_session_loading
+
+.. autofunction:: test_load_sb3_session

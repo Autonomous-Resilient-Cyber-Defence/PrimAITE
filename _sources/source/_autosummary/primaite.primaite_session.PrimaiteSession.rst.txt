@@ -1,0 +1,40 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.primaite\_session.PrimaiteSession
+==========================================
+
+.. currentmodule:: primaite.primaite_session
+
+.. autoclass:: PrimaiteSession
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~PrimaiteSession.close
+      ~PrimaiteSession.eval_all_transactions_dict
+      ~PrimaiteSession.eval_av_reward_per_episode_dict
+      ~PrimaiteSession.evaluate
+      ~PrimaiteSession.learn
+      ~PrimaiteSession.learn_all_transactions_dict
+      ~PrimaiteSession.learn_av_reward_per_episode_dict
+      ~PrimaiteSession.metadata_file_as_dict
+      ~PrimaiteSession.setup
+   
+   
+
+   
+   
+   

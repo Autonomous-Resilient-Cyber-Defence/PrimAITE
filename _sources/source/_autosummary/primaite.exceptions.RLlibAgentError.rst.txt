@@ -1,0 +1,6 @@
+primaite.exceptions.RLlibAgentError
+===================================
+
+.. currentmodule:: primaite.exceptions
+
+.. autoexception:: RLlibAgentError

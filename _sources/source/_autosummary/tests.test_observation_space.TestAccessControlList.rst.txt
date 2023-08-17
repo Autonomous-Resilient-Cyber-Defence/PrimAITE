@@ -1,0 +1,41 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+tests.test\_observation\_space.TestAccessControlList
+====================================================
+
+.. currentmodule:: tests.test_observation_space
+
+.. autoclass:: TestAccessControlList
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~TestAccessControlList.test_obs_shape
+      ~TestAccessControlList.test_observation_space_with_different_positions
+      ~TestAccessControlList.test_observation_space_with_implicit_rule
+      ~TestAccessControlList.test_values
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~TestAccessControlList.pytestmark
+   
+   

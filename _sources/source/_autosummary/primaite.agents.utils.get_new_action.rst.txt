@@ -1,0 +1,6 @@
+primaite.agents.utils.get\_new\_action
+======================================
+
+.. currentmodule:: primaite.agents.utils
+
+.. autofunction:: get_new_action

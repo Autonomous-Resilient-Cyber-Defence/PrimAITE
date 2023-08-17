@@ -1,0 +1,6 @@
+primaite.cli.reset\_notebooks
+=============================
+
+.. currentmodule:: primaite.cli
+
+.. autofunction:: reset_notebooks

@@ -1,0 +1,48 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.agents.simple.DoNothingNodeAgent
+=========================================
+
+.. currentmodule:: primaite.agents.simple
+
+.. autoclass:: DoNothingNodeAgent
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~DoNothingNodeAgent.close
+      ~DoNothingNodeAgent.evaluate
+      ~DoNothingNodeAgent.export
+      ~DoNothingNodeAgent.learn
+      ~DoNothingNodeAgent.load
+      ~DoNothingNodeAgent.save
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~DoNothingNodeAgent.checkpoints_path
+      ~DoNothingNodeAgent.evaluation_path
+      ~DoNothingNodeAgent.learning_path
+      ~DoNothingNodeAgent.timestamp_str
+      ~DoNothingNodeAgent.uuid
+      ~DoNothingNodeAgent.session_path
+   
+   

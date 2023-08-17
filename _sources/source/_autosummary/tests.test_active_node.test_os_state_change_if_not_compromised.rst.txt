@@ -1,0 +1,6 @@
+tests.test\_active\_node.test\_os\_state\_change\_if\_not\_compromised
+======================================================================
+
+.. currentmodule:: tests.test_active_node
+
+.. autofunction:: test_os_state_change_if_not_compromised

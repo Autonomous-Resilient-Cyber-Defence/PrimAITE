@@ -1,0 +1,6 @@
+primaite.agents.utils.is\_valid\_acl\_action
+============================================
+
+.. currentmodule:: primaite.agents.utils
+
+.. autofunction:: is_valid_acl_action

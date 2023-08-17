@@ -1,0 +1,6 @@
+primaite.agents.agent\_abc.get\_session\_path
+=============================================
+
+.. currentmodule:: primaite.agents.agent_abc
+
+.. autofunction:: get_session_path

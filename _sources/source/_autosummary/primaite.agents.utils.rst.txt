@@ -1,0 +1,51 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.agents.utils
+=====================
+
+.. automodule:: primaite.agents.utils
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+      :nosignatures:
+   
+      convert_to_new_obs
+      convert_to_old_obs
+      describe_obs_change
+      get_new_action
+      get_node_of_ip
+      is_valid_acl_action
+      is_valid_acl_action_extra
+      is_valid_node_action
+      transform_action_acl_enum
+      transform_action_acl_readable
+      transform_action_node_enum
+      transform_action_node_readable
+      transform_change_obs_readable
+      transform_obs_readable
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

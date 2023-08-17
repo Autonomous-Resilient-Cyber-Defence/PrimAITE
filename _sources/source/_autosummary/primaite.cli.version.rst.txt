@@ -1,0 +1,6 @@
+primaite.cli.version
+====================
+
+.. currentmodule:: primaite.cli
+
+.. autofunction:: version

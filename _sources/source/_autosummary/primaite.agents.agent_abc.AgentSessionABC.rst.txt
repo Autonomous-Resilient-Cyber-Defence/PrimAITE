@@ -1,0 +1,48 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.agents.agent\_abc.AgentSessionABC
+==========================================
+
+.. currentmodule:: primaite.agents.agent_abc
+
+.. autoclass:: AgentSessionABC
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~AgentSessionABC.close
+      ~AgentSessionABC.evaluate
+      ~AgentSessionABC.export
+      ~AgentSessionABC.learn
+      ~AgentSessionABC.load
+      ~AgentSessionABC.save
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~AgentSessionABC.checkpoints_path
+      ~AgentSessionABC.evaluation_path
+      ~AgentSessionABC.learning_path
+      ~AgentSessionABC.timestamp_str
+      ~AgentSessionABC.uuid
+      ~AgentSessionABC.session_path
+   
+   

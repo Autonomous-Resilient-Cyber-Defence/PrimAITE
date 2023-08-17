@@ -1,0 +1,36 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.common.enums.AgentIdentifier
+=====================================
+
+.. currentmodule:: primaite.common.enums
+
+.. autoclass:: AgentIdentifier
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~AgentIdentifier.A2C
+      ~AgentIdentifier.PPO
+      ~AgentIdentifier.HARDCODED
+      ~AgentIdentifier.DO_NOTHING
+      ~AgentIdentifier.RANDOM
+      ~AgentIdentifier.DUMMY
+   
+   

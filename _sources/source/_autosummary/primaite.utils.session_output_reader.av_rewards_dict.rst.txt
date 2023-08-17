@@ -1,0 +1,6 @@
+primaite.utils.session\_output\_reader.av\_rewards\_dict
+========================================================
+
+.. currentmodule:: primaite.utils.session_output_reader
+
+.. autofunction:: av_rewards_dict

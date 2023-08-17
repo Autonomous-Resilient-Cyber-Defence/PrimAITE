@@ -1,0 +1,42 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.nodes
+==============
+
+.. automodule:: primaite.nodes
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. autosummary::
+   :toctree:
+   :template: custom-module-template.rst
+   :recursive:
+
+   primaite.nodes.active_node
+   primaite.nodes.node
+   primaite.nodes.node_state_instruction_green
+   primaite.nodes.node_state_instruction_red
+   primaite.nodes.passive_node
+   primaite.nodes.service_node
+

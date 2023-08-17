@@ -1,0 +1,6 @@
+primaite.config.lay\_down\_config.dos\_very\_basic\_config\_path
+================================================================
+
+.. currentmodule:: primaite.config.lay_down_config
+
+.. autofunction:: dos_very_basic_config_path

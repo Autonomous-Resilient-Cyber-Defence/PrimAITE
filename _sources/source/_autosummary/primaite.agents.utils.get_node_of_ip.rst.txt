@@ -1,0 +1,6 @@
+primaite.agents.utils.get\_node\_of\_ip
+=======================================
+
+.. currentmodule:: primaite.agents.utils
+
+.. autofunction:: get_node_of_ip

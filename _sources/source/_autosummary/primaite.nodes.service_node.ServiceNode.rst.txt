@@ -1,0 +1,57 @@
+.. only:: comment
+
+    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+
+..
+    Credit to https://github.com/JamesALeedham/Sphinx-Autosummary-Recursion for the custom templates.
+..
+primaite.nodes.service\_node.ServiceNode
+========================================
+
+.. currentmodule:: primaite.nodes.service_node
+
+.. autoclass:: ServiceNode
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __init__, __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ServiceNode.add_service
+      ~ServiceNode.get_service_state
+      ~ServiceNode.has_service
+      ~ServiceNode.reset
+      ~ServiceNode.service_is_overwhelmed
+      ~ServiceNode.service_running
+      ~ServiceNode.set_file_system_state
+      ~ServiceNode.set_file_system_state_if_not_compromised
+      ~ServiceNode.set_service_state
+      ~ServiceNode.set_service_state_if_not_compromised
+      ~ServiceNode.set_software_state_if_not_compromised
+      ~ServiceNode.start_file_system_scan
+      ~ServiceNode.turn_off
+      ~ServiceNode.turn_on
+      ~ServiceNode.update_booting_status
+      ~ServiceNode.update_file_system_state
+      ~ServiceNode.update_os_patching_status
+      ~ServiceNode.update_resetting_status
+      ~ServiceNode.update_services_patching_status
+      ~ServiceNode.update_shutdown_status
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~ServiceNode.software_state
+   
+   

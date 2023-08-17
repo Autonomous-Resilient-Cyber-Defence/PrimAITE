@@ -1,0 +1,6 @@
+tests.test\_training\_config.test\_create\_config\_values\_main\_from\_legacy\_file
+===================================================================================
+
+.. currentmodule:: tests.test_training_config
+
+.. autofunction:: test_create_config_values_main_from_legacy_file

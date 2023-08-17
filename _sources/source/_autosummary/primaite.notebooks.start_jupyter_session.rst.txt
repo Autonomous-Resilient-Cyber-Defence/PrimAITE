@@ -1,0 +1,6 @@
+primaite.notebooks.start\_jupyter\_session
+==========================================
+
+.. currentmodule:: primaite.notebooks
+
+.. autofunction:: start_jupyter_session

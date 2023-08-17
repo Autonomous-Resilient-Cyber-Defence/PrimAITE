@@ -1,0 +1,6 @@
+primaite.getLogger
+==================
+
+.. currentmodule:: primaite
+
+.. autofunction:: getLogger

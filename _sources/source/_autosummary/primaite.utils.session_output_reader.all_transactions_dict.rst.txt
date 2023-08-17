@@ -1,0 +1,6 @@
+primaite.utils.session\_output\_reader.all\_transactions\_dict
+==============================================================
+
+.. currentmodule:: primaite.utils.session_output_reader
+
+.. autofunction:: all_transactions_dict

@@ -1,0 +1,6 @@
+primaite.utils.session\_metadata\_parser.parse\_session\_metadata
+=================================================================
+
+.. currentmodule:: primaite.utils.session_metadata_parser
+
+.. autofunction:: parse_session_metadata

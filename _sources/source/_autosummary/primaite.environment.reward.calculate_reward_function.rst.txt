@@ -1,0 +1,6 @@
+primaite.environment.reward.calculate\_reward\_function
+=======================================================
+
+.. currentmodule:: primaite.environment.reward
+
+.. autofunction:: calculate_reward_function

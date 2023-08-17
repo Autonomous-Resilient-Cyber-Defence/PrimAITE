@@ -1,0 +1,6 @@
+tests.test\_resetting\_node.test\_node\_shutdown\_correctly
+===========================================================
+
+.. currentmodule:: tests.test_resetting_node
+
+.. autofunction:: test_node_shutdown_correctly
