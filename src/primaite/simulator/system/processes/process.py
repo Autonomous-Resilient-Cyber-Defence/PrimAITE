@@ -34,4 +34,6 @@ class Process(Software):
         :return: Current state of this object and child objects.
         :rtype: Dict
         """
-        pass
+        state = super().describe_state()
+        state.update({"operating_state": self.operating_state.name})
+        return state

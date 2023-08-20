@@ -45,9 +45,11 @@ class FileSystemFile(FileSystemItem):
         :return: Current state of this object and child objects.
         :rtype: Dict
         """
-        return {
-            "uuid": self.uuid,
-            "name": self.name,
-            "size": self.size,
-            "file_type": self.file_type,
-        }
+        state = super().describe_state()
+        state.update(
+            {
+                "uuid": self.uuid,
+                "file_type": self.file_type.name,
+            }
+        )
+        return state

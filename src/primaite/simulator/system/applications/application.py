@@ -8,13 +8,12 @@ from primaite.simulator.system.software import IOSoftware
 class ApplicationOperatingState(Enum):
     """Enumeration of Application Operating States."""
 
-
-RUNNING = 1
-"The application is running."
-CLOSED = 2
-"The application is closed or not running."
-INSTALLING = 3
-"The application is being installed or updated."
+    RUNNING = 1
+    "The application is running."
+    CLOSED = 2
+    "The application is closed or not running."
+    INSTALLING = 3
+    "The application is being installed or updated."
 
 
 class Application(IOSoftware):
@@ -43,7 +42,16 @@ class Application(IOSoftware):
         :return: Current state of this object and child objects.
         :rtype: Dict
         """
-        pass
+        state = super().describe_state()
+        state.update(
+            {
+                "opearting_state": self.operating_state.name,
+                "execution_control_status": self.execution_control_status,
+                "num_executions": self.num_executions,
+                "groups": list(self.groups),
+            }
+        )
+        return state
 
     def apply_action(self, action: List[str]) -> None:
         """

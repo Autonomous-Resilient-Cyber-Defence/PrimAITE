@@ -11,15 +11,19 @@ from prettytable import PrettyTable
 from primaite import getLogger
 from primaite.exceptions import NetworkError
 from primaite.simulator.core import SimComponent
+from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
+from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.packet_capture import PacketCapture
 from primaite.simulator.system.core.session_manager import SessionManager
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.core.sys_log import SysLog
+from primaite.simulator.system.processes.process import Process
+from primaite.simulator.system.services.service import Service
 
 _LOGGER = getLogger(__name__)
 
@@ -137,9 +141,9 @@ class NIC(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "ip_adress": self.ip_address,
-                "subnet_mask": self.subnet_mask,
-                "gateway": self.gateway,
+                "ip_adress": str(self.ip_address),
+                "subnet_mask": str(self.subnet_mask),
+                "gateway": str(self.gateway),
                 "mac_address": self.mac_address,
                 "speed": self.speed,
                 "mtu": self.mtu,
@@ -319,6 +323,7 @@ class SwitchPort(SimComponent):
                 "enabled": self.enabled,
             }
         )
+        return state
 
     def enable(self):
         """Attempt to enable the SwitchPort."""
@@ -802,13 +807,13 @@ class Node(SimComponent):
     nics: Dict[str, NIC] = {}
     "The NICs on the node."
 
-    accounts: Dict = {}
+    accounts: Dict[str, Account] = {}
     "All accounts on the node."
-    applications: Dict = {}
+    applications: Dict[str, Application] = {}
     "All applications on the node."
-    services: Dict = {}
+    services: Dict[str, Service] = {}
     "All services on the node."
-    processes: Dict = {}
+    processes: Dict[str, Process] = {}
     "All processes on the node."
     file_system: FileSystem
     "The nodes file system."
@@ -862,9 +867,9 @@ class Node(SimComponent):
                 "NICs": {uuid: nic.describe_state() for uuid, nic in self.nics.items()},
                 # "switch_ports": {uuid, sp for uuid, sp in self.switch_ports.items()},
                 "file_system": self.file_system.describe_state(),
-                "applications": {uuid: app for uuid, app in self.applications.items()},
-                "services": {uuid: svc for uuid, svc in self.services.items()},
-                "process": {uuid: proc for uuid, proc in self.processes.items()},
+                "applications": {uuid: app.describe_state() for uuid, app in self.applications.items()},
+                "services": {uuid: svc.describe_state() for uuid, svc in self.services.items()},
+                "process": {uuid: proc.describe_state() for uuid, proc in self.processes.items()},
             }
         )
         return state
@@ -1026,7 +1031,7 @@ class Switch(Node):
         return {
             "uuid": self.uuid,
             "num_ports": self.num_ports,  # redundant?
-            "ports": {port_num: port for port_num, port in self.switch_ports.items()},
+            "ports": {port_num: port.describe_state() for port_num, port in self.switch_ports.items()},
             "mac_address_table": {mac: port for mac, port in self.mac_address_table.items()},
         }
 

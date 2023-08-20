@@ -10,7 +10,7 @@ _LOGGER = getLogger(__name__)
 class FileSystemFolder(FileSystemItem):
     """Simulation FileSystemFolder."""
 
-    files: Dict = {}
+    files: Dict[str, FileSystemFile] = {}
     """List of files stored in the folder."""
 
     is_quarantined: bool = False
@@ -25,13 +25,14 @@ class FileSystemFolder(FileSystemItem):
         :return: Current state of this object and child objects.
         :rtype: Dict
         """
-        return {
-            "uuid": self.uuid,
-            "name": self.name,
-            "size": self.size,
-            "files": {uuid: file for uuid, file in self.files.items()},
-            "is_quarantined": self.is_quarantined,
-        }
+        state = super().describe_state()
+        state.update(
+            {
+                "files": {uuid: file.describe_state() for uuid, file in self.files.items()},
+                "is_quarantined": self.is_quarantined,
+            }
+        )
+        return state
 
     def get_file_by_id(self, file_id: str) -> FileSystemFile:
         """Return a FileSystemFile with the matching id."""

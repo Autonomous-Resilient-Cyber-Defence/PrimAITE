@@ -13,7 +13,7 @@ _LOGGER = getLogger(__name__)
 class FileSystem(SimComponent):
     """Class that contains all the simulation File System."""
 
-    folders: Dict = {}
+    folders: Dict[str, FileSystemFolder] = {}
     """List containing all the folders in the file system."""
 
     def describe_state(self) -> Dict:
@@ -26,7 +26,7 @@ class FileSystem(SimComponent):
         :rtype: Dict
         """
         state = super().describe_state()
-        state.update({"folders": {uuid: folder for uuid, folder in self.folders.items()}})
+        state.update({"folders": {uuid: folder.describe_state() for uuid, folder in self.folders.items()}})
         return state
 
     def get_folders(self) -> Dict:

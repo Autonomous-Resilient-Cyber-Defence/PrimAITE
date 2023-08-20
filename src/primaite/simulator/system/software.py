@@ -151,7 +151,17 @@ class IOSoftware(Software):
         :return: Current state of this object and child objects.
         :rtype: Dict
         """
-        pass
+        state = super().describe_state()
+        state.update(
+            {
+                "installing_count": self.installing_count,
+                "max_sessions": self.max_sessions,
+                "tcp": self.tcp,
+                "udp": self.udp,
+                "ports": [port.name for port in self.ports],  # TODO: not sure if this should be port.name or port.value
+            }
+        )
+        return state
 
     def send(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
