@@ -5,38 +5,13 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-"""
-class DNSEntry(BaseModel):
-
-    Represents an entry in the DNS cache.
-
-    :param domain_name: The domain name which a node would like to access.
-    :param ip_address: The IP address through which the domain name is reachable.
-
-
-    domain_name: str
-    ip_address: IPv4Address
-"""
-
 
 class DNSRequest(BaseModel):
     """Represents a DNS Request packet of a network frame.
 
-    :param sender_mac_addr: Sender MAC address.
-    :param sender_ip: Sender IP address.
-    :param target_mac_addr: Target MAC address.
-    :param target_ip: Target IP address.
     :param domain_name_request: Domain Name Request for IP address.
     """
 
-    sender_mac_addr: str
-    "Sender MAC address."
-    sender_ip: IPv4Address
-    "Sender IP address."
-    target_mac_addr: Optional[str] = None
-    "Target MAC address of the DNS Server."
-    target_ip: IPv4Address
-    "Target IP address of the DNS Server."
     domain_name_request: str
     "Domain Name Request for IP address."
 
@@ -44,21 +19,9 @@ class DNSRequest(BaseModel):
 class DNSReply(BaseModel):
     """Represents a DNS Reply packet of a network frame.
 
-    :param sender_mac_addr: Sender MAC address.
-    :param sender_ip: Sender IP address.
-    :param target_mac_addr: Target MAC address of DNS Client.
-    :param target_ip: Target IP address of DNS Client.
     :param domain_name_ip_address: IP Address of the Domain Name requested.
     """
 
-    sender_mac_addr: str
-    "Sender MAC address."
-    sender_ip: IPv4Address
-    "Sender IP address."
-    target_mac_addr: Optional[str] = None
-    "Target MAC address of the DNS Server."
-    target_ip: IPv4Address
-    "Target IP address of the DNS Server."
     domain_name_ip_address: IPv4Address
     "IP Address of the Domain Name requested."
 
@@ -73,15 +36,12 @@ class DNSPacket(BaseModel):
     :Example:
 
     >>> dns_request = DNSPacket(
-    ...     dns_request=DNSRequest(sender_mac_addr="aa:bb:cc:dd:ee:ff", sender_ip = IPv4Address("192.168.0.1"),
-    ...            target_ip = IPv4Address("192.168.0.2"), domain_name_request="www.google.co.uk"),
+    ...     domain_name_request=DNSRequest(domain_name_request="www.google.co.uk"),
     ...     dns_reply=None
     ... )
     >>> dns_response = DNSPacket(
-    ...     dns_request=DNSRequest(sender_mac_addr="aa:bb:cc:dd:ee:ff", sender_ip = IPv4Address("192.168.0.1"),
-    ...            target_ip = IPv4Address("192.168.0.2"), domain_name_request="www.google.co.uk"),
-    ...     dns_reply=DNSReply(sender_mac_addr="gg:hh:ii:jj:kk:ll", sender_ip = IPv4Address("192.168.0.2"),
-    ...            target_ip = IPv4Address("192.168.0.1"), domain_name_ip_address=IPv4Address("142.250.179.227"))
+    ...     dns_request=DNSRequest(domain_name_request="www.google.co.uk"),
+    ...     dns_reply=DNSReply(domain_name_ip_address=IPv4Address("142.250.179.227"))
     ... )
     """
 
@@ -97,18 +57,6 @@ class DNSPacket(BaseModel):
         :return: A new instance of DNSPacket.
         """
         return DNSPacket(
-            dns_request=DNSRequest(
-                sender_mac_addr=self.dns_request.sender_mac_addr,
-                sender_ip=self.dns_request.sender_ip,
-                target_mac_addr=self.dns_request.target_mac_addr,
-                target_ip=self.dns_request.target_ip,
-                domain_name_request=self.dns_request.domain_name_request,
-            ),
-            dns_reply=DNSReply(
-                sender_mac_addr=self.dns_request.target_mac_addr,
-                sender_ip=self.dns_request.target_ip,
-                target_mac_addr=self.dns_request.sender_mac_addr,
-                target_ip=self.dns_request.sender_ip,
-                domain_name_ip_address=domain_ip_address,
-            ),
+            dns_request=DNSRequest(domain_name_request=self.dns_request.domain_name_request),
+            dns_reply=DNSReply(domain_name_ip_address=domain_ip_address),
         )

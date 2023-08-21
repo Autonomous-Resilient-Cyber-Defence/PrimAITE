@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
+from primaite.simulator.network.protocols.dns import DNSPacket, DNSReply, DNSRequest
+
 
 class DNSServer(BaseModel):
     """Represents a DNS Server as a Service."""
@@ -28,7 +30,7 @@ class DNSServer(BaseModel):
         """
         Applies a list of actions to the Service.
 
-        :param action: A list of actions to apply.
+        :param action: A list of actions to apply. (unsure)
         """
         pass
 
@@ -63,7 +65,13 @@ class DNSServer(BaseModel):
         :param payload: The payload to send.
         :return: True if successful, False otherwise.
         """
-        pass
+        ip_addresses = list(self.dns_table.values())
+        domain_names = list(self.dns_table.keys())
+        index_of_domain = ip_addresses.index(payload)
+        DNSPacket(
+            dns_request=DNSRequest(domain_name_request=domain_names[index_of_domain]),
+            dns_reply=DNSReply(domain_name_ip_address=payload),
+        )
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
@@ -72,7 +80,12 @@ class DNSServer(BaseModel):
         The specifics of how the payload is processed and whether a response payload
         is generated should be implemented in subclasses.
 
-        :param payload: The payload to receive.
+        :param payload: The payload to receive. (take the domain name and do dns lookup)
         :return: True if successful, False otherwise.
         """
-        pass
+        ip_address = self.dns_lookup(payload)
+        if ip_address is not None:
+            self.send(ip_address, session_id)
+            return True
+
+        return False
