@@ -43,8 +43,12 @@ class DNSClient(BaseModel):
         """
         self.dns_cache = {}
 
-    def check_domain_is_in_cache(self, target_domain: str, session_id: str):
-        """Function to check if domain name is in DNS client cache."""
+    def check_domain_in_cache(self, target_domain: str, session_id: str):
+        """Function to check if domain name is in DNS client cache.
+
+        :param target_domain: The domain requested for an IP address.
+        :param session_id: The ID of the session in order to send the response to the DNS server or application.
+        """
         if target_domain in self.dns_cache:
             ip_address = self.dns_cache[target_domain]
             self.send(ip_address, session_id)
