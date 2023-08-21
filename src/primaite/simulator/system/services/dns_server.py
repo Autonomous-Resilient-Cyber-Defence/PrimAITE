@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from typing import Any, Dict, List
+from ipaddress import IPv4Address
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -7,7 +8,8 @@ from pydantic import BaseModel
 class DNSServer(BaseModel):
     """Represents a DNS Server as a Service."""
 
-    dns_table: dict[str:str] = {}
+    dns_table: dict[str:IPv4Address] = {}
+    "A dict of mappings between domain names and IPv4 addresses."
 
     @abstractmethod
     def describe_state(self) -> Dict:
@@ -29,6 +31,18 @@ class DNSServer(BaseModel):
         :param action: A list of actions to apply.
         """
         pass
+
+    def dns_lookup(self, target_domain: str) -> Optional[IPv4Address]:
+        """
+        Attempts to find the IP address for a domain name.
+
+        :param target_domain: The single domain name requested by a DNS client.
+        :return ip_address: The IP address of that domain name or None.
+        """
+        if target_domain in self.dns_table:
+            return self.dns_table[target_domain]
+        else:
+            return None
 
     def reset_component_for_episode(self):
         """
