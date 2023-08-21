@@ -6,12 +6,13 @@ from primaite.simulator.network.container import NetworkContainer
 
 
 class Simulation(SimComponent):
-    """TODO."""
+    """Top-level simulation object which holds a reference to all other parts of the simulation."""
 
     network: NetworkContainer
     domain: DomainController
 
     def __init__(self, **kwargs):
+        """Initialise the Simulation."""
         if not kwargs.get("network"):
             kwargs["network"] = NetworkContainer()
 

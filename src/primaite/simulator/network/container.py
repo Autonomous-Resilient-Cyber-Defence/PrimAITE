@@ -5,12 +5,13 @@ from primaite.simulator.network.hardware.base import Link, Node
 
 
 class NetworkContainer(SimComponent):
-    """TODO."""
+    """Top level container object representing the physical network."""
 
     nodes: Dict[str, Node] = {}
     links: Dict[str, Link] = {}
 
     def __init__(self, **kwargs):
+        """Initialise the network."""
         super().__init__(**kwargs)
 
         self.action_manager = ActionManager()
