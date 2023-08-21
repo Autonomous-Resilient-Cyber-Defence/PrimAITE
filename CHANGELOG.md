@@ -17,6 +17,8 @@ a Service/Application another machine.
 SessionManager.
 - Permission System - each action can define criteria that will be used to permit or deny agent actions.
 - File System - ability to emulate a node's file system during a simulation
+- Example notebooks - There is currently 1 jupyter notebook which walks through using PrimAITE
+  1. Creating a simulation - this notebook explains how to build up a simulation using the Python package. (WIP)
 
 ## [2.0.0] - 2023-07-26
 
