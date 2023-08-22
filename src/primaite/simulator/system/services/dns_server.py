@@ -42,7 +42,7 @@ class DNSServer(BaseModel):
         :return ip_address: The IP address of that domain name or None.
         """
         if target_domain in self.dns_table:
-            return self.dns_table[target_domain]
+            self.dns_table[target_domain]
         else:
             return None
 
@@ -65,11 +65,9 @@ class DNSServer(BaseModel):
         :param payload: The payload to send.
         :return: True if successful, False otherwise.
         """
-        ip_addresses = list(self.dns_table.values())
-        domain_names = list(self.dns_table.keys())
-        index_of_domain = ip_addresses.index(payload)
+        # DNS packet will be sent from DNS Server to the DNS client
         DNSPacket(
-            dns_request=DNSRequest(domain_name_request=domain_names[index_of_domain]),
+            dns_request=DNSRequest(domain_name_request=self.dns_table),
             dns_reply=DNSReply(domain_name_ip_address=payload),
         )
 

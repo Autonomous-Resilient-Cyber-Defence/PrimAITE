@@ -78,6 +78,5 @@ class DNSClient(BaseModel):
         browser)
         :return: True if successful, False otherwise.
         """
-        # check DNS packet (dns request, dns reply) here and see if it actually worked
-
+        # check the DNS packet (dns request, dns reply) here and see if it actually worked
         pass
