@@ -8,13 +8,12 @@ from primaite.simulator.system.software import IOSoftware
 class ApplicationOperatingState(Enum):
     """Enumeration of Application Operating States."""
 
-
-RUNNING = 1
-"The application is running."
-CLOSED = 2
-"The application is closed or not running."
-INSTALLING = 3
-"The application is being installed or updated."
+    RUNNING = 1
+    "The application is running."
+    CLOSED = 2
+    "The application is closed or not running."
+    INSTALLING = 3
+    "The application is being installed or updated."
 
 
 class Application(IOSoftware):
@@ -36,15 +35,23 @@ class Application(IOSoftware):
     @abstractmethod
     def describe_state(self) -> Dict:
         """
-        Describes the current state of the software.
+        Produce a dictionary describing the current state of this object.
 
-        The specifics of the software's state, including its health, criticality,
-        and any other pertinent information, should be implemented in subclasses.
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
 
-        :return: A dictionary containing key-value pairs representing the current state of the software.
+        :return: Current state of this object and child objects.
         :rtype: Dict
         """
-        pass
+        state = super().describe_state()
+        state.update(
+            {
+                "opearting_state": self.operating_state.name,
+                "execution_control_status": self.execution_control_status,
+                "num_executions": self.num_executions,
+                "groups": list(self.groups),
+            }
+        )
+        return state
 
     def apply_action(self, action: List[str]) -> None:
         """

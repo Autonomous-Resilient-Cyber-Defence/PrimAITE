@@ -38,8 +38,18 @@ class FileSystemFile(FileSystemItem):
 
     def describe_state(self) -> Dict:
         """
-        Get the current state of the FileSystemFile as a dict.
+        Produce a dictionary describing the current state of this object.
 
-        :return: A dict containing the current state of the FileSystemFile.
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
         """
-        pass
+        state = super().describe_state()
+        state.update(
+            {
+                "uuid": self.uuid,
+                "file_type": self.file_type.name,
+            }
+        )
+        return state

@@ -147,7 +147,10 @@ class SimComponent(BaseModel):
         object. If there are objects referenced by this object that are owned by something else, it is not included in
         this output.
         """
-        return {}
+        state = {
+            "uuid": self.uuid,
+        }
+        return state
 
     def apply_action(self, action: List[str], context: Dict = {}) -> None:
         """

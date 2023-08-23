@@ -51,9 +51,12 @@ class Session(SimComponent):
 
     def describe_state(self) -> Dict:
         """
-        Describes the current state of the session as a dictionary.
+        Produce a dictionary describing the current state of this object.
 
-        :return: A dictionary containing the current state of the session.
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
         """
         pass
 
@@ -77,9 +80,12 @@ class SessionManager:
 
     def describe_state(self) -> Dict:
         """
-        Describes the current state of the session manager as a dictionary.
+        Produce a dictionary describing the current state of this object.
 
-        :return: A dictionary containing the current state of the session manager.
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
         """
         pass
 
