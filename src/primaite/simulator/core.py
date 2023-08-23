@@ -137,6 +137,7 @@ class SimComponent(BaseModel):
             kwargs["uuid"] = str(uuid4())
         super().__init__(**kwargs)
         self.action_manager: Optional[ActionManager] = None
+        self._parent: Optional["SimComponent"] = None
 
     @abstractmethod
     def describe_state(self) -> Dict:
@@ -187,3 +188,24 @@ class SimComponent(BaseModel):
         Override this method with anything that needs to happen within the component for it to be reset.
         """
         pass
+
+    @property
+    def parent(self) -> "SimComponent":
+        """Reference to the parent object which manages this object.
+
+        :return: Parent object.
+        :rtype: SimComponent
+        """
+        return self._parent
+
+    @parent.setter
+    def parent(self, new_parent: "SimComponent") -> None:
+        if self._parent:
+            msg = f"Overwriting parent of {self}, {self._parent} with {new_parent}"
+            _LOGGER.warn(msg)
+            raise RuntimeWarning(msg)
+        self._parent = new_parent
+
+    @parent.deleter
+    def parent(self) -> None:
+        self._parent = None
