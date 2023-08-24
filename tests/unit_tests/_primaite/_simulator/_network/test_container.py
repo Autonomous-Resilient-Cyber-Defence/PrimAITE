@@ -6,7 +6,8 @@ from primaite.simulator.network.container import Network
 def test_creating_container():
     """Check that we can create a network container"""
     net = Network()
-    assert net.nodes and net.links
+    assert net.nodes == {}
+    assert net.links == {}
 
 
 def test_describe_state():
