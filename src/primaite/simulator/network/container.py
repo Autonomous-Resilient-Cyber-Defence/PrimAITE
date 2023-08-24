@@ -72,7 +72,7 @@ class Network(SimComponent):
         del self.nodes[node.uuid]
         del node.parent  # misleading?
 
-    def connect_nodes(self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs) -> None:
+    def connect(self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs) -> None:
         """Connect two nodes on the network by creating a link between an NIC/SwitchPort of each one.
 
         :param endpoint_a: The endpoint to which to connect the link on the first node

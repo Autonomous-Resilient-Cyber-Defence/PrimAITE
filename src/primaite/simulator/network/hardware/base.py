@@ -1011,6 +1011,7 @@ class Switch(Node):
             self.switch_ports = {i: SwitchPort() for i in range(1, self.num_ports + 1)}
         for port_num, port in self.switch_ports.items():
             port.connected_node = self
+            port.parent = self
             port.port_num = port_num
 
     def show(self):

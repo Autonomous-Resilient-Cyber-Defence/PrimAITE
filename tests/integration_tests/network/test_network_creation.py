@@ -51,7 +51,7 @@ def test_connecting_nodes():
     net.add_node(n1)
     net.add_node(n2)
 
-    net.connect_nodes(n1.nics[n1_nic.uuid], n2.nics[n2_nic.uuid], bandwidth=30)
+    net.connect(n1.nics[n1_nic.uuid], n2.nics[n2_nic.uuid], bandwidth=30)
 
     assert len(net.links) == 1
     link = list(net.links.values())[0]
@@ -70,7 +70,7 @@ def test_connecting_node_to_itself():
     net.add_node(node)
 
     with pytest.raises(RuntimeError):
-        net.connect_nodes(node.nics[nic1.uuid], node.nics[nic2.uuid], bandwidth=30)
+        net.connect(node.nics[nic1.uuid], node.nics[nic2.uuid], bandwidth=30)
 
     assert node in net
     assert nic1.connected_link is None
