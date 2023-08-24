@@ -52,7 +52,9 @@ class NetworkContainer(SimComponent):
         :type node: Node
         """
         if node in self:
-            _LOGGER.warning(f"Can't add node {node}. It is already in the network.")
+            msg = f"Can't add node {node}. It is already in the network."
+            _LOGGER.warning(msg)
+            raise RuntimeWarning(msg)
         self.nodes[node.uuid] = node
         node.parent = self
 
@@ -64,7 +66,9 @@ class NetworkContainer(SimComponent):
         :type node: Node
         """
         if node not in self:
-            _LOGGER.warning(f"Can't remove node {node}. It's not in the network.")
+            msg = f"Can't remove node {node}. It's not in the network."
+            _LOGGER.warning(msg)
+            raise RuntimeWarning(msg)
         del self.nodes[node.uuid]
         del node.parent  # misleading?
 
