@@ -1,12 +1,12 @@
 import pytest
 
-from primaite.simulator.network.container import NetworkContainer
+from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.base import NIC, Node
 
 
 def test_adding_removing_nodes():
     """Check that we can create and add a node to a network."""
-    net = NetworkContainer()
+    net = Network()
     n1 = Node(hostname="computer")
     net.add_node(n1)
     assert n1.parent is net
@@ -19,7 +19,7 @@ def test_adding_removing_nodes():
 
 def test_readding_node():
     """Check that warning is raised when readding a node."""
-    net = NetworkContainer()
+    net = Network()
     n1 = Node(hostname="computer")
     net.add_node(n1)
     with pytest.raises(RuntimeWarning):
@@ -30,7 +30,7 @@ def test_readding_node():
 
 def test_removing_nonexistent_node():
     """Check that warning is raised when trying to remove a node that is not in the network."""
-    net = NetworkContainer()
+    net = Network()
     n1 = Node(hostname="computer")
     with pytest.raises(RuntimeWarning):
         net.remove_node(n1)
@@ -40,7 +40,7 @@ def test_removing_nonexistent_node():
 
 def test_connecting_nodes():
     """Check that two nodes on the network can be connected."""
-    net = NetworkContainer()
+    net = Network()
     n1 = Node(hostname="computer")
     n1_nic = NIC(ip_address="120.30.0.1", gateway="192.168.0.1", subnet_mask="255.255.255.0")
     n1.connect_nic(n1_nic)
@@ -60,7 +60,7 @@ def test_connecting_nodes():
 
 
 def test_connecting_node_to_itself():
-    net = NetworkContainer()
+    net = Network()
     node = Node(hostname="computer")
     nic1 = NIC(ip_address="120.30.0.1", gateway="192.168.0.1", subnet_mask="255.255.255.0")
     node.connect_nic(nic1)

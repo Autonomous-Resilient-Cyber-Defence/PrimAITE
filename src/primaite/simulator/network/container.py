@@ -7,7 +7,7 @@ from primaite.simulator.network.hardware.base import Link, NIC, Node, SwitchPort
 _LOGGER = getLogger(__name__)
 
 
-class NetworkContainer(SimComponent):
+class Network(SimComponent):
     """Top level container object representing the physical network."""
 
     nodes: Dict[str, Node] = {}
