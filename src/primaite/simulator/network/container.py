@@ -1,8 +1,8 @@
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 from primaite import getLogger
 from primaite.simulator.core import Action, ActionManager, AllowAllValidator, SimComponent
-from primaite.simulator.network.hardware.base import Link, Node
+from primaite.simulator.network.hardware.base import Link, NIC, Node, SwitchPort
 
 _LOGGER = getLogger(__name__)
 
@@ -72,16 +72,42 @@ class NetworkContainer(SimComponent):
         del self.nodes[node.uuid]
         del node.parent  # misleading?
 
-    def connect_nodes(self, node1: Node, node2: Node) -> None:
-        """TODO."""
-        # I think we should not be forcing users to add and remove individual links.
-        # Clearly if a link exists between two nodes in the network, then the link is also part of the network.
-        # I'm just not sure how we ought to handle link creation as it requires an unoccupied interface on the node.
-        raise NotImplementedError
+    def connect_nodes(self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs) -> None:
+        """Connect two nodes on the network by creating a link between an NIC/SwitchPort of each one.
 
-    def disconnect_nodes(self, node1: Node, node2: Node) -> None:
-        """TODO."""
-        raise NotImplementedError
+        :param endpoint_a: The endpoint to which to connect the link on the first node
+        :type endpoint_a: Union[NIC, SwitchPort]
+        :param endpoint_b: The endpoint to which to connct the link on the second node
+        :type endpoint_b: Union[NIC, SwitchPort]
+        :raises RuntimeError: _description_
+        """
+        node_a = endpoint_a.parent
+        node_b = endpoint_b.parent
+        msg = ""
+        if node_a not in self:
+            msg = f"Cannot create a link to {endpoint_a} because the node is not in the network."
+        if node_b not in self:
+            msg = f"Cannot create a link to {endpoint_b} because the node is not in the network."
+        if node_a is node_b:
+            msg = f"Cannot link {endpoint_a} to {endpoint_b} because they belong to the same node."
+        if msg:
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
+
+        link = Link(endpoint_a=endpoint_a, endpoint_b=endpoint_b, **kwargs)
+        self.links[link.uuid] = link
+        link.parent = self
+
+    def remove_link(self, link: Link) -> None:
+        """Disconnect a link from the network.
+
+        :param link: The link to be removed
+        :type link: Link
+        """
+        link.endpoint_a.disconnect_link()
+        link.endpoint_b.disconnect_link()
+        del self.links[link.uuid]
+        del link.parent
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Node):

@@ -918,6 +918,7 @@ class Node(SimComponent):
         if nic.uuid not in self.nics:
             self.nics[nic.uuid] = nic
             nic.connected_node = self
+            nic.parent = self
             self.sys_log.info(f"Connected NIC {nic}")
             if self.operating_state == NodeOperatingState.ON:
                 nic.enable()
@@ -938,6 +939,7 @@ class Node(SimComponent):
             nic = self.nics.get(nic)
         if nic or nic.uuid in self.nics:
             self.nics.pop(nic.uuid)
+            del nic.parent
             nic.disable()
             self.sys_log.info(f"Disconnected NIC {nic}")
         else:
