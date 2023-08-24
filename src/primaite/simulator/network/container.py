@@ -76,7 +76,7 @@ class NetworkContainer(SimComponent):
         """TODO."""
         # I think we should not be forcing users to add and remove individual links.
         # Clearly if a link exists between two nodes in the network, then the link is also part of the network.
-        # I'm just not sure how we ought to handle link creation as it requires an unoccupied network device on the node
+        # I'm just not sure how we ought to handle link creation as it requires an unoccupied interface on the node.
         raise NotImplementedError
 
     def disconnect_nodes(self, node1: Node, node2: Node) -> None:
