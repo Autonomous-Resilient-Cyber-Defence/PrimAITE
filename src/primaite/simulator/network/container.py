@@ -52,11 +52,11 @@ class Network(SimComponent):
         :type node: Node
         """
         if node in self:
-            msg = f"Can't add node {node}. It is already in the network."
-            _LOGGER.warning(msg)
-            raise RuntimeWarning(msg)
+            _LOGGER.warning(f"Can't add node {node.uuid}. It is already in the network.")
+            return
         self.nodes[node.uuid] = node
         node.parent = self
+        _LOGGER.info(f"Added node {node.uuid} to Network {self.uuid}")
 
     def remove_node(self, node: Node) -> None:
         """
@@ -66,11 +66,11 @@ class Network(SimComponent):
         :type node: Node
         """
         if node not in self:
-            msg = f"Can't remove node {node}. It's not in the network."
-            _LOGGER.warning(msg)
-            raise RuntimeWarning(msg)
-        del self.nodes[node.uuid]
-        del node.parent  # misleading?
+            _LOGGER.warning(f"Can't remove node {node.uuid}. It's not in the network.")
+            return
+        self.nodes.pop(node.uuid)
+        node.parent = None
+        _LOGGER.info(f"Removed node {node.uuid} from network {self.uuid}")
 
     def connect(self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs) -> None:
         """Connect two nodes on the network by creating a link between an NIC/SwitchPort of each one.
@@ -83,20 +83,18 @@ class Network(SimComponent):
         """
         node_a = endpoint_a.parent
         node_b = endpoint_b.parent
-        msg = ""
         if node_a not in self:
-            msg = f"Cannot create a link to {endpoint_a} because the node is not in the network."
+            self.add_node(node_a)
         if node_b not in self:
-            msg = f"Cannot create a link to {endpoint_b} because the node is not in the network."
+            self.add_node(node_b)
         if node_a is node_b:
-            msg = f"Cannot link {endpoint_a} to {endpoint_b} because they belong to the same node."
-        if msg:
-            _LOGGER.error(msg)
-            raise RuntimeError(msg)
+            _LOGGER.warn(f"Cannot link endpoint {endpoint_a} to {endpoint_b} because they belong to the same node.")
+            return
 
         link = Link(endpoint_a=endpoint_a, endpoint_b=endpoint_b, **kwargs)
         self.links[link.uuid] = link
         link.parent = self
+        _LOGGER.info(f"Added link {link.uuid} to connect {endpoint_a} and {endpoint_b}")
 
     def remove_link(self, link: Link) -> None:
         """Disconnect a link from the network.
@@ -106,12 +104,13 @@ class Network(SimComponent):
         """
         link.endpoint_a.disconnect_link()
         link.endpoint_b.disconnect_link()
-        del self.links[link.uuid]
-        del link.parent
+        self.links.pop(link.uuid)
+        link.parent = None
+        _LOGGER.info(f"Removed link {link.uuid} from network {self.uuid}.")
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Node):
             return item.uuid in self.nodes
         elif isinstance(item, Link):
             return item.uuid in self.links
-        raise TypeError("")
+        return False
