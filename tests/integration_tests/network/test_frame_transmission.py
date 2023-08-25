@@ -45,7 +45,7 @@ def test_multi_nic():
 
     node_a.ping("192.168.0.11")
 
-    node_c.ping("10.0.0.12")
+    assert node_c.ping("10.0.0.12")
 
 
 def test_switched_network():
@@ -83,4 +83,4 @@ def test_switched_network():
     link_nic_d_switch_2 = Link(endpoint_a=nic_d, endpoint_b=switch_2.switch_ports[2])
     link_switch_1_switch_2 = Link(endpoint_a=switch_1.switch_ports[6], endpoint_b=switch_2.switch_ports[6])
 
-    pc_a.ping("192.168.0.13")
+    assert pc_a.ping("192.168.0.13")

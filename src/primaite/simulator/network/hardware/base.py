@@ -173,6 +173,9 @@ class NIC(SimComponent):
         if self.connected_node.operating_state != NodeOperatingState.ON:
             self.connected_node.sys_log.error(f"NIC {self} cannot be enabled as the endpoint is not turned on")
             return
+        if not self.connected_link:
+            _LOGGER.error(f"NIC {self} cannot be enabled as it is not connected to a Link")
+            return
 
         self.enabled = True
         self.connected_node.sys_log.info(f"NIC {self} enabled")
@@ -210,6 +213,7 @@ class NIC(SimComponent):
 
         # TODO: Inform the Node that a link has been connected
         self.connected_link = link
+        self.enable()
         _LOGGER.info(f"NIC {self} connected to Link {link}")
 
     def disconnect_link(self):
@@ -266,8 +270,10 @@ class NIC(SimComponent):
             frame.decrement_ttl()
             frame.set_received_timestamp()
             self.pcap.capture(frame)
-            self.connected_node.receive_frame(frame=frame, from_nic=self)
-            return True
+            # If this destination or is broadcast
+            if frame.ethernet.dst_mac_addr == self.mac_address or frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
+                self.connected_node.receive_frame(frame=frame, from_nic=self)
+                return True
         return False
 
     def __str__(self) -> str:
@@ -688,7 +694,6 @@ class ARPCache:
         frame = Frame(ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, arp=arp_packet)
         from_nic.send_frame(frame)
 
-
 class ICMP:
     """
     The ICMP (Internet Control Message Protocol) class.
@@ -705,6 +710,8 @@ class ICMP:
         """
         self.sys_log: SysLog = sys_log
         self.arp: ARPCache = arp_cache
+        self.request_replies = {}
+
 
     def process_icmp(self, frame: Frame):
         """
@@ -733,6 +740,9 @@ class ICMP:
             src_nic.send_frame(frame)
         elif frame.icmp.icmp_type == ICMPType.ECHO_REPLY:
             self.sys_log.info(f"Received echo reply from {frame.ip.src_ip}")
+            if not self.request_replies.get(frame.icmp.identifier):
+                self.request_replies[frame.icmp.identifier] = 0
+            self.request_replies[frame.icmp.identifier] += 1
 
     def ping(
         self, target_ip_address: IPv4Address, sequence: int = 0, identifier: Optional[int] = None
@@ -875,7 +885,7 @@ class Node(SimComponent):
         return state
 
     def show(self):
-        """Prints a table of the NICs on the Node.."""
+        """Prints a table of the NICs on the Node."""
         from prettytable import PrettyTable
 
         table = PrettyTable(["MAC Address", "Address", "Default Gateway", "Speed", "Status"])
@@ -898,7 +908,8 @@ class Node(SimComponent):
             self.operating_state = NodeOperatingState.ON
             self.sys_log.info("Turned on")
             for nic in self.nics.values():
-                nic.enable()
+                if nic.connected_link:
+                    nic.enable()
 
     def power_off(self):
         """Power off the Node, disabling its NICs if it is in the ON state."""
@@ -961,7 +972,9 @@ class Node(SimComponent):
             sequence, identifier = 0, None
             while sequence < pings:
                 sequence, identifier = self.icmp.ping(target_ip_address, sequence, identifier)
-            return True
+            passed = self.icmp.request_replies[identifier] == pings
+            self.icmp.request_replies.pop(identifier)
+            return passed
         self.sys_log.info("Ping failed as the node is turned off")
         return False
 
