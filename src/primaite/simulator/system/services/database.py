@@ -28,6 +28,8 @@ class DatabaseService(Service):
         :param folder_name: Name of the folder which will be setup to hold the db files, defaults to "database"
         :type folder_name: str, optional
         """
+        # note that this parent.file_system.create_folder call in the future will be authenticated by using permissions
+        # handler. This permission will be granted based on service account given to the database service.
         folder = self.parent.file_system.create_folder(folder_name)
         self.parent.file_system.create_file("db_primary_store", db_size, FileSystemFileType.MDF, folder=folder)
         self.parent.file_system.create_file("db_transaction_log", "1", FileSystemFileType.LDF, folder=folder)

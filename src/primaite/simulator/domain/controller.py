@@ -85,17 +85,6 @@ class DomainController(SimComponent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.action_manager = ActionManager()
-        # Action 'account' matches requests like:
-        # ['account', '<account-uuid>', *account_action]
-        self.action_manager.add_action(
-            "account",
-            Action(
-                func=lambda request, context: self.accounts[request.pop(0)].apply_action(request, context),
-                validator=GroupMembershipValidator([AccountGroup.DOMAIN_ADMIN]),
-            ),
-        )
-
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -108,6 +97,19 @@ class DomainController(SimComponent):
         state = super().describe_state()
         state.update({"accounts": {uuid: acct.describe_state() for uuid, acct in self.accounts.items()}})
         return state
+
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+        # Action 'account' matches requests like:
+        # ['account', '<account-uuid>', *account_action]
+        am.add_action(
+            "account",
+            Action(
+                func=lambda request, context: self.accounts[request.pop(0)].apply_action(request, context),
+                validator=GroupMembershipValidator([AccountGroup.DOMAIN_ADMIN]),
+            ),
+        )
+        return am
 
     def _register_account(self, account: Account) -> None:
         """TODO."""

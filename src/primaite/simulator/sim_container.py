@@ -21,22 +21,6 @@ class Simulation(SimComponent):
 
         super().__init__(**kwargs)
 
-        self.action_manager = ActionManager()
-        # pass through network actions to the network objects
-        self.action_manager.add_action(
-            "network",
-            Action(
-                func=lambda request, context: self.network.apply_action(request, context), validator=AllowAllValidator()
-            ),
-        )
-        # pass through domain actions to the domain object
-        self.action_manager.add_action(
-            "domain",
-            Action(
-                func=lambda request, context: self.domain.apply_action(request, context), validator=AllowAllValidator()
-            ),
-        )
-
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -54,3 +38,21 @@ class Simulation(SimComponent):
             }
         )
         return state
+
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+        # pass through network actions to the network objects
+        am.add_action(
+            "network",
+            Action(
+                func=lambda request, context: self.network.apply_action(request, context), validator=AllowAllValidator()
+            ),
+        )
+        # pass through domain actions to the domain object
+        am.add_action(
+            "domain",
+            Action(
+                func=lambda request, context: self.domain.apply_action(request, context), validator=AllowAllValidator()
+            ),
+        )
+        return am

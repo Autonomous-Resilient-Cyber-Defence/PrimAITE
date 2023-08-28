@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, Set
 
 from primaite.simulator.core import SimComponent
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -98,17 +98,6 @@ class Software(SimComponent):
         )
         return state
 
-    def apply_action(self, action: List[str]) -> None:
-        """
-        Applies a list of actions to the software.
-
-        The specifics of how these actions are applied should be implemented in subclasses.
-
-        :param action: A list of actions to apply.
-        :type action: List[str]
-        """
-        pass
-
     def reset_component_for_episode(self, episode: int):
         """
         Resets the software component for a new episode.
@@ -118,6 +107,19 @@ class Software(SimComponent):
         "reset" should be implemented in subclasses.
         """
         pass
+
+    def set_health_state(self, health_state: SoftwareHealthState) -> None:
+        """
+        Assign a new health state to this software.
+
+        Note: this should only be possible when the software is currently running, but the software base class has no
+        operating state, only subclasses do. So subclasses will need to implement this check. TODO: check if this should
+        be changed so that the base Software class has a running attr.
+
+        :param health_state: New health state to assign to the software
+        :type health_state: SoftwareHealthState
+        """
+        self.health_state_actual = health_state
 
 
 class IOSoftware(Software):

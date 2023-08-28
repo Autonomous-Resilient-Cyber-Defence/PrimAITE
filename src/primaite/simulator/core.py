@@ -136,7 +136,7 @@ class SimComponent(BaseModel):
         if not kwargs.get("uuid"):
             kwargs["uuid"] = str(uuid4())
         super().__init__(**kwargs)
-        self.action_manager: Optional[ActionManager] = None
+        self._action_manager: ActionManager = self._init_action_manager()
         self._parent: Optional["SimComponent"] = None
 
     @abstractmethod
@@ -152,6 +152,28 @@ class SimComponent(BaseModel):
             "uuid": self.uuid,
         }
         return state
+
+    def _init_action_manager(self) -> ActionManager:
+        """
+        Initialise the action manager for this component.
+
+        When using a hierarchy of components, the child classes should call the parent class's _init_action_manager and
+        add additional actions on top of the existing generic ones.
+
+        Example usage for inherited classes:
+
+        ..code::python
+
+            class WebBrowser(Application):
+            def _init_action_manager(self) -> ActionManager:
+                am = super()._init_action_manager() # all actions generic to any Application get initialised
+                am.add_action(...) # initialise any actions specific to the web browser
+                return am
+
+        :return: Actiona manager object belonging to this sim component.
+        :rtype: ActionManager
+        """
+        return ActionManager()
 
     def apply_action(self, action: List[str], context: Dict = {}) -> None:
         """
