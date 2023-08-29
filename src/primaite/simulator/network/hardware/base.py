@@ -1004,6 +1004,7 @@ class Node(SimComponent):
         if service in self:
             _LOGGER.warning(f"Can't add service {service.uuid} to node {self.uuid}. It's already installed.")
             return
+        self.services[service.uuid] = service
         service.parent = self
         service.install()  # Perform any additional setup, such as creating files for this service on the node.
         _LOGGER.info(f"Added service {service.uuid} to node {self.uuid}")
