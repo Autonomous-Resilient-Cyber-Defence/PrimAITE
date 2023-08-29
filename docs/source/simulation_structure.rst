@@ -49,16 +49,14 @@ snippet demonstrates usage of the ``ActionPermissionValidator``.
         name: str
         apps = []
 
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            self.action_manager = ActionManager()
-
-            self.action_manager.add_action(
+        def _init_action_manager(self) -> ActionManager:
+            am = super()._init_action_manager()
+            am.add_action(
                 "reset_factory_settings",
                 Action(
                     func = lambda request, context: self.reset_factory_settings(),
                     validator = GroupMembershipValidator([AccountGroup.DOMAIN_ADMIN]),
-                ),
+                )
             )
 
         def reset_factory_settings(self):
