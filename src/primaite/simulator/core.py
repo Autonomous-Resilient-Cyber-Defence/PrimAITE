@@ -41,7 +41,9 @@ class Action:
     the action can be performed or not.
     """
 
-    def __init__(self, func: Callable[[List[str], Dict], None], validator: ActionPermissionValidator) -> None:
+    def __init__(
+        self, func: Callable[[List[str], Dict], None], validator: ActionPermissionValidator = AllowAllValidator()
+    ) -> None:
         """
         Save the functions that are for this action.
 
@@ -58,7 +60,8 @@ class Action:
 
         :param func: Function that performs the request.
         :type func: Callable[[List[str], Dict], None]
-        :param validator: Function that checks if the request is authenticated given the context.
+        :param validator: Function that checks if the request is authenticated given the context. By default, if no
+            validator is provided, an 'allow all' validator is added which permits all requests.
         :type validator: ActionPermissionValidator
         """
         self.func: Callable[[List[str], Dict], None] = func

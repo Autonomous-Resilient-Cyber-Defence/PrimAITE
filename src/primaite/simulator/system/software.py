@@ -2,7 +2,7 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Set
 
-from primaite.simulator.core import SimComponent
+from primaite.simulator.core import Action, ActionManager, SimComponent
 from primaite.simulator.network.transmission.transport_layer import Port
 
 
@@ -98,6 +98,17 @@ class Software(SimComponent):
         )
         return state
 
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+        am.add_action(
+            "compromise",
+            Action(
+                func=lambda request, context: self.set_health_state(SoftwareHealthState.COMPROMISED),
+            ),
+        )
+        am.add_action("scan", Action(func=lambda request, context: self.scan()))
+        return am
+
     def reset_component_for_episode(self, episode: int):
         """
         Resets the software component for a new episode.
@@ -120,6 +131,10 @@ class Software(SimComponent):
         :type health_state: SoftwareHealthState
         """
         self.health_state_actual = health_state
+
+    def scan(self) -> None:
+        """Update the observed health status to match the actual health status."""
+        self.health_state_visible = self.health_state_actual
 
 
 class IOSoftware(Software):
