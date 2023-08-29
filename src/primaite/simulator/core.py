@@ -142,20 +142,6 @@ class SimComponent(BaseModel):
         self._action_manager: ActionManager = self._init_action_manager()
         self._parent: Optional["SimComponent"] = None
 
-    @abstractmethod
-    def describe_state(self) -> Dict:
-        """
-        Return a dictionary describing the state of this object and any objects managed by it.
-
-        This is similar to pydantic ``model_dump()``, but it only outputs information about the objects owned by this
-        object. If there are objects referenced by this object that are owned by something else, it is not included in
-        this output.
-        """
-        state = {
-            "uuid": self.uuid,
-        }
-        return state
-
     def _init_action_manager(self) -> ActionManager:
         """
         Initialise the action manager for this component.
@@ -177,6 +163,20 @@ class SimComponent(BaseModel):
         :rtype: ActionManager
         """
         return ActionManager()
+
+    @abstractmethod
+    def describe_state(self) -> Dict:
+        """
+        Return a dictionary describing the state of this object and any objects managed by it.
+
+        This is similar to pydantic ``model_dump()``, but it only outputs information about the objects owned by this
+        object. If there are objects referenced by this object that are owned by something else, it is not included in
+        this output.
+        """
+        state = {
+            "uuid": self.uuid,
+        }
+        return state
 
     def apply_action(self, action: List[str], context: Dict = {}) -> None:
         """

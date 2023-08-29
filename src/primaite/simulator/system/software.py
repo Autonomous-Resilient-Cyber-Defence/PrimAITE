@@ -75,6 +75,17 @@ class Software(SimComponent):
     revealed_to_red: bool = False
     "Indicates if the software has been revealed to red agent, defaults is False."
 
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+        am.add_action(
+            "compromise",
+            Action(
+                func=lambda request, context: self.set_health_state(SoftwareHealthState.COMPROMISED),
+            ),
+        )
+        am.add_action("scan", Action(func=lambda request, context: self.scan()))
+        return am
+
     @abstractmethod
     def describe_state(self) -> Dict:
         """
@@ -97,17 +108,6 @@ class Software(SimComponent):
             }
         )
         return state
-
-    def _init_action_manager(self) -> ActionManager:
-        am = super()._init_action_manager()
-        am.add_action(
-            "compromise",
-            Action(
-                func=lambda request, context: self.set_health_state(SoftwareHealthState.COMPROMISED),
-            ),
-        )
-        am.add_action("scan", Action(func=lambda request, context: self.scan()))
-        return am
 
     def reset_component_for_episode(self, episode: int):
         """

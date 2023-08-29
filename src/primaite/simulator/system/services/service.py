@@ -33,6 +33,17 @@ class Service(IOSoftware):
     operating_state: ServiceOperatingState
     "The current operating state of the Service."
 
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+        am.add_action("stop", Action(func=lambda request, context: self.stop()))
+        am.add_action("start", Action(func=lambda request, context: self.start()))
+        am.add_action("pause", Action(func=lambda request, context: self.pause()))
+        am.add_action("resume", Action(func=lambda request, context: self.resume()))
+        am.add_action("restart", Action(func=lambda request, context: self.restart()))
+        am.add_action("disable", Action(func=lambda request, context: self.disable()))
+        am.add_action("enable", Action(func=lambda request, context: self.enable()))
+        return am
+
     @abstractmethod
     def describe_state(self) -> Dict:
         """
@@ -46,17 +57,6 @@ class Service(IOSoftware):
         state = super().describe_state()
         state.update({"operating_state": self.operating_state.name})
         return state
-
-    def _init_action_manager(self) -> ActionManager:
-        am = super()._init_action_manager()
-        am.add_action("stop", Action(func=lambda request, context: self.stop()))
-        am.add_action("start", Action(func=lambda request, context: self.start()))
-        am.add_action("pause", Action(func=lambda request, context: self.pause()))
-        am.add_action("resume", Action(func=lambda request, context: self.resume()))
-        am.add_action("restart", Action(func=lambda request, context: self.restart()))
-        am.add_action("disable", Action(func=lambda request, context: self.disable()))
-        am.add_action("enable", Action(func=lambda request, context: self.enable()))
-        return am
 
     def reset_component_for_episode(self, episode: int):
         """

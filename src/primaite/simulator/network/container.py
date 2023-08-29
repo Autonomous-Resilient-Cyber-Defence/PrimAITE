@@ -17,6 +17,18 @@ class Network(SimComponent):
         """Initialise the network."""
         super().__init__(**kwargs)
 
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+
+        am.add_action(
+            "node",
+            Action(
+                func=lambda request, context: self.nodes[request.pop(0)].apply_action(request, context),
+                validator=AllowAllValidator(),
+            ),
+        )
+        return am
+
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -34,18 +46,6 @@ class Network(SimComponent):
             }
         )
         return state
-
-    def _init_action_manager(self) -> ActionManager:
-        am = super()._init_action_manager()
-
-        am.add_action(
-            "node",
-            Action(
-                func=lambda request, context: self.nodes[request.pop(0)].apply_action(request, context),
-                validator=AllowAllValidator(),
-            ),
-        )
-        return am
 
     def add_node(self, node: Node) -> None:
         """

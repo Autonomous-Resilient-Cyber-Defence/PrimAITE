@@ -21,24 +21,6 @@ class Simulation(SimComponent):
 
         super().__init__(**kwargs)
 
-    def describe_state(self) -> Dict:
-        """
-        Produce a dictionary describing the current state of this object.
-
-        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
-
-        :return: Current state of this object and child objects.
-        :rtype: Dict
-        """
-        state = super().describe_state()
-        state.update(
-            {
-                "network": self.network.describe_state(),
-                "domain": self.domain.describe_state(),
-            }
-        )
-        return state
-
     def _init_action_manager(self) -> ActionManager:
         am = super()._init_action_manager()
         # pass through network actions to the network objects
@@ -56,3 +38,21 @@ class Simulation(SimComponent):
             ),
         )
         return am
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update(
+            {
+                "network": self.network.describe_state(),
+                "domain": self.domain.describe_state(),
+            }
+        )
+        return state
