@@ -4,7 +4,7 @@ import re
 import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from prettytable import PrettyTable
 
@@ -993,6 +993,39 @@ class Node(SimComponent):
             pass
         elif frame.ip.protocol == IPProtocol.ICMP:
             self.icmp.process_icmp(frame=frame)
+
+    def install_service(self, service: Service) -> None:
+        """
+        Install a service on this node.
+
+        :param service: Service instance that has not been installed on any node yet.
+        :type service: Service
+        """
+        if service in self:
+            _LOGGER.warning(f"Can't add service {service.uuid} to node {self.uuid}. It's already installed.")
+            return
+        service.parent = self
+        service.install()  # Perform any additional setup, such as creating files for this service on the node.
+        _LOGGER.info(f"Added service {service.uuid} to node {self.uuid}")
+
+    def uninstall_service(self, service: Service) -> None:
+        """Uninstall and completely remove service from this node.
+
+        :param service: Service object that is currently associated with this node.
+        :type service: Service
+        """
+        if service not in self:
+            _LOGGER.warning(f"Can't remove service {service.uuid} from node {self.uuid}. It's not installed.")
+            return
+        service.uninstall()  # Perform additional teardown, such as removing files or restarting the machine.
+        self.services.pop(service.uuid)
+        service.parent = None
+        _LOGGER.info(f"Removed service {service.uuid} from node {self.uuid}")
+
+    def __contains__(self, item: Any) -> bool:
+        if isinstance(item, Service):
+            return item.uuid in self.services
+        return None
 
 
 class Switch(Node):

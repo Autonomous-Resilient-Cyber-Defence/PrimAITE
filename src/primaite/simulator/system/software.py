@@ -1,9 +1,12 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, Set
+from typing import Any, Dict, Set, TYPE_CHECKING
 
 from primaite.simulator.core import Action, ActionManager, SimComponent
 from primaite.simulator.network.transmission.transport_layer import Port
+
+if TYPE_CHECKING:
+    from primaite.simulator.network.hardware.base import Node
 
 
 class SoftwareType(Enum):
@@ -131,6 +134,20 @@ class Software(SimComponent):
         :type health_state: SoftwareHealthState
         """
         self.health_state_actual = health_state
+
+    @abstractmethod
+    def install(self) -> None:
+        """
+        Perform first-time setup of this service on a node.
+
+        This is an abstract class that should be overwritten by specific applications or services. It must be called
+        after the service is already associate with a node. For example, a service may need to authenticate with a
+        server during installation, or create files in the node's filesystem.
+
+        :param node: Node on which this software runs.
+        :type node: Node
+        """
+        parent: "Node" = self.parent  # noqa
 
     def scan(self) -> None:
         """Update the observed health status to match the actual health status."""
