@@ -1,6 +1,6 @@
 """Core of the PrimAITE Simulator."""
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Union
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Extra
@@ -224,9 +224,9 @@ class SimComponent(BaseModel):
         return self._parent
 
     @parent.setter
-    def parent(self, new_parent: "SimComponent") -> None:
-        if self._parent:
-            msg = f"Overwriting parent of {self}, {self._parent} with {new_parent}"
+    def parent(self, new_parent: Union["SimComponent", None]) -> None:
+        if self._parent and new_parent:
+            msg = f"Overwriting parent of {self.uuid}. Old parent: {self._parent.uuid}, New parent: {new_parent.uuid}"
             _LOGGER.warn(msg)
             raise RuntimeWarning(msg)
         self._parent = new_parent
