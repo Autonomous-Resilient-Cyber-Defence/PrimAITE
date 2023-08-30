@@ -8,7 +8,6 @@ def test_link_fails_with_same_nic():
     with pytest.raises(ValueError):
         nic_a = NIC(
             ip_address="192.168.1.2",
-            subnet_mask="255.255.255.0",
-            gateway="192.168.0.1",
+            subnet_mask="255.255.255.0"
         )
         Link(endpoint_a=nic_a, endpoint_b=nic_a)
