@@ -2,8 +2,11 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Optional
 
+from primaite import getLogger
 from primaite.simulator.core import Action, ActionManager
 from primaite.simulator.system.software import IOSoftware
+
+_LOGGER = getLogger(__name__)
 
 
 class ServiceOperatingState(Enum):
@@ -95,35 +98,37 @@ class Service(IOSoftware):
         """
         pass
 
-    # TODO: validate this state transition model.
-    # Possibly state transition could be defined more succinctly than a separate function with lots of if statements.
-
     def stop(self) -> None:
         """Stop the service."""
+        _LOGGER.debug(f"Stopping service {self.name}")
         if self.operating_state in [ServiceOperatingState.RUNNING, ServiceOperatingState.PAUSED]:
             self.parent.sys_log.info(f"Stopping service {self.name}")
             self.operating_state = ServiceOperatingState.STOPPED
 
     def start(self) -> None:
         """Start the service."""
+        _LOGGER.debug(f"Starting service {self.name}")
         if self.operating_state == ServiceOperatingState.STOPPED:
             self.parent.sys_log.info(f"Starting service {self.name}")
             self.operating_state = ServiceOperatingState.RUNNING
 
     def pause(self) -> None:
         """Pause the service."""
+        _LOGGER.debug(f"Pausing service {self.name}")
         if self.operating_state == ServiceOperatingState.RUNNING:
             self.parent.sys_log.info(f"Pausing service {self.name}")
             self.operating_state = ServiceOperatingState.PAUSED
 
     def resume(self) -> None:
         """Resume paused service."""
+        _LOGGER.debug(f"Resuming service {self.name}")
         if self.operating_state == ServiceOperatingState.PAUSED:
             self.parent.sys_log.info(f"Resuming service {self.name}")
             self.operating_state = ServiceOperatingState.RUNNING
 
     def restart(self) -> None:
         """Restart running service."""
+        _LOGGER.debug(f"Restarting service {self.name}")
         if self.operating_state in [ServiceOperatingState.RUNNING, ServiceOperatingState.PAUSED]:
             self.parent.sys_log.info(f"Pausing service {self.name}")
             self.operating_state = ServiceOperatingState.RESTARTING
@@ -131,11 +136,13 @@ class Service(IOSoftware):
 
     def disable(self) -> None:
         """Disable the service."""
+        _LOGGER.debug(f"Disabling service {self.name}")
         self.parent.sys_log.info(f"Disabling Application {self.name}")
         self.operating_state = ServiceOperatingState.DISABLED
 
     def enable(self) -> None:
         """Enable the disabled service."""
+        _LOGGER.debug(f"Enabling service {self.name}")
         if self.operating_state == ServiceOperatingState.DISABLED:
             self.parent.sys_log.info(f"Enabling Application {self.name}")
             self.operating_state = ServiceOperatingState.STOPPED
@@ -153,5 +160,6 @@ class Service(IOSoftware):
         super().apply_timestep(timestep)
         if self.operating_state == ServiceOperatingState.RESTARTING:
             if self.restart_countdown <= 0:
+                _LOGGER.debug(f"Restarting finished for service {self.name}")
                 self.operating_state = ServiceOperatingState.RUNNING
             self.restart_countdown -= 1
