@@ -744,14 +744,12 @@ class ICMP:
         :param frame: The Frame containing the ICMP packet to process.
         """
         if frame.icmp.icmp_type == ICMPType.ECHO_REQUEST:
-            self.sys_log.info(f"Received echo request from {frame.ip.src_ip}")
+            if not is_reattempt:
+                self.sys_log.info(f"Received echo request from {frame.ip.src_ip}")
             target_mac_address = self.arp.get_arp_cache_mac_address(frame.ip.src_ip)
 
             src_nic = self.arp.get_arp_cache_nic(frame.ip.src_ip)
             if not src_nic:
-                print(self.sys_log.hostname)
-                print(frame.ip.src_ip)
-                self.arp.show()
                 self.arp.send_arp_request(frame.ip.src_ip)
                 self.process_icmp(frame=frame, from_nic=from_nic, is_reattempt=True)
                 return
@@ -932,14 +930,13 @@ class Node(SimComponent):
 
     def show(self):
         """Prints a table of the NICs on the Node."""
-        table = PrettyTable(["MAC Address", "Address", "Default Gateway", "Speed", "Status"])
+        table = PrettyTable(["MAC Address", "Address", "Speed", "Status"])
         table.title = f"{self.hostname} Network Interface Cards"
         for nic in self.nics.values():
             table.add_row(
                 [
                     nic.mac_address,
                     f"{nic.ip_address}/{nic.ip_network.prefixlen}",
-                    nic.gateway,
                     nic.speed,
                     "Enabled" if nic.enabled else "Disabled",
                 ]
