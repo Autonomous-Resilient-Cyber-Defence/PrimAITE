@@ -2,19 +2,19 @@ from typing import Dict
 
 from primaite.simulator.core import Action, ActionManager, AllowAllValidator, SimComponent
 from primaite.simulator.domain.controller import DomainController
-from primaite.simulator.network.container import NetworkContainer
+from primaite.simulator.network.container import Network
 
 
 class Simulation(SimComponent):
     """Top-level simulation object which holds a reference to all other parts of the simulation."""
 
-    network: NetworkContainer
+    network: Network
     domain: DomainController
 
     def __init__(self, **kwargs):
         """Initialise the Simulation."""
         if not kwargs.get("network"):
-            kwargs["network"] = NetworkContainer()
+            kwargs["network"] = Network()
 
         if not kwargs.get("domain"):
             kwargs["domain"] = DomainController()
