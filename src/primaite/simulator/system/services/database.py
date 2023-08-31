@@ -6,10 +6,17 @@ from primaite.simulator.system.services.service import Service
 
 
 class DatabaseService(Service):
-    """TODO."""
+    """Service loosely modelled on Microsoft SQL Server."""
 
     def describe_state(self) -> Dict:
-        """TODO."""
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
         return super().describe_state()
 
     def uninstall(self) -> None:

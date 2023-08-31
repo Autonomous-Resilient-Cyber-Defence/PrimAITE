@@ -132,7 +132,7 @@ class Service(IOSoftware):
         if self.operating_state in [ServiceOperatingState.RUNNING, ServiceOperatingState.PAUSED]:
             self.parent.sys_log.info(f"Pausing service {self.name}")
             self.operating_state = ServiceOperatingState.RESTARTING
-            self.restart_countdown = self.restarting_duration  # TODO: implement restart duration
+            self.restart_countdown = self.restarting_duration
 
     def disable(self) -> None:
         """Disable the service."""
