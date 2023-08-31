@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, Optional
 
 from primaite import getLogger
 from primaite.simulator.core import Action, ActionManager, AllowAllValidator, SimComponent
@@ -58,6 +58,19 @@ class Network(SimComponent):
         node.parent = self
         _LOGGER.info(f"Added node {node.uuid} to Network {self.uuid}")
 
+    def get_node_by_hostname(self, hostname: str) -> Optional[Node]:
+        """
+        Get a Node from the Network by its hostname.
+
+        .. note:: Assumes hostnames on the network are unique.
+
+        :param hostname: The Node hostname.
+        :return: The Node if it exists in the network.
+        """
+        for node in self.nodes.values():
+            if node.hostname == hostname:
+                return node
+
     def remove_node(self, node: Node) -> None:
         """
         Remove a node from the network.
@@ -72,7 +85,8 @@ class Network(SimComponent):
         node.parent = None
         _LOGGER.info(f"Removed node {node.uuid} from network {self.uuid}")
 
-    def connect(self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs) -> None:
+    def connect(self, endpoint_a: Union[Node, NIC, SwitchPort], endpoint_b: Union[Node, NIC, SwitchPort], **kwargs) -> \
+            None:
         """Connect two nodes on the network by creating a link between an NIC/SwitchPort of each one.
 
         :param endpoint_a: The endpoint to which to connect the link on the first node
@@ -81,16 +95,19 @@ class Network(SimComponent):
         :type endpoint_b: Union[NIC, SwitchPort]
         :raises RuntimeError: _description_
         """
-        node_a = endpoint_a.parent
-        node_b = endpoint_b.parent
+        node_a: Node = endpoint_a.parent if not isinstance(endpoint_a, Node) else endpoint_a
+        node_b: Node = endpoint_b.parent if not isinstance(endpoint_b, Node) else endpoint_b
         if node_a not in self:
             self.add_node(node_a)
         if node_b not in self:
             self.add_node(node_b)
         if node_a is node_b:
-            _LOGGER.warn(f"Cannot link endpoint {endpoint_a} to {endpoint_b} because they belong to the same node.")
+            _LOGGER.warning(f"Cannot link endpoint {endpoint_a} to {endpoint_b} because they belong to the same node.")
             return
-
+        if isinstance(endpoint_a, Node) and len(endpoint_a.nics) == 1:
+            endpoint_a = list(endpoint_a.nics.values())[0]
+        if isinstance(endpoint_b, Node) and len(endpoint_b.nics) == 1:
+            endpoint_b = list(endpoint_b.nics.values())[0]
         link = Link(endpoint_a=endpoint_a, endpoint_b=endpoint_b, **kwargs)
         self.links[link.uuid] = link
         link.parent = self
