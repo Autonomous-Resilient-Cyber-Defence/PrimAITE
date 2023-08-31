@@ -1007,6 +1007,7 @@ class Node(SimComponent):
         self.services[service.uuid] = service
         service.parent = self
         service.install()  # Perform any additional setup, such as creating files for this service on the node.
+        self.sys_log.info(f"Installed service {service.name}")
         _LOGGER.info(f"Added service {service.uuid} to node {self.uuid}")
 
     def uninstall_service(self, service: Service) -> None:
@@ -1021,6 +1022,7 @@ class Node(SimComponent):
         service.uninstall()  # Perform additional teardown, such as removing files or restarting the machine.
         self.services.pop(service.uuid)
         service.parent = None
+        self.sys_log.info(f"Uninstalled service {service.name}")
         _LOGGER.info(f"Removed service {service.uuid} from node {self.uuid}")
 
     def __contains__(self, item: Any) -> bool:
