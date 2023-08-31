@@ -918,6 +918,7 @@ class Node(SimComponent):
         if nic.uuid not in self.nics:
             self.nics[nic.uuid] = nic
             nic.connected_node = self
+            nic.parent = self
             self.sys_log.info(f"Connected NIC {nic}")
             if self.operating_state == NodeOperatingState.ON:
                 nic.enable()
@@ -938,6 +939,7 @@ class Node(SimComponent):
             nic = self.nics.get(nic)
         if nic or nic.uuid in self.nics:
             self.nics.pop(nic.uuid)
+            nic.parent = None
             nic.disable()
             self.sys_log.info(f"Disconnected NIC {nic}")
         else:
@@ -1009,6 +1011,7 @@ class Switch(Node):
             self.switch_ports = {i: SwitchPort() for i in range(1, self.num_ports + 1)}
         for port_num, port in self.switch_ports.items():
             port.connected_node = self
+            port.parent = self
             port.port_num = port_num
 
     def show(self):
