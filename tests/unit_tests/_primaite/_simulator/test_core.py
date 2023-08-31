@@ -43,4 +43,5 @@ class TestIsolatedSimComponent:
 
         comp = TestComponent(name="computer", size=(5, 10))
         dump = comp.model_dump_json()
-        assert comp == TestComponent.model_validate_json(dump)
+        reconstructed = TestComponent.model_validate_json(dump)
+        assert comp == reconstructed.model_dump_json()

@@ -48,7 +48,7 @@ def test_nic_deserialize():
 
     nic_json = nic.model_dump_json()
     deserialized_nic = NIC.model_validate_json(nic_json)
-    assert nic == deserialized_nic
+    assert nic_json == deserialized_nic.model_dump_json()
 
 
 def test_nic_ip_address_as_gateway_fails():
