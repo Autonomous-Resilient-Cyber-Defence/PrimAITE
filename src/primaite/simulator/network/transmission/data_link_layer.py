@@ -124,6 +124,11 @@ class Frame(BaseModel):
         if not self.received_timestamp:
             self.received_timestamp = datetime.now()
 
+    def transmission_duration(self) -> int:
+        """The transmission duration in milliseconds."""
+        delta = self.received_timestamp - self.sent_timestamp
+        return int(delta.microseconds / 1000)
+
     @property
     def size(self) -> float:  # noqa - Keep it as MBits as this is how they're expressed
         """The size of the Frame in Bytes."""

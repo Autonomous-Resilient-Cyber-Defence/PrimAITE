@@ -1,6 +1,8 @@
 import logging
 from pathlib import Path
 
+from prettytable import PrettyTable, MARKDOWN
+
 from primaite.simulator import TEMP_SIM_OUTPUT
 
 
@@ -43,7 +45,7 @@ class SysLog:
         file_handler = logging.FileHandler(filename=log_path)
         file_handler.setLevel(logging.DEBUG)
 
-        log_format = "%(asctime)s %(levelname)s: %(message)s"
+        log_format = "%(asctime)s::%(levelname)s::%(message)s"
         file_handler.setFormatter(logging.Formatter(log_format))
 
         self.logger = logging.getLogger(f"{self.hostname}_sys_log")
@@ -51,6 +53,19 @@ class SysLog:
         self.logger.addHandler(file_handler)
 
         self.logger.addFilter(_NotJSONFilter())
+
+    def show(self, last_n: int = 10, markdown: bool = False):
+        table = PrettyTable(["Timestamp", "Level", "Message"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.hostname} Sys Log"
+        if self._get_log_path().exists():
+            with open(self._get_log_path()) as file:
+                lines = file.readlines()
+            for line in lines[-last_n:]:
+                table.add_row(line.strip().split("::"))
+        print(table)
 
     def _get_log_path(self) -> Path:
         """

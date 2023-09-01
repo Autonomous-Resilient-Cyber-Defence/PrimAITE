@@ -18,3 +18,6 @@ Contents
    simulation_structure
    simulation_components/network/base_hardware
    simulation_components/network/transport_to_data_link_layer
+   simulation_components/network/router
+   simulation_components/network/switch
+   simulation_components/network/network

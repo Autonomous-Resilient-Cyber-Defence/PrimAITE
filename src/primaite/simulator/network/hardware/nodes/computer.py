@@ -5,7 +5,7 @@ from primaite.simulator.network.hardware.base import Node, NIC
 
 class Computer(Node):
     """
-    A basic computer class.
+    A basic Computer class.
 
     Example:
         >>> pc_a = Computer(
@@ -19,20 +19,20 @@ class Computer(Node):
     Instances of computer come 'pre-packaged' with the following:
 
     * Core Functionality:
-      * ARP.
-      * ICMP.
-      * Packet Capture.
-      * Sys Log.
+        * ARP
+        * ICMP
+        * Packet Capture
+        * Sys Log
     * Services:
-      * DNS Client.
-      * FTP Client.
-      * LDAP Client.
-      * NTP Client.
+        * DNS Client
+        * FTP Client
+        * LDAP Client
+        * NTP Client
     * Applications:
-      * Email Client.
-      * Web Browser.
+        * Email Client
+        * Web Browser
     * Processes:
-        * Placeholder.
+        * Placeholder
     """
 
     def __init__(self, **kwargs):

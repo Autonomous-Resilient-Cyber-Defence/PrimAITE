@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import random
 import re
 import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
 from typing import Dict, List, Optional, Tuple, Union
 
-from prettytable import PrettyTable
+from prettytable import PrettyTable, MARKDOWN
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
@@ -256,7 +257,6 @@ class NIC(SimComponent):
         The Frame is passed to the Node.
 
         :param frame: The network frame being received.
-        :type frame: :class:`~primaite.simulator.network.osi_layers.Frame`
         """
         if self.enabled:
             frame.decrement_ttl()
@@ -266,9 +266,6 @@ class NIC(SimComponent):
             if frame.ethernet.dst_mac_addr == self.mac_address or frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
                 self.connected_node.receive_frame(frame=frame, from_nic=self)
                 return True
-            else:
-                self.connected_node.sys_log.info("Dropping frame not for me")
-                print(frame)
         return False
 
     def __str__(self) -> str:
@@ -562,9 +559,12 @@ class ARPCache:
         self.arp: Dict[IPv4Address, ARPEntry] = {}
         self.nics: Dict[str, "NIC"] = {}
 
-    def show(self):
+    def show(self, markdown: bool = False):
         """Prints a table of ARC Cache."""
         table = PrettyTable(["IP Address", "MAC Address", "Via"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
         table.title = f"{self.sys_log.hostname} ARP Cache"
         for ip, arp in self.arp.items():
             table.add_row(
@@ -765,12 +765,22 @@ class ICMP:
                 identifier=frame.icmp.identifier,
                 sequence=frame.icmp.sequence + 1,
             )
-            frame = Frame(ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, icmp=icmp_reply_packet)
+            payload = secrets.token_urlsafe(int(32/1.3))  # Standard ICMP 32 bytes size
+            frame = Frame(
+                ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, icmp=icmp_reply_packet, payload=payload
+            )
             self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip}")
 
             src_nic.send_frame(frame)
         elif frame.icmp.icmp_type == ICMPType.ECHO_REPLY:
-            self.sys_log.info(f"Received echo reply from {frame.ip.src_ip}")
+            time = frame.transmission_duration()
+            time_str = f"{time}ms" if time > 0 else "<1ms"
+            self.sys_log.info(
+                f"Reply from {frame.ip.src_ip}: "
+                f"bytes={len(frame.payload)}, "
+                f"time={time_str}, "
+                f"TTL={frame.ip.ttl}"
+            )
             if not self.request_replies.get(frame.icmp.identifier):
                 self.request_replies[frame.icmp.identifier] = 0
             self.request_replies[frame.icmp.identifier] += 1
@@ -819,8 +829,8 @@ class ICMP:
         # Data Link Layer
         ethernet_header = EthernetHeader(src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address)
         icmp_packet = ICMPPacket(identifier=identifier, sequence=sequence)
-        frame = Frame(ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, icmp=icmp_packet)
-        self.sys_log.info(f"Sending echo request to {target_ip_address}")
+        payload = secrets.token_urlsafe(int(32/1.3))  # Standard ICMP 32 bytes size
+        frame = Frame(ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, icmp=icmp_packet, payload=payload)
         nic.send_frame(frame)
         return sequence, icmp_packet.identifier
 
@@ -857,6 +867,8 @@ class Node(SimComponent):
     "The hardware state of the node."
     nics: Dict[str, NIC] = {}
     "The NICs on the node."
+    ethernet_port: Dict[int, NIC] = {}
+    "The NICs on the node by port id."
 
     accounts: Dict[str, Account] = {}
     "All accounts on the node."
@@ -928,13 +940,17 @@ class Node(SimComponent):
         )
         return state
 
-    def show(self):
+    def show(self, markdown: bool = False):
         """Prints a table of the NICs on the Node."""
-        table = PrettyTable(["MAC Address", "Address", "Speed", "Status"])
+        table = PrettyTable(["Port", "MAC Address", "Address", "Speed", "Status"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
         table.title = f"{self.hostname} Network Interface Cards"
-        for nic in self.nics.values():
+        for port, nic in self.ethernet_port.items():
             table.add_row(
                 [
+                    port,
                     nic.mac_address,
                     f"{nic.ip_address}/{nic.ip_network.prefixlen}",
                     nic.speed,
@@ -969,6 +985,7 @@ class Node(SimComponent):
         """
         if nic.uuid not in self.nics:
             self.nics[nic.uuid] = nic
+            self.ethernet_port[len(self.nics)] = nic
             nic.connected_node = self
             nic.parent = self
             self.sys_log.info(f"Connected NIC {nic}")
@@ -990,6 +1007,10 @@ class Node(SimComponent):
         if isinstance(nic, str):
             nic = self.nics.get(nic)
         if nic or nic.uuid in self.nics:
+            for port, _nic in self.ethernet_port.items():
+                if nic == _nic:
+                    self.ethernet_port.pop(port)
+                    break
             self.nics.pop(nic.uuid)
             nic.parent = None
             nic.disable()
@@ -1014,7 +1035,7 @@ class Node(SimComponent):
             self.sys_log.info("Pinging loopback address")
             return any(nic.enabled for nic in self.nics.values())
         if self.operating_state == NodeOperatingState.ON:
-            self.sys_log.info(f"Attempting to ping {target_ip_address}")
+            self.sys_log.info(f"Pinging {target_ip_address}:")
             sequence, identifier = 0, None
             while sequence < pings:
                 sequence, identifier = self.icmp.ping(target_ip_address, sequence, identifier, pings)
@@ -1022,8 +1043,14 @@ class Node(SimComponent):
             passed = request_replies == pings
             if request_replies:
                 self.icmp.request_replies.pop(identifier)
+            else:
+                request_replies = 0
+            self.sys_log.info(
+                f"Ping statistics for {target_ip_address}: "
+                f"Packets: Sent = {pings}, "
+                f"Received = {request_replies}, "
+                f"Lost = {pings-request_replies} ({(pings-request_replies)/pings*100}% loss)")
             return passed
-        self.sys_log.info("Ping failed as the node is turned off")
         return False
 
     def send_frame(self, frame: Frame):
@@ -1078,9 +1105,12 @@ class Switch(Node):
             port.parent = self
             port.port_num = port_num
 
-    def show(self):
+    def show(self, markdown: bool = False):
         """Prints a table of the SwitchPorts on the Switch."""
         table = PrettyTable(["Port", "MAC Address", "Speed", "Status"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
         table.title = f"{self.hostname} Switch Ports"
         for port_num, port in self.switch_ports.items():
             table.add_row([port_num, port.mac_address, port.speed, "Enabled" if port.enabled else "Disabled"])
