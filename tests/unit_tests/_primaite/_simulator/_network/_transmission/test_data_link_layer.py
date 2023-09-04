@@ -1,7 +1,7 @@
 import pytest
 
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import ICMPHeader, IPPacket, IPProtocol, Precedence
+from primaite.simulator.network.transmission.network_layer import ICMPPacket, IPPacket, IPProtocol, Precedence
 from primaite.simulator.network.transmission.primaite_layer import AgentSource, DataStatus
 from primaite.simulator.network.transmission.transport_layer import Port, TCPFlags, TCPHeader, UDPHeader
 
@@ -76,7 +76,7 @@ def test_icmp_frame_creation():
     frame = Frame(
         ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
         ip=IPPacket(src_ip="192.168.0.10", dst_ip="192.168.0.20", protocol=IPProtocol.ICMP),
-        icmp=ICMPHeader(),
+        icmp=ICMPPacket(),
     )
     assert frame
 
