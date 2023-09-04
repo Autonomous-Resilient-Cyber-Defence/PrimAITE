@@ -85,16 +85,18 @@ class DomainController(SimComponent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.action_manager = ActionManager()
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
         # Action 'account' matches requests like:
         # ['account', '<account-uuid>', *account_action]
-        self.action_manager.add_action(
+        am.add_action(
             "account",
             Action(
                 func=lambda request, context: self.accounts[request.pop(0)].apply_action(request, context),
                 validator=GroupMembershipValidator([AccountGroup.DOMAIN_ADMIN]),
             ),
         )
+        return am
 
     def describe_state(self) -> Dict:
         """

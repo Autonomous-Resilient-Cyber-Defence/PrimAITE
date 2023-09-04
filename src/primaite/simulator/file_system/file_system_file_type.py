@@ -87,6 +87,14 @@ class FileSystemFileType(str, Enum):
     GZ = 31
     "Gzip compressed file."
 
+    # Database file types
+    MDF = 32
+    "MS SQL Server primary database file"
+    NDF = 33
+    "MS SQL Server secondary database file"
+    LDF = 34
+    "MS SQL Server transaction log"
+
 
 file_type_sizes_KB = {
     FileSystemFileType.UNKNOWN: 0,

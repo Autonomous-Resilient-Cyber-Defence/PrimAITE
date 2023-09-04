@@ -39,15 +39,19 @@ class Network(SimComponent):
         """
         super().__init__(**kwargs)
 
-        self.action_manager = ActionManager()
-        self.action_manager.add_action(
+        self._nx_graph = MultiGraph()
+
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+
+        am.add_action(
             "node",
             Action(
                 func=lambda request, context: self.nodes[request.pop(0)].apply_action(request, context),
                 validator=AllowAllValidator(),
             ),
         )
-        self._nx_graph = MultiGraph()
+        return am
 
     @property
     def routers(self) -> List[Router]:

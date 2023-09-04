@@ -211,7 +211,7 @@ class FileSystem(SimComponent):
             if file is not None:
                 return file
 
-    def get_folder_by_name(self, folder_name: str) -> FileSystemFolder:
+    def get_folder_by_name(self, folder_name: str) -> Optional[FileSystemFolder]:
         """
         Returns a the first folder with a matching name.
 

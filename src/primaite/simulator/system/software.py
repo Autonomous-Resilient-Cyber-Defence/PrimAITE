@@ -1,8 +1,8 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, Set
 
-from primaite.simulator.core import SimComponent
+from primaite.simulator.core import Action, ActionManager, SimComponent
 from primaite.simulator.network.transmission.transport_layer import Port
 
 
@@ -75,6 +75,17 @@ class Software(SimComponent):
     revealed_to_red: bool = False
     "Indicates if the software has been revealed to red agent, defaults is False."
 
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+        am.add_action(
+            "compromise",
+            Action(
+                func=lambda request, context: self.set_health_state(SoftwareHealthState.COMPROMISED),
+            ),
+        )
+        am.add_action("scan", Action(func=lambda request, context: self.scan()))
+        return am
+
     @abstractmethod
     def describe_state(self) -> Dict:
         """
@@ -98,17 +109,6 @@ class Software(SimComponent):
         )
         return state
 
-    def apply_action(self, action: List[str]) -> None:
-        """
-        Applies a list of actions to the software.
-
-        The specifics of how these actions are applied should be implemented in subclasses.
-
-        :param action: A list of actions to apply.
-        :type action: List[str]
-        """
-        pass
-
     def reset_component_for_episode(self, episode: int):
         """
         Resets the software component for a new episode.
@@ -118,6 +118,43 @@ class Software(SimComponent):
         "reset" should be implemented in subclasses.
         """
         pass
+
+    def set_health_state(self, health_state: SoftwareHealthState) -> None:
+        """
+        Assign a new health state to this software.
+
+        Note: this should only be possible when the software is currently running, but the software base class has no
+        operating state, only subclasses do. So subclasses will need to implement this check. TODO: check if this should
+        be changed so that the base Software class has a running attr.
+
+        :param health_state: New health state to assign to the software
+        :type health_state: SoftwareHealthState
+        """
+        self.health_state_actual = health_state
+
+    @abstractmethod
+    def install(self) -> None:
+        """
+        Perform first-time setup of this service on a node.
+
+        This is an abstract class that should be overwritten by specific applications or services. It must be called
+        after the service is already associate with a node. For example, a service may need to authenticate with a
+        server during installation, or create files in the node's filesystem.
+        """
+        pass
+
+    def uninstall(self) -> None:
+        """Uninstall this service from a node.
+
+        This is an abstract class that should be overwritten by applications or services. It must be called after the
+        `install` method has already been run on that node. It should undo any installation steps, for example by
+        deleting files, or contacting a server.
+        """
+        pass
+
+    def scan(self) -> None:
+        """Update the observed health status to match the actual health status."""
+        self.health_state_visible = self.health_state_actual
 
 
 class IOSoftware(Software):

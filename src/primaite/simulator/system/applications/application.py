@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, Set
 
 from primaite.simulator.system.software import IOSoftware
 
@@ -52,14 +52,6 @@ class Application(IOSoftware):
             }
         )
         return state
-
-    def apply_action(self, action: List[str]) -> None:
-        """
-        Applies a list of actions to the Application.
-
-        :param action: A list of actions to apply.
-        """
-        pass
 
     def reset_component_for_episode(self, episode: int):
         """

@@ -21,21 +21,23 @@ class Simulation(SimComponent):
 
         super().__init__(**kwargs)
 
-        self.action_manager = ActionManager()
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
         # pass through network actions to the network objects
-        self.action_manager.add_action(
+        am.add_action(
             "network",
             Action(
                 func=lambda request, context: self.network.apply_action(request, context), validator=AllowAllValidator()
             ),
         )
         # pass through domain actions to the domain object
-        self.action_manager.add_action(
+        am.add_action(
             "domain",
             Action(
                 func=lambda request, context: self.domain.apply_action(request, context), validator=AllowAllValidator()
             ),
         )
+        return am
 
     def describe_state(self) -> Dict:
         """

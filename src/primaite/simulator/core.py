@@ -41,7 +41,9 @@ class Action:
     the action can be performed or not.
     """
 
-    def __init__(self, func: Callable[[List[str], Dict], None], validator: ActionPermissionValidator) -> None:
+    def __init__(
+        self, func: Callable[[List[str], Dict], None], validator: ActionPermissionValidator = AllowAllValidator()
+    ) -> None:
         """
         Save the functions that are for this action.
 
@@ -58,7 +60,8 @@ class Action:
 
         :param func: Function that performs the request.
         :type func: Callable[[List[str], Dict], None]
-        :param validator: Function that checks if the request is authenticated given the context.
+        :param validator: Function that checks if the request is authenticated given the context. By default, if no
+            validator is provided, an 'allow all' validator is added which permits all requests.
         :type validator: ActionPermissionValidator
         """
         self.func: Callable[[List[str], Dict], None] = func
@@ -136,8 +139,30 @@ class SimComponent(BaseModel):
         if not kwargs.get("uuid"):
             kwargs["uuid"] = str(uuid4())
         super().__init__(**kwargs)
-        self.action_manager: Optional[ActionManager] = None
+        self._action_manager: ActionManager = self._init_action_manager()
         self._parent: Optional["SimComponent"] = None
+
+    def _init_action_manager(self) -> ActionManager:
+        """
+        Initialise the action manager for this component.
+
+        When using a hierarchy of components, the child classes should call the parent class's _init_action_manager and
+        add additional actions on top of the existing generic ones.
+
+        Example usage for inherited classes:
+
+        ..code::python
+
+            class WebBrowser(Application):
+            def _init_action_manager(self) -> ActionManager:
+                am = super()._init_action_manager() # all actions generic to any Application get initialised
+                am.add_action(...) # initialise any actions specific to the web browser
+                return am
+
+        :return: Actiona manager object belonging to this sim component.
+        :rtype: ActionManager
+        """
+        return ActionManager()
 
     @abstractmethod
     def describe_state(self) -> Dict:
