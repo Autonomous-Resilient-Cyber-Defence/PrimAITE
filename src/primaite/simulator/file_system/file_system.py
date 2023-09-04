@@ -1,5 +1,5 @@
 from random import choice
-from typing import Dict, Optional, Union
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.core import SimComponent
