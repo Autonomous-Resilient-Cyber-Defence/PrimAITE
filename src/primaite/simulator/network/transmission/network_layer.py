@@ -162,8 +162,8 @@ class IPPacket(BaseModel):
     """
     Represents the IP layer of a network frame.
 
-    :param src_ip: Source IP address.
-    :param dst_ip: Destination IP address.
+    :param src_ip_address: Source IP address.
+    :param dst_ip_address: Destination IP address.
     :param protocol: The IP protocol (default is TCP).
     :param ttl: Time to Live (TTL) for the packet.
     :param precedence: Precedence level for Quality of Service (QoS).
@@ -172,17 +172,17 @@ class IPPacket(BaseModel):
 
     >>> from ipaddress import IPv4Address
     >>> ip_packet = IPPacket(
-    ...     src_ip=IPv4Address('192.168.0.1'),
-    ...     dst_ip=IPv4Address('10.0.0.1'),
+    ...     src_ip_address=IPv4Address('192.168.0.1'),
+    ...     dst_ip_address=IPv4Address('10.0.0.1'),
     ...     protocol=IPProtocol.TCP,
     ...     ttl=64,
     ...     precedence=Precedence.CRITICAL
     ... )
     """
 
-    src_ip: IPv4Address
+    src_ip_address: IPv4Address
     "Source IP address."
-    dst_ip: IPv4Address
+    dst_ip_address: IPv4Address
     "Destination IP address."
     protocol: IPProtocol = IPProtocol.TCP
     "IPProtocol."
@@ -192,8 +192,8 @@ class IPPacket(BaseModel):
     "Precedence level for Quality of Service (default is Precedence.ROUTINE)."
 
     def __init__(self, **kwargs):
-        if not isinstance(kwargs["src_ip"], IPv4Address):
-            kwargs["src_ip"] = IPv4Address(kwargs["src_ip"])
-        if not isinstance(kwargs["dst_ip"], IPv4Address):
-            kwargs["dst_ip"] = IPv4Address(kwargs["dst_ip"])
+        if not isinstance(kwargs["src_ip_address"], IPv4Address):
+            kwargs["src_ip_address"] = IPv4Address(kwargs["src_ip_address"])
+        if not isinstance(kwargs["dst_ip_address"], IPv4Address):
+            kwargs["dst_ip_address"] = IPv4Address(kwargs["dst_ip_address"])
         super().__init__(**kwargs)

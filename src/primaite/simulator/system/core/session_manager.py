@@ -22,16 +22,16 @@ class Session(SimComponent):
     source and destination IPs and ports.
 
     :param protocol: The IP protocol used in the session.
-    :param src_ip: The source IP address.
-    :param dst_ip: The destination IP address.
+    :param src_ip_address: The source IP address.
+    :param dst_ip_address: The destination IP address.
     :param src_port: The source port number (optional).
     :param dst_port: The destination port number (optional).
     :param connected: A flag indicating whether the session is connected.
     """
 
     protocol: IPProtocol
-    src_ip: IPv4Address
-    dst_ip: IPv4Address
+    src_ip_address: IPv4Address
+    dst_ip_address: IPv4Address
     src_port: Optional[Port]
     dst_port: Optional[Port]
     connected: bool = False
@@ -46,8 +46,8 @@ class Session(SimComponent):
         :param session_key: Tuple containing the session details.
         :return: A Session instance.
         """
-        protocol, src_ip, dst_ip, src_port, dst_port = session_key
-        return Session(protocol=protocol, src_ip=src_ip, dst_ip=dst_ip, src_port=src_port, dst_port=dst_port)
+        protocol, src_ip_address, dst_ip_address, src_port, dst_port = session_key
+        return Session(protocol=protocol, src_ip_address=src_ip_address, dst_ip_address=dst_ip_address, src_port=src_port, dst_port=dst_port)
 
     def describe_state(self) -> Dict:
         """
@@ -108,8 +108,8 @@ class SessionManager:
         :return: A tuple containing the session key.
         """
         protocol = frame.ip.protocol
-        src_ip = frame.ip.src_ip
-        dst_ip = frame.ip.dst_ip
+        src_ip_address = frame.ip.src_ip_address
+        dst_ip_address = frame.ip.dst_ip_address
         if protocol == IPProtocol.TCP:
             if from_source:
                 src_port = frame.tcp.src_port
@@ -127,7 +127,7 @@ class SessionManager:
         else:
             src_port = None
             dst_port = None
-        return protocol, src_ip, dst_ip, src_port, dst_port
+        return protocol, src_ip_address, dst_ip_address, src_port, dst_port
 
     def receive_payload_from_software_manager(self, payload: Any, session_id: Optional[int] = None):
         """

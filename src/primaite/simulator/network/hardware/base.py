@@ -579,9 +579,13 @@ class ARPCache:
         """
         Add an ARP entry to the cache.
 
+        If an entry for the given IP address already exists, the entry is only updated if the `override` parameter is
+        set to True.
+
         :param ip_address: The IP address to be added to the cache.
         :param mac_address: The MAC address associated with the IP address.
         :param nic: The NIC through which the NIC with the IP address is reachable.
+        :param override: If True, an existing entry for the IP address will be overridden. Default is False.
         """
         for _nic in self.nics.values():
             if _nic.ip_address == ip_address:
@@ -644,13 +648,13 @@ class ARPCache:
 
                 # Network Layer
                 ip_packet = IPPacket(
-                    src_ip=nic.ip_address,
-                    dst_ip=target_ip_address,
+                    src_ip_address=nic.ip_address,
+                    dst_ip_address=target_ip_address,
                 )
                 # Data Link Layer
                 ethernet_header = EthernetHeader(src_mac_addr=nic.mac_address, dst_mac_addr="ff:ff:ff:ff:ff:ff")
                 arp_packet = ARPPacket(
-                    sender_ip=nic.ip_address, sender_mac_addr=nic.mac_address, target_ip=target_ip_address
+                    sender_ip_address=nic.ip_address, sender_mac_addr=nic.mac_address, target_ip_address=target_ip_address
                 )
                 frame = Frame(ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, arp=arp_packet)
                 nic.send_frame(frame)
@@ -663,14 +667,14 @@ class ARPCache:
         :param from_nic: The NIC to send the ARP reply from.
         """
         self.sys_log.info(
-            f"Sending ARP reply from {arp_reply.sender_mac_addr}/{arp_reply.sender_ip} "
-            f"to {arp_reply.target_ip}/{arp_reply.target_mac_addr} "
+            f"Sending ARP reply from {arp_reply.sender_mac_addr}/{arp_reply.sender_ip_address} "
+            f"to {arp_reply.target_ip_address}/{arp_reply.target_mac_addr} "
         )
         tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
         ip_packet = IPPacket(
-            src_ip=arp_reply.sender_ip,
-            dst_ip=arp_reply.target_ip,
+            src_ip_address=arp_reply.sender_ip_address,
+            dst_ip_address=arp_reply.target_ip_address,
         )
 
         ethernet_header = EthernetHeader(src_mac_addr=arp_reply.sender_mac_addr, dst_mac_addr=arp_reply.target_mac_addr)
@@ -691,26 +695,26 @@ class ARPCache:
         # ARP Reply
         if not arp_packet.request:
             self.sys_log.info(
-                f"Received ARP response for {arp_packet.sender_ip} from {arp_packet.sender_mac_addr} via NIC {from_nic}"
+                f"Received ARP response for {arp_packet.sender_ip_address} from {arp_packet.sender_mac_addr} via NIC {from_nic}"
             )
             self.add_arp_cache_entry(
-                ip_address=arp_packet.sender_ip, mac_address=arp_packet.sender_mac_addr, nic=from_nic
+                ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic
             )
             return
 
         # ARP Request
         self.sys_log.info(
-            f"Received ARP request for {arp_packet.target_ip} from "
-            f"{arp_packet.sender_mac_addr}/{arp_packet.sender_ip} "
+            f"Received ARP request for {arp_packet.target_ip_address} from "
+            f"{arp_packet.sender_mac_addr}/{arp_packet.sender_ip_address} "
         )
 
         # Unmatched ARP Request
-        if arp_packet.target_ip != from_nic.ip_address:
-            self.sys_log.info(f"Ignoring ARP request for {arp_packet.target_ip}")
+        if arp_packet.target_ip_address != from_nic.ip_address:
+            self.sys_log.info(f"Ignoring ARP request for {arp_packet.target_ip_address}")
             return
 
         # Matched ARP request
-        self.add_arp_cache_entry(ip_address=arp_packet.sender_ip, mac_address=arp_packet.sender_mac_addr, nic=from_nic)
+        self.add_arp_cache_entry(ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic)
         arp_packet = arp_packet.generate_reply(from_nic.mac_address)
         self.send_arp_reply(arp_packet, from_nic)
 
@@ -744,18 +748,18 @@ class ICMP:
         """
         if frame.icmp.icmp_type == ICMPType.ECHO_REQUEST:
             if not is_reattempt:
-                self.sys_log.info(f"Received echo request from {frame.ip.src_ip}")
-            target_mac_address = self.arp.get_arp_cache_mac_address(frame.ip.src_ip)
+                self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
+            target_mac_address = self.arp.get_arp_cache_mac_address(frame.ip.src_ip_address)
 
-            src_nic = self.arp.get_arp_cache_nic(frame.ip.src_ip)
+            src_nic = self.arp.get_arp_cache_nic(frame.ip.src_ip_address)
             if not src_nic:
-                self.arp.send_arp_request(frame.ip.src_ip)
+                self.arp.send_arp_request(frame.ip.src_ip_address)
                 self.process_icmp(frame=frame, from_nic=from_nic, is_reattempt=True)
                 return
             tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
             # Network Layer
-            ip_packet = IPPacket(src_ip=src_nic.ip_address, dst_ip=frame.ip.src_ip, protocol=IPProtocol.ICMP)
+            ip_packet = IPPacket(src_ip_address=src_nic.ip_address, dst_ip_address=frame.ip.src_ip_address, protocol=IPProtocol.ICMP)
             # Data Link Layer
             ethernet_header = EthernetHeader(src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address)
             icmp_reply_packet = ICMPPacket(
@@ -768,14 +772,14 @@ class ICMP:
             frame = Frame(
                 ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, icmp=icmp_reply_packet, payload=payload
             )
-            self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip}")
+            self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip_address}")
 
             src_nic.send_frame(frame)
         elif frame.icmp.icmp_type == ICMPType.ECHO_REPLY:
             time = frame.transmission_duration()
             time_str = f"{time}ms" if time > 0 else "<1ms"
             self.sys_log.info(
-                f"Reply from {frame.ip.src_ip}: "
+                f"Reply from {frame.ip.src_ip_address}: "
                 f"bytes={len(frame.payload)}, "
                 f"time={time_str}, "
                 f"TTL={frame.ip.ttl}"
@@ -821,8 +825,8 @@ class ICMP:
 
         # Network Layer
         ip_packet = IPPacket(
-            src_ip=nic.ip_address,
-            dst_ip=target_ip_address,
+            src_ip_address=nic.ip_address,
+            dst_ip_address=target_ip_address,
             protocol=IPProtocol.ICMP,
         )
         # Data Link Layer
@@ -1059,7 +1063,7 @@ class Node(SimComponent):
 
         :param frame: The Frame to be sent.
         """
-        nic: NIC = self._get_arp_cache_nic(frame.ip.dst_ip)
+        nic: NIC = self._get_arp_cache_nic(frame.ip.dst_ip_address)
         nic.send_frame(frame)
 
     def receive_frame(self, frame: Frame, from_nic: NIC):
@@ -1073,9 +1077,9 @@ class Node(SimComponent):
         :param from_nic: The NIC that received the frame.
         """
         if frame.ip:
-            if frame.ip.src_ip in self.arp:
+            if frame.ip.src_ip_address in self.arp:
                 self.arp.add_arp_cache_entry(
-                    ip_address=frame.ip.src_ip, mac_address=frame.ethernet.src_mac_addr, nic=from_nic
+                    ip_address=frame.ip.src_ip_address, mac_address=frame.ethernet.src_mac_addr, nic=from_nic
                 )
         if frame.ip.protocol == IPProtocol.TCP:
             if frame.tcp.src_port == Port.ARP:

@@ -28,17 +28,17 @@ class ACLRule(SimComponent):
 
     :ivar ACLAction action: Action to be performed (Permit/Deny). Default is DENY.
     :ivar Optional[IPProtocol] protocol: Network protocol. Default is None.
-    :ivar Optional[IPv4Address] src_ip: Source IP address. Default is None.
+    :ivar Optional[IPv4Address] src_ip_address: Source IP address. Default is None.
     :ivar Optional[Port] src_port: Source port number. Default is None.
-    :ivar Optional[IPv4Address] dst_ip: Destination IP address. Default is None.
+    :ivar Optional[IPv4Address] dst_ip_address: Destination IP address. Default is None.
     :ivar Optional[Port] dst_port: Destination port number. Default is None.
     """
 
     action: ACLAction = ACLAction.DENY
     protocol: Optional[IPProtocol] = None
-    src_ip: Optional[IPv4Address] = None
+    src_ip_address: Optional[IPv4Address] = None
     src_port: Optional[Port] = None
-    dst_ip: Optional[IPv4Address] = None
+    dst_ip_address: Optional[IPv4Address] = None
     dst_port: Optional[Port] = None
 
     def __str__(self) -> str:
@@ -109,9 +109,9 @@ class AccessControlList(SimComponent):
         self,
         action: ACLAction,
         protocol: Optional[IPProtocol] = None,
-        src_ip: Optional[Union[str, IPv4Address]] = None,
+        src_ip_address: Optional[Union[str, IPv4Address]] = None,
         src_port: Optional[Port] = None,
-        dst_ip: Optional[Union[str, IPv4Address]] = None,
+        dst_ip_address: Optional[Union[str, IPv4Address]] = None,
         dst_port: Optional[Port] = None,
         position: int = 0,
     ) -> None:
@@ -120,20 +120,20 @@ class AccessControlList(SimComponent):
 
         :param ACLAction action: Action to be performed (Permit/Deny).
         :param Optional[IPProtocol] protocol: Network protocol.
-        :param Optional[Union[str, IPv4Address]] src_ip: Source IP address.
+        :param Optional[Union[str, IPv4Address]] src_ip_address: Source IP address.
         :param Optional[Port] src_port: Source port number.
-        :param Optional[Union[str, IPv4Address]] dst_ip: Destination IP address.
+        :param Optional[Union[str, IPv4Address]] dst_ip_address: Destination IP address.
         :param Optional[Port] dst_port: Destination port number.
         :param int position: Position in the ACL list to insert the rule.
         :raises ValueError: When the position is out of bounds.
         """
-        if isinstance(src_ip, str):
-            src_ip = IPv4Address(src_ip)
-        if isinstance(dst_ip, str):
-            dst_ip = IPv4Address(dst_ip)
+        if isinstance(src_ip_address, str):
+            src_ip_address = IPv4Address(src_ip_address)
+        if isinstance(dst_ip_address, str):
+            dst_ip_address = IPv4Address(dst_ip_address)
         if 0 <= position < self.max_acl_rules:
             self._acl[position] = ACLRule(
-                action=action, src_ip=src_ip, dst_ip=dst_ip, protocol=protocol, src_port=src_port, dst_port=dst_port
+                action=action, src_ip_address=src_ip_address, dst_ip_address=dst_ip_address, protocol=protocol, src_port=src_port, dst_port=dst_port
             )
         else:
             raise ValueError(f"Position {position} is out of bounds.")
@@ -153,33 +153,33 @@ class AccessControlList(SimComponent):
     def is_permitted(
         self,
         protocol: IPProtocol,
-        src_ip: Union[str, IPv4Address],
+        src_ip_address: Union[str, IPv4Address],
         src_port: Optional[Port],
-        dst_ip: Union[str, IPv4Address],
+        dst_ip_address: Union[str, IPv4Address],
         dst_port: Optional[Port],
     ) -> Tuple[bool, Optional[Union[str, ACLRule]]]:
         """
         Check if a packet with the given properties is permitted through the ACL.
 
         :param protocol: The protocol of the packet.
-        :param src_ip: Source IP address of the packet. Accepts string and IPv4Address.
+        :param src_ip_address: Source IP address of the packet. Accepts string and IPv4Address.
         :param src_port: Source port of the packet. Optional.
-        :param dst_ip: Destination IP address of the packet. Accepts string and IPv4Address.
+        :param dst_ip_address: Destination IP address of the packet. Accepts string and IPv4Address.
         :param dst_port: Destination port of the packet. Optional.
         :return: A tuple with a boolean indicating if the packet is permitted and an optional rule or implicit action
             string.
         """
-        if not isinstance(src_ip, IPv4Address):
-            src_ip = IPv4Address(src_ip)
-        if not isinstance(dst_ip, IPv4Address):
-            dst_ip = IPv4Address(dst_ip)
+        if not isinstance(src_ip_address, IPv4Address):
+            src_ip_address = IPv4Address(src_ip_address)
+        if not isinstance(dst_ip_address, IPv4Address):
+            dst_ip_address = IPv4Address(dst_ip_address)
         for rule in self._acl:
             if not rule:
                 continue
 
             if (
-                (rule.src_ip == src_ip or rule.src_ip is None)
-                and (rule.dst_ip == dst_ip or rule.dst_ip is None)
+                (rule.src_ip_address == src_ip_address or rule.src_ip_address is None)
+                and (rule.dst_ip_address == dst_ip_address or rule.dst_ip_address is None)
                 and (rule.protocol == protocol or rule.protocol is None)
                 and (rule.src_port == src_port or rule.src_port is None)
                 and (rule.dst_port == dst_port or rule.dst_port is None)
@@ -191,33 +191,33 @@ class AccessControlList(SimComponent):
     def get_relevant_rules(
         self,
         protocol: IPProtocol,
-        src_ip: Union[str, IPv4Address],
+        src_ip_address: Union[str, IPv4Address],
         src_port: Port,
-        dst_ip: Union[str, IPv4Address],
+        dst_ip_address: Union[str, IPv4Address],
         dst_port: Port,
     ) -> List[ACLRule]:
         """
         Get the list of relevant rules for a packet with given properties.
 
         :param protocol: The protocol of the packet.
-        :param src_ip: Source IP address of the packet. Accepts string and IPv4Address.
+        :param src_ip_address: Source IP address of the packet. Accepts string and IPv4Address.
         :param src_port: Source port of the packet.
-        :param dst_ip: Destination IP address of the packet. Accepts string and IPv4Address.
+        :param dst_ip_address: Destination IP address of the packet. Accepts string and IPv4Address.
         :param dst_port: Destination port of the packet.
         :return: A list of relevant ACLRules.
         """
-        if not isinstance(src_ip, IPv4Address):
-            src_ip = IPv4Address(src_ip)
-        if not isinstance(dst_ip, IPv4Address):
-            dst_ip = IPv4Address(dst_ip)
+        if not isinstance(src_ip_address, IPv4Address):
+            src_ip_address = IPv4Address(src_ip_address)
+        if not isinstance(dst_ip_address, IPv4Address):
+            dst_ip_address = IPv4Address(dst_ip_address)
         relevant_rules = []
         for rule in self._acl:
             if rule is None:
                 continue
 
             if (
-                (rule.src_ip == src_ip or rule.src_ip is None)
-                or (rule.dst_ip == dst_ip or rule.dst_ip is None)
+                (rule.src_ip_address == src_ip_address or rule.src_ip_address is None)
+                or (rule.dst_ip_address == dst_ip_address or rule.dst_ip_address is None)
                 or (rule.protocol == protocol or rule.protocol is None)
                 or (rule.src_port == src_port or rule.src_port is None)
                 or (rule.dst_port == dst_port or rule.dst_port is None)
@@ -244,9 +244,9 @@ class AccessControlList(SimComponent):
                         index,
                         rule.action.name if rule.action else "ANY",
                         rule.protocol.name if rule.protocol else "ANY",
-                        rule.src_ip if rule.src_ip else "ANY",
+                        rule.src_ip_address if rule.src_ip_address else "ANY",
                         f"{rule.src_port.value} ({rule.src_port.name})" if rule.src_port else "ANY",
-                        rule.dst_ip if rule.dst_ip else "ANY",
+                        rule.dst_ip_address if rule.dst_ip_address else "ANY",
                         f"{rule.dst_port.value} ({rule.dst_port.name})" if rule.dst_port else "ANY",
                     ]
                 )
@@ -260,7 +260,7 @@ class RouteEntry(SimComponent):
     Attributes:
         address (IPv4Address): The destination IP address or network address.
         subnet_mask (IPv4Address): The subnet mask for the network.
-        next_hop (IPv4Address): The next hop IP address to which packets should be forwarded.
+        next_hop_ip_address (IPv4Address): The next hop IP address to which packets should be forwarded.
         metric (int): The cost metric for this route. Default is 0.0.
 
     Example:
@@ -276,13 +276,13 @@ class RouteEntry(SimComponent):
     "The destination IP address or network address."
     subnet_mask: IPv4Address
     "The subnet mask for the network."
-    next_hop: IPv4Address
+    next_hop_ip_address: IPv4Address
     "The next hop IP address to which packets should be forwarded."
     metric: float = 0.0
     "The cost metric for this route. Default is 0.0."
 
     def __init__(self, **kwargs):
-        for key in {"address", "subnet_mask", "next_hop"}:
+        for key in {"address", "subnet_mask", "next_hop_ip_address"}:
             if not isinstance(kwargs[key], IPv4Address):
                 kwargs[key] = IPv4Address(kwargs[key])
         super().__init__(**kwargs)
@@ -330,7 +330,7 @@ class RouteTable(SimComponent):
         self,
         address: Union[IPv4Address, str],
         subnet_mask: Union[IPv4Address, str],
-        next_hop: Union[IPv4Address, str],
+        next_hop_ip_address: Union[IPv4Address, str],
         metric: float = 0.0,
     ):
         """
@@ -338,13 +338,13 @@ class RouteTable(SimComponent):
 
         :param address: The destination address of the route.
         :param subnet_mask: The subnet mask of the route.
-        :param next_hop: The next hop IP for the route.
+        :param next_hop_ip_address: The next hop IP for the route.
         :param metric: The metric of the route, default is 0.0.
         """
-        for key in {address, subnet_mask, next_hop}:
+        for key in {address, subnet_mask, next_hop_ip_address}:
             if not isinstance(key, IPv4Address):
                 key = IPv4Address(key)
-        route = RouteEntry(address=address, subnet_mask=subnet_mask, next_hop=next_hop, metric=metric)
+        route = RouteEntry(address=address, subnet_mask=subnet_mask, next_hop_ip_address=next_hop_ip_address, metric=metric)
         self.routes.append(route)
 
     def find_best_route(self, destination_ip: Union[str, IPv4Address]) -> Optional[RouteEntry]:
@@ -387,7 +387,7 @@ class RouteTable(SimComponent):
         table.title = f"{self.sys_log.hostname} Route Table"
         for index, route in enumerate(self.routes):
             network = IPv4Network(f"{route.address}/{route.subnet_mask}")
-            table.add_row([index, f"{route.address}/{network.prefixlen}", route.next_hop, route.metric])
+            table.add_row([index, f"{route.address}/{network.prefixlen}", route.next_hop_ip_address, route.metric])
         print(table)
 
 
@@ -415,40 +415,40 @@ class RouterARPCache(ARPCache):
         # ARP Reply
         if not arp_packet.request:
             for nic in self.router.nics.values():
-                if arp_packet.target_ip == nic.ip_address:
+                if arp_packet.target_ip_address == nic.ip_address:
                     # reply to the Router specifically
                     self.sys_log.info(
-                        f"Received ARP response for {arp_packet.sender_ip} "
+                        f"Received ARP response for {arp_packet.sender_ip_address} "
                         f"from {arp_packet.sender_mac_addr} via NIC {from_nic}"
                     )
                     self.add_arp_cache_entry(
-                        ip_address=arp_packet.sender_ip,
+                        ip_address=arp_packet.sender_ip_address,
                         mac_address=arp_packet.sender_mac_addr,
                         nic=from_nic,
                     )
                     return
 
             # Reply for a connected requested
-            nic = self.get_arp_cache_nic(arp_packet.target_ip)
+            nic = self.get_arp_cache_nic(arp_packet.target_ip_address)
             if nic:
-                self.sys_log.info(f"Forwarding arp reply for {arp_packet.target_ip}, from {arp_packet.sender_ip}")
+                self.sys_log.info(f"Forwarding arp reply for {arp_packet.target_ip_address}, from {arp_packet.sender_ip_address}")
                 arp_packet.sender_mac_addr = nic.mac_address
                 frame.decrement_ttl()
                 nic.send_frame(frame)
 
         # ARP Request
         self.sys_log.info(
-            f"Received ARP request for {arp_packet.target_ip} from "
-            f"{arp_packet.sender_mac_addr}/{arp_packet.sender_ip} "
+            f"Received ARP request for {arp_packet.target_ip_address} from "
+            f"{arp_packet.sender_mac_addr}/{arp_packet.sender_ip_address} "
         )
         # Matched ARP request
-        self.add_arp_cache_entry(ip_address=arp_packet.sender_ip, mac_address=arp_packet.sender_mac_addr, nic=from_nic)
+        self.add_arp_cache_entry(ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic)
         arp_packet = arp_packet.generate_reply(from_nic.mac_address)
         self.send_arp_reply(arp_packet, from_nic)
 
         # If the target IP matches one of the router's NICs
         for nic in self.nics.values():
-            if nic.enabled and nic.ip_address == arp_packet.target_ip:
+            if nic.enabled and nic.ip_address == arp_packet.target_ip_address:
                 arp_reply = arp_packet.generate_reply(from_nic.mac_address)
                 self.send_arp_reply(arp_reply, from_nic)
                 return
@@ -484,17 +484,17 @@ class RouterICMP(ICMP):
             # determine if request is for router interface or whether it needs to be routed
 
             for nic in self.router.nics.values():
-                if nic.ip_address == frame.ip.dst_ip:
+                if nic.ip_address == frame.ip.dst_ip_address:
                     if nic.enabled:
                         # reply to the request
                         if not is_reattempt:
-                            self.sys_log.info(f"Received echo request from {frame.ip.src_ip}")
-                        target_mac_address = self.arp.get_arp_cache_mac_address(frame.ip.src_ip)
-                        src_nic = self.arp.get_arp_cache_nic(frame.ip.src_ip)
+                            self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
+                        target_mac_address = self.arp.get_arp_cache_mac_address(frame.ip.src_ip_address)
+                        src_nic = self.arp.get_arp_cache_nic(frame.ip.src_ip_address)
                         tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
                         # Network Layer
-                        ip_packet = IPPacket(src_ip=nic.ip_address, dst_ip=frame.ip.src_ip, protocol=IPProtocol.ICMP)
+                        ip_packet = IPPacket(src_ip_address=nic.ip_address, dst_ip_address=frame.ip.src_ip_address, protocol=IPProtocol.ICMP)
                         # Data Link Layer
                         ethernet_header = EthernetHeader(
                             src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address
@@ -513,7 +513,7 @@ class RouterICMP(ICMP):
                             icmp=icmp_reply_packet,
                             payload=payload,
                         )
-                        self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip}")
+                        self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip_address}")
 
                         src_nic.send_frame(frame)
                     return
@@ -523,12 +523,12 @@ class RouterICMP(ICMP):
 
         elif frame.icmp.icmp_type == ICMPType.ECHO_REPLY:
             for nic in self.router.nics.values():
-                if nic.ip_address == frame.ip.dst_ip:
+                if nic.ip_address == frame.ip.dst_ip_address:
                     if nic.enabled:
                         time = frame.transmission_duration()
                         time_str = f"{time}ms" if time > 0 else "<1ms"
                         self.sys_log.info(
-                            f"Reply from {frame.ip.src_ip}: "
+                            f"Reply from {frame.ip.src_ip_address}: "
                             f"bytes={len(frame.payload)}, "
                             f"time={time_str}, "
                             f"TTL={frame.ip.ttl}"
@@ -606,22 +606,22 @@ class Router(Node):
         :param re_attempt: Flag to indicate if the routing is a reattempt.
         """
         # Check if src ip is on network of one of the NICs
-        nic = self.arp.get_arp_cache_nic(frame.ip.dst_ip)
-        target_mac = self.arp.get_arp_cache_mac_address(frame.ip.dst_ip)
+        nic = self.arp.get_arp_cache_nic(frame.ip.dst_ip_address)
+        target_mac = self.arp.get_arp_cache_mac_address(frame.ip.dst_ip_address)
 
         if re_attempt and not nic:
-            self.sys_log.info(f"Destination {frame.ip.dst_ip} is unreachable")
+            self.sys_log.info(f"Destination {frame.ip.dst_ip_address} is unreachable")
             return
 
         if not nic:
-            self.arp.send_arp_request(frame.ip.dst_ip)
+            self.arp.send_arp_request(frame.ip.dst_ip_address)
             return self.route_frame(frame=frame, from_nic=from_nic, re_attempt=True)
 
         if not nic.enabled:
             # TODO: Add sys_log here
             return
 
-        if frame.ip.dst_ip in nic.ip_network:
+        if frame.ip.dst_ip_address in nic.ip_network:
             from_port = self._get_port_of_nic(from_nic)
             to_port = self._get_port_of_nic(nic)
             self.sys_log.info(f"Routing frame to internally from port {from_port} to port {to_port}")
@@ -643,8 +643,8 @@ class Router(Node):
         """
         route_frame = False
         protocol = frame.ip.protocol
-        src_ip = frame.ip.src_ip
-        dst_ip = frame.ip.dst_ip
+        src_ip_address = frame.ip.src_ip_address
+        dst_ip_address = frame.ip.dst_ip_address
         src_port = None
         dst_port = None
         if frame.ip.protocol == IPProtocol.TCP:
@@ -656,14 +656,14 @@ class Router(Node):
 
         # Check if it's permitted
         permitted, rule = self.acl.is_permitted(
-            protocol=protocol, src_ip=src_ip, src_port=src_port, dst_ip=dst_ip, dst_port=dst_port
+            protocol=protocol, src_ip_address=src_ip_address, src_port=src_port, dst_ip_address=dst_ip_address, dst_port=dst_port
         )
         if not permitted:
             at_port = self._get_port_of_nic(from_nic)
             self.sys_log.info(f"Frame blocked at port {at_port} by rule {rule}")
             return
-        if not self.arp.get_arp_cache_nic(src_ip):
-            self.arp.add_arp_cache_entry(src_ip, frame.ethernet.src_mac_addr, from_nic)
+        if not self.arp.get_arp_cache_nic(src_ip_address):
+            self.arp.add_arp_cache_entry(src_ip_address, frame.ethernet.src_mac_addr, from_nic)
         if frame.ip.protocol == IPProtocol.ICMP:
             self.icmp.process_icmp(frame=frame, from_nic=from_nic)
         else:

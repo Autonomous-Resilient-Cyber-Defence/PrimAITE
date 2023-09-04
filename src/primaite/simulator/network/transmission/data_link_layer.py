@@ -52,8 +52,8 @@ class Frame(BaseModel):
     ...         dst_mac_addr='11:22:33:44:55:66'
     ...     ),
     ...     ip=IPPacket(
-    ...         src_ip=IPv4Address('192.168.0.1'),
-    ...         dst_ip=IPv4Address('10.0.0.1'),
+    ...         src_ip_address=IPv4Address('192.168.0.1'),
+    ...         dst_ip_address=IPv4Address('10.0.0.1'),
     ...     ),
     ...     tcp=TCPHeader(
     ...         src_port=8080,

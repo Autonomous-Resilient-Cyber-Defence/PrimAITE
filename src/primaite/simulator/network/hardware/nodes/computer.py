@@ -36,9 +36,5 @@ class Computer(Node):
     """
 
     def __init__(self, **kwargs):
-        for key in {"ip_address", "subnet_mask", "default_gateway"}:
-            if key in kwargs:
-                if not isinstance(kwargs[key], IPv4Address):
-                    kwargs[key] = IPv4Address(kwargs[key])
         super().__init__(**kwargs)
         self.connect_nic(NIC(ip_address=kwargs["ip_address"], subnet_mask=kwargs["subnet_mask"]))
