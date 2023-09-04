@@ -10,7 +10,7 @@ def test_frame_minimal_instantiation():
     """Tests that the minimum frame (TCP SYN) using default values."""
     frame = Frame(
         ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-        ip=IPPacket(src_ip="192.168.0.10", dst_ip="192.168.0.20"),
+        ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20"),
         tcp=TCPHeader(
             src_port=8080,
             dst_port=80,
@@ -38,7 +38,7 @@ def test_frame_creation_fails_tcp_without_header():
     with pytest.raises(ValueError):
         Frame(
             ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-            ip=IPPacket(src_ip="192.168.0.10", dst_ip="192.168.0.20", protocol=IPProtocol.TCP),
+            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.TCP),
         )
 
 
@@ -47,7 +47,7 @@ def test_frame_creation_fails_udp_without_header():
     with pytest.raises(ValueError):
         Frame(
             ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-            ip=IPPacket(src_ip="192.168.0.10", dst_ip="192.168.0.20", protocol=IPProtocol.UDP),
+            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.UDP),
         )
 
 
@@ -56,7 +56,7 @@ def test_frame_creation_fails_tcp_with_udp_header():
     with pytest.raises(ValueError):
         Frame(
             ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-            ip=IPPacket(src_ip="192.168.0.10", dst_ip="192.168.0.20", protocol=IPProtocol.TCP),
+            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.TCP),
             udp=UDPHeader(src_port=8080, dst_port=80),
         )
 
@@ -66,7 +66,7 @@ def test_frame_creation_fails_udp_with_tcp_header():
     with pytest.raises(ValueError):
         Frame(
             ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-            ip=IPPacket(src_ip="192.168.0.10", dst_ip="192.168.0.20", protocol=IPProtocol.UDP),
+            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.UDP),
             udp=TCPHeader(src_port=8080, dst_port=80),
         )
 
@@ -75,7 +75,7 @@ def test_icmp_frame_creation():
     """Tests Frame creation for ICMP."""
     frame = Frame(
         ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-        ip=IPPacket(src_ip="192.168.0.10", dst_ip="192.168.0.20", protocol=IPProtocol.ICMP),
+        ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.ICMP),
         icmp=ICMPPacket(),
     )
     assert frame
@@ -86,5 +86,5 @@ def test_icmp_frame_creation_fails_without_icmp_header():
     with pytest.raises(ValueError):
         Frame(
             ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-            ip=IPPacket(src_ip="192.168.0.10", dst_ip="192.168.0.20", protocol=IPProtocol.ICMP),
+            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.ICMP),
         )
