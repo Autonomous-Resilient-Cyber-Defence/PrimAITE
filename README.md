@@ -1,12 +1,12 @@
 # PrimAITE
 
-![image](https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/assets/107395948/fdefa884-1105-44da-88fe-e3a1c98ee361)
+![image](./PrimAITE_logo_transparent.png)
 
 The ARCD Primary-level AI Training Environment (**PrimAITE**) provides an effective simulation capability for the purposes of training and evaluating AI in a cyber-defensive role. It incorporates the functionality required of a primary-level ARCD environment, which includes:
 
 - The ability to model a relevant platform / system context;
 
-- The ability to model key characteristics of a platform / system by representing connections, IP addresses, ports, traffic loading, operating systems, services and processes;
+- The ability to model key characteristics of a platform / system by representing connections, IP addresses, ports, traffic loading, operating systems and services;
 
 - Operates at machine-speed to enable fast training cycles.
 
@@ -24,7 +24,7 @@ PrimAITE presents the following features:
 
 - Application of IERs to the platform / system laydown adheres to the ACL ruleset;
 
-- Presents an OpenAI gym or RLLib interface to the environment, allowing integration with any OpenAI gym compliant defensive agents;
+- Presents an OpenAI gym or RLLib interface to the environment, allowing integration with any compliant defensive agents;
 
 - Full capture of discrete logs relating to agent training (full system state, agent actions taken, instantaneous and average reward for every step of every episode);
 
