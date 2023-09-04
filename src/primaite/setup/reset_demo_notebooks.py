@@ -1,35 +1,46 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 import filecmp
-import os
 import shutil
 from logging import Logger
 from pathlib import Path
-
-import pkg_resources
 
 from primaite import getLogger, PRIMAITE_PATHS
 
 _LOGGER: Logger = getLogger(__name__)
 
 
+def should_copy_file(src: Path, dest: Path, overwrite_existing: bool) -> bool:
+    """
+    Determine if the file should be copied.
+
+    :param src: The source file Path.
+    :param dest: The destination file Path.
+    :param overwrite_existing: A bool to toggle replacing existing edited files on or off.
+    :return: True if file should be copied, otherwise False.
+    """
+    if not dest.is_file():
+        return True
+
+    if overwrite_existing and not filecmp.cmp(src, dest):
+        return True
+
+    return False
+
+
 def run(overwrite_existing: bool = True) -> None:
     """
-    Resets the demo jupyter notebooks in the users app notebooks directory.
+    Resets the demo Jupyter notebooks in the user's app notebooks directory.
 
     :param overwrite_existing: A bool to toggle replacing existing edited notebooks on or off.
     """
-    notebooks_package_data_root = pkg_resources.resource_filename("primaite", "notebooks/_package_data")
-    for subdir, dirs, files in os.walk(notebooks_package_data_root):
-        for file in files:
-            fp = os.path.join(subdir, file)
-            path_split = os.path.relpath(fp, notebooks_package_data_root).split(os.sep)
-            target_fp = PRIMAITE_PATHS.user_notebooks_path / Path(*path_split)
-            target_fp.parent.mkdir(exist_ok=True, parents=True)
-            copy_file = not target_fp.is_file()
+    primaite_root = Path(__file__).parent.parent
+    example_notebooks_user_dir = PRIMAITE_PATHS.user_notebooks_path / "example_notebooks"
+    example_notebooks_user_dir.mkdir(exist_ok=True, parents=True)
 
-            if overwrite_existing and not copy_file:
-                copy_file = (not filecmp.cmp(fp, target_fp)) and (".ipynb_checkpoints" not in str(target_fp))
+    for src_fp in primaite_root.glob("**/*.ipynb"):
+        dst_fp = example_notebooks_user_dir / src_fp.name
 
-            if copy_file:
-                shutil.copy2(fp, target_fp)
-                _LOGGER.info(f"Reset example notebook: {target_fp}")
+        if should_copy_file(src_fp, dst_fp, overwrite_existing):
+            print(dst_fp)
+            shutil.copy2(src_fp, dst_fp)
+            _LOGGER.info(f"Reset example notebook: {dst_fp}")
