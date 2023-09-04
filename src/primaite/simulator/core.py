@@ -1,3 +1,4 @@
+# flake8: noqa
 """Core of the PrimAITE Simulator."""
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List, Optional, Union
@@ -10,7 +11,7 @@ from primaite import getLogger
 _LOGGER = getLogger(__name__)
 
 
-class ActionPermissionValidator(ABC):
+class ActionPermissionValidator(BaseModel):
     """
     Base class for action validators.
 
@@ -33,7 +34,7 @@ class AllowAllValidator(ActionPermissionValidator):
         return True
 
 
-class Action:
+class Action(BaseModel):
     """
     This object stores data related to a single action.
 
@@ -41,34 +42,22 @@ class Action:
     the action can be performed or not.
     """
 
-    def __init__(
-        self, func: Callable[[List[str], Dict], None], validator: ActionPermissionValidator = AllowAllValidator()
-    ) -> None:
-        """
-        Save the functions that are for this action.
-
-        Here's a description for the intended use of both of these.
-
-        ``func`` is a function that accepts a request and a context dict. Typically this would be a lambda function
-        that invokes a class method of your SimComponent. For example if the component is a node and the action is for
-        turning it off, then the SimComponent should have a turn_off(self) method that does not need to accept any args.
-        Then, this Action will be given something like ``func = lambda request, context: self.turn_off()``.
-
-        ``validator`` is an instance of a subclass of `ActionPermissionValidator`. This is essentially a callable that
-        accepts `request` and `context` and returns a boolean to represent whether the permission is granted to perform
-        the action.
-
-        :param func: Function that performs the request.
-        :type func: Callable[[List[str], Dict], None]
-        :param validator: Function that checks if the request is authenticated given the context. By default, if no
-            validator is provided, an 'allow all' validator is added which permits all requests.
-        :type validator: ActionPermissionValidator
-        """
-        self.func: Callable[[List[str], Dict], None] = func
-        self.validator: ActionPermissionValidator = validator
+    func: Callable[[List[str], Dict], None]
+    """
+    ``func`` is a function that accepts a request and a context dict. Typically this would be a lambda function
+    that invokes a class method of your SimComponent. For example if the component is a node and the action is for
+    turning it off, then the SimComponent should have a turn_off(self) method that does not need to accept any args.
+    Then, this Action will be given something like ``func = lambda request, context: self.turn_off()``.
+    """
+    validator: ActionPermissionValidator = AllowAllValidator()
+    """
+    ``validator`` is an instance of `ActionPermissionValidator`. This is essentially a callable that
+    accepts `request` and `context` and returns a boolean to represent whether the permission is granted to perform
+    the action. The default validator will allow
+    """
 
 
-class ActionManager:
+class ActionManager(BaseModel):
     """
     ActionManager is used by `SimComponent` instances to keep track of actions.
 
@@ -76,9 +65,8 @@ class ActionManager:
     class is responsible for providing a consistent API for processing actions as well as helpful error messages.
     """
 
-    def __init__(self) -> None:
-        """Initialise ActionManager with an empty action lookup."""
-        self.actions: Dict[str, Action] = {}
+    actions: Dict[str, Action] = {}
+    """maps action verb to an action object."""
 
     def process_request(self, request: List[str], context: Dict) -> None:
         """Process an action request.
@@ -124,6 +112,11 @@ class ActionManager:
             raise RuntimeError(msg)
 
         self.actions[name] = action
+
+    def list_actions(self) -> List[List[str]]:
+        actions = []
+        for act_name, act in self.actions.items():
+            pass  # TODO:
 
 
 class SimComponent(BaseModel):
@@ -178,6 +171,14 @@ class SimComponent(BaseModel):
         }
         return state
 
+    def possible_actions(self) -> List[List[str]]:
+        """Enumerate all actions that this component can accept.
+
+        :return: List of all action strings that can be passed to this component.
+        :rtype: List[Dict[str]]
+        """
+        action_list = ActionManager  # TODO: extract possible actions? how to do this neatly?
+
     def apply_action(self, action: List[str], context: Dict = {}) -> None:
         """
         Apply an action to a simulation component. Action data is passed in as a 'namespaced' list of strings.
@@ -230,7 +231,3 @@ class SimComponent(BaseModel):
             _LOGGER.warn(msg)
             raise RuntimeWarning(msg)
         self._parent = new_parent
-
-    @parent.deleter
-    def parent(self) -> None:
-        self._parent = None
