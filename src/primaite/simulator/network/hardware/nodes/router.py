@@ -131,6 +131,8 @@ class AccessControlList(SimComponent):
         if isinstance(dst_ip_address, str):
             dst_ip_address = IPv4Address(dst_ip_address)
         if 0 <= position < self.max_acl_rules:
+            if self._acl[position]:
+                self.sys_log.info(f"Overwriting ACL rule at position {position}")
             self._acl[position] = ACLRule(
                 action=action,
                 src_ip_address=src_ip_address,
@@ -140,7 +142,7 @@ class AccessControlList(SimComponent):
                 dst_port=dst_port,
             )
         else:
-            raise ValueError(f"Position {position} is out of bounds.")
+            raise ValueError(f"Cannot add ACL rule, position {position} is out of bounds.")
 
     def remove_rule(self, position: int) -> None:
         """
@@ -150,9 +152,11 @@ class AccessControlList(SimComponent):
         :raises ValueError: When the position is out of bounds.
         """
         if 0 <= position < self.max_acl_rules - 1:
+            rule = self._acl[position]  # noqa
             self._acl[position] = None
+            del rule
         else:
-            raise ValueError(f"Position {position} is out of bounds.")
+            raise ValueError(f"Cannot remove ACL rule, position {position} is out of bounds.")
 
     def is_permitted(
         self,

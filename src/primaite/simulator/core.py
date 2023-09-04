@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Callable, Dict, List, Optional, Union
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Extra
+from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
 
@@ -126,7 +126,7 @@ class ActionManager:
 class SimComponent(BaseModel):
     """Extension of pydantic BaseModel with additional methods that must be defined by all classes in the simulator."""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra=Extra.allow)
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
     """Configure pydantic to allow arbitrary types and to let the instance have attributes not present in model."""
 
     uuid: str
