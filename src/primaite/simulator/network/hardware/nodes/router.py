@@ -81,12 +81,11 @@ class AccessControlList(SimComponent):
     def __init__(self, **kwargs) -> None:
         if not kwargs.get("implicit_action"):
             kwargs["implicit_action"] = ACLAction.DENY
-        if not kwargs.get("max_acl_rules"):
-            kwargs["max_acl_rules"] = 25
+
         kwargs["implicit_rule"] = ACLRule(action=kwargs["implicit_action"])
-        kwargs["_acl"] = [None] * (kwargs["max_acl_rules"] - 1)
 
         super().__init__(**kwargs)
+        self._acl = [None] * (self.max_acl_rules - 1)
 
     def describe_state(self) -> Dict:
         """
@@ -145,7 +144,7 @@ class AccessControlList(SimComponent):
         :param int position: The position of the rule to be removed.
         :raises ValueError: When the position is out of bounds.
         """
-        if 0 <= position < self.max_acl_rules:
+        if 0 <= position < self.max_acl_rules - 1:
             self._acl[position] = None
         else:
             raise ValueError(f"Position {position} is out of bounds.")
