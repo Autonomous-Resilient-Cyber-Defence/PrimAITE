@@ -654,7 +654,9 @@ class ARPCache:
                 # Data Link Layer
                 ethernet_header = EthernetHeader(src_mac_addr=nic.mac_address, dst_mac_addr="ff:ff:ff:ff:ff:ff")
                 arp_packet = ARPPacket(
-                    sender_ip_address=nic.ip_address, sender_mac_addr=nic.mac_address, target_ip_address=target_ip_address
+                    sender_ip_address=nic.ip_address,
+                    sender_mac_addr=nic.mac_address,
+                    target_ip_address=target_ip_address,
                 )
                 frame = Frame(ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, arp=arp_packet)
                 nic.send_frame(frame)
@@ -695,7 +697,8 @@ class ARPCache:
         # ARP Reply
         if not arp_packet.request:
             self.sys_log.info(
-                f"Received ARP response for {arp_packet.sender_ip_address} from {arp_packet.sender_mac_addr} via NIC {from_nic}"
+                f"Received ARP response for {arp_packet.sender_ip_address} "
+                f"from {arp_packet.sender_mac_addr} via NIC {from_nic}"
             )
             self.add_arp_cache_entry(
                 ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic
@@ -714,7 +717,9 @@ class ARPCache:
             return
 
         # Matched ARP request
-        self.add_arp_cache_entry(ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic)
+        self.add_arp_cache_entry(
+            ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic
+        )
         arp_packet = arp_packet.generate_reply(from_nic.mac_address)
         self.send_arp_reply(arp_packet, from_nic)
 
@@ -759,7 +764,9 @@ class ICMP:
             tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
             # Network Layer
-            ip_packet = IPPacket(src_ip_address=src_nic.ip_address, dst_ip_address=frame.ip.src_ip_address, protocol=IPProtocol.ICMP)
+            ip_packet = IPPacket(
+                src_ip_address=src_nic.ip_address, dst_ip_address=frame.ip.src_ip_address, protocol=IPProtocol.ICMP
+            )
             # Data Link Layer
             ethernet_header = EthernetHeader(src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address)
             icmp_reply_packet = ICMPPacket(

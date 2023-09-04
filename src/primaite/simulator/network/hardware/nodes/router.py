@@ -132,7 +132,12 @@ class AccessControlList(SimComponent):
             dst_ip_address = IPv4Address(dst_ip_address)
         if 0 <= position < self.max_acl_rules:
             self._acl[position] = ACLRule(
-                action=action, src_ip_address=src_ip_address, dst_ip_address=dst_ip_address, protocol=protocol, src_port=src_port, dst_port=dst_port
+                action=action,
+                src_ip_address=src_ip_address,
+                dst_ip_address=dst_ip_address,
+                protocol=protocol,
+                src_port=src_port,
+                dst_port=dst_port,
             )
         else:
             raise ValueError(f"Position {position} is out of bounds.")
@@ -343,7 +348,9 @@ class RouteTable(SimComponent):
         for key in {address, subnet_mask, next_hop_ip_address}:
             if not isinstance(key, IPv4Address):
                 key = IPv4Address(key)
-        route = RouteEntry(address=address, subnet_mask=subnet_mask, next_hop_ip_address=next_hop_ip_address, metric=metric)
+        route = RouteEntry(
+            address=address, subnet_mask=subnet_mask, next_hop_ip_address=next_hop_ip_address, metric=metric
+        )
         self.routes.append(route)
 
     def find_best_route(self, destination_ip: Union[str, IPv4Address]) -> Optional[RouteEntry]:
@@ -430,7 +437,9 @@ class RouterARPCache(ARPCache):
             # Reply for a connected requested
             nic = self.get_arp_cache_nic(arp_packet.target_ip_address)
             if nic:
-                self.sys_log.info(f"Forwarding arp reply for {arp_packet.target_ip_address}, from {arp_packet.sender_ip_address}")
+                self.sys_log.info(
+                    f"Forwarding arp reply for {arp_packet.target_ip_address}, from {arp_packet.sender_ip_address}"
+                )
                 arp_packet.sender_mac_addr = nic.mac_address
                 frame.decrement_ttl()
                 nic.send_frame(frame)
@@ -441,7 +450,9 @@ class RouterARPCache(ARPCache):
             f"{arp_packet.sender_mac_addr}/{arp_packet.sender_ip_address} "
         )
         # Matched ARP request
-        self.add_arp_cache_entry(ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic)
+        self.add_arp_cache_entry(
+            ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic
+        )
         arp_packet = arp_packet.generate_reply(from_nic.mac_address)
         self.send_arp_reply(arp_packet, from_nic)
 
@@ -493,7 +504,11 @@ class RouterICMP(ICMP):
                         tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
                         # Network Layer
-                        ip_packet = IPPacket(src_ip_address=nic.ip_address, dst_ip_address=frame.ip.src_ip_address, protocol=IPProtocol.ICMP)
+                        ip_packet = IPPacket(
+                            src_ip_address=nic.ip_address,
+                            dst_ip_address=frame.ip.src_ip_address,
+                            protocol=IPProtocol.ICMP,
+                        )
                         # Data Link Layer
                         ethernet_header = EthernetHeader(
                             src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address
@@ -655,7 +670,11 @@ class Router(Node):
 
         # Check if it's permitted
         permitted, rule = self.acl.is_permitted(
-            protocol=protocol, src_ip_address=src_ip_address, src_port=src_port, dst_ip_address=dst_ip_address, dst_port=dst_port
+            protocol=protocol,
+            src_ip_address=src_ip_address,
+            src_port=src_port,
+            dst_ip_address=dst_ip_address,
+            dst_port=dst_port,
         )
         if not permitted:
             at_port = self._get_port_of_nic(from_nic)

@@ -47,7 +47,13 @@ class Session(SimComponent):
         :return: A Session instance.
         """
         protocol, src_ip_address, dst_ip_address, src_port, dst_port = session_key
-        return Session(protocol=protocol, src_ip_address=src_ip_address, dst_ip_address=dst_ip_address, src_port=src_port, dst_port=dst_port)
+        return Session(
+            protocol=protocol,
+            src_ip_address=src_ip_address,
+            dst_ip_address=dst_ip_address,
+            src_port=src_port,
+            dst_port=dst_port,
+        )
 
     def describe_state(self) -> Dict:
         """

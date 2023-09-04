@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Callable, Dict, List, Optional, Union
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Extra, validator
+from pydantic import BaseModel, ConfigDict, Extra
 
 from primaite import getLogger
 
