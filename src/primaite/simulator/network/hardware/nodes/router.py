@@ -5,7 +5,7 @@ from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
 from typing import Dict, List, Optional, Tuple, Union
 
-from prettytable import PrettyTable, MARKDOWN
+from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.core import SimComponent
 from primaite.simulator.network.hardware.base import ARPCache, ICMP, NIC, Node
@@ -71,6 +71,7 @@ class AccessControlList(SimComponent):
     :ivar int max_acl_rules: Maximum number of ACL rules that can be added. Default is 25.
     :ivar List[Optional[ACLRule]] _acl: A list containing the ACL rules.
     """
+
     sys_log: SysLog
     implicit_action: ACLAction
     implicit_rule: ACLRule
@@ -105,14 +106,14 @@ class AccessControlList(SimComponent):
         return self._acl
 
     def add_rule(
-            self,
-            action: ACLAction,
-            protocol: Optional[IPProtocol] = None,
-            src_ip: Optional[Union[str, IPv4Address]] = None,
-            src_port: Optional[Port] = None,
-            dst_ip: Optional[Union[str, IPv4Address]] = None,
-            dst_port: Optional[Port] = None,
-            position: int = 0,
+        self,
+        action: ACLAction,
+        protocol: Optional[IPProtocol] = None,
+        src_ip: Optional[Union[str, IPv4Address]] = None,
+        src_port: Optional[Port] = None,
+        dst_ip: Optional[Union[str, IPv4Address]] = None,
+        dst_port: Optional[Port] = None,
+        position: int = 0,
     ) -> None:
         """
         Add a new ACL rule.
@@ -150,12 +151,12 @@ class AccessControlList(SimComponent):
             raise ValueError(f"Position {position} is out of bounds.")
 
     def is_permitted(
-            self,
-            protocol: IPProtocol,
-            src_ip: Union[str, IPv4Address],
-            src_port: Optional[Port],
-            dst_ip: Union[str, IPv4Address],
-            dst_port: Optional[Port],
+        self,
+        protocol: IPProtocol,
+        src_ip: Union[str, IPv4Address],
+        src_port: Optional[Port],
+        dst_ip: Union[str, IPv4Address],
+        dst_port: Optional[Port],
     ) -> Tuple[bool, Optional[Union[str, ACLRule]]]:
         """
         Check if a packet with the given properties is permitted through the ACL.
@@ -177,23 +178,23 @@ class AccessControlList(SimComponent):
                 continue
 
             if (
-                    (rule.src_ip == src_ip or rule.src_ip is None)
-                    and (rule.dst_ip == dst_ip or rule.dst_ip is None)
-                    and (rule.protocol == protocol or rule.protocol is None)
-                    and (rule.src_port == src_port or rule.src_port is None)
-                    and (rule.dst_port == dst_port or rule.dst_port is None)
+                (rule.src_ip == src_ip or rule.src_ip is None)
+                and (rule.dst_ip == dst_ip or rule.dst_ip is None)
+                and (rule.protocol == protocol or rule.protocol is None)
+                and (rule.src_port == src_port or rule.src_port is None)
+                and (rule.dst_port == dst_port or rule.dst_port is None)
             ):
                 return rule.action == ACLAction.PERMIT, rule
 
         return self.implicit_action == ACLAction.PERMIT, f"Implicit {self.implicit_action.name}"
 
     def get_relevant_rules(
-            self,
-            protocol: IPProtocol,
-            src_ip: Union[str, IPv4Address],
-            src_port: Port,
-            dst_ip: Union[str, IPv4Address],
-            dst_port: Port,
+        self,
+        protocol: IPProtocol,
+        src_ip: Union[str, IPv4Address],
+        src_port: Port,
+        dst_ip: Union[str, IPv4Address],
+        dst_port: Port,
     ) -> List[ACLRule]:
         """
         Get the list of relevant rules for a packet with given properties.
@@ -215,11 +216,11 @@ class AccessControlList(SimComponent):
                 continue
 
             if (
-                    (rule.src_ip == src_ip or rule.src_ip is None)
-                    or (rule.dst_ip == dst_ip or rule.dst_ip is None)
-                    or (rule.protocol == protocol or rule.protocol is None)
-                    or (rule.src_port == src_port or rule.src_port is None)
-                    or (rule.dst_port == dst_port or rule.dst_port is None)
+                (rule.src_ip == src_ip or rule.src_ip is None)
+                or (rule.dst_ip == dst_ip or rule.dst_ip is None)
+                or (rule.protocol == protocol or rule.protocol is None)
+                or (rule.src_port == src_port or rule.src_port is None)
+                or (rule.dst_port == dst_port or rule.dst_port is None)
             ):
                 relevant_rules.append(rule)
 
@@ -326,11 +327,11 @@ class RouteTable(SimComponent):
         pass
 
     def add_route(
-            self,
-            address: Union[IPv4Address, str],
-            subnet_mask: Union[IPv4Address, str],
-            next_hop: Union[IPv4Address, str],
-            metric: float = 0.0,
+        self,
+        address: Union[IPv4Address, str],
+        subnet_mask: Union[IPv4Address, str],
+        next_hop: Union[IPv4Address, str],
+        metric: float = 0.0,
     ):
         """
         Add a route to the routing table.
@@ -397,6 +398,7 @@ class RouterARPCache(ARPCache):
     :ivar SysLog sys_log: A system log for logging messages.
     :ivar Router router: The router to which this ARP cache belongs.
     """
+
     def __init__(self, sys_log: SysLog, router: Router):
         super().__init__(sys_log)
         self.router: Router = router
@@ -416,7 +418,8 @@ class RouterARPCache(ARPCache):
                 if arp_packet.target_ip == nic.ip_address:
                     # reply to the Router specifically
                     self.sys_log.info(
-                        f"Received ARP response for {arp_packet.sender_ip} from {arp_packet.sender_mac_addr} via NIC {from_nic}"
+                        f"Received ARP response for {arp_packet.sender_ip} "
+                        f"from {arp_packet.sender_mac_addr} via NIC {from_nic}"
                     )
                     self.add_arp_cache_entry(
                         ip_address=arp_packet.sender_ip,
@@ -462,6 +465,7 @@ class RouterICMP(ICMP):
     :param router: The router to which this ICMP handler belongs.
     :type router: Router
     """
+
     router: Router
 
     def __init__(self, sys_log: SysLog, arp_cache: ARPCache, router: Router):
@@ -492,16 +496,22 @@ class RouterICMP(ICMP):
                         # Network Layer
                         ip_packet = IPPacket(src_ip=nic.ip_address, dst_ip=frame.ip.src_ip, protocol=IPProtocol.ICMP)
                         # Data Link Layer
-                        ethernet_header = EthernetHeader(src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address)
+                        ethernet_header = EthernetHeader(
+                            src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address
+                        )
                         icmp_reply_packet = ICMPPacket(
                             icmp_type=ICMPType.ECHO_REPLY,
                             icmp_code=0,
                             identifier=frame.icmp.identifier,
                             sequence=frame.icmp.sequence + 1,
                         )
-                        payload = secrets.token_urlsafe(int(32/1.3))  # Standard ICMP 32 bytes size
+                        payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
                         frame = Frame(
-                            ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, icmp=icmp_reply_packet, payload=payload
+                            ethernet=ethernet_header,
+                            ip=ip_packet,
+                            tcp=tcp_header,
+                            icmp=icmp_reply_packet,
+                            payload=payload,
                         )
                         self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip}")
 
@@ -540,6 +550,7 @@ class Router(Node):
     :ivar int num_ports: The number of ports in the router.
     :ivar dict kwargs: Optional keyword arguments for SysLog, ACL, RouteTable, RouterARPCache, RouterICMP.
     """
+
     num_ports: int
     ethernet_ports: Dict[int, NIC] = {}
     acl: AccessControlList
@@ -588,12 +599,12 @@ class Router(Node):
 
     def route_frame(self, frame: Frame, from_nic: NIC, re_attempt: bool = False) -> None:
         """
-         Route a given frame from a source NIC to its destination.
+        Route a given frame from a source NIC to its destination.
 
-         :param frame: The frame to be routed.
-         :param from_nic: The source network interface.
-         :param re_attempt: Flag to indicate if the routing is a reattempt.
-         """
+        :param frame: The frame to be routed.
+        :param from_nic: The source network interface.
+        :param re_attempt: Flag to indicate if the routing is a reattempt.
+        """
         # Check if src ip is on network of one of the NICs
         nic = self.arp.get_arp_cache_nic(frame.ip.dst_ip)
         target_mac = self.arp.get_arp_cache_mac_address(frame.ip.dst_ip)

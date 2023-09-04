@@ -1,12 +1,13 @@
 from ipaddress import IPv4Address
 
-from primaite.simulator.network.hardware.nodes.router import AccessControlList, ACLAction, ACLRule
+from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 
 
 def test_add_rule():
-    acl = AccessControlList()
+    router = Router("Router")
+    acl = router.acl
     acl.add_rule(
         action=ACLAction.PERMIT,
         protocol=IPProtocol.TCP,
@@ -25,7 +26,8 @@ def test_add_rule():
 
 
 def test_remove_rule():
-    acl = AccessControlList()
+    router = Router("Router")
+    acl = router.acl
     acl.add_rule(
         action=ACLAction.PERMIT,
         protocol=IPProtocol.TCP,
@@ -40,7 +42,8 @@ def test_remove_rule():
 
 
 def test_rules():
-    acl = AccessControlList()
+    router = Router("Router")
+    acl = router.acl
     acl.add_rule(
         action=ACLAction.PERMIT,
         protocol=IPProtocol.TCP,
@@ -59,24 +62,27 @@ def test_rules():
         dst_port=Port(80),
         position=2,
     )
-    assert acl.is_permitted(
+    is_permitted, rule = acl.is_permitted(
         protocol=IPProtocol.TCP,
         src_ip=IPv4Address("192.168.1.1"),
         src_port=Port(8080),
         dst_ip=IPv4Address("192.168.1.2"),
         dst_port=Port(80),
     )
-    assert not acl.is_permitted(
+    assert is_permitted
+    is_permitted, rule = acl.is_permitted(
         protocol=IPProtocol.TCP,
         src_ip=IPv4Address("192.168.1.3"),
         src_port=Port(8080),
         dst_ip=IPv4Address("192.168.1.4"),
         dst_port=Port(80),
     )
+    assert not is_permitted
 
 
 def test_default_rule():
-    acl = AccessControlList()
+    router = Router("Router")
+    acl = router.acl
     acl.add_rule(
         action=ACLAction.PERMIT,
         protocol=IPProtocol.TCP,
@@ -95,10 +101,11 @@ def test_default_rule():
         dst_port=Port(80),
         position=2,
     )
-    assert not acl.is_permitted(
+    is_permitted, rule = acl.is_permitted(
         protocol=IPProtocol.UDP,
         src_ip=IPv4Address("192.168.1.5"),
         src_port=Port(8080),
         dst_ip=IPv4Address("192.168.1.12"),
         dst_port=Port(80),
     )
+    assert not is_permitted

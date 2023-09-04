@@ -1,16 +1,17 @@
-from typing import Any, Dict, Union, Optional, List
+from typing import Any, Dict, List, Optional, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
 from networkx import MultiGraph
-from prettytable import PrettyTable, MARKDOWN
+from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
 from primaite.simulator.core import Action, ActionManager, AllowAllValidator, SimComponent
-from primaite.simulator.network.hardware.base import Link, NIC, Node, SwitchPort, Switch
+from primaite.simulator.network.hardware.base import Link, NIC, Node, SwitchPort
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import Router
 from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.switch import Switch
 
 _LOGGER = getLogger(__name__)
 
@@ -30,7 +31,7 @@ class Network(SimComponent):
     links: Dict[str, Link] = {}
 
     def __init__(self, **kwargs):
-        """"
+        """
         Initialise the network.
 
         Constructs the network and sets up its initial state including
@@ -84,14 +85,14 @@ class Network(SimComponent):
             "Router": self.routers,
             "Switch": self.switches,
             "Server": self.servers,
-            "Computer": self.computers
+            "Computer": self.computers,
         }
         if nodes:
             table = PrettyTable(["Node", "Type", "Operating State"])
             if markdown:
                 table.set_style(MARKDOWN)
             table.align = "l"
-            table.title = f"Nodes"
+            table.title = "Nodes"
             for node_type, nodes in nodes_type_map.items():
                 for node in nodes:
                     table.add_row([node.hostname, node_type, node.operating_state.name])
@@ -102,7 +103,7 @@ class Network(SimComponent):
             if markdown:
                 table.set_style(MARKDOWN)
             table.align = "l"
-            table.title = f"IP Addresses"
+            table.title = "IP Addresses"
             for nodes in nodes_type_map.values():
                 for node in nodes:
                     for i, port in node.ethernet_port.items():
@@ -114,7 +115,7 @@ class Network(SimComponent):
             if markdown:
                 table.set_style(MARKDOWN)
             table.align = "l"
-            table.title = f"Links"
+            table.title = "Links"
             links = list(self.links.values())
             for nodes in nodes_type_map.values():
                 for node in nodes:
@@ -126,7 +127,7 @@ class Network(SimComponent):
                                     link.endpoint_b.parent.hostname,
                                     link.is_up,
                                     link.bandwidth,
-                                    link.current_load_percent
+                                    link.current_load_percent,
                                 ]
                             )
                             links.remove(link)
@@ -207,9 +208,7 @@ class Network(SimComponent):
         node.parent = None
         _LOGGER.info(f"Removed node {node.uuid} from network {self.uuid}")
 
-    def connect(
-            self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs
-    ) -> None:
+    def connect(self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs) -> None:
         """
         Connect two endpoints on the network by creating a link between their NICs/SwitchPorts.
 

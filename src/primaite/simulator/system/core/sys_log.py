@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from prettytable import PrettyTable, MARKDOWN
+from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator import TEMP_SIM_OUTPUT
 
@@ -55,6 +55,14 @@ class SysLog:
         self.logger.addFilter(_NotJSONFilter())
 
     def show(self, last_n: int = 10, markdown: bool = False):
+        """
+        Print the Node Sys Log as a table.
+
+        Generate and print PrettyTable instance that shows the Nodes Sys Log, with columns Timestamp, Level,
+        and Massage.
+
+        :param markdown: Use Markdown style in table output. Defaults to False.
+        """
         table = PrettyTable(["Timestamp", "Level", "Message"])
         if markdown:
             table.set_style(MARKDOWN)

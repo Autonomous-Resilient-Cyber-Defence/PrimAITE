@@ -1,6 +1,6 @@
 from ipaddress import IPv4Address
 
-from primaite.simulator.network.hardware.base import Node, NIC
+from primaite.simulator.network.hardware.base import NIC, Node
 
 
 class Computer(Node):
