@@ -59,6 +59,8 @@ class Port(Enum):
     "Alternative port for HTTP (HTTP_ALT) - Often used as an alternative HTTP port for web applications."
     HTTPS_ALT = 8443
     "Alternative port for HTTPS (HTTPS_ALT) - Used in some configurations for secure web traffic."
+    POSTGRES_SERVER = 5432
+    "Postgres SQL Server."
 
 
 class UDPHeader(BaseModel):

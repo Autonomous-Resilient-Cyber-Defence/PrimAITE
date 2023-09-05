@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Optional
 
@@ -33,7 +32,7 @@ class Service(IOSoftware):
     Services are programs that run in the background and may perform input/output operations.
     """
 
-    operating_state: ServiceOperatingState
+    operating_state: ServiceOperatingState = ServiceOperatingState.STOPPED
     "The current operating state of the Service."
     restart_duration: int = 5
     "How many timesteps does it take to restart this service."
@@ -51,7 +50,6 @@ class Service(IOSoftware):
         am.add_action("enable", Action(func=lambda request, context: self.enable()))
         return am
 
-    @abstractmethod
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
