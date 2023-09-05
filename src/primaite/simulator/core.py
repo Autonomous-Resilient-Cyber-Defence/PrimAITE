@@ -60,6 +60,9 @@ class Action(BaseModel):
     """
 
 
+# TODO: maybe this can be renamed to something like action selector?
+# Because there are two ways it's used, to select from a list of action verbs, or to select a child object to which to
+# forward the request.
 class ActionManager(BaseModel):
     """
     ActionManager is used by `SimComponent` instances to keep track of actions.
@@ -132,14 +135,13 @@ class ActionManager(BaseModel):
 
         self.actions.pop(name)
 
-
     def get_action_tree(self) -> List[List[str]]:
         """Recursively generate action tree for this component."""
         actions = []
         for act_name, act in self.actions.items():
             if isinstance(act.func, ActionManager):
                 sub_actions = act.func.get_action_tree()
-                sub_actions = [[act_name]+a for a in sub_actions]
+                sub_actions = [[act_name] + a for a in sub_actions]
                 actions.extend(sub_actions)
             else:
                 actions.append([act_name])

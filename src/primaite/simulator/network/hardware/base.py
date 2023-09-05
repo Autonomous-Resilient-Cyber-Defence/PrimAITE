@@ -10,7 +10,7 @@ from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
-from primaite.simulator.core import SimComponent
+from primaite.simulator.core import Action, ActionManager, SimComponent
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
@@ -144,6 +144,14 @@ class NIC(SimComponent):
             }
         )
         return state
+
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+
+        am.add_action("enable", Action(func=lambda request, context: self.enable()))
+        am.add_action("disable", Action(func=lambda request, context: self.disable()))
+
+        return am
 
     @property
     def ip_network(self) -> IPv4Network:
@@ -925,6 +933,24 @@ class Node(SimComponent):
         super().__init__(**kwargs)
         self.arp.nics = self.nics
 
+    def _init_action_manager(self) -> ActionManager:
+        # TODO: I see that this code is really confusing and hard to read right now... I think some of these things will
+        # need a better name and better documentation.
+        am = super()._init_action_manager()
+        # since there are potentially many services, create an action manager that can map service name
+        self._service_action_manager = ActionManager()
+        am.add_action("service", Action(func=self._service_action_manager))
+        self._process_action_manager = ActionManager()
+        am.add_action("process", Action(func=self._process_action_manager))
+        self._application_action_manager = ActionManager()
+        am.add_action("application", Action(func=self._application_action_manager))
+        self._nic_action_manager = ActionManager()
+        am.add_action("nic", Action(func=self._nic_action_manager))
+
+        am.add_action("file_system", Action(func=self.file_system._action_manager))
+
+        return am
+
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -1000,6 +1026,7 @@ class Node(SimComponent):
             self.sys_log.info(f"Connected NIC {nic}")
             if self.operating_state == NodeOperatingState.ON:
                 nic.enable()
+            self._nic_action_manager.add_action(nic.uuid, Action(func=nic._action_manager))
         else:
             msg = f"Cannot connect NIC {nic} as it is already connected"
             self.sys_log.logger.error(msg)
@@ -1024,6 +1051,7 @@ class Node(SimComponent):
             nic.parent = None
             nic.disable()
             self.sys_log.info(f"Disconnected NIC {nic}")
+            self._nic_action_manager.remove_action(nic.uuid)
         else:
             msg = f"Cannot disconnect NIC {nic} as it is not connected"
             self.sys_log.logger.error(msg)
@@ -1110,6 +1138,7 @@ class Node(SimComponent):
         service.install()  # Perform any additional setup, such as creating files for this service on the node.
         self.sys_log.info(f"Installed service {service.name}")
         _LOGGER.info(f"Added service {service.uuid} to node {self.uuid}")
+        self._service_action_manager.add_action(service.uuid, Action(func=service._action_manager))
 
     def uninstall_service(self, service: Service) -> None:
         """Uninstall and completely remove service from this node.
@@ -1125,6 +1154,7 @@ class Node(SimComponent):
         service.parent = None
         self.sys_log.info(f"Uninstalled service {service.name}")
         _LOGGER.info(f"Removed service {service.uuid} from node {self.uuid}")
+        self._service_action_manager.remove_action(service.uuid)
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Service):
