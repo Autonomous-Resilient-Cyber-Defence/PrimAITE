@@ -135,7 +135,6 @@ class NIC(SimComponent):
             {
                 "ip_adress": str(self.ip_address),
                 "subnet_mask": str(self.subnet_mask),
-                "gateway": str(self.gateway),
                 "mac_address": self.mac_address,
                 "speed": self.speed,
                 "mtu": self.mtu,

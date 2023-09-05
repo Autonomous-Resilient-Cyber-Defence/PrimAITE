@@ -48,6 +48,9 @@ class Action(BaseModel):
     that invokes a class method of your SimComponent. For example if the component is a node and the action is for
     turning it off, then the SimComponent should have a turn_off(self) method that does not need to accept any args.
     Then, this Action will be given something like ``func = lambda request, context: self.turn_off()``.
+
+    ``func`` can also be another action manager, since ActionManager is a callable with a signature that matches what is
+    expected by ``func``.
     """
     validator: ActionPermissionValidator = AllowAllValidator()
     """
@@ -68,8 +71,9 @@ class ActionManager(BaseModel):
     actions: Dict[str, Action] = {}
     """maps action verb to an action object."""
 
-    def process_request(self, request: List[str], context: Dict) -> None:
-        """Process an action request.
+    def __call__(self, request: List[str], context: Dict) -> None:
+        """
+        Process an action request.
 
         :param request: A list of strings which specify what action to take. The first string must be one of the allowed
             actions, i.e. it must be a key of self.actions. The subsequent strings in the list are passed as parameters
@@ -99,7 +103,8 @@ class ActionManager(BaseModel):
         action.func(action_options, context)
 
     def add_action(self, name: str, action: Action) -> None:
-        """Add an action to this action manager.
+        """
+        Add an action to this action manager.
 
         :param name: The string associated to this action.
         :type name: str
@@ -113,10 +118,32 @@ class ActionManager(BaseModel):
 
         self.actions[name] = action
 
-    def list_actions(self) -> List[List[str]]:
+    def remove_action(self, name: str) -> None:
+        """
+        Remove an action from this manager.
+
+        :param name: name identifier of the action
+        :type name: str
+        """
+        if name not in self.actions:
+            msg = f"Attempted to remove action {name} from action manager, but it was not registered."
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
+
+        self.actions.pop(name)
+
+
+    def get_action_tree(self) -> List[List[str]]:
+        """Recursively generate action tree for this component."""
         actions = []
         for act_name, act in self.actions.items():
-            pass  # TODO:
+            if isinstance(act.func, ActionManager):
+                sub_actions = act.func.get_action_tree()
+                sub_actions = [[act_name]+a for a in sub_actions]
+                actions.extend(sub_actions)
+            else:
+                actions.append([act_name])
+        return actions
 
 
 class SimComponent(BaseModel):
@@ -196,7 +223,7 @@ class SimComponent(BaseModel):
         """
         if self.action_manager is None:
             return
-        self.action_manager.process_request(action, context)
+        self.action_manager(action, context)
 
     def apply_timestep(self, timestep: int) -> None:
         """
