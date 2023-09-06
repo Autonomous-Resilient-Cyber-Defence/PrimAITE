@@ -150,5 +150,5 @@ src/primaite/outputs/
 
 # benchmark session outputs
 benchmark/output
-src/primaite/notebooks/scratch.ipynb
+# src/primaite/notebooks/scratch.ipynb
 src/primaite/notebooks/scratch.py
