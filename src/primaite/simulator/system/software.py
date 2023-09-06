@@ -1,8 +1,9 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from primaite.simulator.core import Action, ActionManager, SimComponent
+from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.sys_log import SysLog
 
@@ -79,6 +80,10 @@ class Software(SimComponent):
     "An instance of Software Manager that is used by the parent node."
     sys_log: SysLog = None
     "An instance of SysLog that is used by the parent node."
+    file_system: FileSystem
+    "The FileSystem of the Node the Software is installed on."
+    folder: Optional[Folder] = None
+    "The folder on the file system the Software uses."
 
     def _init_action_manager(self) -> ActionManager:
         am = super()._init_action_manager()
@@ -216,7 +221,6 @@ class IOSoftware(Software):
         :param kwargs: Additional keyword arguments specific to the implementation.
         :return: True if the payload was successfully sent, False otherwise.
         """
-        pass
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """

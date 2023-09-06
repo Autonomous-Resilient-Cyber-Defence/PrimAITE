@@ -19,7 +19,17 @@ ACTION_SPACE_NODE_ACTION_VALUES = 1
 
 _LOGGER = getLogger(__name__)
 
+# PrimAITE v3 stuff
+from primaite.simulator.file_system.file_system import FileSystem
+from primaite.simulator.network.hardware.base import Node
 
+
+@pytest.fixture(scope="function")
+def file_system() -> FileSystem:
+    return Node(hostname="fs_node").file_system
+
+
+#PrimAITE v2 stuff
 class TempPrimaiteSession(PrimaiteSession):
     """
     A temporary PrimaiteSession class.

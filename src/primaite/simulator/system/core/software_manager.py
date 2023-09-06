@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
+from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
@@ -23,7 +24,7 @@ ServiceClass = TypeVar("ServiceClass", bound=Service)
 class SoftwareManager:
     """A class that manages all running Services and Applications on a Node and facilitates their communication."""
 
-    def __init__(self, session_manager: "SessionManager", sys_log: "SysLog"):
+    def __init__(self, session_manager: "SessionManager", sys_log: SysLog, file_system: FileSystem):
         """
         Initialize a new instance of SoftwareManager.
 
@@ -34,6 +35,7 @@ class SoftwareManager:
         self.applications: Dict[str, Application] = {}
         self.port_protocol_mapping: Dict[Tuple[Port, IPProtocol], Union[Service, Application]] = {}
         self.sys_log: SysLog = sys_log
+        self.file_system: FileSystem = file_system
 
     def add_service(self, service_class: Type[ServiceClass]):
         """
@@ -41,7 +43,7 @@ class SoftwareManager:
 
         :param: service_class: The class of the service to add
         """
-        service = service_class(software_manager=self, sys_log=self.sys_log)
+        service = service_class(software_manager=self, sys_log=self.sys_log, file_system=self.file_system)
 
         service.software_manager = self
         self.services[service.name] = service
@@ -86,7 +88,7 @@ class SoftwareManager:
         payload: Any,
         dest_ip_address: Optional[IPv4Address] = None,
         dest_port: Optional[Port] = None,
-        session_id: Optional[int] = None,
+        session_id: Optional[str] = None,
     ):
         """
         Send a payload to the SessionManager.
@@ -97,21 +99,21 @@ class SoftwareManager:
         :param session_id: The Session ID the payload is to originate from. Optional.
         """
         self.session_manager.receive_payload_from_software_manager(
-            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
-        )
+            payload=payload, dst_ip_address=dest_ip_address, dst_port=dest_port, session_id=session_id
+            )
 
-    def receive_payload_from_session_manger(self, payload: Any, session: Session):
+    def receive_payload_from_session_manger(self, payload: Any, port: Port, protocol: IPProtocol, session_id: str):
         """
         Receive a payload from the SessionManager and forward it to the corresponding service or application.
 
         :param payload: The payload being received.
         :param session: The transport session the payload originates from.
         """
-        # receiver: Optional[Union[Service, Application]] = self.port_protocol_mapping.get((port, protocol), None)
-        # if receiver:
-        #     receiver.receive_payload(None, payload)
-        # else:
-        #     raise ValueError(f"No service or application found for port {port} and protocol {protocol}")
+        receiver: Optional[Union[Service, Application]] = self.port_protocol_mapping.get((port, protocol), None)
+        if receiver:
+            receiver.receive(payload=payload, session_id=session_id)
+        else:
+            self.sys_log.error(f"No service or application found for port {port} and protocol {protocol}")
         pass
 
     def show(self, markdown: bool = False):

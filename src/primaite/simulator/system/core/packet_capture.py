@@ -1,3 +1,4 @@
+import json
 import logging
 from pathlib import Path
 from typing import Optional
@@ -50,6 +51,13 @@ class PacketCapture:
         self.logger.addHandler(file_handler)
 
         self.logger.addFilter(_JSONFilter())
+
+    def read(self):
+        frames = []
+        with open(self._get_log_path(), "r") as file:
+            while line := file.readline():
+                frames.append(json.loads(line.rstrip()))
+        return frames
 
     @property
     def _logger_name(self) -> str:

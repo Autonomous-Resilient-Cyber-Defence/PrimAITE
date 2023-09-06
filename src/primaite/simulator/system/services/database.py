@@ -1,15 +1,61 @@
-from typing import Dict
+import sqlite3
+from ipaddress import IPv4Address
+from sqlite3 import OperationalError
+from typing import Dict, Optional, Any, List, Union
 
-from primaite.simulator.file_system.file_type import FileType
-from primaite.simulator.network.hardware.base import Node
+from prettytable import PrettyTable, MARKDOWN
+
+from primaite.simulator.file_system.file_system import File
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service
 
 
 class DatabaseService(Service):
     """A generic SQL Server Service."""
+    backup_server: Optional[IPv4Address] = None
+    "The IP Address of the server the "
 
     def __init__(self, **kwargs):
+        kwargs["name"] = "Database"
+        kwargs["port"] = Port.POSTGRES_SERVER
+        kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
+        self._db_file: File
+        self._create_db_file()
+        self._conn = sqlite3.connect(self._db_file.sim_path)
+        self._cursor = self._conn.cursor()
+
+    def tables(self) -> List[str]:
+        sql = "SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence';"
+        results = self._process_sql(sql)
+        return [row[0] for row in results["data"]]
+
+    def show(self, markdown: bool = False):
+        """Prints a Table names in the Database."""
+        table = PrettyTable(["Table"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.file_system.sys_log.hostname} Database"
+        for row in self.tables():
+            table.add_row([row])
+        print(table)
+
+    def _create_db_file(self):
+        self._db_file: File = self.file_system.create_file(folder_name="database", file_name="database.db", real=True)
+        self.folder = self._db_file.folder
+
+    def _process_sql(self, query: str) -> Dict[str, Union[int, List[Any]]]:
+        try:
+            self._cursor.execute(query)
+            self._conn.commit()
+        except OperationalError:
+            # Handle the case where the table does not exist.
+            return {"status_code": 404, "data": []}
+
+        return {"status_code": 200, "data": self._cursor.fetchall()}
 
     def describe_state(self) -> Dict:
         """
@@ -22,53 +68,12 @@ class DatabaseService(Service):
         """
         return super().describe_state()
 
-    @classmethod
-    def install(cls, node: Node):
+    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
+        result = self._process_sql(payload)
+        software_manager: SoftwareManager = self.software_manager
+        software_manager.send_payload_to_session_manager(payload=result, session_id=session_id)
 
+        return result["status_code"]
 
-    def uninstall(self) -> None:
-        """
-        Undo installation procedure.
-
-        This method deletes files created when installing the database, and the database folder if it is empty.
-        """
-        super().uninstall()
-        node: Node = self.parent
-        node.file_system.delete_file(self.primary_store)
-        node.file_system.delete_file(self.transaction_log)
-        if self.secondary_store:
-            node.file_system.delete_file(self.secondary_store)
-        if len(self.folder.files) == 0:
-            node.file_system.delete_folder(self.folder)
-
-    def install(self) -> None:
-        """Perform first time install on a node, creating necessary files."""
-        super().install()
-        assert isinstance(self.parent, Node), "Database install can only happen after the db service is added to a node"
-        self._setup_files()
-
-    def _setup_files(
-        self,
-        folder_name: str = "database",
-    ):
-        """Set up files that are required by the database on the parent host.
-
-        :param folder_name: Name of the folder which will be setup to hold the db files, defaults to "database"
-        :type folder_name: str, optional
-        """
-        # note that this parent.file_system.create_folder call in the future will be authenticated by using permissions
-        # handler. This permission will be granted based on service account given to the database service.
-        self.parent: Node
-        self.folder = self.parent.file_system.create_folder(folder_name)
-        self.primary_store = self.parent.file_system.create_file(
-            "db_primary_store", db_size, FileType.MDF, folder=self.folder
-        )
-        self.transaction_log = self.parent.file_system.create_file(
-            "db_transaction_log", "1", FileType.LDF, folder=self.folder
-        )
-        if use_secondary_db_file:
-            self.secondary_store = self.parent.file_system.create_file(
-                "db_secondary_store", secondary_db_size, FileType.NDF, folder=self.folder
-            )
-        else:
-            self.secondary_store = None
+    def send(self, payload: Any, session_id: str, **kwargs) -> bool:
+        pass

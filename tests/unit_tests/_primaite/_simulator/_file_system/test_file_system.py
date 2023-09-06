@@ -1,19 +1,13 @@
 import pytest
 
-from primaite.simulator.file_system.file_system import File, FileSystem, Folder
+from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.file_system.file_type import FileType
-from primaite.simulator.network.hardware.base import Node
-
-
-@pytest.fixture(scope="function")
-def file_system() -> FileSystem:
-    return Node(hostname="fs_node").file_system
 
 
 def test_create_folder_and_file(file_system):
     """Test creating a folder and a file."""
     assert len(file_system.folders) == 1
-    test_folder = file_system.create_folder(folder_name="test_folder")
+    file_system.create_folder(folder_name="test_folder")
 
     assert len(file_system.folders) is 2
     file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
@@ -115,7 +109,7 @@ def test_copy_file(file_system):
     file_system.create_folder(folder_name="src_folder")
     file_system.create_folder(folder_name="dst_folder")
 
-    file = file_system.create_file(file_name="test_file.txt", size=10, folder_name="src_folder")
+    file = file_system.create_file(file_name="test_file.txt", size=10, folder_name="src_folder", real=True)
     original_uuid = file.uuid
 
     assert len(file_system.get_folder("src_folder").files) == 1
@@ -126,6 +120,19 @@ def test_copy_file(file_system):
     assert len(file_system.get_folder("src_folder").files) == 1
     assert len(file_system.get_folder("dst_folder").files) == 1
     assert file_system.get_file("dst_folder", "test_file.txt").uuid != original_uuid
+
+
+def test_folder_quarantine_state(file_system):
+    """Tests the changing of folder quarantine status."""
+    folder = file_system.get_folder("root")
+
+    assert folder.quarantine_status() is False
+
+    folder.quarantine()
+    assert folder.quarantine_status() is True
+
+    folder.unquarantine()
+    assert folder.quarantine_status() is False
 
 
 @pytest.mark.skip(reason="Skipping until we tackle serialisation")

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import os.path
+import shutil
 from abc import abstractmethod
 from pathlib import Path
 from typing import Dict, Optional
@@ -220,22 +221,14 @@ class FileSystem(SimComponent):
                 dst_folder = self.create_folder(dst_folder_name)
             # add file to dst
             dst_folder.add_file(file)
+            if file.real:
+                old_sim_path = file.sim_path
+                file.sim_path = file.folder.fs.sim_root / file.path
+                file.sim_path.parent.mkdir(exist_ok=True)
+                shutil.move(old_sim_path, file.sim_path)
 
     def copy_file(self, src_folder_name: str, src_file_name: str, dst_folder_name):
-        """
-        Copies a file from one folder to another.
 
-        can provide
-
-        :param file: The file to move
-        :type: file: File
-
-        :param src_folder: The folder where the file is located
-        :type: Folder
-
-        :param target_folder: The folder where the file should be moved to
-        :type: Folder
-        """
         file = self.get_file(folder_name=src_folder_name, file_name=src_file_name)
         if file:
             dst_folder = self.get_folder(folder_name=dst_folder_name)
@@ -243,6 +236,9 @@ class FileSystem(SimComponent):
                 dst_folder = self.create_folder(dst_folder_name)
             new_file = file.make_copy(dst_folder=dst_folder)
             dst_folder.add_file(new_file)
+            if file.real:
+                new_file.sim_path.parent.mkdir(exist_ok=True)
+                shutil.copy2(file.sim_path, new_file.sim_path)
 
     def get_folder(self, folder_name: str) -> Optional[Folder]:
         """
@@ -419,7 +415,7 @@ class File(FileSystemItemABC):
                     pass
 
     def make_copy(self, dst_folder: Folder) -> File:
-        return File(folder=dst_folder, **self.model_dump(exclude={"uuid", "folder"}))
+        return File(folder=dst_folder, **self.model_dump(exclude={"uuid", "folder", "sim_path"}))
 
     @property
     def path(self):
