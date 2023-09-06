@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from primaite.simulator import SIM_OUTPUT
 
@@ -52,7 +52,12 @@ class PacketCapture:
 
         self.logger.addFilter(_JSONFilter())
 
-    def read(self):
+    def read(self) -> List[Dict[Any]]:
+        """
+        Read packet capture logs and return them as a list of dictionaries.
+
+        :return: List of frames captured, represented as dictionaries.
+        """
         frames = []
         with open(self._get_log_path(), "r") as file:
             while line := file.readline():

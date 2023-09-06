@@ -7,7 +7,6 @@ from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
-from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.software import SoftwareType
@@ -100,7 +99,7 @@ class SoftwareManager:
         """
         self.session_manager.receive_payload_from_software_manager(
             payload=payload, dst_ip_address=dest_ip_address, dst_port=dest_port, session_id=session_id
-            )
+        )
 
     def receive_payload_from_session_manger(self, payload: Any, port: Port, protocol: IPProtocol, session_id: str):
         """

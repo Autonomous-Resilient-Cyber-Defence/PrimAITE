@@ -29,7 +29,7 @@ def file_system() -> FileSystem:
     return Node(hostname="fs_node").file_system
 
 
-#PrimAITE v2 stuff
+# PrimAITE v2 stuff
 class TempPrimaiteSession(PrimaiteSession):
     """
     A temporary PrimaiteSession class.

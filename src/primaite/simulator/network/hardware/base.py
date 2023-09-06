@@ -929,7 +929,7 @@ class Node(SimComponent):
             kwargs["software_manager"] = SoftwareManager(
                 sys_log=kwargs.get("sys_log"),
                 session_manager=kwargs.get("session_manager"),
-                file_system=kwargs.get("file_system")
+                file_system=kwargs.get("file_system"),
             )
         super().__init__(**kwargs)
         self.arp.nics = self.nics

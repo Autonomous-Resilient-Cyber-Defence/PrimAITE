@@ -38,9 +38,7 @@ class Session(SimComponent):
     connected: bool = False
 
     @classmethod
-    def from_session_key(
-            cls, session_key: Tuple[IPProtocol, IPv4Address, Optional[Port], Optional[Port]]
-    ) -> Session:
+    def from_session_key(cls, session_key: Tuple[IPProtocol, IPv4Address, Optional[Port], Optional[Port]]) -> Session:
         """
         Create a Session instance from a session key tuple.
 
@@ -97,7 +95,7 @@ class SessionManager:
 
     @staticmethod
     def _get_session_key(
-            frame: Frame, inbound_frame: bool = True
+        frame: Frame, inbound_frame: bool = True
     ) -> Tuple[IPProtocol, IPv4Address, Optional[Port], Optional[Port]]:
         """
         Extracts the session key from the given frame.
@@ -136,12 +134,12 @@ class SessionManager:
         return protocol, with_ip_address, src_port, dst_port
 
     def receive_payload_from_software_manager(
-            self,
-            payload: Any,
-            dst_ip_address: Optional[IPv4Address] = None,
-            dst_port: Optional[Port] = None,
-            session_id: Optional[str] = None,
-            is_reattempt: bool = False,
+        self,
+        payload: Any,
+        dst_ip_address: Optional[IPv4Address] = None,
+        dst_port: Optional[Port] = None,
+        session_id: Optional[str] = None,
+        is_reattempt: bool = False,
     ) -> Union[Any, None]:
         """
         Receive a payload from the SoftwareManager.
@@ -164,9 +162,12 @@ class SessionManager:
             if not is_reattempt:
                 self.arp_cache.send_arp_request(dst_ip_address)
                 return self.receive_payload_from_software_manager(
-                    payload=payload, dst_ip_address=dst_ip_address, dst_port=dst_port, session_id=session_id,
-                    is_reattempt=True
-                    )
+                    payload=payload,
+                    dst_ip_address=dst_ip_address,
+                    dst_port=dst_port,
+                    session_id=session_id,
+                    is_reattempt=True,
+                )
             else:
                 return
 

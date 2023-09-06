@@ -3,7 +3,6 @@ from __future__ import annotations
 import math
 import os.path
 import shutil
-from abc import abstractmethod
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -17,7 +16,7 @@ from primaite.simulator.system.core.sys_log import SysLog
 _LOGGER = getLogger(__name__)
 
 
-def convert_size(size_bytes):
+def convert_size(size_bytes: int) -> str:
     """
     Convert a file size from bytes to a string with a more human-readable format.
 
@@ -44,7 +43,11 @@ def convert_size(size_bytes):
 
 
 class FileSystemItemABC(SimComponent):
-    """Abstract base class for file system items used in the file system simulation."""
+    """
+    Abstract base class for file system items used in the file system simulation.
+
+    :ivar name: The name of the FileSystemItemABC.
+    """
 
     name: str
     "The name of the FileSystemItemABC."
@@ -64,7 +67,15 @@ class FileSystemItemABC(SimComponent):
         return state
 
     @property
-    def size_str(self):
+    def size_str(self) -> str:
+        """
+        Get the file size in a human-readable string format.
+
+        This property makes use of the :func:`convert_size` function to convert the `self.size` attribute to a string
+        that is easier to read and understand.
+
+        :return: The human-readable string representation of the file size.
+        """
         return convert_size(self.size)
 
 
@@ -84,11 +95,21 @@ class FileSystem(SimComponent):
             self.create_folder("root")
 
     @property
-    def size(self):
+    def size(self) -> int:
+        """
+        Calculate and return the total size of all folders in the file system.
+
+        :return: The sum of the sizes of all folders in the file system.
+        """
         return sum(folder.size for folder in self.folders.values())
 
     def show(self, markdown: bool = False, full: bool = False):
-        """Prints a of the FileSystem"""
+        """
+        Prints a table of the FileSystem, displaying either just folders or full files.
+
+        :param markdown: Flag indicating if output should be in markdown format.
+        :param full: Flag indicating if to show full files.
+        """
         headers = ["Folder", "Size"]
         if full:
             headers[0] = "File Path"
@@ -171,7 +192,6 @@ class FileSystem(SimComponent):
         :param folder_name: The folder to add the file to.
         :param real: "Indicates whether the File is actually a real file in the Node sim fs output."
         """
-
         if folder_name:
             # check if file with name already exists
             folder = self._folders_by_name.get(folder_name)
@@ -196,12 +216,25 @@ class FileSystem(SimComponent):
         return file
 
     def get_file(self, folder_name: str, file_name: str) -> Optional[File]:
+        """
+        Retrieve a file by its name from a specific folder.
+
+        :param folder_name: The name of the folder where the file resides.
+        :param file_name: The name of the file to be retrieved, including its extension.
+        :return: An instance of File if it exists, otherwise `None`.
+        """
         folder = self.get_folder(folder_name)
         if folder:
             return folder.get_file(file_name)
         self.fs.sys_log.info(f"file not found /{folder_name}/{file_name}")
 
     def delete_file(self, folder_name: str, file_name: str):
+        """
+        Delete a file by its name from a specific folder.
+
+        :param folder_name: The name of the folder containing the file.
+        :param file_name: The name of the file to be deleted, including its extension.
+        """
         folder = self.get_folder(folder_name)
         if folder:
             file = folder.get_file(file_name)
@@ -209,7 +242,14 @@ class FileSystem(SimComponent):
                 folder.remove_file(file)
                 self.sys_log.info(f"Deleted file /{file.path}")
 
-    def move_file(self, src_folder_name: str, src_file_name: str, dst_folder_name):
+    def move_file(self, src_folder_name: str, src_file_name: str, dst_folder_name: str):
+        """
+        Move a file from one folder to another.
+
+        :param src_folder_name: The name of the source folder containing the file.
+        :param src_file_name: The name of the file to be moved.
+        :param dst_folder_name: The name of the destination folder.
+        """
         file = self.get_file(folder_name=src_folder_name, file_name=src_file_name)
         if file:
             src_folder = file.folder
@@ -227,8 +267,14 @@ class FileSystem(SimComponent):
                 file.sim_path.parent.mkdir(exist_ok=True)
                 shutil.move(old_sim_path, file.sim_path)
 
-    def copy_file(self, src_folder_name: str, src_file_name: str, dst_folder_name):
+    def copy_file(self, src_folder_name: str, src_file_name: str, dst_folder_name: str):
+        """
+        Copy a file from one folder to another.
 
+        :param src_folder_name: The name of the source folder containing the file.
+        :param src_file_name: The name of the file to be copied.
+        :param dst_folder_name: The name of the destination folder.
+        """
         file = self.get_file(folder_name=src_folder_name, file_name=src_file_name)
         if file:
             dst_folder = self.get_folder(folder_name=dst_folder_name)
@@ -283,7 +329,11 @@ class Folder(FileSystemItemABC):
         return state
 
     def show(self, markdown: bool = False):
-        """Prints a of the Folder"""
+        """
+        Display the contents of the Folder in tabular format.
+
+        :param markdown: Whether to display the table in Markdown format or not. Default is `False`.
+        """
         table = PrettyTable(["File", "Size"])
         if markdown:
             table.set_style(MARKDOWN)
@@ -294,7 +344,13 @@ class Folder(FileSystemItemABC):
         print(table.get_string(sortby="File"))
 
     @property
-    def size(self):
+    def size(self) -> int:
+        """
+        Calculate and return the total size of all files in the folder.
+
+        :return: The total size of all files in the folder. If no files exist or all have `None`
+            size, returns 0.
+        """
         return sum(file.size for file in self.files.values() if file.size is not None)
 
     def get_file(self, file_name: str) -> Optional[File]:
@@ -313,14 +369,19 @@ class Folder(FileSystemItemABC):
         """
         Get a file by its uuid.
 
-
         :param file_uuid: The file uuid.
         :return: The matching File.
         """
         return self.files.get(file_uuid)
 
     def add_file(self, file: File):
-        """Adds a file to the folder list."""
+        """
+        Adds a file to the folder.
+
+        :param File file: The File object to be added to the folder.
+        :raises Exception: If the provided `file` parameter is None or not an instance of the
+            `File` class.
+        """
         if file is None or not isinstance(file, File):
             raise Exception(f"Invalid file: {file}")
 
@@ -340,7 +401,6 @@ class Folder(FileSystemItemABC):
         The method can take a File object or a file id.
 
         :param file: The file to remove
-        :type: Optional[File]
         """
         if file is None or not isinstance(file, File):
             raise Exception(f"Invalid file: {file}")
@@ -369,7 +429,15 @@ class Folder(FileSystemItemABC):
 
 
 class File(FileSystemItemABC):
-    """Class that represents a file in the simulation."""
+    """
+    Class representing a file in the simulation.
+
+    :ivar Folder folder: The folder in which the file resides.
+    :ivar FileType file_type: The type of the file.
+    :ivar Optional[int] sim_size: The simulated file size.
+    :ivar bool real: Indicates if the file is actually a real file in the Node sim fs output.
+    :ivar Optional[Path] sim_path: The path if the file is real.
+    """
 
     folder: Folder
     "The Folder the File is in."
@@ -415,16 +483,30 @@ class File(FileSystemItemABC):
                     pass
 
     def make_copy(self, dst_folder: Folder) -> File:
+        """
+        Create a copy of the current File object in the given destination folder.
+
+        :param Folder dst_folder: The destination folder for the copied file.
+        :return: A new File object that is a copy of the current file.
+        """
         return File(folder=dst_folder, **self.model_dump(exclude={"uuid", "folder", "sim_path"}))
 
     @property
-    def path(self):
-        """The path of the file in the FileSystem."""
+    def path(self) -> str:
+        """
+        Get the path of the file in the file system.
+
+        :return: The full path of the file.
+        """
         return f"{self.folder.name}/{self.name}"
 
     @property
     def size(self) -> int:
-        """The file size in Bytes."""
+        """
+        Get the size of the file in bytes.
+
+        :return: The size of the file in bytes.
+        """
         if self.real:
             return os.path.getsize(self.sim_path)
         return self.sim_size
