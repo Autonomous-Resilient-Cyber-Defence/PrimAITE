@@ -11,9 +11,7 @@ def test_installing_database():
         health_state_actual=SoftwareHealthState.GOOD,
         health_state_visible=SoftwareHealthState.GOOD,
         criticality=SoftwareCriticality.MEDIUM,
-        ports=[
-            Port.SQL_SERVER,
-        ],
+        port=Port.SQL_SERVER,
         operating_state=ServiceOperatingState.RUNNING,
     )
 
@@ -40,9 +38,7 @@ def test_uninstalling_database():
         health_state_actual=SoftwareHealthState.GOOD,
         health_state_visible=SoftwareHealthState.GOOD,
         criticality=SoftwareCriticality.MEDIUM,
-        ports=[
-            Port.SQL_SERVER,
-        ],
+        port=Port.SQL_SERVER,
         operating_state=ServiceOperatingState.RUNNING,
     )
 
