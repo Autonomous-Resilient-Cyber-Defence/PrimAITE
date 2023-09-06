@@ -53,4 +53,4 @@ def test_uninstalling_database():
     node.uninstall_service(db)
 
     assert db not in node
-    assert node.file_system.get_folder_by_name("database") is None
+    assert node.file_system.get_folder("database") is None

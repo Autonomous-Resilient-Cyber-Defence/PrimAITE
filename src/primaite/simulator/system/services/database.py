@@ -1,12 +1,15 @@
 from typing import Dict
 
-from primaite.simulator.file_system.file_system_file_type import FileSystemFileType
+from primaite.simulator.file_system.file_type import FileType
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.system.services.service import Service
 
 
 class DatabaseService(Service):
-    """Service loosely modelled on Microsoft SQL Server."""
+    """A generic SQL Server Service."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:
         """
@@ -18,6 +21,10 @@ class DatabaseService(Service):
         :rtype: Dict
         """
         return super().describe_state()
+
+    @classmethod
+    def install(cls, node: Node):
+
 
     def uninstall(self) -> None:
         """
@@ -42,19 +49,10 @@ class DatabaseService(Service):
 
     def _setup_files(
         self,
-        db_size: int = 1000,
-        use_secondary_db_file: bool = False,
-        secondary_db_size: int = 300,
         folder_name: str = "database",
     ):
         """Set up files that are required by the database on the parent host.
 
-        :param db_size: Initial file size of the main database file, defaults to 1000
-        :type db_size: int, optional
-        :param use_secondary_db_file: Whether to use a secondary database file, defaults to False
-        :type use_secondary_db_file: bool, optional
-        :param secondary_db_size: Size of the secondary db file, defaults to None
-        :type secondary_db_size: int, optional
         :param folder_name: Name of the folder which will be setup to hold the db files, defaults to "database"
         :type folder_name: str, optional
         """
@@ -63,14 +61,14 @@ class DatabaseService(Service):
         self.parent: Node
         self.folder = self.parent.file_system.create_folder(folder_name)
         self.primary_store = self.parent.file_system.create_file(
-            "db_primary_store", db_size, FileSystemFileType.MDF, folder=self.folder
+            "db_primary_store", db_size, FileType.MDF, folder=self.folder
         )
         self.transaction_log = self.parent.file_system.create_file(
-            "db_transaction_log", "1", FileSystemFileType.LDF, folder=self.folder
+            "db_transaction_log", "1", FileType.LDF, folder=self.folder
         )
         if use_secondary_db_file:
             self.secondary_store = self.parent.file_system.create_file(
-                "db_secondary_store", secondary_db_size, FileSystemFileType.NDF, folder=self.folder
+                "db_secondary_store", secondary_db_size, FileType.NDF, folder=self.folder
             )
         else:
             self.secondary_store = None

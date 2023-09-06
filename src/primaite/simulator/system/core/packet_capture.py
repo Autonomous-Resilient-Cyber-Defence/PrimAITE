@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from primaite.simulator import TEMP_SIM_OUTPUT
+from primaite.simulator import SIM_OUTPUT
 
 
 class _JSONFilter(logging.Filter):
@@ -62,7 +62,7 @@ class PacketCapture:
 
     def _get_log_path(self) -> Path:
         """Get the path for the log file."""
-        root = TEMP_SIM_OUTPUT / self.hostname
+        root = SIM_OUTPUT / self.hostname
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self._logger_name}.log"
 

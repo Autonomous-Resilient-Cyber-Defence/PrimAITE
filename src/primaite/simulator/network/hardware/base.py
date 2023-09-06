@@ -4,12 +4,14 @@ import re
 import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
+from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.core import SimComponent
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
@@ -890,6 +892,8 @@ class Node(SimComponent):
     "All processes on the node."
     file_system: FileSystem
     "The nodes file system."
+    root: Path
+    "Root directory for simulation output."
     sys_log: SysLog
     arp: ARPCache
     icmp: ICMP
@@ -921,8 +925,10 @@ class Node(SimComponent):
             kwargs["software_manager"] = SoftwareManager(
                 sys_log=kwargs.get("sys_log"), session_manager=kwargs.get("session_manager")
             )
+        if not kwargs.get("root"):
+            kwargs["root"] = SIM_OUTPUT / kwargs["hostname"]
         if not kwargs.get("file_system"):
-            kwargs["file_system"] = FileSystem()
+            kwargs["file_system"] = FileSystem(sys_log=kwargs["sys_log"], sim_root=kwargs["root"] / "fs")
         super().__init__(**kwargs)
         self.arp.nics = self.nics
 
