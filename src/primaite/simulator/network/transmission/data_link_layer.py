@@ -53,8 +53,8 @@ class Frame(BaseModel):
     ...         dst_mac_addr='11:22:33:44:55:66'
     ...     ),
     ...     ip=IPPacket(
-    ...         src_ip=IPv4Address('192.168.0.1'),
-    ...         dst_ip=IPv4Address('10.0.0.1'),
+    ...         src_ip_address=IPv4Address('192.168.0.1'),
+    ...         dst_ip_address=IPv4Address('10.0.0.1'),
     ...     ),
     ...     tcp=TCPHeader(
     ...         src_port=8080,
@@ -126,6 +126,11 @@ class Frame(BaseModel):
         """Set the received_timestamp."""
         if not self.received_timestamp:
             self.received_timestamp = datetime.now()
+
+    def transmission_duration(self) -> int:
+        """The transmission duration in milliseconds."""
+        delta = self.received_timestamp - self.sent_timestamp
+        return int(delta.microseconds / 1000)
 
     @property
     def size(self) -> float:  # noqa - Keep it as MBits as this is how they're expressed

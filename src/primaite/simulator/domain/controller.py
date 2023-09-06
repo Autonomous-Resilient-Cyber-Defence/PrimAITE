@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Dict, Final, List, Literal, Tuple
 
-from primaite.simulator.core import ActionPermissionValidator, SimComponent
+from primaite.simulator.core import Action, ActionManager, ActionPermissionValidator, SimComponent
 from primaite.simulator.domain.account import Account, AccountType
 
 
@@ -81,6 +81,35 @@ class DomainController(SimComponent):
     applications: Dict[str, temp_application] = {}
     folders: List[temp_folder] = {}
     files: List[temp_file] = {}
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+        # Action 'account' matches requests like:
+        # ['account', '<account-uuid>', *account_action]
+        am.add_action(
+            "account",
+            Action(
+                func=lambda request, context: self.accounts[request.pop(0)].apply_action(request, context),
+                validator=GroupMembershipValidator([AccountGroup.DOMAIN_ADMIN]),
+            ),
+        )
+        return am
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update({"accounts": {uuid: acct.describe_state() for uuid, acct in self.accounts.items()}})
+        return state
 
     def _register_account(self, account: Account) -> None:
         """TODO."""

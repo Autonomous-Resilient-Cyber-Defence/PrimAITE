@@ -1,4 +1,7 @@
+from ipaddress import IPv4Address
 from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
+
+from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -11,6 +14,10 @@ from primaite.simulator.system.software import SoftwareType
 if TYPE_CHECKING:
     from primaite.simulator.system.core.session_manager import SessionManager
     from primaite.simulator.system.core.sys_log import SysLog
+
+from typing import Type, TypeVar
+
+ServiceClass = TypeVar("ServiceClass", bound=Service)
 
 
 class SoftwareManager:
@@ -28,18 +35,17 @@ class SoftwareManager:
         self.port_protocol_mapping: Dict[Tuple[Port, IPProtocol], Union[Service, Application]] = {}
         self.sys_log: SysLog = sys_log
 
-    def add_service(self, name: str, service: Service, port: Port, protocol: IPProtocol):
+    def add_service(self, service_class: Type[ServiceClass]):
         """
         Add a Service to the manager.
 
-        :param name: The name of the service.
-        :param service: The service instance.
-        :param port: The port used by the service.
-        :param protocol: The network protocol used by the service.
+        :param: service_class: The class of the service to add
         """
+        service = service_class(software_manager=self, sys_log=self.sys_log)
+
         service.software_manager = self
-        self.services[name] = service
-        self.port_protocol_mapping[(port, protocol)] = service
+        self.services[service.name] = service
+        self.port_protocol_mapping[(service.port, service.protocol)] = service
 
     def add_application(self, name: str, application: Application, port: Port, protocol: IPProtocol):
         """
@@ -75,14 +81,24 @@ class SoftwareManager:
         else:
             raise ValueError(f"No {target_software_type.name.lower()} found with the name {target_software}")
 
-    def send_payload_to_session_manger(self, payload: Any, session_id: Optional[int] = None):
+    def send_payload_to_session_manager(
+        self,
+        payload: Any,
+        dest_ip_address: Optional[IPv4Address] = None,
+        dest_port: Optional[Port] = None,
+        session_id: Optional[int] = None,
+    ):
         """
         Send a payload to the SessionManager.
 
         :param payload: The payload to be sent.
+        :param dest_ip_address: The ip address of the payload destination.
+        :param dest_port: The port of the payload destination.
         :param session_id: The Session ID the payload is to originate from. Optional.
         """
-        self.session_manager.receive_payload_from_software_manager(payload, session_id)
+        self.session_manager.receive_payload_from_software_manager(
+            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
+        )
 
     def receive_payload_from_session_manger(self, payload: Any, session: Session):
         """
@@ -97,3 +113,20 @@ class SoftwareManager:
         # else:
         #     raise ValueError(f"No service or application found for port {port} and protocol {protocol}")
         pass
+
+    def show(self, markdown: bool = False):
+        """
+        Prints a table of the SwitchPorts on the Switch.
+
+        :param markdown: If True, outputs the table in markdown format. Default is False.
+        """
+        table = PrettyTable(["Name", "Operating State", "Health State", "Port"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.sys_log.hostname} Software Manager"
+        for service in self.services.values():
+            table.add_row(
+                [service.name, service.operating_state.name, service.health_state_actual.name, service.port.value]
+            )
+        print(table)

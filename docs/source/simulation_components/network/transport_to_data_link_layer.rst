@@ -64,9 +64,9 @@ Data Link Layer (Layer 2)
 
  - **request:** ARP operation. Set to True for a request and False for a reply.
  - **sender_mac_addr:** Sender's MAC address.
- - **sender_ip:** Sender's IP address (IPv4 format).
+ - **sender_ip_address:** Sender's IP address (IPv4 format).
  - **target_mac_addr:** Target's MAC address.
- - **target_ip:** Target's IP address (IPv4 format).
+ - **target_ip_address:** Target's IP address (IPv4 format).
 
 **EthernetHeader:** Represents the Ethernet layer of a network frame. It includes source and destination MAC addresses.
 This header is used to identify the physical hardware addresses of devices on a local network.
@@ -102,8 +102,8 @@ address of 'aa:bb:cc:dd:ee:ff' to port 8080 on the host 10.0.0.10 which has a NI
 
     # Network Layer
     ip_packet = IPPacket(
-        src_ip="192.168.0.100",
-        dst_ip="10.0.0.10",
+        src_ip_address="192.168.0.100",
+        dst_ip_address="10.0.0.10",
         protocol=IPProtocol.TCP
     )
     # Data Link Layer
@@ -128,8 +128,8 @@ This produces the following ``Frame`` (displayed in json format)
             "dst_mac_addr": "11:22:33:44:55:66"
         },
         "ip": {
-            "src_ip": "192.168.0.100",
-            "dst_ip": "10.0.0.10",
+            "src_ip_address": "192.168.0.100",
+            "dst_ip_address": "10.0.0.10",
             "protocol": "tcp",
             "ttl": 64,
             "precedence": 0

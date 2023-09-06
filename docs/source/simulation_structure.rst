@@ -7,11 +7,19 @@ Simulation Structure
 ====================
 
 The simulation is made up of many smaller components which are related to each other in a tree-like structure. At the
-top level, there is an object called the ``SimulationController`` _(doesn't exist yet)_, which has a physical network
-and a software controller for managing software and users.
+top level, there is the :py:meth:`primaite.simulator.sim_container.Simulation`, which keeps track of the physical network
+and a domain controller for managing software and users.
 
-Each node of the simulation 'tree' has responsibility for creating, deleting, and updating its direct descendants.
+Each node of the simulation 'tree' has responsibility for creating, deleting, and updating its direct descendants. Also,
+when a component's ``describe_state()`` method is called, it will include the state of its descendants. The
+``apply_action()`` method can be used to act on a component or one of its descendatnts. The diagram below shows the
+relationship between components.
 
+.. image:: _static/component_relationship.png
+    :width: 500
+    :alt: The top level simulation object owns a NetworkContainer and a DomainController. The DomainController has a
+    list of accounts. The network container has links and nodes. Nodes can own switchports, NICs, FileSystem,
+    Application, Service, and Process.
 
 
 Actions
@@ -41,16 +49,14 @@ snippet demonstrates usage of the ``ActionPermissionValidator``.
         name: str
         apps = []
 
-        def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            self.action_manager = ActionManager()
-
-            self.action_manager.add_action(
+        def _init_action_manager(self) -> ActionManager:
+            am = super()._init_action_manager()
+            am.add_action(
                 "reset_factory_settings",
                 Action(
                     func = lambda request, context: self.reset_factory_settings(),
                     validator = GroupMembershipValidator([AccountGroup.DOMAIN_ADMIN]),
-                ),
+                )
             )
 
         def reset_factory_settings(self):

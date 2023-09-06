@@ -32,10 +32,8 @@ def test_nic_ip_address_type_conversion():
     nic = NIC(
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
-        gateway="192.168.0.1",
     )
     assert isinstance(nic.ip_address, IPv4Address)
-    assert isinstance(nic.gateway, IPv4Address)
 
 
 def test_nic_deserialize():
@@ -43,22 +41,11 @@ def test_nic_deserialize():
     nic = NIC(
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
-        gateway="192.168.0.1",
     )
 
     nic_json = nic.model_dump_json()
     deserialized_nic = NIC.model_validate_json(nic_json)
-    assert nic == deserialized_nic
-
-
-def test_nic_ip_address_as_gateway_fails():
-    """Tests NIC creation fails if ip address is the same as the gateway."""
-    with pytest.raises(ValueError):
-        NIC(
-            ip_address="192.168.0.1",
-            subnet_mask="255.255.255.0",
-            gateway="192.168.0.1",
-        )
+    assert nic_json == deserialized_nic.model_dump_json()
 
 
 def test_nic_ip_address_as_network_address_fails():
@@ -67,5 +54,4 @@ def test_nic_ip_address_as_network_address_fails():
         NIC(
             ip_address="192.168.0.0",
             subnet_mask="255.255.255.0",
-            gateway="192.168.0.1",
         )

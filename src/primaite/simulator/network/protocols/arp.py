@@ -24,21 +24,21 @@ class ARPPacket(BaseModel):
 
     :param request: ARP operation. True if a request, False if a reply.
     :param sender_mac_addr: Sender MAC address.
-    :param sender_ip: Sender IP address.
+    :param sender_ip_address: Sender IP address.
     :param target_mac_addr: Target MAC address.
-    :param target_ip: Target IP address.
+    :param target_ip_address: Target IP address.
 
     :Example:
 
     >>> arp_request = ARPPacket(
     ...     sender_mac_addr="aa:bb:cc:dd:ee:ff",
-    ...     sender_ip=IPv4Address("192.168.0.1"),
-    ...     target_ip=IPv4Address("192.168.0.2")
+    ...     sender_ip_address=IPv4Address("192.168.0.1"),
+    ...     target_ip_address=IPv4Address("192.168.0.2")
     ... )
     >>> arp_response = ARPPacket(
     ...     sender_mac_addr="aa:bb:cc:dd:ee:ff",
-    ...     sender_ip=IPv4Address("192.168.0.1"),
-    ...     target_ip=IPv4Address("192.168.0.2")
+    ...     sender_ip_address=IPv4Address("192.168.0.1"),
+    ...     target_ip_address=IPv4Address("192.168.0.2")
     ... )
     """
 
@@ -46,11 +46,11 @@ class ARPPacket(BaseModel):
     "ARP operation. True if a request, False if a reply."
     sender_mac_addr: str
     "Sender MAC address."
-    sender_ip: IPv4Address
+    sender_ip_address: IPv4Address
     "Sender IP address."
     target_mac_addr: Optional[str] = None
     "Target MAC address."
-    target_ip: IPv4Address
+    target_ip_address: IPv4Address
     "Target IP address."
 
     def generate_reply(self, mac_address: str) -> ARPPacket:
@@ -62,8 +62,8 @@ class ARPPacket(BaseModel):
         """
         return ARPPacket(
             request=False,
-            sender_ip=self.target_ip,
+            sender_ip_address=self.target_ip_address,
             sender_mac_addr=mac_address,
-            target_ip=self.sender_ip,
+            target_ip_address=self.sender_ip_address,
             target_mac_addr=self.sender_mac_addr,
         )

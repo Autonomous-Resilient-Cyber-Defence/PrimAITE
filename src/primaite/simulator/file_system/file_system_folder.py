@@ -10,11 +10,29 @@ _LOGGER = getLogger(__name__)
 class FileSystemFolder(FileSystemItem):
     """Simulation FileSystemFolder."""
 
-    files: Dict = {}
+    files: Dict[str, FileSystemFile] = {}
     """List of files stored in the folder."""
 
     is_quarantined: bool = False
     """Flag that marks the folder as quarantined if true."""
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update(
+            {
+                "files": {uuid: file.describe_state() for uuid, file in self.files.items()},
+                "is_quarantined": self.is_quarantined,
+            }
+        )
+        return state
 
     def get_file_by_id(self, file_id: str) -> FileSystemFile:
         """Return a FileSystemFile with the matching id."""
@@ -67,11 +85,3 @@ class FileSystemFolder(FileSystemItem):
     def quarantine_status(self) -> bool:
         """Returns true if the folder is being quarantined."""
         return self.is_quarantined
-
-    def describe_state(self) -> Dict:
-        """
-        Get the current state of the FileSystemFolder as a dict.
-
-        :return: A dict containing the current state of the FileSystemFile.
-        """
-        pass

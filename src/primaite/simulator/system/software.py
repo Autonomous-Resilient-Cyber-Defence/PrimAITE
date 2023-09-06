@@ -1,9 +1,10 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Set
+from typing import Any, Dict
 
-from primaite.simulator.core import SimComponent
+from primaite.simulator.core import Action, ActionManager, SimComponent
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.core.sys_log import SysLog
 
 
 class SoftwareType(Enum):
@@ -62,11 +63,11 @@ class Software(SimComponent):
 
     name: str
     "The name of the software."
-    health_state_actual: SoftwareHealthState
+    health_state_actual: SoftwareHealthState = SoftwareHealthState.GOOD
     "The actual health state of the software."
-    health_state_visible: SoftwareHealthState
+    health_state_visible: SoftwareHealthState = SoftwareHealthState.GOOD
     "The health state of the software visible to the red agent."
-    criticality: SoftwareCriticality
+    criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
     "The criticality level of the software."
     patching_count: int = 0
     "The count of patches applied to the software, defaults to 0."
@@ -74,30 +75,44 @@ class Software(SimComponent):
     "The count of times the software has been scanned, defaults to 0."
     revealed_to_red: bool = False
     "Indicates if the software has been revealed to red agent, defaults is False."
+    software_manager: Any = None
+    "An instance of Software Manager that is used by the parent node."
+    sys_log: SysLog = None
+    "An instance of SysLog that is used by the parent node."
+
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+        am.add_action(
+            "compromise",
+            Action(
+                func=lambda request, context: self.set_health_state(SoftwareHealthState.COMPROMISED),
+            ),
+        )
+        am.add_action("scan", Action(func=lambda request, context: self.scan()))
+        return am
 
     @abstractmethod
     def describe_state(self) -> Dict:
         """
-        Describes the current state of the software.
+        Produce a dictionary describing the current state of this object.
 
-        The specifics of the software's state, including its health, criticality,
-        and any other pertinent information, should be implemented in subclasses.
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
 
-        :return: A dictionary containing key-value pairs representing the current state of the software.
+        :return: Current state of this object and child objects.
         :rtype: Dict
         """
-        pass
-
-    def apply_action(self, action: List[str]) -> None:
-        """
-        Applies a list of actions to the software.
-
-        The specifics of how these actions are applied should be implemented in subclasses.
-
-        :param action: A list of actions to apply.
-        :type action: List[str]
-        """
-        pass
+        state = super().describe_state()
+        state.update(
+            {
+                "health_state": self.health_state_actual.name,
+                "health_state_red_view": self.health_state_visible.name,
+                "criticality": self.criticality.name,
+                "patching_count": self.patching_count,
+                "scanning_count": self.scanning_count,
+                "revealed_to_red": self.revealed_to_red,
+            }
+        )
+        return state
 
     def reset_component_for_episode(self, episode: int):
         """
@@ -109,14 +124,41 @@ class Software(SimComponent):
         """
         pass
 
-    @staticmethod
-    def get_install():
+    def set_health_state(self, health_state: SoftwareHealthState) -> None:
         """
-        This method ensures the software has to have a way to install it.
+        Assign a new health state to this software.
 
-        This can be used by the software manager to install the software.
+        Note: this should only be possible when the software is currently running, but the software base class has no
+        operating state, only subclasses do. So subclasses will need to implement this check. TODO: check if this should
+        be changed so that the base Software class has a running attr.
+
+        :param health_state: New health state to assign to the software
+        :type health_state: SoftwareHealthState
+        """
+        self.health_state_actual = health_state
+
+    def install(self) -> None:
+        """
+        Perform first-time setup of this service on a node.
+
+        This is an abstract class that should be overwritten by specific applications or services. It must be called
+        after the service is already associate with a node. For example, a service may need to authenticate with a
+        server during installation, or create files in the node's filesystem.
         """
         pass
+
+    def uninstall(self) -> None:
+        """Uninstall this service from a node.
+
+        This is an abstract class that should be overwritten by applications or services. It must be called after the
+        `install` method has already been run on that node. It should undo any installation steps, for example by
+        deleting files, or contacting a server.
+        """
+        pass
+
+    def scan(self) -> None:
+        """Update the observed health status to match the actual health status."""
+        self.health_state_visible = self.health_state_actual
 
 
 class IOSoftware(Software):
@@ -137,21 +179,30 @@ class IOSoftware(Software):
     "Indicates if the software uses TCP protocol for communication. Default is True."
     udp: bool = True
     "Indicates if the software uses UDP protocol for communication. Default is True."
-    ports: Set[Port]
-    "The set of ports to which the software is connected."
+    port: Port
+    "The port to which the software is connected."
 
     @abstractmethod
     def describe_state(self) -> Dict:
         """
-        Describes the current state of the software.
+        Produce a dictionary describing the current state of this object.
 
-        The specifics of the software's state, including its health, criticality,
-        and any other pertinent information, should be implemented in subclasses.
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
 
-        :return: A dictionary containing key-value pairs representing the current state of the software.
+        :return: Current state of this object and child objects.
         :rtype: Dict
         """
-        pass
+        state = super().describe_state()
+        state.update(
+            {
+                "installing_count": self.installing_count,
+                "max_sessions": self.max_sessions,
+                "tcp": self.tcp,
+                "udp": self.udp,
+                "ports": [port.name for port in self.ports],  # TODO: not sure if this should be port.name or port.value
+            }
+        )
+        return state
 
     def send(self, payload: Any, session_id: str, **kwargs) -> bool:
         """

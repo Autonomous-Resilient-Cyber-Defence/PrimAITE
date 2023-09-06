@@ -13,16 +13,21 @@ _LOGGER = getLogger(__name__)
 class FileSystem(SimComponent):
     """Class that contains all the simulation File System."""
 
-    folders: Dict = {}
+    folders: Dict[str, FileSystemFolder] = {}
     """List containing all the folders in the file system."""
 
     def describe_state(self) -> Dict:
         """
-        Get the current state of the FileSystem as a dict.
+        Produce a dictionary describing the current state of this object.
 
-        :return: A dict containing the current state of the FileSystemFile.
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
         """
-        pass
+        state = super().describe_state()
+        state.update({"folders": {uuid: folder.describe_state() for uuid, folder in self.folders.items()}})
+        return state
 
     def get_folders(self) -> Dict:
         """Returns the list of folders."""
@@ -206,7 +211,7 @@ class FileSystem(SimComponent):
             if file is not None:
                 return file
 
-    def get_folder_by_name(self, folder_name: str) -> FileSystemFolder:
+    def get_folder_by_name(self, folder_name: str) -> Optional[FileSystemFolder]:
         """
         Returns a the first folder with a matching name.
 

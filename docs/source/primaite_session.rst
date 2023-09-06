@@ -15,31 +15,31 @@ A PrimAITE session can be ran either with the ``primaite session`` command from 
 Both the ``primaite session`` and :func:`primaite.main.run` take a training config and a lay down config as parameters.
 
 
-.. tabs::
-
-    .. code-tab:: bash
-        :caption: Unix CLI
-
-        cd ~/primaite/2.0.0
-        source ./.venv/bin/activate
-        primaite session --tc ./config/my_training_config.yaml --ldc ./config/my_lay_down_config.yaml
-
-    .. code-tab:: powershell
-        :caption: Powershell CLI
-
-        cd ~\primaite\2.0.0
-        .\.venv\Scripts\activate
-        primaite session --tc .\config\my_training_config.yaml --ldc .\config\my_lay_down_config.yaml
 
 
-    .. code-tab:: python
-        :caption: Python
+.. code-block:: bash
+    :caption: Unix CLI
 
-        from primaite.main import run
+    cd ~/primaite/2.0.0
+    source ./.venv/bin/activate
+    primaite session --tc ./config/my_training_config.yaml --ldc ./config/my_lay_down_config.yaml
 
-        training_config = <path to training config yaml file>
-        lay_down_config = <path to lay down config yaml file>
-        run(training_config, lay_down_config)
+.. code-block:: powershell
+    :caption: Powershell CLI
+
+    cd ~\primaite\2.0.0
+    .\.venv\Scripts\activate
+    primaite session --tc .\config\my_training_config.yaml --ldc .\config\my_lay_down_config.yaml
+
+
+.. code-block:: python
+    :caption: Python
+
+    from primaite.main import run
+
+    training_config = <path to training config yaml file>
+    lay_down_config = <path to lay down config yaml file>
+    run(training_config, lay_down_config)
 
 When a session is ran, a session output sub-directory is created in the users app sessions directory (``~/primaite/2.0.0/sessions``).
 The sub-directory is formatted as such: ``~/primaite/2.0.0/sessions/<yyyy-mm-dd>/<yyyy-mm-dd>_<hh-mm-dd>/``
@@ -51,31 +51,33 @@ For example, when running a session at 17:30:00 on 31st January 2023, the sessio
 
 To run a PrimAITE session using legacy training or laydown config files, add the ``--legacy-tc`` and/or ``legacy-ldc`` options.
 
-.. tabs::
-
-    .. code-tab:: bash
-        :caption: Unix CLI
-
-        cd ~/primaite/2.0.0
-        source ./.venv/bin/activate
-        primaite session --tc ./config/my_legacy_training_config.yaml --legacy-tc --ldc ./config/my_legacy_lay_down_config.yaml --legacy-ldc
-
-    .. code-tab:: powershell
-        :caption: Powershell CLI
-
-        cd ~\primaite\2.0.0
-        .\.venv\Scripts\activate
-        primaite session --tc .\config\my_legacy_training_config.yaml --legacy-tc --ldc .\config\my_legacy_lay_down_config.yaml --legacy-ldc
 
 
-    .. code-tab:: python
-        :caption: Python
+.. code-block:: bash
+    :caption: Unix CLI
 
-        from primaite.main import run
+    cd ~/primaite/2.0.0
+    source ./.venv/bin/activate
+    primaite session --tc ./config/my_legacy_training_config.yaml --legacy-tc --ldc ./config/my_legacy_lay_down_config.yaml --legacy-ldc
 
-        training_config = <path to legacy training config yaml file>
-        lay_down_config = <path to legacy lay down config yaml file>
-        run(training_config, lay_down_config, legacy_training_config=True, legacy_lay_down_config=True)
+.. code-block:: powershell
+    :caption: Powershell CLI
+
+    cd ~\primaite\2.0.0
+    .\.venv\Scripts\activate
+    primaite session --tc .\config\my_legacy_training_config.yaml --legacy-tc --ldc .\config\my_legacy_lay_down_config.yaml --legacy-ldc
+
+
+.. code-block:: python
+    :caption: Python
+
+    from primaite.main import run
+
+    training_config = <path to legacy training config yaml file>
+    lay_down_config = <path to legacy lay down config yaml file>
+    run(training_config, lay_down_config, legacy_training_config=True, legacy_lay_down_config=True)
+
+
 
 
 Outputs

@@ -7,16 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+
 ### Added
-- Network Hardware - Added base hardware module with NIC, SwitchPort, Node, Switch, and Link. Nodes and Switches have
+- Network Hardware - Added base hardware module with NIC, SwitchPort, Node, and Link. Nodes have
 fundamental services like ARP, ICMP, and PCAP running them by default.
 - Network Transmission - Modelled OSI Model layers 1 through to 5 with various classes for creating network frames and
 transmitting them from a Service/Application, down through the layers, over the wire, and back up through the layers to
 a Service/Application another machine.
+- Introduced `Router` and `Switch` classes to manage networking routes more effectively.
+  - Added `ACLRule` and `RouteTableEntry` classes as part of the `Router`.
+- New `.show()` methods in all network component classes to inspect the state in either plain text or markdown formats.
+- Added `Computer` and `Server` class to better differentiate types of network nodes.
+- Integrated a new Use Case 2 network into the system.
+- New unit tests to verify routing between different subnets using `.ping()`.
 - system - Added the core structure of Application, Services, and Components. Also added a SoftwareManager and
 SessionManager.
 - Permission System - each action can define criteria that will be used to permit or deny agent actions.
 - File System - ability to emulate a node's file system during a simulation
+- Example notebooks - There is currently 1 jupyter notebook which walks through using PrimAITE
+  1. Creating a simulation - this notebook explains how to build up a simulation using the Python package. (WIP)
+- Red Agent Services:
+  - Data Manipulator Bot - A red agent service which sends a payload to a target machine. (By default this payload is a SQL query that breaks a database)
 
 ## [2.0.0] - 2023-07-26
 

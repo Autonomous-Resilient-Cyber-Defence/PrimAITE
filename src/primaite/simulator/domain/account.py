@@ -43,8 +43,27 @@ class Account(SimComponent):
     enabled: bool = True
 
     def describe_state(self) -> Dict:
-        """Describe state for agent observations."""
-        return super().describe_state()
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update(
+            {
+                "num_logons": self.num_logons,
+                "num_logoffs": self.num_logoffs,
+                "num_group_changes": self.num_group_changes,
+                "username": self.username,
+                "password": self.password,
+                "account_type": self.account_type.name,
+                "enabled": self.enabled,
+            }
+        )
+        return state
 
     def enable(self):
         """Set the status to enabled."""

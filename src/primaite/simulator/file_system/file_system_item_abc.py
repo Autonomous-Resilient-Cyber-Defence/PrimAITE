@@ -13,5 +13,19 @@ class FileSystemItem(SimComponent):
     """The size the item takes up on disk."""
 
     def describe_state(self) -> Dict:
-        """Returns the state of the FileSystemItem."""
-        pass
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update(
+            {
+                "name": self.name,
+                "size": self.size,
+            }
+        )
+        return state
