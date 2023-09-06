@@ -39,7 +39,7 @@ class SoftwareManager:
         """
         Add a Service to the manager.
 
-        :param service_class: The class of the service to add
+        :param: service_class: The class of the service to add
         """
         service = service_class(software_manager=self, sys_log=self.sys_log)
 

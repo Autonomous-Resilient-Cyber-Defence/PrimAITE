@@ -1,8 +1,8 @@
 from ipaddress import IPv4Address
+from typing import Any, Optional
 
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service
 
 
@@ -20,9 +20,15 @@ class DataManipulatorService(Service):
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
 
-    def run(self):
-        """Run the DataManipulatorService actions."""
-        software_manager: SoftwareManager = self.software_manager
-        software_manager.send_payload_to_session_manager(
-            payload="SELECT * FROM users", dest_ip_address=IPv4Address("192.168.1.14"), dest_port=self.port
+    def start(self, target_ip_address: IPv4Address, payload: Optional[Any] = "DELETE TABLE users", **kwargs):
+        """
+        Run the DataManipulatorService actions.
+
+        :param: target_ip_address: The IP address of the target machine to attack
+        :param: payload: The payload to send to the target machine
+        """
+        super().start()
+
+        self.software_manager.send_payload_to_session_manager(
+            payload=payload, dest_ip_address=target_ip_address, dest_port=self.port
         )
