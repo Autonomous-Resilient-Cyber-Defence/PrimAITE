@@ -1,19 +1,31 @@
-from abc import abstractmethod
 from ipaddress import IPv4Address
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from pydantic import BaseModel
+from prettytable import MARKDOWN, PrettyTable
 
-from primaite.simulator.network.protocols.dns import DNSPacket, DNSReply, DNSRequest
+from primaite import getLogger
+from primaite.simulator.network.protocols.dns import DNSPacket
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.services.service import Service
+
+_LOGGER = getLogger(__name__)
 
 
-class DNSServer(BaseModel):
+class DNSServer(Service):
     """Represents a DNS Server as a Service."""
 
-    dns_table: dict[str:IPv4Address] = {}
+    dns_table: Dict[str, IPv4Address] = {}
     "A dict of mappings between domain names and IPv4 addresses."
 
-    @abstractmethod
+    def __init__(self, **kwargs):
+        kwargs["name"] = "DNSServer"
+        kwargs["port"] = Port.DNS
+        # DNS uses UDP by default
+        # it switches to TCP when the bytes exceed 512 (or 4096) bytes
+        kwargs["protocol"] = IPProtocol.UDP
+        super().__init__(**kwargs)
+
     def describe_state(self) -> Dict:
         """
         Describes the current state of the software.
@@ -26,15 +38,7 @@ class DNSServer(BaseModel):
         """
         return {"Operating State": self.operating_state}
 
-    def apply_action(self, action: List[str]) -> None:
-        """
-        Applies a list of actions to the Service.
-
-        :param action: A list of actions to apply. (unsure)
-        """
-        pass
-
-    def dns_lookup(self, target_domain: str) -> Optional[IPv4Address]:
+    def dns_lookup(self, target_domain: Any) -> Optional[IPv4Address]:
         """
         Attempts to find the IP address for a domain name.
 
@@ -42,11 +46,23 @@ class DNSServer(BaseModel):
         :return ip_address: The IP address of that domain name or None.
         """
         if target_domain in self.dns_table:
-            self.dns_table[target_domain]
+            return self.dns_table[target_domain]
         else:
             return None
 
-    def reset_component_for_episode(self):
+    def dns_register(self, domain_name: str, domain_ip_address: IPv4Address):
+        """
+        Register a domain name and its IP address.
+
+        :param: domain_name: The domain name to register
+        :type: domain_name: str
+
+        :param: domain_ip_address: The IP address that the domain should route to
+        :type: domain_ip_address: IPv4Address
+        """
+        self.dns_table[domain_name] = domain_ip_address
+
+    def reset_component_for_episode(self, episode: int):
         """
         Resets the Service component for a new episode.
 
@@ -54,36 +70,78 @@ class DNSServer(BaseModel):
         stateful properties or statistics, and clearing any message queues.
         """
         self.dns_table = {}
+        super().reset_component_for_episode(episode=episode)
 
-    def send(self, payload: Any, session_id: str, **kwargs) -> bool:
+    def send(
+        self,
+        payload: Any,
+        dest_ip_address: Optional[IPv4Address] = None,
+        dest_port: Optional[Port] = None,
+        session_id: Optional[str] = None,
+        **kwargs,
+    ) -> bool:
         """
         Sends a payload to the SessionManager.
 
         The specifics of how the payload is processed and whether a response payload
         is generated should be implemented in subclasses.
 
-        :param payload: The payload to send.
+        :param: payload: The payload to send.
+        :param: dest_ip_address: The ip address of the machine that the payload will be sent to
+        :param: dest_port: The port of the machine that the payload will be sent to
+        :param: session_id: The id of the session
+
         :return: True if successful, False otherwise.
         """
-        # DNS packet will be sent from DNS Server to the DNS client
-        DNSPacket(
-            dns_request=DNSRequest(domain_name_request=self.dns_table),
-            dns_reply=DNSReply(domain_name_ip_address=payload),
-        )
+        try:
+            self.software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
+        except Exception as e:
+            _LOGGER.error(e)
+            return False
 
-    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
+    def receive(
+        self,
+        payload: Any,
+        dest_ip_address: Optional[IPv4Address] = None,
+        dest_port: Optional[Port] = None,
+        session_id: Optional[str] = None,
+        **kwargs,
+    ) -> bool:
         """
         Receives a payload from the SessionManager.
 
         The specifics of how the payload is processed and whether a response payload
         is generated should be implemented in subclasses.
 
-        :param payload: The payload to receive. (take the domain name and do dns lookup)
+        :param: payload: The payload to send.
+        :param: dest_ip_address: The ip address of the machine that the payload will be sent to
+        :param: dest_port: The port of the machine that the payload will be sent to
+        :param: session_id: The id of the session
+
         :return: True if successful, False otherwise.
         """
-        ip_address = self.dns_lookup(payload)
-        if ip_address is not None:
-            self.send(ip_address, session_id)
+        # The payload should be a DNS packet
+        if not isinstance(payload, DNSPacket):
+            _LOGGER.debug(f"{payload} is not a DNSPacket")
+            return False
+        # cast payload into a DNS packet
+        payload: DNSPacket = payload
+        if payload.dns_request is not None:
+            # generate a reply with the correct DNS IP address
+            payload.generate_reply(self.dns_lookup(payload.dns_request.domain_name_request))
+            # send reply
+            self.send(payload, session_id)
             return True
 
         return False
+
+    def show(self, markdown: bool = False):
+        """Prints a table of DNS Lookup table."""
+        table = PrettyTable(["Domain Name", "IP Address"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.sys_log.hostname} DNS Lookup table"
+        for dns in self.dns_table.items():
+            table.add_row([dns[0], dns[1]])
+        print(table)

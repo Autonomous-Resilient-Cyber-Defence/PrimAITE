@@ -192,6 +192,9 @@ class SimComponent(BaseModel):
 
         :param action: List describing the action to apply to this object.
         :type action: List[str]
+
+        :param: context: Dict containing context for actions
+        :type context: Dict
         """
         if self.action_manager is None:
             return

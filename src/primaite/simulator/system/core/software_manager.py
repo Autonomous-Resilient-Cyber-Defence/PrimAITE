@@ -6,7 +6,6 @@ from prettytable import MARKDOWN, PrettyTable
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
-from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.software import SoftwareType
@@ -86,7 +85,7 @@ class SoftwareManager:
         payload: Any,
         dest_ip_address: Optional[IPv4Address] = None,
         dest_port: Optional[Port] = None,
-        session_id: Optional[int] = None,
+        session_id: Optional[str] = None,
     ):
         """
         Send a payload to the SessionManager.
@@ -97,22 +96,21 @@ class SoftwareManager:
         :param session_id: The Session ID the payload is to originate from. Optional.
         """
         self.session_manager.receive_payload_from_software_manager(
-            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
+            payload=payload, dst_ip_address=dest_ip_address, dst_port=dest_port, session_id=session_id
         )
 
-    def receive_payload_from_session_manger(self, payload: Any, session: Session):
+    def receive_payload_from_session_manager(self, payload: Any, port: Port, protocol: IPProtocol, session_id: str):
         """
         Receive a payload from the SessionManager and forward it to the corresponding service or application.
 
         :param payload: The payload being received.
         :param session: The transport session the payload originates from.
         """
-        # receiver: Optional[Union[Service, Application]] = self.port_protocol_mapping.get((port, protocol), None)
-        # if receiver:
-        #     receiver.receive_payload(None, payload)
-        # else:
-        #     raise ValueError(f"No service or application found for port {port} and protocol {protocol}")
-        pass
+        receiver: Optional[Union[Service, Application]] = self.port_protocol_mapping.get((port, protocol), None)
+        if receiver:
+            receiver.receive_payload(payload=payload, session_id=session_id)
+        else:
+            self.sys_log.error(f"No service or application found for port {port} and protocol {protocol}")
 
     def show(self, markdown: bool = False):
         """

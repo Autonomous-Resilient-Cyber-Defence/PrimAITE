@@ -1,8 +1,10 @@
 from enum import Enum
+from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.core import Action, ActionManager
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.software import IOSoftware
 
 _LOGGER = getLogger(__name__)
@@ -72,29 +74,54 @@ class Service(IOSoftware):
         """
         pass
 
-    def send(self, payload: Any, session_id: str, **kwargs) -> bool:
+    def send(
+        self,
+        payload: Any,
+        dest_ip_address: Optional[IPv4Address] = None,
+        dest_port: Optional[Port] = None,
+        session_id: Optional[str] = None,
+        **kwargs,
+    ) -> bool:
         """
         Sends a payload to the SessionManager.
 
         The specifics of how the payload is processed and whether a response payload
         is generated should be implemented in subclasses.
 
-        :param payload: The payload to send.
+        :param: payload: The payload to send.
+        :param: dest_ip_address: The ip address of the machine that the payload will be sent to
+        :param: dest_port: The port of the machine that the payload will be sent to
+        :param: session_id: The id of the session
+
         :return: True if successful, False otherwise.
         """
-        pass
+        self.software_manager.send_payload_to_session_manager(
+            payload=payload, dest_ip_address=dest_ip_address, dest_port=self.port, session_id=session_id
+        )
 
-    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
+    def receive(
+        self,
+        payload: Any,
+        dest_ip_address: Optional[IPv4Address] = None,
+        dest_port: Optional[Port] = None,
+        session_id: Optional[str] = None,
+        **kwargs,
+    ) -> bool:
         """
         Receives a payload from the SessionManager.
 
         The specifics of how the payload is processed and whether a response payload
         is generated should be implemented in subclasses.
 
-        :param payload: The payload to receive.
+        :param: payload: The payload to send.
+        :param: dest_ip_address: The ip address of the machine that the payload will be sent to
+        :param: dest_port: The port of the machine that the payload will be sent to
+        :param: session_id: The id of the session
+
         :return: True if successful, False otherwise.
         """
-        pass
+
+    pass
 
     def stop(self) -> None:
         """Stop the service."""
