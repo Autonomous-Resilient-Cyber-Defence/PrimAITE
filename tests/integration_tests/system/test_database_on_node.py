@@ -1,39 +1,38 @@
 from ipaddress import IPv4Address
 
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.networks import arcd_uc2_network
-from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import IPPacket, Precedence
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
+from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.services.database import DatabaseService
 
 
-def test_database_query_across_the_network():
+def test_database_client_server_connection(uc2_network):
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+
+    assert len(db_service.connections) == 0
+
+    assert db_client.connect(server_ip_address=IPv4Address("192.168.1.14"))
+    assert len(db_service.connections) == 1
+
+    db_client.disconnect()
+    assert len(db_service.connections) == 0
+
+
+def test_database_client_query(uc2_network):
     """Tests DB query across the network returns HTTP status 200 and date."""
-    network = arcd_uc2_network()
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
 
-    client_1: Computer = network.get_node_by_hostname("client_1")
+    db_client.connect(server_ip_address=IPv4Address("192.168.1.14"))
 
-    client_1.arp.send_arp_request(IPv4Address("192.168.1.14"))
+    db_client.query("SELECT * FROM user;")
 
-    dst_mac_address = client_1.arp.get_arp_cache_mac_address(IPv4Address("192.168.1.14"))
+    web_server_nic = web_server.ethernet_port[1]
 
-    outbound_nic = client_1.arp.get_arp_cache_nic(IPv4Address("192.168.1.14"))
-    client_1.ping("192.168.1.14")
+    web_server_last_payload = web_server_nic.pcap.read()[-1]["payload"]
 
-    frame = Frame(
-        ethernet=EthernetHeader(src_mac_addr=client_1.ethernet_port[1].mac_address, dst_mac_addr=dst_mac_address),
-        ip=IPPacket(
-            src_ip_address=client_1.ethernet_port[1].ip_address,
-            dst_ip_address=IPv4Address("192.168.1.14"),
-            precedence=Precedence.FLASH,
-        ),
-        tcp=TCPHeader(src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER),
-        payload="SELECT * FROM user;",
-    )
-
-    outbound_nic.send_frame(frame)
-
-    client_1_last_payload = outbound_nic.pcap.read()[-1]["payload"]
-
-    assert client_1_last_payload["status_code"] == 200
-    assert client_1_last_payload["data"]
+    assert web_server_last_payload["status_code"] == 200
+    assert web_server_last_payload["data"]

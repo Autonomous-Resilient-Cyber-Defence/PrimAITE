@@ -5,7 +5,7 @@ import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
@@ -959,7 +959,24 @@ class Node(SimComponent):
         )
         return state
 
-    def show(self, markdown: bool = False):
+    def show(self, markdown: bool = False, component: Literal["NIC", "OPEN_PORTS"] = "NIC"):
+        if component == "NIC":
+            self._show_nic(markdown)
+        elif component == "OPEN_PORTS":
+            self._show_open_ports(markdown)
+
+    def _show_open_ports(self, markdown: bool = False):
+        """Prints a table of the open ports on the Node."""
+        table = PrettyTable(["Port", "Name"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.hostname} Open Ports"
+        for port in self.software_manager.get_open_ports():
+            table.add_row([port.value, port.name])
+        print(table)
+
+    def _show_nic(self, markdown: bool = False):
         """Prints a table of the NICs on the Node."""
         table = PrettyTable(["Port", "MAC Address", "Address", "Speed", "Status"])
         if markdown:
@@ -1048,29 +1065,30 @@ class Node(SimComponent):
         :param pings: The number of pings to attempt, default is 4.
         :return: True if the ping is successful, otherwise False.
         """
-        if not isinstance(target_ip_address, IPv4Address):
-            target_ip_address = IPv4Address(target_ip_address)
-        if target_ip_address.is_loopback:
-            self.sys_log.info("Pinging loopback address")
-            return any(nic.enabled for nic in self.nics.values())
         if self.operating_state == NodeOperatingState.ON:
-            self.sys_log.info(f"Pinging {target_ip_address}:")
-            sequence, identifier = 0, None
-            while sequence < pings:
-                sequence, identifier = self.icmp.ping(target_ip_address, sequence, identifier, pings)
-            request_replies = self.icmp.request_replies.get(identifier)
-            passed = request_replies == pings
-            if request_replies:
-                self.icmp.request_replies.pop(identifier)
-            else:
-                request_replies = 0
-            self.sys_log.info(
-                f"Ping statistics for {target_ip_address}: "
-                f"Packets: Sent = {pings}, "
-                f"Received = {request_replies}, "
-                f"Lost = {pings-request_replies} ({(pings-request_replies)/pings*100}% loss)"
-            )
-            return passed
+            if not isinstance(target_ip_address, IPv4Address):
+                target_ip_address = IPv4Address(target_ip_address)
+            if target_ip_address.is_loopback:
+                self.sys_log.info("Pinging loopback address")
+                return any(nic.enabled for nic in self.nics.values())
+            if self.operating_state == NodeOperatingState.ON:
+                self.sys_log.info(f"Pinging {target_ip_address}:")
+                sequence, identifier = 0, None
+                while sequence < pings:
+                    sequence, identifier = self.icmp.ping(target_ip_address, sequence, identifier, pings)
+                request_replies = self.icmp.request_replies.get(identifier)
+                passed = request_replies == pings
+                if request_replies:
+                    self.icmp.request_replies.pop(identifier)
+                else:
+                    request_replies = 0
+                self.sys_log.info(
+                    f"Ping statistics for {target_ip_address}: "
+                    f"Packets: Sent = {pings}, "
+                    f"Received = {request_replies}, "
+                    f"Lost = {pings-request_replies} ({(pings-request_replies)/pings*100}% loss)"
+                )
+                return passed
         return False
 
     def send_frame(self, frame: Frame):
@@ -1079,7 +1097,8 @@ class Node(SimComponent):
 
         :param frame: The Frame to be sent.
         """
-        nic: NIC = self._get_arp_cache_nic(frame.ip.dst_ip_address)
+        if self.operating_state == NodeOperatingState.ON:
+            nic: NIC = self._get_arp_cache_nic(frame.ip.dst_ip_address)
         nic.send_frame(frame)
 
     def receive_frame(self, frame: Frame, from_nic: NIC):
@@ -1092,20 +1111,27 @@ class Node(SimComponent):
         :param frame: The Frame being received.
         :param from_nic: The NIC that received the frame.
         """
-        if frame.ip:
-            if frame.ip.src_ip_address in self.arp:
-                self.arp.add_arp_cache_entry(
-                    ip_address=frame.ip.src_ip_address, mac_address=frame.ethernet.src_mac_addr, nic=from_nic
-                )
-        if frame.ip.protocol == IPProtocol.TCP:
-            if frame.tcp.src_port == Port.ARP:
-                self.arp.process_arp_packet(from_nic=from_nic, arp_packet=frame.arp)
+        if self.operating_state == NodeOperatingState.ON:
+            if frame.ip:
+                if frame.ip.src_ip_address in self.arp:
+                    self.arp.add_arp_cache_entry(
+                        ip_address=frame.ip.src_ip_address, mac_address=frame.ethernet.src_mac_addr, nic=from_nic
+                    )
+            if frame.ip.protocol == IPProtocol.ICMP:
+                self.icmp.process_icmp(frame=frame, from_nic=from_nic)
+                return
+            # Check if the destination port is open on the Node
+            if frame.tcp.dst_port in self.software_manager.get_open_ports():
+                # accept thr frame as the port is open
+                if frame.tcp.src_port == Port.ARP:
+                    self.arp.process_arp_packet(from_nic=from_nic, arp_packet=frame.arp)
+                else:
+                    self.session_manager.receive_frame(frame)
             else:
-                self.session_manager.receive_frame(frame)
-        elif frame.ip.protocol == IPProtocol.UDP:
-            pass
-        elif frame.ip.protocol == IPProtocol.ICMP:
-            self.icmp.process_icmp(frame=frame, from_nic=from_nic)
+                # denied as port closed
+                self.sys_log.info(f"Ignoring frame for port {frame.tcp.dst_port.value} from {frame.ip.src_ip_address}")
+                # TODO: do we need to do anything more here?
+                pass
 
     def install_service(self, service: Service) -> None:
         """

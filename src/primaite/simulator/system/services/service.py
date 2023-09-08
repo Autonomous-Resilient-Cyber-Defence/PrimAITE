@@ -98,35 +98,30 @@ class Service(IOSoftware):
 
     def stop(self) -> None:
         """Stop the service."""
-        _LOGGER.debug(f"Stopping service {self.name}")
         if self.operating_state in [ServiceOperatingState.RUNNING, ServiceOperatingState.PAUSED]:
             self.sys_log.info(f"Stopping service {self.name}")
             self.operating_state = ServiceOperatingState.STOPPED
 
     def start(self, **kwargs) -> None:
         """Start the service."""
-        _LOGGER.debug(f"Starting service {self.name}")
         if self.operating_state == ServiceOperatingState.STOPPED:
             self.sys_log.info(f"Starting service {self.name}")
             self.operating_state = ServiceOperatingState.RUNNING
 
     def pause(self) -> None:
         """Pause the service."""
-        _LOGGER.debug(f"Pausing service {self.name}")
         if self.operating_state == ServiceOperatingState.RUNNING:
             self.sys_log.info(f"Pausing service {self.name}")
             self.operating_state = ServiceOperatingState.PAUSED
 
     def resume(self) -> None:
         """Resume paused service."""
-        _LOGGER.debug(f"Resuming service {self.name}")
         if self.operating_state == ServiceOperatingState.PAUSED:
             self.sys_log.info(f"Resuming service {self.name}")
             self.operating_state = ServiceOperatingState.RUNNING
 
     def restart(self) -> None:
         """Restart running service."""
-        _LOGGER.debug(f"Restarting service {self.name}")
         if self.operating_state in [ServiceOperatingState.RUNNING, ServiceOperatingState.PAUSED]:
             self.sys_log.info(f"Pausing service {self.name}")
             self.operating_state = ServiceOperatingState.RESTARTING
@@ -134,13 +129,11 @@ class Service(IOSoftware):
 
     def disable(self) -> None:
         """Disable the service."""
-        _LOGGER.debug(f"Disabling service {self.name}")
         self.sys_log.info(f"Disabling Application {self.name}")
         self.operating_state = ServiceOperatingState.DISABLED
 
     def enable(self) -> None:
         """Enable the disabled service."""
-        _LOGGER.debug(f"Enabling service {self.name}")
         if self.operating_state == ServiceOperatingState.DISABLED:
             self.sys_log.info(f"Enabling Application {self.name}")
             self.operating_state = ServiceOperatingState.STOPPED
