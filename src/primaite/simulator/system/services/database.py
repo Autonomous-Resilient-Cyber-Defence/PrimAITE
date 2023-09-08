@@ -1,12 +1,82 @@
-from typing import Dict
+import sqlite3
+from ipaddress import IPv4Address
+from sqlite3 import OperationalError
+from typing import Any, Dict, List, Optional, Union
 
-from primaite.simulator.file_system.file_system_file_type import FileSystemFileType
-from primaite.simulator.network.hardware.base import Node
+from prettytable import MARKDOWN, PrettyTable
+
+from primaite.simulator.file_system.file_system import File
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service
 
 
 class DatabaseService(Service):
-    """Service loosely modelled on Microsoft SQL Server."""
+    """
+    A class for simulating a generic SQL Server service.
+
+    This class inherits from the `Service` class and provides methods to manage and query a SQLite database.
+    """
+
+    backup_server: Optional[IPv4Address] = None
+    "The IP Address of the server the "
+
+    def __init__(self, **kwargs):
+        kwargs["name"] = "Database"
+        kwargs["port"] = Port.POSTGRES_SERVER
+        kwargs["protocol"] = IPProtocol.TCP
+        super().__init__(**kwargs)
+        self._db_file: File
+        self._create_db_file()
+        self._conn = sqlite3.connect(self._db_file.sim_path)
+        self._cursor = self._conn.cursor()
+
+    def tables(self) -> List[str]:
+        """
+        Get a list of table names present in the database.
+
+        :return: List of table names.
+        """
+        sql = "SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence';"
+        results = self._process_sql(sql)
+        return [row[0] for row in results["data"]]
+
+    def show(self, markdown: bool = False):
+        """
+        Prints a list of table names in the database using PrettyTable.
+
+        :param markdown: Whether to output the table in Markdown format.
+        """
+        table = PrettyTable(["Table"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.file_system.sys_log.hostname} Database"
+        for row in self.tables():
+            table.add_row([row])
+        print(table)
+
+    def _create_db_file(self):
+        """Creates the Simulation File and sqlite file in the file system."""
+        self._db_file: File = self.file_system.create_file(folder_name="database", file_name="database.db", real=True)
+        self.folder = self._db_file.folder
+
+    def _process_sql(self, query: str) -> Dict[str, Union[int, List[Any]]]:
+        """
+        Executes the given SQL query and returns the result.
+
+        :param query: The SQL query to be executed.
+        :return: Dictionary containing status code and data fetched.
+        """
+        try:
+            self._cursor.execute(query)
+            self._conn.commit()
+        except OperationalError:
+            # Handle the case where the table does not exist.
+            return {"status_code": 404, "data": []}
+
+        return {"status_code": 200, "data": self._cursor.fetchall()}
 
     def describe_state(self) -> Dict:
         """
@@ -19,58 +89,28 @@ class DatabaseService(Service):
         """
         return super().describe_state()
 
-    def uninstall(self) -> None:
+    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
-        Undo installation procedure.
+        Processes the incoming SQL payload and sends the result back.
 
-        This method deletes files created when installing the database, and the database folder if it is empty.
+        :param payload: The SQL query to be executed.
+        :param session_id: The session identifier.
+        :return: True if the Status Code is 200, otherwise False.
         """
-        super().uninstall()
-        node: Node = self.parent
-        node.file_system.delete_file(self.primary_store)
-        node.file_system.delete_file(self.transaction_log)
-        if self.secondary_store:
-            node.file_system.delete_file(self.secondary_store)
-        if len(self.folder.files) == 0:
-            node.file_system.delete_folder(self.folder)
+        result = self._process_sql(payload)
+        self.send(payload=result, session_id=session_id)
 
-    def install(self) -> None:
-        """Perform first time install on a node, creating necessary files."""
-        super().install()
-        assert isinstance(self.parent, Node), "Database install can only happen after the db service is added to a node"
-        self._setup_files()
+        return payload["status_code"] == 200
 
-    def _setup_files(
-        self,
-        db_size: int = 1000,
-        use_secondary_db_file: bool = False,
-        secondary_db_size: int = 300,
-        folder_name: str = "database",
-    ):
-        """Set up files that are required by the database on the parent host.
-
-        :param db_size: Initial file size of the main database file, defaults to 1000
-        :type db_size: int, optional
-        :param use_secondary_db_file: Whether to use a secondary database file, defaults to False
-        :type use_secondary_db_file: bool, optional
-        :param secondary_db_size: Size of the secondary db file, defaults to None
-        :type secondary_db_size: int, optional
-        :param folder_name: Name of the folder which will be setup to hold the db files, defaults to "database"
-        :type folder_name: str, optional
+    def send(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
-        # note that this parent.file_system.create_folder call in the future will be authenticated by using permissions
-        # handler. This permission will be granted based on service account given to the database service.
-        self.parent: Node
-        self.folder = self.parent.file_system.create_folder(folder_name)
-        self.primary_store = self.parent.file_system.create_file(
-            "db_primary_store", db_size, FileSystemFileType.MDF, folder=self.folder
-        )
-        self.transaction_log = self.parent.file_system.create_file(
-            "db_transaction_log", "1", FileSystemFileType.LDF, folder=self.folder
-        )
-        if use_secondary_db_file:
-            self.secondary_store = self.parent.file_system.create_file(
-                "db_secondary_store", secondary_db_size, FileSystemFileType.NDF, folder=self.folder
-            )
-        else:
-            self.secondary_store = None
+        Send a SQL response back down to the SessionManager.
+
+        :param payload: The SQL query results.
+        :param session_id: The session identifier.
+        :return: True if the Status Code is 200, otherwise False.
+        """
+        software_manager: SoftwareManager = self.software_manager
+        software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
+
+        return payload["status_code"] == 200

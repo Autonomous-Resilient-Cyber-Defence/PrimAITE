@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
+from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
@@ -22,7 +23,7 @@ ServiceClass = TypeVar("ServiceClass", bound=Service)
 class SoftwareManager:
     """A class that manages all running Services and Applications on a Node and facilitates their communication."""
 
-    def __init__(self, session_manager: "SessionManager", sys_log: "SysLog"):
+    def __init__(self, session_manager: "SessionManager", sys_log: SysLog, file_system: FileSystem):
         """
         Initialize a new instance of SoftwareManager.
 
@@ -33,6 +34,7 @@ class SoftwareManager:
         self.applications: Dict[str, Application] = {}
         self.port_protocol_mapping: Dict[Tuple[Port, IPProtocol], Union[Service, Application]] = {}
         self.sys_log: SysLog = sys_log
+        self.file_system: FileSystem = file_system
 
     def add_service(self, service_class: Type[ServiceClass]):
         """
@@ -40,7 +42,7 @@ class SoftwareManager:
 
         :param: service_class: The class of the service to add
         """
-        service = service_class(software_manager=self, sys_log=self.sys_log)
+        service = service_class(software_manager=self, sys_log=self.sys_log, file_system=self.file_system)
 
         service.software_manager = self
         self.services[service.name] = service
@@ -108,9 +110,10 @@ class SoftwareManager:
         """
         receiver: Optional[Union[Service, Application]] = self.port_protocol_mapping.get((port, protocol), None)
         if receiver:
-            receiver.receive_payload(payload=payload, session_id=session_id)
+            receiver.receive(payload=payload, session_id=session_id)
         else:
             self.sys_log.error(f"No service or application found for port {port} and protocol {protocol}")
+        pass
 
     def show(self, markdown: bool = False):
         """

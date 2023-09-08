@@ -4,12 +4,14 @@ import re
 import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
+from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.core import SimComponent
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
@@ -890,6 +892,8 @@ class Node(SimComponent):
     "All processes on the node."
     file_system: FileSystem
     "The nodes file system."
+    root: Path
+    "Root directory for simulation output."
     sys_log: SysLog
     arp: ARPCache
     icmp: ICMP
@@ -917,14 +921,19 @@ class Node(SimComponent):
             kwargs["icmp"] = ICMP(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"))
         if not kwargs.get("session_manager"):
             kwargs["session_manager"] = SessionManager(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"))
+        if not kwargs.get("root"):
+            kwargs["root"] = SIM_OUTPUT / kwargs["hostname"]
+        if not kwargs.get("file_system"):
+            kwargs["file_system"] = FileSystem(sys_log=kwargs["sys_log"], sim_root=kwargs["root"] / "fs")
         if not kwargs.get("software_manager"):
             kwargs["software_manager"] = SoftwareManager(
-                sys_log=kwargs.get("sys_log"), session_manager=kwargs.get("session_manager")
+                sys_log=kwargs.get("sys_log"),
+                session_manager=kwargs.get("session_manager"),
+                file_system=kwargs.get("file_system"),
             )
-        if not kwargs.get("file_system"):
-            kwargs["file_system"] = FileSystem()
         super().__init__(**kwargs)
         self.arp.nics = self.nics
+        self.session_manager.software_manager = self.software_manager
 
     def describe_state(self) -> Dict:
         """
@@ -1091,6 +1100,8 @@ class Node(SimComponent):
         if frame.ip.protocol == IPProtocol.TCP:
             if frame.tcp.src_port == Port.ARP:
                 self.arp.process_arp_packet(from_nic=from_nic, arp_packet=frame.arp)
+            else:
+                self.session_manager.receive_frame(frame)
         elif frame.ip.protocol == IPProtocol.UDP:
             pass
         elif frame.ip.protocol == IPProtocol.ICMP:
