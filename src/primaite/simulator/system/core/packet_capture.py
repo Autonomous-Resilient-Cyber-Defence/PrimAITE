@@ -52,7 +52,7 @@ class PacketCapture:
 
         self.logger.addFilter(_JSONFilter())
 
-    def read(self) -> List[Dict[Any]]:
+    def read(self) -> List[Dict[str, Any]]:
         """
         Read packet capture logs and return them as a list of dictionaries.
 

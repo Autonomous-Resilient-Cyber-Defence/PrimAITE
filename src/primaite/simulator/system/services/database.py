@@ -95,10 +95,22 @@ class DatabaseService(Service):
 
         :param payload: The SQL query to be executed.
         :param session_id: The session identifier.
-        :return: The status code of the SQL execution.
+        :return: True if the Status Code is 200, otherwise False.
         """
         result = self._process_sql(payload)
-        software_manager: SoftwareManager = self.software_manager
-        software_manager.send_payload_to_session_manager(payload=result, session_id=session_id)
+        self.send(payload=result, session_id=session_id)
 
-        return result["status_code"] == 200
+        return payload["status_code"] == 200
+
+    def send(self, payload: Any, session_id: str, **kwargs) -> bool:
+        """
+        Send a SQL response back down to the SessionManager.
+
+        :param payload: The SQL query results.
+        :param session_id: The session identifier.
+        :return: True if the Status Code is 200, otherwise False.
+        """
+        software_manager: SoftwareManager = self.software_manager
+        software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
+
+        return payload["status_code"] == 200
