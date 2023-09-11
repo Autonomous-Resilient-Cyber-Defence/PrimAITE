@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 from random import choice
+from typing import Any
 
 
 class FileType(Enum):
@@ -95,7 +96,7 @@ class FileType(Enum):
     "Generic DB file. Used by sqlite3."
 
     @classmethod
-    def _missing_(cls, value):
+    def _missing_(cls, value: Any) -> FileType:
         return cls.UNKNOWN
 
     @classmethod
@@ -118,7 +119,7 @@ class FileType(Enum):
         return size if size else 0
 
 
-def get_file_type_from_extension(file_type_extension: str):
+def get_file_type_from_extension(file_type_extension: str) -> FileType:
     """
     Get a FileType from a file type extension.
 

@@ -54,13 +54,13 @@ class Application(IOSoftware):
         return state
 
     def run(self) -> None:
-        """Open the Application"""
+        """Open the Application."""
         if self.operating_state == ApplicationOperatingState.CLOSED:
             self.sys_log.info(f"Running Application {self.name}")
             self.operating_state = ApplicationOperatingState.RUNNING
 
     def close(self) -> None:
-        """Close the Application"""
+        """Close the Application."""
         if self.operating_state == ApplicationOperatingState.RUNNING:
             self.sys_log.info(f"Closed Application{self.name}")
             self.operating_state = ApplicationOperatingState.CLOSED

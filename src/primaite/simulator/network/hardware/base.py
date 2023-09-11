@@ -960,6 +960,7 @@ class Node(SimComponent):
         return state
 
     def show(self, markdown: bool = False, component: Literal["NIC", "OPEN_PORTS"] = "NIC"):
+        """A multi-use .show function that accepts either NIC or OPEN_PORTS."""
         if component == "NIC":
             self._show_nic(markdown)
         elif component == "OPEN_PORTS":

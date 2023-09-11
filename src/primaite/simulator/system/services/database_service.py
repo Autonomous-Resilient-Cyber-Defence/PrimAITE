@@ -1,6 +1,5 @@
 import sqlite3
 from datetime import datetime
-from ipaddress import IPv4Address
 from sqlite3 import OperationalError
 from typing import Any, Dict, List, Optional, Union
 
@@ -9,7 +8,6 @@ from prettytable import MARKDOWN, PrettyTable
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
