@@ -1,11 +1,12 @@
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
+from uuid import uuid4
 
 from prettytable import PrettyTable
 
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.application import Application
+from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 from primaite.simulator.system.core.software_manager import SoftwareManager
 
 
@@ -20,7 +21,9 @@ class DatabaseClient(Application):
     """
 
     server_ip_address: Optional[IPv4Address] = None
+    server_password: Optional[str] = None
     connected: bool = False
+    _query_success_tracker: Dict[str, bool] = {}
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseClient"
@@ -37,15 +40,22 @@ class DatabaseClient(Application):
         pass
         return super().describe_state()
 
-    def connect(self, server_ip_address: IPv4Address, password: Optional[str] = None) -> bool:
+    def configure(self, server_ip_address: IPv4Address, server_password: Optional[str] = None):
         """
-        Connect to a Database Service.
+        Configure the DatabaseClient to communicate with a DatabaseService.
 
-        :param server_ip_address: The IPv4 Address of the Node the Database Service is running on.
-        :param password: The Database Service password. Is optional and has a default value of None.
+        :param server_ip_address: The IP address of the Node the DatabaseService is on.
+        :param server_password: The password on the DatabaseService.
         """
+        self.server_ip_address = server_ip_address
+        self.server_password = server_password
+        self.sys_log.info(f"Configured the {self.name} with {server_ip_address=}, {server_password=}.")
+
+    def connect(self) -> bool:
+        """Connect to a Database Service."""
         if not self.connected and self.operating_state.RUNNING:
-            return self._connect(server_ip_address, password)
+            return self._connect(self.server_ip_address, self.server_password)
+        return False
 
     def _connect(
         self, server_ip_address: IPv4Address, password: Optional[str] = None, is_reattempt: bool = False
@@ -75,18 +85,42 @@ class DatabaseClient(Application):
 
             self.sys_log.info(f"DatabaseClient disconnected from {self.server_ip_address}")
             self.server_ip_address = None
+            self.connected = False
 
-    def query(self, sql: str):
+    def _query(self, sql: str, query_id: str, is_reattempt: bool = False) -> bool:
+        if is_reattempt:
+            success = self._query_success_tracker.get(query_id)
+            if success:
+                return True
+            return False
+        else:
+            software_manager: SoftwareManager = self.software_manager
+            software_manager.send_payload_to_session_manager(
+                payload={"type": "sql", "sql": sql, "uuid": query_id},
+                dest_ip_address=self.server_ip_address,
+                dest_port=self.port,
+            )
+            return self._query(sql=sql, query_id=query_id, is_reattempt=True)
+
+    def run(self) -> None:
+        """Run the DatabaseClient."""
+        super().run()
+        self.operating_state = ApplicationOperatingState.RUNNING
+        self.connect()
+
+    def query(self, sql: str) -> bool:
         """
         Send a query to the Database Service.
 
         :param sql: The SQL query.
+        :return: True if the query was successful, otherwise False.
         """
         if self.connected and self.operating_state.RUNNING:
-            software_manager: SoftwareManager = self.software_manager
-            software_manager.send_payload_to_session_manager(
-                payload={"type": "sql", "sql": sql}, dest_ip_address=self.server_ip_address, dest_port=self.port
-            )
+            query_id = str(uuid4())
+
+            # Initialise the tracker of this ID to False
+            self._query_success_tracker[query_id] = False
+            return self._query(sql=sql, query_id=query_id)
 
     def _print_data(self, data: Dict):
         """
@@ -94,13 +128,14 @@ class DatabaseClient(Application):
 
         :param markdown: Whether to display the table in Markdown format or not. Default is `False`.
         """
-        table = PrettyTable(list(data.values())[0])
+        if data:
+            table = PrettyTable(list(data.values())[0])
 
-        table.align = "l"
-        table.title = f"{self.sys_log.hostname} Database Client"
-        for row in data.values():
-            table.add_row(row.values())
-        print(table)
+            table.align = "l"
+            table.title = f"{self.sys_log.hostname} Database Client"
+            for row in data.values():
+                table.add_row(row.values())
+            print(table)
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
@@ -114,5 +149,9 @@ class DatabaseClient(Application):
             if payload["type"] == "connect_response":
                 self.connected = payload["response"] == True
             elif payload["type"] == "sql":
-                self._print_data(payload["data"])
+                query_id = payload.get("uuid")
+                status_code = payload.get("status_code")
+                self._query_success_tracker[query_id] = status_code == 200
+                if self._query_success_tracker[query_id]:
+                    self._print_data(payload["data"])
         return True

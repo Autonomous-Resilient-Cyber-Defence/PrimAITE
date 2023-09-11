@@ -98,6 +98,7 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    source/getting_started
    source/about
    source/config
+   source/simulation
    source/primaite_session
    source/custom_agent
    PrimAITE API <source/_autosummary/primaite>

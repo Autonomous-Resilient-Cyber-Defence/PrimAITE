@@ -16,3 +16,4 @@ Contents
    :maxdepth: 8
 
    database_client_server
+   data_manipulation_bot
