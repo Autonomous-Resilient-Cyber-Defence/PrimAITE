@@ -3,7 +3,7 @@ import json
 import pytest
 
 from primaite.simulator.network.hardware.base import Node
-from primaite.simulator.system.services.database import DatabaseService
+from primaite.simulator.system.services.database_service import DatabaseService
 
 DDL = """
 CREATE TABLE IF NOT EXISTS user (

@@ -9,7 +9,7 @@ from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
-from primaite.simulator.system.software import IOSoftware, SoftwareType
+from primaite.simulator.system.software import IOSoftware
 
 if TYPE_CHECKING:
     from primaite.simulator.system.core.session_manager import SessionManager
@@ -37,6 +37,11 @@ class SoftwareManager:
         self.file_system: FileSystem = file_system
 
     def get_open_ports(self) -> List[Port]:
+        """
+        Get a list of open ports.
+
+        :return: A list of all open ports on the Node.
+        """
         open_ports = [Port.ARP]
         for software in self.port_protocol_mapping.values():
             if software.operating_state in {ApplicationOperatingState.RUNNING, ServiceOperatingState.RUNNING}:
@@ -45,6 +50,11 @@ class SoftwareManager:
         return open_ports
 
     def install(self, software_class: Type[IOSoftwareClass]):
+        """
+        Install an Application or Service.
+
+        :param software_class: The software class.
+        """
         if software_class in self._software_class_to_name_map:
             self.sys_log.info(f"Cannot install {software_class} as it is already installed")
             return
@@ -59,6 +69,11 @@ class SoftwareManager:
             software.operating_state = ApplicationOperatingState.CLOSED
 
     def uninstall(self, software_name: str):
+        """
+        Uninstall an Application or Service.
+
+        :param software_name: The software name.
+        """
         if software_name in self.software:
             software = self.software.pop(software_name)  # noqa
             del software
