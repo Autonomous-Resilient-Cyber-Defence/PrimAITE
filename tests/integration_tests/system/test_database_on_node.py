@@ -21,6 +21,34 @@ def test_database_client_server_connection(uc2_network):
     assert len(db_service.connections) == 0
 
 
+def test_database_client_server_correct_password(uc2_network):
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+    db_service.password = "12345"
+
+    assert len(db_service.connections) == 0
+
+    assert db_client.connect(server_ip_address=IPv4Address("192.168.1.14"), password="12345")
+    assert len(db_service.connections) == 1
+
+
+def test_database_client_server_incorrect_password(uc2_network):
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+    db_service.password = "12345"
+
+    assert len(db_service.connections) == 0
+
+    assert not db_client.connect(server_ip_address=IPv4Address("192.168.1.14"), password="54321")
+    assert len(db_service.connections) == 0
+
+
 def test_database_client_query(uc2_network):
     """Tests DB query across the network returns HTTP status 200 and date."""
     web_server: Server = uc2_network.get_node_by_hostname("web_server")

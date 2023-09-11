@@ -29,6 +29,8 @@ class Network(SimComponent):
 
     nodes: Dict[str, Node] = {}
     links: Dict[str, Link] = {}
+    _node_id_map: Dict[int, Node] = {}
+    _link_id_map: Dict[int, Node] = {}
 
     def __init__(self, **kwargs):
         """
@@ -161,8 +163,8 @@ class Network(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "nodes": {uuid: node.describe_state() for uuid, node in self.nodes.items()},
-                "links": {uuid: link.describe_state() for uuid, link in self.links.items()},
+                "nodes": {i for i, node in self._node_id_map.items()},
+                "links": {i: link.describe_state() for i, link in self._link_id_map.items()},
             }
         )
         return state
@@ -179,6 +181,7 @@ class Network(SimComponent):
             _LOGGER.warning(f"Can't add node {node.uuid}. It is already in the network.")
             return
         self.nodes[node.uuid] = node
+        self._node_id_map[len(self.nodes)] = node
         node.parent = self
         self._nx_graph.add_node(node.hostname)
         _LOGGER.info(f"Added node {node.uuid} to Network {self.uuid}")
@@ -209,6 +212,10 @@ class Network(SimComponent):
             _LOGGER.warning(f"Can't remove node {node.uuid}. It's not in the network.")
             return
         self.nodes.pop(node.uuid)
+        for i, _node in self._node_id_map.items():
+            if node == _node:
+                self._node_id_map.pop(i)
+                break
         node.parent = None
         _LOGGER.info(f"Removed node {node.uuid} from network {self.uuid}")
 
@@ -235,6 +242,7 @@ class Network(SimComponent):
             return
         link = Link(endpoint_a=endpoint_a, endpoint_b=endpoint_b, **kwargs)
         self.links[link.uuid] = link
+        self._link_id_map[len(self.links)] = link
         self._nx_graph.add_edge(endpoint_a.parent.hostname, endpoint_b.parent.hostname)
         link.parent = self
         _LOGGER.info(f"Added link {link.uuid} to connect {endpoint_a} and {endpoint_b}")
@@ -248,6 +256,10 @@ class Network(SimComponent):
         link.endpoint_a.disconnect_link()
         link.endpoint_b.disconnect_link()
         self.links.pop(link.uuid)
+        for i, _link in self._link_id_map.items():
+            if link == _link:
+                self._link_id_map.pop(i)
+                break
         link.parent = None
         _LOGGER.info(f"Removed link {link.uuid} from network {self.uuid}.")
 

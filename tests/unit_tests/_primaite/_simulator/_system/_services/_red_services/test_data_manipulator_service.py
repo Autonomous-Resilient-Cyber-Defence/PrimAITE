@@ -12,9 +12,9 @@ def test_creation():
 
     client_1: Node = network.get_node_by_hostname("client_1")
 
-    client_1.software_manager.add_service(service_class=DataManipulatorService)
+    client_1.software_manager.install(service_class=DataManipulatorService)
 
-    data_manipulator_service: DataManipulatorService = client_1.software_manager.services["DataManipulatorBot"]
+    data_manipulator_service: DataManipulatorService = client_1.software_manager.software["DataManipulatorBot"]
 
     assert data_manipulator_service.name == "DataManipulatorBot"
     assert data_manipulator_service.port == Port.POSTGRES_SERVER

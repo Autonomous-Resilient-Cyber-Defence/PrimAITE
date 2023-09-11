@@ -57,6 +57,7 @@ class DatabaseClient(Application):
                 return self.connected
             else:
                 self.sys_log.info(f"DatabaseClient connected to {server_ip_address} declined")
+                return False
         payload = {"type": "connect_request", "password": password}
         software_manager: SoftwareManager = self.software_manager
         software_manager.send_payload_to_session_manager(
