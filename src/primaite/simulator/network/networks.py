@@ -6,6 +6,7 @@ from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.hardware.nodes.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.database import DatabaseService
 
 
@@ -149,6 +150,9 @@ def arcd_uc2_network() -> Network:
         hostname="web_server", ip_address="192.168.1.12", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
     )
     web_server.power_on()
+    web_server.software_manager.install(DatabaseClient)
+    database_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    database_client.run()
     network.connect(endpoint_b=web_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[2])
 
     # Database Server
@@ -187,12 +191,12 @@ def arcd_uc2_network() -> Network:
         "INSERT INTO user (name, email, age, city, occupation) VALUES ('Lucas Liu', 'lucasliu@example.com', 42, 'New York', 'Lawyer');",  # noqa
         "INSERT INTO user (name, email, age, city, occupation) VALUES ('Maggie Wang', 'maggiewang@example.com', 30, 'Los Angeles', 'Data Analyst');",  # noqa
     ]
-    database_server.software_manager.add_service(DatabaseService)
-    database: DatabaseService = database_server.software_manager.services["Database"]  # noqa
-    database.start()
-    database._process_sql(ddl)  # noqa
+    database_server.software_manager.install(DatabaseService)
+    database_service: DatabaseService = database_server.software_manager.software["DatabaseService"]  # noqa
+    database_service.start()
+    database_service._process_sql(ddl)  # noqa
     for insert_statement in user_insert_statements:
-        database._process_sql(insert_statement)  # noqa
+        database_service._process_sql(insert_statement)  # noqa
 
     # Backup Server
     backup_server = Server(

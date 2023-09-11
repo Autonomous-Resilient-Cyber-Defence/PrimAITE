@@ -1,15 +1,15 @@
 from ipaddress import IPv4Address
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.application import Application
+from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 from primaite.simulator.system.core.sys_log import SysLog
-from primaite.simulator.system.services.service import Service
-from primaite.simulator.system.software import SoftwareType
+from primaite.simulator.system.services.service import Service, ServiceOperatingState
+from primaite.simulator.system.software import IOSoftware, SoftwareType
 
 if TYPE_CHECKING:
     from primaite.simulator.system.core.session_manager import SessionManager
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 from typing import Type, TypeVar
 
-ServiceClass = TypeVar("ServiceClass", bound=Service)
+IOSoftwareClass = TypeVar("IOSoftwareClass", bound=IOSoftware)
 
 
 class SoftwareManager:
@@ -30,57 +30,55 @@ class SoftwareManager:
         :param session_manager: The session manager handling network communications.
         """
         self.session_manager = session_manager
-        self.services: Dict[str, Service] = {}
-        self.applications: Dict[str, Application] = {}
+        self.software: Dict[str, Union[Service, Application]] = {}
+        self._software_class_to_name_map: Dict[Type[IOSoftwareClass], str] = {}
         self.port_protocol_mapping: Dict[Tuple[Port, IPProtocol], Union[Service, Application]] = {}
         self.sys_log: SysLog = sys_log
         self.file_system: FileSystem = file_system
 
-    def add_service(self, service_class: Type[ServiceClass]):
-        """
-        Add a Service to the manager.
+    def get_open_ports(self) -> List[Port]:
+        open_ports = [Port.ARP]
+        for software in self.port_protocol_mapping.values():
+            if software.operating_state in {ApplicationOperatingState.RUNNING, ServiceOperatingState.RUNNING}:
+                open_ports.append(software.port)
+        open_ports.sort(key=lambda port: port.value)
+        return open_ports
 
-        :param: service_class: The class of the service to add
-        """
-        service = service_class(software_manager=self, sys_log=self.sys_log, file_system=self.file_system)
+    def install(self, software_class: Type[IOSoftwareClass]):
+        if software_class in self._software_class_to_name_map:
+            self.sys_log.info(f"Cannot install {software_class} as it is already installed")
+            return
+        software = software_class(software_manager=self, sys_log=self.sys_log, file_system=self.file_system)
+        if isinstance(software, Application):
+            software.install()
+        software.software_manager = self
+        self.software[software.name] = software
+        self.port_protocol_mapping[(software.port, software.protocol)] = software
+        self.sys_log.info(f"Installed {software.name}")
+        if isinstance(software, Application):
+            software.operating_state = ApplicationOperatingState.CLOSED
 
-        service.software_manager = self
-        self.services[service.name] = service
-        self.port_protocol_mapping[(service.port, service.protocol)] = service
+    def uninstall(self, software_name: str):
+        if software_name in self.software:
+            software = self.software.pop(software_name)  # noqa
+            del software
+            self.sys_log.info(f"Deleted {software_name}")
+            return
+        self.sys_log.error(f"Cannot uninstall {software_name} as it is not installed")
 
-    def add_application(self, name: str, application: Application, port: Port, protocol: IPProtocol):
-        """
-        Add an Application to the manager.
-
-        :param name: The name of the application.
-        :param application: The application instance.
-        :param port: The port used by the application.
-        :param protocol: The network protocol used by the application.
-        """
-        application.software_manager = self
-        self.applications[name] = application
-        self.port_protocol_mapping[(port, protocol)] = application
-
-    def send_internal_payload(self, target_software: str, target_software_type: SoftwareType, payload: Any):
+    def send_internal_payload(self, target_software: str, payload: Any):
         """
         Send a payload to a specific service or application.
 
         :param target_software: The name of the target service or application.
-        :param target_software_type: The type of software (Service, Application, Process).
         :param payload: The data to be sent.
-        :param receiver_type: The type of the target, either 'service' or 'application'.
         """
-        if target_software_type is SoftwareType.SERVICE:
-            receiver = self.services.get(target_software)
-        elif target_software_type is SoftwareType.APPLICATION:
-            receiver = self.applications.get(target_software)
-        else:
-            raise ValueError(f"Invalid receiver type {target_software_type}")
+        receiver = self.software.get(target_software)
 
         if receiver:
             receiver.receive_payload(payload)
         else:
-            raise ValueError(f"No {target_software_type.name.lower()} found with the name {target_software}")
+            self.sys_log.error(f"No Service of Application found with the name {target_software}")
 
     def send_payload_to_session_manager(
         self,
@@ -121,13 +119,20 @@ class SoftwareManager:
 
         :param markdown: If True, outputs the table in markdown format. Default is False.
         """
-        table = PrettyTable(["Name", "Operating State", "Health State", "Port"])
+        table = PrettyTable(["Name", "Type", "Operating State", "Health State", "Port"])
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.sys_log.hostname} Software Manager"
-        for service in self.services.values():
+        for software in self.port_protocol_mapping.values():
+            software_type = "Service" if isinstance(software, Service) else "Application"
             table.add_row(
-                [service.name, service.operating_state.name, service.health_state_actual.name, service.port.value]
+                [
+                    software.name,
+                    software_type,
+                    software.operating_state.name,
+                    software.health_state_actual.name,
+                    software.port.value,
+                ]
             )
         print(table)

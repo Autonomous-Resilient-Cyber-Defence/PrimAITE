@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 from ipaddress import IPv4Address
 from sqlite3 import OperationalError
 from typing import Any, Dict, List, Optional, Union
@@ -8,8 +9,10 @@ from prettytable import MARKDOWN, PrettyTable
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.software_manager import SoftwareManager
-from primaite.simulator.system.services.service import Service
+from primaite.simulator.system.services.service import Service, ServiceOperatingState
+from primaite.simulator.system.software import SoftwareHealthState
 
 
 class DatabaseService(Service):
@@ -19,11 +22,11 @@ class DatabaseService(Service):
     This class inherits from the `Service` class and provides methods to manage and query a SQLite database.
     """
 
-    backup_server: Optional[IPv4Address] = None
-    "The IP Address of the server the "
+    password: Optional[str] = None
+    connections: Dict[str, datetime] = {}
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "Database"
+        kwargs["name"] = "DatabaseService"
         kwargs["port"] = Port.POSTGRES_SERVER
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
@@ -62,6 +65,24 @@ class DatabaseService(Service):
         self._db_file: File = self.file_system.create_file(folder_name="database", file_name="database.db", real=True)
         self.folder = self._db_file.folder
 
+    def _process_connect(
+        self, session_id: str, password: Optional[str] = None
+    ) -> Dict[str, Union[int, Dict[str, bool]]]:
+        status_code = 500  # Default internal server error
+        if self.operating_state == ServiceOperatingState.RUNNING:
+            status_code = 503  # service unavailable
+            if self.health_state_actual == SoftwareHealthState.GOOD:
+                if self.password == password:
+                    status_code = 200  # ok
+                    self.connections[session_id] = datetime.now()
+                    self.sys_log.info(f"Connect request for {session_id=} authorised")
+                else:
+                    status_code = 401  # Unauthorised
+                    self.sys_log.info(f"Connect request for {session_id=} declined")
+        else:
+            status_code = 404  # service not found
+        return {"status_code": status_code, "type": "connect_response", "response": status_code == 200}
+
     def _process_sql(self, query: str) -> Dict[str, Union[int, List[Any]]]:
         """
         Executes the given SQL query and returns the result.
@@ -71,12 +92,21 @@ class DatabaseService(Service):
         """
         try:
             self._cursor.execute(query)
+
             self._conn.commit()
         except OperationalError:
             # Handle the case where the table does not exist.
             return {"status_code": 404, "data": []}
-
-        return {"status_code": 200, "data": self._cursor.fetchall()}
+        data = []
+        description = self._cursor.description
+        if description:
+            headers = []
+            for header in description:
+                headers.append(header[0])
+            data = self._cursor.fetchall()
+            if data and headers:
+                data = {row[0]: {header: value for header, value in zip(headers, row)} for row in data}
+        return {"status_code": 200, "type": "sql", "data": data}
 
     def describe_state(self) -> Dict:
         """
@@ -97,10 +127,20 @@ class DatabaseService(Service):
         :param session_id: The session identifier.
         :return: True if the Status Code is 200, otherwise False.
         """
-        result = self._process_sql(payload)
+        result = {"status_code": 500, "data": []}
+        if isinstance(payload, dict) and payload.get("type"):
+            if payload["type"] == "connect_request":
+                result = self._process_connect(session_id=session_id, password=payload.get("password"))
+            elif payload["type"] == "disconnect":
+                if session_id in self.connections:
+                    self.connections.pop(session_id)
+            elif payload["type"] == "sql":
+                if session_id in self.connections:
+                    result = self._process_sql(payload.get("sql"))
+                else:
+                    result = {"status_code": 401, "type": "sql"}
         self.send(payload=result, session_id=session_id)
-
-        return payload["status_code"] == 200
+        return True
 
     def send(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
