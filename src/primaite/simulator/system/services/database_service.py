@@ -81,20 +81,21 @@ class DatabaseService(Service):
             status_code = 404  # service not found
         return {"status_code": status_code, "type": "connect_response", "response": status_code == 200}
 
-    def _process_sql(self, query: str) -> Dict[str, Union[int, List[Any]]]:
+    def _process_sql(self, query: str, query_id: str) -> Dict[str, Union[int, List[Any]]]:
         """
         Executes the given SQL query and returns the result.
 
         :param query: The SQL query to be executed.
         :return: Dictionary containing status code and data fetched.
         """
+        self.sys_log.info(f"{self.name}: Running {query}")
         try:
             self._cursor.execute(query)
-
             self._conn.commit()
         except OperationalError:
             # Handle the case where the table does not exist.
-            return {"status_code": 404, "data": []}
+            self.sys_log.error(f"{self.name}: Error, query failed")
+            return {"status_code": 404, "data": {}}
         data = []
         description = self._cursor.description
         if description:
@@ -104,7 +105,7 @@ class DatabaseService(Service):
             data = self._cursor.fetchall()
             if data and headers:
                 data = {row[0]: {header: value for header, value in zip(headers, row)} for row in data}
-        return {"status_code": 200, "type": "sql", "data": data}
+        return {"status_code": 200, "type": "sql", "data": data, "uuid": query_id}
 
     def describe_state(self) -> Dict:
         """
@@ -134,7 +135,7 @@ class DatabaseService(Service):
                     self.connections.pop(session_id)
             elif payload["type"] == "sql":
                 if session_id in self.connections:
-                    result = self._process_sql(payload.get("sql"))
+                    result = self._process_sql(query=payload["sql"], query_id=payload["uuid"])
                 else:
                     result = {"status_code": 401, "type": "sql"}
         self.send(payload=result, session_id=session_id)

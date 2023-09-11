@@ -186,7 +186,7 @@ class NIC(SimComponent):
         if self.connected_node:
             self.connected_node.sys_log.info(f"NIC {self} disabled")
         else:
-            _LOGGER.info(f"NIC {self} disabled")
+            _LOGGER.debug(f"NIC {self} disabled")
         if self.connected_link:
             self.connected_link.endpoint_down()
 
@@ -208,7 +208,7 @@ class NIC(SimComponent):
         # TODO: Inform the Node that a link has been connected
         self.connected_link = link
         self.enable()
-        _LOGGER.info(f"NIC {self} connected to Link {link}")
+        _LOGGER.debug(f"NIC {self} connected to Link {link}")
 
     def disconnect_link(self):
         """Disconnect the NIC from the connected Link."""
@@ -351,7 +351,7 @@ class SwitchPort(SimComponent):
         if self.connected_node:
             self.connected_node.sys_log.info(f"SwitchPort {self} disabled")
         else:
-            _LOGGER.info(f"SwitchPort {self} disabled")
+            _LOGGER.debug(f"SwitchPort {self} disabled")
         if self.connected_link:
             self.connected_link.endpoint_down()
 
@@ -371,7 +371,7 @@ class SwitchPort(SimComponent):
 
         # TODO: Inform the Switch that a link has been connected
         self.connected_link = link
-        _LOGGER.info(f"SwitchPort {self} connected to Link {link}")
+        _LOGGER.debug(f"SwitchPort {self} connected to Link {link}")
         self.enable()
 
     def disconnect_link(self):
@@ -477,13 +477,13 @@ class Link(SimComponent):
     def endpoint_up(self):
         """Let the Link know and endpoint has been brought up."""
         if self.is_up:
-            _LOGGER.info(f"Link {self} up")
+            _LOGGER.debug(f"Link {self} up")
 
     def endpoint_down(self):
         """Let the Link know and endpoint has been brought down."""
         if not self.is_up:
             self.current_load = 0.0
-            _LOGGER.info(f"Link {self} down")
+            _LOGGER.debug(f"Link {self} down")
 
     @property
     def is_up(self) -> bool:
@@ -510,7 +510,7 @@ class Link(SimComponent):
         """
         can_transmit = self._can_transmit(frame)
         if not can_transmit:
-            _LOGGER.info(f"Cannot transmit frame as {self} is at capacity")
+            _LOGGER.debug(f"Cannot transmit frame as {self} is at capacity")
             return False
 
         receiver = self.endpoint_a
@@ -522,7 +522,7 @@ class Link(SimComponent):
             # Frame transmitted successfully
             # Load the frame size on the link
             self.current_load += frame_size
-            _LOGGER.info(
+            _LOGGER.debug(
                 f"Added {frame_size:.3f} Mbits to {self}, current load {self.current_load:.3f} Mbits "
                 f"({self.current_load_percent})"
             )
@@ -1148,7 +1148,7 @@ class Node(SimComponent):
         service.parent = self
         service.install()  # Perform any additional setup, such as creating files for this service on the node.
         self.sys_log.info(f"Installed service {service.name}")
-        _LOGGER.info(f"Added service {service.uuid} to node {self.uuid}")
+        _LOGGER.debug(f"Added service {service.uuid} to node {self.uuid}")
 
     def uninstall_service(self, service: Service) -> None:
         """Uninstall and completely remove service from this node.
@@ -1163,7 +1163,7 @@ class Node(SimComponent):
         self.services.pop(service.uuid)
         service.parent = None
         self.sys_log.info(f"Uninstalled service {service.name}")
-        _LOGGER.info(f"Removed service {service.uuid} from node {self.uuid}")
+        _LOGGER.debug(f"Removed service {service.uuid} from node {self.uuid}")
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Service):

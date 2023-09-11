@@ -184,7 +184,7 @@ class Network(SimComponent):
         self._node_id_map[len(self.nodes)] = node
         node.parent = self
         self._nx_graph.add_node(node.hostname)
-        _LOGGER.info(f"Added node {node.uuid} to Network {self.uuid}")
+        _LOGGER.debug(f"Added node {node.uuid} to Network {self.uuid}")
 
     def get_node_by_hostname(self, hostname: str) -> Optional[Node]:
         """
@@ -245,7 +245,7 @@ class Network(SimComponent):
         self._link_id_map[len(self.links)] = link
         self._nx_graph.add_edge(endpoint_a.parent.hostname, endpoint_b.parent.hostname)
         link.parent = self
-        _LOGGER.info(f"Added link {link.uuid} to connect {endpoint_a} and {endpoint_b}")
+        _LOGGER.debug(f"Added link {link.uuid} to connect {endpoint_a} and {endpoint_b}")
 
     def remove_link(self, link: Link) -> None:
         """Disconnect a link from the network.

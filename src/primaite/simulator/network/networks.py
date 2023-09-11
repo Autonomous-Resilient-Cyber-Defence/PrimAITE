@@ -1,3 +1,5 @@
+from ipaddress import IPv4Address
+
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.base import NIC
 from primaite.simulator.network.hardware.nodes.computer import Computer
@@ -8,6 +10,7 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.database_service import DatabaseService
+from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 
 
 def client_server_routed() -> Network:
@@ -127,6 +130,9 @@ def arcd_uc2_network() -> Network:
     )
     client_1.power_on()
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
+    client_1.software_manager.install(DataManipulationBot)
+    db_manipulation_bot: DataManipulationBot = client_1.software_manager.software["DataManipulationBot"]
+    db_manipulation_bot.configure(server_ip_address=IPv4Address("192.168.1.14"), payload="DROP TABLE IF EXISTS user;")
 
     # Client 2
     client_2 = Computer(
@@ -144,16 +150,6 @@ def arcd_uc2_network() -> Network:
     )
     domain_controller.power_on()
     network.connect(endpoint_b=domain_controller.ethernet_port[1], endpoint_a=switch_1.switch_ports[1])
-
-    # Web Server
-    web_server = Server(
-        hostname="web_server", ip_address="192.168.1.12", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
-    )
-    web_server.power_on()
-    web_server.software_manager.install(DatabaseClient)
-    database_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
-    database_client.run()
-    network.connect(endpoint_b=web_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[2])
 
     # Database Server
     database_server = Server(
@@ -194,9 +190,21 @@ def arcd_uc2_network() -> Network:
     database_server.software_manager.install(DatabaseService)
     database_service: DatabaseService = database_server.software_manager.software["DatabaseService"]  # noqa
     database_service.start()
-    database_service._process_sql(ddl)  # noqa
+    database_service._process_sql(ddl, None)  # noqa
     for insert_statement in user_insert_statements:
-        database_service._process_sql(insert_statement)  # noqa
+        database_service._process_sql(insert_statement, None)  # noqa
+
+    # Web Server
+    web_server = Server(
+        hostname="web_server", ip_address="192.168.1.12", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+    )
+    web_server.power_on()
+    web_server.software_manager.install(DatabaseClient)
+    database_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    database_client.configure(server_ip_address=IPv4Address("192.168.1.14"))
+    network.connect(endpoint_b=web_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[2])
+    database_client.run()
+    database_client.connect()
 
     # Backup Server
     backup_server = Server(
