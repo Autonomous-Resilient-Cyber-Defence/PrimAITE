@@ -31,7 +31,7 @@ def test_create_dns_server(dns_server):
     dns_server_service: DNSServer = dns_server.software_manager.software["DNSServer"]
     assert dns_server_service.name is "DNSServer"
     assert dns_server_service.port is Port.DNS
-    assert dns_server_service.protocol is IPProtocol.UDP
+    assert dns_server_service.protocol is IPProtocol.TCP
 
 
 def test_create_dns_client(dns_client):
@@ -39,7 +39,7 @@ def test_create_dns_client(dns_client):
     dns_client_service: DNSClient = dns_client.software_manager.software["DNSClient"]
     assert dns_client_service.name is "DNSClient"
     assert dns_client_service.port is Port.DNS
-    assert dns_client_service.protocol is IPProtocol.UDP
+    assert dns_client_service.protocol is IPProtocol.TCP
 
 
 def test_dns_server_domain_name_registration(dns_server):

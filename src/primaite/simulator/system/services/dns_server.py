@@ -23,7 +23,8 @@ class DNSServer(Service):
         kwargs["port"] = Port.DNS
         # DNS uses UDP by default
         # it switches to TCP when the bytes exceed 512 (or 4096) bytes
-        kwargs["protocol"] = IPProtocol.UDP
+        # TCP for now
+        kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:

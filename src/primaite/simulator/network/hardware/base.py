@@ -406,7 +406,8 @@ class SwitchPort(SimComponent):
         if self.enabled:
             frame.decrement_ttl()
             self.pcap.capture(frame)
-            self.connected_node.forward_frame(frame=frame, incoming_port=self)
+            connected_node: Node = self.connected_node
+            connected_node.forward_frame(frame=frame, incoming_port=self)
             return True
         return False
 

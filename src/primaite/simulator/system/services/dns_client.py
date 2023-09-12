@@ -22,7 +22,8 @@ class DNSClient(Service):
         kwargs["port"] = Port.DNS
         # DNS uses UDP by default
         # it switches to TCP when the bytes exceed 512 (or 4096) bytes
-        kwargs["protocol"] = IPProtocol.UDP
+        # TCP for now
+        kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:
@@ -84,14 +85,15 @@ class DNSClient(Service):
                 return False
             else:
                 # send a request to check if domain name exists in the DNS Server
-                self.software_manager.send_payload_to_session_manager(
+                software_manager: SoftwareManager = self.software_manager
+                software_manager.send_payload_to_session_manager(
                     payload=payload,
                     dest_ip_address=dest_ip_address,
                     dest_port=dest_port,
                 )
 
                 # check if the domain has been added to cache
-                if self.dns_cache.get(target_domain) is None:
+                if self.dns_cache.get(target_domain, None) is None:
                     # call function again
                     return self.check_domain_exists(
                         target_domain=target_domain,

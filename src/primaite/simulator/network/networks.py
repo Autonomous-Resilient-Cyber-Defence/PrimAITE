@@ -132,6 +132,8 @@ def arcd_uc2_network() -> Network:
     )
     client_1.power_on()
     client_1.software_manager.install(DNSClient)
+    client_1_dns_client_service: DNSServer = client_1.software_manager.software["DNSClient"]  # noqa
+    client_1_dns_client_service.start()
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
     client_1.software_manager.install(DataManipulationBot)
     db_manipulation_bot: DataManipulationBot = client_1.software_manager.software["DataManipulationBot"]
@@ -143,6 +145,8 @@ def arcd_uc2_network() -> Network:
     )
     client_2.power_on()
     client_2.software_manager.install(DNSClient)
+    client_2_dns_client_service: DNSServer = client_2.software_manager.software["DNSClient"]  # noqa
+    client_2_dns_client_service.start()
     network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
 
     # Domain Controller
@@ -215,6 +219,7 @@ def arcd_uc2_network() -> Network:
 
     # register the web_server to a domain
     dns_server_service: DNSServer = domain_controller.software_manager.software["DNSServer"]  # noqa
+    dns_server_service.start()
     dns_server_service.dns_register("arcd.com", web_server.ip_address)
 
     # Backup Server
