@@ -1,8 +1,9 @@
+import json
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
-from primaite.simulator import TEMP_SIM_OUTPUT
+from primaite.simulator import SIM_OUTPUT
 
 
 class _JSONFilter(logging.Filter):
@@ -51,6 +52,18 @@ class PacketCapture:
 
         self.logger.addFilter(_JSONFilter())
 
+    def read(self) -> List[Dict[str, Any]]:
+        """
+        Read packet capture logs and return them as a list of dictionaries.
+
+        :return: List of frames captured, represented as dictionaries.
+        """
+        frames = []
+        with open(self._get_log_path(), "r") as file:
+            while line := file.readline():
+                frames.append(json.loads(line.rstrip()))
+        return frames
+
     @property
     def _logger_name(self) -> str:
         """Get PCAP the logger name."""
@@ -62,7 +75,7 @@ class PacketCapture:
 
     def _get_log_path(self) -> Path:
         """Get the path for the log file."""
-        root = TEMP_SIM_OUTPUT / self.hostname
+        root = SIM_OUTPUT / self.hostname
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self._logger_name}.log"
 

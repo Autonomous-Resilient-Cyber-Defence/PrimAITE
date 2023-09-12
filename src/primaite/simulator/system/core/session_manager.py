@@ -32,27 +32,23 @@ class Session(SimComponent):
     """
 
     protocol: IPProtocol
-    src_ip_address: IPv4Address
-    dst_ip_address: IPv4Address
+    with_ip_address: IPv4Address
     src_port: Optional[Port]
     dst_port: Optional[Port]
     connected: bool = False
 
     @classmethod
-    def from_session_key(
-        cls, session_key: Tuple[IPProtocol, IPv4Address, IPv4Address, Optional[Port], Optional[Port]]
-    ) -> Session:
+    def from_session_key(cls, session_key: Tuple[IPProtocol, IPv4Address, Optional[Port], Optional[Port]]) -> Session:
         """
         Create a Session instance from a session key tuple.
 
         :param session_key: Tuple containing the session details.
         :return: A Session instance.
         """
-        protocol, src_ip_address, dst_ip_address, src_port, dst_port = session_key
+        protocol, with_ip_address, src_port, dst_port = session_key
         return Session(
             protocol=protocol,
-            src_ip_address=src_ip_address,
-            dst_ip_address=dst_ip_address,
+            with_ip_address=with_ip_address,
             src_port=src_port,
             dst_port=dst_port,
         )
@@ -99,8 +95,8 @@ class SessionManager:
 
     @staticmethod
     def _get_session_key(
-        frame: Frame, from_source: bool = True
-    ) -> Tuple[IPProtocol, IPv4Address, IPv4Address, Optional[Port], Optional[Port]]:
+        frame: Frame, inbound_frame: bool = True
+    ) -> Tuple[IPProtocol, IPv4Address, Optional[Port], Optional[Port]]:
         """
         Extracts the session key from the given frame.
 
@@ -112,36 +108,36 @@ class SessionManager:
         - Optional[Port]: The destination port number (if applicable).
 
         :param frame: The network frame from which to extract the session key.
-        :param from_source: A flag to indicate if the key should be extracted from the source or destination.
         :return: A tuple containing the session key.
         """
         protocol = frame.ip.protocol
-        src_ip_address = frame.ip.src_ip_address
-        dst_ip_address = frame.ip.dst_ip_address
+        with_ip_address = frame.ip.src_ip_address
         if protocol == IPProtocol.TCP:
-            if from_source:
+            if inbound_frame:
                 src_port = frame.tcp.src_port
                 dst_port = frame.tcp.dst_port
             else:
                 dst_port = frame.tcp.src_port
                 src_port = frame.tcp.dst_port
+                with_ip_address = frame.ip.dst_ip_address
         elif protocol == IPProtocol.UDP:
-            if from_source:
+            if inbound_frame:
                 src_port = frame.udp.src_port
                 dst_port = frame.udp.dst_port
             else:
                 dst_port = frame.udp.src_port
                 src_port = frame.udp.dst_port
+                with_ip_address = frame.ip.dst_ip_address
         else:
             src_port = None
             dst_port = None
-        return protocol, src_ip_address, dst_ip_address, src_port, dst_port
+        return protocol, with_ip_address, src_port, dst_port
 
     def receive_payload_from_software_manager(
         self,
         payload: Any,
-        dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
+        dst_ip_address: Optional[IPv4Address] = None,
+        dst_port: Optional[Port] = None,
         session_id: Optional[str] = None,
         is_reattempt: bool = False,
     ) -> Union[Any, None]:
@@ -154,20 +150,21 @@ class SessionManager:
         :param session_id: The Session ID the payload is to originate from. Optional. If None, one will be created.
         """
         if session_id:
-            dest_ip_address = self.sessions_by_uuid[session_id].dst_ip_address
-            dest_port = self.sessions_by_uuid[session_id].dst_port
+            session = self.sessions_by_uuid[session_id]
+            dst_ip_address = self.sessions_by_uuid[session_id].with_ip_address
+            dst_port = self.sessions_by_uuid[session_id].dst_port
 
-        dst_mac_address = self.arp_cache.get_arp_cache_mac_address(dest_ip_address)
+        dst_mac_address = self.arp_cache.get_arp_cache_mac_address(dst_ip_address)
 
         if dst_mac_address:
-            outbound_nic = self.arp_cache.get_arp_cache_nic(dest_ip_address)
+            outbound_nic = self.arp_cache.get_arp_cache_nic(dst_ip_address)
         else:
             if not is_reattempt:
-                self.arp_cache.send_arp_request(dest_ip_address)
+                self.arp_cache.send_arp_request(dst_ip_address)
                 return self.receive_payload_from_software_manager(
                     payload=payload,
-                    dest_ip_address=dest_ip_address,
-                    dest_port=dest_port,
+                    dst_ip_address=dst_ip_address,
+                    dst_port=dst_port,
                     session_id=session_id,
                     is_reattempt=True,
                 )
@@ -178,17 +175,17 @@ class SessionManager:
             ethernet=EthernetHeader(src_mac_addr=outbound_nic.mac_address, dst_mac_addr=dst_mac_address),
             ip=IPPacket(
                 src_ip_address=outbound_nic.ip_address,
-                dst_ip_address=dest_ip_address,
+                dst_ip_address=dst_ip_address,
             ),
             tcp=TCPHeader(
-                src_port=dest_port,
-                dst_port=dest_port,
+                src_port=dst_port,
+                dst_port=dst_port,
             ),
             payload=payload,
         )
 
         if not session_id:
-            session_key = self._get_session_key(frame, from_source=True)
+            session_key = self._get_session_key(frame, inbound_frame=False)
             session = self.sessions_by_key.get(session_key)
             if not session:
                 # Create new session
@@ -198,33 +195,25 @@ class SessionManager:
 
         outbound_nic.send_frame(frame)
 
-    def send_payload_to_software_manager(self, payload: Any, session_id: int):
+    def receive_frame(self, frame: Frame):
         """
-        Send a payload to the software manager.
-
-        :param payload: The payload to be sent.
-        :param session_id: The Session ID the payload originates from.
-        """
-        self.software_manager.receive_payload_from_session_manger()
-
-    def receive_payload_from_nic(self, frame: Frame):
-        """
-        Receive a Frame from the NIC.
+        Receive a Frame.
 
         Extract the session key using the _get_session_key method, and forward the payload to the appropriate
         session. If the session does not exist, a new one is created.
 
         :param frame: The frame being received.
         """
-        session_key = self._get_session_key(frame)
-        session = self.sessions_by_key.get(session_key)
+        session_key = self._get_session_key(frame, inbound_frame=True)
+        session: Session = self.sessions_by_key.get(session_key)
         if not session:
             # Create new session
             session = Session.from_session_key(session_key)
             self.sessions_by_key[session_key] = session
             self.sessions_by_uuid[session.uuid] = session
-        self.software_manager.receive_payload_from_session_manger(payload=frame, session=session)
-        # TODO: Implement the frame deconstruction and send to SoftwareManager.
+        self.software_manager.receive_payload_from_session_manger(
+            payload=frame.payload, port=frame.tcp.dst_port, protocol=frame.ip.protocol, session_id=session.uuid
+        )
 
     def show(self, markdown: bool = False):
         """
