@@ -75,8 +75,6 @@ class DNSServer(Service):
     def send(
         self,
         payload: Any,
-        dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:
@@ -87,14 +85,13 @@ class DNSServer(Service):
         is generated should be implemented in subclasses.
 
         :param: payload: The payload to send.
-        :param: dest_ip_address: The ip address of the machine that the payload will be sent to
-        :param: dest_port: The port of the machine that the payload will be sent to
         :param: session_id: The id of the session
 
         :return: True if successful, False otherwise.
         """
         try:
             self.software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
+            return True
         except Exception as e:
             _LOGGER.error(e)
             return False
@@ -102,8 +99,6 @@ class DNSServer(Service):
     def receive(
         self,
         payload: Any,
-        dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:
@@ -114,11 +109,9 @@ class DNSServer(Service):
         is generated should be implemented in subclasses.
 
         :param: payload: The payload to send.
-        :param: dest_ip_address: The ip address of the machine that the payload will be sent to
-        :param: dest_port: The port of the machine that the payload will be sent to
         :param: session_id: The id of the session
 
-        :return: True if successful, False otherwise.
+        :return: True if DNS request returns a valid IP, otherwise, False
         """
         # The payload should be a DNS packet
         if not isinstance(payload, DNSPacket):
@@ -128,10 +121,10 @@ class DNSServer(Service):
         payload: DNSPacket = payload
         if payload.dns_request is not None:
             # generate a reply with the correct DNS IP address
-            payload.generate_reply(self.dns_lookup(payload.dns_request.domain_name_request))
+            payload = payload.generate_reply(self.dns_lookup(payload.dns_request.domain_name_request))
             # send reply
             self.send(payload, session_id)
-            return True
+            return payload.dns_reply is not None
 
         return False
 

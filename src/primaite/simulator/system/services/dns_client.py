@@ -1,10 +1,14 @@
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 
+from primaite import getLogger
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service
+
+_LOGGER = getLogger(__name__)
 
 
 class DNSClient(Service):
@@ -52,15 +56,15 @@ class DNSClient(Service):
         """
         self.dns_cache[domain_name] = ip_address
 
-    def check_domain_in_cache(
+    def check_domain_exists(
         self,
         target_domain: str,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
+        dest_port: Optional[Port] = Port.DNS,
         session_id: Optional[str] = None,
         is_reattempt: bool = False,
     ) -> bool:
-        """Function to check if domain name is in DNS client cache.
+        """Function to check if domain name exists.
 
         :param: target_domain: The domain requested for an IP address.
         :param: dest_ip_address: The ip address of the payload destination.
@@ -80,21 +84,26 @@ class DNSClient(Service):
                 return False
             else:
                 # send a request to check if domain name exists in the DNS Server
-                self.send(payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id)
-                # call function again
-                return self.check_domain_in_cache(
-                    target_domain=target_domain,
+                self.software_manager.send_payload_to_session_manager(
+                    payload=payload,
                     dest_ip_address=dest_ip_address,
                     dest_port=dest_port,
-                    session_id=session_id,
-                    is_reattempt=True,
                 )
+
+                # check if the domain has been added to cache
+                if self.dns_cache.get(target_domain) is None:
+                    # call function again
+                    return self.check_domain_exists(
+                        target_domain=target_domain,
+                        dest_ip_address=dest_ip_address,
+                        dest_port=dest_port,
+                        session_id=session_id,
+                        is_reattempt=True,
+                    )
 
     def send(
         self,
         payload: Any,
-        dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:
@@ -112,15 +121,12 @@ class DNSClient(Service):
         :return: True if successful, False otherwise.
         """
         # create DNS request packet
-        self.software_manager.send_payload_to_session_manager(
-            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
-        )
+        software_manager: SoftwareManager = self.software_manager
+        software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
 
     def receive(
         self,
         payload: Any,
-        dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:
@@ -131,11 +137,18 @@ class DNSClient(Service):
         is generated should be implemented in subclasses.
 
         :param payload: The payload to be sent.
-        :param dest_ip_address: The ip address of the payload destination.
-        :param dest_port: The port of the payload destination.
         :param session_id: The Session ID the payload is to originate from. Optional.
         :return: True if successful, False otherwise.
         """
-        super().send()
-        # check the DNS packet (dns request, dns reply) here and see if it actually worked
-        pass
+        # The payload should be a DNS packet
+        if not isinstance(payload, DNSPacket):
+            _LOGGER.debug(f"{payload} is not a DNSPacket")
+            return False
+        # cast payload into a DNS packet
+        payload: DNSPacket = payload
+        if payload.dns_reply is not None:
+            # add the IP address to the client cache
+            self.dns_cache[payload.dns_request.domain_name_request] = payload.dns_reply.domain_name_ip_address
+            return True
+
+        return False

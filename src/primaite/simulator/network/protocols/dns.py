@@ -56,7 +56,7 @@ class DNSPacket(BaseModel):
         :param domain_ip_address: The IP address that was being sought after from the original target domain name.
         :return: A new instance of DNSPacket.
         """
-        return DNSPacket(
-            dns_request=DNSRequest(domain_name_request=self.dns_request.domain_name_request),
-            dns_reply=DNSReply(domain_name_ip_address=domain_ip_address),
-        )
+        if domain_ip_address is not None:
+            self.dns_reply = DNSReply(domain_name_ip_address=IPv4Address(domain_ip_address))
+
+        return self

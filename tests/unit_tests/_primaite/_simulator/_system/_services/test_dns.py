@@ -1,10 +1,9 @@
-import sys
 from ipaddress import IPv4Address
 
 import pytest
 
 from primaite.simulator.network.hardware.base import Node
-from primaite.simulator.network.networks import arcd_uc2_network
+from primaite.simulator.network.protocols.dns import DNSPacket, DNSReply, DNSRequest
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.dns_client import DNSClient
@@ -14,22 +13,22 @@ from primaite.simulator.system.services.dns_server import DNSServer
 @pytest.fixture(scope="function")
 def dns_server() -> Node:
     node = Node(hostname="dns_server")
-    node.software_manager.add_service(service_class=DNSServer)
-    node.software_manager.services["DNSServer"].start()
+    node.software_manager.install(software_class=DNSServer)
+    node.software_manager.software["DNSServer"].start()
     return node
 
 
 @pytest.fixture(scope="function")
 def dns_client() -> Node:
     node = Node(hostname="dns_client")
-    node.software_manager.add_service(service_class=DNSClient)
-    node.software_manager.services["DNSClient"].start()
+    node.software_manager.install(software_class=DNSClient)
+    node.software_manager.software["DNSClient"].start()
     return node
 
 
 def test_create_dns_server(dns_server):
     assert dns_server is not None
-    dns_server_service: DNSServer = dns_server.software_manager.services["DNSServer"]
+    dns_server_service: DNSServer = dns_server.software_manager.software["DNSServer"]
     assert dns_server_service.name is "DNSServer"
     assert dns_server_service.port is Port.DNS
     assert dns_server_service.protocol is IPProtocol.UDP
@@ -37,7 +36,7 @@ def test_create_dns_server(dns_server):
 
 def test_create_dns_client(dns_client):
     assert dns_client is not None
-    dns_client_service: DNSClient = dns_client.software_manager.services["DNSClient"]
+    dns_client_service: DNSClient = dns_client.software_manager.software["DNSClient"]
     assert dns_client_service.name is "DNSClient"
     assert dns_client_service.port is Port.DNS
     assert dns_client_service.protocol is IPProtocol.UDP
@@ -45,7 +44,7 @@ def test_create_dns_client(dns_client):
 
 def test_dns_server_domain_name_registration(dns_server):
     """Test to check if the domain name registration works."""
-    dns_server_service: DNSServer = dns_server.software_manager.services["DNSServer"]
+    dns_server_service: DNSServer = dns_server.software_manager.software["DNSServer"]
 
     # register the web server in the domain controller
     dns_server_service.dns_register(domain_name="real-domain.com", domain_ip_address=IPv4Address("192.168.1.12"))
@@ -57,10 +56,45 @@ def test_dns_server_domain_name_registration(dns_server):
 
 def test_dns_client_check_domain_in_cache(dns_client):
     """Test to make sure that the check_domain_in_cache returns the correct values."""
-    dns_client_service: DNSClient = dns_client.software_manager.services["DNSClient"]
+    dns_client_service: DNSClient = dns_client.software_manager.software["DNSClient"]
 
     # add a domain to the dns client cache
     dns_client_service.add_domain_to_cache("real-domain.com", IPv4Address("192.168.1.12"))
 
-    assert dns_client_service.check_domain_in_cache("fake-domain.com") is False
-    assert dns_client_service.check_domain_in_cache("real-domain.com") is True
+    assert dns_client_service.check_domain_exists("fake-domain.com") is False
+    assert dns_client_service.check_domain_exists("real-domain.com") is True
+
+
+def test_dns_server_receive(dns_server):
+    """Test to make sure that the DNS Server correctly responds to a DNS Client request."""
+    dns_server_service: DNSServer = dns_server.software_manager.software["DNSServer"]
+
+    # register the web server in the domain controller
+    dns_server_service.dns_register(domain_name="real-domain.com", domain_ip_address=IPv4Address("192.168.1.12"))
+
+    assert (
+        dns_server_service.receive(payload=DNSPacket(dns_request=DNSRequest(domain_name_request="fake-domain.com")))
+        is False
+    )
+
+    assert (
+        dns_server_service.receive(payload=DNSPacket(dns_request=DNSRequest(domain_name_request="real-domain.com")))
+        is True
+    )
+
+    dns_server_service.show()
+
+
+def test_dns_client_receive(dns_client):
+    """Test to make sure the DNS Client knows how to deal with request responses."""
+    dns_client_service: DNSClient = dns_client.software_manager.software["DNSClient"]
+
+    dns_client_service.receive(
+        payload=DNSPacket(
+            dns_request=DNSRequest(domain_name_request="real-domain.com"),
+            dns_reply=DNSReply(domain_name_ip_address=IPv4Address("192.168.1.12")),
+        )
+    )
+
+    # domain name should be saved to cache
+    assert dns_client_service.dns_cache["real-domain.com"] == IPv4Address("192.168.1.12")
