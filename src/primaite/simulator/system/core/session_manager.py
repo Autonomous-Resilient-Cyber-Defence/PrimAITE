@@ -94,7 +94,7 @@ class SessionManager:
     @staticmethod
     def _get_session_key(
         frame: Frame, inbound_frame: bool = True
-    ) -> Tuple[IPProtocol, IPv4Address, Optional[Port], Optional[Port]]:
+    ) -> Tuple[IPProtocol, IPv4Address, IPv4Address, Optional[Port], Optional[Port]]:
         """
         Extracts the session key from the given frame.
 
