@@ -1,5 +1,5 @@
 from ipaddress import IPv4Address
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
@@ -36,7 +36,8 @@ class DNSClient(Service):
         :return: A dictionary containing key-value pairs representing the current state of the software.
         :rtype: Dict
         """
-        return {"Operating State": self.operating_state}
+        state = super().describe_state()
+        return state
 
     def reset_component_for_episode(self, episode: int):
         """
@@ -45,8 +46,7 @@ class DNSClient(Service):
         This method ensures the Service is ready for a new episode, including resetting any
         stateful properties or statistics, and clearing any message queues.
         """
-        super().reset_component_for_episode(episode=episode)
-        self.dns_cache = {}
+        pass
 
     def add_domain_to_cache(self, domain_name: str, ip_address: IPv4Address):
         """
@@ -68,8 +68,8 @@ class DNSClient(Service):
         """Function to check if domain name exists.
 
         :param: target_domain: The domain requested for an IP address.
-        :param: dest_ip_address: The ip address of the payload destination.
-        :param: dest_port: The port of the payload destination.
+        :param: dest_ip_address: The ip address of the DNS Server used for domain lookup.
+        :param: dest_port: The port on the DNS Server which accepts domain lookup requests. Default is Port.DNS.
         :param: session_id: The Session ID the payload is to originate from. Optional.
         :param: is_reattempt: Checks if the request has been reattempted. Default is False.
         """
@@ -105,7 +105,7 @@ class DNSClient(Service):
 
     def send(
         self,
-        payload: Any,
+        payload: DNSPacket,
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:
@@ -128,7 +128,7 @@ class DNSClient(Service):
 
     def receive(
         self,
-        payload: Any,
+        payload: DNSPacket,
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:

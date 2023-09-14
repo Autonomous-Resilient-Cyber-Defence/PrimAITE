@@ -1,6 +1,5 @@
-from abc import abstractmethod
 from ipaddress import IPv4Address
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from primaite.simulator.system.applications.application import Application
 
@@ -18,27 +17,6 @@ class WebBrowser(Application):
     "The IP address of the domain name for the webpage."
     history: Dict[str]
     "A dict that stores all of the previous domain names."
-
-    @abstractmethod
-    def describe_state(self) -> Dict:
-        """
-        Describes the current state of the software.
-
-        The specifics of the software's state, including its health, criticality,
-        and any other pertinent information, should be implemented in subclasses.
-
-        :return: A dictionary containing key-value pairs representing the current state of the software.
-        :rtype: Dict
-        """
-        pass
-
-    def apply_action(self, action: List[str]) -> None:
-        """
-        Applies a list of actions to the Application.
-
-        :param action: A list of actions to apply.
-        """
-        pass
 
     def reset_component_for_episode(self, episode: int):
         """

@@ -37,9 +37,10 @@ class DNSServer(Service):
         :return: A dictionary containing key-value pairs representing the current state of the software.
         :rtype: Dict
         """
-        return {"Operating State": self.operating_state}
+        state = super().describe_state()
+        return state
 
-    def dns_lookup(self, target_domain: Any) -> Optional[IPv4Address]:
+    def dns_lookup(self, target_domain: str) -> Optional[IPv4Address]:
         """
         Attempts to find the IP address for a domain name.
 
@@ -70,32 +71,7 @@ class DNSServer(Service):
         This method ensures the Service is ready for a new episode, including resetting any
         stateful properties or statistics, and clearing any message queues.
         """
-        self.dns_table = {}
-        super().reset_component_for_episode(episode=episode)
-
-    def send(
-        self,
-        payload: Any,
-        session_id: Optional[str] = None,
-        **kwargs,
-    ) -> bool:
-        """
-        Sends a payload to the SessionManager.
-
-        The specifics of how the payload is processed and whether a response payload
-        is generated should be implemented in subclasses.
-
-        :param: payload: The payload to send.
-        :param: session_id: The id of the session
-
-        :return: True if successful, False otherwise.
-        """
-        try:
-            self.software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
-            return True
-        except Exception as e:
-            _LOGGER.error(e)
-            return False
+        pass
 
     def receive(
         self,
@@ -110,7 +86,7 @@ class DNSServer(Service):
         is generated should be implemented in subclasses.
 
         :param: payload: The payload to send.
-        :param: session_id: The id of the session
+        :param: session_id: The id of the session. Optional.
 
         :return: True if DNS request returns a valid IP, otherwise, False
         """
