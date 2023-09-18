@@ -5,7 +5,7 @@ import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, Literal, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
@@ -89,8 +89,6 @@ class NIC(SimComponent):
     "The Maximum Transmission Unit (MTU) of the NIC in Bytes. Default is 1500 B"
     wake_on_lan: bool = False
     "Indicates if the NIC supports Wake-on-LAN functionality."
-    dns_servers: List[IPv4Address] = []
-    "List of IP addresses of DNS servers used for name resolution."
     connected_node: Optional[Node] = None
     "The Node to which the NIC is connected."
     connected_link: Optional[Link] = None
@@ -882,6 +880,8 @@ class Node(SimComponent):
     "The NICs on the node."
     ethernet_port: Dict[int, NIC] = {}
     "The NICs on the node by port id."
+    dns_server: Optional[IPv4Address] = None
+    "List of IP addresses of DNS servers used for name resolution."
 
     accounts: Dict[str, Account] = {}
     "All accounts on the node."
@@ -931,6 +931,7 @@ class Node(SimComponent):
                 sys_log=kwargs.get("sys_log"),
                 session_manager=kwargs.get("session_manager"),
                 file_system=kwargs.get("file_system"),
+                dns_server=kwargs.get("dns_server"),
             )
         super().__init__(**kwargs)
         self.arp.nics = self.nics

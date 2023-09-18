@@ -22,7 +22,7 @@ class DNSReply(BaseModel):
     :param domain_name_ip_address: IP Address of the Domain Name requested.
     """
 
-    domain_name_ip_address: IPv4Address
+    domain_name_ip_address: Optional[IPv4Address] = None
     "IP Address of the Domain Name requested."
 
 
@@ -56,7 +56,6 @@ class DNSPacket(BaseModel):
         :param domain_ip_address: The IP address that was being sought after from the original target domain name.
         :return: A new instance of DNSPacket.
         """
-        if domain_ip_address is not None:
-            self.dns_reply = DNSReply(domain_name_ip_address=IPv4Address(domain_ip_address))
+        self.dns_reply = DNSReply(domain_name_ip_address=domain_ip_address)
 
         return self

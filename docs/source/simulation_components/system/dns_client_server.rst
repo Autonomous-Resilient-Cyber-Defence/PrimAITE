@@ -3,10 +3,10 @@
     © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 
 DNS Client Server
-======================
+=================
 
 DNS Server
-----------------
+----------
 Also known as a DNS Resolver, the ``DNSServer`` provides a DNS Server simulation by extending the base Service class.
 
 Key capabilities
@@ -29,7 +29,7 @@ Implementation
 - Extends Service class for integration with ``SoftwareManager``.
 
 DNS Client
----------------
+----------
 
 The DNSClient provides a client interface for connecting to the ``DNSServer``.
 
@@ -45,7 +45,7 @@ Usage
 
 - Install on a Node via the ``SoftwareManager`` to start the database service.
 - Service runs on TCP port 53 by default. (TODO: TCP for now, should be UDP in future)
-- Execute domain name checks with ``check_domain_exists``, providing a ``DNSServer`` ``IPv4Address``.
+- Execute domain name checks with ``check_domain_exists``.
 - ``DNSClient`` will automatically add the IP Address of the domain into its cache
 
 Implementation

@@ -20,11 +20,9 @@ def test_dns_client_server(uc2_network):
     dns_server.show()
 
     # fake domain should not be added to dns cache
-    dns_client.check_domain_exists(
-        target_domain="fake-domain.com", dest_ip_address=IPv4Address(domain_controller.ip_address)
-    )
+    assert not dns_client.check_domain_exists(target_domain="fake-domain.com")
     assert dns_client.dns_cache.get("fake-domain.com", None) is None
 
     # arcd.com is registered in dns server and should be saved to cache
-    dns_client.check_domain_exists(target_domain="arcd.com", dest_ip_address=IPv4Address(domain_controller.ip_address))
+    assert dns_client.check_domain_exists(target_domain="arcd.com")
     assert dns_client.dns_cache.get("arcd.com", None) is not None

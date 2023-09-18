@@ -16,6 +16,8 @@ class DNSClient(Service):
 
     dns_cache: Dict[str, IPv4Address] = {}
     "A dict of known mappings between domain/URLs names and IPv4 addresses."
+    dns_server: Optional[IPv4Address] = None
+    "The DNS Server the client sends requests to."
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DNSClient"
@@ -60,16 +62,12 @@ class DNSClient(Service):
     def check_domain_exists(
         self,
         target_domain: str,
-        dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = Port.DNS,
         session_id: Optional[str] = None,
         is_reattempt: bool = False,
     ) -> bool:
         """Function to check if domain name exists.
 
         :param: target_domain: The domain requested for an IP address.
-        :param: dest_ip_address: The ip address of the DNS Server used for domain lookup.
-        :param: dest_port: The port on the DNS Server which accepts domain lookup requests. Default is Port.DNS.
         :param: session_id: The Session ID the payload is to originate from. Optional.
         :param: is_reattempt: Checks if the request has been reattempted. Default is False.
         """
@@ -78,30 +76,28 @@ class DNSClient(Service):
 
         # check if the domain is already in the DNS cache
         if target_domain in self.dns_cache:
+            self.sys_log.info(
+                f"DNS Client: Domain lookup for {target_domain} successful, resolves to {self.dns_cache[target_domain]}"
+            )
             return True
         else:
             # return False if already reattempted
             if is_reattempt:
+                self.sys_log.info(f"DNS Client: Domain lookup for {target_domain} failed")
                 return False
             else:
                 # send a request to check if domain name exists in the DNS Server
                 software_manager: SoftwareManager = self.software_manager
                 software_manager.send_payload_to_session_manager(
-                    payload=payload,
-                    dest_ip_address=dest_ip_address,
-                    dest_port=dest_port,
+                    payload=payload, dest_ip_address=self.dns_server, dest_port=Port.DNS
                 )
 
-                # check if the domain has been added to cache
-                if self.dns_cache.get(target_domain, None) is None:
-                    # call function again
-                    return self.check_domain_exists(
-                        target_domain=target_domain,
-                        dest_ip_address=dest_ip_address,
-                        dest_port=dest_port,
-                        session_id=session_id,
-                        is_reattempt=True,
-                    )
+                # recursively re-call the function passing is_reattempt=True
+                return self.check_domain_exists(
+                    target_domain=target_domain,
+                    session_id=session_id,
+                    is_reattempt=True,
+                )
 
     def send(
         self,
@@ -125,6 +121,7 @@ class DNSClient(Service):
         # create DNS request packet
         software_manager: SoftwareManager = self.software_manager
         software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
+        return True
 
     def receive(
         self,
@@ -150,7 +147,8 @@ class DNSClient(Service):
         payload: DNSPacket = payload
         if payload.dns_reply is not None:
             # add the IP address to the client cache
-            self.dns_cache[payload.dns_request.domain_name_request] = payload.dns_reply.domain_name_ip_address
-            return True
+            if payload.dns_reply.domain_name_ip_address:
+                self.dns_cache[payload.dns_request.domain_name_request] = payload.dns_reply.domain_name_ip_address
+                return True
 
         return False

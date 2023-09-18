@@ -47,10 +47,7 @@ class DNSServer(Service):
         :param target_domain: The single domain name requested by a DNS client.
         :return ip_address: The IP address of that domain name or None.
         """
-        if target_domain in self.dns_table:
-            return self.dns_table[target_domain]
-        else:
-            return None
+        return self.dns_table.get(target_domain)
 
     def dns_register(self, domain_name: str, domain_ip_address: IPv4Address):
         """
@@ -97,11 +94,19 @@ class DNSServer(Service):
         # cast payload into a DNS packet
         payload: DNSPacket = payload
         if payload.dns_request is not None:
+            self.sys_log.info(
+                f"DNS Server: Received domain lookup request for {payload.dns_request.domain_name_request} "
+                f"from session {session_id}"
+            )
             # generate a reply with the correct DNS IP address
             payload = payload.generate_reply(self.dns_lookup(payload.dns_request.domain_name_request))
+            self.sys_log.info(
+                f"DNS Server: Responding to domain lookup request for {payload.dns_request.domain_name_request} "
+                f"with ip address: {payload.dns_reply.domain_name_ip_address}"
+            )
             # send reply
             self.send(payload, session_id)
-            return payload.dns_reply is not None
+            return payload.dns_reply.domain_name_ip_address is not None
 
         return False
 

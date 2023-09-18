@@ -128,7 +128,11 @@ def arcd_uc2_network() -> Network:
 
     # Client 1
     client_1 = Computer(
-        hostname="client_1", ip_address="192.168.10.21", subnet_mask="255.255.255.0", default_gateway="192.168.10.1"
+        hostname="client_1",
+        ip_address="192.168.10.21",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.10.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     client_1.power_on()
     client_1.software_manager.install(DNSClient)
@@ -141,7 +145,11 @@ def arcd_uc2_network() -> Network:
 
     # Client 2
     client_2 = Computer(
-        hostname="client_2", ip_address="192.168.10.22", subnet_mask="255.255.255.0", default_gateway="192.168.10.1"
+        hostname="client_2",
+        ip_address="192.168.10.22",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.10.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     client_2.power_on()
     client_2.software_manager.install(DNSClient)
@@ -167,6 +175,7 @@ def arcd_uc2_network() -> Network:
         ip_address="192.168.1.14",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     database_server.power_on()
     network.connect(endpoint_b=database_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[3])
@@ -206,7 +215,11 @@ def arcd_uc2_network() -> Network:
 
     # Web Server
     web_server = Server(
-        hostname="web_server", ip_address="192.168.1.12", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+        hostname="web_server",
+        ip_address="192.168.1.12",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     web_server.power_on()
     web_server.software_manager.install(DatabaseClient)
@@ -224,7 +237,11 @@ def arcd_uc2_network() -> Network:
 
     # Backup Server
     backup_server = Server(
-        hostname="backup_server", ip_address="192.168.1.16", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+        hostname="backup_server",
+        ip_address="192.168.1.16",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     backup_server.power_on()
     network.connect(endpoint_b=backup_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[4])
@@ -235,6 +252,7 @@ def arcd_uc2_network() -> Network:
         ip_address="192.168.1.110",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     security_suite.power_on()
     network.connect(endpoint_b=security_suite.ethernet_port[1], endpoint_a=switch_1.switch_ports[7])
