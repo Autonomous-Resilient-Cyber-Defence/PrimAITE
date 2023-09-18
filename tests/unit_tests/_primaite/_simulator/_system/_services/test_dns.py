@@ -6,8 +6,8 @@ from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSReply, DNSRequest
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.services.dns_client import DNSClient
-from primaite.simulator.system.services.dns_server import DNSServer
+from primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.simulator.system.services.dns.dns_server import DNSServer
 
 
 @pytest.fixture(scope="function")

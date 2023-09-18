@@ -9,9 +9,9 @@ from primaite.simulator.network.hardware.nodes.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.simulator.system.services.database_service import DatabaseService
-from primaite.simulator.system.services.dns_client import DNSClient
-from primaite.simulator.system.services.dns_server import DNSServer
+from primaite.simulator.system.services.database.database_service import DatabaseService
+from primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 
 
