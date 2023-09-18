@@ -23,7 +23,13 @@ IOSoftwareClass = TypeVar("IOSoftwareClass", bound=IOSoftware)
 class SoftwareManager:
     """A class that manages all running Services and Applications on a Node and facilitates their communication."""
 
-    def __init__(self, session_manager: "SessionManager", sys_log: SysLog, file_system: FileSystem):
+    def __init__(
+        self,
+        session_manager: "SessionManager",
+        sys_log: SysLog,
+        file_system: FileSystem,
+        dns_server: Optional[IPv4Address],
+    ):
         """
         Initialize a new instance of SoftwareManager.
 
@@ -35,6 +41,7 @@ class SoftwareManager:
         self.port_protocol_mapping: Dict[Tuple[Port, IPProtocol], Union[Service, Application]] = {}
         self.sys_log: SysLog = sys_log
         self.file_system: FileSystem = file_system
+        self.dns_server: Optional[IPv4Address] = dns_server
 
     def get_open_ports(self) -> List[Port]:
         """
@@ -58,7 +65,9 @@ class SoftwareManager:
         if software_class in self._software_class_to_name_map:
             self.sys_log.info(f"Cannot install {software_class} as it is already installed")
             return
-        software = software_class(software_manager=self, sys_log=self.sys_log, file_system=self.file_system)
+        software = software_class(
+            software_manager=self, sys_log=self.sys_log, file_system=self.file_system, dns_server=self.dns_server
+        )
         if isinstance(software, Application):
             software.install()
         software.software_manager = self
@@ -114,7 +123,7 @@ class SoftwareManager:
             payload=payload, dst_ip_address=dest_ip_address, dst_port=dest_port, session_id=session_id
         )
 
-    def receive_payload_from_session_manger(self, payload: Any, port: Port, protocol: IPProtocol, session_id: str):
+    def receive_payload_from_session_manager(self, payload: Any, port: Port, protocol: IPProtocol, session_id: str):
         """
         Receive a payload from the SessionManager and forward it to the corresponding service or application.
 

@@ -10,6 +10,8 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.database_service import DatabaseService
+from primaite.simulator.system.services.dns_client import DNSClient
+from primaite.simulator.system.services.dns_server import DNSServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 
 
@@ -126,9 +128,16 @@ def arcd_uc2_network() -> Network:
 
     # Client 1
     client_1 = Computer(
-        hostname="client_1", ip_address="192.168.10.21", subnet_mask="255.255.255.0", default_gateway="192.168.10.1"
+        hostname="client_1",
+        ip_address="192.168.10.21",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.10.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     client_1.power_on()
+    client_1.software_manager.install(DNSClient)
+    client_1_dns_client_service: DNSServer = client_1.software_manager.software["DNSClient"]  # noqa
+    client_1_dns_client_service.start()
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
     client_1.software_manager.install(DataManipulationBot)
     db_manipulation_bot: DataManipulationBot = client_1.software_manager.software["DataManipulationBot"]
@@ -136,9 +145,16 @@ def arcd_uc2_network() -> Network:
 
     # Client 2
     client_2 = Computer(
-        hostname="client_2", ip_address="192.168.10.22", subnet_mask="255.255.255.0", default_gateway="192.168.10.1"
+        hostname="client_2",
+        ip_address="192.168.10.22",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.10.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     client_2.power_on()
+    client_2.software_manager.install(DNSClient)
+    client_2_dns_client_service: DNSServer = client_2.software_manager.software["DNSClient"]  # noqa
+    client_2_dns_client_service.start()
     network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
 
     # Domain Controller
@@ -149,6 +165,8 @@ def arcd_uc2_network() -> Network:
         default_gateway="192.168.1.1",
     )
     domain_controller.power_on()
+    domain_controller.software_manager.install(DNSServer)
+
     network.connect(endpoint_b=domain_controller.ethernet_port[1], endpoint_a=switch_1.switch_ports[1])
 
     # Database Server
@@ -157,6 +175,7 @@ def arcd_uc2_network() -> Network:
         ip_address="192.168.1.14",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     database_server.power_on()
     network.connect(endpoint_b=database_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[3])
@@ -196,19 +215,33 @@ def arcd_uc2_network() -> Network:
 
     # Web Server
     web_server = Server(
-        hostname="web_server", ip_address="192.168.1.12", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+        hostname="web_server",
+        ip_address="192.168.1.12",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     web_server.power_on()
     web_server.software_manager.install(DatabaseClient)
+
     database_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
     database_client.configure(server_ip_address=IPv4Address("192.168.1.14"))
     network.connect(endpoint_b=web_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[2])
     database_client.run()
     database_client.connect()
 
+    # register the web_server to a domain
+    dns_server_service: DNSServer = domain_controller.software_manager.software["DNSServer"]  # noqa
+    dns_server_service.start()
+    dns_server_service.dns_register("arcd.com", web_server.ip_address)
+
     # Backup Server
     backup_server = Server(
-        hostname="backup_server", ip_address="192.168.1.16", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+        hostname="backup_server",
+        ip_address="192.168.1.16",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     backup_server.power_on()
     network.connect(endpoint_b=backup_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[4])
@@ -219,6 +252,7 @@ def arcd_uc2_network() -> Network:
         ip_address="192.168.1.110",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     security_suite.power_on()
     network.connect(endpoint_b=security_suite.ethernet_port[1], endpoint_a=switch_1.switch_ports[7])
@@ -229,6 +263,12 @@ def arcd_uc2_network() -> Network:
 
     router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
 
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER)
+    # Allow PostgreSQL requests
+    router_1.acl.add_rule(
+        action=ACLAction.PERMIT, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER, position=0
+    )
+
+    # Allow DNS requests
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.DNS, dst_port=Port.DNS, position=1)
 
     return network

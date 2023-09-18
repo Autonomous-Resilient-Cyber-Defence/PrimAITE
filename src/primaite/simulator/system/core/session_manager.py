@@ -211,7 +211,7 @@ class SessionManager:
             session = Session.from_session_key(session_key)
             self.sessions_by_key[session_key] = session
             self.sessions_by_uuid[session.uuid] = session
-        self.software_manager.receive_payload_from_session_manger(
+        self.software_manager.receive_payload_from_session_manager(
             payload=frame.payload, port=frame.tcp.dst_port, protocol=frame.ip.protocol, session_id=session.uuid
         )
 
