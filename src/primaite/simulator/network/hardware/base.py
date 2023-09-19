@@ -139,7 +139,6 @@ class NIC(SimComponent):
                 "speed": self.speed,
                 "mtu": self.mtu,
                 "wake_on_lan": self.wake_on_lan,
-                "dns_servers": self.dns_servers,
                 "enabled": self.enabled,
             }
         )
