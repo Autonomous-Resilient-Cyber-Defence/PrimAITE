@@ -70,8 +70,8 @@ def test_connecting_node_to_itself():
     net.connect(node.nics[nic1.uuid], node.nics[nic2.uuid], bandwidth=30)
 
     assert node in net
-    assert nic1.connected_link is None
-    assert nic2.connected_link is None
+    assert nic1._connected_link is None
+    assert nic2._connected_link is None
     assert len(net.links) == 0
 
 
