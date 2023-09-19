@@ -42,7 +42,7 @@ class Action(BaseModel):
     the action can be performed or not.
     """
 
-    func: Callable[[Dict], None]
+    func: Callable[[List[str], Dict], None]
     """
     ``func`` is a function that accepts a request and a context dict. Typically this would be a lambda function
     that invokes a class method of your SimComponent. For example if the component is a node and the action is for
@@ -74,7 +74,7 @@ class ActionManager(BaseModel):
     actions: Dict[str, Action] = {}
     """maps action verb to an action object."""
 
-    def __call__(self, request: Dict, context: Dict) -> None:
+    def __call__(self, request: Callable[[List[str], Dict], None], context: Dict) -> None:
         """
         Process an action request.
 
