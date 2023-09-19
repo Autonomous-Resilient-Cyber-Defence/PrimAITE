@@ -966,6 +966,8 @@ class Node(SimComponent):
         am.add_action("shutdown", Action(func=lambda request, context: self.power_off()))
         am.add_action("startup", Action(func=lambda request, context: self.power_on()))
         am.add_action("reset", Action(func=lambda request, context: ...))  # TODO implement node reset
+        am.add_action("logon", Action(func=lambda request, context: ...))  # TODO implement logon action
+        am.add_action("logoff", Action(func=lambda request, context: ...))  # TODO implement logoff action
 
         return am
 

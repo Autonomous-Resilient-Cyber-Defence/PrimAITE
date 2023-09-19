@@ -339,6 +339,8 @@ class Folder(FileSystemItemABC):
         am.add_action("checkhash", Action(func=lambda request, context: ...))  # TODO implement action
         am.add_action("repair", Action(func=lambda request, context: ...))  # TODO implement action
         am.add_action("restore", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("delete", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("corrupt", Action(func=lambda request, context: ...))  # TODO implement action
 
         return am
 
@@ -515,6 +517,7 @@ class File(FileSystemItemABC):
         am.add_action("delete", Action(func=lambda request, context: ...))  # TODO implement action
         am.add_action("repair", Action(func=lambda request, context: ...))  # TODO implement action
         am.add_action("restore", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("corrupt", Action(func=lambda request, context: ...))  # TODO implement action
 
         return am
 
