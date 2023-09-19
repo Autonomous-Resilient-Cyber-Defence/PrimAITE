@@ -218,9 +218,9 @@ class SimComponent(BaseModel):
         :param: context: Dict containing context for actions
         :type context: Dict
         """
-        if self.action_manager is None:
+        if self._action_manager is None:
             return
-        self.action_manager(action, context)
+        self._action_manager(action, context)
 
     def apply_timestep(self, timestep: int) -> None:
         """

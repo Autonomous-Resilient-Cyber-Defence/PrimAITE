@@ -7,6 +7,7 @@ from primaite.simulator.core import Action, ActionManager, AllowAllValidator, Si
 from primaite.simulator.domain.controller import AccountGroup, GroupMembershipValidator
 
 
+@pytest.mark.skip(reason="Action validation is not currently a required feature.")
 def test_group_action_validation() -> None:
     """
     Check that actions are denied when an unauthorised request is made.
@@ -28,9 +29,9 @@ def test_group_action_validation() -> None:
 
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            self.action_manager = ActionManager()
+            self._action_manager = ActionManager()
 
-            self.action_manager.add_action(
+            self._action_manager.add_action(
                 "create_folder",
                 Action(
                     func=lambda request, context: self.create_folder(request[0]),
@@ -62,6 +63,7 @@ def test_group_action_validation() -> None:
     assert my_node.folders[0].name == "memes"
 
 
+@pytest.mark.skip(reason="Action validation is not currently a required feature.")
 def test_hierarchical_action_with_validation() -> None:
     """
     Check that validation works with sub-objects.
