@@ -11,11 +11,13 @@ Just like other aspects of SimComponent, the actions are not managed centrally f
 
 - API
     An 'action' contains two elements:
+
     1. `request` - selects which action you want to take on this `SimComponent`. This is formatted as a list of strings such as `['network', 'node', '<node-uuid>', 'service', '<service-uuid>', 'restart']`.
     2. `context` - optional extra information that can be used to decide how to process the action. This is formatted as a dictionary. For example, if the action requires authentication, the context can include information about the user that initiated the request to decide if their permissions are sufficient.
 
 - request
     The request is a list of strings which help specify who should handle the request. The strings in the request list help ActionManagers traverse the 'ownership tree' of SimComponent. The example given above would be handled in the following way:
+
     1. `Simulation` receives `['network', 'node', '<node-uuid>', 'service', '<service-uuid>', 'restart']`.
         The first element of the action is `network`, therefore it passes the action down to its network.
     2. `Network` receives `['node', '<node-uuid>', 'service', '<service-uuid>', 'restart']`.
@@ -70,7 +72,11 @@ An example of how this works is in the :py:class:`primaite.simulator.network.har
             # a regular action which is processed by the Node itself
             action_manager.add_action("turn_on", Action(func=lambda request, context: self.turn_on()))
 
-            # if the Node receives a request where the first word is 'service', it will use a dummy manager called self._service_action_manager to pass on the reqeust to the relevant service. This dummy manager is simply here to map the service UUID that that service's own action manager. This is done because the next string after "service" is always the uuid of that service, so we need an actionmanager to pop that string before sending it onto the relevant service's ActionManager.
+            # if the Node receives a request where the first word is 'service', it will use a dummy manager
+            # called self._service_action_manager to pass on the reqeust to the relevant service. This dummy
+            # manager is simply here to map the service UUID that that service's own action manager. This is
+            # done because the next string after "service" is always the uuid of that service, so we need an
+            # actionmanager to pop that string before sending it onto the relevant service's ActionManager.
             self._service_action_manager = ActionManager()
             action_manager.add_action("service", Action(func=self._service_action_manager))
             ...
