@@ -1,9 +1,11 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, Set
+from typing import Any, Dict, Optional
 
 from primaite.simulator.core import Action, ActionManager, SimComponent
+from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.core.sys_log import SysLog
 
 
 class SoftwareType(Enum):
@@ -62,11 +64,11 @@ class Software(SimComponent):
 
     name: str
     "The name of the software."
-    health_state_actual: SoftwareHealthState
+    health_state_actual: SoftwareHealthState = SoftwareHealthState.GOOD
     "The actual health state of the software."
-    health_state_visible: SoftwareHealthState
+    health_state_visible: SoftwareHealthState = SoftwareHealthState.GOOD
     "The health state of the software visible to the red agent."
-    criticality: SoftwareCriticality
+    criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
     "The criticality level of the software."
     patching_count: int = 0
     "The count of patches applied to the software, defaults to 0."
@@ -74,6 +76,14 @@ class Software(SimComponent):
     "The count of times the software has been scanned, defaults to 0."
     revealed_to_red: bool = False
     "Indicates if the software has been revealed to red agent, defaults is False."
+    software_manager: Any = None
+    "An instance of Software Manager that is used by the parent node."
+    sys_log: SysLog = None
+    "An instance of SysLog that is used by the parent node."
+    file_system: FileSystem
+    "The FileSystem of the Node the Software is installed on."
+    folder: Optional[Folder] = None
+    "The folder on the file system the Software uses."
 
     def _init_action_manager(self) -> ActionManager:
         am = super()._init_action_manager()
@@ -132,7 +142,6 @@ class Software(SimComponent):
         """
         self.health_state_actual = health_state
 
-    @abstractmethod
     def install(self) -> None:
         """
         Perform first-time setup of this service on a node.
@@ -175,8 +184,8 @@ class IOSoftware(Software):
     "Indicates if the software uses TCP protocol for communication. Default is True."
     udp: bool = True
     "Indicates if the software uses UDP protocol for communication. Default is True."
-    ports: Set[Port]
-    "The set of ports to which the software is connected."
+    port: Port
+    "The port to which the software is connected."
 
     @abstractmethod
     def describe_state(self) -> Dict:
@@ -212,7 +221,6 @@ class IOSoftware(Software):
         :param kwargs: Additional keyword arguments specific to the implementation.
         :return: True if the payload was successfully sent, False otherwise.
         """
-        pass
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """

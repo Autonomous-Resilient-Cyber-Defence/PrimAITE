@@ -4,12 +4,14 @@ import re
 import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, Dict, List, Optional, Tuple, Union
+from pathlib import Path
+from typing import Any, Dict, Literal, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
+from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.core import Action, ActionManager, SimComponent
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
@@ -87,8 +89,6 @@ class NIC(SimComponent):
     "The Maximum Transmission Unit (MTU) of the NIC in Bytes. Default is 1500 B"
     wake_on_lan: bool = False
     "Indicates if the NIC supports Wake-on-LAN functionality."
-    dns_servers: List[IPv4Address] = []
-    "List of IP addresses of DNS servers used for name resolution."
     connected_node: Optional[Node] = None
     "The Node to which the NIC is connected."
     connected_link: Optional[Link] = None
@@ -191,7 +191,7 @@ class NIC(SimComponent):
         if self.connected_node:
             self.connected_node.sys_log.info(f"NIC {self} disabled")
         else:
-            _LOGGER.info(f"NIC {self} disabled")
+            _LOGGER.debug(f"NIC {self} disabled")
         if self.connected_link:
             self.connected_link.endpoint_down()
 
@@ -213,7 +213,7 @@ class NIC(SimComponent):
         # TODO: Inform the Node that a link has been connected
         self.connected_link = link
         self.enable()
-        _LOGGER.info(f"NIC {self} connected to Link {link}")
+        _LOGGER.debug(f"NIC {self} connected to Link {link}")
 
     def disconnect_link(self):
         """Disconnect the NIC from the connected Link."""
@@ -356,7 +356,7 @@ class SwitchPort(SimComponent):
         if self.connected_node:
             self.connected_node.sys_log.info(f"SwitchPort {self} disabled")
         else:
-            _LOGGER.info(f"SwitchPort {self} disabled")
+            _LOGGER.debug(f"SwitchPort {self} disabled")
         if self.connected_link:
             self.connected_link.endpoint_down()
 
@@ -376,7 +376,7 @@ class SwitchPort(SimComponent):
 
         # TODO: Inform the Switch that a link has been connected
         self.connected_link = link
-        _LOGGER.info(f"SwitchPort {self} connected to Link {link}")
+        _LOGGER.debug(f"SwitchPort {self} connected to Link {link}")
         self.enable()
 
     def disconnect_link(self):
@@ -411,7 +411,8 @@ class SwitchPort(SimComponent):
         if self.enabled:
             frame.decrement_ttl()
             self.pcap.capture(frame)
-            self.connected_node.forward_frame(frame=frame, incoming_port=self)
+            connected_node: Node = self.connected_node
+            connected_node.forward_frame(frame=frame, incoming_port=self)
             return True
         return False
 
@@ -482,13 +483,13 @@ class Link(SimComponent):
     def endpoint_up(self):
         """Let the Link know and endpoint has been brought up."""
         if self.is_up:
-            _LOGGER.info(f"Link {self} up")
+            _LOGGER.debug(f"Link {self} up")
 
     def endpoint_down(self):
         """Let the Link know and endpoint has been brought down."""
         if not self.is_up:
             self.current_load = 0.0
-            _LOGGER.info(f"Link {self} down")
+            _LOGGER.debug(f"Link {self} down")
 
     @property
     def is_up(self) -> bool:
@@ -515,7 +516,7 @@ class Link(SimComponent):
         """
         can_transmit = self._can_transmit(frame)
         if not can_transmit:
-            _LOGGER.info(f"Cannot transmit frame as {self} is at capacity")
+            _LOGGER.debug(f"Cannot transmit frame as {self} is at capacity")
             return False
 
         receiver = self.endpoint_a
@@ -527,7 +528,7 @@ class Link(SimComponent):
             # Frame transmitted successfully
             # Load the frame size on the link
             self.current_load += frame_size
-            _LOGGER.info(
+            _LOGGER.debug(
                 f"Added {frame_size:.3f} Mbits to {self}, current load {self.current_load:.3f} Mbits "
                 f"({self.current_load_percent})"
             )
@@ -886,6 +887,8 @@ class Node(SimComponent):
     "The NICs on the node."
     ethernet_port: Dict[int, NIC] = {}
     "The NICs on the node by port id."
+    dns_server: Optional[IPv4Address] = None
+    "List of IP addresses of DNS servers used for name resolution."
 
     accounts: Dict[str, Account] = {}
     "All accounts on the node."
@@ -897,6 +900,8 @@ class Node(SimComponent):
     "All processes on the node."
     file_system: FileSystem
     "The nodes file system."
+    root: Path
+    "Root directory for simulation output."
     sys_log: SysLog
     arp: ARPCache
     icmp: ICMP
@@ -924,14 +929,20 @@ class Node(SimComponent):
             kwargs["icmp"] = ICMP(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"))
         if not kwargs.get("session_manager"):
             kwargs["session_manager"] = SessionManager(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"))
+        if not kwargs.get("root"):
+            kwargs["root"] = SIM_OUTPUT / kwargs["hostname"]
+        if not kwargs.get("file_system"):
+            kwargs["file_system"] = FileSystem(sys_log=kwargs["sys_log"], sim_root=kwargs["root"] / "fs")
         if not kwargs.get("software_manager"):
             kwargs["software_manager"] = SoftwareManager(
-                sys_log=kwargs.get("sys_log"), session_manager=kwargs.get("session_manager")
+                sys_log=kwargs.get("sys_log"),
+                session_manager=kwargs.get("session_manager"),
+                file_system=kwargs.get("file_system"),
+                dns_server=kwargs.get("dns_server"),
             )
-        if not kwargs.get("file_system"):
-            kwargs["file_system"] = FileSystem()
         super().__init__(**kwargs)
         self.arp.nics = self.nics
+        self.session_manager.software_manager = self.software_manager
 
     def _init_action_manager(self) -> ActionManager:
         # TODO: I see that this code is really confusing and hard to read right now... I think some of these things will
@@ -975,7 +986,25 @@ class Node(SimComponent):
         )
         return state
 
-    def show(self, markdown: bool = False):
+    def show(self, markdown: bool = False, component: Literal["NIC", "OPEN_PORTS"] = "NIC"):
+        """A multi-use .show function that accepts either NIC or OPEN_PORTS."""
+        if component == "NIC":
+            self._show_nic(markdown)
+        elif component == "OPEN_PORTS":
+            self._show_open_ports(markdown)
+
+    def _show_open_ports(self, markdown: bool = False):
+        """Prints a table of the open ports on the Node."""
+        table = PrettyTable(["Port", "Name"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.hostname} Open Ports"
+        for port in self.software_manager.get_open_ports():
+            table.add_row([port.value, port.name])
+        print(table)
+
+    def _show_nic(self, markdown: bool = False):
         """Prints a table of the NICs on the Node."""
         table = PrettyTable(["Port", "MAC Address", "Address", "Speed", "Status"])
         if markdown:
@@ -1066,29 +1095,30 @@ class Node(SimComponent):
         :param pings: The number of pings to attempt, default is 4.
         :return: True if the ping is successful, otherwise False.
         """
-        if not isinstance(target_ip_address, IPv4Address):
-            target_ip_address = IPv4Address(target_ip_address)
-        if target_ip_address.is_loopback:
-            self.sys_log.info("Pinging loopback address")
-            return any(nic.enabled for nic in self.nics.values())
         if self.operating_state == NodeOperatingState.ON:
-            self.sys_log.info(f"Pinging {target_ip_address}:")
-            sequence, identifier = 0, None
-            while sequence < pings:
-                sequence, identifier = self.icmp.ping(target_ip_address, sequence, identifier, pings)
-            request_replies = self.icmp.request_replies.get(identifier)
-            passed = request_replies == pings
-            if request_replies:
-                self.icmp.request_replies.pop(identifier)
-            else:
-                request_replies = 0
-            self.sys_log.info(
-                f"Ping statistics for {target_ip_address}: "
-                f"Packets: Sent = {pings}, "
-                f"Received = {request_replies}, "
-                f"Lost = {pings-request_replies} ({(pings-request_replies)/pings*100}% loss)"
-            )
-            return passed
+            if not isinstance(target_ip_address, IPv4Address):
+                target_ip_address = IPv4Address(target_ip_address)
+            if target_ip_address.is_loopback:
+                self.sys_log.info("Pinging loopback address")
+                return any(nic.enabled for nic in self.nics.values())
+            if self.operating_state == NodeOperatingState.ON:
+                self.sys_log.info(f"Pinging {target_ip_address}:")
+                sequence, identifier = 0, None
+                while sequence < pings:
+                    sequence, identifier = self.icmp.ping(target_ip_address, sequence, identifier, pings)
+                request_replies = self.icmp.request_replies.get(identifier)
+                passed = request_replies == pings
+                if request_replies:
+                    self.icmp.request_replies.pop(identifier)
+                else:
+                    request_replies = 0
+                self.sys_log.info(
+                    f"Ping statistics for {target_ip_address}: "
+                    f"Packets: Sent = {pings}, "
+                    f"Received = {request_replies}, "
+                    f"Lost = {pings-request_replies} ({(pings-request_replies)/pings*100}% loss)"
+                )
+                return passed
         return False
 
     def send_frame(self, frame: Frame):
@@ -1097,7 +1127,8 @@ class Node(SimComponent):
 
         :param frame: The Frame to be sent.
         """
-        nic: NIC = self._get_arp_cache_nic(frame.ip.dst_ip_address)
+        if self.operating_state == NodeOperatingState.ON:
+            nic: NIC = self._get_arp_cache_nic(frame.ip.dst_ip_address)
         nic.send_frame(frame)
 
     def receive_frame(self, frame: Frame, from_nic: NIC):
@@ -1110,18 +1141,27 @@ class Node(SimComponent):
         :param frame: The Frame being received.
         :param from_nic: The NIC that received the frame.
         """
-        if frame.ip:
-            if frame.ip.src_ip_address in self.arp:
-                self.arp.add_arp_cache_entry(
-                    ip_address=frame.ip.src_ip_address, mac_address=frame.ethernet.src_mac_addr, nic=from_nic
-                )
-        if frame.ip.protocol == IPProtocol.TCP:
-            if frame.tcp.src_port == Port.ARP:
-                self.arp.process_arp_packet(from_nic=from_nic, arp_packet=frame.arp)
-        elif frame.ip.protocol == IPProtocol.UDP:
-            pass
-        elif frame.ip.protocol == IPProtocol.ICMP:
-            self.icmp.process_icmp(frame=frame, from_nic=from_nic)
+        if self.operating_state == NodeOperatingState.ON:
+            if frame.ip:
+                if frame.ip.src_ip_address in self.arp:
+                    self.arp.add_arp_cache_entry(
+                        ip_address=frame.ip.src_ip_address, mac_address=frame.ethernet.src_mac_addr, nic=from_nic
+                    )
+            if frame.ip.protocol == IPProtocol.ICMP:
+                self.icmp.process_icmp(frame=frame, from_nic=from_nic)
+                return
+            # Check if the destination port is open on the Node
+            if frame.tcp.dst_port in self.software_manager.get_open_ports():
+                # accept thr frame as the port is open
+                if frame.tcp.src_port == Port.ARP:
+                    self.arp.process_arp_packet(from_nic=from_nic, arp_packet=frame.arp)
+                else:
+                    self.session_manager.receive_frame(frame)
+            else:
+                # denied as port closed
+                self.sys_log.info(f"Ignoring frame for port {frame.tcp.dst_port.value} from {frame.ip.src_ip_address}")
+                # TODO: do we need to do anything more here?
+                pass
 
     def install_service(self, service: Service) -> None:
         """

@@ -1,56 +1,59 @@
-from primaite.simulator.network.hardware.base import Node
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.services.database import DatabaseService
-from primaite.simulator.system.services.service import ServiceOperatingState
-from primaite.simulator.system.software import SoftwareCriticality, SoftwareHealthState
+from ipaddress import IPv4Address
+
+from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.services.database_service import DatabaseService
 
 
-def test_installing_database():
-    db = DatabaseService(
-        name="SQL-database",
-        health_state_actual=SoftwareHealthState.GOOD,
-        health_state_visible=SoftwareHealthState.GOOD,
-        criticality=SoftwareCriticality.MEDIUM,
-        ports=[
-            Port.SQL_SERVER,
-        ],
-        operating_state=ServiceOperatingState.RUNNING,
-    )
+def test_database_client_server_connection(uc2_network):
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
 
-    node = Node(hostname="db-server")
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
 
-    node.install_service(db)
+    assert len(db_service.connections) == 1
 
-    assert db in node
-
-    file_exists = False
-    for folder in node.file_system.folders.values():
-        for file in folder.files.values():
-            if file.name == "db_primary_store":
-                file_exists = True
-                break
-        if file_exists:
-            break
-    assert file_exists
+    db_client.disconnect()
+    assert len(db_service.connections) == 0
 
 
-def test_uninstalling_database():
-    db = DatabaseService(
-        name="SQL-database",
-        health_state_actual=SoftwareHealthState.GOOD,
-        health_state_visible=SoftwareHealthState.GOOD,
-        criticality=SoftwareCriticality.MEDIUM,
-        ports=[
-            Port.SQL_SERVER,
-        ],
-        operating_state=ServiceOperatingState.RUNNING,
-    )
+def test_database_client_server_correct_password(uc2_network):
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
 
-    node = Node(hostname="db-server")
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
 
-    node.install_service(db)
+    db_client.disconnect()
 
-    node.uninstall_service(db)
+    db_client.configure(server_ip_address=IPv4Address("192.168.1.14"), server_password="12345")
+    db_service.password = "12345"
 
-    assert db not in node
-    assert node.file_system.get_folder_by_name("database") is None
+    assert db_client.connect()
+
+    assert len(db_service.connections) == 1
+
+
+def test_database_client_server_incorrect_password(uc2_network):
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+
+    db_client.disconnect()
+    db_client.configure(server_ip_address=IPv4Address("192.168.1.14"), server_password="54321")
+    db_service.password = "12345"
+
+    assert not db_client.connect()
+    assert len(db_service.connections) == 0
+
+
+def test_database_client_query(uc2_network):
+    """Tests DB query across the network returns HTTP status 200 and date."""
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    db_client.connect()
+
+    assert db_client.query("SELECT * FROM user;")

@@ -3,7 +3,7 @@ from pathlib import Path
 
 from prettytable import MARKDOWN, PrettyTable
 
-from primaite.simulator import TEMP_SIM_OUTPUT
+from primaite.simulator import SIM_OUTPUT
 
 
 class _NotJSONFilter(logging.Filter):
@@ -81,7 +81,7 @@ class SysLog:
 
         :return: Path object representing the location of the log file.
         """
-        root = TEMP_SIM_OUTPUT / self.hostname
+        root = SIM_OUTPUT / self.hostname
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self.hostname}_sys.log"
 

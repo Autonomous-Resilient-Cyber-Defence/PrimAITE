@@ -1,17 +1,18 @@
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.services.database import DatabaseService
-from primaite.simulator.system.services.service import ServiceOperatingState
-from primaite.simulator.system.software import SoftwareCriticality, SoftwareHealthState
+import json
+
+import pytest
+
+from primaite.simulator.network.hardware.base import Node
+from primaite.simulator.system.services.database_service import DatabaseService
 
 
-def test_creation():
-    db = DatabaseService(
-        name="SQL-database",
-        health_state_actual=SoftwareHealthState.GOOD,
-        health_state_visible=SoftwareHealthState.GOOD,
-        criticality=SoftwareCriticality.MEDIUM,
-        ports=[
-            Port.SQL_SERVER,
-        ],
-        operating_state=ServiceOperatingState.RUNNING,
-    )
+@pytest.fixture(scope="function")
+def database_server() -> Node:
+    node = Node(hostname="db_node")
+    node.software_manager.install(DatabaseService)
+    node.software_manager.software["DatabaseService"].start()
+    return node
+
+
+def test_creation(database_server):
+    database_server.software_manager.show()

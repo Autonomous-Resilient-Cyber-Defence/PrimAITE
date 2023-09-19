@@ -21,3 +21,5 @@ Contents
    simulation_components/network/router
    simulation_components/network/switch
    simulation_components/network/network
+   simulation_components/system/internal_frame_processing
+   simulation_components/system/software

@@ -144,9 +144,11 @@ cython_debug/
 # IDE
 .idea/
 docs/source/primaite-dependencies.rst
+.vscode/
 
 # outputs
 src/primaite/outputs/
+simulation_output/
 
 # benchmark session outputs
 benchmark/output

@@ -23,9 +23,9 @@ class Application(IOSoftware):
     Applications are user-facing programs that may perform input/output operations.
     """
 
-    operating_state: ApplicationOperatingState
+    operating_state: ApplicationOperatingState = ApplicationOperatingState.CLOSED
     "The current operating state of the Application."
-    execution_control_status: str
+    execution_control_status: str = "manual"
     "Control status of the application's execution. It could be 'manual' or 'automatic'."
     num_executions: int = 0
     "The number of times the application has been executed. Default is 0."
@@ -52,6 +52,25 @@ class Application(IOSoftware):
             }
         )
         return state
+
+    def run(self) -> None:
+        """Open the Application."""
+        if self.operating_state == ApplicationOperatingState.CLOSED:
+            self.sys_log.info(f"Running Application {self.name}")
+            self.operating_state = ApplicationOperatingState.RUNNING
+
+    def close(self) -> None:
+        """Close the Application."""
+        if self.operating_state == ApplicationOperatingState.RUNNING:
+            self.sys_log.info(f"Closed Application{self.name}")
+            self.operating_state = ApplicationOperatingState.CLOSED
+
+    def install(self) -> None:
+        """Install Application."""
+        super().install()
+        if self.operating_state == ApplicationOperatingState.CLOSED:
+            self.sys_log.info(f"Installing Application {self.name}")
+            self.operating_state = ApplicationOperatingState.INSTALLING
 
     def reset_component_for_episode(self, episode: int):
         """

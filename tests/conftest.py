@@ -12,6 +12,8 @@ import pytest
 from primaite import getLogger
 from primaite.environment.primaite_env import Primaite
 from primaite.primaite_session import PrimaiteSession
+from primaite.simulator.network.container import Network
+from primaite.simulator.network.networks import arcd_uc2_network
 from tests.mock_and_patch.get_session_path_mock import get_temp_session_path
 
 ACTION_SPACE_NODE_VALUES = 1
@@ -19,7 +21,22 @@ ACTION_SPACE_NODE_ACTION_VALUES = 1
 
 _LOGGER = getLogger(__name__)
 
+# PrimAITE v3 stuff
+from primaite.simulator.file_system.file_system import FileSystem
+from primaite.simulator.network.hardware.base import Node
 
+
+@pytest.fixture(scope="function")
+def uc2_network() -> Network:
+    return arcd_uc2_network()
+
+
+@pytest.fixture(scope="function")
+def file_system() -> FileSystem:
+    return Node(hostname="fs_node").file_system
+
+
+# PrimAITE v2 stuff
 class TempPrimaiteSession(PrimaiteSession):
     """
     A temporary PrimaiteSession class.

@@ -45,7 +45,6 @@ def test_seeded_learning(temp_primaite_session):
         ), "Expected output is based upon a agent that was trained with seed 67890"
         session.learn()
         actual_mean_reward_per_episode = session.learn_av_reward_per_episode_dict()
-        print(actual_mean_reward_per_episode, "THISt")
 
     assert actual_mean_reward_per_episode == expected_mean_reward_per_episode
 

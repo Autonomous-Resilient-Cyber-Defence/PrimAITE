@@ -1,3 +1,5 @@
+from ipaddress import IPv4Address
+
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.base import NIC
 from primaite.simulator.network.hardware.nodes.computer import Computer
@@ -6,6 +8,11 @@ from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.hardware.nodes.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.services.database_service import DatabaseService
+from primaite.simulator.system.services.dns_client import DNSClient
+from primaite.simulator.system.services.dns_server import DNSServer
+from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 
 
 def client_server_routed() -> Network:
@@ -121,16 +128,33 @@ def arcd_uc2_network() -> Network:
 
     # Client 1
     client_1 = Computer(
-        hostname="client_1", ip_address="192.168.10.21", subnet_mask="255.255.255.0", default_gateway="192.168.10.1"
+        hostname="client_1",
+        ip_address="192.168.10.21",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.10.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     client_1.power_on()
+    client_1.software_manager.install(DNSClient)
+    client_1_dns_client_service: DNSServer = client_1.software_manager.software["DNSClient"]  # noqa
+    client_1_dns_client_service.start()
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
+    client_1.software_manager.install(DataManipulationBot)
+    db_manipulation_bot: DataManipulationBot = client_1.software_manager.software["DataManipulationBot"]
+    db_manipulation_bot.configure(server_ip_address=IPv4Address("192.168.1.14"), payload="DROP TABLE IF EXISTS user;")
 
     # Client 2
     client_2 = Computer(
-        hostname="client_2", ip_address="192.168.10.22", subnet_mask="255.255.255.0", default_gateway="192.168.10.1"
+        hostname="client_2",
+        ip_address="192.168.10.22",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.10.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     client_2.power_on()
+    client_2.software_manager.install(DNSClient)
+    client_2_dns_client_service: DNSServer = client_2.software_manager.software["DNSClient"]  # noqa
+    client_2_dns_client_service.start()
     network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
 
     # Domain Controller
@@ -141,14 +165,9 @@ def arcd_uc2_network() -> Network:
         default_gateway="192.168.1.1",
     )
     domain_controller.power_on()
-    network.connect(endpoint_b=domain_controller.ethernet_port[1], endpoint_a=switch_1.switch_ports[1])
+    domain_controller.software_manager.install(DNSServer)
 
-    # Web Server
-    web_server = Server(
-        hostname="web_server", ip_address="192.168.1.12", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
-    )
-    web_server.power_on()
-    network.connect(endpoint_b=web_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[2])
+    network.connect(endpoint_b=domain_controller.ethernet_port[1], endpoint_a=switch_1.switch_ports[1])
 
     # Database Server
     database_server = Server(
@@ -156,13 +175,73 @@ def arcd_uc2_network() -> Network:
         ip_address="192.168.1.14",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     database_server.power_on()
     network.connect(endpoint_b=database_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[3])
 
+    ddl = """
+    CREATE TABLE IF NOT EXISTS user (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(50) NOT NULL,
+    email VARCHAR(50) NOT NULL,
+    age INT,
+    city VARCHAR(50),
+    occupation VARCHAR(50)
+    );"""
+
+    user_insert_statements = [
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('John Doe', 'johndoe@example.com', 32, 'New York', 'Engineer');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Jane Smith', 'janesmith@example.com', 27, 'Los Angeles', 'Designer');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Bob Johnson', 'bobjohnson@example.com', 45, 'Chicago', 'Manager');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Alice Lee', 'alicelee@example.com', 22, 'San Francisco', 'Student');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('David Kim', 'davidkim@example.com', 38, 'Houston', 'Consultant');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Emily Chen', 'emilychen@example.com', 29, 'Seattle', 'Software Developer');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Frank Wang', 'frankwang@example.com', 55, 'New York', 'Entrepreneur');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Grace Park', 'gracepark@example.com', 31, 'Los Angeles', 'Marketing Specialist');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Henry Wu', 'henrywu@example.com', 40, 'Chicago', 'Accountant');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Isabella Kim', 'isabellakim@example.com', 26, 'San Francisco', 'Graphic Designer');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Jake Lee', 'jakelee@example.com', 33, 'Houston', 'Sales Manager');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Kelly Chen', 'kellychen@example.com', 28, 'Seattle', 'Web Developer');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Lucas Liu', 'lucasliu@example.com', 42, 'New York', 'Lawyer');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Maggie Wang', 'maggiewang@example.com', 30, 'Los Angeles', 'Data Analyst');",  # noqa
+    ]
+    database_server.software_manager.install(DatabaseService)
+    database_service: DatabaseService = database_server.software_manager.software["DatabaseService"]  # noqa
+    database_service.start()
+    database_service._process_sql(ddl, None)  # noqa
+    for insert_statement in user_insert_statements:
+        database_service._process_sql(insert_statement, None)  # noqa
+
+    # Web Server
+    web_server = Server(
+        hostname="web_server",
+        ip_address="192.168.1.12",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
+    )
+    web_server.power_on()
+    web_server.software_manager.install(DatabaseClient)
+
+    database_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    database_client.configure(server_ip_address=IPv4Address("192.168.1.14"))
+    network.connect(endpoint_b=web_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[2])
+    database_client.run()
+    database_client.connect()
+
+    # register the web_server to a domain
+    dns_server_service: DNSServer = domain_controller.software_manager.software["DNSServer"]  # noqa
+    dns_server_service.start()
+    dns_server_service.dns_register("arcd.com", web_server.ip_address)
+
     # Backup Server
     backup_server = Server(
-        hostname="backup_server", ip_address="192.168.1.16", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+        hostname="backup_server",
+        ip_address="192.168.1.16",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     backup_server.power_on()
     network.connect(endpoint_b=backup_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[4])
@@ -173,6 +252,7 @@ def arcd_uc2_network() -> Network:
         ip_address="192.168.1.110",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     security_suite.power_on()
     network.connect(endpoint_b=security_suite.ethernet_port[1], endpoint_a=switch_1.switch_ports[7])
@@ -182,5 +262,13 @@ def arcd_uc2_network() -> Network:
     router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
 
     router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+
+    # Allow PostgreSQL requests
+    router_1.acl.add_rule(
+        action=ACLAction.PERMIT, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER, position=0
+    )
+
+    # Allow DNS requests
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.DNS, dst_port=Port.DNS, position=1)
 
     return network
