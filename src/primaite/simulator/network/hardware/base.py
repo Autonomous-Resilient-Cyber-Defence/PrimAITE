@@ -951,14 +951,22 @@ class Node(SimComponent):
         # since there are potentially many services, create an action manager that can map service name
         self._service_action_manager = ActionManager()
         am.add_action("service", Action(func=self._service_action_manager))
-        self._process_action_manager = ActionManager()
-        am.add_action("process", Action(func=self._process_action_manager))
-        self._application_action_manager = ActionManager()
-        am.add_action("application", Action(func=self._application_action_manager))
         self._nic_action_manager = ActionManager()
         am.add_action("nic", Action(func=self._nic_action_manager))
 
         am.add_action("file_system", Action(func=self.file_system._action_manager))
+
+        # currently we don't have any applications nor processes, so these will be empty
+        self._process_action_manager = ActionManager()
+        am.add_action("process", Action(func=self._process_action_manager))
+        self._application_action_manager = ActionManager()
+        am.add_action("application", Action(func=self._application_action_manager))
+
+        am.add_action("scan", Action(func=lambda request, context: ...))  # TODO implement OS scan
+
+        am.add_action("shutdown", Action(func=lambda request, context: self.power_off()))
+        am.add_action("startup", Action(func=lambda request, context: self.power_on()))
+        am.add_action("reset", Action(func=lambda request, context: ...))  # TODO implement node reset
 
         return am
 
