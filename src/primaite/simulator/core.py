@@ -200,14 +200,6 @@ class SimComponent(BaseModel):
         }
         return state
 
-    def possible_actions(self) -> List[List[str]]:
-        """Enumerate all actions that this component can accept.
-
-        :return: List of all action strings that can be passed to this component.
-        :rtype: List[Dict[str]]
-        """
-        action_list = ActionManager  # TODO: extract possible actions? how to do this neatly?
-
     def apply_action(self, action: List[str], context: Dict = {}) -> None:
         """
         Apply an action to a simulation component. Action data is passed in as a 'namespaced' list of strings.
