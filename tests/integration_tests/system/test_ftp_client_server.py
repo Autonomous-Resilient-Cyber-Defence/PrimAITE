@@ -57,3 +57,6 @@ def test_ftp_client_retrieve_file_from_server(uc2_network):
         dest_file_name="test_file.txt",
         dest_ip_address=backup_server.nics.get(next(iter(backup_server.nics))).ip_address,
     )
+
+    # client should have retrieved the file
+    assert ftp_client.file_system.get_file(folder_name="downloads", file_name="test_file.txt")

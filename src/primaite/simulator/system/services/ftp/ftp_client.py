@@ -6,10 +6,10 @@ from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPS
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
-from primaite.simulator.system.services.service import Service
+from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
 
 
-class FTPClient(Service):
+class FTPClient(FTPServiceABC):
     """
     A class for simulating an FTP client service.
 
@@ -61,17 +61,6 @@ class FTPClient(Service):
         # return true if connected successfully else false
         self.connected = False
 
-    def _process_response(self, payload: FTPPacket):
-        """
-        Process any FTPPacket responses.
-
-        :param: payload: The FTPPacket payload
-        :type: FTPPacket
-        """
-        if payload.ftp_command == FTPCommand.PORT:
-            if payload.status_code == FTPStatusCode.OK:
-                self.connected = True
-
     def send_file(
         self,
         dest_ip_address: IPv4Address,
@@ -109,23 +98,13 @@ class FTPClient(Service):
             )
         else:
             # send STOR request
-            payload: FTPPacket = FTPPacket(
-                ftp_command=FTPCommand.STOR,
-                ftp_command_args={
-                    "dest_folder_name": dest_folder_name,
-                    "dest_file_name": dest_file_name,
-                    "file_size": file_to_transfer.sim_size,
-                },
-                packet_payload_size=file_to_transfer.sim_size,
+            return self._send_data(
+                file=file_to_transfer,
+                dest_folder_name=dest_folder_name,
+                dest_file_name=dest_file_name,
+                dest_ip_address=dest_ip_address,
+                dest_port=dest_port,
             )
-            software_manager: SoftwareManager = self.software_manager
-            software_manager.send_payload_to_session_manager(
-                payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port
-            )
-
-            if payload.status_code == Port.FTP:
-                self._disconnect_from_server()
-                return True
 
     def request_file(
         self,
@@ -138,7 +117,48 @@ class FTPClient(Service):
         is_reattempt: Optional[bool] = False,
     ) -> bool:
         """Request a file from a target IP address."""
-        pass
+        # check if FTP is currently connected to IP
+        self.connected = self._connect_to_server(
+            dest_ip_address=dest_ip_address,
+            dest_port=dest_port,
+        )
+
+        if not self.connected:
+            if is_reattempt:
+                return False
+
+            return self.request_file(
+                src_folder_name=src_folder_name,
+                src_file_name=src_file_name,
+                dest_folder_name=dest_folder_name,
+                dest_file_name=dest_file_name,
+                dest_ip_address=dest_ip_address,
+                dest_port=dest_port,
+                is_reattempt=True,
+            )
+        else:
+            # send retrieve request
+            payload: FTPPacket = FTPPacket(
+                ftp_command=FTPCommand.RETR,
+                ftp_command_args={
+                    "src_folder_name": src_folder_name,
+                    "src_file_name": src_file_name,
+                    "dest_file_name": dest_file_name,
+                    "dest_folder_name": dest_folder_name,
+                },
+            )
+            software_manager: SoftwareManager = self.software_manager
+            software_manager.send_payload_to_session_manager(
+                payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port
+            )
+
+            # the payload should have ok status code
+            if payload.status_code == FTPStatusCode.OK:
+                self.sys_log.info(f"File {src_folder_name}/{src_file_name} found in FTP server.")
+                return True
+            else:
+                self.sys_log.error(f"File {src_folder_name}/{src_file_name} does not exist in FTP server")
+                return False
 
     def receive(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> bool:
         """Receives a payload from the SessionManager."""
@@ -146,5 +166,5 @@ class FTPClient(Service):
             self.sys_log.error(f"{payload} is not an FTP packet")
             return False
 
-        self._process_response(payload=payload)
+        self._process_ftp_command(payload=payload, session_id=session_id)
         return True
