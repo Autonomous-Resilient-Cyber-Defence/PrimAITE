@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import os.path
 import shutil
+from enum import Enum
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -42,6 +43,14 @@ def convert_size(size_bytes: int) -> str:
     return f"{s} {size_name[i]}"
 
 
+class FileSystemItemHealthStatus(Enum):
+    GOOD = 1
+    COMPROMISED = 2
+    CORRUPT = 3
+    RESTORING = 4
+    REPAIRING = 5
+
+
 class FileSystemItemABC(SimComponent):
     """
     Abstract base class for file system items used in the file system simulation.
@@ -51,6 +60,7 @@ class FileSystemItemABC(SimComponent):
 
     name: str
     "The name of the FileSystemItemABC."
+    health_status: FileSystemItemHealthStatus = FileSystemItemHealthStatus.GOOD
 
     def describe_state(self) -> Dict:
         """
@@ -59,11 +69,7 @@ class FileSystemItemABC(SimComponent):
         :return: Current state of this object and child objects.
         """
         state = super().describe_state()
-        state.update(
-            {
-                "name": self.name,
-            }
-        )
+        state.update({"name": self.name, "health_status": self.health_status.value})
         return state
 
     @property

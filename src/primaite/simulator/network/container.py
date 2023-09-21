@@ -163,8 +163,8 @@ class Network(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "nodes": {i for i, node in self._node_id_map.items()},
-                "links": {i: link.describe_state() for i, link in self._link_id_map.items()},
+                "nodes": {uuid: node.describe_state() for uuid, node in self.nodes.items()},
+                "links": {uuid: link.describe_state() for uuid, link in self.links.items()},
             }
         )
         return state
