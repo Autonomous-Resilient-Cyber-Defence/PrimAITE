@@ -10,7 +10,7 @@ from typing import Dict, Optional
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
-from primaite.simulator.core import SimComponent
+from primaite.simulator.core import Action, ActionManager, SimComponent
 from primaite.simulator.file_system.file_type import FileType, get_file_type_from_extension
 from primaite.simulator.system.core.sys_log import SysLog
 
@@ -100,6 +100,17 @@ class FileSystem(SimComponent):
         if not self.folders:
             self.create_folder("root")
 
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+
+        self._folder_action_manager = ActionManager()
+        am.add_action("folder", Action(func=self._folder_action_manager))
+
+        self._file_action_manager = ActionManager()
+        am.add_action("file", Action(func=self._file_action_manager))
+
+        return am
+
     @property
     def size(self) -> int:
         """
@@ -160,6 +171,7 @@ class FileSystem(SimComponent):
         self.folders[folder.uuid] = folder
         self._folders_by_name[folder.name] = folder
         self.sys_log.info(f"Created folder /{folder.name}")
+        self._folder_action_manager.add_action(folder.uuid, Action(func=folder._action_manager))
         return folder
 
     def delete_folder(self, folder_name: str):
@@ -178,6 +190,7 @@ class FileSystem(SimComponent):
             self.folders.pop(folder.uuid)
             self._folders_by_name.pop(folder.name)
             self.sys_log.info(f"Deleted folder /{folder.name} and its contents")
+            self._folder_action_manager.remove_action(folder.uuid)
         else:
             _LOGGER.debug(f"Cannot delete folder as it does not exist: {folder_name}")
 
@@ -219,6 +232,7 @@ class FileSystem(SimComponent):
         )
         folder.add_file(file)
         self.sys_log.info(f"Created file /{file.path}")
+        self._file_action_manager.add_action(file.uuid, Action(func=file._action_manager))
         return file
 
     def get_file(self, folder_name: str, file_name: str) -> Optional[File]:
@@ -246,6 +260,7 @@ class FileSystem(SimComponent):
             file = folder.get_file(file_name)
             if file:
                 folder.remove_file(file)
+                self._file_action_manager.remove_action(file.uuid)
                 self.sys_log.info(f"Deleted file /{file.path}")
 
     def move_file(self, src_folder_name: str, src_file_name: str, dst_folder_name: str):
@@ -322,6 +337,18 @@ class Folder(FileSystemItemABC):
     "Files by their name as <file name>.<file type>."
     is_quarantined: bool = False
     "Flag that marks the folder as quarantined if true."
+
+    def _init_action_manager(sekf) -> ActionManager:
+        am = super()._init_action_manager()
+
+        am.add_action("scan", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("checkhash", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("repair", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("restore", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("delete", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("corrupt", Action(func=lambda request, context: ...))  # TODO implement action
+
+        return am
 
     def describe_state(self) -> Dict:
         """
@@ -487,6 +514,18 @@ class File(FileSystemItemABC):
                 self.sim_path.parent.mkdir(exist_ok=True, parents=True)
                 with open(self.sim_path, mode="a"):
                     pass
+
+    def _init_action_manager(self) -> ActionManager:
+        am = super()._init_action_manager()
+
+        am.add_action("scan", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("checkhash", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("delete", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("repair", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("restore", Action(func=lambda request, context: ...))  # TODO implement action
+        am.add_action("corrupt", Action(func=lambda request, context: ...))  # TODO implement action
+
+        return am
 
     def make_copy(self, dst_folder: Folder) -> File:
         """

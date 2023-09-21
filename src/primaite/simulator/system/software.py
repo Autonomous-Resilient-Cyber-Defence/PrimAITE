@@ -204,7 +204,7 @@ class IOSoftware(Software):
                 "max_sessions": self.max_sessions,
                 "tcp": self.tcp,
                 "udp": self.udp,
-                "ports": [port.name for port in self.ports],  # TODO: not sure if this should be port.name or port.value
+                "port": self.port.value,
             }
         )
         return state

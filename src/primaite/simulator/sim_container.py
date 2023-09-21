@@ -24,19 +24,9 @@ class Simulation(SimComponent):
     def _init_action_manager(self) -> ActionManager:
         am = super()._init_action_manager()
         # pass through network actions to the network objects
-        am.add_action(
-            "network",
-            Action(
-                func=lambda request, context: self.network.apply_action(request, context), validator=AllowAllValidator()
-            ),
-        )
+        am.add_action("network", Action(func=self.network._action_manager))
         # pass through domain actions to the domain object
-        am.add_action(
-            "domain",
-            Action(
-                func=lambda request, context: self.domain.apply_action(request, context), validator=AllowAllValidator()
-            ),
-        )
+        am.add_action("domain", Action(func=self.domain._action_manager))
         return am
 
     def describe_state(self) -> Dict:

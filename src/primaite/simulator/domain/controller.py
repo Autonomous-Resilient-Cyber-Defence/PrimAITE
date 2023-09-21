@@ -46,13 +46,7 @@ class AccountGroup(Enum):
 class GroupMembershipValidator(ActionPermissionValidator):
     """Permit actions based on group membership."""
 
-    def __init__(self, allowed_groups: List[AccountGroup]) -> None:
-        """Store a list of groups that should be granted permission.
-
-        :param allowed_groups: List of AccountGroups that are permitted to perform some action.
-        :type allowed_groups: List[AccountGroup]
-        """
-        self.allowed_groups = allowed_groups
+    allowed_groups:List[AccountGroup]
 
     def __call__(self, request: List[str], context: Dict) -> bool:
         """Permit the action if the request comes from an account which belongs to the right group."""
@@ -93,7 +87,7 @@ class DomainController(SimComponent):
             "account",
             Action(
                 func=lambda request, context: self.accounts[request.pop(0)].apply_action(request, context),
-                validator=GroupMembershipValidator([AccountGroup.DOMAIN_ADMIN]),
+                validator=GroupMembershipValidator(allowed_groups=[AccountGroup.DOMAIN_ADMIN]),
             ),
         )
         return am

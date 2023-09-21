@@ -6,7 +6,7 @@ from networkx import MultiGraph
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
-from primaite.simulator.core import Action, ActionManager, AllowAllValidator, SimComponent
+from primaite.simulator.core import Action, ActionManager, SimComponent
 from primaite.simulator.network.hardware.base import Link, NIC, Node, SwitchPort
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import Router
@@ -45,12 +45,12 @@ class Network(SimComponent):
 
     def _init_action_manager(self) -> ActionManager:
         am = super()._init_action_manager()
-
+        self._node_action_manager = ActionManager()
         am.add_action(
             "node",
             Action(
-                func=lambda request, context: self.nodes[request.pop(0)].apply_action(request, context),
-                validator=AllowAllValidator(),
+                func=self._node_action_manager
+                # func=lambda request, context: self.nodes[request.pop(0)].apply_action(request, context),
             ),
         )
         return am
@@ -184,7 +184,8 @@ class Network(SimComponent):
         self._node_id_map[len(self.nodes)] = node
         node.parent = self
         self._nx_graph.add_node(node.hostname)
-        _LOGGER.debug(f"Added node {node.uuid} to Network {self.uuid}")
+        _LOGGER.info(f"Added node {node.uuid} to Network {self.uuid}")
+        self._node_action_manager.add_action(name=node.uuid, action=Action(func=node._action_manager))
 
     def get_node_by_hostname(self, hostname: str) -> Optional[Node]:
         """
@@ -218,6 +219,7 @@ class Network(SimComponent):
                 break
         node.parent = None
         _LOGGER.info(f"Removed node {node.uuid} from network {self.uuid}")
+        self._node_action_manager.remove_action(name=node.uuid)
 
     def connect(self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs) -> None:
         """

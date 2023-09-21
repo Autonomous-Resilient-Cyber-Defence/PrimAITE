@@ -23,3 +23,4 @@ Contents
    simulation_components/network/network
    simulation_components/system/internal_frame_processing
    simulation_components/system/software
+   action_system
