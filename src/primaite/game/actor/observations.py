@@ -3,6 +3,8 @@ from typing import Any, Dict, Hashable, List
 
 from pydantic import BaseModel
 
+from gym import spaces
+
 
 def access_from_nested_dict(dictionary: Dict, keys: List[Hashable]) -> Any:
     """
@@ -28,6 +30,7 @@ def access_from_nested_dict(dictionary: Dict, keys: List[Hashable]) -> Any:
 
 
 class AbstractObservation(BaseModel):
+
     @abstractmethod
     def __call__(self, state: Dict) -> Any:
         """_summary_
@@ -40,6 +43,12 @@ class AbstractObservation(BaseModel):
         ...
         # receive state dict
 
+    @property
+    @abstractmethod
+    def space(self) -> spaces.Space:
+        """Subclasses must define the shape that they expect"""
+        ...
+
 
 class FileObservation(AbstractObservation):
     where: List[str]
@@ -47,6 +56,12 @@ class FileObservation(AbstractObservation):
 
     def __call__(self, state: Dict) -> Dict:
         file_state = access_from_nested_dict(state, self.where)
+        observation = {'health_status':file_state['health_status']}
+        return observation
+
+    @property
+    def space(self) -> spaces.Space:
+        return spaces.Dict({'health_status':spaces.Discrete(6)})
 
 
 class ObservationSpace:
