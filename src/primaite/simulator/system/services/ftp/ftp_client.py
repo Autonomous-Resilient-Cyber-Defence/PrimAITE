@@ -7,6 +7,7 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
+from primaite.simulator.system.services.service import ServiceOperatingState
 
 
 class FTPClient(FTPServiceABC):
@@ -26,6 +27,15 @@ class FTPClient(FTPServiceABC):
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
         self.start()
+
+    def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
+        # if server is down, return error
+        if self.operating_state != ServiceOperatingState.RUNNING:
+            payload.status_code = FTPStatusCode.ERROR
+            return payload
+
+        # process client specific commands, otherwise call super
+        return super()._process_ftp_command(payload=payload, session_id=session_id, **kwargs)
 
     def _connect_to_server(
         self, dest_ip_address: Optional[IPv4Address] = None, dest_port: Optional[Port] = Port.FTP
@@ -54,12 +64,18 @@ class FTPClient(FTPServiceABC):
         return payload.status_code == FTPStatusCode.OK
 
     def _disconnect_from_server(
-        self,
-        ftp_server_ip_address: Optional[IPv4Address] = None,
+        self, dest_ip_address: Optional[IPv4Address] = None, dest_port: Optional[Port] = Port.FTP
     ) -> bool:
         # send a disconnect request payload to FTP server
-        # return true if connected successfully else false
-        self.connected = False
+        payload: FTPPacket = FTPPacket(ftp_command=FTPCommand.QUIT)
+        software_manager: SoftwareManager = self.software_manager
+        software_manager.send_payload_to_session_manager(
+            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port
+        )
+        if payload.status_code == FTPStatusCode.OK:
+            self.connected = False
+            return True
+        return False
 
     def send_file(
         self,
@@ -72,6 +88,10 @@ class FTPClient(FTPServiceABC):
         is_reattempt: Optional[bool] = False,
     ) -> bool:
         """Send a file to a target IP address."""
+        # if service is not running, return error
+        if self.operating_state != ServiceOperatingState.RUNNING:
+            self.sys_log.error(f"FTPClient not running for {self.sys_log.hostname}")
+            return False
         file_to_transfer: File = self.file_system.get_file(folder_name=src_folder_name, file_name=src_file_name)
         if not file_to_transfer:
             self.sys_log.error(f"Unable to send file that does not exist: {src_folder_name}/{src_file_name}")
@@ -98,13 +118,16 @@ class FTPClient(FTPServiceABC):
             )
         else:
             # send STOR request
-            return self._send_data(
+            self._send_data(
                 file=file_to_transfer,
                 dest_folder_name=dest_folder_name,
                 dest_file_name=dest_file_name,
                 dest_ip_address=dest_ip_address,
                 dest_port=dest_port,
             )
+
+            # send disconnect
+            return self._disconnect_from_server(dest_ip_address=dest_ip_address, dest_port=dest_port)
 
     def request_file(
         self,
@@ -117,6 +140,10 @@ class FTPClient(FTPServiceABC):
         is_reattempt: Optional[bool] = False,
     ) -> bool:
         """Request a file from a target IP address."""
+        # if service is not running, return error
+        if self.operating_state != ServiceOperatingState.RUNNING:
+            self.sys_log.error(f"FTPClient not running for {self.sys_log.hostname}")
+            return False
         # check if FTP is currently connected to IP
         self.connected = self._connect_to_server(
             dest_ip_address=dest_ip_address,
@@ -151,6 +178,9 @@ class FTPClient(FTPServiceABC):
             software_manager.send_payload_to_session_manager(
                 payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port
             )
+
+            # send disconnect
+            self._disconnect_from_server(dest_ip_address=dest_ip_address, dest_port=dest_port)
 
             # the payload should have ok status code
             if payload.status_code == FTPStatusCode.OK:

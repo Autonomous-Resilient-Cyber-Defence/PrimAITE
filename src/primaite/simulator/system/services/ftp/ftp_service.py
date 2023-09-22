@@ -17,13 +17,6 @@ class FTPServiceABC(Service, ABC):
     """
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
-        # handle PORT request
-        if payload.ftp_command == FTPCommand.PORT:
-            # check that the port is valid
-            if isinstance(payload.ftp_command_args, Port) and payload.ftp_command_args.value in range(0, 65535):
-                # return successful connection
-                payload.status_code = FTPStatusCode.OK
-
         # handle STOR request
         if payload.ftp_command == FTPCommand.STOR:
             # check that the file is created in the computed hosting the FTP server

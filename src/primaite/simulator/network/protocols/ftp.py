@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from primaite.simulator.network.protocols.packet import DataPacket
 
@@ -48,7 +48,7 @@ class FTPPacket(DataPacket):
     ftp_command: FTPCommand
     """Command type of the packet."""
 
-    ftp_command_args: Any
+    ftp_command_args: Optional[Any] = None
     """Arguments for command."""
 
     status_code: FTPStatusCode = None

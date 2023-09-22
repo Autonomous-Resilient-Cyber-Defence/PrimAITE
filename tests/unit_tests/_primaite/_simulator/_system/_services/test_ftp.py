@@ -3,6 +3,7 @@ from ipaddress import IPv4Address
 import pytest
 
 from primaite.simulator.network.hardware.base import Node
+from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
@@ -39,3 +40,43 @@ def test_create_ftp_client(ftp_client):
     assert ftp_client_service.name is "FTPClient"
     assert ftp_client_service.port is Port.FTP
     assert ftp_client_service.protocol is IPProtocol.TCP
+
+
+def test_ftp_server_store_file(ftp_server):
+    """Test to make sure the FTP Server knows how to deal with request responses."""
+    assert ftp_server.file_system.get_file(folder_name="downloads", file_name="file.txt") is None
+
+    response: FTPPacket = FTPPacket(
+        ftp_command=FTPCommand.STOR,
+        ftp_command_args={
+            "dest_folder_name": "downloads",
+            "dest_file_name": "file.txt",
+            "file_size": 24,
+        },
+        packet_payload_size=24,
+    )
+
+    ftp_server_service: FTPServer = ftp_server.software_manager.software["FTPServer"]
+    ftp_server_service.receive(response)
+
+    assert ftp_server.file_system.get_file(folder_name="downloads", file_name="file.txt")
+
+
+def test_ftp_client_store_file(ftp_client):
+    """Test to make sure the FTP Client knows how to deal with request responses."""
+    assert ftp_client.file_system.get_file(folder_name="downloads", file_name="file.txt") is None
+
+    response: FTPPacket = FTPPacket(
+        ftp_command=FTPCommand.STOR,
+        ftp_command_args={
+            "dest_folder_name": "downloads",
+            "dest_file_name": "file.txt",
+            "file_size": 24,
+        },
+        packet_payload_size=24,
+    )
+
+    ftp_client_service: FTPClient = ftp_client.software_manager.software["FTPClient"]
+    ftp_client_service.receive(response)
+
+    assert ftp_client.file_system.get_file(folder_name="downloads", file_name="file.txt")
