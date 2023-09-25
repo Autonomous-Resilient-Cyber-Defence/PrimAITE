@@ -15,14 +15,14 @@ class ServiceOperatingState(Enum):
     "The service is currently running."
     STOPPED = 2
     "The service is not running."
-    INSTALLING = 3
-    "The service is being installed or updated."
-    RESTARTING = 4
-    "The service is in the process of restarting."
-    PAUSED = 5
+    PAUSED = 3
     "The service is temporarily paused."
-    DISABLED = 6
+    DISABLED = 4
     "The service is disabled and cannot be started."
+    INSTALLING = 5
+    "The service is being installed or updated."
+    RESTARTING = 6
+    "The service is in the process of restarting."
 
 
 class Service(IOSoftware):
@@ -60,7 +60,7 @@ class Service(IOSoftware):
         :rtype: Dict
         """
         state = super().describe_state()
-        state.update({"operating_state": self.operating_state.name})
+        state.update({"operating_state": self.operating_state.value})
         return state
 
     def reset_component_for_episode(self, episode: int):

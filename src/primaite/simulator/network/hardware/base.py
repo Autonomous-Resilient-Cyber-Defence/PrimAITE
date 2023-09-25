@@ -855,14 +855,14 @@ class ICMP:
 class NodeOperatingState(Enum):
     """Enumeration of Node Operating States."""
 
-    OFF = 0
-    "The node is powered off."
     ON = 1
     "The node is powered on."
-    SHUTTING_DOWN = 2
-    "The node is in the process of shutting down."
+    OFF = 2
+    "The node is powered off."
     BOOTING = 3
     "The node is in the process of booting up."
+    SHUTTING_DOWN = 4
+    "The node is in the process of shutting down."
 
 
 class Node(SimComponent):

@@ -58,7 +58,14 @@ class ACLRule(SimComponent):
 
         :return: A dictionary representing the current state.
         """
-        pass
+        state = super().describe_state()
+        state["action"] = self.action.value
+        state["protocol"] = self.protocol.value
+        state["src_ip_address"] = self.src_ip_address
+        state["src_port"] = self.src_port.value
+        state["dst_ip_address"] = self.dst_ip_address
+        state["dst_port"] = self.dst_port.value
+        return state
 
 
 class AccessControlList(SimComponent):
@@ -123,7 +130,12 @@ class AccessControlList(SimComponent):
 
         :return: A dictionary representing the current state.
         """
-        pass
+        state = super().describe_state()
+        state["implicit_action"] = self.implicit_action.value
+        state["implicit_rule"] = self.implicit_rule.describe_state()
+        state["max_acl_rules"] = self.max_acl_rules
+        state["acl"] = {i: r.describe_state() if isinstance(r, ACLRule) else None for i, r in enumerate(self._acl)}
+        return state
 
     @property
     def acl(self) -> List[Optional[ACLRule]]:
@@ -648,7 +660,10 @@ class Router(Node):
 
         :return: A dictionary representing the current state.
         """
-        pass
+        state = super().describe_state()
+        state["num_ports"] = (self.num_ports,)
+        state["acl"] = (self.acl.describe_state(),)
+        return state
 
     def route_frame(self, frame: Frame, from_nic: NIC, re_attempt: bool = False) -> None:
         """

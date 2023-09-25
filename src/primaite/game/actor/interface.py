@@ -11,10 +11,13 @@ from primaite.game.actor.observations import ObservationSpace
 from primaite.game.actor.rewards import RewardFunction
 
 
-class AbstractActor(BaseModel):
+class AbstractActor(ABC):
     """Base class for scripted and RL agents."""
 
-    ...
+    def __init__(self) -> None:
+        self.action_space = ActionSpace
+        self.observation_space = ObservationSpace
+        self.reward_function = RewardFunction
 
 
 class AbstractScriptedActor(AbstractActor):

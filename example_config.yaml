@@ -1,0 +1,276 @@
+training_config:
+  rl_framework: SB3
+  rl_algo: PPO
+  n_learn_steps: 128
+  n_learn_episodes: 1000
+
+game_config:
+  ports:
+  - ARP
+  - DNS
+  - POSTGRES_SERVER
+  protocols:
+  - ICMP
+  - TCP
+
+  agents:
+    - ref: client_1_green_user
+      team: GREEN
+      team: SCRIPTED_GREEN_<class>
+      observation_space:
+        ...
+      action_space:
+        ...
+      reward_function:
+      - type: null_reward
+      # node_ref: client_1
+      # service: WebBrowser
+      # pol:
+      #   - step: 1
+      #     action: START
+
+    - ref: client_1_data_manipulation_red_bot
+      team: RED
+      type: SCRIPTED_RED_<class>
+      observation_space:
+        network:
+          nodes:
+            - ref: client_1
+              - logon_status
+              - operating_status
+              services:
+              - ref: data_manipulation_bot
+                - operating_status
+                - health_status
+              folders:
+                files: {}
+              nics: {}
+
+      action_space:
+        actions:
+        - DO_NOTHING
+        network:
+          nodes:
+            - ref: client_1
+              actions:
+              - SCAN
+              - LOGON
+              - LOGOFF
+              services:
+              - ref: data_manipulation_bot
+                actions:
+                - type: COMPROMISE
+                  execution_definition:
+                    server_ip: 192.168.1.14
+                    payload: "DROP TABLE IF EXISTS user;"
+                    success_rate: 80%
+              folders:
+                files: {}
+      reward_function: null
+      options: # options specific to this particular agent type, basically args of __init__(self)
+        start_step: 25
+        frequency: 20
+        variance: 5
+
+
+
+
+    - ref: defender
+      team: blue
+      type: GATE_RL_AGENT
+      observation_space:
+        network:
+          nodes:
+            - ref: <noderef>
+      action_space:
+        ...
+      reward_function:
+        ...
+
+
+
+
+
+simulation:
+  network:
+    nodes:
+
+    - ref: router_1
+      type: router
+      hostname: router_1
+      num_ports: 5
+      ports:
+        1:
+          ip_address: 192.168.1.1
+          subnet_mask: 255.255.255.0
+        2:
+          ip_address: 192.168.1.1
+          subnet_mask: 255.255.255.0
+      acl:
+        0:
+          action: PERMIT
+          src_port: POSTGRES_SERVER
+          dst_port: POSTGRES_SERVER
+        1:
+          action: PERMIT
+          src_port: DNS
+          dst_port: DNS
+        22:
+          action: PERMIT
+          src_port: ARP
+          dst_port: ARP
+        23:
+          action: PERMIT
+          protocol: ICMP
+
+    - ref: switch_1
+      type: swtich
+      hostname: switch_1
+      num_ports: 8
+
+    - ref: switch_2
+      type: switch
+      hostname: switch_2
+      num_ports: 8
+
+    - ref: domain_controller
+      type: server
+      hostname: domain_controller
+      ip_address: 192.168.1.10
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.1.1
+      services:
+      - ref: domain_controller_dns_server
+        type: dns_server
+        options:
+          domain_mapping:
+            - arcd.com: 192.168.1.12 # web server
+
+
+    - ref: web_server
+      type: server
+      hostname: web_server
+      ip_address: 192.168.1.12
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.1.10
+      dns_server: 192.168.1.10
+      services:
+      - ref: web_server_database_client
+        type: database_client
+        options:
+          db_server_ip: 192.168.1.14
+
+    - ref: database_server
+      type: server
+      hostname: database_server
+      ip_address: 192.168.1.14
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.1.1
+      dns_server: 192.168.1.10
+      services:
+      - ref: database_service
+        type: database_service
+
+
+    - ref: backup_server
+      type: node
+      hostname: backup_server
+      ip_address: 192.168.1.16
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.1.1
+      dns_server: 192.168.1.10
+      services:
+      - ref: backup_service
+        type: database_backup
+
+    - ref: security_suite
+      type: server
+      hostname: security_suite
+      ip_address: 192.168.1.110
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.1.1
+      dns_server: 192.168.1.10
+      nics:
+        2:
+          ip_address: 192.168.10.110
+          subnet_mask: 255.255.255.0
+
+
+    - ref: client_1
+      type: computer
+      hostname: client_1
+      ip_address: 192.168.10.21.
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+      dns_server: 192.168.1.10
+      services:
+      - ref: data_manipulation_bot
+        type: data_manipulation_bot
+      - ref: client_1_dns_client
+        type: dns_client
+
+    - ref: client_2
+      type: computer
+      hostname: client_2
+      ip_address: 192.168.10.22
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+      dns_server: 192.168.1.10
+      services:
+      - ref: web_browser
+        type: web_browser
+      - ref: client_2_dns_client
+        type: dns_client
+
+
+    links:
+    - ref: router_1___switch_1
+      endpoint_a: router_1
+      endpoint_a_port: 1
+      endpoint_b: switch_1
+      endpoint_b_port: 8
+    - ref: router_1___switch_2
+      endpoint_a: router_1
+      endpoint_a_port: 2
+      endpoint_b: switch_2
+      endpoint_b_port: 8
+    - ref: switch_1___domain_controller
+      endpoint_a: switch_1
+      endpoint_a_port: 1
+      endpoint_b: domain_controller
+      endpoint_b_port: 1
+    - ref: switch_1___web_server
+      endpoint_a: switch_1
+      endpoint_a_port: 2
+      endpoint_b: web_server
+      endpoint_b_port: 1
+    - ref: switch_1___database_server
+      endpoint_a: switch_1
+      endpoint_a_port: 3
+      endpoint_b: database_server
+      endpoint_b_port: 1
+    - ref: switch_1___backup_server
+      endpoint_a: switch_1
+      endpoint_a_port: 4
+      endpoint_b: backup_server
+      endpoint_b_port: 1
+    - ref: switch_1___security_suite
+      endpoint_a: switch_1
+      endpoint_a_port: 7
+      endpoint_b: security_suite
+      endpoint_b_port: 1
+    - ref: switch_2___client_1
+      endpoint_a: switch_2
+      endpoint_a_port: 1
+      endpoint_b: client_1
+      endpoint_b_port: 1
+    - ref: switch_2___client_2
+      endpoint_a: switch_2
+      endpoint_a_port: 2
+      endpoint_b: client_2
+      endpoint_b_port: 1
+    - ref: switch_2___security_suite
+      endpoint_a: switch_2
+      endpoint_a_port: 7
+      endpoint_b: security_suite
+      endpoint_b_port: 2
