@@ -17,17 +17,26 @@ game_config:
     - ref: client_1_green_user
       team: GREEN
       team: SCRIPTED_GREEN_<class>
-      observation_space:
-        ...
+      observation_space: null
       action_space:
-        ...
-      reward_function:
-      - type: null_reward
-      # node_ref: client_1
-      # service: WebBrowser
-      # pol:
-      #   - step: 1
-      #     action: START
+        actions:
+        - type: DONOTHING
+        nodes:
+        - ref: client_2
+          actions:
+          - type: LOGON
+          - type: LOGOFF
+          applications:
+          - ref: client_2_web_browser
+            actions:
+            - type: EXECUTE
+              execution_definition:
+                target_address: arcd.com
+      reward_function: null
+      agent_settings:
+        start_step: 5
+        frequency: 4
+        variance: 3
 
     - ref: client_1_data_manipulation_red_bot
       team: RED
@@ -36,38 +45,37 @@ game_config:
         network:
           nodes:
             - ref: client_1
+              observations:
               - logon_status
               - operating_status
               services:
               - ref: data_manipulation_bot
+                observations:
                 - operating_status
                 - health_status
-              folders:
-                files: {}
-              nics: {}
-
+              folders: {}
       action_space:
         actions:
-        - DO_NOTHING
+        - type: DO_NOTHING
         network:
           nodes:
-            - ref: client_1
+          - ref: client_1
+            actions:
+            - type: SCAN
+            - type: LOGON
+            - type: LOGOFF
+            services:
+            - ref: data_manipulation_bot
               actions:
-              - SCAN
-              - LOGON
-              - LOGOFF
-              services:
-              - ref: data_manipulation_bot
-                actions:
-                - type: COMPROMISE
-                  execution_definition:
-                    server_ip: 192.168.1.14
-                    payload: "DROP TABLE IF EXISTS user;"
-                    success_rate: 80%
-              folders:
-                files: {}
+              - type: COMPROMISE
+                execution_definition:
+                  server_ip: 192.168.1.14
+                  payload: "DROP TABLE IF EXISTS user;"
+                  success_rate: 80%
+            folders:
+              files: {}
       reward_function: null
-      options: # options specific to this particular agent type, basically args of __init__(self)
+      agent_settings: # options specific to this particular agent type, basically args of __init__(self)
         start_step: 25
         frequency: 20
         variance: 5
@@ -81,11 +89,32 @@ game_config:
       observation_space:
         network:
           nodes:
-            - ref: <noderef>
+          - ref: router_1 #TODO: more sub-options here
+          - ref: switch_1
+          - ref: switch_2
+          - ref: domain_controller
+          - ref: web_server
+          - ref: database_server
+          - ref: backup_server
+          - ref: security_suite
+          - ref: client_1
+          - ref: client_2
+          links:
+          - ref: ... #
+          acl: ... #
+        ics: ... #
+
+
       action_space:
-        ...
+        actions:
+        - type: DO_NOTHING
+        network:
+          nodes:
+          - ref: router_1
       reward_function:
-        ...
+        # ...
+      agent_settings:
+        # ...
 
 
 
@@ -173,7 +202,7 @@ simulation:
 
 
     - ref: backup_server
-      type: node
+      type: server
       hostname: backup_server
       ip_address: 192.168.1.16
       subnet_mask: 255.255.255.0
@@ -199,7 +228,7 @@ simulation:
     - ref: client_1
       type: computer
       hostname: client_1
-      ip_address: 192.168.10.21.
+      ip_address: 192.168.10.21
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
@@ -217,7 +246,7 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       services:
-      - ref: web_browser
+      - ref: client_2_web_browser
         type: web_browser
       - ref: client_2_dns_client
         type: dns_client
