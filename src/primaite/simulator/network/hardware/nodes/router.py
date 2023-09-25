@@ -60,11 +60,11 @@ class ACLRule(SimComponent):
         """
         state = super().describe_state()
         state["action"] = self.action.value
-        state["protocol"] = self.protocol.value
-        state["src_ip_address"] = self.src_ip_address
-        state["src_port"] = self.src_port.value
-        state["dst_ip_address"] = self.dst_ip_address
-        state["dst_port"] = self.dst_port.value
+        state["protocol"] = self.protocol.value if self.protocol else None
+        state["src_ip_address"] = self.src_ip_address if self.src_ip_address else None
+        state["src_port"] = self.src_port.value if self.src_port else None
+        state["dst_ip_address"] = self.dst_ip_address if self.dst_ip_address else None
+        state["dst_port"] = self.dst_port.value if self.dst_port else None
         return state
 
 
