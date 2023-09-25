@@ -39,23 +39,31 @@ class FTPServer(FTPServiceABC):
         return self.software_manager.session_manager.sessions_by_uuid[session_id]
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
-        # if server is down, return error
+        """
+        Process the command in the FTP Packet.
+
+        :param: payload: The FTP Packet to process
+        :type: payload: FTPPacket
+        :param: session_id: session ID linked to the FTP Packet. Optional.
+        :type: session_id: Optional[str]
+        """
+        # if server service is down, return error
         if self.operating_state != ServiceOperatingState.RUNNING:
             payload.status_code = FTPStatusCode.ERROR
             return payload
+
+        session_details = self._get_session_details(session_id)
 
         # process server specific commands, otherwise call super
         if payload.ftp_command == FTPCommand.PORT:
             # check that the port is valid
             if isinstance(payload.ftp_command_args, Port) and payload.ftp_command_args.value in range(0, 65535):
                 # return successful connection
-                session_details = self._get_session_details(session_id)
                 self.connections[session_id] = session_details.with_ip_address
                 payload.status_code = FTPStatusCode.OK
                 return payload
 
         if payload.ftp_command == FTPCommand.QUIT:
-            session_details = self._get_session_details(session_id)
             self.connections.pop(session_id)
             payload.status_code = FTPStatusCode.OK
 

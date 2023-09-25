@@ -17,6 +17,14 @@ class FTPServiceABC(Service, ABC):
     """
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
+        """
+        Process the command in the FTP Packet.
+
+        :param: payload: The FTP Packet to process
+        :type: payload: FTPPacket
+        :param: session_id: session ID linked to the FTP Packet. Optional.
+        :type: session_id: Optional[str]
+        """
         # handle STOR request
         if payload.ftp_command == FTPCommand.STOR:
             # check that the file is created in the computed hosting the FTP server
@@ -24,25 +32,14 @@ class FTPServiceABC(Service, ABC):
                 payload.status_code = FTPStatusCode.OK
 
         if payload.ftp_command == FTPCommand.RETR:
-            # check that the file exists in the FTP Server
-            file: File = self.file_system.get_file(
-                folder_name=payload.ftp_command_args["src_folder_name"],
-                file_name=payload.ftp_command_args["src_file_name"],
-            )
-            if file:
+            if self._retrieve_data(payload=payload, session_id=session_id):
                 payload.status_code = FTPStatusCode.OK
-                self._send_data(
-                    file=file,
-                    dest_folder_name=payload.ftp_command_args["dest_folder_name"],
-                    dest_file_name=payload.ftp_command_args["dest_file_name"],
-                    session_id=session_id,
-                )
 
         return payload
 
     def _store_data(self, payload: FTPPacket) -> bool:
         """
-        Handle the transfer of data.
+        Stores the data in the FTP Service's host machine.
 
         :param: payload: The FTP Packet that contains the file data
         :type: FTPPacket
@@ -75,6 +72,27 @@ class FTPServiceABC(Service, ABC):
         dest_port: Optional[Port] = None,
         session_id: Optional[str] = None,
     ) -> bool:
+        """
+        Sends data from the host FTP Service's machine to another FTP Service's host machine.
+
+        :param: file: File to send to the target FTP Service.
+        :type: file: File
+
+        :param: dest_folder_name: The name of the folder where the file will be stored in the FTP Server.
+        :type: dest_folder_name: str
+
+        :param: dest_file_name: The name of the file to be saved on the FTP Server.
+        :type: dest_file_name: str
+
+        :param: dest_ip_address: The IP address of the machine that hosts the FTP Server.
+        :type: dest_ip_address: Optional[IPv4Address]
+
+        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port.FTP.
+        :type: dest_port: Optional[Port]
+
+        :param: session_id: session ID linked to the FTP Packet. Optional.
+        :type: session_id: Optional[str]
+        """
         # send STOR request
         payload: FTPPacket = FTPPacket(
             ftp_command=FTPCommand.STOR,
@@ -106,6 +124,8 @@ class FTPServiceABC(Service, ABC):
             # find the file
             file_name = payload.ftp_command_args["src_file_name"]
             folder_name = payload.ftp_command_args["src_folder_name"]
+            dest_folder_name = payload.ftp_command_args["dest_folder_name"]
+            dest_file_name = payload.ftp_command_args["dest_file_name"]
             retrieved_file: File = self.file_system.get_file(folder_name=folder_name, file_name=file_name)
 
             # if file does not exist, return an error
@@ -118,7 +138,10 @@ class FTPServiceABC(Service, ABC):
             else:
                 # send requested data
                 return self._send_data(
-                    file=retrieved_file, dest_file_name=file_name, dest_folder_name=folder_name, session_id=session_id
+                    file=retrieved_file,
+                    dest_file_name=dest_file_name,
+                    dest_folder_name=dest_folder_name,
+                    session_id=session_id,
                 )
         except Exception as e:
             self.sys_log.error(f"Unable to retrieve file from {self.sys_log.hostname}: {e}")
