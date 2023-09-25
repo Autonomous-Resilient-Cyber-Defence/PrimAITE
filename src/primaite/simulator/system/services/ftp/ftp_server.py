@@ -52,7 +52,8 @@ class FTPServer(FTPServiceABC):
             payload.status_code = FTPStatusCode.ERROR
             return payload
 
-        session_details = self._get_session_details(session_id)
+        if session_id:
+            session_details = self._get_session_details(session_id)
 
         # process server specific commands, otherwise call super
         if payload.ftp_command == FTPCommand.PORT:
