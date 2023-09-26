@@ -170,7 +170,7 @@ simulation:
       default_gateway: 192.168.1.1
       services:
       - ref: domain_controller_dns_server
-        type: dns_server
+        type: DNSServer
         options:
           domain_mapping:
             - arcd.com: 192.168.1.12 # web server
@@ -185,7 +185,7 @@ simulation:
       dns_server: 192.168.1.10
       services:
       - ref: web_server_database_client
-        type: database_client
+        type: DatabaseClient
         options:
           db_server_ip: 192.168.1.14
 
@@ -198,7 +198,7 @@ simulation:
       dns_server: 192.168.1.10
       services:
       - ref: database_service
-        type: database_service
+        type: DatabaseService
 
 
     - ref: backup_server
@@ -210,7 +210,7 @@ simulation:
       dns_server: 192.168.1.10
       services:
       - ref: backup_service
-        type: database_backup
+        type: DatabaseBackup
 
     - ref: security_suite
       type: server
@@ -234,9 +234,9 @@ simulation:
       dns_server: 192.168.1.10
       services:
       - ref: data_manipulation_bot
-        type: data_manipulation_bot
+        type: DataManipulationBot
       - ref: client_1_dns_client
-        type: dns_client
+        type: DNSClient
 
     - ref: client_2
       type: computer
@@ -247,9 +247,9 @@ simulation:
       dns_server: 192.168.1.10
       services:
       - ref: client_2_web_browser
-        type: web_browser
+        type: WebBrowser
       - ref: client_2_dns_client
-        type: dns_client
+        type: DNSClient
 
 
     links:
