@@ -16,7 +16,7 @@ game_config:
   agents:
     - ref: client_1_green_user
       team: GREEN
-      team: SCRIPTED_GREEN_<class>
+      type: GreenWebBrowsingAgent
       observation_space: null
       action_space:
         actions:
@@ -40,7 +40,7 @@ game_config:
 
     - ref: client_1_data_manipulation_red_bot
       team: RED
-      type: SCRIPTED_RED_<class>
+      type: RedDatabaseCorruptingAgent
       observation_space:
         network:
           nodes:
@@ -220,7 +220,7 @@ simulation:
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       nics:
-        2:
+        2: # unfortunately this number is currently meaningless, they're just added in order and take up the next available slot
           ip_address: 192.168.10.110
           subnet_mask: 255.255.255.0
 
