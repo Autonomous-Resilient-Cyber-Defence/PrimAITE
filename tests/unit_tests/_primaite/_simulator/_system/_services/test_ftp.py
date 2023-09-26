@@ -21,8 +21,6 @@ def ftp_server() -> Node:
 @pytest.fixture(scope="function")
 def ftp_client() -> Node:
     node = Node(hostname="ftp_client")
-    node.software_manager.install(software_class=FTPClient)
-    node.software_manager.software["FTPClient"].start()
     return node
 
 

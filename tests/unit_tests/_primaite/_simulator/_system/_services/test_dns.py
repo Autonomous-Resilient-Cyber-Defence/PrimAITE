@@ -21,8 +21,6 @@ def dns_server() -> Node:
 @pytest.fixture(scope="function")
 def dns_client() -> Node:
     node = Node(hostname="dns_client")
-    node.software_manager.install(software_class=DNSClient)
-    node.software_manager.software["DNSClient"].start()
     return node
 
 

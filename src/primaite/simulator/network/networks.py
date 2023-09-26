@@ -10,9 +10,7 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.database.database_service import DatabaseService
-from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
-from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 
@@ -137,13 +135,10 @@ def arcd_uc2_network() -> Network:
         dns_server=IPv4Address("192.168.1.10"),
     )
     client_1.power_on()
-    client_1.software_manager.install(DNSClient)
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
     client_1.software_manager.install(DataManipulationBot)
     db_manipulation_bot: DataManipulationBot = client_1.software_manager.software["DataManipulationBot"]
     db_manipulation_bot.configure(server_ip_address=IPv4Address("192.168.1.14"), payload="DROP TABLE IF EXISTS user;")
-
-    client_1.software_manager.install(FTPClient)
 
     # Client 2
     client_2 = Computer(
@@ -154,10 +149,7 @@ def arcd_uc2_network() -> Network:
         dns_server=IPv4Address("192.168.1.10"),
     )
     client_2.power_on()
-    client_2.software_manager.install(DNSClient)
     network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
-
-    client_2.software_manager.install(FTPClient)
 
     # Domain Controller
     domain_controller = Server(
