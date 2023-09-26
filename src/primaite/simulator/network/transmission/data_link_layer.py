@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.arp import ARPPacket
+from primaite.simulator.network.protocols.packet import DataPacket
 from primaite.simulator.network.transmission.network_layer import ICMPPacket, IPPacket, IPProtocol
 from primaite.simulator.network.transmission.primaite_layer import PrimaiteHeader
 from primaite.simulator.network.transmission.transport_layer import TCPHeader, UDPHeader
@@ -132,6 +133,10 @@ class Frame(BaseModel):
     @property
     def size(self) -> float:  # noqa - Keep it as MBits as this is how they're expressed
         """The size of the Frame in Bytes."""
+        # get the payload size if it is a data packet
+        if isinstance(self.payload, DataPacket):
+            return self.payload.get_packet_size()
+
         return float(len(self.model_dump_json().encode("utf-8")))
 
     @property

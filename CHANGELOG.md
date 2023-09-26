@@ -29,7 +29,8 @@ SessionManager.
   1. Creating a simulation - this notebook explains how to build up a simulation using the Python package. (WIP)
 - Red Agent Services:
   - Data Manipulator Bot - A red agent service which sends a payload to a target machine. (By default this payload is a SQL query that breaks a database)
-- DNS Services: DNS Client and DNS Server
+- DNS Services: `DNSClient` and `DNSServer`
+- FTP Services: `FTPClient` and `FTPServer`
 
 ## [2.0.0] - 2023-07-26
 

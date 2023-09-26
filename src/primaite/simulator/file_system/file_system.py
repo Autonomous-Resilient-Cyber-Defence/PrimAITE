@@ -226,7 +226,7 @@ class FileSystem(SimComponent):
         folder = self.get_folder(folder_name)
         if folder:
             return folder.get_file(file_name)
-        self.fs.sys_log.info(f"file not found /{folder_name}/{file_name}")
+        self.sys_log.info(f"file not found /{folder_name}/{file_name}")
 
     def delete_file(self, folder_name: str, file_name: str):
         """

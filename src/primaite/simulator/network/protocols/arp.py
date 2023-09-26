@@ -5,6 +5,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from primaite.simulator.network.protocols.packet import DataPacket
+
 
 class ARPEntry(BaseModel):
     """
@@ -18,7 +20,7 @@ class ARPEntry(BaseModel):
     nic_uuid: str
 
 
-class ARPPacket(BaseModel):
+class ARPPacket(DataPacket):
     """
     Represents the ARP layer of a network frame.
 

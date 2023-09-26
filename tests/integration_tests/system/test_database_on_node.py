@@ -2,7 +2,7 @@ from ipaddress import IPv4Address
 
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.simulator.system.services.database_service import DatabaseService
+from primaite.simulator.system.services.database.database_service import DatabaseService
 
 
 def test_database_client_server_connection(uc2_network):
