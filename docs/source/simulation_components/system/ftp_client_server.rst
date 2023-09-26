@@ -60,3 +60,67 @@ Implementation
 - Leverages ``SoftwareManager`` for sending payloads over the network.
 - Provides easy interface for Nodes to transfer files between each other.
 - Extends base Service class.
+
+
+Example Usage
+----------
+
+Dependencies
+^^^^^^^^^^^^
+
+.. code-block:: python
+
+    from ipaddress import IPv4Address
+
+    from primaite.simulator.network.container import Network
+    from primaite.simulator.network.hardware.nodes.computer import Computer
+    from primaite.simulator.network.hardware.nodes.server import Server
+    from primaite.simulator.system.services.ftp.ftp_server import FTPServer
+    from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+
+Example peer to peer network
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    net = Network()
+
+    pc1 = Computer(hostname="pc1", ip_address="120.10.10.10", subnet_mask="255.255.255.0")
+    srv = Server(hostname="srv", ip_address="120.10.10.20", subnet_mask="255.255.255.0")
+    pc1.power_on()
+    srv.power_on()
+    net.connect(pc1.ethernet_port[1], srv.ethernet_port[1])
+
+Install the FTP Server
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    srv.software_manager.install(FTPServer)
+    pc1.software_manager.install(FTPClient)
+    client: FTPClient = pc1.software_manager.software['FTPClient']
+    ftpserv: FTPServer = srv.software_manager.software['FTPServer']
+
+Setting up the FTP Server
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Set up the FTP Server with a file that the client will need to retrieve
+
+.. code-block:: python
+
+    srv.file_system.create_file('my_file.png')
+
+Check that file was retrieved
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+    client.request_file(
+        src_folder_name='root',
+        src_file_name='my_file.png',
+        dest_folder_name='root',
+        dest_file_name='test.png',
+        dest_ip_address=IPv4Address("120.10.10.20")
+    )
+
+    print(client.get_file(folder_name="root", file_name="test.png"))
