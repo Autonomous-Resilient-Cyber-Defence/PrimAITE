@@ -22,12 +22,12 @@ game_config:
         actions:
         - type: DONOTHING
         nodes:
-        - ref: client_2
+        - node_ref: client_2
           actions:
           - type: LOGON
           - type: LOGOFF
           applications:
-          - ref: client_2_web_browser
+          - application_ref: client_2_web_browser
             actions:
             - type: EXECUTE
               execution_definition:
@@ -44,12 +44,12 @@ game_config:
       observation_space:
         network:
           nodes:
-            - ref: client_1
+            - node_ref: client_1
               observations:
               - logon_status
               - operating_status
               services:
-              - ref: data_manipulation_bot
+              - service_ref: data_manipulation_bot
                 observations:
                 - operating_status
                 - health_status
@@ -59,13 +59,13 @@ game_config:
         - type: DO_NOTHING
         network:
           nodes:
-          - ref: client_1
+          - node_ref: client_1
             actions:
             - type: SCAN
             - type: LOGON
             - type: LOGOFF
             services:
-            - ref: data_manipulation_bot
+            - service_ref: data_manipulation_bot
               actions:
               - type: COMPROMISE
                 execution_definition:
@@ -89,18 +89,18 @@ game_config:
       observation_space:
         network:
           nodes:
-          - ref: router_1 #TODO: more sub-options here
-          - ref: switch_1
-          - ref: switch_2
-          - ref: domain_controller
-          - ref: web_server
-          - ref: database_server
-          - ref: backup_server
-          - ref: security_suite
-          - ref: client_1
-          - ref: client_2
+          - node_ref: router_1 #TODO: more sub-options here
+          - node_ref: switch_1
+          - node_ref: switch_2
+          - node_ref: domain_controller
+          - node_ref: web_server
+          - node_ref: database_server
+          - node_ref: backup_server
+          - node_ref: security_suite
+          - node_ref: client_1
+          - node_ref: client_2
           links:
-          - ref: ... #
+          - link_ref: ... #
           acl: ... #
         ics: ... #
 
@@ -110,7 +110,7 @@ game_config:
         - type: DO_NOTHING
         network:
           nodes:
-          - ref: router_1
+          - node_ref: router_1
       reward_function:
         # ...
       agent_settings:
@@ -153,7 +153,7 @@ simulation:
           protocol: ICMP
 
     - ref: switch_1
-      type: swtich
+      type: switch
       hostname: switch_1
       num_ports: 8
 
@@ -173,7 +173,7 @@ simulation:
         type: DNSServer
         options:
           domain_mapping:
-            - arcd.com: 192.168.1.12 # web server
+            arcd.com: 192.168.1.12 # web server
 
 
     - ref: web_server
@@ -254,52 +254,52 @@ simulation:
 
     links:
     - ref: router_1___switch_1
-      endpoint_a: router_1
+      endpoint_a_ref: router_1
       endpoint_a_port: 1
-      endpoint_b: switch_1
+      endpoint_b_ref: switch_1
       endpoint_b_port: 8
     - ref: router_1___switch_2
-      endpoint_a: router_1
+      endpoint_a_ref: router_1
       endpoint_a_port: 2
-      endpoint_b: switch_2
+      endpoint_b_ref: switch_2
       endpoint_b_port: 8
     - ref: switch_1___domain_controller
-      endpoint_a: switch_1
+      endpoint_a_ref: switch_1
       endpoint_a_port: 1
-      endpoint_b: domain_controller
+      endpoint_b_ref: domain_controller
       endpoint_b_port: 1
     - ref: switch_1___web_server
-      endpoint_a: switch_1
+      endpoint_a_ref: switch_1
       endpoint_a_port: 2
-      endpoint_b: web_server
+      endpoint_b_ref: web_server
       endpoint_b_port: 1
     - ref: switch_1___database_server
-      endpoint_a: switch_1
+      endpoint_a_ref: switch_1
       endpoint_a_port: 3
-      endpoint_b: database_server
+      endpoint_b_ref: database_server
       endpoint_b_port: 1
     - ref: switch_1___backup_server
-      endpoint_a: switch_1
+      endpoint_a_ref: switch_1
       endpoint_a_port: 4
-      endpoint_b: backup_server
+      endpoint_b_ref: backup_server
       endpoint_b_port: 1
     - ref: switch_1___security_suite
-      endpoint_a: switch_1
+      endpoint_a_ref: switch_1
       endpoint_a_port: 7
-      endpoint_b: security_suite
+      endpoint_b_ref: security_suite
       endpoint_b_port: 1
     - ref: switch_2___client_1
-      endpoint_a: switch_2
+      endpoint_a_ref: switch_2
       endpoint_a_port: 1
-      endpoint_b: client_1
+      endpoint_b_ref: client_1
       endpoint_b_port: 1
     - ref: switch_2___client_2
-      endpoint_a: switch_2
+      endpoint_a_ref: switch_2
       endpoint_a_port: 2
-      endpoint_b: client_2
+      endpoint_b_ref: client_2
       endpoint_b_port: 1
     - ref: switch_2___security_suite
-      endpoint_a: switch_2
+      endpoint_a_ref: switch_2
       endpoint_a_port: 7
-      endpoint_b: security_suite
+      endpoint_b_ref: security_suite
       endpoint_b_port: 2

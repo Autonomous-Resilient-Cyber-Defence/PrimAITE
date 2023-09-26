@@ -221,7 +221,7 @@ class Network(SimComponent):
         _LOGGER.info(f"Removed node {node.uuid} from network {self.uuid}")
         self._node_action_manager.remove_action(name=node.uuid)
 
-    def connect(self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs) -> None:
+    def connect(self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs) -> Optional[Link]:
         """
         Connect two endpoints on the network by creating a link between their NICs/SwitchPorts.
 
@@ -248,6 +248,7 @@ class Network(SimComponent):
         self._nx_graph.add_edge(endpoint_a.parent.hostname, endpoint_b.parent.hostname)
         link.parent = self
         _LOGGER.debug(f"Added link {link.uuid} to connect {endpoint_a} and {endpoint_b}")
+        return link
 
     def remove_link(self, link: Link) -> None:
         """Disconnect a link from the network.
