@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+from ipaddress import IPv4Address
 from sqlite3 import OperationalError
 from typing import Any, Dict, List, Optional, Union
 
@@ -9,6 +10,7 @@ from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
+from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
 
@@ -22,6 +24,15 @@ class DatabaseService(Service):
 
     password: Optional[str] = None
     connections: Dict[str, datetime] = {}
+
+    backup_server: IPv4Address = None
+    """IP address of the backup server."""
+
+    latest_backup_directory: str = None
+    """Directory of latest backup."""
+
+    latest_backup_file_name: str = None
+    """File name of latest backup."""
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseService"
@@ -57,6 +68,96 @@ class DatabaseService(Service):
         for row in self.tables():
             table.add_row([row])
         print(table)
+
+    def configure_backup(self, backup_server: IPv4Address):
+        """
+        Set up the database backup.
+
+        :param: backup_server_ip: The IP address of the backup server
+        """
+        self.backup_server = backup_server
+
+    def backup_database(
+        self, backup_directory: Optional[str] = "db_backup", backup_file_name: Optional[str] = None
+    ) -> bool:
+        """
+        Create a backup of the database to the configured backup server.
+
+        :param: backup_directory: Name of directory where backup will be stored. Optional.
+        :type: backup_directory: Optional[str]
+
+        :param: backup_file_name: Name of file where backup will be stored. Optional.
+        :type: backup_file_name: Optional[str]
+        """
+        # check if the backup server was configured
+        if self.backup_server is None:
+            self.sys_log.error(f"{self.name} - {self.sys_log.hostname}: not configured.")
+            return False
+
+        if backup_file_name is None:
+            backup_file_name = f"{datetime.now().strftime('%d-%m-%Y_%H-%M')}.db"
+
+        software_manager: SoftwareManager = self.software_manager
+        ftp_client_service: FTPClient = software_manager.software["FTPClient"]
+
+        # send backup copy of database file to FTP server
+        response = ftp_client_service.send_file(
+            dest_ip_address=self.backup_server,
+            src_file_name=self._db_file.name,
+            src_folder_name=self._db_file.folder.name,
+            dest_folder_name=backup_directory,
+            dest_file_name=backup_file_name,
+        )
+
+        if response:
+            self.latest_backup_directory = backup_directory
+            self.latest_backup_file_name = backup_file_name
+            return True
+
+        self.sys_log.error("Unable to create database backup.")
+        return False
+
+    def restore_backup(self, backup_directory: Optional[str] = None, backup_file_name: Optional[str] = None) -> bool:
+        """
+        Restore a backup from backup server.
+
+        :param: backup_directory: Name of directory where backup will be stored. Optional.
+        :type: backup_directory: Optional[str]
+
+        :param: backup_file_name: Name of file where backup will be stored. Optional.
+        :type: backup_file_name: Optional[str]
+        """
+        if backup_directory is None:
+            backup_directory = self.latest_backup_directory
+
+        if backup_file_name is None:
+            backup_file_name = self.latest_backup_file_name
+
+        software_manager: SoftwareManager = self.software_manager
+        ftp_client_service: FTPClient = software_manager.software["FTPClient"]
+
+        # retrieve backup file from backup server
+        response = ftp_client_service.request_file(
+            src_folder_name=backup_directory,
+            src_file_name=backup_file_name,
+            dest_folder_name="downloads",
+            dest_file_name="database.db",
+            dest_ip_address=self.backup_server,
+        )
+
+        if response:
+            # replace db file
+            self.file_system.delete_file(folder_name=self.folder.name, file_name="downloads.db")
+
+            self.file_system.move_file(
+                src_folder_name="downloads", src_file_name="database.db", dst_folder_name=self.folder.name
+            )
+            self._db_file = self.file_system.get_file(folder_name=self.folder.name, file_name="database.db")
+
+            return self._db_file is not None
+
+        self.sys_log.error("Unable to restore database backup.")
+        return False
 
     def _create_db_file(self):
         """Creates the Simulation File and sqlite file in the file system."""
