@@ -6,6 +6,7 @@ from primaite.simulator.system.services.red_services.data_manipulation_bot impor
 
 
 def test_data_manipulation(uc2_network):
+    """Tests the UC2 data manipulation scenario end-to-end. Is a work in progress."""
     client_1: Computer = uc2_network.get_node_by_hostname("client_1")
     db_manipulation_bot: DataManipulationBot = client_1.software_manager.software["DataManipulationBot"]
 
