@@ -41,6 +41,9 @@ class DatabaseService(Service):
         super().__init__(**kwargs)
         self._db_file: File
         self._create_db_file()
+        self._connect()
+
+    def _connect(self):
         self._conn = sqlite3.connect(self._db_file.sim_path)
         self._cursor = self._conn.cursor()
 
@@ -51,8 +54,10 @@ class DatabaseService(Service):
         :return: List of table names.
         """
         sql = "SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence';"
-        results = self._process_sql(sql)
-        return [row[0] for row in results["data"]]
+        results = self._process_sql(sql, None)
+        if isinstance(results["data"], dict):
+            return list(results["data"].keys())
+        return []
 
     def show(self, markdown: bool = False):
         """
@@ -77,9 +82,7 @@ class DatabaseService(Service):
         """
         self.backup_server = backup_server
 
-    def backup_database(
-        self, backup_directory: Optional[str] = "db_backup", backup_file_name: Optional[str] = None
-    ) -> bool:
+    def backup_database(self) -> bool:
         """
         Create a backup of the database to the configured backup server.
 
@@ -94,8 +97,7 @@ class DatabaseService(Service):
             self.sys_log.error(f"{self.name} - {self.sys_log.hostname}: not configured.")
             return False
 
-        if backup_file_name is None:
-            backup_file_name = f"{datetime.now().strftime('%d-%m-%Y_%H-%M')}.db"
+        self._conn.close()
 
         software_manager: SoftwareManager = self.software_manager
         ftp_client_service: FTPClient = software_manager.software["FTPClient"]
@@ -105,19 +107,19 @@ class DatabaseService(Service):
             dest_ip_address=self.backup_server,
             src_file_name=self._db_file.name,
             src_folder_name=self._db_file.folder.name,
-            dest_folder_name=backup_directory,
-            dest_file_name=backup_file_name,
+            dest_folder_name=str(self.uuid),
+            dest_file_name="database.db",
+            real_file_path=self._db_file.sim_path,
         )
+        self._connect()
 
         if response:
-            self.latest_backup_directory = backup_directory
-            self.latest_backup_file_name = backup_file_name
             return True
 
         self.sys_log.error("Unable to create database backup.")
         return False
 
-    def restore_backup(self, backup_directory: Optional[str] = None, backup_file_name: Optional[str] = None) -> bool:
+    def restore_backup(self) -> bool:
         """
         Restore a backup from backup server.
 
@@ -127,32 +129,27 @@ class DatabaseService(Service):
         :param: backup_file_name: Name of file where backup will be stored. Optional.
         :type: backup_file_name: Optional[str]
         """
-        if backup_directory is None:
-            backup_directory = self.latest_backup_directory
-
-        if backup_file_name is None:
-            backup_file_name = self.latest_backup_file_name
-
         software_manager: SoftwareManager = self.software_manager
         ftp_client_service: FTPClient = software_manager.software["FTPClient"]
 
         # retrieve backup file from backup server
         response = ftp_client_service.request_file(
-            src_folder_name=backup_directory,
-            src_file_name=backup_file_name,
+            src_folder_name=str(self.uuid),
+            src_file_name="database.db",
             dest_folder_name="downloads",
             dest_file_name="database.db",
             dest_ip_address=self.backup_server,
         )
 
         if response:
+            self._conn.close()
             # replace db file
             self.file_system.delete_file(folder_name=self.folder.name, file_name="downloads.db")
-
             self.file_system.move_file(
                 src_folder_name="downloads", src_file_name="database.db", dst_folder_name=self.folder.name
             )
             self._db_file = self.file_system.get_file(folder_name=self.folder.name, file_name="database.db")
+            self._connect()
 
             return self._db_file is not None
 

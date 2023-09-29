@@ -1,3 +1,4 @@
+import shutil
 from abc import ABC
 from ipaddress import IPv4Address
 from typing import Optional
@@ -51,11 +52,17 @@ class FTPServiceABC(Service, ABC):
             file_name = payload.ftp_command_args["dest_file_name"]
             folder_name = payload.ftp_command_args["dest_folder_name"]
             file_size = payload.ftp_command_args["file_size"]
-            self.file_system.create_file(file_name=file_name, folder_name=folder_name, size=file_size, real=True)
+            real_file_path = payload.ftp_command_args.get("real_file_path")
+            is_real = real_file_path is not None
+            file = self.file_system.create_file(
+                file_name=file_name, folder_name=folder_name, size=file_size, real=is_real
+            )
             self.sys_log.info(
                 f"Created item in {self.sys_log.hostname}: {payload.ftp_command_args['dest_folder_name']}/"
                 f"{payload.ftp_command_args['dest_file_name']}"
             )
+            if is_real:
+                shutil.copy(real_file_path, file.sim_path)
             # file should exist
             return self.file_system.get_file(file_name=file_name, folder_name=folder_name) is not None
         except Exception as e:
@@ -99,6 +106,7 @@ class FTPServiceABC(Service, ABC):
                 "dest_folder_name": dest_folder_name,
                 "dest_file_name": dest_file_name,
                 "file_size": file.sim_size,
+                "real_file_path": file.sim_path if file.real else None,
             },
             packet_payload_size=file.sim_size,
         )
