@@ -55,7 +55,7 @@ class AbstractObservation(ABC):
 
 
 class FileObservation(AbstractObservation):
-    def __init__(self, where: List[str] = []) -> None:
+    def __init__(self, where: Optional[List[str]] = None) -> None:
         """
         _summary_
 
@@ -68,12 +68,12 @@ class FileObservation(AbstractObservation):
         :type where: Optional[List[str]]
         """
         super().__init__()
-        self.where: List[str] = where
+        self.where: Optional[List[str]] = where
         self.default_observation: spaces.Space = {"health_status": 0}
         "Default observation is what should be returned when the file doesn't exist, e.g. after it has been deleted."
 
     def observe(self, state: Dict) -> Dict:
-        if not self.where:
+        if self.where is None:
             return self.default_observation
         file_state = access_from_nested_dict(state, self.where)
         if file_state is NOT_PRESENT_IN_STATE:
@@ -89,21 +89,21 @@ class ServiceObservation(AbstractObservation):
     default_observation: spaces.Space = {"operating_status": 0, "health_status": 0}
     "Default observation is what should be returned when the service doesn't exist."
 
-    def __init__(self, where: List[str] = []) -> None:
+    def __init__(self, where: Optional[List[str]] = None) -> None:
         """
         :param where: Store information about where in the simulation state dictionary to find the relevant information.
             Optional. If None, this corresponds that the file does not exist and the observation will be populated with
             zeroes.
 
             A typical location for a service looks like this:
-            `['network','nodes',<node_uuid>,'servics', <service_uuid>]`
+            `['network','nodes',<node_uuid>,'services', <service_uuid>]`
         :type where: Optional[List[str]]
         """
         super().__init__()
-        self.where: List[str] = where
+        self.where: Optional[List[str]] = where
 
     def observe(self, state: Dict) -> Dict:
-        if not self.where:
+        if self.where is None:
             return self.default_observation
 
         service_state = access_from_nested_dict(state, self.where)
@@ -120,7 +120,7 @@ class LinkObservation(AbstractObservation):
     default_observation: spaces.Space = {"protocols": {"all": {"load": 0}}}
     "Default observation is what should be returned when the link doesn't exist."
 
-    def __init__(self, where: List[str] = []) -> None:
+    def __init__(self, where: Optional[List[str]] = None) -> None:
         """
         :param where: Store information about where in the simulation state dictionary to find the relevant information.
             Optional. If None, this corresponds that the file does not exist and the observation will be populated with
@@ -131,10 +131,10 @@ class LinkObservation(AbstractObservation):
         :type where: Optional[List[str]]
         """
         super().__init__()
-        self.where: List[str] = where
+        self.where: Optional[List[str]] = where
 
     def observe(self, state: Dict) -> Dict:
-        if not self.where:
+        if self.where is None:
             return self.default_observation
 
         link_state = access_from_nested_dict(state, self.where)
@@ -156,7 +156,7 @@ class LinkObservation(AbstractObservation):
 
 
 class FolderObservation(AbstractObservation):
-    def __init__(self, where: List[str] = [], files: List[FileObservation] = []) -> None:
+    def __init__(self, where: Optional[List[str]] = None, files: List[FileObservation] = []) -> None:
         """Initialise folder Observation, including files inside of the folder.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this folder.
@@ -175,7 +175,7 @@ class FolderObservation(AbstractObservation):
         """
         super().__init__()
 
-        self.where: List[str] = where
+        self.where: Optional[List[str]] = where
 
         self.files: List[FileObservation] = files
 
@@ -185,7 +185,7 @@ class FolderObservation(AbstractObservation):
         }
 
     def observe(self, state: Dict) -> Dict:
-        if not self.where:
+        if self.where is None:
             return self.default_observation
         folder_state = access_from_nested_dict(state, self.where)
         if folder_state is NOT_PRESENT_IN_STATE:
@@ -213,12 +213,12 @@ class FolderObservation(AbstractObservation):
 class NicObservation(AbstractObservation):
     default_observation: spaces.Space = {"nic_status": 0}
 
-    def __init__(self, where: List[str] = []) -> None:
-        super.__init__()
-        self.where: List[str] = where
+    def __init__(self, where: Optional[List[str]] = None) -> None:
+        super().__init__()
+        self.where: Optional[List[str]] = where
 
     def observe(self, state: Dict) -> Dict:
-        if not self.where:
+        if self.where is None:
             return self.default_observation
         nic_state = access_from_nested_dict(state, self.where)
         if nic_state is NOT_PRESENT_IN_STATE:
@@ -234,10 +234,11 @@ class NicObservation(AbstractObservation):
 class NodeObservation(AbstractObservation):
     def __init__(
         self,
-        where: List[str] = [],
+        where: Optional[List[str]] = None,
         services: List[ServiceObservation] = [],
         folders: List[FolderObservation] = [],
         nics: List[NicObservation] = [],
+        logon_status:bool=False
     ) -> None:
         """
         Configurable observation for a node in the simulation.
@@ -259,12 +260,13 @@ class NodeObservation(AbstractObservation):
         :param max_nics: Max number of NICS in this node's obs space, defaults to 5
         :type max_nics: int, optional
         """
-        super.__init__()
-        self.where: List[str] = where
+        super().__init__()
+        self.where: Optional[List[str]] = where
 
         self.services: List[ServiceObservation] = services
         self.folders: List[FolderObservation] = folders
         self.nics: List[NicObservation] = nics
+        self.logon_status:bool=logon_status
 
         self.default_observation: Dict = {
             "SERVICES": {i + 1: s.default_observation for i, s in enumerate(self.services)},
@@ -272,9 +274,11 @@ class NodeObservation(AbstractObservation):
             "NICS": {i + 1: n.default_observation for i, n in enumerate(self.nics)},
             "operating_status": 0,
         }
+        if self.logon_status:
+            self.default_observation['logon_status']=0
 
     def observe(self, state: Dict) -> Dict:
-        if not self.where:
+        if self.where is None:
             return self.default_observation
 
         node_state = access_from_nested_dict(state, self.where)
@@ -288,18 +292,24 @@ class NodeObservation(AbstractObservation):
         obs["operating_status"] = node_state["operating_state"]
         obs["NICS"] = {i + 1: nic.observe(state) for i, nic in enumerate(self.nics)}
 
+        if self.logon_status:
+            obs['logon_status'] = 0
+
         return obs
 
     @property
     def space(self) -> spaces.Space:
-        return spaces.Dict(
-            {
-                "SERVICES": spaces.Dict({i + 1: service.space for i, service in enumerate(self.services)}),
-                "FOLDERS": spaces.Dict({i + 1: folder.space for i, folder in enumerate(self.folders)}),
-                "operating_status": spaces.Discrete(0),
-                "NICS": spaces.Dict({i + 1: nic.space for i, nic in enumerate(self.nics)}),
-            }
-        )
+        space_shape = {
+            "SERVICES": spaces.Dict({i + 1: service.space for i, service in enumerate(self.services)}),
+            "FOLDERS": spaces.Dict({i + 1: folder.space for i, folder in enumerate(self.folders)}),
+            "operating_status": spaces.Discrete(5),
+            "NICS": spaces.Dict({i + 1: nic.space for i, nic in enumerate(self.nics)}),
+        }
+        if self.logon_status:
+            space_shape['logon_status'] = spaces.Discrete(3)
+
+        return spaces.Dict(space_shape)
+
 
 
 class AclObservation(AbstractObservation):
@@ -308,41 +318,33 @@ class AclObservation(AbstractObservation):
     # if a file is created at runtime, we have currently got no way of telling the observation space to track it.
     # this needs adding, but not for the MVP.
     def __init__(
-        self, nodes: List[str], ports: List[int], protocols: list[str], where: List[str] = [], num_rules: int = 10
+        self, node_ip_to_id: Dict[str,int], ports: List[int], protocols: list[str], where: Optional[List[str]] = None, num_rules: int = 10
     ) -> None:
         super().__init__()
-        self.where: List[str] = where
+        self.where: Optional[List[str]] = where
         self.num_rules: int = num_rules
-        self.node_to_id: Dict[str, int] = {node: i + 1 for i, node in enumerate(nodes)}
+        self.node_to_id: Dict[str, int] = node_ip_to_id
         "List of node IP addresses, order in this list determines how they are converted to an ID"
-        self.port_to_id: Dict[int, int] = {port: i + 1 for i, port in enumerate(ports)}
+        self.port_to_id: Dict[int, int] = {port: i + 2 for i, port in enumerate(ports)}
         "List of ports which are part of the game that define the ordering when converting to an ID"
-        self.protocol_to_id: Dict[str, int] = {protocol: i + 1 for i, protocol in enumerate(protocols)}
+        self.protocol_to_id: Dict[str, int] = {protocol: i + 2 for i, protocol in enumerate(protocols)}
         "List of protocols which are part of the game, defines ordering when converting to an ID"
-        self.default_observation: spaces.Space = spaces.Dict(
-            {
-                "RULES": spaces.Dict(
-                    {
-                        i
-                        + 1: spaces.Dict(
-                            {
-                                "position": i,
-                                "permission": 0,
-                                "source_node_id": 0,
-                                "source_port": 0,
-                                "dest_node_id": 0,
-                                "dest_port": 0,
-                                "protocol": 0,
-                            }
-                        )
-                        for i in range(self.num_rules)
-                    }
-                )
+        self.default_observation: Dict = {
+            "RULES": {i+ 1:{
+                "position": i,
+                "permission": 0,
+                "source_node_id": 0,
+                "source_port": 0,
+                "dest_node_id": 0,
+                "dest_port": 0,
+                "protocol": 0,
+                }
+            for i in range(self.num_rules)
             }
-        )
+        }
 
     def observe(self, state: Dict) -> Dict:
-        if not self.where:
+        if self.where is None:
             return self.default_observation
         acl_state: Dict = access_from_nested_dict(state, self.where)
         if acl_state is NOT_PRESENT_IN_STATE:
@@ -379,16 +381,16 @@ class AclObservation(AbstractObservation):
             {
                 "RULE": spaces.Dict(
                     {
-                        i
-                        + 1: spaces.Dict(
+                        i + 1: spaces.Dict(
                             {
                                 "position": spaces.Discrete(self.num_rules),
                                 "permission": spaces.Discrete(3),
-                                "source_node_id": spaces.Discrete(len(self.nodes) + 1),
-                                "source_port": spaces.Discrete(len(self.ports) + 1),
-                                "dest_node_id": spaces.Discrete(len(self.nodes) + 1),
-                                "dest_port": spaces.Discrete(len(self.ports) + 1),
-                                "protocol": spaces.Discrete(len(self.protocols) + 1),
+                                # adding two to lengths is to account for reserved values 0 (unused) and 1 (any)
+                                "source_node_id": spaces.Discrete(len(set(self.node_to_id.values())) + 2),
+                                "source_port": spaces.Discrete(len(self.port_to_id) + 2),
+                                "dest_node_id": spaces.Discrete(len(set(self.node_to_id.values())) + 2),
+                                "dest_port": spaces.Discrete(len(self.port_to_id) + 2),
+                                "protocol": spaces.Discrete(len(self.protocol_to_id) + 2),
                             }
                         )
                         for i in range(self.num_rules)
@@ -398,14 +400,96 @@ class AclObservation(AbstractObservation):
         )
 
 
-class ICSObservation(AbstractObservation):
-    def observe(self, state: Dict) -> Any:
-        return 0
+
+
+class NullObservation(AbstractObservation):
+    def __init__(self, where:Optional[List[str]]=None):
+        self.default_observation: Dict = {}
+
+    def observe(self, state: Dict) -> Dict:
+        return {}
 
     @property
     def space(self) -> spaces.Space:
-        return spaces.Discrete(1)
+        return spaces.Dict({})
 
+class ICSObservation(NullObservation): pass
+
+
+class UC2BlueObservation(AbstractObservation):
+    def __init__(
+            self,
+            nodes: List[NodeObservation],
+            links: List[LinkObservation],
+            acl: AclObservation,
+            ics: ICSObservation,
+            where:Optional[List[str]] = None,
+    ) -> None:
+        super().__init__()
+        self.where: Optional[List[str]] = where
+
+        self.nodes: List[NodeObservation] = nodes
+        self.links: List[LinkObservation] = links
+        self.acl: AclObservation = acl
+        self.ics: ICSObservation = ics
+
+        self.default_observation : Dict = {
+            "NODES": {i+1: n.default_observation for i,n in enumerate(self.nodes)},
+            "LINKS": {i+1: l.default_observation for i,l in enumerate(self.links)},
+            "ACL": self.acl.default_observation,
+            "ICS": self.ics.default_observation,
+        }
+
+    def observe(self, state:Dict) -> Dict:
+        if self.where is None:
+            return self.default_observation
+
+        obs = {}
+
+        obs['NODES'] = {i + 1: node.observe(state) for i, node in enumerate(self.nodes)}
+        obs['LINKS'] = {i + 1: link.observe(state) for i, link in enumerate(self.links)}
+        obs['ACL'] = {self.acl.observe(state)}
+        obs['ICS'] = {self.ics.observe(state)}
+
+        return obs
+
+    @property
+    def space(self) -> spaces.Space:
+        return spaces.Dict({
+            "NODES": spaces.Dict({i+1: node.space for i, node in enumerate(self.nodes)}),
+            "LINKS": spaces.Dict({i+1: link.space for i, link in enumerate(self.links)}),
+            "ACL": self.acl.space,
+            "ICS": self.ics.space,
+        })
+
+    @classmethod
+    def from_config(cls, config:Dict, sim:Simulation):
+        nodes = ...
+        links = ...
+        acl = ...
+        ics = ...
+        new = cls(nodes=nodes, links=links, acl=acl, ics=ics, where=['network'])
+        return new
+
+
+class UC2RedObservation(AbstractObservation):
+    def __init__(self, nodes:List[NodeObservation], where:Optional[List[str]] = None) -> None:
+        super().__init__()
+        self.where:Optional[List[str]] = where
+        self.nodes: List[NodeObservation] = nodes
+
+        self.default_observation=...#TODO
+
+    def observe(self, state: Dict) -> Any:
+        return super().observe(state)
+
+    @property
+    def space(self) -> spaces.Space:
+        ... #TODO
+
+    @classmethod
+    def from_config(cls, config: Dict, sim:Simulation):
+        ... #TODO
 
 class ObservationSpace:
     """
@@ -422,29 +506,12 @@ class ObservationSpace:
     # what this class does:
     # keep a list of observations
     # create observations for an actor from the config
-    def __init__(
-        self,
-        simulation: Simulation,
-        nodes: List[NodeObservation] = [],
-        links: List[LinkObservation] = [],
-        acl: Optional[AclObservation] = None,
-        ics: Optional[ICSObservation] = None,
-    ) -> None:
-        self.simulation: Simulation = simulation
-        self.parts: Dict[str, AbstractObservation] = {}
+    def __init__(self, observation:AbstractObservation) -> None:
+        self.obs: AbstractObservation = observation
 
-        self.nodes: List[NodeObservation] = nodes
-        self.links: List[LinkObservation] = links
-        self.acl: Optional[AclObservation] = acl
-        self.ics: Optional[ICSObservation] = ics
-
-    def observe(self) -> None:
-        ...
+    def observe(self, state) -> Dict:
+        return self.obs.observe(state)
 
     @property
     def space(self) -> None:
-        ...
-
-    @classmethod
-    def from_config(self) -> None:
-        ...
+        return self.obs.space

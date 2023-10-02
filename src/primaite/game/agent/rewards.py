@@ -1,20 +1,17 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
-from pydantic import BaseModel
-
-
-class AbstractReward(BaseModel):
-    def __call__(self, states: List[Dict]) -> float:
-        """_summary_
-
-        :param state: _description_
-        :type state: Dict
-        :return: _description_
-        :rtype: float
-        """
+class AbstractReward():
+    def __init__(self):
         ...
 
+    def calculate(self, state:Dict) -> float:
+        return 0.3
 
-class RewardFunction(BaseModel):
-    ...
+
+class RewardFunction():
+    def __init__(self, reward_function:AbstractReward):
+        self.reward: AbstractReward = reward_function
+
+    def calculate(self, state:Dict) -> float:
+        return self.reward.calculate(state)
