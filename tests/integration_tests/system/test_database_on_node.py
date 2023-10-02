@@ -66,13 +66,13 @@ def test_create_database_backup(uc2_network):
     db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
 
     # back up should be created
-    assert db_service.backup_database(backup_file_name="test_file.db") is True
+    assert db_service.backup_database() is True
 
     backup_server: Server = uc2_network.get_node_by_hostname("backup_server")
     ftp_server: FTPServer = backup_server.software_manager.software["FTPServer"]
 
     # backup file should exist in the backup server
-    assert ftp_server.file_system.get_file(folder_name="db_backup", file_name="test_file.db") is not None
+    assert ftp_server.file_system.get_file(folder_name=db_service.uuid, file_name="database.db") is not None
 
 
 def test_restore_backup(uc2_network):
@@ -81,7 +81,14 @@ def test_restore_backup(uc2_network):
     db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
 
     # create a back up
-    assert db_service.backup_database(backup_file_name="test_file.db") is True
+    assert db_service.backup_database() is True
+
+    # delete database locally
+    db_service.file_system.delete_file(folder_name="database", file_name="database.db")
+
+    assert db_service.file_system.get_file(folder_name="database", file_name="database.db") is None
 
     # back up should be restored
-    assert db_service.restore_backup(backup_file_name="test_file.db") is True
+    assert db_service.restore_backup() is True
+
+    assert db_service.file_system.get_file(folder_name="database", file_name="database.db") is not None
