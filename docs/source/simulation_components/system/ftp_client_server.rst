@@ -63,7 +63,7 @@ Implementation
 
 
 Example Usage
-----------
+-------------
 
 Dependencies
 ^^^^^^^^^^^^

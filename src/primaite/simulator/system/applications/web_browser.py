@@ -74,11 +74,17 @@ class WebBrowser(Application):
         domain_exists = dns_client.check_domain_exists(target_domain=parsed_url.hostname)
 
         # if domain does not exist, the request fails
-        if not domain_exists:
-            return False
-
-        # set current domain name IP address
-        self.domain_name_ip_address = dns_client.dns_cache[parsed_url.hostname]
+        if domain_exists:
+            # set current domain name IP address
+            self.domain_name_ip_address = dns_client.dns_cache[parsed_url.hostname]
+        else:
+            # check if url is an ip address
+            try:
+                self.domain_name_ip_address = IPv4Address(parsed_url.hostname)
+            except Exception:
+                # unable to deal with this request
+                self.sys_log.error(f"{self.name}: Unable to resolve URL {url}")
+                return False
 
         # create HTTPRequest payload
         payload = HTTPRequestPacket(request_method=HTTPRequestMethod.GET, request_url=url)

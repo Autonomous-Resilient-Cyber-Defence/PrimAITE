@@ -1,5 +1,6 @@
 from ipaddress import IPv4Address
 from typing import Any, Optional
+from urllib.parse import urlparse
 
 from primaite.simulator.network.protocols.http import (
     HTTPRequestMethod,
@@ -13,7 +14,7 @@ from primaite.simulator.system.applications.database_client import DatabaseClien
 from primaite.simulator.system.services.service import Service
 
 
-class WebServerService(Service):
+class WebServer(Service):
     """Class used to represent a Web Server Service in simulation."""
 
     def __init__(self, **kwargs):
@@ -76,12 +77,19 @@ class WebServerService(Service):
         """
         response = HTTPResponsePacket(status_code=HTTPStatusCode.BAD_REQUEST, payload=payload)
         try:
-            # get data from DatabaseServer
-            db_client: DatabaseClient = self.software_manager.software["DatabaseClient"]
-            # get all users
-            if db_client.query("SELECT * FROM user;"):
+            parsed_url = urlparse(payload.request_url)
+
+            if parsed_url.path is None or len(parsed_url.path) < 1:
                 # query succeeded
                 response.status_code = HTTPStatusCode.OK
+
+            if parsed_url.path.startswith("/users"):
+                # get data from DatabaseServer
+                db_client: DatabaseClient = self.software_manager.software["DatabaseClient"]
+                # get all users
+                if db_client.query("SELECT * FROM user;"):
+                    # query succeeded
+                    response.status_code = HTTPStatusCode.OK
 
             return response
         except Exception:

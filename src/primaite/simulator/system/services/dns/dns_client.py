@@ -72,6 +72,11 @@ class DNSClient(Service):
         :param: session_id: The Session ID the payload is to originate from. Optional.
         :param: is_reattempt: Checks if the request has been reattempted. Default is False.
         """
+        # check if DNS server is configured
+        if self.dns_server is None:
+            self.sys_log.error(f"{self.name}: DNS Server is not configured")
+            return False
+
         # check if the target domain is in the client's DNS cache
         payload = DNSPacket(dns_request=DNSRequest(domain_name_request=target_domain))
 

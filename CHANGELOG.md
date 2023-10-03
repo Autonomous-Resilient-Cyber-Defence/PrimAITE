@@ -31,6 +31,7 @@ SessionManager.
   - Data Manipulator Bot - A red agent service which sends a payload to a target machine. (By default this payload is a SQL query that breaks a database)
 - DNS Services: `DNSClient` and `DNSServer`
 - FTP Services: `FTPClient` and `FTPServer`
+- HTTP Services: `WebBrowser` to simulate a web client and `WebServer`
 
 ## [2.0.0] - 2023-07-26
 
