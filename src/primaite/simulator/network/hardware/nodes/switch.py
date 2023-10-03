@@ -34,6 +34,8 @@ class Switch(Node):
             port.parent = self
             port.port_num = port_num
 
+        self._install_system_software()
+
     def show(self, markdown: bool = False):
         """
         Prints a table of the SwitchPorts on the Switch.

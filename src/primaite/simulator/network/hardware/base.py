@@ -714,7 +714,9 @@ class ARPCache:
 
         # Unmatched ARP Request
         if arp_packet.target_ip_address != from_nic.ip_address:
-            self.sys_log.info(f"Ignoring ARP request for {arp_packet.target_ip_address}")
+            self.sys_log.info(
+                f"Ignoring ARP request for {arp_packet.target_ip_address}. Current IP address is {from_nic.ip_address}"
+            )
             return
 
         # Matched ARP request
@@ -936,6 +938,12 @@ class Node(SimComponent):
         super().__init__(**kwargs)
         self.arp.nics = self.nics
         self.session_manager.software_manager = self.software_manager
+
+        self._install_system_software()
+
+    def _install_system_software(self):
+        """Install System Software - software that is usually provided with the OS."""
+        pass
 
     def describe_state(self) -> Dict:
         """

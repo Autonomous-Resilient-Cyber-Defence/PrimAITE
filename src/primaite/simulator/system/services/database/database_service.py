@@ -73,10 +73,10 @@ class DatabaseService(Service):
                 if self.password == password:
                     status_code = 200  # ok
                     self.connections[session_id] = datetime.now()
-                    self.sys_log.info(f"Connect request for {session_id=} authorised")
+                    self.sys_log.info(f"{self.name}: Connect request for {session_id=} authorised")
                 else:
                     status_code = 401  # Unauthorised
-                    self.sys_log.info(f"Connect request for {session_id=} declined")
+                    self.sys_log.info(f"{self.name}: Connect request for {session_id=} declined")
         else:
             status_code = 404  # service not found
         return {"status_code": status_code, "type": "connect_response", "response": status_code == 200}

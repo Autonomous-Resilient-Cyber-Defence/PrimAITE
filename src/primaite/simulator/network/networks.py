@@ -13,8 +13,8 @@ from primaite.simulator.system.services.database.database_service import Databas
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
-from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
+from primaite.simulator.system.services.web_server.web_server_service import WebServerService
 
 
 def client_server_routed() -> Network:
@@ -260,6 +260,8 @@ def arcd_uc2_network() -> Network:
     database_client.run()
     database_client.connect()
 
+    web_server.software_manager.install(WebServerService)
+
     # register the web_server to a domain
     dns_server_service: DNSServer = domain_controller.software_manager.software["DNSServer"]  # noqa
     dns_server_service.dns_register("arcd.com", web_server.ip_address)
@@ -274,8 +276,6 @@ def arcd_uc2_network() -> Network:
     )
     backup_server.power_on()
     network.connect(endpoint_b=backup_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[4])
-
-    backup_server.software_manager.install(FTPServer)
 
     # Security Suite
     security_suite = Server(
@@ -304,5 +304,8 @@ def arcd_uc2_network() -> Network:
 
     # Allow FTP requests
     router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.FTP, dst_port=Port.FTP, position=2)
+
+    # Open port 80 for web server
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=3)
 
     return network

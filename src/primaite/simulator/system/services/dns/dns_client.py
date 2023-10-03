@@ -78,13 +78,14 @@ class DNSClient(Service):
         # check if the domain is already in the DNS cache
         if target_domain in self.dns_cache:
             self.sys_log.info(
-                f"DNS Client: Domain lookup for {target_domain} successful, resolves to {self.dns_cache[target_domain]}"
+                f"{self.name}: Domain lookup for {target_domain} successful,"
+                f"resolves to {self.dns_cache[target_domain]}"
             )
             return True
         else:
             # return False if already reattempted
             if is_reattempt:
-                self.sys_log.info(f"DNS Client: Domain lookup for {target_domain} failed")
+                self.sys_log.info(f"{self.name}: Domain lookup for {target_domain} failed")
                 return False
             else:
                 # send a request to check if domain name exists in the DNS Server
@@ -104,13 +105,12 @@ class DNSClient(Service):
         self,
         payload: DNSPacket,
         session_id: Optional[str] = None,
+        dest_ip_address: Optional[IPv4Address] = None,
+        dest_port: Optional[Port] = None,
         **kwargs,
     ) -> bool:
         """
         Sends a payload to the SessionManager.
-
-        The specifics of how the payload is processed and whether a response payload
-        is generated should be implemented in subclasses.
 
         :param payload: The payload to be sent.
         :param dest_ip_address: The ip address of the payload destination.
@@ -119,10 +119,11 @@ class DNSClient(Service):
 
         :return: True if successful, False otherwise.
         """
-        # create DNS request packet
-        software_manager: SoftwareManager = self.software_manager
-        software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
-        return True
+        self.sys_log.info(f"{self.name}: Sending DNS request to resolve {payload.dns_request.domain_name_request}")
+
+        return super().send(
+            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id, **kwargs
+        )
 
     def receive(
         self,
@@ -133,9 +134,6 @@ class DNSClient(Service):
         """
         Receives a payload from the SessionManager.
 
-        The specifics of how the payload is processed and whether a response payload
-        is generated should be implemented in subclasses.
-
         :param payload: The payload to be sent.
         :param session_id: The Session ID the payload is to originate from. Optional.
         :return: True if successful, False otherwise.
@@ -144,12 +142,16 @@ class DNSClient(Service):
         if not isinstance(payload, DNSPacket):
             _LOGGER.debug(f"{payload} is not a DNSPacket")
             return False
-        # cast payload into a DNS packet
-        payload: DNSPacket = payload
+
         if payload.dns_reply is not None:
             # add the IP address to the client cache
             if payload.dns_reply.domain_name_ip_address:
+                self.sys_log.info(
+                    f"{self.name}: Resolved domain name {payload.dns_request.domain_name_request} "
+                    f"to {payload.dns_reply.domain_name_ip_address}"
+                )
                 self.dns_cache[payload.dns_request.domain_name_request] = payload.dns_reply.domain_name_ip_address
                 return True
 
+        self.sys_log.error(f"Failed to resolve domain name {payload.dns_request.domain_name_request}")
         return False

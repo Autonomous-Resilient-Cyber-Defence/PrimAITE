@@ -81,18 +81,6 @@ class Application(IOSoftware):
         """
         pass
 
-    def send(self, payload: Any, session_id: str, **kwargs) -> bool:
-        """
-        Sends a payload to the SessionManager.
-
-        The specifics of how the payload is processed and whether a response payload
-        is generated should be implemented in subclasses.
-
-        :param payload: The payload to send.
-        :return: True if successful, False otherwise.
-        """
-        pass
-
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
         Receives a payload from the SessionManager.
