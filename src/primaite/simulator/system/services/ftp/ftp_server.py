@@ -49,6 +49,9 @@ class FTPServer(FTPServiceABC):
         if session_id:
             session_details = self._get_session_details(session_id)
 
+        if payload.ftp_command is not None:
+            self.sys_log.info(f"Received FTP {payload.ftp_command.name} command.")
+
         # process server specific commands, otherwise call super
         if payload.ftp_command == FTPCommand.PORT:
             # check that the port is valid

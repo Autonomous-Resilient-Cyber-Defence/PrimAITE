@@ -496,7 +496,9 @@ class Link(SimComponent):
     def _can_transmit(self, frame: Frame) -> bool:
         if self.is_up:
             frame_size_Mbits = frame.size_Mbits  # noqa - Leaving it as Mbits as this is how they're expressed
-            return self.current_load + frame_size_Mbits <= self.bandwidth
+            # return self.current_load + frame_size_Mbits <= self.bandwidth
+            # TODO: re add this check once packet size limiting and MTU checks are implemented
+            return True
         return False
 
     def transmit_frame(self, sender_nic: Union[NIC, SwitchPort], frame: Frame) -> bool:
