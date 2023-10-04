@@ -29,7 +29,7 @@ SessionManager.
   1. Creating a simulation - this notebook explains how to build up a simulation using the Python package. (WIP)
 - Database:
   - `DatabaseClient` and `DatabaseService` created to allow emulation of database actions
-  - Ability to `backup_database` and `restore_backup` for a `DatabaseService`
+  - Ability for `DatabaseService` to backup its data to another server via FTP and restore data from backup
 - Red Agent Services:
   - Data Manipulator Bot - A red agent service which sends a payload to a target machine. (By default this payload is a SQL query that breaks a database)
 - DNS Services: `DNSClient` and `DNSServer`

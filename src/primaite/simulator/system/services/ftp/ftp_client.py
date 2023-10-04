@@ -107,7 +107,7 @@ class FTPClient(FTPServiceABC):
             payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port
         )
         if payload.status_code == FTPStatusCode.OK:
-            self.connected = None
+            self.connected = False
             return True
         return False
 
@@ -162,13 +162,16 @@ class FTPClient(FTPServiceABC):
         else:
             self.sys_log.info(f"Sending file {src_folder_name}/{src_file_name} to {str(dest_ip_address)}")
             # send STOR request
-            return self._send_data(
+            if self._send_data(
                 file=file_to_transfer,
                 dest_folder_name=dest_folder_name,
                 dest_file_name=dest_file_name,
                 dest_ip_address=dest_ip_address,
                 dest_port=dest_port,
-            )
+            ):
+                return self._disconnect_from_server(dest_ip_address=dest_ip_address, dest_port=dest_port)
+
+            return False
 
     def request_file(
         self,

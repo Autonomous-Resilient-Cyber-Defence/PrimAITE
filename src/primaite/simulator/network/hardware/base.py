@@ -25,8 +25,6 @@ from primaite.simulator.system.core.session_manager import SessionManager
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.processes.process import Process
-from primaite.simulator.system.services.dns.dns_client import DNSClient
-from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.service import Service
 
 _LOGGER = getLogger(__name__)
@@ -945,11 +943,7 @@ class Node(SimComponent):
 
     def _install_system_software(self):
         """Install System Software - software that is usually provided with the OS."""
-        # DNS Client
-        self.software_manager.install(DNSClient)
-
-        # FTP
-        self.software_manager.install(FTPClient)
+        pass
 
     def describe_state(self) -> Dict:
         """

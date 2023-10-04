@@ -83,15 +83,7 @@ class DatabaseService(Service):
         self.backup_server = backup_server
 
     def backup_database(self) -> bool:
-        """
-        Create a backup of the database to the configured backup server.
-
-        :param: backup_directory: Name of directory where backup will be stored. Optional.
-        :type: backup_directory: Optional[str]
-
-        :param: backup_file_name: Name of file where backup will be stored. Optional.
-        :type: backup_file_name: Optional[str]
-        """
+        """Create a backup of the database to the configured backup server."""
         # check if the backup server was configured
         if self.backup_server is None:
             self.sys_log.error(f"{self.name} - {self.sys_log.hostname}: not configured.")
@@ -120,15 +112,7 @@ class DatabaseService(Service):
         return False
 
     def restore_backup(self) -> bool:
-        """
-        Restore a backup from backup server.
-
-        :param: backup_directory: Name of directory where backup will be stored. Optional.
-        :type: backup_directory: Optional[str]
-
-        :param: backup_file_name: Name of file where backup will be stored. Optional.
-        :type: backup_file_name: Optional[str]
-        """
+        """Restore a backup from backup server."""
         software_manager: SoftwareManager = self.software_manager
         ftp_client_service: FTPClient = software_manager.software["FTPClient"]
 
