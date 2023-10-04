@@ -94,11 +94,11 @@ Example peer to peer network
 Install the FTP Server
 ^^^^^^^^^^^^^^^^^^^^^^
 
+FTP Client should be pre installed on nodes
+
 .. code-block:: python
 
     srv.software_manager.install(FTPServer)
-    pc1.software_manager.install(FTPClient)
-    client: FTPClient = pc1.software_manager.software['FTPClient']
     ftpserv: FTPServer = srv.software_manager.software['FTPServer']
 
 Setting up the FTP Server

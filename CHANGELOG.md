@@ -27,6 +27,9 @@ SessionManager.
 - File System - ability to emulate a node's file system during a simulation
 - Example notebooks - There is currently 1 jupyter notebook which walks through using PrimAITE
   1. Creating a simulation - this notebook explains how to build up a simulation using the Python package. (WIP)
+- Database:
+  - `DatabaseClient` and `DatabaseService` created to allow emulation of database actions
+  - Ability for `DatabaseService` to backup its data to another server via FTP and restore data from backup
 - Red Agent Services:
   - Data Manipulator Bot - A red agent service which sends a payload to a target machine. (By default this payload is a SQL query that breaks a database)
 - DNS Services: `DNSClient` and `DNSServer`

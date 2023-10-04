@@ -23,7 +23,7 @@ def test_ftp_client_store_file_in_server(uc2_network):
     # create file on ftp client
     ftp_client.file_system.create_file(file_name="test_file.txt")
 
-    ftp_client.send_file(
+    assert ftp_client.send_file(
         src_folder_name="root",
         src_file_name="test_file.txt",
         dest_folder_name="client_1_backup",
@@ -50,7 +50,7 @@ def test_ftp_client_retrieve_file_from_server(uc2_network):
     # create file on ftp server
     ftp_server.file_system.create_file(file_name="test_file.txt", folder_name="file_share")
 
-    ftp_client.request_file(
+    assert ftp_client.request_file(
         src_folder_name="file_share",
         src_file_name="test_file.txt",
         dest_folder_name="downloads",
