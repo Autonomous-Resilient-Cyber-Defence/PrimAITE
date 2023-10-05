@@ -78,12 +78,13 @@ class WebServer(Service):
         response = HTTPResponsePacket(status_code=HTTPStatusCode.BAD_REQUEST, payload=payload)
         try:
             parsed_url = urlparse(payload.request_url)
+            path = parsed_url.path.strip("/")
 
-            if parsed_url.path is None or len(parsed_url.path) < 1:
+            if len(path) < 1:
                 # query succeeded
                 response.status_code = HTTPStatusCode.OK
 
-            if parsed_url.path.startswith("/users"):
+            if path.startswith("users"):
                 # get data from DatabaseServer
                 db_client: DatabaseClient = self.software_manager.software["DatabaseClient"]
                 # get all users

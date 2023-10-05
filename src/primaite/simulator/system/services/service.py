@@ -1,10 +1,8 @@
 from enum import Enum
-from ipaddress import IPv4Address
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.core import Action, ActionManager
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.software import IOSoftware
 
 _LOGGER = getLogger(__name__)
@@ -73,48 +71,6 @@ class Service(IOSoftware):
         stateful properties or statistics, and clearing any message queues.
         """
         pass
-
-    def send(
-        self,
-        payload: Any,
-        session_id: Optional[str] = None,
-        dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
-        **kwargs,
-    ) -> bool:
-        """
-        Sends a payload to the SessionManager.
-
-        :param payload: The payload to be sent.
-        :param dest_ip_address: The ip address of the payload destination.
-        :param dest_port: The port of the payload destination.
-        :param session_id: The Session ID the payload is to originate from. Optional.
-
-        :return: True if successful, False otherwise.
-        """
-        return super().send(
-            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id, **kwargs
-        )
-
-    def receive(
-        self,
-        payload: Any,
-        session_id: Optional[str] = None,
-        **kwargs,
-    ) -> bool:
-        """
-        Receives a payload from the SessionManager.
-
-        The specifics of how the payload is processed and whether a response payload
-        is generated should be implemented in subclasses.
-
-        :param: payload: The payload to send.
-        :param: session_id: The id of the session
-
-        :return: True if successful, False otherwise.
-        """
-
-    pass
 
     def stop(self) -> None:
         """Stop the service."""

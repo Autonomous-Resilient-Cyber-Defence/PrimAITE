@@ -38,9 +38,11 @@ class FTPServer(FTPServiceABC):
         :param: session_id: session ID linked to the FTP Packet. Optional.
         :type: session_id: Optional[str]
         """
+        # error code by default
+        payload.status_code = FTPStatusCode.ERROR
+
         # if server service is down, return error
         if self.operating_state != ServiceOperatingState.RUNNING:
-            payload.status_code = FTPStatusCode.ERROR
             self.sys_log.error("FTP Server not running")
             return payload
 
@@ -61,9 +63,13 @@ class FTPServer(FTPServiceABC):
                 payload.status_code = FTPStatusCode.OK
                 return payload
 
+            self.sys_log.error(f"Invalid Port {payload.ftp_command_args}")
+            return payload
+
         if payload.ftp_command == FTPCommand.QUIT:
             self.connections.pop(session_id)
             payload.status_code = FTPStatusCode.OK
+            return payload
 
         return super()._process_ftp_command(payload=payload, session_id=session_id, **kwargs)
 
@@ -71,6 +77,12 @@ class FTPServer(FTPServiceABC):
         """Receives a payload from the SessionManager."""
         if not isinstance(payload, FTPPacket):
             self.sys_log.error(f"{payload} is not an FTP packet")
+            return False
+
+        """
+        Usually
+        """
+        if payload.status_code is not None:
             return False
 
         self.send(self._process_ftp_command(payload=payload, session_id=session_id), session_id)

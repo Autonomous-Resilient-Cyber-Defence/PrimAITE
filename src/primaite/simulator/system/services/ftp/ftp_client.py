@@ -97,6 +97,9 @@ class FTPClient(FTPServiceABC):
                     self._connect_to_server(
                         dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id, is_reattempt=True
                     )
+        else:
+            self.sys_log.error(f"{self.name}: Unable to send FTPPacket")
+            return False
 
     def _disconnect_from_server(
         self, dest_ip_address: Optional[IPv4Address] = None, dest_port: Optional[Port] = Port.FTP
@@ -247,30 +250,6 @@ class FTPClient(FTPServiceABC):
                 self.sys_log.error(f"{self.name}: File {src_folder_name}/{src_file_name} does not exist in FTP server")
                 return False
 
-    def send(
-        self,
-        payload: FTPPacket,
-        session_id: Optional[str] = None,
-        dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
-        **kwargs,
-    ) -> bool:
-        """
-        Sends a payload to the SessionManager.
-
-        :param payload: The payload to be sent.
-        :param dest_ip_address: The ip address of the payload destination.
-        :param dest_port: The port of the payload destination.
-        :param session_id: The Session ID the payload is to originate from. Optional.
-
-        :return: True if successful, False otherwise.
-        """
-        self.sys_log.info(f"{self.name}: Sending FTP {payload.ftp_command.name} {payload.ftp_command_args}")
-
-        return super().send(
-            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id, **kwargs
-        )
-
     def receive(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> bool:
         """
         Receives a payload from the SessionManager.
@@ -283,6 +262,9 @@ class FTPClient(FTPServiceABC):
         """
         if not isinstance(payload, FTPPacket):
             self.sys_log.error(f"{payload} is not an FTP packet")
+            return False
+
+        if payload.status_code is None:
             return False
 
         self._process_ftp_command(payload=payload, session_id=session_id)
