@@ -2,7 +2,7 @@
 # That's because I want to point out that this is disctinct from 'agent' in the reinforcement learning sense of the word
 # If you disagree, make a comment in the PR review and we can discuss
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, TypeAlias, Union
+from typing import Any, Dict, List, Optional, Tuple, TypeAlias, Union
 
 import numpy as np
 
@@ -41,17 +41,17 @@ class AbstractAgent(ABC):
         return self.reward_function.calculate(state)
 
     @abstractmethod
-    def get_action(self, obs: ObsType, reward: float = None):
+    def get_action(self, obs: ObsType, reward: float = None) -> Tuple[str, Dict]:
         # in RL agent, this method will send CAOS observation to GATE RL agent, then receive a int 0-39,
         # then use a bespoke conversion to take 1-40 int back into CAOS action
-        return ("NODE", "SERVICE", "SCAN", "<fake-node-sid>", "<fake-service-sid>")
+        return ("DO_NOTHING", {} )
 
-    @abstractmethod
-    def format_request(self, action) -> List[str]:
+    def format_request(self, action:Tuple[str,Dict], options:Dict[str, int]) -> List[str]:
         # this will take something like APPLICATION.EXECUTE and add things like target_ip_address in simulator.
         # therefore the execution definition needs to be a mapping from CAOS into SIMULATOR
         """Format action into format expected by the simulator, and apply execution definition if applicable."""
-        return ["network", "nodes", "<fake-node-uuid>", "file_system", "folder", "root", "scan"]
+        request = self.action_space.form_request(action_identifier=action, action_options=options)
+        return request
 
 
 class AbstractScriptedAgent(AbstractAgent):
@@ -63,8 +63,8 @@ class AbstractScriptedAgent(AbstractAgent):
 class RandomAgent(AbstractScriptedAgent):
     """Agent that ignores its observation and acts completely at random."""
 
-    def get_action(self, obs: ObsType, reward: float = None):
-        return self.action_space.space.sample()
+    def get_action(self, obs: ObsType, reward: float = None) -> Tuple[str, Dict]:
+        return self.action_space.get_action(self.action_space.space.sample())
 
 
 class AbstractGATEAgent(AbstractAgent):

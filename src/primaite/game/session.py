@@ -11,7 +11,7 @@ from typing import Dict, List
 from pydantic import BaseModel
 
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent
+from primaite.game.agent.interface import AbstractAgent, RandomAgent
 from primaite.game.agent.observations import (
     AclObservation,
     FileObservation,
@@ -25,6 +25,7 @@ from primaite.game.agent.observations import (
     UC2BlueObservation,
     UC2RedObservation,
 )
+from primaite.game.agent.rewards import RewardFunction
 from primaite.simulator.network.hardware.base import Link, NIC, Node
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
@@ -74,10 +75,10 @@ class PrimaiteSession:
             #    to discrete(40) is only necessary for purposes of RL learning, therefore that bit of
             #    code should live inside of the GATE agent subclass)
             # gets action in CAOS format
-            agent_action = agent.get_action(agent_obs, agent_reward)
+            agent_action, action_options = agent.get_action(agent_obs, agent_reward)
             # 9. CAOS action is converted into request (extra information might be needed to enrich
             # the request, this is what the execution definition is there for)
-            agent_request = agent.format_request(agent_action)
+            agent_request = agent.format_request(agent_action, action_options)
 
             # 10. primaite session receives the action from the agents and asks the simulation to apply each
             self.simulation.apply_action(agent_request)
@@ -88,6 +89,10 @@ class PrimaiteSession:
     @classmethod
     def from_config(cls, cfg: dict) -> "PrimaiteSession":
         sess = cls()
+        sess.options = PrimaiteSessionOptions(
+            ports = cfg['game_config']['ports'],
+            protocols = cfg['game_config']['protocols'],
+        )
         sim = sess.simulation
         net = sim.network
 
@@ -304,18 +309,39 @@ class PrimaiteSession:
                 obs_space = NullObservation()
 
             # CREATE ACTION SPACE
+            action_space_cfg['options']['node_uuids'] = []
+            # if a list of nodes is defined, convert them from node references to node UUIDs
+            for action_node_option in action_space_cfg.get('options',{}).pop('nodes', {}):
+                if 'node_ref' in action_node_option:
+                    node_uuid = ref_map_nodes[action_node_option['node_ref']]
+                    action_space_cfg['options']['node_uuids'].append(node_uuid)
+            # Each action space can potentially have a different list of nodes that it can apply to. Therefore,
+            # we will pass node_uuids as a part of the action space config.
+            # However, it's not possible to specify the node uuids directly in the config, as they are generated
+            # dynamically, so we have to translate node references to uuids before passing this config on.
+
+            if 'action_list' in action_space_cfg:
+                for action_config in action_space_cfg['action_list']:
+                    if 'options' in action_config:
+                        if 'target_router_ref' in action_config['options']:
+                            _target = action_config['options']['target_router_ref']
+                            action_config['options']['target_router_uuid'] = ref_map_nodes[_target]
+
             action_space = ActionManager.from_config(sess, action_space_cfg)
 
             # CREATE REWARD FUNCTION
+            rew_function = RewardFunction.from_config(reward_function_cfg)
 
             # CREATE AGENT
             if agent_type == "GreenWebBrowsingAgent":
-                ...
+                new_agent = RandomAgent(action_space=action_space, observation_space=obs_space, reward_function=rew_function)
+                sess.agents.append(new_agent)
             elif agent_type == "GATERLAgent":
                 ...
             elif agent_type == "RedDatabaseCorruptingAgent":
                 ...
             else:
                 print("agent type not found")
+
 
         return sess

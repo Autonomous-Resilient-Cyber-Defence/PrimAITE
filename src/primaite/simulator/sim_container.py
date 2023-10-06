@@ -27,6 +27,7 @@ class Simulation(SimComponent):
         am.add_action("network", Action(func=self.network._action_manager))
         # pass through domain actions to the domain object
         am.add_action("domain", Action(func=self.domain._action_manager))
+        am.add_action("do_nothing", Action(func=lambda request, context: ()))
         return am
 
     def describe_state(self) -> Dict:
