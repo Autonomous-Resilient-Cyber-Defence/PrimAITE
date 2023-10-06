@@ -2,7 +2,7 @@ from ipaddress import IPv4Address
 from typing import Dict, Optional
 from urllib.parse import urlparse
 
-from primaite.simulator.network.protocols.http import HTTPRequestMethod, HTTPRequestPacket, HTTPResponsePacket
+from primaite.simulator.network.protocols.http import HttpRequestMethod, HttpRequestPacket, HttpResponsePacket
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
@@ -19,7 +19,7 @@ class WebBrowser(Application):
     domain_name_ip_address: Optional[IPv4Address] = None
     "The IP address of the domain name for the webpage."
 
-    latest_response: HTTPResponsePacket = None
+    latest_response: HttpResponsePacket = None
     """Keeps track of the latest HTTP response."""
 
     def __init__(self, **kwargs):
@@ -87,7 +87,7 @@ class WebBrowser(Application):
                 return False
 
         # create HTTPRequest payload
-        payload = HTTPRequestPacket(request_method=HTTPRequestMethod.GET, request_url=url)
+        payload = HttpRequestPacket(request_method=HttpRequestMethod.GET, request_url=url)
 
         # send request
         return self.send(
@@ -98,7 +98,7 @@ class WebBrowser(Application):
 
     def send(
         self,
-        payload: HTTPRequestPacket,
+        payload: HttpRequestPacket,
         dest_ip_address: Optional[IPv4Address] = None,
         dest_port: Optional[Port] = Port.HTTP,
         session_id: Optional[str] = None,
@@ -120,7 +120,7 @@ class WebBrowser(Application):
             payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id, **kwargs
         )
 
-    def receive(self, payload: HTTPResponsePacket, session_id: Optional[str] = None, **kwargs) -> bool:
+    def receive(self, payload: HttpResponsePacket, session_id: Optional[str] = None, **kwargs) -> bool:
         """
         Receives a payload from the SessionManager.
 
@@ -128,8 +128,8 @@ class WebBrowser(Application):
         :param session_id: The Session ID the payload is to originate from. Optional.
         :return: True if successful, False otherwise.
         """
-        if not isinstance(payload, HTTPResponsePacket):
-            self.sys_log.error(f"{self.name} received a packet that is not an HTTPResponsePacket")
+        if not isinstance(payload, HttpResponsePacket):
+            self.sys_log.error(f"{self.name} received a packet that is not an HttpResponsePacket")
             return False
         self.sys_log.info(f"{self.name}: Received HTTP {payload.status_code.value}")
         self.latest_response = payload

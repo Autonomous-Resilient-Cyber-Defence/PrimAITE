@@ -1,6 +1,6 @@
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.protocols.http import HTTPStatusCode
+from primaite.simulator.network.protocols.http import HttpStatusCode
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.service import ServiceOperatingState
@@ -17,7 +17,7 @@ def test_web_page_home_page(uc2_network):
 
     # latest reponse should have status code 200
     assert web_client.latest_response is not None
-    assert web_client.latest_response.status_code == HTTPStatusCode.OK
+    assert web_client.latest_response.status_code == HttpStatusCode.OK
 
 
 def test_web_page_get_users_page_request_with_domain_name(uc2_network):
@@ -31,7 +31,7 @@ def test_web_page_get_users_page_request_with_domain_name(uc2_network):
 
     # latest reponse should have status code 200
     assert web_client.latest_response is not None
-    assert web_client.latest_response.status_code == HTTPStatusCode.OK
+    assert web_client.latest_response.status_code == HttpStatusCode.OK
 
 
 def test_web_page_get_users_page_request_with_ip_address(uc2_network):
@@ -49,4 +49,4 @@ def test_web_page_get_users_page_request_with_ip_address(uc2_network):
 
     # latest reponse should have status code 200
     assert web_client.latest_response is not None
-    assert web_client.latest_response.status_code == HTTPStatusCode.OK
+    assert web_client.latest_response.status_code == HttpStatusCode.OK

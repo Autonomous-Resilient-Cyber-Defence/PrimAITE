@@ -12,7 +12,7 @@ from primaite.simulator.system.applications.database_client import DatabaseClien
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
-from primaite.simulator.system.services.web_server.web_server_service import WebServer
+from primaite.simulator.system.services.web_server.web_server import WebServer
 
 
 def client_server_routed() -> Network:

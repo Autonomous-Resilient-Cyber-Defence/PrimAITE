@@ -25,8 +25,8 @@ Usage
 Implementation
 ^^^^^^^^^^^^^^
 
-- HTTP request uses a ``HTTPRequestPacket`` object
-- HTTP reaponse uses a ``HTTPResponsePacket`` object
+- HTTP request uses a ``HttpRequestPacket`` object
+- HTTP response uses a ``HttpResponsePacket`` object
 - Extends Service class for integration with ``SoftwareManager``.
 
 Web Browser (Web Client)
