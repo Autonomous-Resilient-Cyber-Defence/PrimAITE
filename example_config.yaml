@@ -131,32 +131,36 @@ game_config:
 
       action_space:
         action_list:
-          - DONOTHING
-          - NODE_SERVICE_SCAN
-          - NODE_SERVICE_STOP
-          # - NODE_SERVICE_START
-          # - NODE_SERVICE_PAUSE
-          # - NODE_SERVICE_RESUME
-          # - NODE_SERVICE_RESTART
-          # - NODE_SERVICE_DISABLE
-          # - NODE_SERVICE_ENABLE
-          # - NODE_FILE_SCAN
-          # - NODE_FILE_CHECKHASH
-          # - NODE_FILE_DELETE
-          # - NODE_FILE_REPAIR
-          # - NODE_FILE_RESTORE
-          # - NODE_FOLDER_SCAN
-          # - NODE_FOLDER_CHECKHASH
-          # - NODE_FOLDER_REPAIR
-          # - NODE_FOLDER_RESTORE
-          # - NODE_OS_SCAN
-          # - NODE_SHUTDOWN
-          # - NODE_STARTUP
-          # - NODE_RESET
-          # - NETWORK_ACL_ADDRULE
-          # - NETWORK_ACL_REMOVERULE
-          # - NETWORK_NIC_ENABLE
-          - NETWORK_NIC_DISABLE
+          - type: DONOTHING
+          - type: NODE_SERVICE_SCAN
+          - type: NODE_SERVICE_STOP
+          - type: NODE_SERVICE_START
+          - type: NODE_SERVICE_PAUSE
+          - type: NODE_SERVICE_RESUME
+          - type: NODE_SERVICE_RESTART
+          - type: NODE_SERVICE_DISABLE
+          - type: NODE_SERVICE_ENABLE
+          - type: NODE_FILE_SCAN
+          - type: NODE_FILE_CHECKHASH
+          - type: NODE_FILE_DELETE
+          - type: NODE_FILE_REPAIR
+          - type: NODE_FILE_RESTORE
+          - type: NODE_FOLDER_SCAN
+          - type: NODE_FOLDER_CHECKHASH
+          - type: NODE_FOLDER_REPAIR
+          - type: NODE_FOLDER_RESTORE
+          - type: NODE_OS_SCAN
+          - type: NODE_SHUTDOWN
+          - type: NODE_STARTUP
+          - type: NODE_RESET
+          - type: NETWORK_ACL_ADDRULE
+            options:
+              target_router_ref: router_1
+          - type: NETWORK_ACL_REMOVERULE
+            options:
+              target_router_ref: router_1
+          - type: NETWORK_NIC_ENABLE
+          - type: NETWORK_NIC_DISABLE
 
         action_map:
             0:

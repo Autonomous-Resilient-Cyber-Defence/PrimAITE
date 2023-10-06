@@ -2,14 +2,16 @@
 # That's because I want to point out that this is disctinct from 'agent' in the reinforcement learning sense of the word
 # If you disagree, make a comment in the PR review and we can discuss
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union, TypeAlias
+from typing import Any, Dict, List, Optional, TypeAlias, Union
+
 import numpy as np
 
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.observations import ObservationSpace
 from primaite.game.agent.rewards import RewardFunction
 
-ObsType:TypeAlias = Union[Dict, np.ndarray]
+ObsType: TypeAlias = Union[Dict, np.ndarray]
+
 
 class AbstractAgent(ABC):
     """Base class for scripted and RL agents."""
@@ -28,31 +30,28 @@ class AbstractAgent(ABC):
         # by for example specifying target ip addresses, or converting a node ID into a uuid
         self.execution_definition = None
 
-    def get_obs_from_state(self, state:Dict) -> ObsType:
+    def convert_state_to_obs(self, state: Dict) -> ObsType:
         """
         state : dict state directly from simulation.describe_state
         output : dict state according to CAOS.
         """
         return self.observation_space.observe(state)
 
-    def get_reward_from_state(self, state:Dict) -> float:
+    def calculate_reward_from_state(self, state: Dict) -> float:
         return self.reward_function.calculate(state)
 
     @abstractmethod
-    def get_action(self, obs:ObsType, reward:float=None):
-        # in RL agent, this method will send CAOS observation to GATE RL agent, then receive a int 1-40,
+    def get_action(self, obs: ObsType, reward: float = None):
+        # in RL agent, this method will send CAOS observation to GATE RL agent, then receive a int 0-39,
         # then use a bespoke conversion to take 1-40 int back into CAOS action
-        return ('NODE', 'SERVICE', 'SCAN', '<fake-node-sid>', '<fake-service-sid>')
+        return ("NODE", "SERVICE", "SCAN", "<fake-node-sid>", "<fake-service-sid>")
 
     @abstractmethod
     def format_request(self, action) -> List[str]:
         # this will take something like APPLICATION.EXECUTE and add things like target_ip_address in simulator.
         # therefore the execution definition needs to be a mapping from CAOS into SIMULATOR
         """Format action into format expected by the simulator, and apply execution definition if applicable."""
-        return ['network', 'nodes', '<fake-node-uuid>', 'file_system', 'folder', 'root', 'scan']
-
-
-
+        return ["network", "nodes", "<fake-node-uuid>", "file_system", "folder", "root", "scan"]
 
 
 class AbstractScriptedAgent(AbstractAgent):
@@ -60,10 +59,11 @@ class AbstractScriptedAgent(AbstractAgent):
 
     ...
 
+
 class RandomAgent(AbstractScriptedAgent):
     """Agent that ignores its observation and acts completely at random."""
 
-    def get_action(self, obs:ObsType, reward:float=None):
+    def get_action(self, obs: ObsType, reward: float = None):
         return self.action_space.space.sample()
 
 
