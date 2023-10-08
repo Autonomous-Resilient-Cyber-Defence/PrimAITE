@@ -3,7 +3,6 @@ from typing import Any, Dict, Hashable, List, Optional, TYPE_CHECKING
 
 from gym import spaces
 from pydantic import BaseModel
-from primaite.game.session import PrimaiteSession
 
 from primaite.simulator.sim_container import Simulation
 if TYPE_CHECKING:
@@ -56,8 +55,8 @@ class AbstractObservation(ABC):
         """Subclasses must define the shape that they expect"""
         ...
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def from_config(cls, config:Dict, session:"PrimaiteSession"):
         """Create this observation space component form a serialised format.
 
@@ -132,7 +131,7 @@ class ServiceObservation(AbstractObservation):
         return spaces.Dict({"operating_status": spaces.Discrete(7), "health_status": spaces.Discrete(6)})
 
     @classmethod
-    def from_config(cls, config: Dict, session: PrimaiteSession, parent_where:Optional[List[str]]=None):
+    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where:Optional[List[str]]=None):
         return cls(where=parent_where+["services",session.ref_map_services[config['service_ref']]])
 
 
@@ -235,7 +234,7 @@ class FolderObservation(AbstractObservation):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, session: PrimaiteSession, parent_where:Optional[List[str]]):
+    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where:Optional[List[str]]):
         where = parent_where + ["folders", config['folder_name']]
 
         file_configs = config["files"]
@@ -324,7 +323,6 @@ class NodeObservation(AbstractObservation):
             return self.default_observation
 
         obs = {}
-
         obs["SERVICES"] = {i + 1: service.observe(state) for i, service in enumerate(self.services)}
         obs["FOLDERS"] = {i + 1: folder.observe(state) for i, folder in enumerate(self.folders)}
         obs["operating_status"] = node_state["operating_state"]
@@ -349,7 +347,7 @@ class NodeObservation(AbstractObservation):
         return spaces.Dict(space_shape)
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where:Optional[List[str]]= None):
+    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where:Optional[List[str]]= None) -> "NodeObservation":
         node_uuid = session.ref_map_nodes[config['node_ref']]
         if parent_where is None:
             where = ["network", "nodes", node_uuid]
@@ -361,12 +359,10 @@ class NodeObservation(AbstractObservation):
         folder_configs = config.get('folders', {})
         folders = [FolderObservation.from_config(config=c,session=session, parent_where=where) for c in folder_configs]
         nic_uuids = session.simulation.network.nodes[node_uuid].nics.keys()
-        nic_configs = [{'nic_uuid':n for n in nic_uuids }]
+        nic_configs = [{'nic_uuid':n for n in nic_uuids }] if nic_uuids else []
         nics = [NicObservation.from_config(config=c, session=session, parent_where=where) for c in nic_configs]
         logon_status = config.get('logon_status',False)
-        cls(where=where, services=services, folders=folders, nics=nics, logon_status=logon_status)
-        return super().from_config(config, session)
-
+        return cls(where=where, services=services, folders=folders, nics=nics, logon_status=logon_status)
 
 
 class AclObservation(AbstractObservation):
@@ -486,7 +482,7 @@ class NullObservation(AbstractObservation):
         return spaces.Dict({})
 
     @classmethod
-    def from_config(cls, cfg:Dict) -> "NullObservation":
+    def from_config(cls, config:Dict, session:Optional["PrimaiteSession"]=None) -> "NullObservation":
         return cls()
 
 class ICSObservation(NullObservation): pass
@@ -539,15 +535,15 @@ class UC2BlueObservation(AbstractObservation):
         })
 
     @classmethod
-    def from_config(cls, config:Dict, sess:"PrimaiteSession"):
+    def from_config(cls, config:Dict, session:"PrimaiteSession"):
         node_configs = config["nodes"]
-        nodes = [NodeObservation.from_config(n) for n in node_configs]
+        nodes = [NodeObservation.from_config(config=n, session=session) for n in node_configs]
 
         link_configs = config["links"]
-        links = [LinkObservation.from_config(l) for l in link_configs]
+        links = [LinkObservation.from_config(config=l, session=session) for l in link_configs]
 
         acl_config = config["acl"]
-        acl = AclObservation.from_config(acl_config)
+        acl = AclObservation.from_config(config=acl_config, session=session)
 
         ics_config = config["ics"]
         ics = ICSObservation.from_config(ics_config)
@@ -561,19 +557,30 @@ class UC2RedObservation(AbstractObservation):
         self.where:Optional[List[str]] = where
         self.nodes: List[NodeObservation] = nodes
 
-        self.default_observation=...#TODO
+        self.default_observation : Dict = {
+            "NODES": {i+1: n.default_observation for i,n in enumerate(self.nodes)},
+        }
 
-    def observe(self, state: Dict) -> Any:
-        return super().observe(state)
+    def observe(self, state: Dict) -> Dict:
+        if self.where is None:
+            return self.default_observation
+
+        obs = {}
+        obs['NODES'] = {i+1: node.observe(state) for i, node in enumerate(self.nodes)}
+        return obs
 
     @property
     def space(self) -> spaces.Space:
-        ... #TODO
+        return spaces.Dict({
+            "NODES": spaces.Dict({i+1: node.space for i, node in enumerate(self.nodes)}),
+        })
 
     @classmethod
-    def from_config(cls, config: Dict, sim:Simulation):
+    def from_config(cls, config: Dict, session: "PrimaiteSession"):
+        node_configs = config["nodes"]
+        nodes = [NodeObservation.from_config(config=cfg, session=session) for cfg in node_configs]
+        return cls(nodes=nodes, where=["network"])
 
-        ... #TODO
 
 class UC2GreenObservation(NullObservation): pass
 
@@ -605,10 +612,10 @@ class ObservationSpace:
     @classmethod
     def from_config(cls, config:Dict, session:"PrimaiteSession") -> "ObservationSpace":
         if config['type'] == "UC2BlueObservation":
-            return cls(UC2BlueObservation(config['options']))
+            return cls(UC2BlueObservation.from_config(config.get('options',{}), session=session))
         elif config['type'] == "UC2RedObservation":
-            return cls(UC2RedObservation(config['options']))
+            return cls(UC2RedObservation.from_config(config.get('options',{}), session=session))
         elif config['type'] == "UC2GreenObservation":
-            return cls(UC2GreenObservation(config["options"]))
+            return cls(UC2GreenObservation.from_config(config.get("options",{}), session=session))
         else:
             raise ValueError("Observation space type invalid")

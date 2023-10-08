@@ -21,6 +21,7 @@ from primaite.game.agent.observations import (
     NicObservation,
     NodeObservation,
     NullObservation,
+    ObservationSpace,
     ServiceObservation,
     UC2BlueObservation,
     UC2GreenObservation,
@@ -177,7 +178,7 @@ class PrimaiteSession:
                     if service_type in service_types_mapping:
                         new_node.software_manager.install(service_types_mapping[service_type])
                         new_service = new_node.software_manager.software[service_type]
-                        ref_map_services[service_ref] = new_service
+                        sess.ref_map_services[service_ref] = new_service
                     else:
                         print(f"service type not found {service_type}")
                     # service-dependent options
@@ -198,12 +199,12 @@ class PrimaiteSession:
 
             net.add_node(new_node)
             new_node.power_on()
-            ref_map_nodes[node_ref] = new_node.uuid
+            sess.ref_map_nodes[node_ref] = new_node.uuid
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
-            node_a = net.nodes[ref_map_nodes[link_cfg["endpoint_a_ref"]]]
-            node_b = net.nodes[ref_map_nodes[link_cfg["endpoint_b_ref"]]]
+            node_a = net.nodes[sess.ref_map_nodes[link_cfg["endpoint_a_ref"]]]
+            node_b = net.nodes[sess.ref_map_nodes[link_cfg["endpoint_b_ref"]]]
             if isinstance(node_a, Switch):
                 endpoint_a = node_a.switch_ports[link_cfg["endpoint_a_port"]]
             else:
@@ -213,7 +214,7 @@ class PrimaiteSession:
             else:
                 endpoint_b = node_b.ethernet_port[link_cfg["endpoint_b_port"]]
             new_link = net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b)
-            ref_map_links[link_cfg["ref"]] = new_link.uuid
+            sess.ref_map_links[link_cfg["ref"]] = new_link.uuid
 
         # 3. create agents
         game_cfg = cfg["game_config"]
@@ -229,108 +230,112 @@ class PrimaiteSession:
             reward_function_cfg = agent_cfg["reward_function"]
 
             # CREATE OBSERVATION SPACE
-            if observation_space_cfg is None:
-                obs_space = NullObservation()
-            elif observation_space_cfg["type"] == "UC2BlueObservation":
-                node_obs_list = []
-                link_obs_list = []
+            obs_space=ObservationSpace.from_config(observation_space_cfg, sess)
 
-                # node ip to index maps ip addresses to node id, as there are potentially multiple nics on a node, there are multiple ip addresses
-                node_ip_to_index = {}
-                for node_idx, node_cfg in enumerate(nodes_cfg):
-                    n_ref = node_cfg["ref"]
-                    n_obj = net.nodes[ref_map_nodes[n_ref]]
-                    for nic_uuid, nic_obj in n_obj.nics.items():
-                        node_ip_to_index[nic_obj.ip_address] = node_idx + 2
+            """
+                # if observation_space_cfg is None:
+                #     obs_space = NullObservation()
+                # elif observation_space_cfg["type"] == "UC2BlueObservation":
+                #     node_obs_list = []
+                #     link_obs_list = []
 
-                for node_obs_cfg in observation_space_cfg["options"]["nodes"]:
-                    node_ref = node_obs_cfg["node_ref"]
-                    folder_obs_list = []
-                    service_obs_list = []
-                    if "services" in node_obs_cfg:
-                        for service_obs_cfg in node_obs_cfg["services"]:
-                            service_obs_list.append(
-                                ServiceObservation(
-                                    where=[
-                                        "network",
-                                        "nodes",
-                                        ref_map_nodes[node_ref],
-                                        "services",
-                                        ref_map_services[service_obs_cfg["service_ref"]],
-                                    ]
-                                )
-                            )
-                    if "folders" in node_obs_cfg:
-                        for folder_obs_cfg in node_obs_cfg["folders"]:
-                            file_obs_list = []
-                            if "files" in folder_obs_cfg:
-                                for file_obs_cfg in folder_obs_cfg["files"]:
-                                    file_obs_list.append(
-                                        FileObservation(
-                                            where=[
-                                                "network",
-                                                "nodes",
-                                                ref_map_nodes[node_ref],
-                                                "folders",
-                                                folder_obs_cfg["folder_name"],
-                                                "files",
-                                                file_obs_cfg["file_name"],
-                                            ]
-                                        )
-                                    )
-                            folder_obs_list.append(
-                                FolderObservation(
-                                    where=[
-                                        "network",
-                                        "nodes",
-                                        ref_map_nodes[node_ref],
-                                        "folders",
-                                        folder_obs_cfg["folder_name"],
-                                    ],
-                                    files=file_obs_list,
-                                )
-                            )
-                    nic_obs_list = []
-                    for nic_uuid in net.nodes[ref_map_nodes[node_obs_cfg["node_ref"]]].nics.keys():
-                        nic_obs_list.append(
-                            NicObservation(where=["network", "nodes", ref_map_nodes[node_ref], "NICs", nic_uuid])
-                        )
-                    node_obs_list.append(
-                        NodeObservation(
-                            where=["network", "nodes", ref_map_nodes[node_ref]],
-                            services=service_obs_list,
-                            folders=folder_obs_list,
-                            nics=nic_obs_list,
-                            logon_status=False,
-                        )
-                    )
-                for link_obs_cfg in observation_space_cfg["options"]["links"]:
-                    link_ref = link_obs_cfg["link_ref"]
-                    link_obs_list.append(LinkObservation(where=["network", "links", ref_map_links[link_ref]]))
+                #     # node ip to index maps ip addresses to node id, as there are potentially multiple nics on a node, there are multiple ip addresses
+                #     node_ip_to_index = {}
+                #     for node_idx, node_cfg in enumerate(nodes_cfg):
+                #         n_ref = node_cfg["ref"]
+                #         n_obj = net.nodes[ref_map_nodes[n_ref]]
+                #         for nic_uuid, nic_obj in n_obj.nics.items():
+                #             node_ip_to_index[nic_obj.ip_address] = node_idx + 2
 
-                acl_obs = AclObservation(
-                    node_ip_to_id=node_ip_to_index,
-                    ports=game_cfg["ports"],
-                    protocols=game_cfg["ports"],
-                    where=["network", "nodes", observation_space_cfg["options"]["acl"]["router_node_ref"]],
-                )
-                obs_space = UC2BlueObservation(
-                    nodes=node_obs_list, links=link_obs_list, acl=acl_obs, ics=ICSObservation()
-                )
-            elif observation_space_cfg["type"] == "UC2RedObservation":
-                obs_space = UC2RedObservation.from_config(observation_space_cfg["options"], sim=sim)
-            elif observation_space_cfg["type"] == "UC2GreenObservation":
-                obs_space = UC2GreenObservation.from_config(observation_space_cfg.get('options',{}))
-            else:
-                print("observation space config not specified correctly.")
-                obs_space = NullObservation()
+                #     for node_obs_cfg in observation_space_cfg["options"]["nodes"]:
+                #         node_ref = node_obs_cfg["node_ref"]
+                #         folder_obs_list = []
+                #         service_obs_list = []
+                #         if "services" in node_obs_cfg:
+                #             for service_obs_cfg in node_obs_cfg["services"]:
+                #                 service_obs_list.append(
+                #                     ServiceObservation(
+                #                         where=[
+                #                             "network",
+                #                             "nodes",
+                #                             ref_map_nodes[node_ref],
+                #                             "services",
+                #                             ref_map_services[service_obs_cfg["service_ref"]],
+                #                         ]
+                #                     )
+                #                 )
+                #         if "folders" in node_obs_cfg:
+                #             for folder_obs_cfg in node_obs_cfg["folders"]:
+                #                 file_obs_list = []
+                #                 if "files" in folder_obs_cfg:
+                #                     for file_obs_cfg in folder_obs_cfg["files"]:
+                #                         file_obs_list.append(
+                #                             FileObservation(
+                #                                 where=[
+                #                                     "network",
+                #                                     "nodes",
+                #                                     ref_map_nodes[node_ref],
+                #                                     "folders",
+                #                                     folder_obs_cfg["folder_name"],
+                #                                     "files",
+                #                                     file_obs_cfg["file_name"],
+                #                                 ]
+                #                             )
+                #                         )
+                #                 folder_obs_list.append(
+                #                     FolderObservation(
+                #                         where=[
+                #                             "network",
+                #                             "nodes",
+                #                             ref_map_nodes[node_ref],
+                #                             "folders",
+                #                             folder_obs_cfg["folder_name"],
+                #                         ],
+                #                         files=file_obs_list,
+                #                     )
+                #                 )
+                #         nic_obs_list = []
+                #         for nic_uuid in net.nodes[ref_map_nodes[node_obs_cfg["node_ref"]]].nics.keys():
+                #             nic_obs_list.append(
+                #                 NicObservation(where=["network", "nodes", ref_map_nodes[node_ref], "NICs", nic_uuid])
+                #             )
+                #         node_obs_list.append(
+                #             NodeObservation(
+                #                 where=["network", "nodes", ref_map_nodes[node_ref]],
+                #                 services=service_obs_list,
+                #                 folders=folder_obs_list,
+                #                 nics=nic_obs_list,
+                #                 logon_status=False,
+                #             )
+                #         )
+                #     for link_obs_cfg in observation_space_cfg["options"]["links"]:
+                #         link_ref = link_obs_cfg["link_ref"]
+                #         link_obs_list.append(LinkObservation(where=["network", "links", ref_map_links[link_ref]]))
+
+                #     acl_obs = AclObservation(
+                #         node_ip_to_id=node_ip_to_index,
+                #         ports=game_cfg["ports"],
+                #         protocols=game_cfg["ports"],
+                #         where=["network", "nodes", observation_space_cfg["options"]["acl"]["router_node_ref"]],
+                #     )
+                #     obs_space = UC2BlueObservation(
+                #         nodes=node_obs_list, links=link_obs_list, acl=acl_obs, ics=ICSObservation()
+                #     )
+                # elif observation_space_cfg["type"] == "UC2RedObservation":
+                #     obs_space = UC2RedObservation.from_config(observation_space_cfg["options"], sim=sim)
+                # elif observation_space_cfg["type"] == "UC2GreenObservation":
+                #     obs_space = UC2GreenObservation.from_config(observation_space_cfg.get('options',{}))
+                # else:
+                #     print("observation space config not specified correctly.")
+                #     obs_space = NullObservation()
+            """
 
             # CREATE ACTION SPACE
             action_space_cfg['options']['node_uuids'] = []
             # if a list of nodes is defined, convert them from node references to node UUIDs
             for action_node_option in action_space_cfg.get('options',{}).pop('nodes', {}):
                 if 'node_ref' in action_node_option:
-                    node_uuid = ref_map_nodes[action_node_option['node_ref']]
+                    node_uuid = sess.ref_map_nodes[action_node_option['node_ref']]
                     action_space_cfg['options']['node_uuids'].append(node_uuid)
             # Each action space can potentially have a different list of nodes that it can apply to. Therefore,
             # we will pass node_uuids as a part of the action space config.
@@ -342,7 +347,7 @@ class PrimaiteSession:
                     if 'options' in action_config:
                         if 'target_router_ref' in action_config['options']:
                             _target = action_config['options']['target_router_ref']
-                            action_config['options']['target_router_uuid'] = ref_map_nodes[_target]
+                            action_config['options']['target_router_uuid'] = sess.ref_map_nodes[_target]
 
             action_space = ActionManager.from_config(sess, action_space_cfg)
 
