@@ -23,6 +23,7 @@ from primaite.game.agent.observations import (
     NullObservation,
     ServiceObservation,
     UC2BlueObservation,
+    UC2GreenObservation,
     UC2RedObservation,
 )
 from primaite.game.agent.rewards import RewardFunction
@@ -41,6 +42,10 @@ from primaite.simulator.system.services.dns_server import DNSServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.services.service import Service
 
+from primaite import getLogger
+
+_LOGGER = getLogger(__name__)
+
 
 class PrimaiteSessionOptions(BaseModel):
     ports: List[str]
@@ -55,13 +60,19 @@ class PrimaiteSession:
         self.episode_counter: int = 0
         self.options: PrimaiteSessionOptions
 
+        self.ref_map_nodes: Dict[str, Node] = {}
+        self.ref_map_services: Dict[str, Service] = {}
+        self.ref_map_links: Dict[str, Link] = {}
+
     def step(self):
+        _LOGGER.debug(f"Stepping primaite session. Step counter: {self.step_counter}")
         # currently designed with assumption that all agents act once per step in order
 
         for agent in self.agents:
             # 3. primaite session asks simulation to provide initial state
             # 4. primate session gives state to all agents
             # 5. primaite session asks agents to produce an action based on most recent state
+            _LOGGER.debug(f"Sending simulation state to agent {agent.agent_name}")
             sim_state = self.simulation.describe_state()
 
             # 6. each agent takes most recent state and converts it to CAOS observation
@@ -75,14 +86,18 @@ class PrimaiteSession:
             #    to discrete(40) is only necessary for purposes of RL learning, therefore that bit of
             #    code should live inside of the GATE agent subclass)
             # gets action in CAOS format
+            _LOGGER.debug(f"Getting agent action")
             agent_action, action_options = agent.get_action(agent_obs, agent_reward)
             # 9. CAOS action is converted into request (extra information might be needed to enrich
             # the request, this is what the execution definition is there for)
+            _LOGGER.debug(f"Formatting agent action {agent_action}") # maybe too many debug log statements
             agent_request = agent.format_request(agent_action, action_options)
 
             # 10. primaite session receives the action from the agents and asks the simulation to apply each
+            _LOGGER.debug(f"Sending request to simulation: {agent_request}")
             self.simulation.apply_action(agent_request)
 
+        _LOGGER.debug(f"Initiating simulation step {self.step_counter}")
         self.simulation.apply_timestep(self.step_counter)
         self.step_counter += 1
 
@@ -96,9 +111,9 @@ class PrimaiteSession:
         sim = sess.simulation
         net = sim.network
 
-        ref_map_nodes: Dict[str, Node] = {}
-        ref_map_services: Dict[str, Service] = {}
-        ref_map_links: Dict[str, Link] = {}
+        sess.ref_map_nodes: Dict[str, Node] = {}
+        sess.ref_map_services: Dict[str, Service] = {}
+        sess.ref_map_links: Dict[str, Link] = {}
 
         nodes_cfg = cfg["simulation"]["network"]["nodes"]
         links_cfg = cfg["simulation"]["network"]["links"]
@@ -304,6 +319,8 @@ class PrimaiteSession:
                 )
             elif observation_space_cfg["type"] == "UC2RedObservation":
                 obs_space = UC2RedObservation.from_config(observation_space_cfg["options"], sim=sim)
+            elif observation_space_cfg["type"] == "UC2GreenObservation":
+                obs_space = UC2GreenObservation.from_config(observation_space_cfg.get('options',{}))
             else:
                 print("observation space config not specified correctly.")
                 obs_space = NullObservation()
@@ -334,12 +351,15 @@ class PrimaiteSession:
 
             # CREATE AGENT
             if agent_type == "GreenWebBrowsingAgent":
-                new_agent = RandomAgent(action_space=action_space, observation_space=obs_space, reward_function=rew_function)
+                # TODO: implement non-random agents and fix this parsing
+                new_agent = RandomAgent(agent_name=agent_cfg['ref'], action_space=action_space, observation_space=obs_space, reward_function=rew_function)
                 sess.agents.append(new_agent)
             elif agent_type == "GATERLAgent":
-                ...
+                new_agent = RandomAgent(agent_name=agent_cfg['ref'], action_space=action_space, observation_space=obs_space, reward_function=rew_function)
+                sess.agents.append(new_agent)
             elif agent_type == "RedDatabaseCorruptingAgent":
-                ...
+                new_agent = RandomAgent(agent_name=agent_cfg['ref'], action_space=action_space, observation_space=obs_space, reward_function=rew_function)
+                sess.agents.append(new_agent)
             else:
                 print("agent type not found")
 

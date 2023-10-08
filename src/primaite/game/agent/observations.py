@@ -1,10 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Hashable, List, Optional
+from typing import Any, Dict, Hashable, List, Optional, TYPE_CHECKING
 
 from gym import spaces
 from pydantic import BaseModel
+from primaite.game.session import PrimaiteSession
 
 from primaite.simulator.sim_container import Simulation
+if TYPE_CHECKING:
+    from primaite.game.session import PrimaiteSession
 
 NOT_PRESENT_IN_STATE = object()
 """
@@ -53,6 +56,15 @@ class AbstractObservation(ABC):
         """Subclasses must define the shape that they expect"""
         ...
 
+    @abstractmethod
+    @classmethod
+    def from_config(cls, config:Dict, session:"PrimaiteSession"):
+        """Create this observation space component form a serialised format.
+
+        The `session` parameter is for a the PrimaiteSession object that spawns this component. During deserialisation,
+        a subclass of this class may need to translate from a 'reference' to a UUID.
+        """
+
 
 class FileObservation(AbstractObservation):
     def __init__(self, where: Optional[List[str]] = None) -> None:
@@ -84,6 +96,10 @@ class FileObservation(AbstractObservation):
     def space(self) -> spaces.Space:
         return spaces.Dict({"health_status": spaces.Discrete(6)})
 
+    @classmethod
+    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where=None):
+        return cls(where=parent_where+["files", config["file_name"]])
+
 
 class ServiceObservation(AbstractObservation):
     default_observation: spaces.Space = {"operating_status": 0, "health_status": 0}
@@ -114,6 +130,11 @@ class ServiceObservation(AbstractObservation):
     @property
     def space(self) -> spaces.Space:
         return spaces.Dict({"operating_status": spaces.Discrete(7), "health_status": spaces.Discrete(6)})
+
+    @classmethod
+    def from_config(cls, config: Dict, session: PrimaiteSession, parent_where:Optional[List[str]]=None):
+        return cls(where=parent_where+["services",session.ref_map_services[config['service_ref']]])
+
 
 
 class LinkObservation(AbstractObservation):
@@ -153,6 +174,10 @@ class LinkObservation(AbstractObservation):
     @property
     def space(self) -> spaces.Space:
         return spaces.Dict({"protocols": spaces.Dict({"all": spaces.Dict({"load": spaces.Discrete(11)})})})
+
+    @classmethod
+    def from_config(cls, config: Dict, session: "PrimaiteSession"):
+        return cls(where=['network','links', session.ref_map_links[config['link_ref']]])
 
 
 class FolderObservation(AbstractObservation):
@@ -209,6 +234,15 @@ class FolderObservation(AbstractObservation):
             }
         )
 
+    @classmethod
+    def from_config(cls, config: Dict, session: PrimaiteSession, parent_where:Optional[List[str]]):
+        where = parent_where + ["folders", config['folder_name']]
+
+        file_configs = config["files"]
+        files = [FileObservation.from_config(config=f, session=session, parent_where=where) for f in file_configs]
+
+        return cls(where=where,files=files)
+
 
 class NicObservation(AbstractObservation):
     default_observation: spaces.Space = {"nic_status": 0}
@@ -229,6 +263,10 @@ class NicObservation(AbstractObservation):
     @property
     def space(self) -> spaces.Space:
         return spaces.Dict({"nic_status": spaces.Discrete(3)})
+
+    @classmethod
+    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where:Optional[List[str]]):
+        return cls(where=parent_where + ["NICs", config["nic_uuid"]])
 
 
 class NodeObservation(AbstractObservation):
@@ -309,6 +347,25 @@ class NodeObservation(AbstractObservation):
             space_shape['logon_status'] = spaces.Discrete(3)
 
         return spaces.Dict(space_shape)
+
+    @classmethod
+    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where:Optional[List[str]]= None):
+        node_uuid = session.ref_map_nodes[config['node_ref']]
+        if parent_where is None:
+            where = ["network", "nodes", node_uuid]
+        else:
+            where = parent_where + ["nodes", node_uuid]
+
+        svc_configs = config.get('services', {})
+        services = [ServiceObservation.from_config(config=c, session=session, parent_where=where) for c in svc_configs]
+        folder_configs = config.get('folders', {})
+        folders = [FolderObservation.from_config(config=c,session=session, parent_where=where) for c in folder_configs]
+        nic_uuids = session.simulation.network.nodes[node_uuid].nics.keys()
+        nic_configs = [{'nic_uuid':n for n in nic_uuids }]
+        nics = [NicObservation.from_config(config=c, session=session, parent_where=where) for c in nic_configs]
+        logon_status = config.get('logon_status',False)
+        cls(where=where, services=services, folders=folders, nics=nics, logon_status=logon_status)
+        return super().from_config(config, session)
 
 
 
@@ -399,6 +456,21 @@ class AclObservation(AbstractObservation):
             }
         )
 
+    @classmethod
+    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "AclObservation":
+        node_ip_to_idx = {}
+        for node_idx, node_cfg in enumerate(config['node_order']):
+            n_ref = node_cfg["node_ref"]
+            n_obj = session.simulation.network.nodes[session.ref_map_nodes[n_ref]]
+            for nic_uuid, nic_obj in n_obj.nics.items():
+                node_ip_to_idx[nic_obj.ip_address] = node_idx + 2
+
+        router_uuid = session.ref_map_nodes[config['router_node_ref']]
+        return cls(
+            node_ip_to_id=node_ip_to_idx,
+            ports=session.options.ports,
+            protocols=session.options.protocols,
+            where=["network", "nodes", router_uuid])
 
 
 
@@ -412,6 +484,10 @@ class NullObservation(AbstractObservation):
     @property
     def space(self) -> spaces.Space:
         return spaces.Dict({})
+
+    @classmethod
+    def from_config(cls, cfg:Dict) -> "NullObservation":
+        return cls()
 
 class ICSObservation(NullObservation): pass
 
@@ -463,11 +539,18 @@ class UC2BlueObservation(AbstractObservation):
         })
 
     @classmethod
-    def from_config(cls, config:Dict, sim:Simulation):
-        nodes = ...
-        links = ...
-        acl = ...
-        ics = ...
+    def from_config(cls, config:Dict, sess:"PrimaiteSession"):
+        node_configs = config["nodes"]
+        nodes = [NodeObservation.from_config(n) for n in node_configs]
+
+        link_configs = config["links"]
+        links = [LinkObservation.from_config(l) for l in link_configs]
+
+        acl_config = config["acl"]
+        acl = AclObservation.from_config(acl_config)
+
+        ics_config = config["ics"]
+        ics = ICSObservation.from_config(ics_config)
         new = cls(nodes=nodes, links=links, acl=acl, ics=ics, where=['network'])
         return new
 
@@ -489,7 +572,10 @@ class UC2RedObservation(AbstractObservation):
 
     @classmethod
     def from_config(cls, config: Dict, sim:Simulation):
+
         ... #TODO
+
+class UC2GreenObservation(NullObservation): pass
 
 class ObservationSpace:
     """
@@ -515,3 +601,14 @@ class ObservationSpace:
     @property
     def space(self) -> None:
         return self.obs.space
+
+    @classmethod
+    def from_config(cls, config:Dict, session:"PrimaiteSession") -> "ObservationSpace":
+        if config['type'] == "UC2BlueObservation":
+            return cls(UC2BlueObservation(config['options']))
+        elif config['type'] == "UC2RedObservation":
+            return cls(UC2RedObservation(config['options']))
+        elif config['type'] == "UC2GreenObservation":
+            return cls(UC2GreenObservation(config["options"]))
+        else:
+            raise ValueError("Observation space type invalid")

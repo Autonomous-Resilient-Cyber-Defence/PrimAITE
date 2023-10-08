@@ -18,10 +18,12 @@ class AbstractAgent(ABC):
 
     def __init__(
         self,
+        agent_name: Optional[str],
         action_space: Optional[ActionManager],
         observation_space: Optional[ObservationSpace],
         reward_function: Optional[RewardFunction],
     ) -> None:
+        self.agent_name:str = agent_name or "unnamed_agent"
         self.action_space: Optional[ActionManager] = action_space
         self.observation_space: Optional[ObservationSpace] = observation_space
         self.reward_function: Optional[RewardFunction] = reward_function

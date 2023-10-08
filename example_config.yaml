@@ -17,10 +17,12 @@ game_config:
     - ref: client_1_green_user
       team: GREEN
       type: GreenWebBrowsingAgent
-      observation_space: null
+      observation_space:
+        type: UC2GreenObservation
       action_space:
         action_list:
           - type: DONOTHING
+          # <not yet implemented>
           # - type: NODE_LOGON
           # - type: NODE_LOGOFF
           # - type: NODE_APPLICATION_EXECUTE
@@ -68,6 +70,7 @@ game_config:
       action_space:
         action_list:
           - type: DONOTHING
+          #<not yet implemented
           # - type: NODE_APPLICATION_EXECUTE
           #   options:
           #     execution_definition:
@@ -87,28 +90,6 @@ game_config:
           max_folders_per_node: 2
           max_files_per_folder: 2
           max_services_per_node: 2
-          # max_nics_per_node: 8
-          # max_acl_rules: 10
-
-        # actions:
-        # - type: DO_NOTHING
-        # network:
-        #   nodes:
-        #   - node_ref: client_1
-        #     actions:
-        #     - type: SCAN
-        #     - type: LOGON
-        #     - type: LOGOFF
-        #     services:
-        #     - service_ref: data_manipulation_bot
-        #       actions:
-        #       - type: COMPROMISE
-        #         execution_definition:
-        #           server_ip: 192.168.1.14
-        #           payload: "DROP TABLE IF EXISTS user;"
-        #           success_rate: 80%
-        #     folders:
-        #       files: {}
 
       reward_function:
         reward_components:
@@ -118,9 +99,6 @@ game_config:
         start_step: 25
         frequency: 20
         variance: 5
-
-
-
 
     - ref: defender
       team: BLUE
@@ -165,6 +143,17 @@ game_config:
           - link_ref: switch_2___security_suite
           acl:
             router_node_ref: router_1
+            node_order:
+              - node_ref: router_1
+              - node_ref: switch_1
+              - node_ref: switch_2
+              - node_ref: domain_controller
+              - node_ref: web_server
+              - node_ref: database_server
+              - node_ref: backup_server
+              - node_ref: security_suite
+              - node_ref: client_1
+              - node_ref: client_2
           ics: null
 
       action_space:
