@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from primaite.simulator.network.protocols.packet import DataPacket
 
@@ -51,5 +51,5 @@ class FTPPacket(DataPacket):
     ftp_command_args: Optional[Any] = None
     """Arguments for command."""
 
-    status_code: FTPStatusCode = None
+    status_code: Union[FTPStatusCode, None] = None
     """Status of the response."""

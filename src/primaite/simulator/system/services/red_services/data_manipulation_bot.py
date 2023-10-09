@@ -33,12 +33,14 @@ class DataManipulationBot(DatabaseClient):
         self.server_ip_address = server_ip_address
         self.payload = payload
         self.server_password = server_password
-        self.sys_log.info(f"Configured the {self.name} with {server_ip_address=}, {payload=}, {server_password=}.")
+        self.sys_log.info(
+            f"{self.name}: Configured the {self.name} with {server_ip_address=}, {payload=}, {server_password=}."
+        )
 
     def run(self):
         """Run the DataManipulationBot."""
         if self.server_ip_address and self.payload:
-            self.sys_log.info(f"Attempting to start the {self.name}")
+            self.sys_log.info(f"{self.name}: Attempting to start the {self.name}")
             super().run()
             if not self.connected:
                 self.connect()
@@ -46,4 +48,4 @@ class DataManipulationBot(DatabaseClient):
                 self.query(self.payload)
                 self.sys_log.info(f"{self.name} payload delivered: {self.payload}")
         else:
-            self.sys_log.error(f"Failed to start the {self.name} as it requires both a target_io_address and payload.")
+            self.sys_log.error(f"Failed to start the {self.name} as it requires both a target_ip_address and payload.")

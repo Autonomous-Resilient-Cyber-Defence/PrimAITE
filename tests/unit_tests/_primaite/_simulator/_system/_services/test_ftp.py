@@ -5,7 +5,7 @@ import pytest
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket
+from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
@@ -78,6 +78,7 @@ def test_ftp_client_store_file(ftp_client):
             "file_size": 24,
         },
         packet_payload_size=24,
+        status_code=FTPStatusCode.OK,
     )
 
     ftp_client_service: FTPClient = ftp_client.software_manager.software["FTPClient"]

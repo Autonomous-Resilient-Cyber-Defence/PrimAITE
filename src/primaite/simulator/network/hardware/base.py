@@ -722,7 +722,9 @@ class ARPCache:
 
         # Unmatched ARP Request
         if arp_packet.target_ip_address != from_nic.ip_address:
-            self.sys_log.info(f"Ignoring ARP request for {arp_packet.target_ip_address}")
+            self.sys_log.info(
+                f"Ignoring ARP request for {arp_packet.target_ip_address}. Current IP address is {from_nic.ip_address}"
+            )
             return
 
         # Matched ARP request

@@ -6,7 +6,6 @@ from typing import Optional
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service
 
 
@@ -58,7 +57,7 @@ class FTPServiceABC(Service, ABC):
                 file_name=file_name, folder_name=folder_name, size=file_size, real=is_real
             )
             self.sys_log.info(
-                f"Created item in {self.sys_log.hostname}: {payload.ftp_command_args['dest_folder_name']}/"
+                f"{self.name}: Created item in {self.sys_log.hostname}: {payload.ftp_command_args['dest_folder_name']}/"
                 f"{payload.ftp_command_args['dest_file_name']}"
             )
             if is_real:
@@ -77,6 +76,7 @@ class FTPServiceABC(Service, ABC):
         dest_ip_address: Optional[IPv4Address] = None,
         dest_port: Optional[Port] = None,
         session_id: Optional[str] = None,
+        is_response: bool = False,
     ) -> bool:
         """
         Sends data from the host FTP Service's machine to another FTP Service's host machine.
@@ -98,6 +98,9 @@ class FTPServiceABC(Service, ABC):
 
         :param: session_id: session ID linked to the FTP Packet. Optional.
         :type: session_id: Optional[str]
+
+        :param: is_response: is true if the data being sent is in response to a request. Default False.
+        :type: is_response: bool
         """
         # send STOR request
         payload: FTPPacket = FTPPacket(
@@ -109,13 +112,14 @@ class FTPServiceABC(Service, ABC):
                 "real_file_path": file.sim_path if file.real else None,
             },
             packet_payload_size=file.sim_size,
+            status_code=FTPStatusCode.OK if is_response else None,
         )
-        software_manager: SoftwareManager = self.software_manager
-        software_manager.send_payload_to_session_manager(
+        self.sys_log.info(f"{self.name}: Sending file {file.folder.name}/{file.name}")
+        response = self.send(
             payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
         )
 
-        if payload.status_code == FTPStatusCode.OK:
+        if response and payload.status_code == FTPStatusCode.OK:
             return True
 
         return False
@@ -149,7 +153,32 @@ class FTPServiceABC(Service, ABC):
                     dest_file_name=dest_file_name,
                     dest_folder_name=dest_folder_name,
                     session_id=session_id,
+                    is_response=True,
                 )
         except Exception as e:
             self.sys_log.error(f"Unable to retrieve file from {self.sys_log.hostname}: {e}")
             return False
+
+    def send(
+        self,
+        payload: FTPPacket,
+        session_id: Optional[str] = None,
+        dest_ip_address: Optional[IPv4Address] = None,
+        dest_port: Optional[Port] = None,
+        **kwargs,
+    ) -> bool:
+        """
+        Sends a payload to the SessionManager.
+
+        :param payload: The payload to be sent.
+        :param dest_ip_address: The ip address of the payload destination.
+        :param dest_port: The port of the payload destination.
+        :param session_id: The Session ID the payload is to originate from. Optional.
+
+        :return: True if successful, False otherwise.
+        """
+        self.sys_log.info(f"{self.name}: Sending FTP {payload.ftp_command.name} {payload.ftp_command_args}")
+
+        return super().send(
+            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id, **kwargs
+        )
