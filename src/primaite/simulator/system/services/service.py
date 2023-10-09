@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.core import Action, ActionManager
@@ -34,6 +34,10 @@ class Service(IOSoftware):
 
     operating_state: ServiceOperatingState = ServiceOperatingState.STOPPED
     "The current operating state of the Service."
+
+    visible_operating_state: ServiceOperatingState = ServiceOperatingState.STOPPED
+    "The visible operating state of the service."
+
     restart_duration: int = 5
     "How many timesteps does it take to restart this service."
     _restart_countdown: Optional[int] = None
@@ -41,6 +45,7 @@ class Service(IOSoftware):
 
     def _init_action_manager(self) -> ActionManager:
         am = super()._init_action_manager()
+        am.add_action("scan", Action(func=lambda request, context: self.scan()))
         am.add_action("stop", Action(func=lambda request, context: self.stop()))
         am.add_action("start", Action(func=lambda request, context: self.start()))
         am.add_action("pause", Action(func=lambda request, context: self.pause()))
@@ -72,44 +77,13 @@ class Service(IOSoftware):
         """
         pass
 
-    def send(
-        self,
-        payload: Any,
-        session_id: Optional[str] = None,
-        **kwargs,
-    ) -> bool:
-        """
-        Sends a payload to the SessionManager.
+    def scan(self) -> None:
+        """Update the service visible states."""
+        # update parent states
+        super().scan()
 
-        The specifics of how the payload is processed and whether a response payload
-        is generated should be implemented in subclasses.
-
-        :param: payload: The payload to send.
-        :param: session_id: The id of the session
-
-        :return: True if successful, False otherwise.
-        """
-        self.software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
-
-    def receive(
-        self,
-        payload: Any,
-        session_id: Optional[str] = None,
-        **kwargs,
-    ) -> bool:
-        """
-        Receives a payload from the SessionManager.
-
-        The specifics of how the payload is processed and whether a response payload
-        is generated should be implemented in subclasses.
-
-        :param: payload: The payload to send.
-        :param: session_id: The id of the session
-
-        :return: True if successful, False otherwise.
-        """
-
-    pass
+        # update the visible operating state
+        self.visible_operating_state = self.operating_state
 
     def stop(self) -> None:
         """Stop the service."""

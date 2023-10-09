@@ -221,7 +221,9 @@ class IOSoftware(Software):
         :param kwargs: Additional keyword arguments specific to the implementation.
         :return: True if the payload was successfully sent, False otherwise.
         """
+        self.software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id, **kwargs)
 
+    @abstractmethod
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
         Receives a payload from the SessionManager.

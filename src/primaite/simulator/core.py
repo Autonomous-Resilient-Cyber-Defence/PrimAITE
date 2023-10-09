@@ -200,6 +200,10 @@ class SimComponent(BaseModel):
         }
         return state
 
+    def scan(self) -> None:
+        """Update the visible statuses of the SimComponent."""
+        pass
+
     def apply_action(self, action: List[str], context: Dict = {}) -> None:
         """
         Apply an action to a simulation component. Action data is passed in as a 'namespaced' list of strings.
