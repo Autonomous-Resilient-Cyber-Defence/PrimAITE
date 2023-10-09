@@ -1,6 +1,6 @@
 from typing import Dict
 
-from primaite.simulator.core import Action, ActionManager, AllowAllValidator, SimComponent
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.domain.controller import DomainController
 from primaite.simulator.network.container import Network
 
@@ -21,13 +21,13 @@ class Simulation(SimComponent):
 
         super().__init__(**kwargs)
 
-    def _init_action_manager(self) -> ActionManager:
-        am = super()._init_action_manager()
-        # pass through network actions to the network objects
-        am.add_action("network", Action(func=self.network._action_manager))
-        # pass through domain actions to the domain object
-        am.add_action("domain", Action(func=self.domain._action_manager))
-        am.add_action("do_nothing", Action(func=lambda request, context: ()))
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
+        # pass through network requests to the network objects
+        am.add_request("network", RequestType(func=self.network._request_manager))
+        # pass through domain requests to the domain object
+        am.add_request("domain", RequestType(func=self.domain._request_manager))
+        am.add_request("do_nothing", RequestType(func=lambda request, context: ()))
         return am
 
     def describe_state(self) -> Dict:

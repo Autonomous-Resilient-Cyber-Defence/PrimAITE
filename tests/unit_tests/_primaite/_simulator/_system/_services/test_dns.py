@@ -3,16 +3,20 @@ from ipaddress import IPv4Address
 import pytest
 
 from primaite.simulator.network.hardware.base import Node
+from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSReply, DNSRequest
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.services.dns_client import DNSClient
-from primaite.simulator.system.services.dns_server import DNSServer
+from primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.simulator.system.services.dns.dns_server import DNSServer
 
 
 @pytest.fixture(scope="function")
 def dns_server() -> Node:
-    node = Node(hostname="dns_server")
+    node = Server(
+        hostname="dns_server", ip_address="192.168.1.10", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+    )
     node.software_manager.install(software_class=DNSServer)
     node.software_manager.software["DNSServer"].start()
     return node
@@ -20,9 +24,9 @@ def dns_server() -> Node:
 
 @pytest.fixture(scope="function")
 def dns_client() -> Node:
-    node = Node(hostname="dns_client")
-    node.software_manager.install(software_class=DNSClient)
-    node.software_manager.software["DNSClient"].start()
+    node = Computer(
+        hostname="dns_client", ip_address="192.168.1.11", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+    )
     return node
 
 

@@ -2,7 +2,7 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Optional
 
-from primaite.simulator.core import Action, ActionManager, SimComponent
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.sys_log import SysLog
@@ -85,15 +85,15 @@ class Software(SimComponent):
     folder: Optional[Folder] = None
     "The folder on the file system the Software uses."
 
-    def _init_action_manager(self) -> ActionManager:
-        am = super()._init_action_manager()
-        am.add_action(
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
+        am.add_request(
             "compromise",
-            Action(
+            RequestType(
                 func=lambda request, context: self.set_health_state(SoftwareHealthState.COMPROMISED),
             ),
         )
-        am.add_action("scan", Action(func=lambda request, context: self.scan()))
+        am.add_request("scan", RequestType(func=lambda request, context: self.scan()))
         return am
 
     @abstractmethod

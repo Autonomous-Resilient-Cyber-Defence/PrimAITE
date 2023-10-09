@@ -3,7 +3,7 @@ from typing import Dict, List, Literal
 
 import pytest
 
-from primaite.simulator.core import Action, ActionManager, AllowAllValidator, SimComponent
+from primaite.simulator.core import AllowAllValidator, RequestManager, RequestType, SimComponent
 from primaite.simulator.domain.controller import AccountGroup, GroupMembershipValidator
 
 
@@ -29,11 +29,11 @@ def test_group_action_validation() -> None:
 
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            self._action_manager = ActionManager()
+            self._request_manager = RequestManager()
 
-            self._action_manager.add_action(
+            self._request_manager.add_request(
                 "create_folder",
-                Action(
+                RequestType(
                     func=lambda request, context: self.create_folder(request[0]),
                     validator=GroupMembershipValidator([AccountGroup.LOCAL_ADMIN, AccountGroup.DOMAIN_ADMIN]),
                 ),
@@ -52,13 +52,13 @@ def test_group_action_validation() -> None:
     # check that the folder is created when a local admin tried to do it
     permitted_context = {"request_source": {"agent": "BLUE", "account": "User1", "groups": ["LOCAL_ADMIN"]}}
     my_node = Node(uuid="0000-0000-1234", name="pc")
-    my_node.apply_action(["create_folder", "memes"], context=permitted_context)
+    my_node.apply_request(["create_folder", "memes"], context=permitted_context)
     assert len(my_node.folders) == 1
     assert my_node.folders[0].name == "memes"
 
     # check that the number of folders is still 1 even after attempting to create a second one without permissions
     invalid_context = {"request_source": {"agent": "BLUE", "account": "User1", "groups": ["LOCAL_USER", "DOMAIN_USER"]}}
-    my_node.apply_action(["create_folder", "memes2"], context=invalid_context)
+    my_node.apply_request(["create_folder", "memes2"], context=invalid_context)
     assert len(my_node.folders) == 1
     assert my_node.folders[0].name == "memes"
 
@@ -79,32 +79,32 @@ def test_hierarchical_action_with_validation() -> None:
 
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            self.action_manager = ActionManager()
+            self.request_manager = RequestManager()
 
-            self.action_manager.add_action(
+            self.request_manager.add_request(
                 "turn_on",
-                Action(
+                RequestType(
                     func=lambda request, context: self.turn_on(),
                     validator=AllowAllValidator(),
                 ),
             )
-            self.action_manager.add_action(
+            self.request_manager.add_request(
                 "turn_off",
-                Action(
+                RequestType(
                     func=lambda request, context: self.turn_off(),
                     validator=AllowAllValidator(),
                 ),
             )
-            self.action_manager.add_action(
+            self.request_manager.add_request(
                 "disable",
-                Action(
+                RequestType(
                     func=lambda request, context: self.disable(),
                     validator=GroupMembershipValidator([AccountGroup.LOCAL_ADMIN, AccountGroup.DOMAIN_ADMIN]),
                 ),
             )
-            self.action_manager.add_action(
+            self.request_manager.add_request(
                 "enable",
-                Action(
+                RequestType(
                     func=lambda request, context: self.enable(),
                     validator=GroupMembershipValidator([AccountGroup.LOCAL_ADMIN, AccountGroup.DOMAIN_ADMIN]),
                 ),
@@ -135,11 +135,11 @@ def test_hierarchical_action_with_validation() -> None:
 
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
-            self.action_manager = ActionManager()
+            self.request_manager = RequestManager()
 
-            self.action_manager.add_action(
+            self.request_manager.add_request(
                 "apps",
-                Action(
+                RequestType(
                     func=lambda request, context: self.send_action_to_app(request.pop(0), request, context),
                     validator=AllowAllValidator(),
                 ),
@@ -155,7 +155,7 @@ def test_hierarchical_action_with_validation() -> None:
         def send_action_to_app(self, app_name: str, options: List[str], context: Dict):
             for app in self.apps:
                 if app_name == app.name:
-                    app.apply_action(options, context)
+                    app.apply_request(options, context)
                     break
             else:
                 msg = f"Node has no app with name {app_name}"
@@ -178,15 +178,15 @@ def test_hierarchical_action_with_validation() -> None:
     }
 
     # check that a non-admin can't disable this app
-    my_node.apply_action(["apps", "Chrome", "disable"], non_admin_context)
+    my_node.apply_request(["apps", "Chrome", "disable"], non_admin_context)
     assert my_node.apps[0].name == "Chrome"  # if failure occurs on this line, the test itself is broken
     assert my_node.apps[0].state == "off"
 
     # check that a non-admin can turn this app on
-    my_node.apply_action(["apps", "Firefox", "turn_on"], non_admin_context)
+    my_node.apply_request(["apps", "Firefox", "turn_on"], non_admin_context)
     assert my_node.apps[1].name == "Firefox"  # if failure occurs on this line, the test itself is broken
     assert my_node.apps[1].state == "on"
 
     # check that an admin can disable this app
-    my_node.apply_action(["apps", "Chrome", "disable"], admin_context)
+    my_node.apply_request(["apps", "Chrome", "disable"], admin_context)
     assert my_node.apps[0].state == "disabled"

@@ -18,3 +18,4 @@ Contents
    database_client_server
    data_manipulation_bot
    dns_client_server
+   ftp_client_server

@@ -9,9 +9,9 @@ from primaite.simulator.network.hardware.nodes.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.simulator.system.services.database_service import DatabaseService
-from primaite.simulator.system.services.dns_client import DNSClient
-from primaite.simulator.system.services.dns_server import DNSServer
+from primaite.simulator.system.services.database.database_service import DatabaseService
+from primaite.simulator.system.services.dns.dns_server import DNSServer
+from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 
 
@@ -135,9 +135,6 @@ def arcd_uc2_network() -> Network:
         dns_server=IPv4Address("192.168.1.10"),
     )
     client_1.power_on()
-    client_1.software_manager.install(DNSClient)
-    client_1_dns_client_service: DNSServer = client_1.software_manager.software["DNSClient"]  # noqa
-    client_1_dns_client_service.start()
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
     client_1.software_manager.install(DataManipulationBot)
     db_manipulation_bot: DataManipulationBot = client_1.software_manager.software["DataManipulationBot"]
@@ -152,9 +149,6 @@ def arcd_uc2_network() -> Network:
         dns_server=IPv4Address("192.168.1.10"),
     )
     client_2.power_on()
-    client_2.software_manager.install(DNSClient)
-    client_2_dns_client_service: DNSServer = client_2.software_manager.software["DNSClient"]  # noqa
-    client_2_dns_client_service.start()
     network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
 
     # Domain Controller
@@ -191,24 +185,53 @@ def arcd_uc2_network() -> Network:
     );"""
 
     user_insert_statements = [
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('John Doe', 'johndoe@example.com', 32, 'New York', 'Engineer');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Jane Smith', 'janesmith@example.com', 27, 'Los Angeles', 'Designer');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Bob Johnson', 'bobjohnson@example.com', 45, 'Chicago', 'Manager');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Alice Lee', 'alicelee@example.com', 22, 'San Francisco', 'Student');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('David Kim', 'davidkim@example.com', 38, 'Houston', 'Consultant');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Emily Chen', 'emilychen@example.com', 29, 'Seattle', 'Software Developer');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Frank Wang', 'frankwang@example.com', 55, 'New York', 'Entrepreneur');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Grace Park', 'gracepark@example.com', 31, 'Los Angeles', 'Marketing Specialist');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Henry Wu', 'henrywu@example.com', 40, 'Chicago', 'Accountant');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Isabella Kim', 'isabellakim@example.com', 26, 'San Francisco', 'Graphic Designer');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Jake Lee', 'jakelee@example.com', 33, 'Houston', 'Sales Manager');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Kelly Chen', 'kellychen@example.com', 28, 'Seattle', 'Web Developer');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Lucas Liu', 'lucasliu@example.com', 42, 'New York', 'Lawyer');",  # noqa
-        "INSERT INTO user (name, email, age, city, occupation) VALUES ('Maggie Wang', 'maggiewang@example.com', 30, 'Los Angeles', 'Data Analyst');",  # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('John Doe', 'johndoe@example.com', 32, 'New York', 'Engineer');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Jane Smith', 'janesmith@example.com', 27, 'Los Angeles', 'Designer');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Bob Johnson', 'bobjohnson@example.com', 45, 'Chicago', 'Manager');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Alice Lee', 'alicelee@example.com', 22, 'San Francisco', 'Student');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('David Kim', 'davidkim@example.com', 38, 'Houston', 'Consultant');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Emily Chen', 'emilychen@example.com', 29, 'Seattle', 'Software Developer');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Frank Wang', 'frankwang@example.com', 55, 'New York', 'Entrepreneur');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Grace Park', 'gracepark@example.com', 31, 'Los Angeles', 'Marketing Specialist');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Henry Wu', 'henrywu@example.com', 40, 'Chicago', 'Accountant');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Isabella Kim', 'isabellakim@example.com', 26, 'San Francisco', 'Graphic Designer');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Jake Lee', 'jakelee@example.com', 33, 'Houston', 'Sales Manager');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Kelly Chen', 'kellychen@example.com', 28, 'Seattle', 'Web Developer');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Lucas Liu', 'lucasliu@example.com', 42, 'New York', 'Lawyer');",
+        # noqa
+        "INSERT INTO user (name, email, age, city, occupation) "
+        "VALUES ('Maggie Wang', 'maggiewang@example.com', 30, 'Los Angeles', 'Data Analyst');",
+        # noqa
     ]
     database_server.software_manager.install(DatabaseService)
     database_service: DatabaseService = database_server.software_manager.software["DatabaseService"]  # noqa
     database_service.start()
+    database_service.configure_backup(backup_server=IPv4Address("192.168.1.16"))
     database_service._process_sql(ddl, None)  # noqa
     for insert_statement in user_insert_statements:
         database_service._process_sql(insert_statement, None)  # noqa
@@ -232,7 +255,6 @@ def arcd_uc2_network() -> Network:
 
     # register the web_server to a domain
     dns_server_service: DNSServer = domain_controller.software_manager.software["DNSServer"]  # noqa
-    dns_server_service.start()
     dns_server_service.dns_register("arcd.com", web_server.ip_address)
 
     # Backup Server
@@ -245,6 +267,8 @@ def arcd_uc2_network() -> Network:
     )
     backup_server.power_on()
     network.connect(endpoint_b=backup_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[4])
+
+    backup_server.software_manager.install(FTPServer)
 
     # Security Suite
     security_suite = Server(
@@ -270,5 +294,8 @@ def arcd_uc2_network() -> Network:
 
     # Allow DNS requests
     router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.DNS, dst_port=Port.DNS, position=1)
+
+    # Allow FTP requests
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.FTP, dst_port=Port.FTP, position=2)
 
     return network

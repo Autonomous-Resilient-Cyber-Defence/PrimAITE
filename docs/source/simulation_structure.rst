@@ -42,15 +42,15 @@ snippet demonstrates usage of the ``ActionPermissionValidator``.
 
 .. code:: python
 
-    from primaite.simulator.core import Action, ActionManager, SimComponent
+    from primaite.simulator.core import Action, RequestManager, SimComponent
     from primaite.simulator.domain.controller import AccountGroup, GroupMembershipValidator
 
     class Smartphone(SimComponent):
         name: str
         apps = []
 
-        def _init_action_manager(self) -> ActionManager:
-            am = super()._init_action_manager()
+        def _init_request_manager(self) -> RequestManager:
+            am = super()._init_request_manager()
             am.add_action(
                 "reset_factory_settings",
                 Action(

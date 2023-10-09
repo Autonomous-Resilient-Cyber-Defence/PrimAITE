@@ -6,7 +6,7 @@ from networkx import MultiGraph
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
-from primaite.simulator.core import Action, ActionManager, SimComponent
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.hardware.base import Link, NIC, Node, SwitchPort
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import Router
@@ -37,21 +37,18 @@ class Network(SimComponent):
         Initialise the network.
 
         Constructs the network and sets up its initial state including
-        the action manager and an empty MultiGraph for topology representation.
+        the request manager and an empty MultiGraph for topology representation.
         """
         super().__init__(**kwargs)
 
         self._nx_graph = MultiGraph()
 
-    def _init_action_manager(self) -> ActionManager:
-        am = super()._init_action_manager()
-        self._node_action_manager = ActionManager()
-        am.add_action(
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
+        self._node_request_manager = RequestManager()
+        am.add_request(
             "node",
-            Action(
-                func=self._node_action_manager
-                # func=lambda request, context: self.nodes[request.pop(0)].apply_action(request, context),
-            ),
+            RequestType(func=self._node_request_manager),
         )
         return am
 
@@ -185,7 +182,7 @@ class Network(SimComponent):
         node.parent = self
         self._nx_graph.add_node(node.hostname)
         _LOGGER.info(f"Added node {node.uuid} to Network {self.uuid}")
-        self._node_action_manager.add_action(name=node.uuid, action=Action(func=node._action_manager))
+        self._node_request_manager.add_request(name=node.uuid, request_type=RequestType(func=node._request_manager))
 
     def get_node_by_hostname(self, hostname: str) -> Optional[Node]:
         """
@@ -219,9 +216,11 @@ class Network(SimComponent):
                 break
         node.parent = None
         _LOGGER.info(f"Removed node {node.uuid} from network {self.uuid}")
-        self._node_action_manager.remove_action(name=node.uuid)
+        self._node_request_manager.remove_request(name=node.uuid)
 
-    def connect(self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs) -> Optional[Link]:
+    def connect(
+        self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs
+    ) -> Optional[Link]:
         """
         Connect two endpoints on the network by creating a link between their NICs/SwitchPorts.
 
