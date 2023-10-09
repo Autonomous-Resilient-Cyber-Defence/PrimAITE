@@ -332,7 +332,7 @@ class Folder(FileSystemItemABC):
     is_quarantined: bool = False
     "Flag that marks the folder as quarantined if true."
 
-    def _init_action_manager(sekf) -> ActionManager:
+    def _init_action_manager(self) -> ActionManager:
         am = super()._init_action_manager()
 
         am.add_action("scan", Action(func=lambda request, context: ...))  # TODO implement action

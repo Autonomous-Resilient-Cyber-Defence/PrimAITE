@@ -5,7 +5,7 @@ from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.hardware.nodes.switch import Switch
 from primaite.simulator.sim_container import Simulation
-from primaite.simulator.system.services.database_service import DatabaseService
+from primaite.simulator.system.services.database.database_service import DatabaseService
 
 
 def test_passing_actions_down(monkeypatch) -> None:

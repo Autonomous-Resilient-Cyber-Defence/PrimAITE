@@ -48,10 +48,7 @@ class Network(SimComponent):
         self._node_action_manager = ActionManager()
         am.add_action(
             "node",
-            Action(
-                func=self._node_action_manager
-                # func=lambda request, context: self.nodes[request.pop(0)].apply_action(request, context),
-            ),
+            Action(func=self._node_action_manager),
         )
         return am
 
