@@ -596,8 +596,6 @@ class Router(Node):
         self.arp.nics = self.nics
         self.icmp.arp = self.arp
 
-        self._install_system_software()
-
     def _get_port_of_nic(self, target_nic: NIC) -> Optional[int]:
         """
         Retrieve the port number for a given NIC.

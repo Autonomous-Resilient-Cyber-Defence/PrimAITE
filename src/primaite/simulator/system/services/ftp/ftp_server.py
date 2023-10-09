@@ -80,7 +80,11 @@ class FTPServer(FTPServiceABC):
             return False
 
         """
-        Usually
+        Ignore ftp payload if status code is defined.
+
+        This means that an FTP server has already handled the packet and
+        prevents an FTP request loop - FTP client and servers can exist on
+        the same node.
         """
         if payload.status_code is not None:
             return False

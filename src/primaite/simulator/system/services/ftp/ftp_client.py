@@ -264,6 +264,12 @@ class FTPClient(FTPServiceABC):
             self.sys_log.error(f"{payload} is not an FTP packet")
             return False
 
+        """
+        Ignore ftp payload if status code is None.
+
+        This helps prevent an FTP request loop - FTP client and servers can exist on
+        the same node.
+        """
         if payload.status_code is None:
             return False
 

@@ -19,7 +19,7 @@ class WebBrowser(Application):
     domain_name_ip_address: Optional[IPv4Address] = None
     "The IP address of the domain name for the webpage."
 
-    latest_response: HttpResponsePacket = None
+    latest_response: Optional[HttpResponsePacket] = None
     """Keeps track of the latest HTTP response."""
 
     def __init__(self, **kwargs):
@@ -38,7 +38,7 @@ class WebBrowser(Application):
 
         :return: A dictionary capturing the current state of the WebBrowser and its child objects.
         """
-        pass
+        return super().describe_state()
 
     def reset_component_for_episode(self, episode: int):
         """

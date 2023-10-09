@@ -11,6 +11,7 @@ from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_server import DNSServer
+from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.services.web_server.web_server import WebServer
 
@@ -268,6 +269,7 @@ def arcd_uc2_network() -> Network:
         dns_server=IPv4Address("192.168.1.10"),
     )
     backup_server.power_on()
+    backup_server.software_manager.install(FTPServer)
     network.connect(endpoint_b=backup_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[4])
 
     # Security Suite

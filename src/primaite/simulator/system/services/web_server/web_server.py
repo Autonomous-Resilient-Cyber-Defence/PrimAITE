@@ -35,7 +35,7 @@ class WebServer(Service):
         This is usually HTML, CSS, JS or PHP files requested by browsers to display the webpage.
         """
         # index HTML main file
-        self.file_system.create_file(file_name="index.html", folder_name="primaite", real=True)
+        self.file_system.create_file(file_name="index.html", folder_name="primaite")
 
     def _process_http_request(self, payload: HttpRequestPacket, session_id: Optional[str] = None) -> bool:
         """

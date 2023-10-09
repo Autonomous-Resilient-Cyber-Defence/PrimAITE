@@ -76,6 +76,7 @@ class FTPServiceABC(Service, ABC):
         dest_ip_address: Optional[IPv4Address] = None,
         dest_port: Optional[Port] = None,
         session_id: Optional[str] = None,
+        is_response: bool = False,
     ) -> bool:
         """
         Sends data from the host FTP Service's machine to another FTP Service's host machine.
@@ -97,6 +98,9 @@ class FTPServiceABC(Service, ABC):
 
         :param: session_id: session ID linked to the FTP Packet. Optional.
         :type: session_id: Optional[str]
+
+        :param: is_response: is true if the data being sent is in response to a request. Default False.
+        :type: is_response: bool
         """
         # send STOR request
         payload: FTPPacket = FTPPacket(
@@ -108,6 +112,7 @@ class FTPServiceABC(Service, ABC):
                 "real_file_path": file.sim_path if file.real else None,
             },
             packet_payload_size=file.sim_size,
+            status_code=FTPStatusCode.OK if is_response else None,
         )
         self.sys_log.info(f"{self.name}: Sending file {file.folder.name}/{file.name}")
         response = self.send(
@@ -148,6 +153,7 @@ class FTPServiceABC(Service, ABC):
                     dest_file_name=dest_file_name,
                     dest_folder_name=dest_folder_name,
                     session_id=session_id,
+                    is_response=True,
                 )
         except Exception as e:
             self.sys_log.error(f"Unable to retrieve file from {self.sys_log.hostname}: {e}")
