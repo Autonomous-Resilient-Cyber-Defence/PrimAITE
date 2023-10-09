@@ -27,6 +27,7 @@ class DNSClient(Service):
         # TCP for now
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
+        self.start()
 
     def describe_state(self) -> Dict:
         """
