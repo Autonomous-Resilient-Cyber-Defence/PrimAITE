@@ -23,7 +23,7 @@ class AbstractAgent(ABC):
         observation_space: Optional[ObservationSpace],
         reward_function: Optional[RewardFunction],
     ) -> None:
-        self.agent_name:str = agent_name or "unnamed_agent"
+        self.agent_name: str = agent_name or "unnamed_agent"
         self.action_space: Optional[ActionManager] = action_space
         self.observation_space: Optional[ObservationSpace] = observation_space
         self.reward_function: Optional[RewardFunction] = reward_function
@@ -46,9 +46,9 @@ class AbstractAgent(ABC):
     def get_action(self, obs: ObsType, reward: float = None) -> Tuple[str, Dict]:
         # in RL agent, this method will send CAOS observation to GATE RL agent, then receive a int 0-39,
         # then use a bespoke conversion to take 1-40 int back into CAOS action
-        return ("DO_NOTHING", {} )
+        return ("DO_NOTHING", {})
 
-    def format_request(self, action:Tuple[str,Dict], options:Dict[str, int]) -> List[str]:
+    def format_request(self, action: Tuple[str, Dict], options: Dict[str, int]) -> List[str]:
         # this will take something like APPLICATION.EXECUTE and add things like target_ip_address in simulator.
         # therefore the execution definition needs to be a mapping from CAOS into SIMULATOR
         """Format action into format expected by the simulator, and apply execution definition if applicable."""

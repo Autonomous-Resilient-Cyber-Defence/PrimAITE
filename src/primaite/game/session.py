@@ -10,6 +10,7 @@ from typing import Dict, List
 
 from pydantic import BaseModel
 
+from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent, RandomAgent
 from primaite.game.agent.observations import (
@@ -37,13 +38,11 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.simulator.system.services.database_service import DatabaseService
-from primaite.simulator.system.services.dns_client import DNSClient
-from primaite.simulator.system.services.dns_server import DNSServer
+from primaite.simulator.system.services.database.database_service import DatabaseService
+from primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.services.service import Service
-
-from primaite import getLogger
 
 _LOGGER = getLogger(__name__)
 
@@ -91,7 +90,7 @@ class PrimaiteSession:
             agent_action, action_options = agent.get_action(agent_obs, agent_reward)
             # 9. CAOS action is converted into request (extra information might be needed to enrich
             # the request, this is what the execution definition is there for)
-            _LOGGER.debug(f"Formatting agent action {agent_action}") # maybe too many debug log statements
+            _LOGGER.debug(f"Formatting agent action {agent_action}")  # maybe too many debug log statements
             agent_request = agent.format_request(agent_action, action_options)
 
             # 10. primaite session receives the action from the agents and asks the simulation to apply each
@@ -106,8 +105,8 @@ class PrimaiteSession:
     def from_config(cls, cfg: dict) -> "PrimaiteSession":
         sess = cls()
         sess.options = PrimaiteSessionOptions(
-            ports = cfg['game_config']['ports'],
-            protocols = cfg['game_config']['protocols'],
+            ports=cfg["game_config"]["ports"],
+            protocols=cfg["game_config"]["protocols"],
         )
         sim = sess.simulation
         net = sim.network
@@ -230,7 +229,7 @@ class PrimaiteSession:
             reward_function_cfg = agent_cfg["reward_function"]
 
             # CREATE OBSERVATION SPACE
-            obs_space=ObservationSpace.from_config(observation_space_cfg, sess)
+            obs_space = ObservationSpace.from_config(observation_space_cfg, sess)
 
             """
                 # if observation_space_cfg is None:
@@ -331,23 +330,23 @@ class PrimaiteSession:
             """
 
             # CREATE ACTION SPACE
-            action_space_cfg['options']['node_uuids'] = []
+            action_space_cfg["options"]["node_uuids"] = []
             # if a list of nodes is defined, convert them from node references to node UUIDs
-            for action_node_option in action_space_cfg.get('options',{}).pop('nodes', {}):
-                if 'node_ref' in action_node_option:
-                    node_uuid = sess.ref_map_nodes[action_node_option['node_ref']]
-                    action_space_cfg['options']['node_uuids'].append(node_uuid)
+            for action_node_option in action_space_cfg.get("options", {}).pop("nodes", {}):
+                if "node_ref" in action_node_option:
+                    node_uuid = sess.ref_map_nodes[action_node_option["node_ref"]]
+                    action_space_cfg["options"]["node_uuids"].append(node_uuid)
             # Each action space can potentially have a different list of nodes that it can apply to. Therefore,
             # we will pass node_uuids as a part of the action space config.
             # However, it's not possible to specify the node uuids directly in the config, as they are generated
             # dynamically, so we have to translate node references to uuids before passing this config on.
 
-            if 'action_list' in action_space_cfg:
-                for action_config in action_space_cfg['action_list']:
-                    if 'options' in action_config:
-                        if 'target_router_ref' in action_config['options']:
-                            _target = action_config['options']['target_router_ref']
-                            action_config['options']['target_router_uuid'] = sess.ref_map_nodes[_target]
+            if "action_list" in action_space_cfg:
+                for action_config in action_space_cfg["action_list"]:
+                    if "options" in action_config:
+                        if "target_router_ref" in action_config["options"]:
+                            _target = action_config["options"]["target_router_ref"]
+                            action_config["options"]["target_router_uuid"] = sess.ref_map_nodes[_target]
 
             action_space = ActionManager.from_config(sess, action_space_cfg)
 
@@ -357,16 +356,30 @@ class PrimaiteSession:
             # CREATE AGENT
             if agent_type == "GreenWebBrowsingAgent":
                 # TODO: implement non-random agents and fix this parsing
-                new_agent = RandomAgent(agent_name=agent_cfg['ref'], action_space=action_space, observation_space=obs_space, reward_function=rew_function)
+                new_agent = RandomAgent(
+                    agent_name=agent_cfg["ref"],
+                    action_space=action_space,
+                    observation_space=obs_space,
+                    reward_function=rew_function,
+                )
                 sess.agents.append(new_agent)
             elif agent_type == "GATERLAgent":
-                new_agent = RandomAgent(agent_name=agent_cfg['ref'], action_space=action_space, observation_space=obs_space, reward_function=rew_function)
+                new_agent = RandomAgent(
+                    agent_name=agent_cfg["ref"],
+                    action_space=action_space,
+                    observation_space=obs_space,
+                    reward_function=rew_function,
+                )
                 sess.agents.append(new_agent)
             elif agent_type == "RedDatabaseCorruptingAgent":
-                new_agent = RandomAgent(agent_name=agent_cfg['ref'], action_space=action_space, observation_space=obs_space, reward_function=rew_function)
+                new_agent = RandomAgent(
+                    agent_name=agent_cfg["ref"],
+                    action_space=action_space,
+                    observation_space=obs_space,
+                    reward_function=rew_function,
+                )
                 sess.agents.append(new_agent)
             else:
                 print("agent type not found")
-
 
         return sess

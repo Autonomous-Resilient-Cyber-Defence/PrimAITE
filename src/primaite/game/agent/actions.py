@@ -4,8 +4,9 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from gym import spaces
 
-from primaite.simulator.sim_container import Simulation
 from primaite import getLogger
+from primaite.simulator.sim_container import Simulation
+
 _LOGGER = getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -90,56 +91,56 @@ class NodeServiceAbstractAction(AbstractAction):
 
 
 class NodeServiceScanAction(NodeServiceAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_services:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
         self.verb = "scan"
 
 
 class NodeServiceStopAction(NodeServiceAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_services:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
         self.verb = "stop"
 
 
 class NodeServiceStartAction(NodeServiceAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_services:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
         self.verb = "start"
 
 
 class NodeServicePauseAction(NodeServiceAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_services:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
         self.verb = "pause"
 
 
 class NodeServiceResumeAction(NodeServiceAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_services:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
         self.verb = "resume"
 
 
 class NodeServiceRestartAction(NodeServiceAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_services:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
         self.verb = "restart"
 
 
 class NodeServiceDisableAction(NodeServiceAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_services:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
         self.verb = "disable"
 
 
 class NodeServiceEnableAction(NodeServiceAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_services:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
         self.verb = "enable"
 
 
 class NodeFolderAbstractAction(AbstractAction):
     @abstractmethod
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_folders:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes, "folder_id": num_folders}
         self.verb: str
@@ -153,25 +154,25 @@ class NodeFolderAbstractAction(AbstractAction):
 
 
 class NodeFolderScanAction(NodeFolderAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_folders:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
         self.verb: str = "scan"
 
 
 class NodeFolderCheckhashAction(NodeFolderAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_folders:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
         self.verb: str = "checkhash"
 
 
 class NodeFolderRepairAction(NodeFolderAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_folders:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
         self.verb: str = "repair"
 
 
 class NodeFolderRestoreAction(NodeFolderAbstractAction):
-    def __init__(self, manager: "ActionManager", num_nodes:int, num_folders:int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
         self.verb: str = "restore"
 
@@ -293,7 +294,7 @@ class NetworkACLAddRuleAction(AbstractAction):
     ) -> List[str]:
         if permission == 0:
             permission_str = "UNUSED"
-            return ["do_nothing"] # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
+            return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
         elif permission == 1:
             permission_str = "ALLOW"
         elif permission == 2:
@@ -302,30 +303,30 @@ class NetworkACLAddRuleAction(AbstractAction):
             _LOGGER.warn(f"{self.__class__} received permission {permission}, expected 0 or 1.")
 
         if protocol_id == 0:
-            return ["do_nothing"] # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
+            return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
 
         if protocol_id == 1:
             protocol = "ALL"
         else:
-            protocol = self.manager.get_internet_protocol_by_idx(protocol_id-2)
+            protocol = self.manager.get_internet_protocol_by_idx(protocol_id - 2)
             # subtract 2 to account for UNUSED=0 and ALL=1.
 
-        if source_ip_id in [0,1]:
+        if source_ip_id in [0, 1]:
             src_ip = "ALL"
-            return ["do_nothing"] # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
+            return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
         else:
-            src_ip = self.manager.get_ip_address_by_idx(source_ip_id-2)
+            src_ip = self.manager.get_ip_address_by_idx(source_ip_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
         if source_port_id == 1:
             src_port = "ALL"
         else:
-            src_port = self.manager.get_port_by_idx(source_port_id-2)
+            src_port = self.manager.get_port_by_idx(source_port_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
-        if dest_ip_id in (0,1):
+        if dest_ip_id in (0, 1):
             dst_ip = "ALL"
-            return ["do_nothing"] # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
+            return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
         else:
             dst_ip = self.manager.get_ip_address_by_idx(dest_ip_id)
             # subtract 2 to account for UNUSED=0, and ALL=1
@@ -393,6 +394,7 @@ class NetworkNICDisableAction(NetworkNICAbstractAction):
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, max_nics_per_node=max_nics_per_node, **kwargs)
         self.verb = "disable"
+
 
 # class NetworkNICDisableAction(AbstractAction):
 #     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
@@ -495,7 +497,7 @@ class ActionManager:
             "num_protocols": len(self.protocols),
             "num_ports": len(self.protocols),
             "num_ips": len(self.ip_address_list),
-            "max_acl_rules":max_acl_rules,
+            "max_acl_rules": max_acl_rules,
             "max_nics_per_node": max_nics_per_node,
         }
         self.actions: Dict[str, AbstractAction] = {}
@@ -507,8 +509,8 @@ class ActionManager:
             #     option_2: value2
             # where `type` decides which AbstractAction subclass should be used
             # and `options` is an optional dict of options to pass to the init method of the action class
-            act_type = act_spec.get('type')
-            act_options = act_spec.get('options', {})
+            act_type = act_spec.get("type")
+            act_options = act_spec.get("options", {})
             self.actions[act_type] = self.__act_class_identifiers[act_type](self, **global_action_args, **act_options)
 
         self.action_map: Dict[int, Tuple[str, Dict]] = {}
@@ -555,13 +557,12 @@ class ActionManager:
             param_combinations = list(itertools.product(*possibilities))
             all_action_possibilities.extend(
                 [
-                (
-                    act_name, {param_names[i]:param_combinations[j][i] for i in range(len(param_names))}
-                ) for j in range(len(param_combinations))]
-                )
+                    (act_name, {param_names[i]: param_combinations[j][i] for i in range(len(param_names))})
+                    for j in range(len(param_combinations))
+                ]
+            )
 
-        return {i:p for i,p in enumerate(all_action_possibilities)}
-
+        return {i: p for i, p in enumerate(all_action_possibilities)}
 
     def get_action(self, action: int) -> Tuple[str, Dict]:
         """Produce action in CAOS format"""
@@ -627,7 +628,7 @@ class ActionManager:
             session=session,
             actions=cfg["action_list"],
             # node_uuids=cfg["options"]["node_uuids"],
-            **cfg['options'],
+            **cfg["options"],
             protocols=session.options.protocols,
             ports=session.options.ports,
             ip_address_list=None,
