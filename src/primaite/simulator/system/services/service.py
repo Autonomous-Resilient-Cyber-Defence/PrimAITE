@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType
@@ -71,45 +71,6 @@ class Service(IOSoftware):
         stateful properties or statistics, and clearing any message queues.
         """
         pass
-
-    def send(
-        self,
-        payload: Any,
-        session_id: Optional[str] = None,
-        **kwargs,
-    ) -> bool:
-        """
-        Sends a payload to the SessionManager.
-
-        The specifics of how the payload is processed and whether a response payload
-        is generated should be implemented in subclasses.
-
-        :param: payload: The payload to send.
-        :param: session_id: The id of the session
-
-        :return: True if successful, False otherwise.
-        """
-        self.software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
-
-    def receive(
-        self,
-        payload: Any,
-        session_id: Optional[str] = None,
-        **kwargs,
-    ) -> bool:
-        """
-        Receives a payload from the SessionManager.
-
-        The specifics of how the payload is processed and whether a response payload
-        is generated should be implemented in subclasses.
-
-        :param: payload: The payload to send.
-        :param: session_id: The id of the session
-
-        :return: True if successful, False otherwise.
-        """
-
-    pass
 
     def stop(self) -> None:
         """Stop the service."""

@@ -110,7 +110,7 @@ class SoftwareManager:
         dest_ip_address: Optional[IPv4Address] = None,
         dest_port: Optional[Port] = None,
         session_id: Optional[str] = None,
-    ):
+    ) -> bool:
         """
         Send a payload to the SessionManager.
 
@@ -119,7 +119,7 @@ class SoftwareManager:
         :param dest_port: The port of the payload destination.
         :param session_id: The Session ID the payload is to originate from. Optional.
         """
-        self.session_manager.receive_payload_from_software_manager(
+        return self.session_manager.receive_payload_from_software_manager(
             payload=payload, dst_ip_address=dest_ip_address, dst_port=dest_port, session_id=session_id
         )
 

@@ -39,8 +39,11 @@ class FTPClient(FTPServiceABC):
         """
         # if client service is down, return error
         if self.operating_state != ServiceOperatingState.RUNNING:
+            self.sys_log.error("FTP Client is not running")
             payload.status_code = FTPStatusCode.ERROR
             return payload
+
+        self.sys_log.info(f"{self.name}: Received FTP {payload.ftp_command.name} {payload.ftp_command_args}")
 
         # process client specific commands, otherwise call super
         return super()._process_ftp_command(payload=payload, session_id=session_id, **kwargs)
@@ -49,6 +52,7 @@ class FTPClient(FTPServiceABC):
         self,
         dest_ip_address: Optional[IPv4Address] = None,
         dest_port: Optional[Port] = Port.FTP,
+        session_id: Optional[str] = None,
         is_reattempt: Optional[bool] = False,
     ) -> bool:
         """
@@ -72,20 +76,30 @@ class FTPClient(FTPServiceABC):
             ftp_command=FTPCommand.PORT,
             ftp_command_args=Port.FTP,
         )
-        software_manager: SoftwareManager = self.software_manager
-        software_manager.send_payload_to_session_manager(
-            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port
-        )
 
-        if payload.status_code == FTPStatusCode.OK:
-            return True
-        else:
-            if is_reattempt:
-                # reattempt failed
-                return False
+        if self.send(payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id):
+            if payload.status_code == FTPStatusCode.OK:
+                self.sys_log.info(
+                    f"{self.name}: Successfully connected to FTP Server "
+                    f"{dest_ip_address} via port {payload.ftp_command_args.value}"
+                )
+                return True
             else:
-                # try again
-                self._connect_to_server(dest_ip_address=dest_ip_address, dest_port=dest_port, is_reattempt=True)
+                if is_reattempt:
+                    # reattempt failed
+                    self.sys_log.info(
+                        f"{self.name}: Unable to connect to FTP Server "
+                        f"{dest_ip_address} via port {payload.ftp_command_args.value}"
+                    )
+                    return False
+                else:
+                    # try again
+                    self._connect_to_server(
+                        dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id, is_reattempt=True
+                    )
+        else:
+            self.sys_log.error(f"{self.name}: Unable to send FTPPacket")
+            return False
 
     def _disconnect_from_server(
         self, dest_ip_address: Optional[IPv4Address] = None, dest_port: Optional[Port] = Port.FTP
@@ -119,6 +133,7 @@ class FTPClient(FTPServiceABC):
         dest_folder_name: str,
         dest_file_name: str,
         dest_port: Optional[Port] = Port.FTP,
+        session_id: Optional[str] = None,
         real_file_path: Optional[str] = None,
     ) -> bool:
         """
@@ -144,6 +159,9 @@ class FTPClient(FTPServiceABC):
 
         :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port.FTP.
         :type: dest_port: Optional[Port]
+
+        :param: session_id: The id of the session
+        :type: session_id: Optional[str]
         """
         # check if the file to transfer exists on the client
         file_to_transfer: File = self.file_system.get_file(folder_name=src_folder_name, file_name=src_file_name)
@@ -152,10 +170,7 @@ class FTPClient(FTPServiceABC):
             return False
 
         # check if FTP is currently connected to IP
-        self.connected = self._connect_to_server(
-            dest_ip_address=dest_ip_address,
-            dest_port=dest_port,
-        )
+        self.connected = self._connect_to_server(dest_ip_address=dest_ip_address, dest_port=dest_port)
 
         if not self.connected:
             return False
@@ -206,10 +221,7 @@ class FTPClient(FTPServiceABC):
         :type: dest_port: Optional[Port]
         """
         # check if FTP is currently connected to IP
-        self.connected = self._connect_to_server(
-            dest_ip_address=dest_ip_address,
-            dest_port=dest_port,
-        )
+        self.connected = self._connect_to_server(dest_ip_address=dest_ip_address, dest_port=dest_port)
 
         if not self.connected:
             return False
@@ -232,10 +244,10 @@ class FTPClient(FTPServiceABC):
 
             # the payload should have ok status code
             if payload.status_code == FTPStatusCode.OK:
-                self.sys_log.info(f"File {src_folder_name}/{src_file_name} found in FTP server.")
+                self.sys_log.info(f"{self.name}: File {src_folder_name}/{src_file_name} found in FTP server.")
                 return True
             else:
-                self.sys_log.error(f"File {src_folder_name}/{src_file_name} does not exist in FTP server")
+                self.sys_log.error(f"{self.name}: File {src_folder_name}/{src_file_name} does not exist in FTP server")
                 return False
 
     def receive(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> bool:
@@ -250,6 +262,15 @@ class FTPClient(FTPServiceABC):
         """
         if not isinstance(payload, FTPPacket):
             self.sys_log.error(f"{payload} is not an FTP packet")
+            return False
+
+        """
+        Ignore ftp payload if status code is None.
+
+        This helps prevent an FTP request loop - FTP client and servers can exist on
+        the same node.
+        """
+        if payload.status_code is None:
             return False
 
         self._process_ftp_command(payload=payload, session_id=session_id)

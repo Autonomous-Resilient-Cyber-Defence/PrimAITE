@@ -25,7 +25,11 @@ def dns_server() -> Node:
 @pytest.fixture(scope="function")
 def dns_client() -> Node:
     node = Computer(
-        hostname="dns_client", ip_address="192.168.1.11", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+        hostname="dns_client",
+        ip_address="192.168.1.11",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        dns_server=IPv4Address("192.168.1.10"),
     )
     return node
 
