@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Dict, Final, List, Literal, Tuple
 
-from primaite.simulator.core import Action, ActionManager, ActionPermissionValidator, SimComponent
+from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType, SimComponent
 from primaite.simulator.domain.account import Account, AccountType
 
 
@@ -43,10 +43,10 @@ class AccountGroup(Enum):
     "For full access"
 
 
-class GroupMembershipValidator(ActionPermissionValidator):
+class GroupMembershipValidator(RequestPermissionValidator):
     """Permit actions based on group membership."""
 
-    allowed_groups:List[AccountGroup]
+    allowed_groups: List[AccountGroup]
 
     def __call__(self, request: List[str], context: Dict) -> bool:
         """Permit the action if the request comes from an account which belongs to the right group."""
@@ -79,14 +79,14 @@ class DomainController(SimComponent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def _init_action_manager(self) -> ActionManager:
-        am = super()._init_action_manager()
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
         # Action 'account' matches requests like:
         # ['account', '<account-uuid>', *account_action]
-        am.add_action(
+        am.add_request(
             "account",
-            Action(
-                func=lambda request, context: self.accounts[request.pop(0)].apply_action(request, context),
+            RequestType(
+                func=lambda request, context: self.accounts[request.pop(0)].apply_request(request, context),
                 validator=GroupMembershipValidator(allowed_groups=[AccountGroup.DOMAIN_ADMIN]),
             ),
         )

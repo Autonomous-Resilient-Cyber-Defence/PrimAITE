@@ -12,7 +12,7 @@ from prettytable import MARKDOWN, PrettyTable
 from primaite import getLogger
 from primaite.exceptions import NetworkError
 from primaite.simulator import SIM_OUTPUT
-from primaite.simulator.core import Action, ActionManager, SimComponent
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
@@ -144,11 +144,11 @@ class NIC(SimComponent):
         )
         return state
 
-    def _init_action_manager(self) -> ActionManager:
-        am = super()._init_action_manager()
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
 
-        am.add_action("enable", Action(func=lambda request, context: self.enable()))
-        am.add_action("disable", Action(func=lambda request, context: self.disable()))
+        am.add_request("enable", RequestType(func=lambda request, context: self.enable()))
+        am.add_request("disable", RequestType(func=lambda request, context: self.disable()))
 
         return am
 
@@ -946,31 +946,31 @@ class Node(SimComponent):
         self.session_manager.software_manager = self.software_manager
         self._install_system_software()
 
-    def _init_action_manager(self) -> ActionManager:
+    def _init_request_manager(self) -> RequestManager:
         # TODO: I see that this code is really confusing and hard to read right now... I think some of these things will
         # need a better name and better documentation.
-        am = super()._init_action_manager()
-        # since there are potentially many services, create an action manager that can map service name
-        self._service_action_manager = ActionManager()
-        am.add_action("service", Action(func=self._service_action_manager))
-        self._nic_action_manager = ActionManager()
-        am.add_action("nic", Action(func=self._nic_action_manager))
+        am = super()._init_request_manager()
+        # since there are potentially many services, create an request manager that can map service name
+        self._service_request_manager = RequestManager()
+        am.add_request("service", RequestType(func=self._service_request_manager))
+        self._nic_request_manager = RequestManager()
+        am.add_request("nic", RequestType(func=self._nic_request_manager))
 
-        am.add_action("file_system", Action(func=self.file_system._action_manager))
+        am.add_request("file_system", RequestType(func=self.file_system._request_manager))
 
         # currently we don't have any applications nor processes, so these will be empty
-        self._process_action_manager = ActionManager()
-        am.add_action("process", Action(func=self._process_action_manager))
-        self._application_action_manager = ActionManager()
-        am.add_action("application", Action(func=self._application_action_manager))
+        self._process_request_manager = RequestManager()
+        am.add_request("process", RequestType(func=self._process_request_manager))
+        self._application_request_manager = RequestManager()
+        am.add_request("application", RequestType(func=self._application_request_manager))
 
-        am.add_action("scan", Action(func=lambda request, context: ...))  # TODO implement OS scan
+        am.add_request("scan", RequestType(func=lambda request, context: ...))  # TODO implement OS scan
 
-        am.add_action("shutdown", Action(func=lambda request, context: self.power_off()))
-        am.add_action("startup", Action(func=lambda request, context: self.power_on()))
-        am.add_action("reset", Action(func=lambda request, context: ...))  # TODO implement node reset
-        am.add_action("logon", Action(func=lambda request, context: ...))  # TODO implement logon action
-        am.add_action("logoff", Action(func=lambda request, context: ...))  # TODO implement logoff action
+        am.add_request("shutdown", RequestType(func=lambda request, context: self.power_off()))
+        am.add_request("startup", RequestType(func=lambda request, context: self.power_on()))
+        am.add_request("reset", RequestType(func=lambda request, context: ...))  # TODO implement node reset
+        am.add_request("logon", RequestType(func=lambda request, context: ...))  # TODO implement logon request
+        am.add_request("logoff", RequestType(func=lambda request, context: ...))  # TODO implement logoff request
 
         return am
 
@@ -1071,7 +1071,7 @@ class Node(SimComponent):
             self.sys_log.info(f"Connected NIC {nic}")
             if self.operating_state == NodeOperatingState.ON:
                 nic.enable()
-            self._nic_action_manager.add_action(nic.uuid, Action(func=nic._action_manager))
+            self._nic_request_manager.add_request(nic.uuid, RequestType(func=nic._request_manager))
         else:
             msg = f"Cannot connect NIC {nic} as it is already connected"
             self.sys_log.logger.error(msg)
@@ -1096,7 +1096,7 @@ class Node(SimComponent):
             nic.parent = None
             nic.disable()
             self.sys_log.info(f"Disconnected NIC {nic}")
-            self._nic_action_manager.remove_action(nic.uuid)
+            self._nic_request_manager.remove_request(nic.uuid)
         else:
             msg = f"Cannot disconnect NIC {nic} as it is not connected"
             self.sys_log.logger.error(msg)
@@ -1194,7 +1194,7 @@ class Node(SimComponent):
         service.install()  # Perform any additional setup, such as creating files for this service on the node.
         self.sys_log.info(f"Installed service {service.name}")
         _LOGGER.info(f"Added service {service.uuid} to node {self.uuid}")
-        self._service_action_manager.add_action(service.uuid, Action(func=service._action_manager))
+        self._service_request_manager.add_request(service.uuid, RequestType(func=service._request_manager))
 
     def uninstall_service(self, service: Service) -> None:
         """Uninstall and completely remove service from this node.
@@ -1210,7 +1210,7 @@ class Node(SimComponent):
         service.parent = None
         self.sys_log.info(f"Uninstalled service {service.name}")
         _LOGGER.info(f"Removed service {service.uuid} from node {self.uuid}")
-        self._service_action_manager.remove_action(service.uuid)
+        self._service_request_manager.remove_request(service.uuid)
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Service):

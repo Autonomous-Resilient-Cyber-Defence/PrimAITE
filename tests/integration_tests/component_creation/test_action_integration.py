@@ -1,6 +1,6 @@
 import pytest
 
-from primaite.simulator.core import Action
+from primaite.simulator.core import RequestType
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.hardware.nodes.switch import Switch
@@ -32,7 +32,7 @@ def test_passing_actions_down(monkeypatch) -> None:
     sim.network.connect(s1.switch_ports[3], srv.ethernet_port[1])
 
     # call this method to make sure no errors occur.
-    sim._action_manager.get_action_tree()
+    sim._request_manager.get_request_types_recursively()
 
     # patch the action to do something which we can check the result of.
     action_invoked = False
@@ -42,13 +42,13 @@ def test_passing_actions_down(monkeypatch) -> None:
         action_invoked = True
 
     monkeypatch.setitem(
-        downloads_folder._action_manager.actions, "repair", Action(func=lambda request, context: succeed())
+        downloads_folder._request_manager.request_types, "repair", RequestType(func=lambda request, context: succeed())
     )
 
     assert not action_invoked
 
     # call the patched method
-    sim.apply_action(
+    sim.apply_request(
         ["network", "node", pc1.uuid, "file_system", "folder", pc1.file_system.get_folder("downloads").uuid, "repair"]
     )
 
