@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Hashable, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, Hashable, List, Optional, TYPE_CHECKING, Sequence, Tuple
 
 from gym import spaces
 from pydantic import BaseModel
@@ -15,7 +15,7 @@ the thing requested in the state could equal None. This NOT_PRESENT_IN_STATE is 
 """
 
 
-def access_from_nested_dict(dictionary: Dict, keys: List[Hashable]) -> Any:
+def access_from_nested_dict(dictionary: Dict, keys: Sequence[Hashable]) -> Any:
     """
     Access an item from a deeply dictionary with a list of keys.
 
@@ -29,12 +29,13 @@ def access_from_nested_dict(dictionary: Dict, keys: List[Hashable]) -> Any:
     :return: The value in the dictionary
     :rtype: Any
     """
-    if len(keys) == 0:
+    key_list = [*keys] # copy keys to a new list to prevent editing original list
+    if len(key_list) == 0:
         return dictionary
-    k = keys.pop(0)
+    k = key_list.pop(0)
     if k not in dictionary:
         return NOT_PRESENT_IN_STATE
-    return access_from_nested_dict(dictionary[k], keys)
+    return access_from_nested_dict(dictionary[k], key_list)
 
 
 class AbstractObservation(ABC):
@@ -66,7 +67,7 @@ class AbstractObservation(ABC):
 
 
 class FileObservation(AbstractObservation):
-    def __init__(self, where: Optional[List[str]] = None) -> None:
+    def __init__(self, where: Optional[Tuple[str]] = None) -> None:
         """
         _summary_
 
@@ -79,7 +80,7 @@ class FileObservation(AbstractObservation):
         :type where: Optional[List[str]]
         """
         super().__init__()
-        self.where: Optional[List[str]] = where
+        self.where: Optional[Tuple[str]] = where
         self.default_observation: spaces.Space = {"health_status": 0}
         "Default observation is what should be returned when the file doesn't exist, e.g. after it has been deleted."
 
@@ -104,7 +105,7 @@ class ServiceObservation(AbstractObservation):
     default_observation: spaces.Space = {"operating_status": 0, "health_status": 0}
     "Default observation is what should be returned when the service doesn't exist."
 
-    def __init__(self, where: Optional[List[str]] = None) -> None:
+    def __init__(self, where: Optional[Tuple[str]] = None) -> None:
         """
         :param where: Store information about where in the simulation state dictionary to find the relevant information.
             Optional. If None, this corresponds that the file does not exist and the observation will be populated with
@@ -115,7 +116,7 @@ class ServiceObservation(AbstractObservation):
         :type where: Optional[List[str]]
         """
         super().__init__()
-        self.where: Optional[List[str]] = where
+        self.where: Optional[Tuple[str]] = where
 
     def observe(self, state: Dict) -> Dict:
         if self.where is None:
@@ -124,7 +125,7 @@ class ServiceObservation(AbstractObservation):
         service_state = access_from_nested_dict(state, self.where)
         if service_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
-        return {"operating_status": service_state["operating_status"], "health_status": service_state["health_status"]}
+        return {"operating_status": service_state["operating_state"], "health_status": service_state["health_status"]}
 
     @property
     def space(self) -> spaces.Space:
@@ -132,7 +133,9 @@ class ServiceObservation(AbstractObservation):
 
     @classmethod
     def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where:Optional[List[str]]=None):
-        return cls(where=parent_where+["services",session.ref_map_services[config['service_ref']]])
+        return cls(
+            where=parent_where+["services",session.ref_map_services[config['service_ref']].uuid]
+            )
 
 
 
@@ -140,7 +143,7 @@ class LinkObservation(AbstractObservation):
     default_observation: spaces.Space = {"protocols": {"all": {"load": 0}}}
     "Default observation is what should be returned when the link doesn't exist."
 
-    def __init__(self, where: Optional[List[str]] = None) -> None:
+    def __init__(self, where: Optional[Tuple[str]] = None) -> None:
         """
         :param where: Store information about where in the simulation state dictionary to find the relevant information.
             Optional. If None, this corresponds that the file does not exist and the observation will be populated with
@@ -151,7 +154,7 @@ class LinkObservation(AbstractObservation):
         :type where: Optional[List[str]]
         """
         super().__init__()
-        self.where: Optional[List[str]] = where
+        self.where: Optional[Tuple[str]] = where
 
     def observe(self, state: Dict) -> Dict:
         if self.where is None:
@@ -180,7 +183,7 @@ class LinkObservation(AbstractObservation):
 
 
 class FolderObservation(AbstractObservation):
-    def __init__(self, where: Optional[List[str]] = None, files: List[FileObservation] = []) -> None:
+    def __init__(self, where: Optional[Tuple[str]] = None, files: List[FileObservation] = []) -> None:
         """Initialise folder Observation, including files inside of the folder.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this folder.
@@ -199,7 +202,7 @@ class FolderObservation(AbstractObservation):
         """
         super().__init__()
 
-        self.where: Optional[List[str]] = where
+        self.where: Optional[Tuple[str]] = where
 
         self.files: List[FileObservation] = files
 
@@ -246,9 +249,9 @@ class FolderObservation(AbstractObservation):
 class NicObservation(AbstractObservation):
     default_observation: spaces.Space = {"nic_status": 0}
 
-    def __init__(self, where: Optional[List[str]] = None) -> None:
+    def __init__(self, where: Optional[Tuple[str]] = None) -> None:
         super().__init__()
-        self.where: Optional[List[str]] = where
+        self.where: Optional[Tuple[str]] = where
 
     def observe(self, state: Dict) -> Dict:
         if self.where is None:
@@ -271,7 +274,7 @@ class NicObservation(AbstractObservation):
 class NodeObservation(AbstractObservation):
     def __init__(
         self,
-        where: Optional[List[str]] = None,
+        where: Optional[Tuple[str]] = None,
         services: List[ServiceObservation] = [],
         folders: List[FolderObservation] = [],
         nics: List[NicObservation] = [],
@@ -298,7 +301,7 @@ class NodeObservation(AbstractObservation):
         :type max_nics: int, optional
         """
         super().__init__()
-        self.where: Optional[List[str]] = where
+        self.where: Optional[Tuple[str]] = where
 
         self.services: List[ServiceObservation] = services
         self.folders: List[FolderObservation] = folders
@@ -371,10 +374,10 @@ class AclObservation(AbstractObservation):
     # if a file is created at runtime, we have currently got no way of telling the observation space to track it.
     # this needs adding, but not for the MVP.
     def __init__(
-        self, node_ip_to_id: Dict[str,int], ports: List[int], protocols: list[str], where: Optional[List[str]] = None, num_rules: int = 10
+        self, node_ip_to_id: Dict[str,int], ports: List[int], protocols: list[str], where: Optional[Tuple[str]] = None, num_rules: int = 10
     ) -> None:
         super().__init__()
-        self.where: Optional[List[str]] = where
+        self.where: Optional[Tuple[str]] = where
         self.num_rules: int = num_rules
         self.node_to_id: Dict[str, int] = node_ip_to_id
         "List of node IP addresses, order in this list determines how they are converted to an ID"
@@ -403,6 +406,8 @@ class AclObservation(AbstractObservation):
         if acl_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
 
+
+        #TODO: what if the ACL has more rules than num of max rules for obs space
         obs = {}
         obs["RULES"] = {}
         for i, rule_state in acl_state.items():
@@ -466,7 +471,7 @@ class AclObservation(AbstractObservation):
             node_ip_to_id=node_ip_to_idx,
             ports=session.options.ports,
             protocols=session.options.protocols,
-            where=["network", "nodes", router_uuid])
+            where=["network", "nodes", router_uuid, "acl", "acl"])
 
 
 
@@ -498,7 +503,7 @@ class UC2BlueObservation(AbstractObservation):
             where:Optional[List[str]] = None,
     ) -> None:
         super().__init__()
-        self.where: Optional[List[str]] = where
+        self.where: Optional[Tuple[str]] = where
 
         self.nodes: List[NodeObservation] = nodes
         self.links: List[LinkObservation] = links
@@ -517,11 +522,10 @@ class UC2BlueObservation(AbstractObservation):
             return self.default_observation
 
         obs = {}
-
         obs['NODES'] = {i + 1: node.observe(state) for i, node in enumerate(self.nodes)}
         obs['LINKS'] = {i + 1: link.observe(state) for i, link in enumerate(self.links)}
-        obs['ACL'] = {self.acl.observe(state)}
-        obs['ICS'] = {self.ics.observe(state)}
+        obs['ACL'] = self.acl.observe(state)
+        obs['ICS'] = self.ics.observe(state)
 
         return obs
 
@@ -546,7 +550,7 @@ class UC2BlueObservation(AbstractObservation):
         acl = AclObservation.from_config(config=acl_config, session=session)
 
         ics_config = config["ics"]
-        ics = ICSObservation.from_config(ics_config)
+        ics = ICSObservation.from_config(config=ics_config, session=session)
         new = cls(nodes=nodes, links=links, acl=acl, ics=ics, where=['network'])
         return new
 

@@ -111,11 +111,11 @@ class AccessControlList(SimComponent):
             Action(
                 func=lambda request, context: self.add_rule(
                     ACLAction[request[0]],
-                    IPProtocol[request[1]],
-                    IPv4Address[request[2]],
-                    Port[request[3]],
-                    IPv4Address[request[4]],
-                    Port[request[5]],
+                    None if request[1] is "ALL" else IPProtocol[request[1]],
+                    IPv4Address(request[2]),
+                    None if request[3] is "ALL" else Port[request[3]],
+                    IPv4Address(request[4]),
+                    None if request[5] is "ALL" else Port[request[5]],
                     int(request[6]),
                 )
             ),

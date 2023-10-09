@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from gym import spaces
 
 from primaite.simulator.sim_container import Simulation
+from primaite import getLogger
+_LOGGER = getLogger(__name__)
 
 if TYPE_CHECKING:
     from primaite.game.session import PrimaiteSession
@@ -253,7 +255,7 @@ class NodeShutdownAction(NodeAbstractAction):
 class NodeStartupAction(NodeAbstractAction):
     def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes)
-        self.verb = "start"
+        self.verb = "startup"
 
 
 class NodeResetAction(NodeAbstractAction):
@@ -274,33 +276,73 @@ class NetworkACLAddRuleAction(AbstractAction):
         **kwargs,
     ) -> None:
         super().__init__(manager=manager)
-        num_permissions = 2
+        num_permissions = 3
         self.shape: Dict[str, int] = {
             "position": max_acl_rules,
             "permission": num_permissions,
-            "source_ip_idx": num_ips,
-            "dest_ip_idx": num_ips,
-            "source_port_idx": num_ports,
-            "dest_port_idx": num_ports,
-            "protocol_idx": num_protocols,
+            "source_ip_id": num_ips,
+            "dest_ip_id": num_ips,
+            "source_port_id": num_ports,
+            "dest_port_id": num_ports,
+            "protocol_id": num_protocols,
         }
         self.target_router_uuid: str = target_router_uuid
 
     def form_request(
-        self, position, permission, source_ip_idx, dest_ip_idx, source_port_idx, dest_port_idx, protocol_idx
+        self, position, permission, source_ip_id, dest_ip_id, source_port_id, dest_port_id, protocol_id
     ) -> List[str]:
-        protocol = self.manager.get_internet_protocol_by_idx(protocol_idx)
-        src_ip = self.manager.get_ip_address_by_idx(source_ip_idx)
-        src_port = self.manager.get_port_by_idx(source_port_idx)
-        dst_ip = self.manager.get_ip_address_by_idx(dest_ip_idx)
-        dst_port = self.manager.get_port_by_idx(dest_port_idx)
+        if permission == 0:
+            permission_str = "UNUSED"
+            return ["do_nothing"] # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
+        elif permission == 1:
+            permission_str = "ALLOW"
+        elif permission == 2:
+            permission_str = "DENY"
+        else:
+            _LOGGER.warn(f"{self.__class__} received permission {permission}, expected 0 or 1.")
+
+        if protocol_id == 0:
+            return ["do_nothing"] # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
+
+        if protocol_id == 1:
+            protocol = "ALL"
+        else:
+            protocol = self.manager.get_internet_protocol_by_idx(protocol_id-2)
+            # subtract 2 to account for UNUSED=0 and ALL=1.
+
+        if source_ip_id in [0,1]:
+            src_ip = "ALL"
+            return ["do_nothing"] # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
+        else:
+            src_ip = self.manager.get_ip_address_by_idx(source_ip_id-2)
+            # subtract 2 to account for UNUSED=0, and ALL=1
+
+        if source_port_id == 1:
+            src_port = "ALL"
+        else:
+            src_port = self.manager.get_port_by_idx(source_port_id-2)
+            # subtract 2 to account for UNUSED=0, and ALL=1
+
+        if dest_ip_id in (0,1):
+            dst_ip = "ALL"
+            return ["do_nothing"] # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
+        else:
+            dst_ip = self.manager.get_ip_address_by_idx(dest_ip_id)
+            # subtract 2 to account for UNUSED=0, and ALL=1
+
+        if dest_port_id == 1:
+            dst_port = "ALL"
+        else:
+            dst_port = self.manager.get_port_by_idx(dest_port_id)
+            # subtract 2 to account for UNUSED=0, and ALL=1
+
         return [
             "network",
             "node",
             self.target_router_uuid,
             "acl",
             "add_rule",
-            permission,
+            permission_str,
             protocol,
             src_ip,
             src_port,
@@ -320,36 +362,52 @@ class NetworkACLRemoveRuleAction(AbstractAction):
         return ["network", "node", self.target_router_uuid, "acl", "remove_rule", position]
 
 
-class NetworkNICEnableAction(AbstractAction):
+class NetworkNICAbstractAction(AbstractAction):
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes, "nic_id": max_nics_per_node}
+        self.verb: str
 
     def form_request(self, node_id: int, nic_id: int) -> List[str]:
+        node_uuid = self.manager.get_node_uuid_by_idx(node_idx=node_id)
+        nic_uuid = self.manager.get_nic_uuid_by_idx(node_idx=node_id, nic_idx=nic_id)
+        if node_uuid is None or nic_uuid is None:
+            return ["do_nothing"]
         return [
             "network",
             "node",
-            self.manager.get_node_uuid_by_idx(node_idx=node_id),
+            node_uuid,
             "nic",
-            self.manager.get_nic_uuid_by_idx(node_idx=node_id, nic_idx=nic_id),
-            "enable",
+            nic_uuid,
+            self.verb,
         ]
 
 
-class NetworkNICDisableAction(AbstractAction):
+class NetworkNICEnableAction(NetworkNICAbstractAction):
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
-        super().__init__(manager=manager)
-        self.shape: Dict[str, int] = {"node_id": num_nodes, "nic_id": max_nics_per_node}
+        super().__init__(manager=manager, num_nodes=num_nodes, max_nics_per_node=max_nics_per_node, **kwargs)
+        self.verb = "enable"
 
-    def form_request(self, node_id: int, nic_id: int) -> List[str]:
-        return [
-            "network",
-            "node",
-            self.manager.get_node_uuid_by_idx(node_idx=node_id),
-            "nic",
-            self.manager.get_nic_uuid_by_idx(node_idx=node_id, nic_idx=nic_id),
-            "disable",
-        ]
+
+class NetworkNICDisableAction(NetworkNICAbstractAction):
+    def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
+        super().__init__(manager=manager, num_nodes=num_nodes, max_nics_per_node=max_nics_per_node, **kwargs)
+        self.verb = "disable"
+
+# class NetworkNICDisableAction(AbstractAction):
+#     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
+#         super().__init__(manager=manager)
+#         self.shape: Dict[str, int] = {"node_id": num_nodes, "nic_id": max_nics_per_node}
+
+#     def form_request(self, node_id: int, nic_id: int) -> List[str]:
+#         return [
+#             "network",
+#             "node",
+#             self.manager.get_node_uuid_by_idx(node_idx=node_id),
+#             "nic",
+#             self.manager.get_nic_uuid_by_idx(node_idx=node_id, nic_idx=nic_id),
+#             "disable",
+#         ]
 
 
 class ActionManager:

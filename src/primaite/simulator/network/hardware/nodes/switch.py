@@ -55,12 +55,11 @@ class Switch(Node):
 
         :return: Current state of this object and child objects.
         """
-        return {
-            "uuid": self.uuid,
-            "num_ports": self.num_ports,  # redundant?
-            "ports": {port_num: port.describe_state() for port_num, port in self.switch_ports.items()},
-            "mac_address_table": {mac: port for mac, port in self.mac_address_table.items()},
-        }
+        state = super().describe_state()
+        state["ports"] = {port_num: port.describe_state() for port_num, port in self.switch_ports.items()}
+        state["num_ports"]= self.num_ports  # redundant?
+        state["mac_address_table"]= {mac: port for mac, port in self.mac_address_table.items()}
+        return state
 
     def _add_mac_table_entry(self, mac_address: str, switch_port: SwitchPort):
         """
