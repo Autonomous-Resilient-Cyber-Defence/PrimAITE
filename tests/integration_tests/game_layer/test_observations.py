@@ -16,5 +16,5 @@ def test_file_observation():
     dog_file_obs = FileObservation(
         where=["network", "nodes", pc.uuid, "file_system", "folders", "root", "files", "dog.png"]
     )
-    assert dog_file_obs(state) == {"health_status": 1}
+    assert dog_file_obs.observe(state) == {"health_status": 1}
     assert dog_file_obs.space == spaces.Dict({"health_status": spaces.Discrete(6)})
