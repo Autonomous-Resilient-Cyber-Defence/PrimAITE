@@ -4,7 +4,6 @@ from typing import Any, Dict, Optional
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
 from primaite.simulator.system.services.service import ServiceOperatingState
 
@@ -30,14 +29,6 @@ class FTPServer(FTPServiceABC):
         super().__init__(**kwargs)
         self.start()
 
-    def _get_session_details(self, session_id: str) -> Session:
-        """
-        Returns the Session object from the given session id.
-
-        :param: session_id: ID of the session that needs details retrieved
-        """
-        return self.software_manager.session_manager.sessions_by_uuid[session_id]
-
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
         """
         Process the command in the FTP Packet.
@@ -47,10 +38,15 @@ class FTPServer(FTPServiceABC):
         :param: session_id: session ID linked to the FTP Packet. Optional.
         :type: session_id: Optional[str]
         """
+        # error code by default
+        payload.status_code = FTPStatusCode.ERROR
+
         # if server service is down, return error
         if self.operating_state != ServiceOperatingState.RUNNING:
-            payload.status_code = FTPStatusCode.ERROR
+            self.sys_log.error("FTP Server not running")
             return payload
+
+        self.sys_log.info(f"{self.name}: Received FTP {payload.ftp_command.name} {payload.ftp_command_args}")
 
         if session_id:
             session_details = self._get_session_details(session_id)
@@ -67,9 +63,13 @@ class FTPServer(FTPServiceABC):
                 payload.status_code = FTPStatusCode.OK
                 return payload
 
+            self.sys_log.error(f"Invalid Port {payload.ftp_command_args}")
+            return payload
+
         if payload.ftp_command == FTPCommand.QUIT:
             self.connections.pop(session_id)
             payload.status_code = FTPStatusCode.OK
+            return payload
 
         return super()._process_ftp_command(payload=payload, session_id=session_id, **kwargs)
 
@@ -77,6 +77,16 @@ class FTPServer(FTPServiceABC):
         """Receives a payload from the SessionManager."""
         if not isinstance(payload, FTPPacket):
             self.sys_log.error(f"{payload} is not an FTP packet")
+            return False
+
+        """
+        Ignore ftp payload if status code is defined.
+
+        This means that an FTP server has already handled the packet and
+        prevents an FTP request loop - FTP client and servers can exist on
+        the same node.
+        """
+        if payload.status_code is not None:
             return False
 
         self.send(self._process_ftp_command(payload=payload, session_id=session_id), session_id)

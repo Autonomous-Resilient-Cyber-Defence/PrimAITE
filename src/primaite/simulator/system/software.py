@@ -1,10 +1,12 @@
 from abc import abstractmethod
 from enum import Enum
+from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 
 from primaite.simulator.core import Action, ActionManager, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
 
 
@@ -95,6 +97,14 @@ class Software(SimComponent):
         )
         am.add_action("scan", Action(func=lambda request, context: self.scan()))
         return am
+
+    def _get_session_details(self, session_id: str) -> Session:
+        """
+        Returns the Session object from the given session id.
+
+        :param: session_id: ID of the session that needs details retrieved
+        """
+        return self.software_manager.session_manager.sessions_by_uuid[session_id]
 
     @abstractmethod
     def describe_state(self) -> Dict:
@@ -209,18 +219,27 @@ class IOSoftware(Software):
         )
         return state
 
-    def send(self, payload: Any, session_id: str, **kwargs) -> bool:
+    def send(
+        self,
+        payload: Any,
+        session_id: Optional[str] = None,
+        dest_ip_address: Optional[IPv4Address] = None,
+        dest_port: Optional[Port] = None,
+        **kwargs,
+    ) -> bool:
         """
         Sends a payload to the SessionManager.
 
-        The specifics of how the payload is processed and whether a response payload
-        is generated should be implemented in subclasses.
+        :param payload: The payload to be sent.
+        :param dest_ip_address: The ip address of the payload destination.
+        :param dest_port: The port of the payload destination.
+        :param session_id: The Session ID the payload is to originate from. Optional.
 
-        :param payload: The payload to send.
-        :param session_id: The identifier of the session that the payload is associated with.
-        :param kwargs: Additional keyword arguments specific to the implementation.
-        :return: True if the payload was successfully sent, False otherwise.
+        :return: True if successful, False otherwise.
         """
+        return self.software_manager.send_payload_to_session_manager(
+            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
+        )
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
