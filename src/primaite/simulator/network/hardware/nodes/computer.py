@@ -1,4 +1,7 @@
 from primaite.simulator.network.hardware.base import NIC, Node
+from primaite.simulator.system.applications.web_browser import WebBrowser
+from primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 
 
 class Computer(Node):
@@ -36,3 +39,17 @@ class Computer(Node):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.connect_nic(NIC(ip_address=kwargs["ip_address"], subnet_mask=kwargs["subnet_mask"]))
+        self._install_system_software()
+
+    def _install_system_software(self):
+        """Install System Software - software that is usually provided with the OS."""
+        # DNS Client
+        self.software_manager.install(DNSClient)
+
+        # FTP
+        self.software_manager.install(FTPClient)
+
+        # Web Browser
+        self.software_manager.install(WebBrowser)
+
+        super()._install_system_software()

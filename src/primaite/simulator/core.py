@@ -11,9 +11,9 @@ from primaite import getLogger
 _LOGGER = getLogger(__name__)
 
 
-class ActionPermissionValidator(BaseModel):
+class RequestPermissionValidator(BaseModel):
     """
-    Base class for action validators.
+    Base class for request validators.
 
     The permissions manager is designed to be generic. So, although in the first instance the permissions
     are evaluated purely on membership to AccountGroup, this class can support validating permissions based on any
@@ -22,130 +22,127 @@ class ActionPermissionValidator(BaseModel):
 
     @abstractmethod
     def __call__(self, request: List[str], context: Dict) -> bool:
-        """Use the request and context paramters to decide whether the action should be permitted."""
+        """Use the request and context paramters to decide whether the request should be permitted."""
         pass
 
 
-class AllowAllValidator(ActionPermissionValidator):
-    """Always allows the action."""
+class AllowAllValidator(RequestPermissionValidator):
+    """Always allows the request."""
 
     def __call__(self, request: List[str], context: Dict) -> bool:
-        """Always allow the action."""
+        """Always allow the request."""
         return True
 
 
-class Action(BaseModel):
+class RequestType(BaseModel):
     """
-    This object stores data related to a single action.
+    This object stores data related to a single request type.
 
-    This includes the callable that can execute the action request, and the validator that will decide whether
-    the action can be performed or not.
+    This includes the callable that can execute the request, and the validator that will decide whether
+    the request can be performed or not.
     """
 
     func: Callable[[List[str], Dict], None]
     """
     ``func`` is a function that accepts a request and a context dict. Typically this would be a lambda function
-    that invokes a class method of your SimComponent. For example if the component is a node and the action is for
+    that invokes a class method of your SimComponent. For example if the component is a node and the request type is for
     turning it off, then the SimComponent should have a turn_off(self) method that does not need to accept any args.
-    Then, this Action will be given something like ``func = lambda request, context: self.turn_off()``.
+    Then, this request will be given something like ``func = lambda request, context: self.turn_off()``.
 
-    ``func`` can also be another action manager, since ActionManager is a callable with a signature that matches what is
+    ``func`` can also be another request manager, since RequestManager is a callable with a signature that matches what is
     expected by ``func``.
     """
-    validator: ActionPermissionValidator = AllowAllValidator()
+    validator: RequestPermissionValidator = AllowAllValidator()
     """
-    ``validator`` is an instance of `ActionPermissionValidator`. This is essentially a callable that
+    ``validator`` is an instance of ``RequestPermissionValidator``. This is essentially a callable that
     accepts `request` and `context` and returns a boolean to represent whether the permission is granted to perform
-    the action. The default validator will allow
+    the request. The default validator will allow
     """
 
 
-# TODO: maybe this can be renamed to something like action selector?
-# Because there are two ways it's used, to select from a list of action verbs, or to select a child object to which to
-# forward the request.
-class ActionManager(BaseModel):
+class RequestManager(BaseModel):
     """
-    ActionManager is used by `SimComponent` instances to keep track of actions.
+    RequestManager is used by `SimComponent` instances to keep track of requests.
 
-    Its main purpose is to be a lookup from action name to action function and corresponding validation function. This
-    class is responsible for providing a consistent API for processing actions as well as helpful error messages.
+    Its main purpose is to be a lookup from request name to request function and corresponding validation function. This
+    class is responsible for providing a consistent API for processing requests as well as helpful error messages.
     """
 
-    actions: Dict[str, Action] = {}
-    """maps action verb to an action object."""
+    request_types: Dict[str, RequestType] = {}
+    """maps request name to an RequestType object."""
 
     def __call__(self, request: Callable[[List[str], Dict], None], context: Dict) -> None:
         """
-        Process an action request.
+        Process an request request.
 
-        :param request: A list of strings which specify what action to take. The first string must be one of the allowed
-            actions, i.e. it must be a key of self.actions. The subsequent strings in the list are passed as parameters
-            to the action function.
+        :param request: A list of strings describing the request. The first string must be one of the allowed
+            request names, i.e. it must be a key of self.request_types. The subsequent strings in the list are passed as
+            parameters to the request function.
         :type request: List[str]
         :param context: Dictionary of additional information necessary to process or validate the request.
         :type context: Dict
-        :raises RuntimeError: If the request parameter does not have a valid action identifier as the first item.
+        :raises RuntimeError: If the request parameter does not have a valid request name as the first item.
         """
-        action_key = request[0]
+        request_key = request[0]
 
-        if action_key not in self.actions:
+        if request_key not in self.request_types:
             msg = (
-                f"Action request {request} could not be processed because {action_key} is not a valid action",
-                "within this ActionManager",
+                f"Request {request} could not be processed because {request_key} is not a valid request name",
+                "within this RequestManager",
             )
             _LOGGER.error(msg)
             raise RuntimeError(msg)
 
-        action = self.actions[action_key]
-        action_options = request[1:]
+        request_type = self.request_types[request_key]
+        request_options = request[1:]
 
-        if not action.validator(action_options, context):
-            _LOGGER.debug(f"Action request {request} was denied due to insufficient permissions")
+        if not request_type.validator(request_options, context):
+            _LOGGER.debug(f"Request {request} was denied due to insufficient permissions")
             return
 
-        action.func(action_options, context)
+        request_type.func(request_options, context)
 
-    def add_action(self, name: str, action: Action) -> None:
+    def add_request(self, name: str, request_type: RequestType) -> None:
         """
-        Add an action to this action manager.
+        Add a request type to this request manager.
 
-        :param name: The string associated to this action.
+        :param name: The string associated to this request.
         :type name: str
-        :param action: Action object.
-        :type action: Action
+        :param request_type: Request type object which contains information about how to resolve request.
+        :type request_type: RequestType
         """
-        if name in self.actions:
-            msg = f"Attempted to register an action but the action name {name} is already taken."
+        if name in self.request_types:
+            msg = f"Attempted to register a request but the request name {name} is already taken."
             _LOGGER.error(msg)
             raise RuntimeError(msg)
 
-        self.actions[name] = action
+        self.request_types[name] = request_type
 
-    def remove_action(self, name: str) -> None:
+    def remove_request(self, name: str) -> None:
         """
-        Remove an action from this manager.
+        Remove a request from this manager.
 
-        :param name: name identifier of the action
+        :param name: name identifier of the request
         :type name: str
         """
-        if name not in self.actions:
-            msg = f"Attempted to remove action {name} from action manager, but it was not registered."
+        if name not in self.request_types:
+            msg = f"Attempted to remove request {name} from request manager, but it was not registered."
             _LOGGER.error(msg)
             raise RuntimeError(msg)
 
-        self.actions.pop(name)
+        self.request_types.pop(name)
 
-    def get_action_tree(self) -> List[List[str]]:
-        """Recursively generate action tree for this component."""
-        actions = []
-        for act_name, act in self.actions.items():
-            if isinstance(act.func, ActionManager):
-                sub_actions = act.func.get_action_tree()
-                sub_actions = [[act_name] + a for a in sub_actions]
-                actions.extend(sub_actions)
+    def get_request_types_recursively(self) -> List[List[str]]:
+        """Recursively generate request tree for this component."""
+        requests = []
+        for req_name, req in self.request_types.items():
+            if isinstance(req.func, RequestManager):
+                sub_requests = req.func.get_request_types_recursively()
+                sub_requests = [[req_name] + a for a in sub_requests]
+                requests.extend(sub_requests)
             else:
-                actions.append([act_name])
-        return actions
+                requests.append([req_name])
+        return requests
 
 
 class SimComponent(BaseModel):
@@ -161,30 +158,30 @@ class SimComponent(BaseModel):
         if not kwargs.get("uuid"):
             kwargs["uuid"] = str(uuid4())
         super().__init__(**kwargs)
-        self._action_manager: ActionManager = self._init_action_manager()
+        self._request_manager: RequestManager = self._init_request_manager()
         self._parent: Optional["SimComponent"] = None
 
-    def _init_action_manager(self) -> ActionManager:
+    def _init_request_manager(self) -> RequestManager:
         """
-        Initialise the action manager for this component.
+        Initialise the request manager for this component.
 
-        When using a hierarchy of components, the child classes should call the parent class's _init_action_manager and
-        add additional actions on top of the existing generic ones.
+        When using a hierarchy of components, the child classes should call the parent class's _init_request_manager and
+        add additional requests on top of the existing generic ones.
 
         Example usage for inherited classes:
 
         ..code::python
 
             class WebBrowser(Application):
-            def _init_action_manager(self) -> ActionManager:
-                am = super()._init_action_manager() # all actions generic to any Application get initialised
-                am.add_action(...) # initialise any actions specific to the web browser
+            def _init_request_manager(self) -> RequestManager:
+                am = super()._init_request_manager() # all requests generic to any Application get initialised
+                am.add_request(...) # initialise any requests specific to the web browser
                 return am
 
-        :return: Actiona manager object belonging to this sim component.
-        :rtype: ActionManager
+        :return: Request manager object belonging to this sim component.
+        :rtype: RequestManager
         """
-        return ActionManager()
+        return RequestManager()
 
     @abstractmethod
     def describe_state(self) -> Dict:
@@ -204,27 +201,27 @@ class SimComponent(BaseModel):
         """Update the visible statuses of the SimComponent."""
         pass
 
-    def apply_action(self, action: List[str], context: Dict = {}) -> None:
+    def apply_request(self, request: List[str], context: Dict = {}) -> None:
         """
-        Apply an action to a simulation component. Action data is passed in as a 'namespaced' list of strings.
+        Apply a request to a simulation component. Request data is passed in as a 'namespaced' list of strings.
 
-        If the list only has one element, the action is intended to be applied directly to this object. If the list has
-        multiple entries, the action is passed to the child of this object specified by the first one or two entries.
+        If the list only has one element, the request is intended to be applied directly to this object. If the list has
+        multiple entries, the request is passed to the child of this object specified by the first one or two entries.
         This is essentially a namespace.
 
-        For example, ["turn_on",] is meant to apply an action of 'turn on' to this component.
+        For example, ["turn_on",] is meant to apply a request of 'turn on' to this component.
 
         However, ["services", "email_client", "turn_on"] is meant to 'turn on' this component's email client service.
 
-        :param action: List describing the action to apply to this object.
-        :type action: List[str]
+        :param request: List describing the request to apply to this object.
+        :type request: List[str]
 
-        :param: context: Dict containing context for actions
+        :param: context: Dict containing context for requests
         :type context: Dict
         """
-        if self._action_manager is None:
+        if self._request_manager is None:
             return
-        self._action_manager(action, context)
+        self._request_manager(request, context)
 
     def apply_timestep(self, timestep: int) -> None:
         """

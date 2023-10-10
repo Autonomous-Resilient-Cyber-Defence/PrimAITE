@@ -5,6 +5,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from primaite.simulator.network.protocols.packet import DataPacket
+
 
 class DNSRequest(BaseModel):
     """Represents a DNS Request packet of a network frame.
@@ -26,7 +28,7 @@ class DNSReply(BaseModel):
     "IP Address of the Domain Name requested."
 
 
-class DNSPacket(BaseModel):
+class DNSPacket(DataPacket):
     """
     Represents the DNS layer of a network frame.
 

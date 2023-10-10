@@ -26,6 +26,7 @@ class DNSServer(Service):
         # TCP for now
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
+        self.start()
 
     def describe_state(self) -> Dict:
         """
@@ -95,13 +96,13 @@ class DNSServer(Service):
         payload: DNSPacket = payload
         if payload.dns_request is not None:
             self.sys_log.info(
-                f"DNS Server: Received domain lookup request for {payload.dns_request.domain_name_request} "
+                f"{self.name}: Received domain lookup request for {payload.dns_request.domain_name_request} "
                 f"from session {session_id}"
             )
             # generate a reply with the correct DNS IP address
             payload = payload.generate_reply(self.dns_lookup(payload.dns_request.domain_name_request))
             self.sys_log.info(
-                f"DNS Server: Responding to domain lookup request for {payload.dns_request.domain_name_request} "
+                f"{self.name}: Responding to domain lookup request for {payload.dns_request.domain_name_request} "
                 f"with ip address: {payload.dns_reply.domain_name_ip_address}"
             )
             # send reply

@@ -193,7 +193,7 @@ class SessionManager:
                 self.sessions_by_key[session_key] = session
                 self.sessions_by_uuid[session.uuid] = session
 
-        outbound_nic.send_frame(frame)
+        return outbound_nic.send_frame(frame)
 
     def receive_frame(self, frame: Frame):
         """
