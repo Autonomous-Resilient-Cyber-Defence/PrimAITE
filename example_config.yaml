@@ -12,10 +12,12 @@ game_config:
   ports:
   - ARP
   - DNS
+  - HTTP
   - POSTGRES_SERVER
   protocols:
   - ICMP
   - TCP
+  - UDP
 
   agents:
     - ref: client_1_green_user
@@ -111,10 +113,10 @@ game_config:
       observation_space:
         type: UC2BlueObservation
         options:
+          num_services_per_node: 2
+          num_folders_per_node: 2
+          num_files_per_folder: 2
           nodes:
-          - node_ref: router_1 #TODO: more sub-options here
-          - node_ref: switch_1
-          - node_ref: switch_2
           - node_ref: domain_controller
             services:
             - service_ref: domain_controller_dns_server
@@ -147,17 +149,23 @@ game_config:
           - link_ref: switch_2___security_suite
           acl:
             router_node_ref: router_1
-            node_order:
-              - node_ref: router_1
-              - node_ref: switch_1
-              - node_ref: switch_2
+            ip_address_order:
               - node_ref: domain_controller
+                nic_num: 1
               - node_ref: web_server
+                nic_num: 1
               - node_ref: database_server
+                nic_num: 1
               - node_ref: backup_server
+                nic_num: 1
               - node_ref: security_suite
+                nic_num: 1
               - node_ref: client_1
+                nic_num: 1
               - node_ref: client_2
+                nic_num: 1
+              - node_ref: security_suite
+                nic_num: 2
           ics: null
 
       action_space:

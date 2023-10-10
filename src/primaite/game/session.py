@@ -7,12 +7,16 @@
 
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional, Tuple
-from gymnasium.vector.utils import spaces
+from gymnasium import spaces
+from gymnasium.spaces.utils import flatten, flatten_space, unflatten
+from gymnasium.core import ObsType, ActType
+
 import numpy as np
 
 from pydantic import BaseModel
 
 from primaite import getLogger
+from primaite.game.agent.GATE_agents import GATERLAgent
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent, RandomAgent
 from primaite.game.agent.observations import (
@@ -54,7 +58,7 @@ _LOGGER = getLogger(__name__)
 class PrimaiteGATEClient(GATEClient):
     def  __init__(self, parent_session:"PrimaiteSession", service_port: int = 50000):
         super().__init__(service_port=service_port)
-        self.parent_session:"PrimaiteSession"
+        self.parent_session:"PrimaiteSession" = parent_session
 
     @property
     def rl_framework(self) -> str:
@@ -86,21 +90,33 @@ class PrimaiteGATEClient(GATEClient):
 
     @property
     def action_space(self) -> spaces.Space:
-        return self.parent_session.rl_agent.action_space
+        return self.parent_session.rl_agent.action_space.space
 
     @property
     def observation_space(self) -> spaces.Space:
-        return self.parent_session.rl_agent.observation_space
+        print("YEEY0")
+        print(flatten_space(spaces.Dict({})))
+        print("YEEY1")
+        # print(self.parent_session.rl_agent.observation_space.space)
+        return flatten_space(self.parent_session.rl_agent.observation_space.space)
 
-    def step(self, action: ActType) -> Tuple[ndarray, float, bool, bool, Dict]:
+    def step(self, action: ActType) -> Tuple[ObsType, float, bool, bool, Dict]:
+        self.parent_session.rl_agent.most_recent_action = action
         self.parent_session.step()
-        #TODO: not sure how to go about this.
+        obs = self.parent_session.rl_agent.observation_space.observe()
+        obs = flatten(self.parent_session.rl_agent.observation_space.space, obs)
+        rew = self.parent_session.rl_agent.reward_function.calculate()
+        term = False
+        trunc = False
+        info = {}
+        return obs, rew, term, trunc, info
+
 
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None) -> Tuple[ndarray, Dict]:
-        ...
+        self.parent_session.reset()
 
     def close(self):
-        ...
+        self.parent_session.close()
 
 class PrimaiteSessionOptions(BaseModel):
     ports: List[str]
@@ -131,15 +147,11 @@ class PrimaiteSession:
         self.ref_map_nodes: Dict[str, Node] = {}
         self.ref_map_services: Dict[str, Service] = {}
         self.ref_map_links: Dict[str, Link] = {}
+        self.gate_client: PrimaiteGATEClient = PrimaiteGATEClient(self)
 
     def start_session(self, opts="TODO..."):
         """Commence the session, this gives the gate client control over the simulation/agent loop."""
-        ...
-
-    def eval(self, opts="TODO..."):
-        ...
-
-
+        self.gate_client.start()
 
     def step(self):
         _LOGGER.debug(f"Stepping primaite session. Step counter: {self.step_counter}")
@@ -172,11 +184,17 @@ class PrimaiteSession:
 
             # 10. primaite session receives the action from the agents and asks the simulation to apply each
             _LOGGER.debug(f"Sending request to simulation: {agent_request}")
-            self.simulation.apply_action(agent_request)
+            self.simulation.apply_request(agent_request)
 
         _LOGGER.debug(f"Initiating simulation step {self.step_counter}")
         self.simulation.apply_timestep(self.step_counter)
         self.step_counter += 1
+
+    def reset(self):
+        pass
+
+    def close(self):
+        pass
 
     @classmethod
     def from_config(cls, cfg: dict) -> "PrimaiteSession":
@@ -351,6 +369,7 @@ class PrimaiteSession:
                     reward_function=rew_function,
                 )
                 sess.agents.append(new_agent)
+                sess.rl_agent = new_agent
             elif agent_type == "RedDatabaseCorruptingAgent":
                 new_agent = RandomAgent(
                     agent_name=agent_cfg["ref"],

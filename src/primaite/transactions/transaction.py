@@ -7,7 +7,7 @@ from primaite.common.enums import AgentIdentifier
 
 if TYPE_CHECKING:
     import numpy as np
-    from gym import spaces
+    from gymnasium import spaces
 
 
 class Transaction(object):

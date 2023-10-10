@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Hashable, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
-from gym import spaces
+from gymnasium import spaces
 from pydantic import BaseModel
 
 from primaite.simulator.sim_container import Simulation
+from primaite import getLogger
+_LOGGER = getLogger(__name__)
 
 if TYPE_CHECKING:
     from primaite.game.session import PrimaiteSession
@@ -181,7 +183,7 @@ class LinkObservation(AbstractObservation):
 
 
 class FolderObservation(AbstractObservation):
-    def __init__(self, where: Optional[Tuple[str]] = None, files: List[FileObservation] = []) -> None:
+    def __init__(self, where: Optional[Tuple[str]] = None, files: List[FileObservation] = [], num_files_per_folder:int=2) -> None:
         """Initialise folder Observation, including files inside of the folder.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this folder.
@@ -203,6 +205,13 @@ class FolderObservation(AbstractObservation):
         self.where: Optional[Tuple[str]] = where
 
         self.files: List[FileObservation] = files
+        while len(self.files) < num_files_per_folder:
+            self.files.append(FileObservation())
+        while len(self.files)> num_files_per_folder:
+            truncated_file = self.files.pop()
+            msg = f"Too many files in folde observation. Truncating file {truncated_file}"
+            _LOGGER.warn(msg)
+            raise UserWarning(msg)
 
         self.default_observation = {
             "health_status": 0,
@@ -235,13 +244,13 @@ class FolderObservation(AbstractObservation):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]]):
+    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]], num_files_per_folder:int=2):
         where = parent_where + ["folders", config["folder_name"]]
 
         file_configs = config["files"]
         files = [FileObservation.from_config(config=f, session=session, parent_where=where) for f in file_configs]
 
-        return cls(where=where, files=files)
+        return cls(where=where, files=files, num_files_per_folder=num_files_per_folder)
 
 
 class NicObservation(AbstractObservation):
@@ -277,7 +286,10 @@ class NodeObservation(AbstractObservation):
         folders: List[FolderObservation] = [],
         nics: List[NicObservation] = [],
         logon_status: bool = False,
-    ) -> None:
+        num_services_per_node: int = 2,
+        num_folders_per_node: int = 2,
+        num_files_per_folder: int = 2
+        ) -> None:
         """
         Configurable observation for a node in the simulation.
 
@@ -302,7 +314,24 @@ class NodeObservation(AbstractObservation):
         self.where: Optional[Tuple[str]] = where
 
         self.services: List[ServiceObservation] = services
+        while len(self.services)<num_services_per_node:
+            # add an empty service observation without `where` parameter that will always return default (blank) observations
+            self.services.append(ServiceObservation())
+        while len(self.services)>num_services_per_node:
+            truncated_service = self.services.pop()
+            msg = f"Too many services in Node observation space for node. Truncating service {truncated_service.where}"
+            _LOGGER.warn(msg)
+            raise UserWarning(msg)
+            # truncate service list
+
         self.folders: List[FolderObservation] = folders
+        while len(self.folders) < num_folders_per_node:
+            # add an empty folder observation without `where` parameter that will always return default (blank) observations
+            self.folders.append(FolderObservation())
+        while len(self.folders) > num_folders_per_node:
+            truncated_folder = self.folders.pop()
+            msg = f"Too many folders in Node observation for node. Truncating service {truncated_folder.where[-1]}"
+
         self.nics: List[NicObservation] = nics
         self.logon_status: bool = logon_status
 
@@ -349,7 +378,13 @@ class NodeObservation(AbstractObservation):
 
     @classmethod
     def from_config(
-        cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]] = None
+        cls,
+        config: Dict,
+        session: "PrimaiteSession",
+        parent_where: Optional[List[str]] = None,
+        num_services_per_node: int = 2,
+        num_folders_per_node: int = 2,
+        num_files_per_folder: int = 2,
     ) -> "NodeObservation":
         node_uuid = session.ref_map_nodes[config["node_ref"]]
         if parent_where is None:
@@ -360,12 +395,21 @@ class NodeObservation(AbstractObservation):
         svc_configs = config.get("services", {})
         services = [ServiceObservation.from_config(config=c, session=session, parent_where=where) for c in svc_configs]
         folder_configs = config.get("folders", {})
-        folders = [FolderObservation.from_config(config=c, session=session, parent_where=where) for c in folder_configs]
+        folders = [FolderObservation.from_config(config=c, session=session, parent_where=where, num_files_per_folder=num_files_per_folder) for c in folder_configs]
         nic_uuids = session.simulation.network.nodes[node_uuid].nics.keys()
         nic_configs = [{"nic_uuid": n for n in nic_uuids}] if nic_uuids else []
         nics = [NicObservation.from_config(config=c, session=session, parent_where=where) for c in nic_configs]
         logon_status = config.get("logon_status", False)
-        return cls(where=where, services=services, folders=folders, nics=nics, logon_status=logon_status)
+        return cls(
+            where=where,
+            services=services,
+            folders=folders,
+            nics=nics,
+            logon_status=logon_status,
+            num_services_per_node = num_services_per_node,
+            num_folders_per_node = num_folders_per_node,
+            num_files_per_folder = num_files_per_folder,
+            )
 
 
 class AclObservation(AbstractObservation):
@@ -467,11 +511,12 @@ class AclObservation(AbstractObservation):
     @classmethod
     def from_config(cls, config: Dict, session: "PrimaiteSession") -> "AclObservation":
         node_ip_to_idx = {}
-        for node_idx, node_cfg in enumerate(config["node_order"]):
-            n_ref = node_cfg["node_ref"]
-            n_obj = session.simulation.network.nodes[session.ref_map_nodes[n_ref]]
-            for nic_uuid, nic_obj in n_obj.nics.items():
-                node_ip_to_idx[nic_obj.ip_address] = node_idx + 2
+        for ip_idx, ip_map_config in enumerate(config["ip_address_order"]):
+            node_ref = ip_map_config["node_ref"]
+            nic_num = ip_map_config["nic_num"]
+            node_obj = session.simulation.network.nodes[session.ref_map_nodes[node_ref]]
+            nic_obj = node_obj.ethernet_port[nic_num]
+            node_ip_to_idx[nic_obj.ip_address] = ip_idx + 2
 
         router_uuid = session.ref_map_nodes[config["router_node_ref"]]
         return cls(
@@ -552,7 +597,16 @@ class UC2BlueObservation(AbstractObservation):
     @classmethod
     def from_config(cls, config: Dict, session: "PrimaiteSession"):
         node_configs = config["nodes"]
-        nodes = [NodeObservation.from_config(config=n, session=session) for n in node_configs]
+        num_services_per_node = config["num_services_per_node"]
+        num_folders_per_node = config["num_folders_per_node"]
+        num_files_per_folder = config["num_files_per_folder"]
+        nodes = [NodeObservation.from_config(
+            config=n,
+            session=session,
+            num_services_per_node= num_services_per_node,
+            num_folders_per_node=num_folders_per_node,
+            num_files_per_folder=num_files_per_folder,
+            ) for n in node_configs]
 
         link_configs = config["links"]
         links = [LinkObservation.from_config(config=l, session=session) for l in link_configs]

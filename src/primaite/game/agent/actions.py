@@ -2,7 +2,7 @@ import itertools
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
-from gym import spaces
+from gymnasium import spaces
 
 from primaite import getLogger
 from primaite.simulator.sim_container import Simulation
