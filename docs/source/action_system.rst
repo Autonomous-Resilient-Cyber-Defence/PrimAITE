@@ -50,9 +50,9 @@ A simple example without chaining can be seen in the :py:class:`primaite.simulat
         ...
         def _init_request_manager(self):
             ...
-            request_manager.add_action("scan", Action(func=lambda request, context: self.scan()))
-            request_manager.add_action("repair", Action(func=lambda request, context: self.repair()))
-            request_manager.add_action("restore", Action(func=lambda request, context: self.restore()))
+            request_manager.add_request("scan", Action(func=lambda request, context: self.scan()))
+            request_manager.add_request("repair", Action(func=lambda request, context: self.repair()))
+            request_manager.add_request("restore", Action(func=lambda request, context: self.restore()))
 
 *ellipses (``...``) used to omit code impertinent to this explanation*
 
@@ -70,7 +70,7 @@ An example of how this works is in the :py:class:`primaite.simulator.network.har
         def _init_request_manager(self):
             ...
             # a regular action which is processed by the Node itself
-            request_manager.add_action("turn_on", Action(func=lambda request, context: self.turn_on()))
+            request_manager.add_request("turn_on", Action(func=lambda request, context: self.turn_on()))
 
             # if the Node receives a request where the first word is 'service', it will use a dummy manager
             # called self._service_request_manager to pass on the reqeust to the relevant service. This dummy
@@ -78,11 +78,11 @@ An example of how this works is in the :py:class:`primaite.simulator.network.har
             # done because the next string after "service" is always the uuid of that service, so we need an
             # RequestManager to pop that string before sending it onto the relevant service's RequestManager.
             self._service_request_manager = RequestManager()
-            request_manager.add_action("service", Action(func=self._service_request_manager))
+            request_manager.add_request("service", Action(func=self._service_request_manager))
             ...
 
         def install_service(self, service):
             self.services[service.uuid] = service
             ...
             # Here, the service UUID is registered to allow passing actions between the node and the service.
-            self._service_request_manager.add_action(service.uuid, Action(func=service._request_manager))
+            self._service_request_manager.add_request(service.uuid, Action(func=service._request_manager))

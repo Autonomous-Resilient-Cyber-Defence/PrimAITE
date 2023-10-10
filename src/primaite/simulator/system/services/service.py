@@ -45,7 +45,7 @@ class Service(IOSoftware):
 
     def _init_request_manager(self) -> RequestManager:
         am = super()._init_request_manager()
-        am.add_action("scan", RequestType(func=lambda request, context: self.scan()))
+        am.add_request("scan", RequestType(func=lambda request, context: self.scan()))
         am.add_request("stop", RequestType(func=lambda request, context: self.stop()))
         am.add_request("start", RequestType(func=lambda request, context: self.start()))
         am.add_request("pause", RequestType(func=lambda request, context: self.pause()))

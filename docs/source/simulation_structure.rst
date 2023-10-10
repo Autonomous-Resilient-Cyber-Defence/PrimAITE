@@ -51,7 +51,7 @@ snippet demonstrates usage of the ``ActionPermissionValidator``.
 
         def _init_request_manager(self) -> RequestManager:
             am = super()._init_request_manager()
-            am.add_action(
+            am.add_request(
                 "reset_factory_settings",
                 Action(
                     func = lambda request, context: self.reset_factory_settings(),
