@@ -1,8 +1,12 @@
 training_config:
   rl_framework: SB3
-  rl_algo: PPO
+  rl_algorithm: PPO
+  seed: 333
+  n_learn_episodes: 2
   n_learn_steps: 128
-  n_learn_episodes: 1000
+  n_eval_episodes: 2
+  n_eval_steps: 128
+
 
 game_config:
   ports:
