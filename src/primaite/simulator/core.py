@@ -112,9 +112,8 @@ class RequestManager(BaseModel):
         :type request_type: RequestType
         """
         if name in self.request_types:
-            msg = f"Attempted to register a request but the request name {name} is already taken."
-            _LOGGER.error(msg)
-            raise RuntimeError(msg)
+            msg = f"Overwriting request type {name}."
+            _LOGGER.warn(msg)
 
         self.request_types[name] = request_type
 
