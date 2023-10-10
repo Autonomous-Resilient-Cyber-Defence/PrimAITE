@@ -14,6 +14,7 @@ from primaite.environment.primaite_env import Primaite
 from primaite.primaite_session import PrimaiteSession
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.networks import arcd_uc2_network
+from primaite.simulator.system.core.sys_log import SysLog
 from tests.mock_and_patch.get_session_path_mock import get_temp_session_path
 
 ACTION_SPACE_NODE_VALUES = 1

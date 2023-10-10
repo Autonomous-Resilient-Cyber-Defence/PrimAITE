@@ -40,7 +40,7 @@ class Service(IOSoftware):
 
     restart_duration: int = 5
     "How many timesteps does it take to restart this service."
-    _restart_countdown: Optional[int] = None
+    restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
 
     def _init_request_manager(self) -> RequestManager:
@@ -65,7 +65,9 @@ class Service(IOSoftware):
         :rtype: Dict
         """
         state = super().describe_state()
-        state.update({"operating_state": self.operating_state.name})
+        state.update(
+            {"operating_state": self.operating_state.name, "visible_operating_state": self.visible_operating_state.name}
+        )
         return state
 
     def reset_component_for_episode(self, episode: int):
@@ -114,7 +116,7 @@ class Service(IOSoftware):
         if self.operating_state in [ServiceOperatingState.RUNNING, ServiceOperatingState.PAUSED]:
             self.sys_log.info(f"Pausing service {self.name}")
             self.operating_state = ServiceOperatingState.RESTARTING
-            self.restart_countdown = self.restarting_duration
+            self.restart_countdown = self.restart_duration
 
     def disable(self) -> None:
         """Disable the service."""

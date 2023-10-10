@@ -1,6 +1,6 @@
 import pytest
 
-from primaite.simulator.file_system.file_system import FileSystem
+from primaite.simulator.file_system.file_system import File, FileSystem, FileSystemItemStatus, Folder
 from primaite.simulator.file_system.file_type import FileType
 
 
@@ -133,6 +133,40 @@ def test_folder_quarantine_state(file_system):
 
     folder.unquarantine()
     assert folder.quarantine_status() is False
+
+
+def test_file_corrupt_repair(file_system):
+    """Test the ability to corrupt and repair files."""
+    folder: Folder = file_system.create_folder(folder_name="test_folder")
+    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    file.corrupt()
+
+    assert folder.status == FileSystemItemStatus.GOOD
+    assert file.status == FileSystemItemStatus.CORRUPTED
+
+    file.repair()
+
+    assert folder.status == FileSystemItemStatus.GOOD
+    assert file.status == FileSystemItemStatus.GOOD
+
+
+def test_folder_corrupt_repair(file_system):
+    """Test the ability to corrupt and repair folders."""
+    folder: Folder = file_system.create_folder(folder_name="test_folder")
+    file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    folder.corrupt()
+
+    file = folder.get_file(file_name="test_file.txt")
+    assert folder.status == FileSystemItemStatus.CORRUPTED
+    assert file.status == FileSystemItemStatus.CORRUPTED
+
+    folder.repair()
+
+    file = folder.get_file(file_name="test_file.txt")
+    assert folder.status == FileSystemItemStatus.GOOD
+    assert file.status == FileSystemItemStatus.GOOD
 
 
 @pytest.mark.skip(reason="Skipping until we tackle serialisation")

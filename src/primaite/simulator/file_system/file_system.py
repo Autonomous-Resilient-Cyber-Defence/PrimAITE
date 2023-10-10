@@ -3,6 +3,8 @@ from __future__ import annotations
 import math
 import os.path
 import shutil
+from abc import abstractmethod
+from enum import Enum
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -42,6 +44,19 @@ def convert_size(size_bytes: int) -> str:
     return f"{s} {size_name[i]}"
 
 
+class FileSystemItemStatus(Enum):
+    """Status of the FileSystemItem."""
+
+    GOOD = 0
+    """File/Folder is OK."""
+
+    QUARANTINED = 1
+    """File/Folder is quarantined."""
+
+    CORRUPTED = 2
+    """File/Folder is corrupted."""
+
+
 class FileSystemItemABC(SimComponent):
     """
     Abstract base class for file system items used in the file system simulation.
@@ -51,6 +66,12 @@ class FileSystemItemABC(SimComponent):
 
     name: str
     "The name of the FileSystemItemABC."
+
+    status: FileSystemItemStatus = FileSystemItemStatus.GOOD
+    "Actual status of the current FileSystemItem"
+
+    visible_status: FileSystemItemStatus = FileSystemItemStatus.GOOD
+    "Visible status of the current FileSystemItem"
 
     def describe_state(self) -> Dict:
         """
@@ -77,6 +98,32 @@ class FileSystemItemABC(SimComponent):
         :return: The human-readable string representation of the file size.
         """
         return convert_size(self.size)
+
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
+        am.add_request("scan", RequestType(func=lambda request, context: self.scan()))  # TODO implement request
+        am.add_request("checkhash", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("delete", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("restore", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("repair", RequestType(func=lambda request, context: self.repair()))
+        am.add_request("corrupt", RequestType(func=lambda request, context: self.corrupt()))
+        return am
+
+    def scan(self) -> None:
+        """Update the FileSystemItem states."""
+        super().scan()
+
+        self.visible_status = self.status
+
+    @abstractmethod
+    def repair(self) -> None:
+        """Repair the FileSystemItem."""
+        pass
+
+    @abstractmethod
+    def corrupt(self) -> None:
+        """Corrupt the FileSystemItem."""
+        pass
 
 
 class FileSystem(SimComponent):
@@ -329,20 +376,6 @@ class Folder(FileSystemItemABC):
     "Files stored in the folder."
     _files_by_name: Dict[str, File] = {}
     "Files by their name as <file name>.<file type>."
-    is_quarantined: bool = False
-    "Flag that marks the folder as quarantined if true."
-
-    def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
-
-        am.add_request("scan", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("checkhash", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("repair", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("restore", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("delete", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("corrupt", RequestType(func=lambda request, context: ...))  # TODO implement request
-
-        return am
 
     def describe_state(self) -> Dict:
         """
@@ -440,19 +473,49 @@ class Folder(FileSystemItemABC):
 
     def quarantine(self):
         """Quarantines the File System Folder."""
-        if not self.is_quarantined:
-            self.is_quarantined = True
+        if self.status != FileSystemItemStatus.QUARANTINED:
+            self.status = FileSystemItemStatus.QUARANTINED
             self.fs.sys_log.info(f"Quarantined folder ./{self.name}")
 
     def unquarantine(self):
         """Unquarantine of the File System Folder."""
-        if self.is_quarantined:
-            self.is_quarantined = False
+        if self.status == FileSystemItemStatus.QUARANTINED:
+            self.status = FileSystemItemStatus.GOOD
             self.fs.sys_log.info(f"Quarantined folder ./{self.name}")
 
     def quarantine_status(self) -> bool:
         """Returns true if the folder is being quarantined."""
-        return self.is_quarantined
+        return self.status == FileSystemItemStatus.QUARANTINED
+
+    def repair(self) -> None:
+        """Repair a corrupted Folder by setting the folder and containing files status to FileSystemItemStatus.GOOD."""
+        super().repair()
+
+        # iterate through the files in the folder
+        for file_id in self.files:
+            file = self.get_file_by_id(file_uuid=file_id)
+            file.repair()
+
+        # set file status to good if corrupt
+        if self.status == FileSystemItemStatus.CORRUPTED:
+            self.status = FileSystemItemStatus.GOOD
+
+        self.fs.sys_log.info(f"Repaired folder {self.name}")
+
+    def corrupt(self) -> None:
+        """Corrupt a File by setting the folder and containing files status to FileSystemItemStatus.CORRUPTED."""
+        super().corrupt()
+
+        # iterate through the files in the folder
+        for file_id in self.files:
+            file = self.get_file_by_id(file_uuid=file_id)
+            file.corrupt()
+
+        # set file status to good if corrupt
+        if self.status == FileSystemItemStatus.GOOD:
+            self.status = FileSystemItemStatus.CORRUPTED
+
+        self.fs.sys_log.info(f"Corrupted folder {self.name}")
 
 
 class File(FileSystemItemABC):
@@ -509,18 +572,6 @@ class File(FileSystemItemABC):
                 with open(self.sim_path, mode="a"):
                     pass
 
-    def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
-
-        am.add_request("scan", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("checkhash", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("delete", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("repair", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("restore", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("corrupt", RequestType(func=lambda request, context: ...))  # TODO implement request
-
-        return am
-
     def make_copy(self, dst_folder: Folder) -> File:
         """
         Create a copy of the current File object in the given destination folder.
@@ -556,3 +607,25 @@ class File(FileSystemItemABC):
         state["size"] = self.size
         state["file_type"] = self.file_type.name
         return state
+
+    def repair(self) -> None:
+        """Repair a corrupted File by setting the status to FileSystemItemStatus.GOOD."""
+        super().repair()
+
+        # set file status to good if corrupt
+        if self.status == FileSystemItemStatus.CORRUPTED:
+            self.status = FileSystemItemStatus.GOOD
+
+        path = self.folder.name + "/" + self.name
+        self.folder.fs.sys_log.info(f"Repaired file {self.sim_path if self.sim_path else path}")
+
+    def corrupt(self) -> None:
+        """Corrupt a File by setting the status to FileSystemItemStatus.CORRUPTED."""
+        super().corrupt()
+
+        # set file status to good if corrupt
+        if self.status == FileSystemItemStatus.GOOD:
+            self.status = FileSystemItemStatus.CORRUPTED
+
+        path = self.folder.name + "/" + self.name
+        self.folder.fs.sys_log.info(f"Corrupted file {self.sim_path if self.sim_path else path}")
