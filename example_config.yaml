@@ -445,7 +445,18 @@ game_config:
 
       reward_function:
         reward_components:
-          - type: DUMMY
+          - type: DATABASE_FILE_INTEGRITY
+            weight: 0.5
+            options:
+              node_ref: database_server
+              folder_name: database
+              file_name: database.db
+          - type: WEB_SERVER_404_PENALTY
+            weight: 0.5
+            options:
+              node_ref: web_server
+              service_ref: web_server_database_client
+
 
       agent_settings:
         # ...
