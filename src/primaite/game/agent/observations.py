@@ -487,7 +487,7 @@ class AclObservation(AbstractObservation):
     def space(self) -> spaces.Space:
         return spaces.Dict(
             {
-                "RULE": spaces.Dict(
+                "RULES": spaces.Dict(
                     {
                         i
                         + 1: spaces.Dict(
@@ -532,11 +532,11 @@ class NullObservation(AbstractObservation):
         self.default_observation: Dict = {}
 
     def observe(self, state: Dict) -> Dict:
-        return {}
+        return 0
 
     @property
     def space(self) -> spaces.Space:
-        return spaces.Dict({})
+        return spaces.Discrete(1)
 
     @classmethod
     def from_config(cls, config: Dict, session: Optional["PrimaiteSession"] = None) -> "NullObservation":
