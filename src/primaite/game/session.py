@@ -295,7 +295,7 @@ class PrimaiteSession:
 
             net.add_node(new_node)
             new_node.power_on()
-            sess.ref_map_nodes[node_ref] = new_node.uuid
+            sess.ref_map_nodes[node_ref] = new_node.uuid # TODO: fix incosistency with service and link. Node gets added by uuid, but service gets reference to object
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
@@ -350,7 +350,7 @@ class PrimaiteSession:
             action_space = ActionManager.from_config(sess, action_space_cfg)
 
             # CREATE REWARD FUNCTION
-            rew_function = RewardFunction.from_config(reward_function_cfg)
+            rew_function = RewardFunction.from_config(reward_function_cfg, session=sess)
 
             # CREATE AGENT
             if agent_type == "GreenWebBrowsingAgent":
