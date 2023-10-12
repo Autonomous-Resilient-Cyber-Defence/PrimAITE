@@ -169,6 +169,60 @@ def test_folder_corrupt_repair(file_system):
     assert file.status == FileSystemItemStatus.GOOD
 
 
+def test_simulated_file_check_hash(file_system):
+    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    assert file.check_hash() is True
+
+    # change simulated file size
+    file.sim_size = 0
+    assert file.check_hash() is False
+    assert file.status == FileSystemItemStatus.CORRUPTED
+
+
+def test_real_file_check_hash(file_system):
+    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder", real=True)
+
+    assert file.check_hash() is True
+
+    # change file content
+    with open(file.sim_path, "a") as f:
+        f.write("get hacked scrub lol xD\n")
+
+    assert file.check_hash() is False
+    assert file.status == FileSystemItemStatus.CORRUPTED
+
+
+def test_simulated_folder_check_hash(file_system):
+    folder: Folder = file_system.create_folder(folder_name="test_folder")
+    file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    assert folder.check_hash() is True
+
+    # change simulated file size
+    file = folder.get_file(file_name="test_file.txt")
+    file.sim_size = 0
+    assert folder.check_hash() is False
+    assert folder.status == FileSystemItemStatus.CORRUPTED
+
+
+def test_real_folder_check_hash(file_system):
+    folder: Folder = file_system.create_folder(folder_name="test_folder")
+    file_system.create_file(file_name="test_file.txt", folder_name="test_folder", real=True)
+
+    assert folder.check_hash() is True
+
+    # change simulated file size
+    file = folder.get_file(file_name="test_file.txt")
+
+    # change file content
+    with open(file.sim_path, "a") as f:
+        f.write("get hacked scrub lol xD\n")
+
+    assert folder.check_hash() is False
+    assert folder.status == FileSystemItemStatus.CORRUPTED
+
+
 @pytest.mark.skip(reason="Skipping until we tackle serialisation")
 def test_serialisation(file_system):
     """Test to check that the object serialisation works correctly."""

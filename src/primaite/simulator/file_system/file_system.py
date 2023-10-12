@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 import os.path
 import shutil
@@ -73,6 +75,9 @@ class FileSystemItemABC(SimComponent):
     visible_status: FileSystemItemStatus = FileSystemItemStatus.GOOD
     "Visible status of the current FileSystemItem"
 
+    previous_hash: Optional[str] = None
+    "Hash of the file contents or the description state"
+
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -102,7 +107,7 @@ class FileSystemItemABC(SimComponent):
     def _init_request_manager(self) -> RequestManager:
         am = super()._init_request_manager()
         am.add_request("scan", RequestType(func=lambda request, context: self.scan()))  # TODO implement request
-        am.add_request("checkhash", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("checkhash", RequestType(func=lambda request, context: self.checkhash()))
         am.add_request("delete", RequestType(func=lambda request, context: ...))  # TODO implement request
         am.add_request("restore", RequestType(func=lambda request, context: ...))  # TODO implement request
         am.add_request("repair", RequestType(func=lambda request, context: self.repair()))
@@ -114,6 +119,17 @@ class FileSystemItemABC(SimComponent):
         super().scan()
 
         self.visible_status = self.status
+
+    @abstractmethod
+    def check_hash(self) -> bool:
+        """
+        Checks the has of the file to detect any changes.
+
+        For current implementation, any change in file hash means it is compromised.
+
+        Return False if corruption is detected, otherwise True
+        """
+        pass
 
     @abstractmethod
     def repair(self) -> None:
@@ -517,6 +533,30 @@ class Folder(FileSystemItemABC):
 
         self.fs.sys_log.info(f"Corrupted folder {self.name}")
 
+    def check_hash(self) -> bool:
+        """
+        Runs a :func:`check_hash` on all files in the folder.
+
+        If a file under the folder is corrupted, the whole folder is considered corrupted.
+
+        TODO: For now this will just iterate through the files and run :func:`check_hash` and ignores
+        any other changes to the folder
+
+        Return False if corruption is detected, otherwise True
+        """
+        # iterate through the files and run a check hash
+        no_corrupted_files = True
+
+        for file_id in self.files:
+            file = self.get_file_by_id(file_uuid=file_id)
+            no_corrupted_files = file.check_hash()
+
+        # if one file in the folder is corrupted, set the folder status to corrupted
+        if not no_corrupted_files:
+            self.corrupt()
+
+        return no_corrupted_files
+
 
 class File(FileSystemItemABC):
     """
@@ -629,3 +669,36 @@ class File(FileSystemItemABC):
 
         path = self.folder.name + "/" + self.name
         self.folder.fs.sys_log.info(f"Corrupted file {self.sim_path if self.sim_path else path}")
+
+    def check_hash(self) -> bool:
+        """
+        Check if the file has been changed.
+
+        If changed, the file is considered corrupted.
+
+        Return False if corruption is detected, otherwise True
+        """
+        current_hash = None
+
+        # if file is real, read the file contents
+        if self.real:
+            with open(self.sim_path, "rb") as f:
+                file_hash = hashlib.blake2b()
+                while chunk := f.read(8192):
+                    file_hash.update(chunk)
+
+            current_hash = file_hash.hexdigest()
+        else:
+            # otherwise get describe_state dict and hash that
+            current_hash = hashlib.blake2b(json.dumps(self.describe_state(), sort_keys=True).encode()).hexdigest()
+
+        # if the previous hash is None, set the current hash to previous
+        if self.previous_hash is None:
+            self.previous_hash = current_hash
+
+        # if the previous hash and current hash do not match, mark file as corrupted
+        if self.previous_hash is not current_hash:
+            self.corrupt()
+            return False
+
+        return True
