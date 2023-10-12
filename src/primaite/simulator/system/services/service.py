@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Dict, Optional
 
 from primaite import getLogger
-from primaite.simulator.core import Action, ActionManager
+from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.system.software import IOSoftware
 
 _LOGGER = getLogger(__name__)
@@ -39,15 +39,15 @@ class Service(IOSoftware):
     _restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
 
-    def _init_action_manager(self) -> ActionManager:
-        am = super()._init_action_manager()
-        am.add_action("stop", Action(func=lambda request, context: self.stop()))
-        am.add_action("start", Action(func=lambda request, context: self.start()))
-        am.add_action("pause", Action(func=lambda request, context: self.pause()))
-        am.add_action("resume", Action(func=lambda request, context: self.resume()))
-        am.add_action("restart", Action(func=lambda request, context: self.restart()))
-        am.add_action("disable", Action(func=lambda request, context: self.disable()))
-        am.add_action("enable", Action(func=lambda request, context: self.enable()))
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
+        am.add_request("stop", RequestType(func=lambda request, context: self.stop()))
+        am.add_request("start", RequestType(func=lambda request, context: self.start()))
+        am.add_request("pause", RequestType(func=lambda request, context: self.pause()))
+        am.add_request("resume", RequestType(func=lambda request, context: self.resume()))
+        am.add_request("restart", RequestType(func=lambda request, context: self.restart()))
+        am.add_request("disable", RequestType(func=lambda request, context: self.disable()))
+        am.add_request("enable", RequestType(func=lambda request, context: self.enable()))
         return am
 
     def describe_state(self) -> Dict:

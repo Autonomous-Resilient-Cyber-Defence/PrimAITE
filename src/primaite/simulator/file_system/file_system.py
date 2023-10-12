@@ -9,7 +9,7 @@ from typing import Dict, Optional
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
-from primaite.simulator.core import SimComponent
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_type import FileType, get_file_type_from_extension
 from primaite.simulator.system.core.sys_log import SysLog
 
@@ -94,6 +94,17 @@ class FileSystem(SimComponent):
         if not self.folders:
             self.create_folder("root")
 
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
+
+        self._folder_request_manager = RequestManager()
+        am.add_request("folder", RequestType(func=self._folder_request_manager))
+
+        self._file_request_manager = RequestManager()
+        am.add_request("file", RequestType(func=self._file_request_manager))
+
+        return am
+
     @property
     def size(self) -> int:
         """
@@ -154,6 +165,7 @@ class FileSystem(SimComponent):
         self.folders[folder.uuid] = folder
         self._folders_by_name[folder.name] = folder
         self.sys_log.info(f"Created folder /{folder.name}")
+        self._folder_request_manager.add_request(folder.uuid, RequestType(func=folder._request_manager))
         return folder
 
     def delete_folder(self, folder_name: str):
@@ -172,6 +184,7 @@ class FileSystem(SimComponent):
             self.folders.pop(folder.uuid)
             self._folders_by_name.pop(folder.name)
             self.sys_log.info(f"Deleted folder /{folder.name} and its contents")
+            self._folder_request_manager.remove_request(folder.uuid)
         else:
             _LOGGER.debug(f"Cannot delete folder as it does not exist: {folder_name}")
 
@@ -213,6 +226,7 @@ class FileSystem(SimComponent):
         )
         folder.add_file(file)
         self.sys_log.info(f"Created file /{file.path}")
+        self._file_request_manager.add_request(file.uuid, RequestType(func=file._request_manager))
         return file
 
     def get_file(self, folder_name: str, file_name: str) -> Optional[File]:
@@ -240,6 +254,7 @@ class FileSystem(SimComponent):
             file = folder.get_file(file_name)
             if file:
                 folder.remove_file(file)
+                self._file_request_manager.remove_request(file.uuid)
                 self.sys_log.info(f"Deleted file /{file.path}")
 
     def move_file(self, src_folder_name: str, src_file_name: str, dst_folder_name: str):
@@ -316,6 +331,18 @@ class Folder(FileSystemItemABC):
     "Files by their name as <file name>.<file type>."
     is_quarantined: bool = False
     "Flag that marks the folder as quarantined if true."
+
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
+
+        am.add_request("scan", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("checkhash", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("repair", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("restore", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("delete", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("corrupt", RequestType(func=lambda request, context: ...))  # TODO implement request
+
+        return am
 
     def describe_state(self) -> Dict:
         """
@@ -481,6 +508,18 @@ class File(FileSystemItemABC):
                 self.sim_path.parent.mkdir(exist_ok=True, parents=True)
                 with open(self.sim_path, mode="a"):
                     pass
+
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
+
+        am.add_request("scan", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("checkhash", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("delete", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("repair", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("restore", RequestType(func=lambda request, context: ...))  # TODO implement request
+        am.add_request("corrupt", RequestType(func=lambda request, context: ...))  # TODO implement request
+
+        return am
 
     def make_copy(self, dst_folder: Folder) -> File:
         """

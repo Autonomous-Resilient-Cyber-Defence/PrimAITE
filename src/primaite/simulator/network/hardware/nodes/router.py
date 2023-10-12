@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
-from primaite.simulator.core import SimComponent
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.hardware.base import ARPCache, ICMP, NIC, Node
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
@@ -43,7 +43,7 @@ class ACLRule(SimComponent):
 
     def __str__(self) -> str:
         rule_strings = []
-        for key, value in self.model_dump(exclude={"uuid", "action_manager"}).items():
+        for key, value in self.model_dump(exclude={"uuid", "request_manager"}).items():
             if value is None:
                 value = "ANY"
             if isinstance(value, Enum):
@@ -86,6 +86,36 @@ class AccessControlList(SimComponent):
 
         super().__init__(**kwargs)
         self._acl = [None] * (self.max_acl_rules - 1)
+
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
+
+        # When the request reaches this action, it should now contain solely positional args for the 'add_rule' action.
+        # POSITIONAL ARGUMENTS:
+        # 0: action (str name of an ACLAction)
+        # 1: protocol (str name of an IPProtocol)
+        # 2: source ip address (str castable to IPV4Address (e.g. '10.10.1.2'))
+        # 3: source port (str name of a Port (e.g. "HTTP"))  # should we be using value, such as 80 or 443?
+        # 4: destination ip address (str castable to IPV4Address (e.g. '10.10.1.2'))
+        # 5: destination port (str name of a Port (e.g. "HTTP"))
+        # 6: position (int)
+        am.add_request(
+            "add_rule",
+            RequestType(
+                func=lambda request, context: self.add_rule(
+                    ACLAction[request[0]],
+                    IPProtocol[request[1]],
+                    IPv4Address[request[2]],
+                    Port[request[3]],
+                    IPv4Address[request[4]],
+                    Port[request[5]],
+                    int(request[6]),
+                )
+            ),
+        )
+
+        am.add_request("remove_rule", RequestType(func=lambda request, context: self.remove_rule(int(request[0]))))
+        return am
 
     def describe_state(self) -> Dict:
         """
@@ -595,6 +625,11 @@ class Router(Node):
 
         self.arp.nics = self.nics
         self.icmp.arp = self.arp
+
+    def _init_request_manager(self) -> RequestManager:
+        am = super()._init_request_manager()
+        am.add_request("acl", RequestType(func=self.acl._request_manager))
+        return am
 
     def _get_port_of_nic(self, target_nic: NIC) -> Optional[int]:
         """

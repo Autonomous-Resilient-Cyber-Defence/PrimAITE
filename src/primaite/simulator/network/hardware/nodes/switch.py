@@ -30,7 +30,7 @@ class Switch(Node):
         if not self.switch_ports:
             self.switch_ports = {i: SwitchPort() for i in range(1, self.num_ports + 1)}
         for port_num, port in self.switch_ports.items():
-            port.connected_node = self
+            port._connected_node = self
             port.parent = self
             port.port_num = port_num
 
@@ -113,7 +113,7 @@ class Switch(Node):
             _LOGGER.error(msg)
             raise NetworkError(msg)
 
-        if port.connected_link != link:
+        if port._connected_link != link:
             msg = f"The link does not match the connection at port number {port_number}"
             _LOGGER.error(msg)
             raise NetworkError(msg)
