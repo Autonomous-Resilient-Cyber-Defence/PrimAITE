@@ -44,16 +44,16 @@ class Service(IOSoftware):
     "If currently restarting, how many timesteps remain until the restart is finished."
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
-        am.add_request("scan", RequestType(func=lambda request, context: self.scan()))
-        am.add_request("stop", RequestType(func=lambda request, context: self.stop()))
-        am.add_request("start", RequestType(func=lambda request, context: self.start()))
-        am.add_request("pause", RequestType(func=lambda request, context: self.pause()))
-        am.add_request("resume", RequestType(func=lambda request, context: self.resume()))
-        am.add_request("restart", RequestType(func=lambda request, context: self.restart()))
-        am.add_request("disable", RequestType(func=lambda request, context: self.disable()))
-        am.add_request("enable", RequestType(func=lambda request, context: self.enable()))
-        return am
+        rm = super()._init_request_manager()
+        rm.add_request("scan", RequestType(func=lambda request, context: self.scan()))
+        rm.add_request("stop", RequestType(func=lambda request, context: self.stop()))
+        rm.add_request("start", RequestType(func=lambda request, context: self.start()))
+        rm.add_request("pause", RequestType(func=lambda request, context: self.pause()))
+        rm.add_request("resume", RequestType(func=lambda request, context: self.resume()))
+        rm.add_request("restart", RequestType(func=lambda request, context: self.restart()))
+        rm.add_request("disable", RequestType(func=lambda request, context: self.disable()))
+        rm.add_request("enable", RequestType(func=lambda request, context: self.enable()))
+        return rm
 
     def describe_state(self) -> Dict:
         """

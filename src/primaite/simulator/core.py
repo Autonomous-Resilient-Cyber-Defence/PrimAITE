@@ -173,9 +173,9 @@ class SimComponent(BaseModel):
 
             class WebBrowser(Application):
             def _init_request_manager(self) -> RequestManager:
-                am = super()._init_request_manager() # all requests generic to any Application get initialised
-                am.add_request(...) # initialise any requests specific to the web browser
-                return am
+                rm = super()._init_request_manager() # all requests generic to any Application get initialised
+                rm.add_request(...) # initialise any requests specific to the web browser
+                return rm
 
         :return: Request manager object belonging to this sim component.
         :rtype: RequestManager

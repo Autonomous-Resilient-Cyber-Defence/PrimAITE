@@ -105,14 +105,14 @@ class FileSystemItemABC(SimComponent):
         return convert_size(self.size)
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
-        am.add_request("scan", RequestType(func=lambda request, context: self.scan()))  # TODO implement request
-        am.add_request("checkhash", RequestType(func=lambda request, context: self.checkhash()))
-        am.add_request("delete", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("restore", RequestType(func=lambda request, context: ...))  # TODO implement request
-        am.add_request("repair", RequestType(func=lambda request, context: self.repair()))
-        am.add_request("corrupt", RequestType(func=lambda request, context: self.corrupt()))
-        return am
+        rm = super()._init_request_manager()
+        rm.add_request("scan", RequestType(func=lambda request, context: self.scan()))
+        rm.add_request("checkhash", RequestType(func=lambda request, context: self.checkhash()))
+        rm.add_request("delete", RequestType(func=lambda request, context: self.delete()))
+        rm.add_request("restore", RequestType(func=lambda request, context: self.restore()))
+        rm.add_request("repair", RequestType(func=lambda request, context: self.repair()))
+        rm.add_request("corrupt", RequestType(func=lambda request, context: self.corrupt()))
+        return rm
 
     def scan(self) -> None:
         """Update the FileSystemItem states."""
@@ -158,15 +158,15 @@ class FileSystem(SimComponent):
             self.create_folder("root")
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
+        rm = super()._init_request_manager()
 
         self._folder_request_manager = RequestManager()
-        am.add_request("folder", RequestType(func=self._folder_request_manager))
+        rm.add_request("folder", RequestType(func=self._folder_request_manager))
 
         self._file_request_manager = RequestManager()
-        am.add_request("file", RequestType(func=self._file_request_manager))
+        rm.add_request("file", RequestType(func=self._file_request_manager))
 
-        return am
+        return rm
 
     @property
     def size(self) -> int:

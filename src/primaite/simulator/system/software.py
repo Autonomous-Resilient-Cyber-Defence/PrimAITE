@@ -88,15 +88,15 @@ class Software(SimComponent):
     "The folder on the file system the Software uses."
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
-        am.add_request(
+        rm = super()._init_request_manager()
+        rm.add_request(
             "compromise",
             RequestType(
                 func=lambda request, context: self.set_health_state(SoftwareHealthState.COMPROMISED),
             ),
         )
-        am.add_request("scan", RequestType(func=lambda request, context: self.scan()))
-        return am
+        rm.add_request("scan", RequestType(func=lambda request, context: self.scan()))
+        return rm
 
     def _get_session_details(self, session_id: str) -> Session:
         """

@@ -145,12 +145,12 @@ class NIC(SimComponent):
         return state
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
+        rm = super()._init_request_manager()
 
-        am.add_request("enable", RequestType(func=lambda request, context: self.enable()))
-        am.add_request("disable", RequestType(func=lambda request, context: self.disable()))
+        rm.add_request("enable", RequestType(func=lambda request, context: self.enable()))
+        rm.add_request("disable", RequestType(func=lambda request, context: self.disable()))
 
-        return am
+        return rm
 
     @property
     def ip_network(self) -> IPv4Network:
@@ -951,30 +951,30 @@ class Node(SimComponent):
     def _init_request_manager(self) -> RequestManager:
         # TODO: I see that this code is really confusing and hard to read right now... I think some of these things will
         # need a better name and better documentation.
-        am = super()._init_request_manager()
+        rm = super()._init_request_manager()
         # since there are potentially many services, create an request manager that can map service name
         self._service_request_manager = RequestManager()
-        am.add_request("service", RequestType(func=self._service_request_manager))
+        rm.add_request("service", RequestType(func=self._service_request_manager))
         self._nic_request_manager = RequestManager()
-        am.add_request("nic", RequestType(func=self._nic_request_manager))
+        rm.add_request("nic", RequestType(func=self._nic_request_manager))
 
-        am.add_request("file_system", RequestType(func=self.file_system._request_manager))
+        rm.add_request("file_system", RequestType(func=self.file_system._request_manager))
 
         # currently we don't have any applications nor processes, so these will be empty
         self._process_request_manager = RequestManager()
-        am.add_request("process", RequestType(func=self._process_request_manager))
+        rm.add_request("process", RequestType(func=self._process_request_manager))
         self._application_request_manager = RequestManager()
-        am.add_request("application", RequestType(func=self._application_request_manager))
+        rm.add_request("application", RequestType(func=self._application_request_manager))
 
-        am.add_request("scan", RequestType(func=lambda request, context: ...))  # TODO implement OS scan
+        rm.add_request("scan", RequestType(func=lambda request, context: ...))  # TODO implement OS scan
 
-        am.add_request("shutdown", RequestType(func=lambda request, context: self.power_off()))
-        am.add_request("startup", RequestType(func=lambda request, context: self.power_on()))
-        am.add_request("reset", RequestType(func=lambda request, context: ...))  # TODO implement node reset
-        am.add_request("logon", RequestType(func=lambda request, context: ...))  # TODO implement logon request
-        am.add_request("logoff", RequestType(func=lambda request, context: ...))  # TODO implement logoff request
+        rm.add_request("shutdown", RequestType(func=lambda request, context: self.power_off()))
+        rm.add_request("startup", RequestType(func=lambda request, context: self.power_on()))
+        rm.add_request("reset", RequestType(func=lambda request, context: ...))  # TODO implement node reset
+        rm.add_request("logon", RequestType(func=lambda request, context: ...))  # TODO implement logon request
+        rm.add_request("logoff", RequestType(func=lambda request, context: ...))  # TODO implement logoff request
 
-        return am
+        return rm
 
     def _install_system_software(self):
         """Install System Software - software that is usually provided with the OS."""
