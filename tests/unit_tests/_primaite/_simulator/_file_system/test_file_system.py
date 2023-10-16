@@ -44,6 +44,7 @@ def test_delete_file(file_system):
     file_system.delete_file(folder_name="root", file_name="test_file.txt")
     assert len(file_system.folders) == 1
     assert len(file_system.get_folder("root").files) == 0
+    assert len(file_system.get_folder("root").deleted_files) == 1
 
 
 def test_delete_non_existent_file(file_system):
@@ -69,6 +70,7 @@ def test_delete_folder(file_system):
 
     file_system.delete_folder(folder_name="test_folder")
     assert len(file_system.folders) == 1
+    assert len(file_system.deleted_folders) == 1
 
 
 def test_deleting_a_non_existent_folder(file_system):
@@ -95,11 +97,13 @@ def test_move_file(file_system):
     original_uuid = file.uuid
 
     assert len(file_system.get_folder("src_folder").files) == 1
+    assert len(file_system.get_folder("src_folder").deleted_files) == 0
     assert len(file_system.get_folder("dst_folder").files) == 0
 
     file_system.move_file(src_folder_name="src_folder", src_file_name="test_file.txt", dst_folder_name="dst_folder")
 
     assert len(file_system.get_folder("src_folder").files) == 0
+    assert len(file_system.get_folder("src_folder").deleted_files) == 1
     assert len(file_system.get_folder("dst_folder").files) == 1
     assert file_system.get_file("dst_folder", "test_file.txt").uuid == original_uuid
 
@@ -167,6 +171,73 @@ def test_folder_corrupt_repair(file_system):
     file = folder.get_file(file_name="test_file.txt")
     assert folder.status == FileSystemItemStatus.GOOD
     assert file.status == FileSystemItemStatus.GOOD
+
+
+def test_file_scan(file_system):
+    """Test the ability to update visible status."""
+    folder: Folder = file_system.create_folder(folder_name="test_folder")
+    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    assert file.status == FileSystemItemStatus.GOOD
+    assert file.visible_status == FileSystemItemStatus.GOOD
+
+    file.corrupt()
+
+    assert file.status == FileSystemItemStatus.CORRUPTED
+    assert file.visible_status == FileSystemItemStatus.GOOD
+
+    file.scan()
+
+    assert file.status == FileSystemItemStatus.CORRUPTED
+    assert file.visible_status == FileSystemItemStatus.CORRUPTED
+
+
+def test_folder_scan(file_system):
+    """Test the ability to update visible status."""
+    folder: Folder = file_system.create_folder(folder_name="test_folder")
+    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    assert folder.status == FileSystemItemStatus.GOOD
+    assert folder.visible_status == FileSystemItemStatus.GOOD
+    assert file.status == FileSystemItemStatus.GOOD
+    assert file.visible_status == FileSystemItemStatus.GOOD
+
+    folder.corrupt()
+
+    assert folder.status == FileSystemItemStatus.CORRUPTED
+    assert folder.visible_status == FileSystemItemStatus.GOOD
+    assert file.status == FileSystemItemStatus.CORRUPTED
+    assert file.visible_status == FileSystemItemStatus.GOOD
+
+    folder.scan()
+
+    assert folder.status == FileSystemItemStatus.CORRUPTED
+    assert folder.visible_status == FileSystemItemStatus.CORRUPTED
+    assert file.status == FileSystemItemStatus.CORRUPTED
+    assert file.visible_status == FileSystemItemStatus.CORRUPTED
+
+
+def test_file_delete_restore(file_system):
+    """Test the ability to delete and restore a file."""
+    folder: Folder = file_system.create_folder(folder_name="test_folder")
+    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    assert file.status == FileSystemItemStatus.GOOD
+    assert file.visible_status == FileSystemItemStatus.GOOD
+
+    file_system.delete_file(folder_name=folder.name, file_name=file.name)
+
+    assert folder.get_file(file_name=file.name) is None
+    assert folder.get_file_by_id(file_uuid=file.uuid, show_deleted=True).status == FileSystemItemStatus.DELETED
+
+    file_system.restore_file(folder_id=folder.uuid, file_id=file.uuid)
+
+    assert file.status == FileSystemItemStatus.GOOD
+    assert folder.get_file(file_name=file.name) is not None
+
+
+def test_folder_delete_restore(file_system):
+    pass
 
 
 def test_simulated_file_check_hash(file_system):
