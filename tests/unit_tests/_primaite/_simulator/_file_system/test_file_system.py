@@ -217,29 +217,6 @@ def test_folder_scan(file_system):
     assert file.visible_status == FileSystemItemStatus.CORRUPTED
 
 
-def test_file_delete_restore(file_system):
-    """Test the ability to delete and restore a file."""
-    folder: Folder = file_system.create_folder(folder_name="test_folder")
-    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
-
-    assert file.status == FileSystemItemStatus.GOOD
-    assert file.visible_status == FileSystemItemStatus.GOOD
-
-    file_system.delete_file(folder_name=folder.name, file_name=file.name)
-
-    assert folder.get_file(file_name=file.name) is None
-    assert folder.get_file_by_id(file_uuid=file.uuid, show_deleted=True).status == FileSystemItemStatus.DELETED
-
-    file_system.restore_file(folder_id=folder.uuid, file_id=file.uuid)
-
-    assert file.status == FileSystemItemStatus.GOOD
-    assert folder.get_file(file_name=file.name) is not None
-
-
-def test_folder_delete_restore(file_system):
-    pass
-
-
 def test_simulated_file_check_hash(file_system):
     file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
 

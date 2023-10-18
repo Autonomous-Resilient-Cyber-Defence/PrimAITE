@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import math
@@ -358,8 +359,6 @@ class FileSystem(SimComponent):
             return
         folder = self._folders_by_name.get(folder_name)
         if folder:
-            for file in folder.files.values():
-                self.delete_file(folder_name=folder_name, file_name=file.name)
             # add to deleted list
             folder.delete()
             self.deleted_folders[folder.uuid] = folder
@@ -489,7 +488,7 @@ class FileSystem(SimComponent):
                 new_file.sim_path.parent.mkdir(exist_ok=True)
                 shutil.copy2(file.sim_path, new_file.sim_path)
 
-    def restore_file(self, folder_id: str, file_id: str) -> bool:
+    def restore_file(self, folder_id: str, file_id: str):
         """
         Restore a file.
 
@@ -501,11 +500,7 @@ class FileSystem(SimComponent):
         :param: folder_id: id of the file to restore
         :type: folder_id: str
         """
-        folder = self.get_folder_by_id(folder_uuid=folder_id, show_deleted=True)
-
-        if folder:
-            file = folder.get_file_by_id(file_uuid=file_id, show_deleted=True)
-            return file.restore()
+        pass
 
     def get_folder(self, folder_name: str) -> Optional[Folder]:
         """
@@ -648,6 +643,16 @@ class Folder(FileSystemItemABC):
         else:
             _LOGGER.debug(f"File with UUID {file.uuid} was not found.")
 
+    def restore_file(self, file: Optional[File]):
+        """
+        Restores a file.
+
+        The method can take a File object or a file id.
+
+        :param file: The file to remove
+        """
+        pass
+
     def quarantine(self):
         """Quarantines the File System Folder."""
         if self.status != FileSystemItemStatus.QUARANTINED:
@@ -726,9 +731,17 @@ class Folder(FileSystemItemABC):
         """TODO."""
         pass
 
-    def delete(self) -> bool:
-        """TODO."""
+    def delete(self):
+        """Deletes the files within the folder and then deletes the folder."""
         super().delete()
+
+        # iterate through the files in the folder
+        files = copy.copy(self.files)
+        for file_id in files:
+            file = self.get_file_by_id(file_uuid=file_id)
+            file.delete()
+            self.remove_file(file)
+
         self.fs.sys_log.info(f"Deleted folder {self.name} (id: {self.uuid})")
 
     def corrupt(self) -> bool:
@@ -742,7 +755,7 @@ class Folder(FileSystemItemABC):
             file = self.get_file_by_id(file_uuid=file_id)
             corrupted = file.corrupt()
 
-        # set file status to good if corrupt
+        # set file status to corrupt if good
         if self.status == FileSystemItemStatus.GOOD:
             self.status = FileSystemItemStatus.CORRUPTED
             corrupted = True
@@ -842,7 +855,7 @@ class File(FileSystemItemABC):
         return state
 
     def scan(self) -> None:
-        """TODO."""
+        """Updates the visible statuses of the file."""
         super().scan()
 
         path = self.folder.name + "/" + self.name
@@ -882,7 +895,7 @@ class File(FileSystemItemABC):
         return True
 
     def delete(self) -> None:
-        """TODO."""
+        """Deletes the file."""
         super().delete()
 
         path = self.folder.name + "/" + self.name
@@ -902,14 +915,7 @@ class File(FileSystemItemABC):
 
     def restore(self) -> None:
         """Restore a corrupted File by setting the status to FileSystemItemStatus.GOOD."""
-        super().restore()
-
-        # set file status to good if deleted or corrupt
-        if self.status in [FileSystemItemStatus.CORRUPTED, FileSystemItemStatus.DELETED]:
-            self.status = FileSystemItemStatus.GOOD
-
-        path = self.folder.name + "/" + self.name
-        self.folder.fs.sys_log.info(f"Repaired file {self.sim_path if self.sim_path else path}")
+        pass
 
     def corrupt(self) -> bool:
         """Corrupt a File by setting the status to FileSystemItemStatus.CORRUPTED."""

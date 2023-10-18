@@ -110,11 +110,9 @@ Clone & Install PrimAITE for Development
 To be able to extend PrimAITE further, or to build wheels manually before install, clone the repository to a location
 of your choice:
 
-.. TODO:: Add repo path once we know what it is
-
 .. code-block:: bash
 
-    git clone <repo path>
+    git clone https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE
     cd primaite
 
 Create and activate your Python virtual environment (venv)
