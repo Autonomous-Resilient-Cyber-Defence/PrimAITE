@@ -1,6 +1,6 @@
 """PrimAITE session - the main entry point to training agents on PrimAITE."""
 from ipaddress import IPv4Address
-from typing import Any, Dict, List, Never, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from arcd_gate.client.gate_client import ActType, GATEClient
 from gymnasium import spaces
@@ -187,7 +187,7 @@ class PrimaiteSession:
         self.gate_client: PrimaiteGATEClient = PrimaiteGATEClient(self)
         """Reference to a GATE Client object, which will send data to GATE service for training RL agent."""
 
-    def start_session(self) -> Never:
+    def start_session(self) -> None:
         """Commence the training session, this gives the GATE client control over the simulation/agent loop."""
         self.gate_client.start()
 
