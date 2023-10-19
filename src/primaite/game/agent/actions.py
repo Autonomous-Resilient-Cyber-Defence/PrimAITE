@@ -695,14 +695,14 @@ class ActionManager:
         return {i: p for i, p in enumerate(all_action_possibilities)}
 
     def get_action(self, action: int) -> Tuple[str, Dict]:
-        """Produce action in CAOS format"""
+        """Produce action in CAOS format."""
         """the agent chooses an action (as an integer), this is converted into an action in CAOS format"""
         """The caos format is basically a action identifier, followed by parameters stored in a dictionary"""
         act_identifier, act_options = self.action_map[action]
         return act_identifier, act_options
 
-    def form_request(self, action_identifier: str, action_options: Dict):
-        """Take action in CAOS format and use the execution definition to change it into PrimAITE request format"""
+    def form_request(self, action_identifier: str, action_options: Dict) -> List[str]:
+        """Take action in CAOS format and use the execution definition to change it into PrimAITE request format."""
         act_obj = self.actions[action_identifier]
         return act_obj.form_request(**action_options)
 
@@ -712,7 +712,8 @@ class ActionManager:
         return spaces.Discrete(len(self.action_map))
 
     def get_node_uuid_by_idx(self, node_idx: int) -> str:
-        """Get the node UUID corresponding to the given index.
+        """
+        Get the node UUID corresponding to the given index.
 
         :param node_idx: The index of the node to retrieve.
         :type node_idx: int
@@ -722,7 +723,8 @@ class ActionManager:
         return self.node_uuids[node_idx]
 
     def get_folder_uuid_by_idx(self, node_idx: int, folder_idx: int) -> Optional[str]:
-        """Get the folder UUID corresponding to the given node and folder indices.
+        """
+        Get the folder UUID corresponding to the given node and folder indices.
 
         :param node_idx: The index of the node.
         :type node_idx: int
@@ -731,7 +733,6 @@ class ActionManager:
         :return: The UUID of the folder. Or None if the node has fewer folders than the given index.
         :rtype: Optional[str]
         """
-
         node_uuid = self.get_node_uuid_by_idx(node_idx)
         node = self.sim.network.nodes[node_uuid]
         folder_uuids = list(node.file_system.folders.keys())

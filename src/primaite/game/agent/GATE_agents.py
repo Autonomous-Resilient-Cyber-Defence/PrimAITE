@@ -1,9 +1,13 @@
+# flake8: noqa
 from typing import Dict, Optional, Tuple
+
+from gymnasium.core import ActType, ObsType
+
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractGATEAgent, ObsType
 from primaite.game.agent.observations import ObservationSpace
 from primaite.game.agent.rewards import RewardFunction
-from gymnasium.core import ActType, ObsType
+
 
 class GATERLAgent(AbstractGATEAgent):
     ...
@@ -13,7 +17,13 @@ class GATERLAgent(AbstractGATEAgent):
     # For example MultiAgentEnv in Ray allows sending a dict of observations of multiple agents, then it will reply
     # with the actions for those agents.
 
-    def __init__(self, agent_name: str | None, action_space: ActionManager | None, observation_space: ObservationSpace | None, reward_function: RewardFunction | None) -> None:
+    def __init__(
+        self,
+        agent_name: str | None,
+        action_space: ActionManager | None,
+        observation_space: ObservationSpace | None,
+        reward_function: RewardFunction | None,
+    ) -> None:
         super().__init__(agent_name, action_space, observation_space, reward_function)
         self.most_recent_action: ActType
 

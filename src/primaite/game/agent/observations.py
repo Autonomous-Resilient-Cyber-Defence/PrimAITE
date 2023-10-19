@@ -1,12 +1,12 @@
+"""Manages the observation space for the agent."""
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Hashable, List, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from gymnasium import spaces
-from pydantic import BaseModel
 
-from primaite.simulator.sim_container import Simulation
-from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 from primaite import getLogger
+from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+
 _LOGGER = getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -14,22 +14,25 @@ if TYPE_CHECKING:
 
 
 class AbstractObservation(ABC):
+    """Abstract class for an observation space component."""
+
     @abstractmethod
     def observe(self, state: Dict) -> Any:
-        """_summary_
+        """
+        Return an observation based on the current state of the simulation.
 
-        :param state: _description_
+        :param state: Simulation state dictionary
         :type state: Dict
-        :return: _description_
+        :return: Observation
         :rtype: Any
         """
-        ...
+        pass
 
     @property
     @abstractmethod
     def space(self) -> spaces.Space:
-        """Subclasses must define the shape that they expect"""
-        ...
+        """Gymnasium space object describing the observation space."""
+        pass
 
     @classmethod
     @abstractmethod
@@ -39,12 +42,15 @@ class AbstractObservation(ABC):
         The `session` parameter is for a the PrimaiteSession object that spawns this component. During deserialisation,
         a subclass of this class may need to translate from a 'reference' to a UUID.
         """
+        pass
 
 
 class FileObservation(AbstractObservation):
+    """Observation of a file on a node in the network."""
+
     def __init__(self, where: Optional[Tuple[str]] = None) -> None:
         """
-        _summary_
+        Initialise file observation.
 
         :param where: Store information about where in the simulation state dictionary to find the relevatn information.
             Optional. If None, this corresponds that the file does not exist and the observation will be populated with
@@ -60,6 +66,13 @@ class FileObservation(AbstractObservation):
         "Default observation is what should be returned when the file doesn't exist, e.g. after it has been deleted."
 
     def observe(self, state: Dict) -> Dict:
+        """Generate observation based on the current state of the simulation.
+
+        :param state: Simulation state dictionary
+        :type state: Dict
+        :return: Observation
+        :rtype: Dict
+        """
         if self.where is None:
             return self.default_observation
         file_state = access_from_nested_dict(state, self.where)
@@ -69,19 +82,38 @@ class FileObservation(AbstractObservation):
 
     @property
     def space(self) -> spaces.Space:
+        """Gymnasium space object describing the observation space shape.
+
+        :return: Gymnasium space
+        :rtype: spaces.Space
+        """
         return spaces.Dict({"health_status": spaces.Discrete(6)})
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where=None):
+    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where: List[str] = None) -> "FileObservation":
+        """Create file observation from a config.
+
+        :param config: Dictionary containing the configuration for this file observation.
+        :type config: Dict
+        :param session: _description_
+        :type session: PrimaiteSession
+        :param parent_where: _description_, defaults to None
+        :type parent_where: _type_, optional
+        :return: _description_
+        :rtype: _type_
+        """
         return cls(where=parent_where + ["files", config["file_name"]])
 
 
 class ServiceObservation(AbstractObservation):
+    """Observation of a service in the network."""
+
     default_observation: spaces.Space = {"operating_status": 0, "health_status": 0}
     "Default observation is what should be returned when the service doesn't exist."
 
     def __init__(self, where: Optional[Tuple[str]] = None) -> None:
-        """
+        """Initialise service observation.
+
         :param where: Store information about where in the simulation state dictionary to find the relevant information.
             Optional. If None, this corresponds that the file does not exist and the observation will be populated with
             zeroes.
@@ -94,6 +126,13 @@ class ServiceObservation(AbstractObservation):
         self.where: Optional[Tuple[str]] = where
 
     def observe(self, state: Dict) -> Dict:
+        """Generate observation based on the current state of the simulation.
+
+        :param state: Simulation state dictionary
+        :type state: Dict
+        :return: Observation
+        :rtype: Dict
+        """
         if self.where is None:
             return self.default_observation
 
@@ -104,19 +143,36 @@ class ServiceObservation(AbstractObservation):
 
     @property
     def space(self) -> spaces.Space:
+        """Gymnasium space object describing the observation space shape."""
         return spaces.Dict({"operating_status": spaces.Discrete(7), "health_status": spaces.Discrete(6)})
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]] = None):
+    def from_config(
+        cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]] = None
+    ) -> "ServiceObservation":
+        """Create service observation from a config.
+
+        :param config: Dictionary containing the configuration for this service observation.
+        :type config: Dict
+        :param session: Reference to the PrimaiteSession object that spawned this observation.
+        :type session: PrimaiteSession
+        :param parent_where: Where in the simulation state dictionary this service's parent node is located. Optional.
+        :type parent_where: Optional[List[str]], optional
+        :return: Constructed service observation
+        :rtype: ServiceObservation
+        """
         return cls(where=parent_where + ["services", session.ref_map_services[config["service_ref"]].uuid])
 
 
 class LinkObservation(AbstractObservation):
+    """Observation of a link in the network."""
+
     default_observation: spaces.Space = {"protocols": {"all": {"load": 0}}}
     "Default observation is what should be returned when the link doesn't exist."
 
     def __init__(self, where: Optional[Tuple[str]] = None) -> None:
-        """
+        """Initialise link observation.
+
         :param where: Store information about where in the simulation state dictionary to find the relevant information.
             Optional. If None, this corresponds that the file does not exist and the observation will be populated with
             zeroes.
@@ -129,6 +185,13 @@ class LinkObservation(AbstractObservation):
         self.where: Optional[Tuple[str]] = where
 
     def observe(self, state: Dict) -> Dict:
+        """Generate observation based on the current state of the simulation.
+
+        :param state: Simulation state dictionary
+        :type state: Dict
+        :return: Observation
+        :rtype: Dict
+        """
         if self.where is None:
             return self.default_observation
 
@@ -147,15 +210,33 @@ class LinkObservation(AbstractObservation):
 
     @property
     def space(self) -> spaces.Space:
+        """Gymnasium space object describing the observation space shape.
+
+        :return: Gymnasium space
+        :rtype: spaces.Space
+        """
         return spaces.Dict({"protocols": spaces.Dict({"all": spaces.Dict({"load": spaces.Discrete(11)})})})
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession"):
+    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "LinkObservation":
+        """Create link observation from a config.
+
+        :param config: Dictionary containing the configuration for this link observation.
+        :type config: Dict
+        :param session: Reference to the PrimaiteSession object that spawned this observation.
+        :type session: PrimaiteSession
+        :return: Constructed link observation
+        :rtype: LinkObservation
+        """
         return cls(where=["network", "links", session.ref_map_links[config["link_ref"]]])
 
 
 class FolderObservation(AbstractObservation):
-    def __init__(self, where: Optional[Tuple[str]] = None, files: List[FileObservation] = [], num_files_per_folder:int=2) -> None:
+    """Folder observation, including files inside of the folder."""
+
+    def __init__(
+        self, where: Optional[Tuple[str]] = None, files: List[FileObservation] = [], num_files_per_folder: int = 2
+    ) -> None:
         """Initialise folder Observation, including files inside of the folder.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this folder.
@@ -179,7 +260,7 @@ class FolderObservation(AbstractObservation):
         self.files: List[FileObservation] = files
         while len(self.files) < num_files_per_folder:
             self.files.append(FileObservation())
-        while len(self.files)> num_files_per_folder:
+        while len(self.files) > num_files_per_folder:
             truncated_file = self.files.pop()
             msg = f"Too many files in folde observation. Truncating file {truncated_file}"
             _LOGGER.warn(msg)
@@ -191,6 +272,13 @@ class FolderObservation(AbstractObservation):
         }
 
     def observe(self, state: Dict) -> Dict:
+        """Generate observation based on the current state of the simulation.
+
+        :param state: Simulation state dictionary
+        :type state: Dict
+        :return: Observation
+        :rtype: Dict
+        """
         if self.where is None:
             return self.default_observation
         folder_state = access_from_nested_dict(state, self.where)
@@ -208,6 +296,11 @@ class FolderObservation(AbstractObservation):
 
     @property
     def space(self) -> spaces.Space:
+        """Gymnasium space object describing the observation space shape.
+
+        :return: Gymnasium space
+        :rtype: spaces.Space
+        """
         return spaces.Dict(
             {
                 "health_status": spaces.Discrete(6),
@@ -216,7 +309,26 @@ class FolderObservation(AbstractObservation):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]], num_files_per_folder:int=2):
+    def from_config(
+        cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]], num_files_per_folder: int = 2
+    ) -> "FolderObservation":
+        """Create folder observation from a config. Also creates child file observations.
+
+        :param config: Dictionary containing the configuration for this folder observation. Includes the name of the
+            folder and the files inside of it.
+        :type config: Dict
+        :param session: Reference to the PrimaiteSession object that spawned this observation.
+        :type session: PrimaiteSession
+        :param parent_where: Where in the simulation state dictionary to find the information about this folder's
+            parent node. A typical location for a node ``where`` can be:
+            ['network','nodes',<node_uuid>,'file_system']
+        :type parent_where: Optional[List[str]]
+        :param num_files_per_folder: How many spaces for files are in this folder observation (to preserve static
+            observation size) , defaults to 2
+        :type num_files_per_folder: int, optional
+        :return: Constructed folder observation
+        :rtype: FolderObservation
+        """
         where = parent_where + ["folders", config["folder_name"]]
 
         file_configs = config["files"]
@@ -226,13 +338,30 @@ class FolderObservation(AbstractObservation):
 
 
 class NicObservation(AbstractObservation):
+    """Observation of a Network Interface Card (NIC) in the network."""
+
     default_observation: spaces.Space = {"nic_status": 0}
 
     def __init__(self, where: Optional[Tuple[str]] = None) -> None:
+        """Initialise NIC observation.
+
+        :param where: Where in the simulation state dictionary to find the relevant information for this NIC. A typical
+            example may look like this:
+            ['network','nodes',<node_uuid>,'NICs',<nic_uuid>]
+            If None, this denotes that the NIC does not exist and the observation will be populated with zeroes.
+        :type where: Optional[Tuple[str]], optional
+        """
         super().__init__()
         self.where: Optional[Tuple[str]] = where
 
     def observe(self, state: Dict) -> Dict:
+        """Generate observation based on the current state of the simulation.
+
+        :param state: Simulation state dictionary
+        :type state: Dict
+        :return: Observation
+        :rtype: Dict
+        """
         if self.where is None:
             return self.default_observation
         nic_state = access_from_nested_dict(state, self.where)
@@ -243,14 +372,31 @@ class NicObservation(AbstractObservation):
 
     @property
     def space(self) -> spaces.Space:
+        """Gymnasium space object describing the observation space shape."""
         return spaces.Dict({"nic_status": spaces.Discrete(3)})
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]]):
+    def from_config(
+        cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]]
+    ) -> "NicObservation":
+        """Create NIC observation from a config.
+
+        :param config: Dictionary containing the configuration for this NIC observation.
+        :type config: Dict
+        :param session: Reference to the PrimaiteSession object that spawned this observation.
+        :type session: PrimaiteSession
+        :param parent_where: Where in the simulation state dictionary to find the information about this NIC's parent
+            node. A typical location for a node ``where`` can be: ['network','nodes',<node_uuid>]
+        :type parent_where: Optional[List[str]]
+        :return: Constructed NIC observation
+        :rtype: NicObservation
+        """
         return cls(where=parent_where + ["NICs", config["nic_uuid"]])
 
 
 class NodeObservation(AbstractObservation):
+    """Observation of a node in the network. Includes services, folders and NICs."""
+
     def __init__(
         self,
         where: Optional[Tuple[str]] = None,
@@ -260,8 +406,8 @@ class NodeObservation(AbstractObservation):
         logon_status: bool = False,
         num_services_per_node: int = 2,
         num_folders_per_node: int = 2,
-        num_files_per_folder: int = 2
-        ) -> None:
+        num_files_per_folder: int = 2,
+    ) -> None:
         """
         Configurable observation for a node in the simulation.
 
@@ -271,7 +417,8 @@ class NodeObservation(AbstractObservation):
         :type where: List[str], optional
         :param services: Mapping between position in observation space and service UUID, defaults to {}
         :type services: Dict[int,str], optional
-        :param max_services: Max number of services that can be presented in observation space for this node, defaults to 2
+        :param max_services: Max number of services that can be presented in observation space for this node
+            , defaults to 2
         :type max_services: int, optional
         :param folders: Mapping between position in observation space and folder name, defaults to {}
         :type folders: Dict[int,str], optional
@@ -286,10 +433,10 @@ class NodeObservation(AbstractObservation):
         self.where: Optional[Tuple[str]] = where
 
         self.services: List[ServiceObservation] = services
-        while len(self.services)<num_services_per_node:
-            # add an empty service observation without `where` parameter that will always return default (blank) observations
+        while len(self.services) < num_services_per_node:
+            # add empty service observation without `where` parameter so it always returns default (blank) observation
             self.services.append(ServiceObservation())
-        while len(self.services)>num_services_per_node:
+        while len(self.services) > num_services_per_node:
             truncated_service = self.services.pop()
             msg = f"Too many services in Node observation space for node. Truncating service {truncated_service.where}"
             _LOGGER.warn(msg)
@@ -297,8 +444,8 @@ class NodeObservation(AbstractObservation):
             # truncate service list
 
         self.folders: List[FolderObservation] = folders
+        # add empty folder observation without `where` parameter that will always return default (blank) observations
         while len(self.folders) < num_folders_per_node:
-            # add an empty folder observation without `where` parameter that will always return default (blank) observations
             self.folders.append(FolderObservation())
         while len(self.folders) > num_folders_per_node:
             truncated_folder = self.folders.pop()
@@ -317,6 +464,13 @@ class NodeObservation(AbstractObservation):
             self.default_observation["logon_status"] = 0
 
     def observe(self, state: Dict) -> Dict:
+        """Generate observation based on the current state of the simulation.
+
+        :param state: Simulation state dictionary
+        :type state: Dict
+        :return: Observation
+        :rtype: Dict
+        """
         if self.where is None:
             return self.default_observation
 
@@ -337,6 +491,7 @@ class NodeObservation(AbstractObservation):
 
     @property
     def space(self) -> spaces.Space:
+        """Gymnasium space object describing the observation space shape."""
         space_shape = {
             "SERVICES": spaces.Dict({i + 1: service.space for i, service in enumerate(self.services)}),
             "FOLDERS": spaces.Dict({i + 1: folder.space for i, folder in enumerate(self.folders)}),
@@ -358,6 +513,27 @@ class NodeObservation(AbstractObservation):
         num_folders_per_node: int = 2,
         num_files_per_folder: int = 2,
     ) -> "NodeObservation":
+        """Create node observation from a config. Also creates child service, folder and NIC observations.
+
+        :param config: Dictionary containing the configuration for this node observation.
+        :type config: Dict
+        :param session: Reference to the PrimaiteSession object that spawned this observation.
+        :type session: PrimaiteSession
+        :param parent_where: Where in the simulation state dictionary to find the information about this node's parent
+            network. A typical location for it would be: ['network',]
+        :type parent_where: Optional[List[str]]
+        :param num_services_per_node: How many spaces for services are in this node observation (to preserve static
+            observation size) , defaults to 2
+        :type num_services_per_node: int, optional
+        :param num_folders_per_node: How many spaces for folders are in this node observation (to preserve static
+            observation size) , defaults to 2
+        :type num_folders_per_node: int, optional
+        :param num_files_per_folder: How many spaces for files are in the folder observations (to preserve static
+            observation size) , defaults to 2
+        :type num_files_per_folder: int, optional
+        :return: Constructed node observation
+        :rtype: NodeObservation
+        """
         node_uuid = session.ref_map_nodes[config["node_ref"]]
         if parent_where is None:
             where = ["network", "nodes", node_uuid]
@@ -367,7 +543,12 @@ class NodeObservation(AbstractObservation):
         svc_configs = config.get("services", {})
         services = [ServiceObservation.from_config(config=c, session=session, parent_where=where) for c in svc_configs]
         folder_configs = config.get("folders", {})
-        folders = [FolderObservation.from_config(config=c, session=session, parent_where=where, num_files_per_folder=num_files_per_folder) for c in folder_configs]
+        folders = [
+            FolderObservation.from_config(
+                config=c, session=session, parent_where=where, num_files_per_folder=num_files_per_folder
+            )
+            for c in folder_configs
+        ]
         nic_uuids = session.simulation.network.nodes[node_uuid].nics.keys()
         nic_configs = [{"nic_uuid": n for n in nic_uuids}] if nic_uuids else []
         nics = [NicObservation.from_config(config=c, session=session, parent_where=where) for c in nic_configs]
@@ -378,13 +559,15 @@ class NodeObservation(AbstractObservation):
             folders=folders,
             nics=nics,
             logon_status=logon_status,
-            num_services_per_node = num_services_per_node,
-            num_folders_per_node = num_folders_per_node,
-            num_files_per_folder = num_files_per_folder,
-            )
+            num_services_per_node=num_services_per_node,
+            num_folders_per_node=num_folders_per_node,
+            num_files_per_folder=num_files_per_folder,
+        )
 
 
 class AclObservation(AbstractObservation):
+    """Observation of an Access Control List (ACL) in the network."""
+
     # TODO: should where be optional, and we can use where=None to pad the observation space?
     # definitely the current approach does not support tracking files that aren't specified by name, for example
     # if a file is created at runtime, we have currently got no way of telling the observation space to track it.
@@ -397,6 +580,21 @@ class AclObservation(AbstractObservation):
         where: Optional[Tuple[str]] = None,
         num_rules: int = 10,
     ) -> None:
+        """Initialise ACL observation.
+
+        :param node_ip_to_id: Mapping between IP address and ID.
+        :type node_ip_to_id: Dict[str, int]
+        :param ports: List of ports which are part of the game that define the ordering when converting to an ID
+        :type ports: List[int]
+        :param protocols: List of protocols which are part of the game, defines ordering when converting to an ID
+        :type protocols: list[str]
+        :param where: Where in the simulation state dictionary to find the relevant information for this ACL. A typical
+            example may look like this:
+            ['network','nodes',<router_uuid>,'acl','acl']
+        :type where: Optional[Tuple[str]], optional
+        :param num_rules: , defaults to 10
+        :type num_rules: int, optional
+        """
         super().__init__()
         self.where: Optional[Tuple[str]] = where
         self.num_rules: int = num_rules
@@ -423,6 +621,13 @@ class AclObservation(AbstractObservation):
         }
 
     def observe(self, state: Dict) -> Dict:
+        """Generate observation based on the current state of the simulation.
+
+        :param state: Simulation state dictionary
+        :type state: Dict
+        :return: Observation
+        :rtype: Dict
+        """
         if self.where is None:
             return self.default_observation
         acl_state: Dict = access_from_nested_dict(state, self.where)
@@ -457,6 +662,11 @@ class AclObservation(AbstractObservation):
 
     @property
     def space(self) -> spaces.Space:
+        """Gymnasium space object describing the observation space shape.
+
+        :return: Gymnasium space
+        :rtype: spaces.Space
+        """
         return spaces.Dict(
             {
                 "RULES": spaces.Dict(
@@ -482,6 +692,15 @@ class AclObservation(AbstractObservation):
 
     @classmethod
     def from_config(cls, config: Dict, session: "PrimaiteSession") -> "AclObservation":
+        """Generate ACL observation from a config.
+
+        :param config: Dictionary containing the configuration for this ACL observation.
+        :type config: Dict
+        :param session: Reference to the PrimaiteSession object that spawned this observation.
+        :type session: PrimaiteSession
+        :return: Observation object
+        :rtype: AclObservation
+        """
         node_ip_to_idx = {}
         for ip_idx, ip_map_config in enumerate(config["ip_address_order"]):
             node_ref = ip_map_config["node_ref"]
@@ -500,26 +719,44 @@ class AclObservation(AbstractObservation):
 
 
 class NullObservation(AbstractObservation):
+    """Null observation, returns a single 0 value for the observation space."""
+
     def __init__(self, where: Optional[List[str]] = None):
+        """Initialise null observation."""
         self.default_observation: Dict = {}
 
     def observe(self, state: Dict) -> Dict:
+        """Generate observation based on the current state of the simulation."""
         return 0
 
     @property
     def space(self) -> spaces.Space:
+        """Gymnasium space object describing the observation space shape."""
         return spaces.Discrete(1)
 
     @classmethod
     def from_config(cls, config: Dict, session: Optional["PrimaiteSession"] = None) -> "NullObservation":
+        """
+        Create null observation from a config.
+
+        The parameters are ignored, they are here to match the signature of the other observation classes.
+        """
         return cls()
 
 
 class ICSObservation(NullObservation):
+    """ICS observation placeholder, currently not implemented so always returns a single 0."""
+
     pass
 
 
 class UC2BlueObservation(AbstractObservation):
+    """Container for all observations used by the blue agent in UC2.
+
+    TODO: there's no real need for a UC2 blue container class, we should be able to simply use the observation handler
+        for the purpose of compiling several observation components.
+    """
+
     def __init__(
         self,
         nodes: List[NodeObservation],
@@ -528,6 +765,20 @@ class UC2BlueObservation(AbstractObservation):
         ics: ICSObservation,
         where: Optional[List[str]] = None,
     ) -> None:
+        """Initialise UC2 blue observation.
+
+        :param nodes: List of node observations
+        :type nodes: List[NodeObservation]
+        :param links: List of link observations
+        :type links: List[LinkObservation]
+        :param acl: The Access Control List observation
+        :type acl: AclObservation
+        :param ics: The ICS observation
+        :type ics: ICSObservation
+        :param where: Where in the simulation state dict to find information. Not used in this particular observation
+            because it only compiles other observations and doesn't contribute any new information, defaults to None
+        :type where: Optional[List[str]], optional
+        """
         super().__init__()
         self.where: Optional[Tuple[str]] = where
 
@@ -544,6 +795,13 @@ class UC2BlueObservation(AbstractObservation):
         }
 
     def observe(self, state: Dict) -> Dict:
+        """Generate observation based on the current state of the simulation.
+
+        :param state: Simulation state dictionary
+        :type state: Dict
+        :return: Observation
+        :rtype: Dict
+        """
         if self.where is None:
             return self.default_observation
 
@@ -557,6 +815,12 @@ class UC2BlueObservation(AbstractObservation):
 
     @property
     def space(self) -> spaces.Space:
+        """
+        Gymnasium space object describing the observation space shape.
+
+        :return: Space
+        :rtype: spaces.Space
+        """
         return spaces.Dict(
             {
                 "NODES": spaces.Dict({i + 1: node.space for i, node in enumerate(self.nodes)}),
@@ -567,21 +831,34 @@ class UC2BlueObservation(AbstractObservation):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession"):
+    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "UC2BlueObservation":
+        """Create UC2 blue observation from a config.
+
+        :param config: Dictionary containing the configuration for this UC2 blue observation. This includes the nodes,
+            links, ACL and ICS observations.
+        :type config: Dict
+        :param session: Reference to the PrimaiteSession object that spawned this observation.
+        :type session: PrimaiteSession
+        :return: Constructed UC2 blue observation
+        :rtype: UC2BlueObservation
+        """
         node_configs = config["nodes"]
         num_services_per_node = config["num_services_per_node"]
         num_folders_per_node = config["num_folders_per_node"]
         num_files_per_folder = config["num_files_per_folder"]
-        nodes = [NodeObservation.from_config(
-            config=n,
-            session=session,
-            num_services_per_node= num_services_per_node,
-            num_folders_per_node=num_folders_per_node,
-            num_files_per_folder=num_files_per_folder,
-            ) for n in node_configs]
+        nodes = [
+            NodeObservation.from_config(
+                config=n,
+                session=session,
+                num_services_per_node=num_services_per_node,
+                num_folders_per_node=num_folders_per_node,
+                num_files_per_folder=num_files_per_folder,
+            )
+            for n in node_configs
+        ]
 
         link_configs = config["links"]
-        links = [LinkObservation.from_config(config=l, session=session) for l in link_configs]
+        links = [LinkObservation.from_config(config=link, session=session) for link in link_configs]
 
         acl_config = config["acl"]
         acl = AclObservation.from_config(config=acl_config, session=session)
@@ -593,6 +870,8 @@ class UC2BlueObservation(AbstractObservation):
 
 
 class UC2RedObservation(AbstractObservation):
+    """Container for all observations used by the red agent in UC2."""
+
     def __init__(self, nodes: List[NodeObservation], where: Optional[List[str]] = None) -> None:
         super().__init__()
         self.where: Optional[List[str]] = where
@@ -603,6 +882,7 @@ class UC2RedObservation(AbstractObservation):
         }
 
     def observe(self, state: Dict) -> Dict:
+        """Generate observation based on the current state of the simulation."""
         if self.where is None:
             return self.default_observation
 
@@ -612,6 +892,7 @@ class UC2RedObservation(AbstractObservation):
 
     @property
     def space(self) -> spaces.Space:
+        """Gymnasium space object describing the observation space shape."""
         return spaces.Dict(
             {
                 "NODES": spaces.Dict({i + 1: node.space for i, node in enumerate(self.nodes)}),
@@ -619,43 +900,74 @@ class UC2RedObservation(AbstractObservation):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession"):
+    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "UC2RedObservation":
+        """
+        Create UC2 red observation from a config.
+
+        :param config: Dictionary containing the configuration for this UC2 red observation.
+        :type config: Dict
+        :param session: Reference to the PrimaiteSession object that spawned this observation.
+        :type session: PrimaiteSession
+        """
         node_configs = config["nodes"]
         nodes = [NodeObservation.from_config(config=cfg, session=session) for cfg in node_configs]
         return cls(nodes=nodes, where=["network"])
 
 
 class UC2GreenObservation(NullObservation):
+    """Green agent observation. As the green agent's actions don't depend on the observation, this is empty."""
+
     pass
 
 
 class ObservationSpace:
     """
-    Manage the observations of an Actor.
+    Manage the observations of an Agent.
 
     The observation space has the purpose of:
       1. Reading the outputted state from the PrimAITE Simulation.
       2. Selecting parts of the simulation state that are requested by the simulation config
-      3. Formatting this information so an actor can use it to make decisions.
+      3. Formatting this information so an agent can use it to make decisions.
     """
 
-    ...
+    # TODO: Dear code reader: This class currently doesn't do much except hold an observation object. It will be changed
+    # to have more of it's own behaviour, and it will replace UC2BlueObservation and UC2RedObservation during the next
+    # refactor.
 
-    # what this class does:
-    # keep a list of observations
-    # create observations for an actor from the config
     def __init__(self, observation: AbstractObservation) -> None:
+        """Initialise observation space.
+
+        :param observation: Observation object
+        :type observation: AbstractObservation
+        """
         self.obs: AbstractObservation = observation
 
-    def observe(self, state) -> Dict:
+    def observe(self, state: Dict) -> Dict:
+        """
+        Generate observation based on the current state of the simulation.
+
+        :param state: Simulation state dictionary
+        :type state: Dict
+        """
         return self.obs.observe(state)
 
     @property
     def space(self) -> None:
+        """Gymnasium space object describing the observation space shape."""
         return self.obs.space
 
     @classmethod
     def from_config(cls, config: Dict, session: "PrimaiteSession") -> "ObservationSpace":
+        """Create observation space from a config.
+
+        :param config: Dictionary containing the configuration for this observation space.
+            It should contain the key 'type' which selects which observation class to use (from a choice of:
+            UC2BlueObservation, UC2RedObservation, UC2GreenObservation)
+            The other key is 'options' which are passed to the constructor of the selected observation class.
+        :type config: Dict
+        :param session: Reference to the PrimaiteSession object that spawned this observation.
+        :type session: PrimaiteSession
+        """
         if config["type"] == "UC2BlueObservation":
             return cls(UC2BlueObservation.from_config(config.get("options", {}), session=session))
         elif config["type"] == "UC2RedObservation":

@@ -1,6 +1,6 @@
 """PrimAITE session - the main entry point to training agents on PrimAITE."""
 from ipaddress import IPv4Address
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Never, Optional, Tuple
 
 from arcd_gate.client.gate_client import ActType, GATEClient
 from gymnasium import spaces
@@ -32,13 +32,17 @@ _LOGGER = getLogger(__name__)
 
 
 class PrimaiteGATEClient(GATEClient):
+    """Lightweight wrapper around the GATEClient class that allows PrimAITE to message GATE."""
+
     def __init__(self, parent_session: "PrimaiteSession", service_port: int = 50000):
-        """Create a new GATE client for PrimAITE.
+        """
+        Create a new GATE client for PrimAITE.
 
         :param parent_session: The parent session object.
         :type parent_session: PrimaiteSession
         :param service_port: The port on which the GATE service is running.
-        :type service_port: int, optional"""
+        :type service_port: int, optional
+        """
         super().__init__(service_port=service_port)
         self.parent_session: "PrimaiteSession" = parent_session
 
@@ -133,9 +137,11 @@ class PrimaiteGATEClient(GATEClient):
 
 
 class PrimaiteSessionOptions(BaseModel):
-    """Global options which are applicable to all of the agents in the game.
+    """
+    Global options which are applicable to all of the agents in the game.
 
-    Currently this is used to restrict which ports and protocols exist in the world of the simulation."""
+    Currently this is used to restrict which ports and protocols exist in the world of the simulation.
+    """
 
     ports: List[str]
     protocols: List[str]
@@ -154,9 +160,7 @@ class TrainingOptions(BaseModel):
 
 
 class PrimaiteSession:
-    """
-    The main entrypoint for PrimAITE sessions, this coordinates a simulation, agents, and connections to ARCD GATE.
-    """
+    """The main entrypoint for PrimAITE sessions, this manages a simulation, agents, and connections to ARCD GATE."""
 
     def __init__(self):
         self.simulation: Simulation = Simulation()
@@ -183,7 +187,7 @@ class PrimaiteSession:
         self.gate_client: PrimaiteGATEClient = PrimaiteGATEClient(self)
         """Reference to a GATE Client object, which will send data to GATE service for training RL agent."""
 
-    def start_session(self, opts="TODO..."):
+    def start_session(self) -> Never:
         """Commence the training session, this gives the GATE client control over the simulation/agent loop."""
         self.gate_client.start()
 
@@ -221,7 +225,7 @@ class PrimaiteSession:
             #    to discrete(40) is only necessary for purposes of RL learning, therefore that bit of
             #    code should live inside of the GATE agent subclass)
             # gets action in CAOS format
-            _LOGGER.debug(f"Getting agent action")
+            _LOGGER.debug("Getting agent action")
             agent_action, action_options = agent.get_action(agent_obs, agent_reward)
             # 9. CAOS action is converted into request (extra information might be needed to enrich
             # the request, this is what the execution definition is there for)
@@ -236,11 +240,11 @@ class PrimaiteSession:
         self.simulation.apply_timestep(self.step_counter)
         self.step_counter += 1
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the session, this will reset the simulation."""
         return NotImplemented
 
-    def close(self):
+    def close(self) -> None:
         """Close the session, this will stop the gate client and close the simulation."""
         return NotImplemented
 

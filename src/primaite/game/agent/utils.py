@@ -1,10 +1,11 @@
-from typing import Dict, Sequence, Hashable, Any
+from typing import Any, Dict, Hashable, Sequence
 
 NOT_PRESENT_IN_STATE = object()
 """
 Need an object to return when the sim state does not contain a requested value. Cannot use None because sometimes
 the thing requested in the state could equal None. This NOT_PRESENT_IN_STATE is a sentinel for this purpose.
 """
+
 
 def access_from_nested_dict(dictionary: Dict, keys: Sequence[Hashable]) -> Any:
     """
