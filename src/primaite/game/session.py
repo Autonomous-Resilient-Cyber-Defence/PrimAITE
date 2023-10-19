@@ -1,39 +1,17 @@
-# What do? Be an entry point for using PrimAITE
-# 1. parse monoconfig
-# 2. craete simulation
-# 3. create actors and configure their actions/observations/rewards/ anything else
-# 4. Create connection with ARCD GATE
-# 5. idk
-
+"""PrimAITE session - the main entry point to training agents on PrimAITE."""
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional, Tuple
+
+from arcd_gate.client.gate_client import ActType, GATEClient
 from gymnasium import spaces
-from gymnasium.spaces.utils import flatten, flatten_space, unflatten
-from gymnasium.core import ObsType, ActType
-
-import numpy as np
-
+from gymnasium.core import ActType, ObsType
+from gymnasium.spaces.utils import flatten, flatten_space
 from pydantic import BaseModel
 
 from primaite import getLogger
-from primaite.game.agent.GATE_agents import GATERLAgent
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent, RandomAgent
-from primaite.game.agent.observations import (
-    AclObservation,
-    FileObservation,
-    FolderObservation,
-    ICSObservation,
-    LinkObservation,
-    NicObservation,
-    NodeObservation,
-    NullObservation,
-    ObservationSpace,
-    ServiceObservation,
-    UC2BlueObservation,
-    UC2GreenObservation,
-    UC2RedObservation,
-)
+from primaite.game.agent.observations import ObservationSpace
 from primaite.game.agent.rewards import RewardFunction
 from primaite.simulator.network.hardware.base import Link, NIC, Node
 from primaite.simulator.network.hardware.nodes.computer import Computer
@@ -50,53 +28,75 @@ from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.services.service import Service
 
-from arcd_gate.client.gate_client import GATEClient, ActType
-from numpy import ndarray
-
 _LOGGER = getLogger(__name__)
 
+
 class PrimaiteGATEClient(GATEClient):
-    def  __init__(self, parent_session:"PrimaiteSession", service_port: int = 50000):
+    def __init__(self, parent_session: "PrimaiteSession", service_port: int = 50000):
+        """Create a new GATE client for PrimAITE.
+
+        :param parent_session: The parent session object.
+        :type parent_session: PrimaiteSession
+        :param service_port: The port on which the GATE service is running.
+        :type service_port: int, optional"""
         super().__init__(service_port=service_port)
-        self.parent_session:"PrimaiteSession" = parent_session
+        self.parent_session: "PrimaiteSession" = parent_session
 
     @property
     def rl_framework(self) -> str:
+        """The reinforcement learning framework to use."""
         return self.parent_session.training_options.rl_framework
 
     @property
     def rl_algorithm(self) -> str:
+        """The reinforcement learning algorithm to use."""
         return self.parent_session.training_options.rl_algorithm
 
     @property
     def seed(self) -> int | None:
+        """The seed to use for the environment's random number generator."""
         return self.parent_session.training_options.seed
 
     @property
     def n_learn_episodes(self) -> int:
+        """The number of episodes in each learning run."""
         return self.parent_session.training_options.n_learn_episodes
 
     @property
     def n_learn_steps(self) -> int:
+        """The number of steps in each learning episode."""
         return self.parent_session.training_options.n_learn_steps
 
     @property
     def n_eval_episodes(self) -> int:
+        """The number of episodes in each evaluation run."""
         return self.parent_session.training_options.n_eval_episodes
 
     @property
     def n_eval_steps(self) -> int:
+        """The number of steps in each evaluation episode."""
         return self.parent_session.training_options.n_eval_steps
 
     @property
     def action_space(self) -> spaces.Space:
+        """The gym action space of the agent."""
         return self.parent_session.rl_agent.action_space.space
 
     @property
     def observation_space(self) -> spaces.Space:
+        """The gymnasium observation space of the agent."""
         return flatten_space(self.parent_session.rl_agent.observation_space.space)
 
     def step(self, action: ActType) -> Tuple[ObsType, float, bool, bool, Dict]:
+        """Take a step in the environment.
+
+        This method is called by GATE to advance the simulation by one timestep.
+
+        :param action: The agent's action.
+        :type action: ActType
+        :return: The observation, reward, terminal flag, truncated flag, and info dictionary.
+        :rtype: Tuple[ObsType, float, bool, bool, Dict]
+        """
         self.parent_session.rl_agent.most_recent_action = action
         self.parent_session.step()
         state = self.parent_session.simulation.describe_state()
@@ -108,8 +108,19 @@ class PrimaiteGATEClient(GATEClient):
         info = {}
         return obs, rew, term, trunc, info
 
-
     def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None) -> Tuple[ObsType, Dict]:
+        """Reset the environment.
+
+        This method is called when the environment is initialized and at the end of each episode.
+
+        :param seed: The seed to use for the environment's random number generator.
+        :type seed: int, optional
+        :param options: Additional options for the reset. None are used by PrimAITE but this is included for
+            compatibility with GATE.
+        :type options: dict[str, Any], optional
+        :return: The initial observation and an empty info dictionary.
+        :rtype: Tuple[ObsType, Dict]
+        """
         self.parent_session.reset()
         state = self.parent_session.simulation.describe_state()
         obs = self.parent_session.rl_agent.observation_space.observe(state)
@@ -117,44 +128,78 @@ class PrimaiteGATEClient(GATEClient):
         return obs, {}
 
     def close(self):
+        """Close the session, this will stop the gate client and close the simulation."""
         self.parent_session.close()
 
+
 class PrimaiteSessionOptions(BaseModel):
+    """Global options which are applicable to all of the agents in the game.
+
+    Currently this is used to restrict which ports and protocols exist in the world of the simulation."""
+
     ports: List[str]
     protocols: List[str]
 
-class TrainingOptions(BaseModel):
-    rl_framework:str
-    rl_algorithm:str
-    seed:Optional[int]
-    n_learn_episodes:int
-    n_learn_steps:int
-    n_eval_episodes:int
-    n_eval_steps:int
 
+class TrainingOptions(BaseModel):
+    """Options for training the RL agent."""
+
+    rl_framework: str
+    rl_algorithm: str
+    seed: Optional[int]
+    n_learn_episodes: int
+    n_learn_steps: int
+    n_eval_episodes: int
+    n_eval_steps: int
 
 
 class PrimaiteSession:
+    """
+    The main entrypoint for PrimAITE sessions, this coordinates a simulation, agents, and connections to ARCD GATE.
+    """
+
     def __init__(self):
         self.simulation: Simulation = Simulation()
+        """Simulation object with which the agents will interact."""
         self.agents: List[AbstractAgent] = []
+        """List of agents."""
         self.rl_agent: AbstractAgent
-        # which of the agents should be used for sending RL data to GATE client?
+        """The agent from the list which communicates with GATE to perform reinforcement learning."""
         self.step_counter: int = 0
+        """Current timestep within the episode."""
         self.episode_counter: int = 0
+        """Current episode number."""
         self.options: PrimaiteSessionOptions
+        """Special options that apply for the entire game."""
         self.training_options: TrainingOptions
+        """Options specific to agent training."""
 
         self.ref_map_nodes: Dict[str, Node] = {}
+        """Mapping from unique node reference name to node object. Used when parsing config files."""
         self.ref_map_services: Dict[str, Service] = {}
+        """Mapping from human-readable service reference to service object. Used for parsing config files."""
         self.ref_map_links: Dict[str, Link] = {}
+        """Mapping from human-readable link reference to link object. Used when parsing config files."""
         self.gate_client: PrimaiteGATEClient = PrimaiteGATEClient(self)
+        """Reference to a GATE Client object, which will send data to GATE service for training RL agent."""
 
     def start_session(self, opts="TODO..."):
-        """Commence the session, this gives the gate client control over the simulation/agent loop."""
+        """Commence the training session, this gives the GATE client control over the simulation/agent loop."""
         self.gate_client.start()
 
     def step(self):
+        """
+        Perform one step of the simulation/agent loop.
+
+        This is the main loop of the game. It corresponds to one timestep in the simulation, and one action from each
+        agent. The steps are as follows:
+            1. The simulation state is updated.
+            2. The simulation state is sent to each agent.
+            3. Each agent converts the state to an observation and calculates a reward.
+            4. Each agent chooses an action based on the observation.
+            5. Each agent converts the action to a request.
+            6. The simulation applies the requests.
+        """
         _LOGGER.debug(f"Stepping primaite session. Step counter: {self.step_counter}")
         # currently designed with assumption that all agents act once per step in order
 
@@ -192,19 +237,36 @@ class PrimaiteSession:
         self.step_counter += 1
 
     def reset(self):
-        pass
+        """Reset the session, this will reset the simulation."""
+        return NotImplemented
 
     def close(self):
-        pass
+        """Close the session, this will stop the gate client and close the simulation."""
+        return NotImplemented
 
     @classmethod
     def from_config(cls, cfg: dict) -> "PrimaiteSession":
+        """Create a PrimaiteSession object from a config dictionary.
+
+        The config dictionary should have the following top-level keys:
+        1. training_config: options for training the RL agent. Used by GATE.
+        2. game_config: options for the game itself. Used by PrimaiteSession.
+        3. simulation: defines the network topology and the initial state of the simulation.
+
+        The specification for each of the three major areas is described in a separate documentation page.
+        # TODO: create documentation page and add links to it here.
+
+        :param cfg: The config dictionary.
+        :type cfg: dict
+        :return: A PrimaiteSession object.
+        :rtype: PrimaiteSession
+        """
         sess = cls()
         sess.options = PrimaiteSessionOptions(
             ports=cfg["game_config"]["ports"],
             protocols=cfg["game_config"]["protocols"],
         )
-        sess.training_options = TrainingOptions(**cfg['training_config'])
+        sess.training_options = TrainingOptions(**cfg["training_config"])
         sim = sess.simulation
         net = sim.network
 
@@ -295,7 +357,11 @@ class PrimaiteSession:
 
             net.add_node(new_node)
             new_node.power_on()
-            sess.ref_map_nodes[node_ref] = new_node.uuid # TODO: fix incosistency with service and link. Node gets added by uuid, but service gets reference to object
+            sess.ref_map_nodes[
+                node_ref
+            ] = (
+                new_node.uuid
+            )  # TODO: fix incosistency with service and link. Node gets added by uuid, but service by object
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
@@ -314,12 +380,10 @@ class PrimaiteSession:
 
         # 3. create agents
         game_cfg = cfg["game_config"]
-        ports_cfg = game_cfg["ports"]
-        protocols_cfg = game_cfg["protocols"]
         agents_cfg = game_cfg["agents"]
 
         for agent_cfg in agents_cfg:
-            agent_ref = agent_cfg["ref"]
+            agent_ref = agent_cfg["ref"]  # noqa: F841
             agent_type = agent_cfg["type"]
             action_space_cfg = agent_cfg["action_space"]
             observation_space_cfg = agent_cfg["observation_space"]

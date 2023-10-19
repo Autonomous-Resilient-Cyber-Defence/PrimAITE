@@ -1,6 +1,4 @@
-# TODO: remove this comment... This is just here to point out that I've named this 'actor' rather than 'agent'
-# That's because I want to point out that this is disctinct from 'agent' in the reinforcement learning sense of the word
-# If you disagree, make a comment in the PR review and we can discuss
+"""Interface for agents."""
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple, TypeAlias, Union
 
