@@ -95,6 +95,18 @@ class FileSystemItemABC(SimComponent):
         state["previous_hash"] = self.previous_hash
         return state
 
+    def _init_request_manager(self) -> RequestManager:
+        rm = super()._init_request_manager()
+
+        rm.add_request(name="scan", request_type=RequestType(func=lambda request, context: self.scan()))
+        rm.add_request(name="checkhash", request_type=RequestType(func=lambda request, context: self.check_hash()))
+        rm.add_request(name="repair", request_type=RequestType(func=lambda request, context: self.repair()))
+        rm.add_request(name="restore", request_type=RequestType(func=lambda request, context: self.restore()))
+
+        rm.add_request(name="corrupt", request_type=RequestType(func=lambda request, context: self.corrupt()))
+
+        return rm
+
     @property
     def size_str(self) -> str:
         """
@@ -181,107 +193,11 @@ class FileSystem(SimComponent):
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 
-        self._folder_request_manager = self._init_folder_request_manager()
+        self._folder_request_manager = RequestManager()
         rm.add_request("folder", RequestType(func=self._folder_request_manager))
 
-        self._file_request_manager = self._init_file_request_manager()
+        self._file_request_manager = RequestManager()
         rm.add_request("file", RequestType(func=self._file_request_manager))
-
-        return rm
-
-    def _init_folder_request_manager(self) -> RequestManager:
-        rm = RequestManager()
-
-        rm.add_request(
-            "scan",
-            RequestType(
-                func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0], show_deleted=True).scan()
-            ),
-        )
-
-        rm.add_request(
-            "checkhash",
-            RequestType(func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0]).check_hash()),
-        )
-
-        rm.add_request(
-            "repair", RequestType(func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0]).repair())
-        )
-
-        rm.add_request(
-            "corrupt",
-            RequestType(func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0]).corrupt()),
-        )
-
-        rm.add_request(
-            "delete", RequestType(func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0]).delete())
-        )
-
-        rm.add_request(
-            "restore",
-            RequestType(
-                func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0], show_deleted=True).restore()
-            ),
-        )
-
-        return rm
-
-    def _init_file_request_manager(self) -> RequestManager:
-        rm = RequestManager()
-
-        rm.add_request(
-            "scan",
-            RequestType(
-                func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0], show_deleted=True)
-                .get_file_by_id(file_uuid=request[1], show_deleted=True)
-                .scan()
-            ),
-        )
-
-        rm.add_request(
-            "checkhash",
-            RequestType(
-                func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0])
-                .get_file_by_id(file_uuid=request[1])
-                .check_hash()
-            ),
-        )
-
-        rm.add_request(
-            "repair",
-            RequestType(
-                func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0])
-                .get_file_by_id(file_uuid=request[1])
-                .repair()
-            ),
-        )
-
-        rm.add_request(
-            "corrupt",
-            RequestType(
-                func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0])
-                .get_file_by_id(file_uuid=request[1])
-                .corrupt()
-            ),
-        )
-
-        rm.add_request(
-            "delete",
-            RequestType(
-                func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0])
-                .get_file_by_id(file_uuid=request[1])
-                .delete()
-            ),
-        )
-
-        rm.add_request(
-            "restore",
-            RequestType(
-                func=lambda request, context: self.get_folder_by_id(folder_uuid=request[0], show_deleted=True)
-                .get_file_by_id(file_uuid=request[1], show_deleted=True)
-                .restore()
-            ),
-        )
 
         return rm
 
@@ -345,7 +261,9 @@ class FileSystem(SimComponent):
         self.folders[folder.uuid] = folder
         self._folders_by_name[folder.name] = folder
         self.sys_log.info(f"Created folder /{folder.name}")
-        self._folder_request_manager.add_request(folder.uuid, RequestType(func=folder._request_manager))
+        self._folder_request_manager.add_request(
+            name=folder.uuid, request_type=RequestType(func=folder._request_manager)
+        )
         return folder
 
     def delete_folder(self, folder_name: str):
@@ -413,7 +331,7 @@ class FileSystem(SimComponent):
         )
         folder.add_file(file)
         self.sys_log.info(f"Created file /{file.path}")
-        self._file_request_manager.add_request(file.uuid, RequestType(func=file._request_manager))
+        self._file_request_manager.add_request(name=file.uuid, request_type=RequestType(func=file._request_manager))
         return file
 
     def get_file(self, folder_name: str, file_name: str) -> Optional[File]:

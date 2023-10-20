@@ -1,24 +1,4 @@
-from typing import Any
-
-import pytest
-
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.core.sys_log import SysLog
-from primaite.simulator.system.services.service import Service, ServiceOperatingState
-
-
-class TestService(Service):
-    """Test Service class"""
-
-    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
-        pass
-
-
-@pytest.fixture(scope="function")
-def service(file_system) -> TestService:
-    return TestService(
-        name="TestService", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="test_service")
-    )
+from primaite.simulator.system.services.service import ServiceOperatingState
 
 
 def test_scan(service):
