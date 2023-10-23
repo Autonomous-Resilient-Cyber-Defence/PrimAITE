@@ -31,6 +31,8 @@ class SoftwareType(Enum):
 class SoftwareHealthState(Enum):
     """Enumeration of the Software Health States."""
 
+    UNUSED = 0
+    "Unused state."
     GOOD = 1
     "The software is in a good and healthy condition."
     COMPROMISED = 2

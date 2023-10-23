@@ -2,7 +2,7 @@ from typing import Tuple
 
 import pytest
 
-from primaite.simulator.file_system.file_system import File, FileSystem, FileSystemItemStatus, Folder
+from primaite.simulator.file_system.file_system import File, FileSystem, FileSystemItemHealthStatus, Folder
 
 
 @pytest.fixture(scope="function")
@@ -19,31 +19,51 @@ def test_file_scan_request(populated_file_system):
     fs, folder, file = populated_file_system
 
     file.corrupt()
-    assert file.status == FileSystemItemStatus.CORRUPTED
-    assert file.visible_status == FileSystemItemStatus.GOOD
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
 
     fs.apply_request(request=["file", file.uuid, "scan"])
 
-    assert file.status == FileSystemItemStatus.CORRUPTED
-    assert file.visible_status == FileSystemItemStatus.CORRUPTED
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 def test_folder_scan_request(populated_file_system):
     """Test that an agent can request a folder scan."""
     fs, folder, file = populated_file_system
+    fs.create_file(file_name="test_file2.txt", folder_name="test_folder")
+
+    file1: File = folder.get_file_by_id(file_uuid=list(folder.files)[1])
+    file2: File = folder.get_file_by_id(file_uuid=list(folder.files)[0])
 
     folder.corrupt()
-    assert folder.status == FileSystemItemStatus.CORRUPTED
-    assert file.status == FileSystemItemStatus.CORRUPTED
-    assert folder.visible_status == FileSystemItemStatus.GOOD
-    assert file.visible_status == FileSystemItemStatus.GOOD
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
 
     fs.apply_request(request=["folder", folder.uuid, "scan"])
 
-    assert folder.status == FileSystemItemStatus.CORRUPTED
-    assert file.status == FileSystemItemStatus.CORRUPTED
-    assert folder.visible_status == FileSystemItemStatus.CORRUPTED
-    assert file.visible_status == FileSystemItemStatus.CORRUPTED
+    folder.apply_timestep(timestep=0)
+
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file1.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
+
+    folder.apply_timestep(timestep=1)
+
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file1.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file2.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+
+    folder.apply_timestep(timestep=2)
+
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file1.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file2.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 def test_file_checkhash_request(populated_file_system):
@@ -52,12 +72,12 @@ def test_file_checkhash_request(populated_file_system):
 
     fs.apply_request(request=["file", file.uuid, "checkhash"])
 
-    assert file.status == FileSystemItemStatus.GOOD
+    assert file.health_status == FileSystemItemHealthStatus.GOOD
     file.sim_size = 0
 
     fs.apply_request(request=["file", file.uuid, "checkhash"])
 
-    assert file.status == FileSystemItemStatus.CORRUPTED
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 def test_folder_checkhash_request(populated_file_system):
@@ -66,11 +86,11 @@ def test_folder_checkhash_request(populated_file_system):
 
     fs.apply_request(request=["folder", folder.uuid, "checkhash"])
 
-    assert folder.status == FileSystemItemStatus.GOOD
+    assert folder.health_status == FileSystemItemHealthStatus.GOOD
     file.sim_size = 0
 
     fs.apply_request(request=["folder", folder.uuid, "checkhash"])
-    assert folder.status == FileSystemItemStatus.CORRUPTED
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 def test_file_repair_request(populated_file_system):
@@ -78,10 +98,10 @@ def test_file_repair_request(populated_file_system):
     fs, folder, file = populated_file_system
 
     file.corrupt()
-    assert file.status == FileSystemItemStatus.CORRUPTED
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
 
     fs.apply_request(request=["file", file.uuid, "repair"])
-    assert file.status == FileSystemItemStatus.GOOD
+    assert file.health_status == FileSystemItemHealthStatus.GOOD
 
 
 def test_folder_repair_request(populated_file_system):
@@ -89,12 +109,12 @@ def test_folder_repair_request(populated_file_system):
     fs, folder, file = populated_file_system
 
     folder.corrupt()
-    assert file.status == FileSystemItemStatus.CORRUPTED
-    assert folder.status == FileSystemItemStatus.CORRUPTED
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
 
     fs.apply_request(request=["folder", folder.uuid, "repair"])
-    assert file.status == FileSystemItemStatus.GOOD
-    assert folder.status == FileSystemItemStatus.GOOD
+    assert file.health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.health_status == FileSystemItemHealthStatus.GOOD
 
 
 def test_file_restore_request(populated_file_system):
@@ -109,15 +129,15 @@ def test_file_corrupt_request(populated_file_system):
     """Test that an agent can request a file corruption."""
     fs, folder, file = populated_file_system
     fs.apply_request(request=["file", file.uuid, "corrupt"])
-    assert file.status == FileSystemItemStatus.CORRUPTED
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 def test_folder_corrupt_request(populated_file_system):
     """Test that an agent can request a folder corruption."""
     fs, folder, file = populated_file_system
     fs.apply_request(request=["folder", folder.uuid, "corrupt"])
-    assert file.status == FileSystemItemStatus.CORRUPTED
-    assert folder.status == FileSystemItemStatus.CORRUPTED
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 def test_file_delete_request(populated_file_system):

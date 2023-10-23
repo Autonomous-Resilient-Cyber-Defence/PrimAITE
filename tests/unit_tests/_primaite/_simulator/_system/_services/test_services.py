@@ -1,17 +1,18 @@
 from primaite.simulator.system.services.service import ServiceOperatingState
+from primaite.simulator.system.software import SoftwareHealthState
 
 
 def test_scan(service):
     assert service.operating_state == ServiceOperatingState.STOPPED
-    assert service.visible_operating_state == ServiceOperatingState.STOPPED
+    assert service.health_state_visible == SoftwareHealthState.UNUSED
 
     service.start()
     assert service.operating_state == ServiceOperatingState.RUNNING
-    assert service.visible_operating_state == ServiceOperatingState.STOPPED
+    assert service.health_state_visible == SoftwareHealthState.UNUSED
 
     service.scan()
     assert service.operating_state == ServiceOperatingState.RUNNING
-    assert service.visible_operating_state == ServiceOperatingState.RUNNING
+    assert service.health_state_visible == SoftwareHealthState.GOOD
 
 
 def test_start_service(service):
@@ -50,6 +51,13 @@ def test_restart(service):
     service.start()
     service.restart()
     assert service.operating_state == ServiceOperatingState.RESTARTING
+
+    timestep = 0
+    while service.operating_state == ServiceOperatingState.RESTARTING:
+        service.apply_timestep(timestep)
+        timestep += 1
+
+    assert service.operating_state == ServiceOperatingState.RUNNING
 
 
 def test_enable_disable(service):

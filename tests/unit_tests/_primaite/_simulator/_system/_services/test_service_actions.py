@@ -1,15 +1,16 @@
 from primaite.simulator.system.services.service import ServiceOperatingState
+from primaite.simulator.system.software import SoftwareHealthState
 
 
 def test_service_scan(service):
     """Test that an agent can request a service scan."""
     service.start()
     assert service.operating_state == ServiceOperatingState.RUNNING
-    assert service.visible_operating_state == ServiceOperatingState.STOPPED
+    assert service.health_state_visible == SoftwareHealthState.UNUSED
 
     service.apply_request(["scan"])
     assert service.operating_state == ServiceOperatingState.RUNNING
-    assert service.visible_operating_state == ServiceOperatingState.RUNNING
+    assert service.health_state_visible == SoftwareHealthState.GOOD
 
 
 def test_service_stop(service):

@@ -3,7 +3,7 @@ from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.system.software import IOSoftware
+from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 _LOGGER = getLogger(__name__)
 
@@ -35,13 +35,16 @@ class Service(IOSoftware):
     operating_state: ServiceOperatingState = ServiceOperatingState.STOPPED
     "The current operating state of the Service."
 
-    visible_operating_state: ServiceOperatingState = ServiceOperatingState.STOPPED
-    "The visible operating state of the service."
-
     restart_duration: int = 5
     "How many timesteps does it take to restart this service."
     restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.health_state_visible = SoftwareHealthState.UNUSED
+        self.health_state_actual = SoftwareHealthState.UNUSED
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
@@ -65,9 +68,9 @@ class Service(IOSoftware):
         :rtype: Dict
         """
         state = super().describe_state()
-        state.update(
-            {"operating_state": self.operating_state.name, "visible_operating_state": self.visible_operating_state.name}
-        )
+        state["operating_state"] = self.operating_state.name
+        state["health_state_actual"] = self.health_state_actual
+        state["health_state_visible"] = self.health_state_visible
         return state
 
     def reset_component_for_episode(self, episode: int):
@@ -85,49 +88,56 @@ class Service(IOSoftware):
         super().scan()
 
         # update the visible operating state
-        self.visible_operating_state = self.operating_state
+        self.health_state_visible = self.health_state_actual
 
     def stop(self) -> None:
         """Stop the service."""
         if self.operating_state in [ServiceOperatingState.RUNNING, ServiceOperatingState.PAUSED]:
             self.sys_log.info(f"Stopping service {self.name}")
             self.operating_state = ServiceOperatingState.STOPPED
+            self.health_state_actual = SoftwareHealthState.UNUSED
 
     def start(self, **kwargs) -> None:
         """Start the service."""
         if self.operating_state == ServiceOperatingState.STOPPED:
             self.sys_log.info(f"Starting service {self.name}")
             self.operating_state = ServiceOperatingState.RUNNING
+            self.health_state_actual = SoftwareHealthState.GOOD
 
     def pause(self) -> None:
         """Pause the service."""
         if self.operating_state == ServiceOperatingState.RUNNING:
             self.sys_log.info(f"Pausing service {self.name}")
             self.operating_state = ServiceOperatingState.PAUSED
+            self.health_state_actual = SoftwareHealthState.OVERWHELMED
 
     def resume(self) -> None:
         """Resume paused service."""
         if self.operating_state == ServiceOperatingState.PAUSED:
             self.sys_log.info(f"Resuming service {self.name}")
             self.operating_state = ServiceOperatingState.RUNNING
+            self.health_state_actual = SoftwareHealthState.GOOD
 
     def restart(self) -> None:
         """Restart running service."""
         if self.operating_state in [ServiceOperatingState.RUNNING, ServiceOperatingState.PAUSED]:
             self.sys_log.info(f"Pausing service {self.name}")
             self.operating_state = ServiceOperatingState.RESTARTING
+            self.health_state_actual = SoftwareHealthState.OVERWHELMED
             self.restart_countdown = self.restart_duration
 
     def disable(self) -> None:
         """Disable the service."""
         self.sys_log.info(f"Disabling Application {self.name}")
         self.operating_state = ServiceOperatingState.DISABLED
+        self.health_state_actual = SoftwareHealthState.OVERWHELMED
 
     def enable(self) -> None:
         """Enable the disabled service."""
         if self.operating_state == ServiceOperatingState.DISABLED:
             self.sys_log.info(f"Enabling Application {self.name}")
             self.operating_state = ServiceOperatingState.STOPPED
+            self.health_state_actual = SoftwareHealthState.OVERWHELMED
 
     def apply_timestep(self, timestep: int) -> None:
         """
@@ -144,4 +154,5 @@ class Service(IOSoftware):
             if self.restart_countdown <= 0:
                 _LOGGER.debug(f"Restarting finished for service {self.name}")
                 self.operating_state = ServiceOperatingState.RUNNING
+                self.health_state_actual = SoftwareHealthState.GOOD
             self.restart_countdown -= 1

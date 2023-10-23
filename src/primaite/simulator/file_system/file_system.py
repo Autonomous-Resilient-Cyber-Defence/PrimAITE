@@ -47,7 +47,7 @@ def convert_size(size_bytes: int) -> str:
     return f"{s} {size_name[i]}"
 
 
-class FileSystemItemStatus(Enum):
+class FileSystemItemHealthStatus(Enum):
     """Status of the FileSystemItem."""
 
     GOOD = 0
@@ -73,10 +73,10 @@ class FileSystemItemABC(SimComponent):
     name: str
     "The name of the FileSystemItemABC."
 
-    status: FileSystemItemStatus = FileSystemItemStatus.GOOD
+    health_status: FileSystemItemHealthStatus = FileSystemItemHealthStatus.GOOD
     "Actual status of the current FileSystemItem"
 
-    visible_status: FileSystemItemStatus = FileSystemItemStatus.GOOD
+    visible_health_status: FileSystemItemHealthStatus = FileSystemItemHealthStatus.GOOD
     "Visible status of the current FileSystemItem"
 
     previous_hash: Optional[str] = None
@@ -90,8 +90,8 @@ class FileSystemItemABC(SimComponent):
         """
         state = super().describe_state()
         state["name"] = self.name
-        state["status"] = self.status.name
-        state["visible_status"] = self.visible_status.name
+        state["status"] = self.health_status.name
+        state["visible_status"] = self.visible_health_status.name
         state["previous_hash"] = self.previous_hash
         return state
 
@@ -123,7 +123,7 @@ class FileSystemItemABC(SimComponent):
         """Update the FileSystemItem states."""
         super().scan()
 
-        self.visible_status = self.status
+        self.visible_health_status = self.health_status
 
     @abstractmethod
     def check_hash(self) -> bool:
@@ -135,7 +135,7 @@ class FileSystemItemABC(SimComponent):
         Return False if corruption is detected, otherwise True
         """
         # cannot check hash if deleted
-        if self.status == FileSystemItemStatus.DELETED:
+        if self.health_status == FileSystemItemHealthStatus.DELETED:
             return False
 
     @abstractmethod
@@ -146,7 +146,7 @@ class FileSystemItemABC(SimComponent):
         True if successfully repaired. False otherwise.
         """
         # cannot repair if deleted
-        if self.status == FileSystemItemStatus.DELETED:
+        if self.health_status == FileSystemItemHealthStatus.DELETED:
             return False
 
     @abstractmethod
@@ -157,7 +157,7 @@ class FileSystemItemABC(SimComponent):
         True if successfully corrupted. False otherwise.
         """
         # cannot corrupt if deleted
-        if self.status == FileSystemItemStatus.DELETED:
+        if self.health_status == FileSystemItemHealthStatus.DELETED:
             return False
 
     def delete(self) -> None:
@@ -166,7 +166,7 @@ class FileSystemItemABC(SimComponent):
 
         True if successfully deleted. False otherwise.
         """
-        self.status = FileSystemItemStatus.DELETED
+        self.health_status = FileSystemItemHealthStatus.DELETED
 
     def restore(self) -> None:
         """Restore the file/folder to the state before it got ruined."""
@@ -456,6 +456,10 @@ class Folder(FileSystemItemABC):
     "Files by their name as <file name>.<file type>."
 
     deleted_files: Dict[str, File] = {}
+    "List of files that have been deleted."
+
+    scan_duration: int = -1
+    "How many timesteps to complete a scan."
 
     def describe_state(self) -> Dict:
         """
@@ -465,6 +469,7 @@ class Folder(FileSystemItemABC):
         """
         state = super().describe_state()
         state["files"] = {file.name: file.describe_state() for uuid, file in self.files.items()}
+        state["deleted_files"] = {file.name: file.describe_state() for uuid, file in self.deleted_files.items()}
         return state
 
     def show(self, markdown: bool = False):
@@ -491,6 +496,21 @@ class Folder(FileSystemItemABC):
             size, returns 0.
         """
         return sum(file.size for file in self.files.values() if file.size is not None)
+
+    def apply_timestep(self, timestep: int):
+        """
+        Used to run the actions that last over multiple timesteps.
+
+        :param: timestep: the current timestep.
+        """
+        super().apply_timestep(timestep=timestep)
+
+        # scan files each timestep
+        if self.scan_duration > -1:
+            # scan one file per timestep
+            file = self.get_file_by_id(file_uuid=list(self.files)[self.scan_duration - 1])
+            file.scan()
+            self.scan_duration -= 1
 
     def get_file(self, file_name: str) -> Optional[File]:
         """
@@ -573,30 +593,31 @@ class Folder(FileSystemItemABC):
 
     def quarantine(self):
         """Quarantines the File System Folder."""
-        if self.status != FileSystemItemStatus.QUARANTINED:
-            self.status = FileSystemItemStatus.QUARANTINED
+        if self.health_status != FileSystemItemHealthStatus.QUARANTINED:
+            self.health_status = FileSystemItemHealthStatus.QUARANTINED
             self.fs.sys_log.info(f"Quarantined folder ./{self.name}")
 
     def unquarantine(self):
         """Unquarantine of the File System Folder."""
-        if self.status == FileSystemItemStatus.QUARANTINED:
-            self.status = FileSystemItemStatus.GOOD
+        if self.health_status == FileSystemItemHealthStatus.QUARANTINED:
+            self.health_status = FileSystemItemHealthStatus.GOOD
             self.fs.sys_log.info(f"Quarantined folder ./{self.name}")
 
     def quarantine_status(self) -> bool:
         """Returns true if the folder is being quarantined."""
-        return self.status == FileSystemItemStatus.QUARANTINED
+        return self.health_status == FileSystemItemHealthStatus.QUARANTINED
 
     def scan(self) -> None:
         """Update Folder visible status."""
         super().scan()
 
-        # update the status of files in folder
-        for file_id in self.files:
-            file = self.get_file_by_id(file_uuid=file_id)
-            file.scan()
-
-        self.fs.sys_log.info(f"Scanning folder {self.name} (id: {self.uuid})")
+        if self.scan_duration <= -1:
+            # scan one file per timestep
+            self.scan_duration = len(self.files)
+            self.fs.sys_log.info(f"Scanning folder {self.name} (id: {self.uuid})")
+        else:
+            # scan already in progress
+            self.fs.sys_log.info(f"Scan is already in progress {self.name} (id: {self.uuid})")
 
     def check_hash(self) -> bool:
         """
@@ -638,8 +659,8 @@ class Folder(FileSystemItemABC):
             repaired = file.repair()
 
         # set file status to good if corrupt
-        if self.status == FileSystemItemStatus.CORRUPTED:
-            self.status = FileSystemItemStatus.GOOD
+        if self.health_status == FileSystemItemHealthStatus.CORRUPTED:
+            self.health_status = FileSystemItemHealthStatus.GOOD
             repaired = True
 
         self.fs.sys_log.info(f"Repaired folder {self.name} (id: {self.uuid})")
@@ -674,8 +695,8 @@ class Folder(FileSystemItemABC):
             corrupted = file.corrupt()
 
         # set file status to corrupt if good
-        if self.status == FileSystemItemStatus.GOOD:
-            self.status = FileSystemItemStatus.CORRUPTED
+        if self.health_status == FileSystemItemHealthStatus.GOOD:
+            self.health_status = FileSystemItemHealthStatus.CORRUPTED
             corrupted = True
 
         self.fs.sys_log.info(f"Corrupted folder {self.name} (id: {self.uuid})")
@@ -824,8 +845,8 @@ class File(FileSystemItemABC):
         super().repair()
 
         # set file status to good if corrupt
-        if self.status == FileSystemItemStatus.CORRUPTED:
-            self.status = FileSystemItemStatus.GOOD
+        if self.health_status == FileSystemItemHealthStatus.CORRUPTED:
+            self.health_status = FileSystemItemHealthStatus.GOOD
 
         path = self.folder.name + "/" + self.name
         self.folder.fs.sys_log.info(f"Repaired file {self.sim_path if self.sim_path else path}")
@@ -842,8 +863,8 @@ class File(FileSystemItemABC):
         corrupted = False
 
         # set file status to good if corrupt
-        if self.status == FileSystemItemStatus.GOOD:
-            self.status = FileSystemItemStatus.CORRUPTED
+        if self.health_status == FileSystemItemHealthStatus.GOOD:
+            self.health_status = FileSystemItemHealthStatus.CORRUPTED
             corrupted = True
 
         path = self.folder.name + "/" + self.name

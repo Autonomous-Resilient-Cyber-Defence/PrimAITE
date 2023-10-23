@@ -1,6 +1,6 @@
 import pytest
 
-from primaite.simulator.file_system.file_system import File, FileSystem, FileSystemItemStatus, Folder
+from primaite.simulator.file_system.file_system import File, FileSystem, FileSystemItemHealthStatus, Folder
 from primaite.simulator.file_system.file_type import FileType
 
 
@@ -146,13 +146,13 @@ def test_file_corrupt_repair(file_system):
 
     file.corrupt()
 
-    assert folder.status == FileSystemItemStatus.GOOD
-    assert file.status == FileSystemItemStatus.CORRUPTED
+    assert folder.health_status == FileSystemItemHealthStatus.GOOD
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
 
     file.repair()
 
-    assert folder.status == FileSystemItemStatus.GOOD
-    assert file.status == FileSystemItemStatus.GOOD
+    assert folder.health_status == FileSystemItemHealthStatus.GOOD
+    assert file.health_status == FileSystemItemHealthStatus.GOOD
 
 
 def test_folder_corrupt_repair(file_system):
@@ -163,14 +163,14 @@ def test_folder_corrupt_repair(file_system):
     folder.corrupt()
 
     file = folder.get_file(file_name="test_file.txt")
-    assert folder.status == FileSystemItemStatus.CORRUPTED
-    assert file.status == FileSystemItemStatus.CORRUPTED
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
 
     folder.repair()
 
     file = folder.get_file(file_name="test_file.txt")
-    assert folder.status == FileSystemItemStatus.GOOD
-    assert file.status == FileSystemItemStatus.GOOD
+    assert folder.health_status == FileSystemItemHealthStatus.GOOD
+    assert file.health_status == FileSystemItemHealthStatus.GOOD
 
 
 def test_file_scan(file_system):
@@ -178,43 +178,63 @@ def test_file_scan(file_system):
     folder: Folder = file_system.create_folder(folder_name="test_folder")
     file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
 
-    assert file.status == FileSystemItemStatus.GOOD
-    assert file.visible_status == FileSystemItemStatus.GOOD
+    assert file.health_status == FileSystemItemHealthStatus.GOOD
+    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
 
     file.corrupt()
 
-    assert file.status == FileSystemItemStatus.CORRUPTED
-    assert file.visible_status == FileSystemItemStatus.GOOD
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
 
     file.scan()
 
-    assert file.status == FileSystemItemStatus.CORRUPTED
-    assert file.visible_status == FileSystemItemStatus.CORRUPTED
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 def test_folder_scan(file_system):
     """Test the ability to update visible status."""
     folder: Folder = file_system.create_folder(folder_name="test_folder")
-    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+    file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+    file_system.create_file(file_name="test_file2.txt", folder_name="test_folder")
 
-    assert folder.status == FileSystemItemStatus.GOOD
-    assert folder.visible_status == FileSystemItemStatus.GOOD
-    assert file.status == FileSystemItemStatus.GOOD
-    assert file.visible_status == FileSystemItemStatus.GOOD
+    file1: File = folder.get_file_by_id(file_uuid=list(folder.files)[1])
+    file2: File = folder.get_file_by_id(file_uuid=list(folder.files)[0])
+
+    assert folder.health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
 
     folder.corrupt()
 
-    assert folder.status == FileSystemItemStatus.CORRUPTED
-    assert folder.visible_status == FileSystemItemStatus.GOOD
-    assert file.status == FileSystemItemStatus.CORRUPTED
-    assert file.visible_status == FileSystemItemStatus.GOOD
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
 
     folder.scan()
 
-    assert folder.status == FileSystemItemStatus.CORRUPTED
-    assert folder.visible_status == FileSystemItemStatus.CORRUPTED
-    assert file.status == FileSystemItemStatus.CORRUPTED
-    assert file.visible_status == FileSystemItemStatus.CORRUPTED
+    folder.apply_timestep(timestep=0)
+
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file1.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
+
+    folder.apply_timestep(timestep=1)
+
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file1.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file2.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+
+    folder.apply_timestep(timestep=2)
+
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file1.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
+    assert file2.visible_health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 def test_simulated_file_check_hash(file_system):
@@ -225,7 +245,7 @@ def test_simulated_file_check_hash(file_system):
     # change simulated file size
     file.sim_size = 0
     assert file.check_hash() is False
-    assert file.status == FileSystemItemStatus.CORRUPTED
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 def test_real_file_check_hash(file_system):
@@ -238,7 +258,7 @@ def test_real_file_check_hash(file_system):
         f.write("get hacked scrub lol xD\n")
 
     assert file.check_hash() is False
-    assert file.status == FileSystemItemStatus.CORRUPTED
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 def test_simulated_folder_check_hash(file_system):
@@ -251,7 +271,7 @@ def test_simulated_folder_check_hash(file_system):
     file = folder.get_file(file_name="test_file.txt")
     file.sim_size = 0
     assert folder.check_hash() is False
-    assert folder.status == FileSystemItemStatus.CORRUPTED
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 def test_real_folder_check_hash(file_system):
@@ -268,7 +288,7 @@ def test_real_folder_check_hash(file_system):
         f.write("get hacked scrub lol xD\n")
 
     assert folder.check_hash() is False
-    assert folder.status == FileSystemItemStatus.CORRUPTED
+    assert folder.health_status == FileSystemItemHealthStatus.CORRUPTED
 
 
 @pytest.mark.skip(reason="Skipping until we tackle serialisation")

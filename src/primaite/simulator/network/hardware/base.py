@@ -1000,6 +1000,7 @@ class Node(SimComponent):
                 "applications": {uuid: app.describe_state() for uuid, app in self.applications.items()},
                 "services": {uuid: svc.describe_state() for uuid, svc in self.services.items()},
                 "process": {uuid: proc.describe_state() for uuid, proc in self.processes.items()},
+                "revealed_to_red": self.revealed_to_red,
             }
         )
         return state
