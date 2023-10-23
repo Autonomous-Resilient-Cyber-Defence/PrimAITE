@@ -139,7 +139,7 @@ class ServiceObservation(AbstractObservation):
         service_state = access_from_nested_dict(state, self.where)
         if service_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
-        return {"operating_status": service_state["operating_state"], "health_status": service_state["health_status"]}
+        return {"operating_status": service_state["operating_state"], "health_status": service_state["health_state"]}
 
     @property
     def space(self) -> spaces.Space:

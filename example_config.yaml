@@ -457,7 +457,7 @@ game_config:
             weight: 0.5
             options:
               node_ref: web_server
-              service_ref: web_server_database_client
+              service_ref: web_server_web_service
 
 
       agent_settings:
