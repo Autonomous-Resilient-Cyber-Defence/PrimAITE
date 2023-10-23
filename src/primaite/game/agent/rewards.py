@@ -29,7 +29,7 @@ from abc import abstractmethod
 from typing import Dict, List, Tuple, TYPE_CHECKING
 
 from primaite import getLogger
-from primaite.game.agent.utils import access_from_nested_dict
+from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 
 _LOGGER = getLogger(__name__)
 
@@ -180,14 +180,17 @@ class WebServer404Penalty(AbstractReward):
         :type state: Dict
         """
         web_service_state = access_from_nested_dict(state, self.location_in_state)
-        most_recent_return_code = web_service_state["most_recent_return_code"]
+        if web_service_state is NOT_PRESENT_IN_STATE:
+            print("error getting web service state")
+            return 0.0
+        most_recent_return_code = web_service_state["last_response_status_code"]
         # TODO: reward needs to use the current web state. Observation should return web state at the time of last scan.
         if most_recent_return_code == 200:
-            return 1
+            return 1.0
         elif most_recent_return_code == 404:
-            return -1
+            return -1.0
         else:
-            return 0
+            return 0.0
 
     @classmethod
     def from_config(cls, config: Dict, session: "PrimaiteSession") -> "WebServer404Penalty":
