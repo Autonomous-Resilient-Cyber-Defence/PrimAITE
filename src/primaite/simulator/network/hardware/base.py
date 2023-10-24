@@ -914,6 +914,18 @@ class Node(SimComponent):
     revealed_to_red: bool = False
     "Informs whether the node has been revealed to a red agent."
 
+    start_up_duration: int = 3
+    "Time steps needed for the node to start up."
+
+    start_up_countdown: int = -1
+    "Time steps needed until node is booted up."
+
+    shut_down_duration: int = 3
+    "Time steps needed for the node to shut down."
+
+    shut_down_countdown: int = -1
+    "Time steps needed until node is shut down."
+
     def __init__(self, **kwargs):
         """
         Initialize the Node with various components and managers.
@@ -1042,22 +1054,62 @@ class Node(SimComponent):
             )
         print(table)
 
+    def apply_timestep(self, timestep: int):
+        """
+        Apply a single timestep of simulation dynamics to this service.
+
+        In this instance, if any multi-timestep processes are currently occurring
+        (such as starting up or shutting down), then they are brought one step closer to
+        being finished.
+
+        :param timestep: The current timestep number. (Amount of time since simulation episode began)
+        :type timestep: int
+        """
+        super().apply_timestep(timestep=timestep)
+
+        # count down to boot up
+        if self.start_up_countdown > 0:
+            self.start_up_countdown -= 1
+        else:
+            if self.operating_state == NodeOperatingState.BOOTING:
+                self.operating_state = NodeOperatingState.ON
+                self.sys_log.info("Turned on")
+                for nic in self.nics.values():
+                    if nic._connected_link:
+                        nic.enable()
+
+        # count down to shut down
+        if self.shut_down_countdown > 0:
+            self.shut_down_countdown -= 1
+        else:
+            if self.operating_state == NodeOperatingState.SHUTTING_DOWN:
+                self.operating_state = NodeOperatingState.OFF
+                self.sys_log.info("Turned off")
+
     def power_on(self):
         """Power on the Node, enabling its NICs if it is in the OFF state."""
         if self.operating_state == NodeOperatingState.OFF:
-            self.operating_state = NodeOperatingState.ON
-            self.sys_log.info("Turned on")
-            for nic in self.nics.values():
-                if nic._connected_link:
-                    nic.enable()
+            self.operating_state = NodeOperatingState.BOOTING
+            self.start_up_countdown = self.start_up_duration
+
+            if self.start_up_duration <= 0:
+                self.operating_state = NodeOperatingState.ON
+                self.sys_log.info("Turned on")
+                for nic in self.nics.values():
+                    if nic._connected_link:
+                        nic.enable()
 
     def power_off(self):
         """Power off the Node, disabling its NICs if it is in the ON state."""
         if self.operating_state == NodeOperatingState.ON:
             for nic in self.nics.values():
                 nic.disable()
-            self.operating_state = NodeOperatingState.OFF
-            self.sys_log.info("Turned off")
+            self.operating_state = NodeOperatingState.SHUTTING_DOWN
+            self.shut_down_countdown = self.shut_down_duration
+
+            if self.shut_down_duration >= 0:
+                self.operating_state = NodeOperatingState.OFF
+                self.sys_log.info("Turned off")
 
     def connect_nic(self, nic: NIC):
         """
@@ -1135,7 +1187,7 @@ class Node(SimComponent):
                     f"Ping statistics for {target_ip_address}: "
                     f"Packets: Sent = {pings}, "
                     f"Received = {request_replies}, "
-                    f"Lost = {pings-request_replies} ({(pings-request_replies)/pings*100}% loss)"
+                    f"Lost = {pings - request_replies} ({(pings - request_replies) / pings * 100}% loss)"
                 )
                 return passed
         return False

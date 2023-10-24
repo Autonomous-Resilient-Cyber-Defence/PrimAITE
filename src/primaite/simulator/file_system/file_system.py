@@ -499,9 +499,13 @@ class Folder(FileSystemItemABC):
 
     def apply_timestep(self, timestep: int):
         """
-        Used to run the actions that last over multiple timesteps.
+        Apply a single timestep of simulation dynamics to this service.
 
-        :param: timestep: the current timestep.
+        In this instance, if any multi-timestep processes are currently occurring (such as scanning),
+        then they are brought one step closer to being finished.
+
+        :param timestep: The current timestep number. (Amount of time since simulation episode began)
+        :type timestep: int
         """
         super().apply_timestep(timestep=timestep)
 
