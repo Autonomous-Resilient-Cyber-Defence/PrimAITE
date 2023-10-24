@@ -2,10 +2,10 @@ training_config:
   rl_framework: SB3
   rl_algorithm: PPO
   seed: 333
-  n_learn_episodes: 4
-  n_learn_steps: 128
-  n_eval_episodes: 1
-  n_eval_steps: 128
+  n_learn_episodes: 1
+  n_learn_steps: 8
+  n_eval_episodes: 0
+  n_eval_steps: 8
 
 
 game_config:
@@ -39,10 +39,10 @@ game_config:
         options:
           nodes:
           - node_ref: client_2
-          max_folders_per_node: 2
-          max_files_per_folder: 2
-          max_services_per_node: 2
-          max_nics_per_node: 8
+          max_folders_per_node: 1
+          max_files_per_folder: 1
+          max_services_per_node: 1
+          max_nics_per_node: 2
           max_acl_rules: 10
 
       reward_function:
@@ -93,9 +93,9 @@ game_config:
         options:
           nodes:
           - node_ref: client_1
-          max_folders_per_node: 2
-          max_files_per_folder: 2
-          max_services_per_node: 2
+          max_folders_per_node: 1
+          max_files_per_folder: 1
+          max_services_per_node: 1
 
       reward_function:
         reward_components:
@@ -113,9 +113,10 @@ game_config:
       observation_space:
         type: UC2BlueObservation
         options:
-          num_services_per_node: 2
-          num_folders_per_node: 2
-          num_files_per_folder: 2
+          num_services_per_node: 1
+          num_folders_per_node: 1
+          num_files_per_folder: 1
+          num_nics_per_node: 2
           nodes:
           - node_ref: domain_controller
             services:
@@ -148,6 +149,8 @@ game_config:
           - link_ref: switch_2___client_2
           - link_ref: switch_2___security_suite
           acl:
+            options:
+              max_acl_rules: 10
             router_node_ref: router_1
             ip_address_order:
               - node_ref: domain_controller
