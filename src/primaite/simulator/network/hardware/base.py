@@ -917,13 +917,13 @@ class Node(SimComponent):
     start_up_duration: int = 3
     "Time steps needed for the node to start up."
 
-    start_up_countdown: int = -1
+    start_up_countdown: int = 0
     "Time steps needed until node is booted up."
 
     shut_down_duration: int = 3
     "Time steps needed for the node to shut down."
 
-    shut_down_countdown: int = -1
+    shut_down_countdown: int = 0
     "Time steps needed until node is shut down."
 
     def __init__(self, **kwargs):
@@ -1092,12 +1092,12 @@ class Node(SimComponent):
             self.operating_state = NodeOperatingState.BOOTING
             self.start_up_countdown = self.start_up_duration
 
-            if self.start_up_duration <= 0:
-                self.operating_state = NodeOperatingState.ON
-                self.sys_log.info("Turned on")
-                for nic in self.nics.values():
-                    if nic._connected_link:
-                        nic.enable()
+        if self.start_up_duration <= 0:
+            self.operating_state = NodeOperatingState.ON
+            self.sys_log.info("Turned on")
+            for nic in self.nics.values():
+                if nic._connected_link:
+                    nic.enable()
 
     def power_off(self):
         """Power off the Node, disabling its NICs if it is in the ON state."""
@@ -1107,9 +1107,9 @@ class Node(SimComponent):
             self.operating_state = NodeOperatingState.SHUTTING_DOWN
             self.shut_down_countdown = self.shut_down_duration
 
-            if self.shut_down_duration >= 0:
-                self.operating_state = NodeOperatingState.OFF
-                self.sys_log.info("Turned off")
+        if self.shut_down_duration <= 0:
+            self.operating_state = NodeOperatingState.OFF
+            self.sys_log.info("Turned off")
 
     def connect_nic(self, nic: NIC):
         """

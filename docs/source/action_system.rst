@@ -27,7 +27,7 @@ Just like other aspects of SimComponent, the actions are not managed centrally f
     4. ``Service`` receives ``['restart']``.
         Since ``restart`` is a defined action in the service's own RequestManager, the service performs a restart.
 
-Techincal Detail
+Technical Detail
 ================
 
 This system was achieved by implementing two classes, :py:class:`primaite.simulator.core.Action`, and :py:class:`primaite.simulator.core.RequestManager`.
@@ -35,12 +35,12 @@ This system was achieved by implementing two classes, :py:class:`primaite.simula
 Action
 ------
 
-The ``Action`` object stores a reference to a method that performs the action, for example a node could have an action that stores a reference to ``self.turn_on()``. Techincally, this can be any callable that accepts `request, context` as it's parameters. In practice, this is often defined using ``lambda`` functions within a component's ``self._init_request_manager()`` method. Optionally, the ``Action`` object can also hold a validator that will permit/deny the action depending on context.
+The ``Action`` object stores a reference to a method that performs the action, for example a node could have an action that stores a reference to ``self.turn_on()``. Technically, this can be any callable that accepts `request, context` as it's parameters. In practice, this is often defined using ``lambda`` functions within a component's ``self._init_request_manager()`` method. Optionally, the ``Action`` object can also hold a validator that will permit/deny the action depending on context.
 
 RequestManager
 -------------
 
-The ``RequestManager`` object stores a mapping between strings and actions. It is responsible for processing the ``request`` and passing it down the ownership tree. Techincally, the ``RequestManager`` is itself a callable that accepts `request, context` tuple, and so it can be chained with other action managers.
+The ``RequestManager`` object stores a mapping between strings and actions. It is responsible for processing the ``request`` and passing it down the ownership tree. Technically, the ``RequestManager`` is itself a callable that accepts `request, context` tuple, and so it can be chained with other action managers.
 
 A simple example without chaining can be seen in the :py:class:`primaite.simulator.file_system.file_system.File` class.
 
