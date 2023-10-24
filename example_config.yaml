@@ -420,13 +420,84 @@ game_config:
             38:
               action: "NETWORK_NIC_DISABLE"
               options:
-                  node_id: 6
+                  node_id: 1
                   nic_id: 1
             39:
               action: "NETWORK_NIC_ENABLE"
               options:
+                  node_id: 1
+                  nic_id: 1
+            40:
+              action: "NETWORK_NIC_DISABLE"
+              options:
+                  node_id: 2
+                  nic_id: 1
+            41:
+              action: "NETWORK_NIC_ENABLE"
+              options:
+                  node_id: 2
+                  nic_id: 1
+            42:
+              action: "NETWORK_NIC_DISABLE"
+              options:
+                  node_id: 3
+                  nic_id: 1
+            43:
+              action: "NETWORK_NIC_ENABLE"
+              options:
+                  node_id: 3
+                  nic_id: 1
+            44:
+              action: "NETWORK_NIC_DISABLE"
+              options:
+                  node_id: 4
+                  nic_id: 1
+            45:
+              action: "NETWORK_NIC_ENABLE"
+              options:
+                  node_id: 4
+                  nic_id: 1
+            46:
+              action: "NETWORK_NIC_DISABLE"
+              options:
+                  node_id: 5
+                  nic_id: 1
+            47:
+              action: "NETWORK_NIC_ENABLE"
+              options:
+                  node_id: 5
+                  nic_id: 1
+            48:
+              action: "NETWORK_NIC_DISABLE"
+              options:
+                  node_id: 5
+                  nic_id: 2
+            49:
+              action: "NETWORK_NIC_ENABLE"
+              options:
+                  node_id: 5
+                  nic_id: 2
+            50:
+              action: "NETWORK_NIC_DISABLE"
+              options:
                   node_id: 6
                   nic_id: 1
+            51:
+              action: "NETWORK_NIC_ENABLE"
+              options:
+                  node_id: 6
+                  nic_id: 1
+            52:
+              action: "NETWORK_NIC_DISABLE"
+              options:
+                  node_id: 7
+                  nic_id: 1
+            53:
+              action: "NETWORK_NIC_ENABLE"
+              options:
+                  node_id: 7
+                  nic_id: 1
+
 
         options:
           nodes:
