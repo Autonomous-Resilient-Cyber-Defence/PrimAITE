@@ -119,12 +119,6 @@ class FileSystemItemABC(SimComponent):
         """
         return convert_size(self.size)
 
-    def scan(self) -> None:
-        """Update the FileSystemItem states."""
-        super().scan()
-
-        self.visible_health_status = self.health_status
-
     @abstractmethod
     def check_hash(self) -> bool:
         """
@@ -514,6 +508,8 @@ class Folder(FileSystemItemABC):
             # scan one file per timestep
             file = self.get_file_by_id(file_uuid=list(self.files)[self.scan_duration - 1])
             file.scan()
+            if file.visible_health_status == FileSystemItemHealthStatus.CORRUPTED:
+                self.visible_health_status = FileSystemItemHealthStatus.CORRUPTED
             self.scan_duration -= 1
 
     def get_file(self, file_name: str) -> Optional[File]:
@@ -613,8 +609,6 @@ class Folder(FileSystemItemABC):
 
     def scan(self) -> None:
         """Update Folder visible status."""
-        super().scan()
-
         if self.scan_duration <= -1:
             # scan one file per timestep
             self.scan_duration = len(self.files)
@@ -799,10 +793,9 @@ class File(FileSystemItemABC):
 
     def scan(self) -> None:
         """Updates the visible statuses of the file."""
-        super().scan()
-
         path = self.folder.name + "/" + self.name
         self.folder.fs.sys_log.info(f"Scanning file {self.sim_path if self.sim_path else path}")
+        self.visible_health_status = self.health_status
 
     def check_hash(self) -> bool:
         """

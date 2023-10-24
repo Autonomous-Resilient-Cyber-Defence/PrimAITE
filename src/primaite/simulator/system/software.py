@@ -175,8 +175,6 @@ class Software(SimComponent):
 
     def scan(self) -> None:
         """Update the observed health status to match the actual health status."""
-        super().scan()
-
         self.health_state_visible = self.health_state_actual
 
 

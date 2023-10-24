@@ -84,9 +84,6 @@ class Service(IOSoftware):
 
     def scan(self) -> None:
         """Update the service visible states."""
-        # update parent states
-        super().scan()
-
         # update the visible operating state
         self.health_state_visible = self.health_state_actual
 

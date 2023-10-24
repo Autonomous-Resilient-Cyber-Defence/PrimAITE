@@ -196,10 +196,6 @@ class SimComponent(BaseModel):
         }
         return state
 
-    def scan(self) -> None:
-        """Update the visible statuses of the SimComponent."""
-        pass
-
     def apply_request(self, request: List[str], context: Dict = {}) -> None:
         """
         Apply a request to a simulation component. Request data is passed in as a 'namespaced' list of strings.
