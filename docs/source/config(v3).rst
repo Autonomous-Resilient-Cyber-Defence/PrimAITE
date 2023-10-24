@@ -1,9 +1,7 @@
 Primaite v3 config
 ******************
 
-
-
-The YAML file allows configuring a cybersecurity scenario involving a computer network and multiple agents. There are three main sections: training_config, game, and simulation.
+PrimAITE uses a single configuration file to define a cybersecurity scenario. This includes the computer network and multiple agents. There are three main sections: training_config, game, and simulation.
 
 The simulation section describes the simulated network environment with which the agetns interact.
 
