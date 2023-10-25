@@ -6,6 +6,7 @@ from primaite.main import run
 from tests import TEST_CONFIG_ROOT
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "legacy_file",
     [

@@ -1,10 +1,11 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 import pytest as pytest
 
-from primaite.config.lay_down_config import dos_very_basic_config_path
+# from primaite.config.lay_down_config import dos_very_basic_config_path
 from tests import TEST_CONFIG_ROOT
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [[TEST_CONFIG_ROOT / "ppo_seeded_training_config.yaml", dos_very_basic_config_path()]],
@@ -49,6 +50,7 @@ def test_seeded_learning(temp_primaite_session):
     assert actual_mean_reward_per_episode == expected_mean_reward_per_episode
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [[TEST_CONFIG_ROOT / "ppo_seeded_training_config.yaml", dos_very_basic_config_path()]],

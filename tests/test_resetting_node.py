@@ -2,13 +2,14 @@
 """Used to test Active Node functions."""
 import pytest
 
-from primaite.common.enums import FileSystemState, HardwareState, NodeType, Priority, SoftwareState
-from primaite.common.service import Service
-from primaite.config.training_config import TrainingConfig
-from primaite.nodes.active_node import ActiveNode
-from primaite.nodes.service_node import ServiceNode
+# from primaite.common.enums import FileSystemState, HardwareState, NodeType, Priority, SoftwareState
+# from primaite.common.service import Service
+# from primaite.config.training_config import TrainingConfig
+# from primaite.nodes.active_node import ActiveNode
+# from primaite.nodes.service_node import ServiceNode
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "starting_operating_state, expected_operating_state",
     [(HardwareState.RESETTING, HardwareState.ON)],
@@ -35,6 +36,7 @@ def test_node_resets_correctly(starting_operating_state, expected_operating_stat
     assert active_node.hardware_state == expected_operating_state
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "operating_state, expected_operating_state",
     [(HardwareState.BOOTING, HardwareState.ON)],
@@ -62,6 +64,7 @@ def test_node_boots_correctly(operating_state, expected_operating_state):
     assert service_node.hardware_state == expected_operating_state
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "operating_state, expected_operating_state",
     [(HardwareState.SHUTTING_DOWN, HardwareState.OFF)],

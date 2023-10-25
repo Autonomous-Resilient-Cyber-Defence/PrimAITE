@@ -1,11 +1,12 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 """Used to tes the ACL functions."""
 
-from primaite.acl.access_control_list import AccessControlList
-from primaite.acl.acl_rule import ACLRule
-from primaite.common.enums import RulePermissionType
+# from primaite.acl.access_control_list import AccessControlList
+# from primaite.acl.acl_rule import ACLRule
+# from primaite.common.enums import RulePermissionType
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 def test_acl_address_match_1():
     """Test that matching IP addresses produce True."""
     acl = AccessControlList(RulePermissionType.DENY, 10)
@@ -15,6 +16,7 @@ def test_acl_address_match_1():
     assert acl.check_address_match(rule, "192.168.1.1", "192.168.1.2") == True
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 def test_acl_address_match_2():
     """Test that mismatching IP addresses produce False."""
     acl = AccessControlList(RulePermissionType.DENY, 10)
@@ -24,6 +26,7 @@ def test_acl_address_match_2():
     assert acl.check_address_match(rule, "192.168.1.1", "192.168.1.3") == False
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 def test_acl_address_match_3():
     """Test the ANY condition for source IP addresses produce True."""
     acl = AccessControlList(RulePermissionType.DENY, 10)
@@ -33,6 +36,7 @@ def test_acl_address_match_3():
     assert acl.check_address_match(rule, "192.168.1.1", "192.168.1.2") == True
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 def test_acl_address_match_4():
     """Test the ANY condition for dest IP addresses produce True."""
     acl = AccessControlList(RulePermissionType.DENY, 10)
@@ -42,6 +46,7 @@ def test_acl_address_match_4():
     assert acl.check_address_match(rule, "192.168.1.1", "192.168.1.2") == True
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 def test_check_acl_block_affirmative():
     """Test the block function (affirmative)."""
     # Create the Access Control List
@@ -66,6 +71,7 @@ def test_check_acl_block_affirmative():
     assert acl.is_blocked("192.168.1.1", "192.168.1.2", "TCP", "80") == False
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 def test_check_acl_block_negative():
     """Test the block function (negative)."""
     # Create the Access Control List
@@ -91,6 +97,7 @@ def test_check_acl_block_negative():
     assert acl.is_blocked("192.168.1.1", "192.168.1.2", "TCP", "80") == True
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 def test_rule_hash():
     """Test the rule hash."""
     # Create the Access Control List
@@ -104,6 +111,7 @@ def test_rule_hash():
     assert hash_value_local == hash_value_remote
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 def test_delete_rule():
     """Adds 3 rules and deletes 1 rule and checks its deletion."""
     # Create the Access Control List

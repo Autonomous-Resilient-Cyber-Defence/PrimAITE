@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import Optional, Union
 
 from primaite import getLogger
-from primaite.primaite_session import PrimaiteSession
+
+# from primaite.primaite_session import PrimaiteSession
 
 _LOGGER = getLogger(__name__)
 
@@ -31,13 +32,14 @@ def run(
     :param legacy_lay_down_config: True if the lay_down config file is a legacy file from PrimAITE < 2.0,
         otherwise False.
     """
-    session = PrimaiteSession(
-        training_config_path, lay_down_config_path, session_path, legacy_training_config, legacy_lay_down_config
-    )
+    # session = PrimaiteSession(
+    #     training_config_path, lay_down_config_path, session_path, legacy_training_config, legacy_lay_down_config
+    # )
 
-    session.setup()
-    session.learn()
-    session.evaluate()
+    # session.setup()
+    # session.learn()
+    # session.evaluate()
+    return NotImplemented
 
 
 if __name__ == "__main__":

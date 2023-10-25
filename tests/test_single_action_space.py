@@ -3,12 +3,13 @@ import time
 
 import pytest
 
-from primaite.acl.acl_rule import ACLRule
-from primaite.common.enums import HardwareState
-from primaite.environment.primaite_env import Primaite
+# from primaite.acl.acl_rule import ACLRule
+# from primaite.common.enums import HardwareState
+# from primaite.environment.primaite_env import Primaite
 from tests import TEST_CONFIG_ROOT
 
 
+@pytest.skip("Deprecated")
 def run_generic_set_actions(env: Primaite):
     """Run against a generic agent with specified blue agent actions."""
     # Reset the environment at the start of the episode
@@ -47,6 +48,7 @@ def run_generic_set_actions(env: Primaite):
     # env.close()
 
 
+@pytest.skip("Deprecated")
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [
@@ -88,6 +90,7 @@ def test_single_action_space_is_valid(temp_primaite_session):
         assert both_action_spaces
 
 
+@pytest.skip("Deprecated")
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [

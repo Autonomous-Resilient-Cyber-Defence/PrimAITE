@@ -2,10 +2,11 @@
 """Used to test Active Node functions."""
 import pytest
 
-from primaite.common.enums import FileSystemState, HardwareState, SoftwareState
-from primaite.nodes.active_node import ActiveNode
+# from primaite.common.enums import FileSystemState, HardwareState, SoftwareState
+# from primaite.nodes.active_node import ActiveNode
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "operating_state, expected_state",
     [
@@ -36,6 +37,7 @@ def test_os_state_change(operating_state, expected_state):
     assert active_node.software_state == expected_state
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "operating_state, expected_state",
     [
@@ -66,6 +68,7 @@ def test_os_state_change_if_not_compromised(operating_state, expected_state):
     assert active_node.software_state == expected_state
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "operating_state, expected_state",
     [
@@ -92,6 +95,7 @@ def test_file_system_change(operating_state, expected_state):
     assert active_node.file_system_state_actual == expected_state
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "operating_state, expected_state",
     [

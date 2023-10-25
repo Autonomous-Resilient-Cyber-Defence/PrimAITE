@@ -6,14 +6,18 @@ from pathlib import Path
 from typing import Union
 from uuid import uuid4
 
+import pytest
 from typer.testing import CliRunner
 
 from primaite import getLogger
-from primaite.agents.sb3 import SB3Agent
+
+# from primaite.agents.sb3 import SB3Agent
 from primaite.cli import app
-from primaite.common.enums import AgentFramework, AgentIdentifier
+
+# from primaite.common.enums import AgentFramework, AgentIdentifier
 from primaite.main import run
-from primaite.primaite_session import PrimaiteSession
+
+# from primaite.primaite_session import PrimaiteSession
 from primaite.utils.session_output_reader import av_rewards_dict
 from tests import TEST_ASSETS_ROOT
 
@@ -62,6 +66,7 @@ def copy_session_asset(asset_path: Union[str, Path]) -> str:
     return copy_path
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 def test_load_sb3_session():
     """Test that loading an SB3 agent works."""
     test_path = copy_session_asset(TEST_ASSETS_ROOT / "example_sb3_agent_session")
@@ -104,6 +109,7 @@ def test_load_sb3_session():
     shutil.rmtree(test_path)
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 def test_load_primaite_session():
     """Test that loading a Primaite session works."""
     test_path = copy_session_asset(TEST_ASSETS_ROOT / "example_sb3_agent_session")
@@ -150,6 +156,7 @@ def test_load_primaite_session():
     shutil.rmtree(test_path)
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 def test_run_loading():
     """Test loading session via main.run."""
     test_path = copy_session_asset(TEST_ASSETS_ROOT / "example_sb3_agent_session")

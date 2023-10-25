@@ -4,12 +4,14 @@ import os
 import pytest
 
 from primaite import getLogger
-from primaite.config.lay_down_config import dos_very_basic_config_path
+
+# from primaite.config.lay_down_config import dos_very_basic_config_path
 from tests import TEST_CONFIG_ROOT
 
 _LOGGER = getLogger(__name__)
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [

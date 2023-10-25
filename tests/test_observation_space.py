@@ -4,10 +4,11 @@
 import numpy as np
 import pytest
 
-from primaite.environment.observations import NodeLinkTable, NodeStatuses, ObservationsHandler
+# from primaite.environment.observations import NodeLinkTable, NodeStatuses, ObservationsHandler
 from tests import TEST_CONFIG_ROOT
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [
@@ -29,6 +30,7 @@ def test_default_obs_space(temp_primaite_session):
         assert isinstance(components[0], NodeLinkTable)
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [
@@ -51,6 +53,7 @@ def test_registering_components(temp_primaite_session):
         assert component not in handler.registered_obs_components
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [
@@ -140,6 +143,7 @@ class TestNodeLinkTable:
             )
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [
@@ -194,6 +198,7 @@ class TestNodeStatuses:
             assert np.array_equal(obs, [1, 3, 1, 1, 1, 1, 1, 1, 1, 4, 1, 1, 1, 0, 0])
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [
@@ -240,6 +245,7 @@ class TestLinkTrafficLevels:
             assert np.array_equal(obs, [6, 0, 6, 0])
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [

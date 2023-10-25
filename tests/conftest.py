@@ -10,8 +10,9 @@ from unittest.mock import patch
 import pytest
 
 from primaite import getLogger
-from primaite.environment.primaite_env import Primaite
-from primaite.primaite_session import PrimaiteSession
+
+# from primaite.environment.primaite_env import Primaite
+# from primaite.primaite_session import PrimaiteSession
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.networks import arcd_uc2_network
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -53,6 +54,7 @@ def file_system() -> FileSystem:
     return Node(hostname="fs_node").file_system
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 # PrimAITE v2 stuff
 class TempPrimaiteSession(PrimaiteSession):
     """
@@ -82,6 +84,7 @@ class TempPrimaiteSession(PrimaiteSession):
         _LOGGER.debug(f"Deleted temp session directory: {self.session_path}")
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.fixture
 def temp_primaite_session(request):
     """
@@ -136,6 +139,7 @@ def temp_primaite_session(request):
         return TempPrimaiteSession(training_config_path, lay_down_config_path)
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.fixture
 def temp_session_path() -> Path:
     """

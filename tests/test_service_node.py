@@ -2,11 +2,12 @@
 """Used to test Service Node functions."""
 import pytest
 
-from primaite.common.enums import HardwareState, SoftwareState
-from primaite.common.service import Service
-from primaite.nodes.service_node import ServiceNode
+# from primaite.common.enums import HardwareState, SoftwareState
+# from primaite.common.service import Service
+# from primaite.nodes.service_node import ServiceNode
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "operating_state, expected_state",
     [
@@ -39,6 +40,7 @@ def test_service_state_change(operating_state, expected_state):
     assert service_node.get_service_state("TCP") == expected_state
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "operating_state, expected_state",
     [

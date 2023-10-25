@@ -1,10 +1,12 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+import pytest
 import yaml
 
-from primaite.config import training_config
+# from primaite.config import training_config
 from tests import TEST_CONFIG_ROOT
 
 
+@pytest.skip("Deprecated")
 def test_legacy_lay_down_config_yaml_conversion():
     """Tests the conversion of legacy lay down config files."""
     legacy_path = TEST_CONFIG_ROOT / "legacy_conversion" / "legacy_training_config.yaml"
@@ -22,6 +24,7 @@ def test_legacy_lay_down_config_yaml_conversion():
         assert converted_dict[key] == value
 
 
+@pytest.skip("Deprecated")
 def test_create_config_values_main_from_file():
     """Tests creating an instance of TrainingConfig from file."""
     new_path = TEST_CONFIG_ROOT / "legacy_conversion" / "new_training_config.yaml"
@@ -29,6 +32,7 @@ def test_create_config_values_main_from_file():
     training_config.load(new_path)
 
 
+@pytest.skip("Deprecated")
 def test_create_config_values_main_from_legacy_file():
     """Tests creating an instance of TrainingConfig from legacy file."""
     new_path = TEST_CONFIG_ROOT / "legacy_conversion" / "legacy_training_config.yaml"

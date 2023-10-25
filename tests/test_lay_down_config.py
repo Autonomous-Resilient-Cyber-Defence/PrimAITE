@@ -2,16 +2,17 @@
 import pytest
 import yaml
 
-from primaite.config.lay_down_config import (
-    convert_legacy_lay_down_config,
-    data_manipulation_config_path,
-    ddos_basic_one_config_path,
-    ddos_basic_two_config_path,
-    dos_very_basic_config_path,
-)
+# from primaite.config.lay_down_config import (
+#     convert_legacy_lay_down_config,
+#     data_manipulation_config_path,
+#     ddos_basic_one_config_path,
+#     ddos_basic_two_config_path,
+#     dos_very_basic_config_path,
+# )
 from tests import TEST_CONFIG_ROOT
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "legacy_file, new_path",
     [

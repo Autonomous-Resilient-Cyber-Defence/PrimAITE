@@ -1,11 +1,12 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 import pytest
 
-from primaite.config.lay_down_config import data_manipulation_config_path
-from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
+# from primaite.config.lay_down_config import data_manipulation_config_path
+# from primaite.nodes.node_state_instruction_red import NodeStateInstructionRed
 from tests import TEST_CONFIG_ROOT
 
 
+@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.mark.parametrize(
     "temp_primaite_session",
     [
