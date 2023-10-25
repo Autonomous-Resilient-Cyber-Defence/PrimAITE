@@ -54,37 +54,37 @@ def file_system() -> FileSystem:
     return Node(hostname="fs_node").file_system
 
 
-@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 # PrimAITE v2 stuff
-class TempPrimaiteSession(PrimaiteSession):
+@pytest.mark.skip("Deprecated")  # TODO: implement a similar test for primaite v3
+class TempPrimaiteSession:  # PrimaiteSession):
     """
     A temporary PrimaiteSession class.
 
     Uses context manager for deletion of files upon exit.
     """
 
-    def __init__(
-        self,
-        training_config_path: Union[str, Path],
-        lay_down_config_path: Union[str, Path],
-    ):
-        super().__init__(training_config_path, lay_down_config_path)
-        self.setup()
+    # def __init__(
+    #     self,
+    #     training_config_path: Union[str, Path],
+    #     lay_down_config_path: Union[str, Path],
+    # ):
+    #     super().__init__(training_config_path, lay_down_config_path)
+    #     self.setup()
 
-    @property
-    def env(self) -> Primaite:
-        """Direct access to the env for ease of testing."""
-        return self._agent_session._env  # noqa
+    # @property
+    # def env(self) -> Primaite:
+    #     """Direct access to the env for ease of testing."""
+    #     return self._agent_session._env  # noqa
 
-    def __enter__(self):
-        return self
+    # def __enter__(self):
+    #     return self
 
-    def __exit__(self, type, value, tb):
-        shutil.rmtree(self.session_path)
-        _LOGGER.debug(f"Deleted temp session directory: {self.session_path}")
+    # def __exit__(self, type, value, tb):
+    #     shutil.rmtree(self.session_path)
+    #     _LOGGER.debug(f"Deleted temp session directory: {self.session_path}")
 
 
-@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
+@pytest.mark.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.fixture
 def temp_primaite_session(request):
     """
@@ -139,7 +139,7 @@ def temp_primaite_session(request):
         return TempPrimaiteSession(training_config_path, lay_down_config_path)
 
 
-@pytest.skip("Deprecated")  # TODO: implement a similar test for primaite v3
+@pytest.mark.skip("Deprecated")  # TODO: implement a similar test for primaite v3
 @pytest.fixture
 def temp_session_path() -> Path:
     """
