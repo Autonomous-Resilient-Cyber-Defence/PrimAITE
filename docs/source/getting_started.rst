@@ -11,7 +11,7 @@ Getting Started
 
 Pre-Requisites
 
-In order to get **PrimAITE** installed, you will need to have a python version between 3.8 and 3.10 installed. If you don't already have it, this is how to install it:
+In order to get **PrimAITE** installed, you will need to have a python version between 3.8 and 3.11 installed. If you don't already have it, this is how to install it:
 
 
 .. code-block:: bash
@@ -33,39 +33,36 @@ In order to get **PrimAITE** installed, you will need to have a python version b
 Install PrimAITE
 ****************
 
-1. Create a primaite directory in your home directory:
-
-
+1. Create a directory for your PrimAITE project:
 
 .. code-block:: bash
     :caption: Unix
 
-    mkdir ~/primaite/2.0.0
+    mkdir ~/primaite/3.0.0
 
 .. code-block:: powershell
     :caption: Windows (Powershell)
 
-    mkdir ~\primaite\2.0.0
+    mkdir ~\primaite\3.0.0
+
 
 2. Navigate to the primaite directory and create a new python virtual environment (venv)
-
-
 
 .. code-block:: bash
     :caption: Unix
 
-    cd ~/primaite/2.0.0
+    cd ~/primaite/3.0.0
     python3 -m venv .venv
 
 .. code-block:: powershell
     :caption: Windows (Powershell)
 
-        cd ~\primaite\2.0.0
+        cd ~\primaite\3.0.0
         python3 -m venv .venv
         attrib +h .venv /s /d # Hides the .venv directory
 
-3. Activate the venv
 
+3. Activate the venv
 
 .. code-block:: bash
     :caption: Unix
@@ -78,21 +75,34 @@ Install PrimAITE
     .\.venv\Scripts\activate
 
 
-4. Install PrimAITE using pip from PyPi
+4. Install PrimAITE from your saved wheel file
+
+.. code-block:: bash
+    :caption: Unix
+
+    pip install path/to/your/primaite.whl
+
+.. code-block:: powershell
+    :caption: Windows (Powershell)
+
+    pip install path\to\your\primaite.whl
+
+
+5. Install ARCD GATE from wheel file
 
 
 .. code-block:: bash
     :caption: Unix
 
-    pip install primaite
+    pip install path/to/your/arcd_gate-0.1.0-py3-none-any.whl
 
 .. code-block:: powershell
     :caption: Windows (Powershell)
 
-    pip install primaite
+    pip install path\to\your\arcd_gate-0.1.0-py3-none-any.whl
 
-5. Perform the PrimAITE setup
 
+6. Perform the PrimAITE setup
 
 .. code-block:: bash
     :caption: Unix
@@ -110,13 +120,14 @@ Clone & Install PrimAITE for Development
 To be able to extend PrimAITE further, or to build wheels manually before install, clone the repository to a location
 of your choice:
 
+1. Clone the repository
+
 .. code-block:: bash
 
     git clone https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE
     cd primaite
 
-Create and activate your Python virtual environment (venv)
-
+2. Create and activate your Python virtual environment (venv)
 
 .. code-block:: bash
     :caption: Unix
@@ -130,8 +141,7 @@ Create and activate your Python virtual environment (venv)
     python3 -m venv venv
     .\venv\Scripts\activate
 
-Install PrimAITE with the dev extra
-
+3. Install PrimAITE with the dev extra
 
 .. code-block:: bash
     :caption: Unix
@@ -143,5 +153,17 @@ Install PrimAITE with the dev extra
 
     pip install -e .[dev]
 
+
+4. Install ARCD GATE from wheel file
+
+.. code-block:: bash
+    :caption: Unix
+
+    pip install GATE/arcd_gate-0.1.0-py3-none-any.whl
+
+.. code-block:: powershell
+    :caption: Windows (Powershell)
+
+    pip install GATE\arcd_gate-0.1.0-py3-none-any.whl
 
 To view the complete list of packages installed during PrimAITE installation, go to the dependencies page (:ref:`Dependencies`).
