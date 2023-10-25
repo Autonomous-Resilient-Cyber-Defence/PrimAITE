@@ -74,7 +74,6 @@ class FileSystemItemABC(SimComponent):
 
     name: str
     "The name of the FileSystemItemABC."
-    health_status: FileSystemItemHealthStatus = FileSystemItemHealthStatus.GOOD
 
     health_status: FileSystemItemHealthStatus = FileSystemItemHealthStatus.GOOD
     "Actual status of the current FileSystemItem"
