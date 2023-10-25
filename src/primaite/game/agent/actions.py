@@ -697,7 +697,7 @@ class ActionManager:
     def get_action(self, action: int) -> Tuple[str, Dict]:
         """Produce action in CAOS format."""
         """the agent chooses an action (as an integer), this is converted into an action in CAOS format"""
-        """The caos format is basically a action identifier, followed by parameters stored in a dictionary"""
+        """The CAOS format is basically a action identifier, followed by parameters stored in a dictionary"""
         act_identifier, act_options = self.action_map[action]
         return act_identifier, act_options
 
