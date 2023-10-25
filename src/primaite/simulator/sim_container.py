@@ -22,13 +22,13 @@ class Simulation(SimComponent):
         super().__init__(**kwargs)
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
+        rm = super()._init_request_manager()
         # pass through network requests to the network objects
-        am.add_request("network", RequestType(func=self.network._request_manager))
+        rm.add_request("network", RequestType(func=self.network._request_manager))
         # pass through domain requests to the domain object
-        am.add_request("domain", RequestType(func=self.domain._request_manager))
-        am.add_request("do_nothing", RequestType(func=lambda request, context: ()))
-        return am
+        rm.add_request("domain", RequestType(func=self.domain._request_manager))
+        rm.add_request("do_nothing", RequestType(func=lambda request, context: ()))
+        return rm
 
     def describe_state(self) -> Dict:
         """

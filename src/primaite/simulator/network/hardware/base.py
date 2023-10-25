@@ -145,12 +145,12 @@ class NIC(SimComponent):
         return state
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
+        rm = super()._init_request_manager()
 
-        am.add_request("enable", RequestType(func=lambda request, context: self.enable()))
-        am.add_request("disable", RequestType(func=lambda request, context: self.disable()))
+        rm.add_request("enable", RequestType(func=lambda request, context: self.enable()))
+        rm.add_request("disable", RequestType(func=lambda request, context: self.disable()))
 
-        return am
+        return rm
 
     @property
     def ip_network(self) -> IPv4Network:
@@ -914,6 +914,18 @@ class Node(SimComponent):
     revealed_to_red: bool = False
     "Informs whether the node has been revealed to a red agent."
 
+    start_up_duration: int = 3
+    "Time steps needed for the node to start up."
+
+    start_up_countdown: int = 0
+    "Time steps needed until node is booted up."
+
+    shut_down_duration: int = 3
+    "Time steps needed for the node to shut down."
+
+    shut_down_countdown: int = 0
+    "Time steps needed until node is shut down."
+
     def __init__(self, **kwargs):
         """
         Initialize the Node with various components and managers.
@@ -952,30 +964,30 @@ class Node(SimComponent):
     def _init_request_manager(self) -> RequestManager:
         # TODO: I see that this code is really confusing and hard to read right now... I think some of these things will
         # need a better name and better documentation.
-        am = super()._init_request_manager()
+        rm = super()._init_request_manager()
         # since there are potentially many services, create an request manager that can map service name
         self._service_request_manager = RequestManager()
-        am.add_request("service", RequestType(func=self._service_request_manager))
+        rm.add_request("service", RequestType(func=self._service_request_manager))
         self._nic_request_manager = RequestManager()
-        am.add_request("nic", RequestType(func=self._nic_request_manager))
+        rm.add_request("nic", RequestType(func=self._nic_request_manager))
 
-        am.add_request("file_system", RequestType(func=self.file_system._request_manager))
+        rm.add_request("file_system", RequestType(func=self.file_system._request_manager))
 
         # currently we don't have any applications nor processes, so these will be empty
         self._process_request_manager = RequestManager()
-        am.add_request("process", RequestType(func=self._process_request_manager))
+        rm.add_request("process", RequestType(func=self._process_request_manager))
         self._application_request_manager = RequestManager()
-        am.add_request("application", RequestType(func=self._application_request_manager))
+        rm.add_request("application", RequestType(func=self._application_request_manager))
 
-        am.add_request("scan", RequestType(func=lambda request, context: ...))  # TODO implement OS scan
+        rm.add_request("scan", RequestType(func=lambda request, context: ...))  # TODO implement OS scan
 
-        am.add_request("shutdown", RequestType(func=lambda request, context: self.power_off()))
-        am.add_request("startup", RequestType(func=lambda request, context: self.power_on()))
-        am.add_request("reset", RequestType(func=lambda request, context: ...))  # TODO implement node reset
-        am.add_request("logon", RequestType(func=lambda request, context: ...))  # TODO implement logon request
-        am.add_request("logoff", RequestType(func=lambda request, context: ...))  # TODO implement logoff request
+        rm.add_request("shutdown", RequestType(func=lambda request, context: self.power_off()))
+        rm.add_request("startup", RequestType(func=lambda request, context: self.power_on()))
+        rm.add_request("reset", RequestType(func=lambda request, context: ...))  # TODO implement node reset
+        rm.add_request("logon", RequestType(func=lambda request, context: ...))  # TODO implement logon request
+        rm.add_request("logoff", RequestType(func=lambda request, context: ...))  # TODO implement logoff request
 
-        return am
+        return rm
 
     def _install_system_software(self):
         """Install System Software - software that is usually provided with the OS."""
@@ -1001,6 +1013,7 @@ class Node(SimComponent):
                 "applications": {uuid: app.describe_state() for uuid, app in self.applications.items()},
                 "services": {uuid: svc.describe_state() for uuid, svc in self.services.items()},
                 "process": {uuid: proc.describe_state() for uuid, proc in self.processes.items()},
+                "revealed_to_red": self.revealed_to_red,
             }
         )
         return state
@@ -1042,9 +1055,45 @@ class Node(SimComponent):
             )
         print(table)
 
+    def apply_timestep(self, timestep: int):
+        """
+        Apply a single timestep of simulation dynamics to this service.
+
+        In this instance, if any multi-timestep processes are currently occurring
+        (such as starting up or shutting down), then they are brought one step closer to
+        being finished.
+
+        :param timestep: The current timestep number. (Amount of time since simulation episode began)
+        :type timestep: int
+        """
+        super().apply_timestep(timestep=timestep)
+
+        # count down to boot up
+        if self.start_up_countdown > 0:
+            self.start_up_countdown -= 1
+        else:
+            if self.operating_state == NodeOperatingState.BOOTING:
+                self.operating_state = NodeOperatingState.ON
+                self.sys_log.info("Turned on")
+                for nic in self.nics.values():
+                    if nic._connected_link:
+                        nic.enable()
+
+        # count down to shut down
+        if self.shut_down_countdown > 0:
+            self.shut_down_countdown -= 1
+        else:
+            if self.operating_state == NodeOperatingState.SHUTTING_DOWN:
+                self.operating_state = NodeOperatingState.OFF
+                self.sys_log.info("Turned off")
+
     def power_on(self):
         """Power on the Node, enabling its NICs if it is in the OFF state."""
         if self.operating_state == NodeOperatingState.OFF:
+            self.operating_state = NodeOperatingState.BOOTING
+            self.start_up_countdown = self.start_up_duration
+
+        if self.start_up_duration <= 0:
             self.operating_state = NodeOperatingState.ON
             self.sys_log.info("Turned on")
             for nic in self.nics.values():
@@ -1056,6 +1105,10 @@ class Node(SimComponent):
         if self.operating_state == NodeOperatingState.ON:
             for nic in self.nics.values():
                 nic.disable()
+            self.operating_state = NodeOperatingState.SHUTTING_DOWN
+            self.shut_down_countdown = self.shut_down_duration
+
+        if self.shut_down_duration <= 0:
             self.operating_state = NodeOperatingState.OFF
             self.sys_log.info("Turned off")
 
@@ -1135,7 +1188,7 @@ class Node(SimComponent):
                     f"Ping statistics for {target_ip_address}: "
                     f"Packets: Sent = {pings}, "
                     f"Received = {request_replies}, "
-                    f"Lost = {pings-request_replies} ({(pings-request_replies)/pings*100}% loss)"
+                    f"Lost = {pings - request_replies} ({(pings - request_replies) / pings * 100}% loss)"
                 )
                 return passed
         return False

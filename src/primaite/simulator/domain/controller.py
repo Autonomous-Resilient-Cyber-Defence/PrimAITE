@@ -80,17 +80,17 @@ class DomainController(SimComponent):
         super().__init__(**kwargs)
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
+        rm = super()._init_request_manager()
         # Action 'account' matches requests like:
         # ['account', '<account-uuid>', *account_action]
-        am.add_request(
+        rm.add_request(
             "account",
             RequestType(
                 func=lambda request, context: self.accounts[request.pop(0)].apply_request(request, context),
                 validator=GroupMembershipValidator(allowed_groups=[AccountGroup.DOMAIN_ADMIN]),
             ),
         )
-        return am
+        return rm
 
     def describe_state(self) -> Dict:
         """

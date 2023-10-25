@@ -1,7 +1,7 @@
 from ipaddress import IPv4Address
 
 from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.base import NIC
+from primaite.simulator.network.hardware.base import NIC, NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.server import Server
@@ -110,19 +110,19 @@ def arcd_uc2_network() -> Network:
     network = Network()
 
     # Router 1
-    router_1 = Router(hostname="router_1", num_ports=5)
+    router_1 = Router(hostname="router_1", num_ports=5, operating_state=NodeOperatingState.ON)
     router_1.power_on()
     router_1.configure_port(port=1, ip_address="192.168.1.1", subnet_mask="255.255.255.0")
     router_1.configure_port(port=2, ip_address="192.168.10.1", subnet_mask="255.255.255.0")
 
     # Switch 1
-    switch_1 = Switch(hostname="switch_1", num_ports=8)
+    switch_1 = Switch(hostname="switch_1", num_ports=8, operating_state=NodeOperatingState.ON)
     switch_1.power_on()
     network.connect(endpoint_a=router_1.ethernet_ports[1], endpoint_b=switch_1.switch_ports[8])
     router_1.enable_port(1)
 
     # Switch 2
-    switch_2 = Switch(hostname="switch_2", num_ports=8)
+    switch_2 = Switch(hostname="switch_2", num_ports=8, operating_state=NodeOperatingState.ON)
     switch_2.power_on()
     network.connect(endpoint_a=router_1.ethernet_ports[2], endpoint_b=switch_2.switch_ports[8])
     router_1.enable_port(2)
@@ -134,6 +134,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
         dns_server=IPv4Address("192.168.1.10"),
+        operating_state=NodeOperatingState.ON,
     )
     client_1.power_on()
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
@@ -148,6 +149,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
         dns_server=IPv4Address("192.168.1.10"),
+        operating_state=NodeOperatingState.ON,
     )
     client_2.power_on()
     network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
@@ -158,6 +160,7 @@ def arcd_uc2_network() -> Network:
         ip_address="192.168.1.10",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
+        operating_state=NodeOperatingState.ON,
     )
     domain_controller.power_on()
     domain_controller.software_manager.install(DNSServer)
@@ -171,6 +174,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
+        operating_state=NodeOperatingState.ON,
     )
     database_server.power_on()
     network.connect(endpoint_b=database_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[3])
@@ -244,6 +248,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
+        operating_state=NodeOperatingState.ON,
     )
     web_server.power_on()
     web_server.software_manager.install(DatabaseClient)
@@ -267,6 +272,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
+        operating_state=NodeOperatingState.ON,
     )
     backup_server.power_on()
     backup_server.software_manager.install(FTPServer)
@@ -279,6 +285,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
+        operating_state=NodeOperatingState.ON,
     )
     security_suite.power_on()
     network.connect(endpoint_b=security_suite.ethernet_port[1], endpoint_a=switch_1.switch_ports[7])
