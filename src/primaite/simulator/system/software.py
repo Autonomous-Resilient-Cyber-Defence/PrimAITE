@@ -31,6 +31,8 @@ class SoftwareType(Enum):
 class SoftwareHealthState(Enum):
     """Enumeration of the Software Health States."""
 
+    UNUSED = 0
+    "Unused state."
     GOOD = 1
     "The software is in a good and healthy condition."
     COMPROMISED = 2
@@ -88,15 +90,15 @@ class Software(SimComponent):
     "The folder on the file system the Software uses."
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
-        am.add_request(
+        rm = super()._init_request_manager()
+        rm.add_request(
             "compromise",
             RequestType(
                 func=lambda request, context: self.set_health_state(SoftwareHealthState.COMPROMISED),
             ),
         )
-        am.add_request("scan", RequestType(func=lambda request, context: self.scan()))
-        return am
+        rm.add_request("scan", RequestType(func=lambda request, context: self.scan()))
+        return rm
 
     def _get_session_details(self, session_id: str) -> Session:
         """
@@ -241,6 +243,7 @@ class IOSoftware(Software):
             payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
         )
 
+    @abstractmethod
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
         Receives a payload from the SessionManager.

@@ -4,7 +4,7 @@ import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 from unittest.mock import patch
 
 import pytest
@@ -14,6 +14,9 @@ from primaite.environment.primaite_env import Primaite
 from primaite.primaite_session import PrimaiteSession
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.networks import arcd_uc2_network
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.core.sys_log import SysLog
+from primaite.simulator.system.services.service import Service
 from tests.mock_and_patch.get_session_path_mock import get_temp_session_path
 
 ACTION_SPACE_NODE_VALUES = 1
@@ -26,9 +29,23 @@ from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.base import Node
 
 
+class TestService(Service):
+    """Test Service class"""
+
+    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
+        pass
+
+
 @pytest.fixture(scope="function")
 def uc2_network() -> Network:
     return arcd_uc2_network()
+
+
+@pytest.fixture(scope="function")
+def service(file_system) -> TestService:
+    return TestService(
+        name="TestService", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="test_service")
+    )
 
 
 @pytest.fixture(scope="function")

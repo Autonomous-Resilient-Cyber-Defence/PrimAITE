@@ -44,13 +44,13 @@ class Network(SimComponent):
         self._nx_graph = MultiGraph()
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
+        rm = super()._init_request_manager()
         self._node_request_manager = RequestManager()
-        am.add_request(
+        rm.add_request(
             "node",
             RequestType(func=self._node_request_manager),
         )
-        return am
+        return rm
 
     @property
     def routers(self) -> List[Router]:

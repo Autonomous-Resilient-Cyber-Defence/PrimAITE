@@ -88,7 +88,7 @@ class AccessControlList(SimComponent):
         self._acl = [None] * (self.max_acl_rules - 1)
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
+        rm = super()._init_request_manager()
 
         # When the request reaches this action, it should now contain solely positional args for the 'add_rule' action.
         # POSITIONAL ARGUMENTS:
@@ -99,7 +99,7 @@ class AccessControlList(SimComponent):
         # 4: destination ip address (str castable to IPV4Address (e.g. '10.10.1.2'))
         # 5: destination port (str name of a Port (e.g. "HTTP"))
         # 6: position (int)
-        am.add_request(
+        rm.add_request(
             "add_rule",
             RequestType(
                 func=lambda request, context: self.add_rule(
@@ -114,8 +114,8 @@ class AccessControlList(SimComponent):
             ),
         )
 
-        am.add_request("remove_rule", RequestType(func=lambda request, context: self.remove_rule(int(request[0]))))
-        return am
+        rm.add_request("remove_rule", RequestType(func=lambda request, context: self.remove_rule(int(request[0]))))
+        return rm
 
     def describe_state(self) -> Dict:
         """
@@ -627,9 +627,9 @@ class Router(Node):
         self.icmp.arp = self.arp
 
     def _init_request_manager(self) -> RequestManager:
-        am = super()._init_request_manager()
-        am.add_request("acl", RequestType(func=self.acl._request_manager))
-        return am
+        rm = super()._init_request_manager()
+        rm.add_request("acl", RequestType(func=self.acl._request_manager))
+        return rm
 
     def _get_port_of_nic(self, target_nic: NIC) -> Optional[int]:
         """

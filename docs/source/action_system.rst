@@ -27,7 +27,7 @@ Just like other aspects of SimComponent, the actions are not managed centrally f
     4. ``Service`` receives ``['restart']``.
         Since ``restart`` is a defined action in the service's own RequestManager, the service performs a restart.
 
-Techincal Detail
+Technical Detail
 ================
 
 This system was achieved by implementing two classes, :py:class:`primaite.simulator.core.Action`, and :py:class:`primaite.simulator.core.RequestManager`.
@@ -35,12 +35,12 @@ This system was achieved by implementing two classes, :py:class:`primaite.simula
 Action
 ------
 
-The ``Action`` object stores a reference to a method that performs the action, for example a node could have an action that stores a reference to ``self.turn_on()``. Techincally, this can be any callable that accepts `request, context` as it's parameters. In practice, this is often defined using ``lambda`` functions within a component's ``self._init_request_manager()`` method. Optionally, the ``Action`` object can also hold a validator that will permit/deny the action depending on context.
+The ``Action`` object stores a reference to a method that performs the action, for example a node could have an action that stores a reference to ``self.turn_on()``. Technically, this can be any callable that accepts `request, context` as it's parameters. In practice, this is often defined using ``lambda`` functions within a component's ``self._init_request_manager()`` method. Optionally, the ``Action`` object can also hold a validator that will permit/deny the action depending on context.
 
 RequestManager
 -------------
 
-The ``RequestManager`` object stores a mapping between strings and actions. It is responsible for processing the ``request`` and passing it down the ownership tree. Techincally, the ``RequestManager`` is itself a callable that accepts `request, context` tuple, and so it can be chained with other action managers.
+The ``RequestManager`` object stores a mapping between strings and actions. It is responsible for processing the ``request`` and passing it down the ownership tree. Technically, the ``RequestManager`` is itself a callable that accepts `request, context` tuple, and so it can be chained with other action managers.
 
 A simple example without chaining can be seen in the :py:class:`primaite.simulator.file_system.file_system.File` class.
 
@@ -50,9 +50,9 @@ A simple example without chaining can be seen in the :py:class:`primaite.simulat
         ...
         def _init_request_manager(self):
             ...
-            request_manager.add_action("scan", Action(func=lambda request, context: self.scan()))
-            request_manager.add_action("repair", Action(func=lambda request, context: self.repair()))
-            request_manager.add_action("restore", Action(func=lambda request, context: self.restore()))
+            request_manager.add_request("scan", Action(func=lambda request, context: self.scan()))
+            request_manager.add_request("repair", Action(func=lambda request, context: self.repair()))
+            request_manager.add_request("restore", Action(func=lambda request, context: self.restore()))
 
 *ellipses (``...``) used to omit code impertinent to this explanation*
 
@@ -70,7 +70,7 @@ An example of how this works is in the :py:class:`primaite.simulator.network.har
         def _init_request_manager(self):
             ...
             # a regular action which is processed by the Node itself
-            request_manager.add_action("turn_on", Action(func=lambda request, context: self.turn_on()))
+            request_manager.add_request("turn_on", Action(func=lambda request, context: self.turn_on()))
 
             # if the Node receives a request where the first word is 'service', it will use a dummy manager
             # called self._service_request_manager to pass on the reqeust to the relevant service. This dummy
@@ -78,11 +78,11 @@ An example of how this works is in the :py:class:`primaite.simulator.network.har
             # done because the next string after "service" is always the uuid of that service, so we need an
             # RequestManager to pop that string before sending it onto the relevant service's RequestManager.
             self._service_request_manager = RequestManager()
-            request_manager.add_action("service", Action(func=self._service_request_manager))
+            request_manager.add_request("service", Action(func=self._service_request_manager))
             ...
 
         def install_service(self, service):
             self.services[service.uuid] = service
             ...
             # Here, the service UUID is registered to allow passing actions between the node and the service.
-            self._service_request_manager.add_action(service.uuid, Action(func=service._request_manager))
+            self._service_request_manager.add_request(service.uuid, Action(func=service._request_manager))

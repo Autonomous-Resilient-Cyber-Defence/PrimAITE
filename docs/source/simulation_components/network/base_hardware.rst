@@ -2,20 +2,24 @@
 
     © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 
+#############
 Base Hardware
-=============
+#############
 
 The physical layer components are models of a NIC (Network Interface Card), SwitchPort, Node, Switch, and a Link.
 These components allow modelling of layer 1 (physical layer) in the OSI model and the nodes that connect to and
 transmit across layer 1.
 
+===
 NIC
-###
+===
+
 The NIC class provides a realistic model of a Network Interface Card. The NIC acts as the interface between a Node and
 a Link, handling IP and MAC addressing, status, and sending/receiving frames.
 
+----------
 Addressing
-**********
+----------
 
 A NIC has both an IPv4 address and MAC address assigned:
 
@@ -24,8 +28,10 @@ A NIC has both an IPv4 address and MAC address assigned:
 - **gateway** - The default gateway IP address for routing traffic beyond the local network.
 - **mac_address** - A unique MAC address assigned to the NIC by the manufacturer.
 
+
+------
 Status
-******
+------
 
 The status of the NIC is represented by:
 
@@ -33,14 +39,17 @@ The status of the NIC is represented by:
 - **connected_node** - The Node instance the NIC is attached to.
 - **connected_link** - The Link instance the NIC is wired to.
 
+
+--------------
 Packet Capture
-**************
+--------------
 
 - **pcap** - A PacketCapture instance attached to the NIC for capturing all frames sent and received. This allows packet
 capture and analysis.
 
+------------------------
 Sending/Receiving Frames
-************************
+------------------------
 
 The NIC can send and receive Frames to/from the connected Link:
 
@@ -50,8 +59,9 @@ The NIC can send and receive Frames to/from the connected Link:
 This allows a NIC to handle sending, receiving, and forwarding of network traffic at layer 2 of the OSI model.
 The Frames contain network data encapsulated with various protocol headers.
 
+-----------
 Basic Usage
-***********
+-----------
 
 .. code-block:: python
 
@@ -64,8 +74,9 @@ Basic Usage
     frame = Frame(...)
     nic1.send_frame(frame)
 
+==========
 SwitchPort
-##########
+==========
 
 The SwitchPort models a port on a network switch. It has similar attributes and methods to NIC for addressing, status,
 packet capture, sending/receiving frames, etc.
@@ -75,26 +86,47 @@ Key attributes:
 - **port_num**: The port number on the switch.
 - **connected_switch**: The switch to which this port belongs.
 
+====
 Node
-####
+====
 
 The Node class represents a base node that communicates on the Network.
 
+Nodes take more than 1 time step to power on (3 time steps by default).
+To create a Node that is already powered on, the Node's operating state can be overriden.
+Otherwise, the node ``start_up_duration`` (and ``shut_down_duration``) can be set to 0 if
+the node will be powered off or on multiple times. This will still need ``power_on()`` to
+be called to turn the node on.
+
+e.g.
+
+.. code-block:: python
+
+    active_node = Node(hostname='server1', operating_state=NodeOperatingState.ON)
+    # node is already on, no need to call power_on()
+
+
+    instant_start_node = Node(hostname="client", start_up_duration=0, shut_down_duration=0)
+    instant_start_node.power_on() # node will still need to be powered on
+
+------------------
 Network Interfaces
-******************
+------------------
 
 A Node will typically have one or more NICs attached to it for network connectivity:
 
 - **nics** - A dictionary containing the NIC instances attached to the Node. NICs can be added/removed.
 
+-------------
 Configuration
-*************
+-------------
 
 - **hostname** - Configured hostname of the Node.
 - **operating_state** - Current operating state like ON or OFF. The NICs will be enabled/disabled based on this.
 
+----------------
 Network Services
-****************
+----------------
 
 A Node runs various network services and components for handling traffic:
 
@@ -110,8 +142,9 @@ The SysLog records informational, warning, and error events that occur on the No
 debugging and tracing program execution and network activity for each simulated Node. Other Node services like ARP and
 ICMP, along with custom Applications, services, and Processes will log to the SysLog.
 
+-----------------
 Sending/Receiving
-*****************
+-----------------
 
 The Node handles sending and receiving Frames via its attached NICs:
 
@@ -119,8 +152,9 @@ The Node handles sending and receiving Frames via its attached NICs:
 - **receive_frame()** - Receives a Frame from the network through a NIC. The Node then processes it appropriately based
 on the protocols and payload.
 
+-----------
 Basic Usage
-***********
+-----------
 
 .. code-block:: python
 
@@ -137,15 +171,16 @@ Basic Usage
 The Node class brings together the NICs, configuration, and services to model a full network node that can send,
 receive, process, and forward traffic on a simulated network.
 
-
+======
 Switch
-######
+======
 
 The Switch subclass models a network switch. It inherits from Node and acts at layer 2 of the OSI model to forward
 frames based on MAC addresses.
 
+--------------------------
 Inherits Node Capabilities
-**************************
+--------------------------
 
 Since Switch subclasses Node, it inherits all capabilities from Node like:
 
@@ -154,16 +189,18 @@ Since Switch subclasses Node, it inherits all capabilities from Node like:
 - **Sending and receiving frames**
 - **Maintaining system logs**
 
+-----
 Ports
-*****
+-----
 
 A Switch has multiple ports implemented using SwitchPort instances:
 
 - **switch_ports** - A dictionary mapping port numbers to SwitchPort instances.
 - **num_ports** - The number of ports the Switch has.
 
+----------
 Forwarding
-**********
+----------
 
 A Switch forwards frames between ports based on the destination MAC:
 
@@ -179,21 +216,24 @@ When a frame is received on a SwitchPort:
 This allows the Switch to dynamically build up a mapping table between MAC addresses and SwitchPorts based on traffic
 received. If no entry exists for a destination MAC, it floods the frame out all ports.
 
+====
 Link
-####
+====
 
 The Link class represents a physical link or connection between two network endpoints like NICs or SwitchPorts.
 
+---------
 Endpoints
-*********
+---------
 
 A Link connects two endpoints:
 
 - **endpoint_a** - The first endpoint, a NIC or SwitchPort.
 - **endpoint_b** - The second endpoint, a NIC or SwitchPort.
 
+------------
 Transmission
-************
+------------
 
 Links transmit Frames between the endpoints:
 
@@ -201,8 +241,9 @@ Links transmit Frames between the endpoints:
 
 Uses bandwidth/load properties to determine if transmission is possible.
 
+----------------
 Bandwidth & Load
-****************
+----------------
 
 - **bandwidth** - The total capacity of the Link in Mbps.
 - **current_load** - The current bandwidth utilization of the Link in Mbps.
@@ -210,16 +251,18 @@ Bandwidth & Load
 As Frames are sent over the Link, the load increases. The Link tracks if there is enough unused capacity to transmit a
 Frame based on its size and the current load.
 
+------
 Status
-******
+------
 
 - **up** - Boolean indicating if the Link is currently up/active based on the endpoint status.
 - **endpoint_up()/down()** - Notifies the Link when an endpoint goes up or down.
 
 This allows the Link to realistically model the connection and transmission characteristics between two endpoints.
 
+=======================
 Putting it all Together
-#######################
+=======================
 
 We'll now demonstrate how the nodes, NICs, switches, and links connect in a network, including full code examples and
 syslog extracts to illustrate the step-by-step process.
@@ -230,35 +273,33 @@ PC's and two switches.
 
 .. image:: ../../../_static/four_node_two_switch_network.png
 
+-------------------
 Create Nodes & NICs
-*******************
+-------------------
 
 First, we'll create the four nodes, each with a single NIC.
 
 .. code-block:: python
 
-    pc_a = Node(hostname="pc_a")
+    from primaite.simulator.network.hardware.base import Node, NodeOperatingState, NIC
+
+    pc_a = Node(hostname="pc_a", operating_state=NodeOperatingState.ON)
     nic_a = NIC(ip_address="192.168.0.10", subnet_mask="255.255.255.0", gateway="192.168.0.1")
     pc_a.connect_nic(nic_a)
-    pc_a.power_on()
 
-    pc_b = Node(hostname="pc_b")
+    pc_b = Node(hostname="pc_b", operating_state=NodeOperatingState.ON)
     nic_b = NIC(ip_address="192.168.0.11", subnet_mask="255.255.255.0", gateway="192.168.0.1")
     pc_b.connect_nic(nic_b)
-    pc_b.power_on()
 
-    pc_c = Node(hostname="pc_c")
+    pc_c = Node(hostname="pc_c", operating_state=NodeOperatingState.ON)
     nic_c = NIC(ip_address="192.168.0.12", subnet_mask="255.255.255.0", gateway="192.168.0.1")
     pc_c.connect_nic(nic_c)
-    pc_c.power_on()
 
-    pc_d = Node(hostname="pc_d")
+    pc_d = Node(hostname="pc_d", operating_state=NodeOperatingState.ON)
     nic_d = NIC(ip_address="192.168.0.13", subnet_mask="255.255.255.0", gateway="192.168.0.1")
     pc_d.connect_nic(nic_d)
-    pc_d.power_on()
 
-
-This produces:
+Creating the four nodes results in:
 
 **node_a NIC table**
 
@@ -273,7 +314,6 @@ This produces:
 .. code-block::
 
     2023-08-08 15:50:08,355 INFO: Connected NIC 80:af:f2:f6:58:b7/192.168.0.10
-    2023-08-08 15:50:08,355 INFO: Turned on
 
 **node_b NIC table**
 
@@ -288,7 +328,6 @@ This produces:
 .. code-block::
 
     2023-08-08 15:50:08,357 INFO: Connected NIC 98:ad:eb:7c:dc:cb/192.168.0.11
-    2023-08-08 15:50:08,357 INFO: Turned on
 
 **node_c NIC table**
 
@@ -303,7 +342,6 @@ This produces:
 .. code-block::
 
     2023-08-08 15:50:08,358 INFO: Connected NIC bc:72:82:5d:82:a4/192.168.0.12
-    2023-08-08 15:50:08,358 INFO: Turned on
 
 **node_d NIC table**
 
@@ -318,21 +356,19 @@ This produces:
 .. code-block::
 
     2023-08-08 15:50:08,359 INFO: Connected NIC 84:20:7c:ec:a5:c6/192.168.0.13
-    2023-08-08 15:50:08,360 INFO: Turned on
 
 
+---------------
 Create Switches
-***************
+---------------
 
 Next, we'll create two six-port switches:
 
 .. code-block:: python
 
-    switch_1 = Switch(hostname="switch_1", num_ports=6)
-    switch_1.power_on()
+    switch_1 = Switch(hostname="switch_1", num_ports=6, operating_state=NodeOperatingState.ON)
 
-    switch_2 = Switch(hostname="switch_2", num_ports=6)
-    switch_2.power_on()
+    switch_2 = Switch(hostname="switch_2", num_ports=6, operating_state=NodeOperatingState.ON)
 
 This produces:
 
@@ -384,8 +420,9 @@ This produces:
 
     2023-08-08 15:50:08,374 INFO: Turned on
 
+------------
 Create Links
-************
+------------
 
 Finally, we'll create the five links that connect the nodes and the switches:
 
@@ -523,8 +560,9 @@ This produces:
     2023-08-08 15:50:08,384 INFO: SwitchPort 96:77:39:d1:de:44 enabled
 
 
+------------
 Perform Ping
-************
+------------
 
 Now with the network setup and operational, we can perform a ping to confirm that communication between nodes over a
 switched network is possible. In the below example, we ping 192.168.0.13 (node_d) from node_a:
