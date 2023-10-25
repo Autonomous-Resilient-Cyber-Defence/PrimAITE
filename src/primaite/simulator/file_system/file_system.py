@@ -92,8 +92,8 @@ class FileSystemItemABC(SimComponent):
         """
         state = super().describe_state()
         state["name"] = self.name
-        state["status"] = self.health_status.value
-        state["visible_status"] = self.visible_health_status.value
+        state["health_status"] = self.health_status.value
+        state["visible_health_status"] = self.visible_health_status.value
         state["previous_hash"] = self.previous_hash
         return state
 
