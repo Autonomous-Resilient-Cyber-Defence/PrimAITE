@@ -7,6 +7,8 @@
 The Config Files Explained
 ==========================
 
+Note: This file describes the config files used in legacy PrimAITE v2.0. This file will be removed soon.
+
 PrimAITE uses two configuration files for its operation:
 
 * **The Training Config**

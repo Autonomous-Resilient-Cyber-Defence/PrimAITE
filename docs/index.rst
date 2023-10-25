@@ -98,7 +98,7 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    source/getting_started
    source/about
    source/config
-   source/config(v3)
+   source/config(v2)
    source/simulation
    source/game_layer
    source/primaite_session
