@@ -859,14 +859,14 @@ class ICMP:
 class NodeOperatingState(Enum):
     """Enumeration of Node Operating States."""
 
-    OFF = 0
-    "The node is powered off."
     ON = 1
     "The node is powered on."
-    SHUTTING_DOWN = 2
-    "The node is in the process of shutting down."
+    OFF = 2
+    "The node is powered off."
     BOOTING = 3
     "The node is in the process of booting up."
+    SHUTTING_DOWN = 4
+    "The node is in the process of shutting down."
 
 
 class Node(SimComponent):
@@ -950,6 +950,7 @@ class Node(SimComponent):
             kwargs["file_system"] = FileSystem(sys_log=kwargs["sys_log"], sim_root=kwargs["root"] / "fs")
         if not kwargs.get("software_manager"):
             kwargs["software_manager"] = SoftwareManager(
+                parent_node=self,
                 sys_log=kwargs.get("sys_log"),
                 session_manager=kwargs.get("session_manager"),
                 file_system=kwargs.get("file_system"),
@@ -1252,7 +1253,8 @@ class Node(SimComponent):
         self._service_request_manager.add_request(service.uuid, RequestType(func=service._request_manager))
 
     def uninstall_service(self, service: Service) -> None:
-        """Uninstall and completely remove service from this node.
+        """
+        Uninstall and completely remove service from this node.
 
         :param service: Service object that is currently associated with this node.
         :type service: Service
@@ -1266,6 +1268,38 @@ class Node(SimComponent):
         self.sys_log.info(f"Uninstalled service {service.name}")
         _LOGGER.info(f"Removed service {service.uuid} from node {self.uuid}")
         self._service_request_manager.remove_request(service.uuid)
+
+    def install_application(self, application: Application) -> None:
+        """
+        Install an application on this node.
+
+        :param application: Application instance that has not been installed on any node yet.
+        :type application: Application
+        """
+        if application in self:
+            _LOGGER.warning(f"Can't add application {application.uuid} to node {self.uuid}. It's already installed.")
+            return
+        self.applications[application.uuid] = application
+        application.parent = self
+        self.sys_log.info(f"Installed application {application.name}")
+        _LOGGER.info(f"Added application {application.uuid} to node {self.uuid}")
+        self._application_request_manager.add_request(application.uuid, RequestType(func=application._request_manager))
+
+    def uninstall_application(self, application: Application) -> None:
+        """
+        Uninstall and completely remove application from this node.
+
+        :param application: Application object that is currently associated with this node.
+        :type application: Application
+        """
+        if application not in self:
+            _LOGGER.warning(f"Can't remove application {application.uuid} from node {self.uuid}. It's not installed.")
+            return
+        self.applications.pop(application.uuid)
+        application.parent = None
+        self.sys_log.info(f"Uninstalled application {application.name}")
+        _LOGGER.info(f"Removed application {application.uuid} from node {self.uuid}")
+        self._application_request_manager.remove_request(application.uuid)
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Service):

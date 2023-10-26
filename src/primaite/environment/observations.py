@@ -6,7 +6,7 @@ from logging import Logger
 from typing import Dict, Final, List, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
-from gym import spaces
+from gymnasium import spaces
 
 from primaite.acl.acl_rule import ACLRule
 from primaite.common.enums import FileSystemState, HardwareState, RulePermissionType, SoftwareState

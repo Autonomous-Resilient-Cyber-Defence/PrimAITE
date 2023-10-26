@@ -47,21 +47,21 @@ def convert_size(size_bytes: int) -> str:
 
 
 class FileSystemItemHealthStatus(Enum):
-    """Status of the FileSystemItem."""
+    """Health status for folders and files."""
 
-    GOOD = 0
+    GOOD = 1
     """File/Folder is OK."""
 
-    COMPROMISED = 1
+    COMPROMISED = 2
     """File/Folder is quarantined."""
 
-    CORRUPT = 2
+    CORRUPT = 3
     """File/Folder is corrupted."""
 
-    RESTORING = 3
+    RESTORING = 4
     """File/Folder is in the process of being restored."""
 
-    REPAIRING = 3
+    REPAIRING = 5
     """File/Folder is in the process of being repaired."""
 
 
@@ -92,8 +92,8 @@ class FileSystemItemABC(SimComponent):
         """
         state = super().describe_state()
         state["name"] = self.name
-        state["status"] = self.health_status.name
-        state["visible_status"] = self.visible_health_status.name
+        state["status"] = self.health_status.value
+        state["visible_status"] = self.visible_health_status.value
         state["previous_hash"] = self.previous_hash
         return state
 

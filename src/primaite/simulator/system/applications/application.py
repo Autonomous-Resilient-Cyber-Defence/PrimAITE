@@ -45,7 +45,7 @@ class Application(IOSoftware):
         state = super().describe_state()
         state.update(
             {
-                "opearting_state": self.operating_state.name,
+                "opearting_state": self.operating_state.value,
                 "execution_control_status": self.execution_control_status,
                 "num_executions": self.num_executions,
                 "groups": list(self.groups),
