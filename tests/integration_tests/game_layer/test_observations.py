@@ -1,4 +1,4 @@
-from gym import spaces
+from gymnasium import spaces
 
 from primaite.game.agent.observations import FileObservation
 from primaite.simulator.network.hardware.nodes.computer import Computer

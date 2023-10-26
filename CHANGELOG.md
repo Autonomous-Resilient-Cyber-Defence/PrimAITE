@@ -36,6 +36,12 @@ SessionManager.
 - FTP Services: `FTPClient` and `FTPServer`
 - HTTP Services: `WebBrowser` to simulate a web client and `WebServer`
 
+### Removed
+- Removed legacy simulation modules: `acl`, `common`, `environment`, `links`, `nodes`, `pol`
+- Removed legacy training modules, they are replaced by the new ARCD GATE dependency
+- Removed tests for legacy code
+
+
 ## [2.0.0] - 2023-07-26
 
 ### Added
