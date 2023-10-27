@@ -978,7 +978,7 @@ class Node(SimComponent):
         self._application_request_manager = RequestManager()
         rm.add_request("application", RequestType(func=self._application_request_manager))
 
-        rm.add_request("scan", RequestType(func=lambda request, context: self.scan(reveal_to_red=True)))
+        rm.add_request("scan", RequestType(func=lambda request, context: self.reveal_to_red()))
 
         rm.add_request("shutdown", RequestType(func=lambda request, context: self.power_off()))
         rm.add_request("startup", RequestType(func=lambda request, context: self.power_on()))
@@ -1060,7 +1060,7 @@ class Node(SimComponent):
 
     def apply_timestep(self, timestep: int):
         """
-        Apply a single timestep of simulation dynamics to this service.
+        Apply a single timestep of simulation dynamics to this node.
 
         In this instance, if any multi-timestep processes are currently occurring
         (such as starting up or shutting down), then they are brought one step closer to
@@ -1090,7 +1090,20 @@ class Node(SimComponent):
                 self.operating_state = NodeOperatingState.OFF
                 self.sys_log.info("Turned off")
 
-    def scan(self):
+        # apply time step to node components
+        if self.operating_state == NodeOperatingState.ON:
+            for process_id in self.processes:
+                self.processes[process_id].apply_timestep(timestep=timestep)
+
+            for service_id in self.services:
+                self.services[service_id].apply_timestep(timestep=timestep)
+
+            for application_id in self.applications:
+                self.applications[application_id].apply_timestep(timestep=timestep)
+
+            self.file_system.apply_timestep(timestep=timestep)
+
+    def scan(self) -> None:
         """
         Scan the node and all the items within it.
 
@@ -1117,6 +1130,34 @@ class Node(SimComponent):
 
         # scan file system
         self.file_system.scan()
+
+    def reveal_to_red(self) -> None:
+        """
+        Reveals the node and all the items within it to the red agent.
+
+        Set all the:
+            - Processes
+            - Services
+            - Applications
+            - Folders
+            - Files
+
+        `revealed_to_red` to `True`.
+        """
+        # scan processes
+        for process_id in self.processes:
+            self.processes[process_id].reveal_to_red()
+
+        # scan services
+        for service_id in self.services:
+            self.services[service_id].reveal_to_red()
+
+        # scan applications
+        for application_id in self.applications:
+            self.applications[application_id].reveal_to_red()
+
+        # scan file system
+        self.file_system.reveal_to_red()
 
     def power_on(self):
         """Power on the Node, enabling its NICs if it is in the OFF state."""
@@ -1298,6 +1339,38 @@ class Node(SimComponent):
         self.sys_log.info(f"Uninstalled service {service.name}")
         _LOGGER.info(f"Removed service {service.uuid} from node {self.uuid}")
         self._service_request_manager.remove_request(service.uuid)
+
+    def install_application(self, application: Application) -> None:
+        """
+        Install an application on this node.
+
+        :param application: Application instance that has not been installed on any node yet.
+        :type application: Application
+        """
+        if application in self:
+            _LOGGER.warning(f"Can't add application {application.uuid} to node {self.uuid}. It's already installed.")
+            return
+        self.applications[application.uuid] = application
+        application.parent = self
+        self.sys_log.info(f"Installed application {application.name}")
+        _LOGGER.info(f"Added application {application.uuid} to node {self.uuid}")
+        self._application_request_manager.add_request(application.uuid, RequestType(func=application._request_manager))
+
+    def uninstall_application(self, application: Application) -> None:
+        """
+        Uninstall and completely remove application from this node.
+
+        :param application: Application object that is currently associated with this node.
+        :type application: Application
+        """
+        if application not in self:
+            _LOGGER.warning(f"Can't remove application {application.uuid} from node {self.uuid}. It's not installed.")
+            return
+        self.applications.pop(application.uuid)
+        application.parent = None
+        self.sys_log.info(f"Uninstalled application {application.name}")
+        _LOGGER.info(f"Removed application {application.uuid} from node {self.uuid}")
+        self._application_request_manager.remove_request(application.uuid)
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Service):

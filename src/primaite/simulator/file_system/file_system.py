@@ -84,6 +84,9 @@ class FileSystemItemABC(SimComponent):
     previous_hash: Optional[str] = None
     "Hash of the file contents or the description state"
 
+    revealed_to_red: bool = False
+    "If true, the folder/file has been revealed to the red agent."
+
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -120,6 +123,10 @@ class FileSystemItemABC(SimComponent):
         :return: The human-readable string representation of the file size.
         """
         return convert_size(self.size)
+
+    def reveal_to_red(self):
+        """Reveals the folder/file to the red agent."""
+        self.revealed_to_red = True
 
     @abstractmethod
     def check_hash(self) -> bool:
@@ -231,10 +238,23 @@ class FileSystem(SimComponent):
         state["folders"] = {folder.name: folder.describe_state() for folder in self.folders.values()}
         return state
 
+    def apply_timestep(self, timestep: int) -> None:
+        """Apply time step to FileSystem and its child folders and files."""
+        super().apply_timestep(timestep=timestep)
+
+        # apply timestep to folders
+        for folder_id in self.folders:
+            self.folders[folder_id].apply_timestep(timestep=timestep)
+
     def scan(self):
-        """Scan all the folders and files in the file system."""
+        """Scan all the folders (and child files) in the file system."""
         for folder_id in self.folders:
             self.folders[folder_id].scan()
+
+    def reveal_to_red(self):
+        """Reveals all the folders (and child files) in the file system to the red agent."""
+        for folder_id in self.folders:
+            self.folders[folder_id].reveal_to_red()
 
     def create_folder(self, folder_name: str) -> Folder:
         """
@@ -449,6 +469,9 @@ class Folder(FileSystemItemABC):
     scan_duration: int = -1
     "How many timesteps to complete a scan."
 
+    red_scan_duration: int = -1
+    "How many timesteps to complete reveal to red scan."
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
         rm.add_request(
@@ -494,7 +517,7 @@ class Folder(FileSystemItemABC):
 
     def apply_timestep(self, timestep: int):
         """
-        Apply a single timestep of simulation dynamics to this service.
+        Apply a single timestep of simulation dynamics to this folder and its files.
 
         In this instance, if any multi-timestep processes are currently occurring (such as scanning),
         then they are brought one step closer to being finished.
@@ -505,13 +528,24 @@ class Folder(FileSystemItemABC):
         super().apply_timestep(timestep=timestep)
 
         # scan files each timestep
-        if self.scan_duration > -1:
+        if self.scan_duration >= 0:
             # scan one file per timestep
-            file = self.get_file_by_id(file_uuid=list(self.files)[self.scan_duration - 1])
+            file = self.get_file_by_id(file_uuid=list(self.files)[self.scan_duration])
             file.scan()
             if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
                 self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
             self.scan_duration -= 1
+
+        # red scan file at each step
+        if self.red_scan_duration >= 0:
+            # scan one file per timestep
+            file = self.get_file_by_id(file_uuid=list(self.files)[self.red_scan_duration])
+            file.reveal_to_red()
+            self.red_scan_duration -= 1
+
+        # apply timestep to files in folder
+        for file_id in self.files:
+            self.files[file_id].apply_timestep(timestep=timestep)
 
     def get_file(self, file_name: str) -> Optional[File]:
         """
@@ -609,13 +643,25 @@ class Folder(FileSystemItemABC):
 
     def scan(self) -> None:
         """Update Folder visible status."""
-        if self.scan_duration <= -1:
+        if self.scan_duration <= 0:
             # scan one file per timestep
-            self.scan_duration = len(self.files)
+            self.scan_duration = len(self.files) - 1
             self.fs.sys_log.info(f"Scanning folder {self.name} (id: {self.uuid})")
         else:
             # scan already in progress
             self.fs.sys_log.info(f"Scan is already in progress {self.name} (id: {self.uuid})")
+
+    def reveal_to_red(self):
+        """Reveals the folders and files to the red agent."""
+        super().reveal_to_red()
+
+        if self.red_scan_duration <= 0:
+            # scan one file per timestep
+            self.red_scan_duration = len(self.files) - 1
+            self.fs.sys_log.info(f"Folder revealed to red agent: {self.name} (id: {self.uuid})")
+        else:
+            # scan already in progress
+            self.fs.sys_log.info(f"Red Agent Scan is already in progress {self.name} (id: {self.uuid})")
 
     def check_hash(self) -> bool:
         """
