@@ -123,37 +123,19 @@ def session(
     """
     Run a PrimAITE session.
 
-    tc: The training config filepath. Optional. If no value is passed then
-    example default training config is used from:
-    ~/primaite/2.0.0/config/example_config/training/training_config_main.yaml.
-
-    ldc: The lay down config file path. Optional. If no value is passed then
-    example default lay down config is used from:
-    ~/primaite/2.0.0/config/example_config/lay_down/lay_down_config_3_doc_very_basic.yaml.
-
-    load: The directory of a previous session. Optional. If no value is passed, then the session
-    will use the default training config and laydown config. Inversely, if a training config and laydown config
-    is passed while a session directory is passed, PrimAITE will load the session and ignore the training config
-    and laydown config.
-
-    legacy_tc: If the training config file is a legacy file from PrimAITE < 2.0.
-
-    legacy_ldf: If the lay down config file is a legacy file from PrimAITE < 2.0.
+    :param config: The path to the config file. Optional, if None, the example config will be used.
+    :type config: Optional[str]
     """
-    from primaite.config.lay_down_config import dos_very_basic_config_path
+    from threading import Thread
+
+    from primaite.config.load import example_config_path
     from primaite.main import run
+    from primaite.utils.start_gate_server import start_gate_server
 
-    else:
-        # start a new session using tc and ldc
-        if not tc:
-            tc = main_training_config_path()
+    server_thread = Thread(target=start_gate_server)
+    server_thread.start()
 
-        if not ldc:
-            ldc = dos_very_basic_config_path()
-
-        run(
-            training_config_path=tc,
-            lay_down_config_path=ldc,
-            legacy_training_config=legacy_tc,
-            legacy_lay_down_config=legacy_ldc,
-        )
+    if not config:
+        config = example_config_path()
+    print(config)
+    run(config_path=config)
