@@ -95,6 +95,8 @@ def setup(overwrite_existing: bool = True) -> None:
 
     WARNING: All user-data will be lost.
     """
+    from arcd_gate.cli import setup as gate_setup
+
     from primaite import getLogger
     from primaite.setup import reset_demo_notebooks, reset_example_configs
 
@@ -112,6 +114,9 @@ def setup(overwrite_existing: bool = True) -> None:
 
     _LOGGER.info("Rebuilding the example notebooks...")
     reset_example_configs.run(overwrite_existing=True)
+
+    _LOGGER.info("Setting up ARCD GATE...")
+    gate_setup()
 
     _LOGGER.info("PrimAITE setup complete!")
 
