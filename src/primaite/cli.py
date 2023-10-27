@@ -10,7 +10,6 @@ import yaml
 from typing_extensions import Annotated
 
 from primaite import PRIMAITE_PATHS
-from primaite.data_viz import PlotlyTemplate
 
 app = typer.Typer()
 
@@ -82,27 +81,11 @@ def log_level(level: Annotated[Optional[_LogLevel], typer.Argument()] = None) ->
 
 
 @app.command()
-def notebooks() -> None:
-    """Start Jupyter Lab in the users PrimAITE notebooks directory."""
-    from primaite.notebooks import start_jupyter_session
-
-    start_jupyter_session()
-
-
-@app.command()
 def version() -> None:
     """Get the installed PrimAITE version number."""
     import primaite
 
     print(primaite.__version__)
-
-
-@app.command()
-def clean_up() -> None:
-    """Cleans up left over files from previous version installations."""
-    from primaite.setup import old_installation_clean_up
-
-    old_installation_clean_up.run()
 
 
 @app.command()
@@ -112,8 +95,10 @@ def setup(overwrite_existing: bool = True) -> None:
 
     WARNING: All user-data will be lost.
     """
+    from arcd_gate.cli import setup as gate_setup
+
     from primaite import getLogger
-    from primaite.setup import old_installation_clean_up, reset_demo_notebooks, reset_example_configs
+    from primaite.setup import reset_demo_notebooks, reset_example_configs
 
     _LOGGER = getLogger(__name__)
 
@@ -130,84 +115,32 @@ def setup(overwrite_existing: bool = True) -> None:
     _LOGGER.info("Rebuilding the example notebooks...")
     reset_example_configs.run(overwrite_existing=True)
 
-    _LOGGER.info("Performing a clean-up of previous PrimAITE installations...")
-    old_installation_clean_up.run()
+    _LOGGER.info("Setting up ARCD GATE...")
+    gate_setup()
 
     _LOGGER.info("PrimAITE setup complete!")
 
 
 @app.command()
 def session(
-    tc: Optional[str] = None,
-    ldc: Optional[str] = None,
-    load: Optional[str] = None,
-    legacy_tc: bool = False,
-    legacy_ldc: bool = False,
+    config: Optional[str] = None,
 ) -> None:
     """
     Run a PrimAITE session.
 
-    tc: The training config filepath. Optional. If no value is passed then
-    example default training config is used from:
-    ~/primaite/2.0.0/config/example_config/training/training_config_main.yaml.
-
-    ldc: The lay down config file path. Optional. If no value is passed then
-    example default lay down config is used from:
-    ~/primaite/2.0.0/config/example_config/lay_down/lay_down_config_3_doc_very_basic.yaml.
-
-    load: The directory of a previous session. Optional. If no value is passed, then the session
-    will use the default training config and laydown config. Inversely, if a training config and laydown config
-    is passed while a session directory is passed, PrimAITE will load the session and ignore the training config
-    and laydown config.
-
-    legacy_tc: If the training config file is a legacy file from PrimAITE < 2.0.
-
-    legacy_ldf: If the lay down config file is a legacy file from PrimAITE < 2.0.
+    :param config: The path to the config file. Optional, if None, the example config will be used.
+    :type config: Optional[str]
     """
-    from primaite.config.lay_down_config import dos_very_basic_config_path
-    from primaite.config.training_config import main_training_config_path
+    from threading import Thread
+
+    from primaite.config.load import example_config_path
     from primaite.main import run
+    from primaite.utils.start_gate_server import start_gate_server
 
-    if load is not None:
-        # run a loaded session
-        run(session_path=load)
+    server_thread = Thread(target=start_gate_server)
+    server_thread.start()
 
-    else:
-        # start a new session using tc and ldc
-        if not tc:
-            tc = main_training_config_path()
-
-        if not ldc:
-            ldc = dos_very_basic_config_path()
-
-        run(
-            training_config_path=tc,
-            lay_down_config_path=ldc,
-            legacy_training_config=legacy_tc,
-            legacy_lay_down_config=legacy_ldc,
-        )
-
-
-@app.command()
-def plotly_template(template: Annotated[Optional[PlotlyTemplate], typer.Argument()] = None) -> None:
-    """
-    View or set the plotly template for Session plots.
-
-    To View, simply call: primaite plotly-template
-
-    To set, call: primaite plotly-template <desired template>
-
-    For example, to set as plotly_dark, call: primaite plotly-template PLOTLY_DARK
-    """
-    if PRIMAITE_PATHS.app_config_file_path.exists():
-        with open(PRIMAITE_PATHS.app_config_file_path, "r") as file:
-            primaite_config = yaml.safe_load(file)
-
-        if template:
-            primaite_config["session"]["outputs"]["plots"]["template"] = template.value
-            with open(PRIMAITE_PATHS.app_config_file_path, "w") as file:
-                yaml.dump(primaite_config, file)
-            print(f"PrimAITE plotly template: {template.value}")
-        else:
-            template = primaite_config["session"]["outputs"]["plots"]["template"]
-            print(f"PrimAITE plotly template: {template}")
+    if not config:
+        config = example_config_path()
+    print(config)
+    run(config_path=config)
