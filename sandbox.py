@@ -6,7 +6,6 @@ from primaite.game.session import PrimaiteSession
 
 _PRIMAITE_CONFIG["log_level"] = logging.DEBUG
 print(PRIMAITE_PATHS.app_log_dir_path)
-import itertools
 
 import yaml
 
