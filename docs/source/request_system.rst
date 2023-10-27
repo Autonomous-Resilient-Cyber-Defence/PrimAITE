@@ -5,7 +5,7 @@
 Request System
 ==============
 
-``SimComponent``s in the simulation are decoupled from the agent training logic. However, they still need a managed means of accepting requests to perform actions. For this, they use ``RequestManager`` and ``RequestType``.
+``SimComponent`` in the simulation are decoupled from the agent training logic. However, they still need a managed means of accepting requests to perform actions. For this, they use ``RequestManager`` and ``RequestType``.
 
 Just like other aspects of SimComponent, the request typess are not managed centrally for the whole simulation, but instead they are dynamically created and updated based on the nodes, links, and other components that currently exist. This was achieved in the following way:
 
