@@ -123,3 +123,28 @@ def test_node_red_scan(node, service, application):
     assert application.revealed_to_red is True
     assert folder.revealed_to_red is True
     assert file.revealed_to_red is True
+
+
+def test_reset_node(node):
+    """Test that a node can be reset."""
+    node.operating_state = NodeOperatingState.ON
+
+    node.apply_request(["reset"])
+    assert node.operating_state == NodeOperatingState.SHUTTING_DOWN
+
+    """
+    3 steps to shut down
+    2 steps to set up the turning of it back on
+    3 steps to turn back on
+
+    3 + 2 + 3 = 8
+    kwik mafs
+    """
+
+    for i in range(8):
+        node.apply_timestep(timestep=i)
+
+        if i == 3:
+            assert node.operating_state == NodeOperatingState.BOOTING
+
+    assert node.operating_state == NodeOperatingState.ON

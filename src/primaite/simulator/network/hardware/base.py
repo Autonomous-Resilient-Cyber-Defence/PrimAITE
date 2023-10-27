@@ -926,6 +926,9 @@ class Node(SimComponent):
     shut_down_countdown: int = 0
     "Time steps needed until node is shut down."
 
+    is_resetting: bool = False
+    "If true, the node will try turning itself off then back on again."
+
     def __init__(self, **kwargs):
         """
         Initialize the Node with various components and managers.
@@ -982,7 +985,7 @@ class Node(SimComponent):
 
         rm.add_request("shutdown", RequestType(func=lambda request, context: self.power_off()))
         rm.add_request("startup", RequestType(func=lambda request, context: self.power_on()))
-        rm.add_request("reset", RequestType(func=lambda request, context: ...))  # TODO implement node reset
+        rm.add_request("reset", RequestType(func=lambda request, context: self.reset()))  # TODO implement node reset
         rm.add_request("logon", RequestType(func=lambda request, context: ...))  # TODO implement logon request
         rm.add_request("logoff", RequestType(func=lambda request, context: ...))  # TODO implement logoff request
 
@@ -1090,6 +1093,11 @@ class Node(SimComponent):
                 self.operating_state = NodeOperatingState.OFF
                 self.sys_log.info("Turned off")
 
+                # if resetting turn back on
+                if self.is_resetting:
+                    self.is_resetting = False
+                    self.power_on()
+
         # apply time step to node components
         if self.operating_state == NodeOperatingState.ON:
             for process_id in self.processes:
@@ -1183,6 +1191,20 @@ class Node(SimComponent):
         if self.shut_down_duration <= 0:
             self.operating_state = NodeOperatingState.OFF
             self.sys_log.info("Turned off")
+
+    def reset(self):
+        """
+        Resets the node.
+
+        Powers off the node and sets is_resetting to True.
+        Applying more timesteps will eventually turn the node back on.
+        """
+        if not self.operating_state.ON:
+            self.sys_log.error(f"Cannot reset {self.hostname} - node is not turned on.")
+        else:
+            self.is_resetting = True
+            self.sys_log.info(f"Resetting {self.hostname}...")
+            self.power_off()
 
     def connect_nic(self, nic: NIC):
         """
