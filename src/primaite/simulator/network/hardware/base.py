@@ -978,13 +978,17 @@ class Node(SimComponent):
         self._application_request_manager = RequestManager()
         rm.add_request("application", RequestType(func=self._application_request_manager))
 
-        rm.add_request("scan", RequestType(func=lambda request, context: ...))  # TODO implement OS scan
+        rm.add_request("scan", RequestType(func=lambda request, context: self.scan(reveal_to_red=True)))
 
         rm.add_request("shutdown", RequestType(func=lambda request, context: self.power_off()))
         rm.add_request("startup", RequestType(func=lambda request, context: self.power_on()))
         rm.add_request("reset", RequestType(func=lambda request, context: ...))  # TODO implement node reset
         rm.add_request("logon", RequestType(func=lambda request, context: ...))  # TODO implement logon request
         rm.add_request("logoff", RequestType(func=lambda request, context: ...))  # TODO implement logoff request
+
+        self._os_request_manager = RequestManager()
+        self._os_request_manager.add_request("scan", RequestType(func=lambda request, context: self.scan()))
+        rm.add_request("os", RequestType(func=self._os_request_manager))
 
         return rm
 
@@ -1085,6 +1089,34 @@ class Node(SimComponent):
             if self.operating_state == NodeOperatingState.SHUTTING_DOWN:
                 self.operating_state = NodeOperatingState.OFF
                 self.sys_log.info("Turned off")
+
+    def scan(self):
+        """
+        Scan the node and all the items within it.
+
+        Scans the:
+            - Processes
+            - Services
+            - Applications
+            - Folders
+            - Files
+
+        to the red agent.
+        """
+        # scan processes
+        for process_id in self.processes:
+            self.processes[process_id].scan()
+
+        # scan services
+        for service_id in self.services:
+            self.services[service_id].scan()
+
+        # scan applications
+        for application_id in self.applications:
+            self.applications[application_id].scan()
+
+        # scan file system
+        self.file_system.scan()
 
     def power_on(self):
         """Power on the Node, enabling its NICs if it is in the OFF state."""

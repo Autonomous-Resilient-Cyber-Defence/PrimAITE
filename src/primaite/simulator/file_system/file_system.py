@@ -231,6 +231,11 @@ class FileSystem(SimComponent):
         state["folders"] = {folder.name: folder.describe_state() for folder in self.folders.values()}
         return state
 
+    def scan(self):
+        """Scan all the folders and files in the file system."""
+        for folder_id in self.folders:
+            self.folders[folder_id].scan()
+
     def create_folder(self, folder_name: str) -> Folder:
         """
         Creates a Folder and adds it to the list of folders.
