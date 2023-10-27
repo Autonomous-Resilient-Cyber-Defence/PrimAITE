@@ -12,7 +12,7 @@ and a domain controller for managing software and users.
 
 Each node of the simulation 'tree' has responsibility for creating, deleting, and updating its direct descendants. Also,
 when a component's ``describe_state()`` method is called, it will include the state of its descendants. The
-``apply_action()`` method can be used to act on a component or one of its descendatnts. The diagram below shows the
+``apply_request()`` method can be used to act on a component or one of its descendatnts. The diagram below shows the
 relationship between components.
 
 .. image:: _static/component_relationship.png
@@ -25,9 +25,9 @@ relationship between components.
 Actions
 =======
 Agents can interact with the simulation by using actions. Actions are standardised with the
-:py:class:`primaite.simulation.core.Action` class, which just holds a reference to two special functions.
+:py:class:`primaite.simulation.core.RequestType` class, which just holds a reference to two special functions.
 
-1. The action function itself, it must accept a `request` parameters which is a list of strings that describe what the
+1. The request function itself, it must accept a `request` parameters which is a list of strings that describe what the
    action should do. It must also accept a `context` dict which can house additional information surrounding the action.
    For example, the context will typically include information about which entity intiated the action.
 2. A validator function. This function should return a boolean value that decides if the request is permitted or not.

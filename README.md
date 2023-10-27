@@ -18,17 +18,13 @@ PrimAITE presents the following features:
 
 - Provision of logging to support AI evaluation and metrics gathering;
 
-- Uses the concept of Information Exchange Requirements (IERs) to model background pattern of life and adversarial behaviour;
+- Realistic network traffic simulation, including address and sending packets via internet protocols like TCP, UDP, ICMP, and others
 
-- An Access Control List (ACL) function, mimicking the behaviour of a network firewall, is applied across the model, following standard ACL rule format (e.g. DENY/ALLOW, source IP address, destination IP address, protocol and port);
+- Routers with traffic routing and firewall capabilities
 
-- Application of IERs to the platform / system laydown adheres to the ACL ruleset;
+- Integration with ARCD GATE for agent training
 
-- Presents an OpenAI gym or RLLib interface to the environment, allowing integration with any compliant defensive agents;
-
-- Full capture of discrete logs relating to agent training (full system state, agent actions taken, instantaneous and average reward for every step of every episode);
-
-- NetworkX provides laydown visualisation capability.
+- Support for multiple agents, each having their own customisable observation space, action space, and reward function definition, and either deterministic or RL-directed behaviour
 
 ## Getting Started with PrimAITE
 
@@ -50,6 +46,7 @@ python3 -m venv .venv
 attrib +h .venv /s /d # Hides the .venv directory
 .\.venv\Scripts\activate
 pip install https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/releases/download/v2.0.0/primaite-2.0.0-py3-none-any.whl
+pip install GATE/arcd_gate-0.1.0-py3-none-any.whl
 primaite setup
 ```
 
@@ -78,6 +75,7 @@ cd ~/primaite
 python3 -m venv .venv
 source .venv/bin/activate
 pip install https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/releases/download/v2.0.0/primaite-2.0.0-py3-none-any.whl
+pip install arcd_gate-0.1.0-py3-none-any.whl
 primaite setup
 ```
 
@@ -122,6 +120,7 @@ source venv/bin/activate
 
 ```bash
 python3 -m pip install -e .[dev]
+pip install arcd_gate-0.1.0-py3-none-any.whl
 ```
 
 #### 6. Perform the PrimAITE setup:
