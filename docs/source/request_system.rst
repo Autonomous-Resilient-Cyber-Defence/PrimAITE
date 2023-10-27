@@ -28,7 +28,7 @@ Just like other aspects of SimComponent, the request typess are not managed cent
         Since ``restart`` is a defined request type in the service's own RequestManager, the service performs a restart.
 
 Technical Detail
-================
+----------------
 
 This system was achieved by implementing two classes, :py:class:`primaite.simulator.core.RequestType`, and :py:class:`primaite.simulator.core.RequestManager`.
 
@@ -38,7 +38,7 @@ This system was achieved by implementing two classes, :py:class:`primaite.simula
 The ``RequestType`` object stores a reference to a method that executes the request, for example a node could have a request type that stores a reference to ``self.turn_on()``. Technically, this can be any callable that accepts `request, context` as it's parameters. In practice, this is often defined using ``lambda`` functions within a component's ``self._init_request_manager()`` method. Optionally, the ``RequestType`` object can also hold a validator that will permit/deny the request depending on context.
 
 ``RequestManager``
--------------
+------------------
 
 The ``RequestManager`` object stores a mapping between strings and request types. It is responsible for processing the request and passing it down the ownership tree. Technically, the ``RequestManager`` is itself a callable that accepts `request, context` tuple, and so it can be chained with other request managers.
 
