@@ -177,6 +177,10 @@ class Software(SimComponent):
         """Update the observed health status to match the actual health status."""
         self.health_state_visible = self.health_state_actual
 
+    def reveal_to_red(self) -> None:
+        """Reveals the software to the red agent."""
+        self.revealed_to_red = True
+
 
 class IOSoftware(Software):
     """

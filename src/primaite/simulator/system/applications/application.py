@@ -2,7 +2,7 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Set
 
-from primaite.simulator.system.software import IOSoftware
+from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 
 class ApplicationOperatingState(Enum):
@@ -31,6 +31,12 @@ class Application(IOSoftware):
     "The number of times the application has been executed. Default is 0."
     groups: Set[str] = set()
     "The set of groups to which the application belongs."
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.health_state_visible = SoftwareHealthState.UNUSED
+        self.health_state_actual = SoftwareHealthState.UNUSED
 
     @abstractmethod
     def describe_state(self) -> Dict:

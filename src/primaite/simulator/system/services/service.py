@@ -82,11 +82,6 @@ class Service(IOSoftware):
         """
         pass
 
-    def scan(self) -> None:
-        """Update the service visible states."""
-        # update the visible operating state
-        self.health_state_visible = self.health_state_actual
-
     def stop(self) -> None:
         """Stop the service."""
         if self.operating_state in [ServiceOperatingState.RUNNING, ServiceOperatingState.PAUSED]:

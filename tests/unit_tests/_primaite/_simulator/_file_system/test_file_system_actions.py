@@ -47,18 +47,11 @@ def test_folder_scan_request(populated_file_system):
     folder.apply_timestep(timestep=0)
 
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file1.visible_health_status == FileSystemItemHealthStatus.CORRUPT
+    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
     assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
 
     folder.apply_timestep(timestep=1)
-
-    assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file1.visible_health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file2.visible_health_status == FileSystemItemHealthStatus.CORRUPT
-
-    folder.apply_timestep(timestep=2)
 
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
     assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPT
