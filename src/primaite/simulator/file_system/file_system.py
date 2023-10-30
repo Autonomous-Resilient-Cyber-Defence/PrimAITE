@@ -98,6 +98,7 @@ class FileSystemItemABC(SimComponent):
         state["status"] = self.health_status.name
         state["visible_status"] = self.visible_health_status.name
         state["previous_hash"] = self.previous_hash
+        state["revealed_to_red"] = self.revealed_to_red
         return state
 
     def _init_request_manager(self) -> RequestManager:
@@ -123,10 +124,6 @@ class FileSystemItemABC(SimComponent):
         :return: The human-readable string representation of the file size.
         """
         return convert_size(self.size)
-
-    def reveal_to_red(self):
-        """Reveals the folder/file to the red agent."""
-        self.revealed_to_red = True
 
     @abstractmethod
     def check_hash(self) -> bool:
@@ -246,15 +243,23 @@ class FileSystem(SimComponent):
         for folder_id in self.folders:
             self.folders[folder_id].apply_timestep(timestep=timestep)
 
-    def scan(self):
-        """Scan all the folders (and child files) in the file system."""
-        for folder_id in self.folders:
-            self.folders[folder_id].scan()
+    def scan(self, instant_scan: bool = False):
+        """
+        Scan all the folders (and child files) in the file system.
 
-    def reveal_to_red(self):
-        """Reveals all the folders (and child files) in the file system to the red agent."""
+        :param: instant_scan: If True, the scan is completed instantly and ignores scan duration. Default False.
+        """
         for folder_id in self.folders:
-            self.folders[folder_id].reveal_to_red()
+            self.folders[folder_id].scan(instant_scan=instant_scan)
+
+    def reveal_to_red(self, instant_scan: bool = False):
+        """
+        Reveals all the folders (and child files) in the file system to the red agent.
+
+        :param: instant_scan: If True, the scan is completed instantly and ignores scan duration. Default False.
+        """
+        for folder_id in self.folders:
+            self.folders[folder_id].reveal_to_red(instant_scan=instant_scan)
 
     def create_folder(self, folder_name: str) -> Folder:
         """
@@ -529,19 +534,24 @@ class Folder(FileSystemItemABC):
 
         # scan files each timestep
         if self.scan_duration >= 0:
-            # scan one file per timestep
-            file = self.get_file_by_id(file_uuid=list(self.files)[self.scan_duration])
-            file.scan()
-            if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
-                self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
             self.scan_duration -= 1
+
+            if self.scan_duration == 0:
+                for file_id in self.files:
+                    file = self.get_file_by_id(file_uuid=file_id)
+                    file.scan()
+                    if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
+                        self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
 
         # red scan file at each step
         if self.red_scan_duration >= 0:
-            # scan one file per timestep
-            file = self.get_file_by_id(file_uuid=list(self.files)[self.red_scan_duration])
-            file.reveal_to_red()
             self.red_scan_duration -= 1
+
+            if self.red_scan_duration == 0:
+                self.revealed_to_red = True
+                for file_id in self.files:
+                    file = self.get_file_by_id(file_uuid=file_id)
+                    file.reveal_to_red()
 
         # apply timestep to files in folder
         for file_id in self.files:
@@ -641,23 +651,44 @@ class Folder(FileSystemItemABC):
         """Returns true if the folder is being quarantined."""
         pass
 
-    def scan(self) -> None:
-        """Update Folder visible status."""
+    def scan(self, instant_scan: bool = False) -> None:
+        """
+        Update Folder visible status.
+
+        :param: instant_scan: If True, the scan is completed instantly and ignores scan duration. Default False.
+        """
+        if instant_scan:
+            for file_id in self.files:
+                file = self.get_file_by_id(file_uuid=file_id)
+                file.scan()
+                if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
+                    self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
+            return
+
         if self.scan_duration <= 0:
             # scan one file per timestep
-            self.scan_duration = len(self.files) - 1
+            self.scan_duration = len(self.files)
             self.fs.sys_log.info(f"Scanning folder {self.name} (id: {self.uuid})")
         else:
             # scan already in progress
             self.fs.sys_log.info(f"Scan is already in progress {self.name} (id: {self.uuid})")
 
-    def reveal_to_red(self):
-        """Reveals the folders and files to the red agent."""
-        super().reveal_to_red()
+    def reveal_to_red(self, instant_scan: bool = False):
+        """
+        Reveals the folders and files to the red agent.
+
+        :param: instant_scan: If True, the scan is completed instantly and ignores scan duration. Default False.
+        """
+        if instant_scan:
+            self.revealed_to_red = True
+            for file_id in self.files:
+                file = self.get_file_by_id(file_uuid=file_id)
+                file.reveal_to_red()
+            return
 
         if self.red_scan_duration <= 0:
             # scan one file per timestep
-            self.red_scan_duration = len(self.files) - 1
+            self.red_scan_duration = len(self.files)
             self.fs.sys_log.info(f"Folder revealed to red agent: {self.name} (id: {self.uuid})")
         else:
             # scan already in progress
@@ -829,6 +860,10 @@ class File(FileSystemItemABC):
         path = self.folder.name + "/" + self.name
         self.folder.fs.sys_log.info(f"Scanning file {self.sim_path if self.sim_path else path}")
         self.visible_health_status = self.health_status
+
+    def reveal_to_red(self):
+        """Reveals the folder/file to the red agent."""
+        self.revealed_to_red = True
 
     def check_hash(self) -> bool:
         """

@@ -69,14 +69,16 @@ def test_node_os_scan(node, service, application):
     assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
 
     file: File = node.file_system.create_file(folder_name="test_folder", file_name="file.txt")
+    file2: File = node.file_system.create_file(folder_name="test_folder", file_name="file2.txt")
     file.corrupt()
+    file2.corrupt()
     assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
 
     # run os scan
     node.apply_request(["os", "scan"])
 
     # apply time steps
-    for i in range(20):
+    for i in range(10):
         node.apply_timestep(timestep=i)
 
     # should update the state of all items
@@ -85,6 +87,7 @@ def test_node_os_scan(node, service, application):
     assert application.health_state_visible == SoftwareHealthState.COMPROMISED
     assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPT
     assert file.visible_health_status == FileSystemItemHealthStatus.CORRUPT
+    assert file2.visible_health_status == FileSystemItemHealthStatus.CORRUPT
 
 
 def test_node_red_scan(node, service, application):
@@ -108,13 +111,15 @@ def test_node_red_scan(node, service, application):
     assert folder.revealed_to_red is False
 
     file: File = node.file_system.create_file(folder_name="test_folder", file_name="file.txt")
+    file2: File = node.file_system.create_file(folder_name="test_folder", file_name="file2.txt")
     assert file.revealed_to_red is False
+    assert file2.revealed_to_red is False
 
     # run os scan
     node.apply_request(["scan"])
 
     # apply time steps
-    for i in range(20):
+    for i in range(10):
         node.apply_timestep(timestep=i)
 
     # should update the state of all items
@@ -123,6 +128,7 @@ def test_node_red_scan(node, service, application):
     assert application.revealed_to_red is True
     assert folder.revealed_to_red is True
     assert file.revealed_to_red is True
+    assert file2.revealed_to_red is True
 
 
 def test_reset_node(node):
