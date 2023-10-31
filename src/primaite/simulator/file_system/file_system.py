@@ -154,7 +154,8 @@ class FileSystemItemABC(SimComponent):
         """
         pass
 
-    def restore(self) -> None:
+    @abstractmethod
+    def restore(self) -> bool:
         """Restore the file/folder to the state before it got ruined."""
         pass
 
@@ -164,6 +165,8 @@ class FileSystem(SimComponent):
 
     folders: Dict[str, Folder] = {}
     "List containing all the folders in the file system."
+    deleted_folders: Dict[str, Folder] = {}
+    "List containing all the folders that have been deleted."
     _folders_by_name: Dict[str, Folder] = {}
     sys_log: SysLog
     sim_root: Path
@@ -296,9 +299,11 @@ class FileSystem(SimComponent):
             self.folders.pop(folder.uuid)
             self._folders_by_name.pop(folder.name)
             self.sys_log.info(f"Deleted folder /{folder.name} and its contents")
-            self._folder_request_manager.remove_request(folder.uuid)
+
+            # add to deleted list
             folder.remove_all_files()
 
+            self.deleted_folders[folder.uuid] = folder
         else:
             _LOGGER.debug(f"Cannot delete folder as it does not exist: {folder_name}")
 
@@ -381,8 +386,6 @@ class FileSystem(SimComponent):
             file = folder.get_file(file_name)
             if file:
                 folder.remove_file(file)
-                self._file_request_manager.remove_request(file.uuid)
-                self.sys_log.info(f"Deleted file /{file.path}")
 
     def move_file(self, src_folder_name: str, src_file_name: str, dst_folder_name: str):
         """
@@ -470,6 +473,8 @@ class Folder(FileSystemItemABC):
     "Files stored in the folder."
     _files_by_name: Dict[str, File] = {}
     "Files by their name as <file name>.<file type>."
+    deleted_files: Dict[str, File] = {}
+    "Files that have been deleted."
 
     scan_duration: int = -1
     "How many timesteps to complete a scan."
@@ -612,6 +617,8 @@ class Folder(FileSystemItemABC):
         if self.files.get(file.uuid):
             self.files.pop(file.uuid)
             self._files_by_name.pop(file.name)
+            self.deleted_files[file.uuid] = file
+            self.fs.sys_log.info(f"Removed file {file.name} (id: {file.uuid})")
         else:
             _LOGGER.debug(f"File with UUID {file.uuid} was not found.")
 
@@ -626,6 +633,9 @@ class Folder(FileSystemItemABC):
 
     def remove_all_files(self):
         """Removes all the files in the folder."""
+        for file_id in self.files:
+            self.deleted_files[file_id] = self.files[file_id]
+
         self.files = {}
         self._files_by_name = {}
 
@@ -635,7 +645,7 @@ class Folder(FileSystemItemABC):
 
         The method can take a File object or a file id.
 
-        :param file: The file to remove
+        :param file: The file to restore
         """
         pass
 
@@ -741,9 +751,24 @@ class Folder(FileSystemItemABC):
         self.fs.sys_log.info(f"Repaired folder {self.name} (id: {self.uuid})")
         return repaired
 
-    def restore(self) -> None:
-        """TODO."""
-        pass
+    def restore(self) -> bool:
+        """Restore a File by setting the folder and containing files status to FileSystemItemStatus.GOOD."""
+        super().restore()
+
+        restored = False
+
+        # iterate through the files in the folder
+        for file_id in self.files:
+            file = self.get_file_by_id(file_uuid=file_id)
+            restored = file.restore()
+
+        # set file status to corrupt if good
+        if self.health_status == FileSystemItemHealthStatus.CORRUPT:
+            self.health_status = FileSystemItemHealthStatus.GOOD
+            restored = True
+
+        self.fs.sys_log.info(f"Restored folder {self.name} (id: {self.uuid})")
+        return restored
 
     def corrupt(self) -> bool:
         """Corrupt a File by setting the folder and containing files status to FileSystemItemStatus.CORRUPT."""
@@ -910,9 +935,19 @@ class File(FileSystemItemABC):
         self.folder.fs.sys_log.info(f"Repaired file {self.sim_path if self.sim_path else path}")
         return True
 
-    def restore(self) -> None:
+    def restore(self) -> bool:
         """Restore a corrupted File by setting the status to FileSystemItemStatus.GOOD."""
-        pass
+        super().restore()
+
+        restored = False
+
+        if self.health_status == FileSystemItemHealthStatus.CORRUPT:
+            self.health_status = FileSystemItemHealthStatus.GOOD
+            restored = True
+
+        path = self.folder.name + "/" + self.name
+        self.folder.fs.sys_log.info(f"Restored file {self.sim_path if self.sim_path else path}")
+        return restored
 
     def corrupt(self) -> bool:
         """Corrupt a File by setting the status to FileSystemItemStatus.CORRUPT."""

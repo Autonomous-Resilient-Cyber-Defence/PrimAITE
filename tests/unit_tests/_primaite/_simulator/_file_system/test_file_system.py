@@ -44,6 +44,7 @@ def test_delete_file(file_system):
     file_system.delete_file(folder_name="root", file_name="test_file.txt")
     assert len(file_system.folders) == 1
     assert len(file_system.get_folder("root").files) == 0
+    assert len(file_system.get_folder("root").deleted_files) == 1
 
 
 def test_delete_non_existent_file(file_system):
@@ -69,6 +70,8 @@ def test_delete_folder(file_system):
 
     file_system.delete_folder(folder_name="test_folder")
     assert len(file_system.folders) == 1
+
+    assert len(file_system.deleted_folders) == 1
 
 
 def test_deleting_a_non_existent_folder(file_system):
