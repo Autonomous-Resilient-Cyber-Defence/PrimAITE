@@ -2,7 +2,8 @@ from typing import Tuple
 
 import pytest
 
-from primaite.simulator.file_system.file_system import File, FileSystem, FileSystemItemHealthStatus, Folder
+from primaite.simulator.file_system.file_system import File, FileSystem, Folder
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 
 
 @pytest.fixture(scope="function")

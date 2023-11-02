@@ -1,0 +1,347 @@
+from __future__ import annotations
+
+from typing import Dict, Optional
+
+from prettytable import MARKDOWN, PrettyTable
+
+from primaite import getLogger
+from primaite.simulator.core import RequestManager, RequestType
+from primaite.simulator.file_system.file import File
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC, FileSystemItemHealthStatus
+
+_LOGGER = getLogger(__name__)
+
+
+class Folder(FileSystemItemABC):
+    """Simulation Folder."""
+
+    files: Dict[str, File] = {}
+    "Files stored in the folder."
+    _files_by_name: Dict[str, File] = {}
+    "Files by their name as <file name>.<file type>."
+    deleted_files: Dict[str, File] = {}
+    "Files that have been deleted."
+
+    scan_duration: int = -1
+    "How many timesteps to complete a scan."
+
+    red_scan_duration: int = -1
+    "How many timesteps to complete reveal to red scan."
+
+    def __init__(self, **kwargs):
+        """
+        Initialise Folder class.
+
+        :param name: The name of the folder.
+        :param sys_log: The SysLog instance to us to create system logs.
+        """
+        super().__init__(**kwargs)
+
+        self.sys_log.info(f"Created file /{self.name} (id: {self.uuid})")
+
+    def _init_request_manager(self) -> RequestManager:
+        rm = super()._init_request_manager()
+        rm.add_request(
+            name="delete",
+            request_type=RequestType(func=lambda request, context: self.remove_file_by_id(file_uuid=request[0])),
+        )
+        return rm
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        :return: Current state of this object and child objects.
+        """
+        state = super().describe_state()
+        state["files"] = {file.name: file.describe_state() for uuid, file in self.files.items()}
+        return state
+
+    def show(self, markdown: bool = False):
+        """
+        Display the contents of the Folder in tabular format.
+
+        :param markdown: Whether to display the table in Markdown format or not. Default is `False`.
+        """
+        table = PrettyTable(["File", "Size"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.sys_log.hostname} File System Folder ({self.name})"
+        for file in self.files.values():
+            table.add_row([file.name, file.size_str])
+        print(table.get_string(sortby="File"))
+
+    @property
+    def size(self) -> int:
+        """
+        Calculate and return the total size of all files in the folder.
+
+        :return: The total size of all files in the folder. If no files exist or all have `None`
+            size, returns 0.
+        """
+        return sum(file.size for file in self.files.values() if file.size is not None)
+
+    def apply_timestep(self, timestep: int):
+        """
+        Apply a single timestep of simulation dynamics to this folder and its files.
+
+        In this instance, if any multi-timestep processes are currently occurring (such as scanning),
+        then they are brought one step closer to being finished.
+
+        :param timestep: The current timestep number. (Amount of time since simulation episode began)
+        :type timestep: int
+        """
+        super().apply_timestep(timestep=timestep)
+
+        # scan files each timestep
+        if self.scan_duration >= 0:
+            self.scan_duration -= 1
+
+            if self.scan_duration == 0:
+                for file_id in self.files:
+                    file = self.get_file_by_id(file_uuid=file_id)
+                    file.scan()
+                    if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
+                        self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
+
+        # red scan file at each step
+        if self.red_scan_duration >= 0:
+            self.red_scan_duration -= 1
+
+            if self.red_scan_duration == 0:
+                self.revealed_to_red = True
+                for file_id in self.files:
+                    file = self.get_file_by_id(file_uuid=file_id)
+                    file.reveal_to_red()
+
+        # apply timestep to files in folder
+        for file_id in self.files:
+            self.files[file_id].apply_timestep(timestep=timestep)
+
+    def get_file(self, file_name: str) -> Optional[File]:
+        """
+        Get a file by its name.
+
+        File name must be the filename and prefix, like 'memo.docx'.
+
+        :param file_name: The file name.
+        :return: The matching File.
+        """
+        # TODO: Increment read count?
+        return self._files_by_name.get(file_name)
+
+    def get_file_by_id(self, file_uuid: str) -> File:
+        """
+        Get a file by its uuid.
+
+        :param: file_uuid: The file uuid.
+        :return: The matching File.
+        """
+        return self.files.get(file_uuid)
+
+    def add_file(self, file: File):
+        """
+        Adds a file to the folder.
+
+        :param File file: The File object to be added to the folder.
+        :raises Exception: If the provided `file` parameter is None or not an instance of the
+            `File` class.
+        """
+        if file is None or not isinstance(file, File):
+            raise Exception(f"Invalid file: {file}")
+
+        # check if file with id already exists in folder
+        if file.uuid in self.files:
+            _LOGGER.debug(f"File with id {file.uuid} already exists in folder")
+        else:
+            # add to list
+            self.files[file.uuid] = file
+            self._files_by_name[file.name] = file
+            file.folder = self
+
+    def remove_file(self, file: Optional[File]):
+        """
+        Removes a file from the folder list.
+
+        The method can take a File object or a file id.
+
+        :param file: The file to remove
+        """
+        if file is None or not isinstance(file, File):
+            raise Exception(f"Invalid file: {file}")
+
+        if self.files.get(file.uuid):
+            self.files.pop(file.uuid)
+            self._files_by_name.pop(file.name)
+            self.deleted_files[file.uuid] = file
+            self.sys_log.info(f"Removed file {file.name} (id: {file.uuid})")
+        else:
+            _LOGGER.debug(f"File with UUID {file.uuid} was not found.")
+
+    def remove_file_by_id(self, file_uuid: str):
+        """
+        Remove a file using id.
+
+        :param: file_uuid: The UUID of the file to remove.
+        """
+        file = self.get_file_by_id(file_uuid=file_uuid)
+        self.remove_file(file=file)
+
+    def remove_all_files(self):
+        """Removes all the files in the folder."""
+        for file_id in self.files:
+            self.deleted_files[file_id] = self.files[file_id]
+
+        self.files = {}
+        self._files_by_name = {}
+
+    def restore_file(self, file: Optional[File]):
+        """
+        Restores a file.
+
+        The method can take a File object or a file id.
+
+        :param file: The file to restore
+        """
+        pass
+
+    def quarantine(self):
+        """Quarantines the File System Folder."""
+        pass
+
+    def unquarantine(self):
+        """Unquarantine of the File System Folder."""
+        pass
+
+    def quarantine_status(self) -> bool:
+        """Returns true if the folder is being quarantined."""
+        pass
+
+    def scan(self, instant_scan: bool = False) -> None:
+        """
+        Update Folder visible status.
+
+        :param: instant_scan: If True, the scan is completed instantly and ignores scan duration. Default False.
+        """
+        if instant_scan:
+            for file_id in self.files:
+                file = self.get_file_by_id(file_uuid=file_id)
+                file.scan()
+                if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
+                    self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
+            return
+
+        if self.scan_duration <= 0:
+            # scan one file per timestep
+            self.scan_duration = len(self.files)
+            self.sys_log.info(f"Scanning folder {self.name} (id: {self.uuid})")
+        else:
+            # scan already in progress
+            self.sys_log.info(f"Scan is already in progress {self.name} (id: {self.uuid})")
+
+    def reveal_to_red(self, instant_scan: bool = False):
+        """
+        Reveals the folders and files to the red agent.
+
+        :param: instant_scan: If True, the scan is completed instantly and ignores scan duration. Default False.
+        """
+        if instant_scan:
+            self.revealed_to_red = True
+            for file_id in self.files:
+                file = self.get_file_by_id(file_uuid=file_id)
+                file.reveal_to_red()
+            return
+
+        if self.red_scan_duration <= 0:
+            # scan one file per timestep
+            self.red_scan_duration = len(self.files)
+            self.sys_log.info(f"Folder revealed to red agent: {self.name} (id: {self.uuid})")
+        else:
+            # scan already in progress
+            self.sys_log.info(f"Red Agent Scan is already in progress {self.name} (id: {self.uuid})")
+
+    def check_hash(self) -> bool:
+        """
+        Runs a :func:`check_hash` on all files in the folder.
+
+        If a file under the folder is corrupted, the whole folder is considered corrupted.
+
+        TODO: For now this will just iterate through the files and run :func:`check_hash` and ignores
+        any other changes to the folder
+
+        Return False if corruption is detected, otherwise True
+        """
+        super().check_hash()
+
+        # iterate through the files and run a check hash
+        no_corrupted_files = True
+
+        for file_id in self.files:
+            file = self.get_file_by_id(file_uuid=file_id)
+            no_corrupted_files = file.check_hash()
+
+        # if one file in the folder is corrupted, set the folder status to corrupted
+        if not no_corrupted_files:
+            self.corrupt()
+
+        self.sys_log.info(f"Checking hash of folder {self.name} (id: {self.uuid})")
+
+        return no_corrupted_files
+
+    def repair(self) -> bool:
+        """Repair a corrupted Folder by setting the folder and containing files status to FileSystemItemStatus.GOOD."""
+        super().repair()
+
+        repaired = False
+
+        # iterate through the files in the folder
+        for file_id in self.files:
+            file = self.get_file_by_id(file_uuid=file_id)
+            repaired = file.repair()
+
+        # set file status to good if corrupt
+        if self.health_status == FileSystemItemHealthStatus.CORRUPT:
+            self.health_status = FileSystemItemHealthStatus.GOOD
+            repaired = True
+
+        self.sys_log.info(f"Repaired folder {self.name} (id: {self.uuid})")
+        return repaired
+
+    def restore(self) -> bool:
+        """Restore a File by setting the folder and containing files status to FileSystemItemStatus.GOOD."""
+        super().restore()
+
+        restored = False
+
+        # iterate through the files in the folder
+        for file_id in self.files:
+            file = self.get_file_by_id(file_uuid=file_id)
+            restored = file.restore()
+
+        # set file status to corrupt if good
+        if self.health_status == FileSystemItemHealthStatus.CORRUPT:
+            self.health_status = FileSystemItemHealthStatus.GOOD
+            restored = True
+
+        self.sys_log.info(f"Restored folder {self.name} (id: {self.uuid})")
+        return restored
+
+    def corrupt(self) -> bool:
+        """Corrupt a File by setting the folder and containing files status to FileSystemItemStatus.CORRUPT."""
+        super().corrupt()
+
+        corrupted = False
+
+        # iterate through the files in the folder
+        for file_id in self.files:
+            file = self.get_file_by_id(file_uuid=file_id)
+            corrupted = file.corrupt()
+
+        # set file status to corrupt if good
+        if self.health_status == FileSystemItemHealthStatus.GOOD:
+            self.health_status = FileSystemItemHealthStatus.CORRUPT
+            corrupted = True
+
+        self.sys_log.info(f"Corrupted folder {self.name} (id: {self.uuid})")
+        return corrupted

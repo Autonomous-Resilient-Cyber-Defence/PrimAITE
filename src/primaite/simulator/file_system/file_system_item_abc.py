@@ -7,6 +7,7 @@ from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.system.core.sys_log import SysLog
 
 _LOGGER = getLogger(__name__)
 
@@ -77,6 +78,9 @@ class FileSystemItemABC(SimComponent):
 
     revealed_to_red: bool = False
     "If true, the folder/file has been revealed to the red agent."
+
+    sys_log: SysLog
+    "Used for creating system logs."
 
     def describe_state(self) -> Dict:
         """

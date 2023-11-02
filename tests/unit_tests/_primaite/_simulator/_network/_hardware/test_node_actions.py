@@ -1,6 +1,7 @@
 import pytest
 
-from primaite.simulator.file_system.file_system import File, FileSystemItemHealthStatus, Folder
+from primaite.simulator.file_system.file_system import File, Folder
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.network.hardware.base import Node, NodeOperatingState
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.processes.process import Process
