@@ -44,24 +44,24 @@ def test_file_reveal_to_red_scan(file_system):
 def test_simulated_file_check_hash(file_system):
     file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
 
-    assert file.check_hash() is True
-
+    file.check_hash()
+    assert file.health_status == FileSystemItemHealthStatus.GOOD
     # change simulated file size
     file.sim_size = 0
-    assert file.check_hash() is False
+    file.check_hash()
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
 
 
 def test_real_file_check_hash(file_system):
     file: File = file_system.create_file(file_name="test_file.txt", real=True)
 
-    assert file.check_hash() is True
-
+    file.check_hash()
+    assert file.health_status == FileSystemItemHealthStatus.GOOD
     # change file content
     with open(file.sim_path, "a") as f:
         f.write("get hacked scrub lol xD\n")
 
-    assert file.check_hash() is False
+    file.check_hash()
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
 
 

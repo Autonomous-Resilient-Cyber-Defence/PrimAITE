@@ -19,6 +19,20 @@ def test_folder_quarantine_state(file_system):
     assert folder.quarantine_status() is False
 
 
+def test_folder_get_file(file_system):
+    """Test that files can be retrieved from the folder."""
+    folder: Folder = file_system.create_folder(folder_name="test_folder")
+    file1: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+    file2: File = file_system.create_file(file_name="test_file2.txt", folder_name="test_folder")
+
+    folder.remove_file(file2)
+
+    assert folder.get_file_by_id(file_uuid=file1.uuid) is not None
+    assert folder.get_file_by_id(file_uuid=file2.uuid) is None
+
+    assert folder.get_file_by_id(file_uuid=file2.uuid, include_deleted=True) is not None
+
+
 def test_folder_scan(file_system):
     """Test the ability to update visible status."""
     folder: Folder = file_system.create_folder(folder_name="test_folder")
@@ -107,12 +121,13 @@ def test_simulated_folder_check_hash(file_system):
     folder: Folder = file_system.create_folder(folder_name="test_folder")
     file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
 
-    assert folder.check_hash() is True
+    folder.check_hash()
+    assert folder.health_status == FileSystemItemHealthStatus.GOOD
 
     # change simulated file size
     file = folder.get_file(file_name="test_file.txt")
     file.sim_size = 0
-    assert folder.check_hash() is False
+    folder.check_hash()
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
 
 
@@ -120,8 +135,8 @@ def test_real_folder_check_hash(file_system):
     folder: Folder = file_system.create_folder(folder_name="test_folder")
     file_system.create_file(file_name="test_file.txt", folder_name="test_folder", real=True)
 
-    assert folder.check_hash() is True
-
+    folder.check_hash()
+    assert folder.health_status == FileSystemItemHealthStatus.GOOD
     # change simulated file size
     file = folder.get_file(file_name="test_file.txt")
 
@@ -129,5 +144,5 @@ def test_real_folder_check_hash(file_system):
     with open(file.sim_path, "a") as f:
         f.write("get hacked scrub lol xD\n")
 
-    assert folder.check_hash() is False
+    folder.check_hash()
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT

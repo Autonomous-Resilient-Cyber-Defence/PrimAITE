@@ -131,34 +131,45 @@ class Folder(FileSystemItemABC):
         # TODO: Increment read count?
         return self._files_by_name.get(file_name)
 
-    def get_file_by_id(self, file_uuid: str) -> File:
+    def get_file_by_id(self, file_uuid: str, include_deleted: Optional[bool] = False) -> File:
         """
         Get a file by its uuid.
 
         :param: file_uuid: The file uuid.
+        :param: include_deleted: If true, the deleted files will also be checked
         :return: The matching File.
         """
+        if include_deleted:
+            deleted_file = self.deleted_files.get(file_uuid)
+
+            if deleted_file:
+                return deleted_file
+
         return self.files.get(file_uuid)
 
-    def add_file(self, file: File):
+    def add_file(self, file: File, force: Optional[bool] = False):
         """
         Adds a file to the folder.
 
-        :param File file: The File object to be added to the folder.
+        :param: file: The File object to be added to the folder.
+        :param: force: Overwrite file - do not check if uuid or name already exists in folder. Default False.
         :raises Exception: If the provided `file` parameter is None or not an instance of the
             `File` class.
         """
         if file is None or not isinstance(file, File):
             raise Exception(f"Invalid file: {file}")
 
-        # check if file with id already exists in folder
-        if file.uuid in self.files:
-            _LOGGER.debug(f"File with id {file.uuid} already exists in folder")
-        else:
-            # add to list
-            self.files[file.uuid] = file
-            self._files_by_name[file.name] = file
-            file.folder = self
+        # check if file with id or name already exists in folder
+        if (force is not True) and file.name in self._files_by_name:
+            raise Exception(f"File with name {file.name} already exists in folder")
+
+        if (force is not True) and file.uuid in self.files:
+            raise Exception(f"File with uuid {file.uuid} already exists in folder")
+
+        # add to list
+        self.files[file.uuid] = file
+        self._files_by_name[file.name] = file
+        file.folder = self
 
     def remove_file(self, file: Optional[File]):
         """
@@ -175,6 +186,7 @@ class Folder(FileSystemItemABC):
             self.files.pop(file.uuid)
             self._files_by_name.pop(file.name)
             self.deleted_files[file.uuid] = file
+            file.delete()
             self.sys_log.info(f"Removed file {file.name} (id: {file.uuid})")
         else:
             _LOGGER.debug(f"File with UUID {file.uuid} was not found.")
@@ -191,7 +203,9 @@ class Folder(FileSystemItemABC):
     def remove_all_files(self):
         """Removes all the files in the folder."""
         for file_id in self.files:
-            self.deleted_files[file_id] = self.files[file_id]
+            file = self.files.get(file_id)
+            file.delete()
+            self.deleted_files[file_id] = file
 
         self.files = {}
         self._files_by_name = {}
@@ -224,6 +238,10 @@ class Folder(FileSystemItemABC):
 
         :param: instant_scan: If True, the scan is completed instantly and ignores scan duration. Default False.
         """
+        if self.deleted:
+            self.sys_log.error(f"Unable to scan deleted folder {self.name}")
+            return
+
         if instant_scan:
             for file_id in self.files:
                 file = self.get_file_by_id(file_uuid=file_id)
@@ -246,6 +264,10 @@ class Folder(FileSystemItemABC):
 
         :param: instant_scan: If True, the scan is completed instantly and ignores scan duration. Default False.
         """
+        if self.deleted:
+            self.sys_log.error(f"Unable to reveal deleted folder {self.name}")
+            return
+
         if instant_scan:
             self.revealed_to_red = True
             for file_id in self.files:
@@ -261,7 +283,7 @@ class Folder(FileSystemItemABC):
             # scan already in progress
             self.sys_log.info(f"Red Agent Scan is already in progress {self.name} (id: {self.uuid})")
 
-    def check_hash(self) -> bool:
+    def check_hash(self) -> None:
         """
         Runs a :func:`check_hash` on all files in the folder.
 
@@ -272,14 +294,18 @@ class Folder(FileSystemItemABC):
 
         Return False if corruption is detected, otherwise True
         """
-        super().check_hash()
+        if self.deleted:
+            self.sys_log.error(f"Unable to check hash of deleted folder {self.name}")
+            return
 
         # iterate through the files and run a check hash
         no_corrupted_files = True
 
         for file_id in self.files:
             file = self.get_file_by_id(file_uuid=file_id)
-            no_corrupted_files = file.check_hash()
+            file.check_hash()
+            if file.health_status == FileSystemItemHealthStatus.CORRUPT:
+                no_corrupted_files = False
 
         # if one file in the folder is corrupted, set the folder status to corrupted
         if not no_corrupted_files:
@@ -287,61 +313,53 @@ class Folder(FileSystemItemABC):
 
         self.sys_log.info(f"Checking hash of folder {self.name} (id: {self.uuid})")
 
-        return no_corrupted_files
-
-    def repair(self) -> bool:
+    def repair(self) -> None:
         """Repair a corrupted Folder by setting the folder and containing files status to FileSystemItemStatus.GOOD."""
-        super().repair()
-
-        repaired = False
+        if self.deleted:
+            self.sys_log.error(f"Unable to repair deleted folder {self.name}")
+            return
 
         # iterate through the files in the folder
         for file_id in self.files:
             file = self.get_file_by_id(file_uuid=file_id)
-            repaired = file.repair()
+            file.repair()
 
         # set file status to good if corrupt
         if self.health_status == FileSystemItemHealthStatus.CORRUPT:
             self.health_status = FileSystemItemHealthStatus.GOOD
-            repaired = True
+
+        self.health_status = FileSystemItemHealthStatus.GOOD
 
         self.sys_log.info(f"Repaired folder {self.name} (id: {self.uuid})")
-        return repaired
 
-    def restore(self) -> bool:
-        """Restore a File by setting the folder and containing files status to FileSystemItemStatus.GOOD."""
-        super().restore()
+    def restore(self) -> None:
+        """
+        If a Folder is corrupted, run a repair on the folder and its child files.
 
-        restored = False
+        If the folder is deleted, restore the folder by setting deleted status to False.
+        """
+        pass
 
-        # iterate through the files in the folder
-        for file_id in self.files:
-            file = self.get_file_by_id(file_uuid=file_id)
-            restored = file.restore()
-
-        # set file status to corrupt if good
-        if self.health_status == FileSystemItemHealthStatus.CORRUPT:
-            self.health_status = FileSystemItemHealthStatus.GOOD
-            restored = True
-
-        self.sys_log.info(f"Restored folder {self.name} (id: {self.uuid})")
-        return restored
-
-    def corrupt(self) -> bool:
+    def corrupt(self) -> None:
         """Corrupt a File by setting the folder and containing files status to FileSystemItemStatus.CORRUPT."""
-        super().corrupt()
-
-        corrupted = False
+        if self.deleted:
+            self.sys_log.error(f"Unable to corrupt deleted folder {self.name}")
+            return
 
         # iterate through the files in the folder
         for file_id in self.files:
             file = self.get_file_by_id(file_uuid=file_id)
-            corrupted = file.corrupt()
+            file.corrupt()
 
-        # set file status to corrupt if good
-        if self.health_status == FileSystemItemHealthStatus.GOOD:
-            self.health_status = FileSystemItemHealthStatus.CORRUPT
-            corrupted = True
+        # set file status to corrupt
+        self.health_status = FileSystemItemHealthStatus.CORRUPT
 
         self.sys_log.info(f"Corrupted folder {self.name} (id: {self.uuid})")
-        return corrupted
+
+    def delete(self):
+        """Marks the file as deleted. Prevents agent actions from occuring."""
+        if self.deleted:
+            self.sys_log.error(f"Unable to delete an already deleted folder {self.name}")
+            return
+
+        self.deleted = True

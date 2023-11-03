@@ -82,6 +82,9 @@ class FileSystemItemABC(SimComponent):
     sys_log: SysLog
     "Used for creating system logs."
 
+    deleted: bool = False
+    "If true, the FileSystemItem was deleted."
+
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -121,7 +124,17 @@ class FileSystemItemABC(SimComponent):
         return convert_size(self.size)
 
     @abstractmethod
-    def check_hash(self) -> bool:
+    def scan(self) -> None:
+        """Scan the folder/file - updates the visible_health_status."""
+        pass
+
+    @abstractmethod
+    def reveal_to_red(self) -> None:
+        """Reveal the folder/file to the red agent."""
+        pass
+
+    @abstractmethod
+    def check_hash(self) -> None:
         """
         Checks the has of the file to detect any changes.
 
@@ -132,7 +145,7 @@ class FileSystemItemABC(SimComponent):
         pass
 
     @abstractmethod
-    def repair(self) -> bool:
+    def repair(self) -> None:
         """
         Repair the FileSystemItem.
 
@@ -141,7 +154,7 @@ class FileSystemItemABC(SimComponent):
         pass
 
     @abstractmethod
-    def corrupt(self) -> bool:
+    def corrupt(self) -> None:
         """
         Corrupt the FileSystemItem.
 
@@ -150,6 +163,11 @@ class FileSystemItemABC(SimComponent):
         pass
 
     @abstractmethod
-    def restore(self) -> bool:
+    def restore(self) -> None:
         """Restore the file/folder to the state before it got ruined."""
         pass
+
+    @abstractmethod
+    def delete(self) -> None:
+        """Mark the file/folder as deleted."""
+        self.deleted = True

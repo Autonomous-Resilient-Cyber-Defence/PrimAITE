@@ -38,9 +38,21 @@ class FileSystem(SimComponent):
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 
+        self._delete_manager = RequestManager()
+        self._delete_manager.add_request(
+            name="file",
+            request_type=RequestType(
+                func=lambda request, context: self.delete_file_by_id(folder_uuid=request[0], file_uuid=request[1])
+            ),
+        )
+        self._delete_manager.add_request(
+            name="folder",
+            request_type=RequestType(func=lambda request, context: self.delete_folder_by_id(folder_uuid=request[0])),
+        )
+
         rm.add_request(
             name="delete",
-            request_type=RequestType(func=lambda request, context: self.delete_folder_by_id(folder_uuid=request[0])),
+            request_type=RequestType(func=self._delete_manager),
         )
 
         self._folder_request_manager = RequestManager()
@@ -119,15 +131,18 @@ class FileSystem(SimComponent):
             return
         folder = self._folders_by_name.get(folder_name)
         if folder:
+            # set folder to deleted state
+            folder.delete()
+
             # remove from folder list
             self.folders.pop(folder.uuid)
             self._folders_by_name.pop(folder.name)
-            self.sys_log.info(f"Deleted folder /{folder.name} and its contents")
 
             # add to deleted list
             folder.remove_all_files()
 
             self.deleted_folders[folder.uuid] = folder
+            self.sys_log.info(f"Deleted folder /{folder.name} and its contents")
         else:
             _LOGGER.debug(f"Cannot delete folder as it does not exist: {folder_name}")
 
@@ -216,7 +231,41 @@ class FileSystem(SimComponent):
         folder = self.get_folder(folder_name)
         if folder:
             return folder.get_file(file_name)
-        self.sys_log.info(f"file not found /{folder_name}/{file_name}")
+        self.sys_log.info(f"File not found /{folder_name}/{file_name}")
+
+    def get_file_by_id(
+        self, file_uuid: str, folder_uuid: Optional[str] = None, include_deleted: Optional[bool] = False
+    ) -> Optional[File]:
+        """
+        Retrieve a file by its uuid from a specific folder.
+
+        :param: file_uuid: The uuid of the folder where the file resides.
+        :param: folder_uuid: The uuid of the file to be retrieved, including its extension.
+        :param: include_deleted: If true, the deleted files will also be checked
+        :return: An instance of File if it exists, otherwise `None`.
+        """
+        folder = self.folders.get(folder_uuid)
+
+        if folder:
+            return folder.get_file_by_id(file_uuid=file_uuid, include_deleted=include_deleted)
+
+        # iterate through every folder looking for file
+        file = None
+
+        for folder_id in self.folders:
+            folder = self.folders.get(folder_id)
+            res = folder.get_file_by_id(file_uuid=file_uuid, include_deleted=True)
+            if res:
+                file = res
+
+        if include_deleted:
+            for folder_id in self.deleted_folders:
+                folder = self.deleted_folders.get(folder_id)
+                res = folder.get_file_by_id(file_uuid=file_uuid, include_deleted=True)
+                if res:
+                    file = res
+
+        return file
 
     def delete_file(self, folder_name: str, file_name: str):
         """
@@ -230,6 +279,19 @@ class FileSystem(SimComponent):
             file = folder.get_file(file_name)
             if file:
                 folder.remove_file(file)
+
+    def delete_file_by_id(self, folder_uuid: str, file_uuid: str):
+        """
+        Deletes a file via its uuid.
+
+        :param: folder_uuid: UUID of the folder the file belongs to
+        :param: file_uuid: UUID of the file to delete
+        """
+        folder = self.get_folder_by_id(folder_uuid=folder_uuid)
+
+        if folder:
+            file = folder.get_file_by_id(file_uuid=file_uuid)
+            self.delete_file(folder_name=folder.name, file_name=file.name)
 
     def move_file(self, src_folder_name: str, src_file_name: str, dst_folder_name: str):
         """
@@ -277,7 +339,7 @@ class FileSystem(SimComponent):
                 folder_name=dst_folder.name,
                 **file.model_dump(exclude={"uuid", "folder_id", "folder_name", "sim_path"}),
             )
-            dst_folder.add_file(file_copy)
+            dst_folder.add_file(file_copy, force=True)
 
             if file.real:
                 file_copy.sim_path.parent.mkdir(exist_ok=True)
@@ -302,6 +364,10 @@ class FileSystem(SimComponent):
         # apply timestep to folders
         for folder_id in self.folders:
             self.folders[folder_id].apply_timestep(timestep=timestep)
+
+    ###############################################################
+    # Agent actions
+    ###############################################################
 
     def scan(self, instant_scan: bool = False):
         """

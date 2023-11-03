@@ -1,7 +1,9 @@
 import pytest
 
+from primaite.simulator.file_system.file import File
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.file_system.file_type import FileType
+from primaite.simulator.file_system.folder import Folder
 
 
 def test_create_folder_and_file(file_system):
@@ -65,6 +67,34 @@ def test_delete_folder(file_system):
     assert len(file_system.deleted_folders) == 1
 
 
+def test_create_duplicate_folder(file_system):
+    """Test that creating a duplicate folder throws exception."""
+    assert len(file_system.folders) == 1
+    file_system.create_folder(folder_name="test_folder")
+
+    assert len(file_system.folders) is 2
+    with pytest.raises(Exception):
+        file_system.create_folder(folder_name="test_folder")
+
+    assert len(file_system.folders) is 2
+
+
+def test_create_duplicate_file(file_system):
+    """Test that creating a duplicate file throws exception."""
+    assert len(file_system.folders) == 1
+    file_system.create_folder(folder_name="test_folder")
+
+    assert len(file_system.folders) is 2
+    file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    assert len(file_system.get_folder("test_folder").files) == 1
+
+    with pytest.raises(Exception):
+        file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    assert len(file_system.get_folder("test_folder").files) == 1
+
+
 def test_deleting_a_non_existent_folder(file_system):
     file_system.create_folder(folder_name="test_folder")
     assert len(file_system.folders) == 2
@@ -114,6 +144,23 @@ def test_copy_file(file_system):
     assert len(file_system.get_folder("src_folder").files) == 1
     assert len(file_system.get_folder("dst_folder").files) == 1
     assert file_system.get_file("dst_folder", "test_file.txt").uuid != original_uuid
+
+
+def test_get_file(file_system):
+    """Test that files can be retrieved."""
+    folder: Folder = file_system.create_folder(folder_name="test_folder")
+    file1: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+    file2: File = file_system.create_file(file_name="test_file2.txt", folder_name="test_folder")
+
+    folder.remove_file(file2)
+
+    assert file_system.get_file_by_id(file_uuid=file1.uuid, folder_uuid=folder.uuid) is not None
+    assert file_system.get_file_by_id(file_uuid=file2.uuid, folder_uuid=folder.uuid) is None
+    assert file_system.get_file_by_id(file_uuid=file2.uuid, folder_uuid=folder.uuid, include_deleted=True) is not None
+    assert file_system.get_file_by_id(file_uuid=file2.uuid, include_deleted=True) is not None
+
+    file_system.delete_folder(folder_name="test_folder")
+    assert file_system.get_file_by_id(file_uuid=file2.uuid, include_deleted=True) is not None
 
 
 @pytest.mark.skip(reason="Skipping until we tackle serialisation")

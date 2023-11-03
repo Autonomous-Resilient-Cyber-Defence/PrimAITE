@@ -102,15 +102,22 @@ class File(FileSystemItemABC):
 
     def scan(self) -> None:
         """Updates the visible statuses of the file."""
+        if self.deleted:
+            self.sys_log.error(f"Unable to scan deleted file {self.folder_name}/{self.name}")
+            return
+
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Scanning file {self.sim_path if self.sim_path else path}")
         self.visible_health_status = self.health_status
 
-    def reveal_to_red(self):
+    def reveal_to_red(self) -> None:
         """Reveals the folder/file to the red agent."""
+        if self.deleted:
+            self.sys_log.error(f"Unable to reveal deleted file {self.folder_name}/{self.name}")
+            return
         self.revealed_to_red = True
 
-    def check_hash(self) -> bool:
+    def check_hash(self) -> None:
         """
         Check if the file has been changed.
 
@@ -118,6 +125,9 @@ class File(FileSystemItemABC):
 
         Return False if corruption is detected, otherwise True
         """
+        if self.deleted:
+            self.sys_log.error(f"Unable to check hash of deleted file {self.folder_name}/{self.name}")
+            return
         current_hash = None
 
         # if file is real, read the file contents
@@ -139,13 +149,12 @@ class File(FileSystemItemABC):
         # if the previous hash and current hash do not match, mark file as corrupted
         if self.previous_hash is not current_hash:
             self.corrupt()
-            return False
 
-        return True
-
-    def repair(self) -> bool:
+    def repair(self) -> None:
         """Repair a corrupted File by setting the status to FileSystemItemStatus.GOOD."""
-        super().repair()
+        if self.deleted:
+            self.sys_log.error(f"Unable to repair deleted file {self.folder_name}/{self.name}")
+            return
 
         # set file status to good if corrupt
         if self.health_status == FileSystemItemHealthStatus.CORRUPT:
@@ -153,33 +162,38 @@ class File(FileSystemItemABC):
 
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Repaired file {self.sim_path if self.sim_path else path}")
-        return True
 
-    def restore(self) -> bool:
+    def restore(self) -> None:
         """Restore a corrupted File by setting the status to FileSystemItemStatus.GOOD."""
-        super().restore()
-
-        restored = False
-
         if self.health_status == FileSystemItemHealthStatus.CORRUPT:
             self.health_status = FileSystemItemHealthStatus.GOOD
-            restored = True
 
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Restored file {self.sim_path if self.sim_path else path}")
-        return restored
 
-    def corrupt(self) -> bool:
+    def corrupt(self) -> None:
         """Corrupt a File by setting the status to FileSystemItemStatus.CORRUPT."""
-        super().corrupt()
-
-        corrupted = False
+        if self.deleted:
+            self.sys_log.error(f"Unable to corrupt deleted file {self.folder_name}/{self.name}")
+            return
 
         # set file status to good if corrupt
         if self.health_status == FileSystemItemHealthStatus.GOOD:
             self.health_status = FileSystemItemHealthStatus.CORRUPT
-            corrupted = True
 
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Corrupted file {self.sim_path if self.sim_path else path}")
-        return corrupted
+
+    def restore(self) -> bool:
+        """Determines if the file needs to be repaired or unmarked as deleted."""
+        super().restore()
+        return True
+
+    def delete(self):
+        """Marks the file as deleted."""
+        if self.deleted:
+            self.sys_log.error(f"Unable to delete an already deleted file {self.folder_name}/{self.name}")
+            return
+
+        self.deleted = True
+        self.sys_log.info(f"File deleted {self.folder_name}/{self.name}")
