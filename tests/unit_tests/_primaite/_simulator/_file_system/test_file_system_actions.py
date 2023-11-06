@@ -71,7 +71,25 @@ def test_folder_restore_request(populated_file_system):
 
     # restore folder
     fs.apply_request(request=["restore", "folder", folder.uuid])
+    fs.apply_timestep(timestep=0)
+    assert fs.get_folder(folder_name=folder.name) is not None
+    assert (
+        fs.get_folder_by_id(folder_uuid=folder.uuid, include_deleted=True).health_status
+        == FileSystemItemHealthStatus.RESTORING
+    )
+    assert fs.get_folder_by_id(folder_uuid=folder.uuid, include_deleted=True).deleted is False
+
+    assert fs.get_file(folder_name=folder.name, file_name=file.name) is None
+    assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid, include_deleted=True).deleted is True
+
+    fs.apply_timestep(timestep=1)
+    fs.apply_timestep(timestep=2)
+
     assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
+    assert (
+        fs.get_file(folder_name=folder.name, file_name=file.name).health_status
+        is not FileSystemItemHealthStatus.RESTORING
+    )
     assert fs.get_file(folder_name=folder.name, file_name=file.name).deleted is False
 
     assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
@@ -84,5 +102,19 @@ def test_folder_restore_request(populated_file_system):
 
     # restore folder
     fs.apply_request(request=["restore", "folder", folder.uuid])
-    assert fs.get_folder(folder_name=folder.name).health_status == FileSystemItemHealthStatus.GOOD
-    assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.GOOD
+    fs.apply_timestep(timestep=0)
+    assert fs.get_folder(folder_name=folder.name).health_status == FileSystemItemHealthStatus.RESTORING
+    assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.CORRUPT
+
+    fs.apply_timestep(timestep=1)
+    fs.apply_timestep(timestep=2)
+
+    assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
+    assert (
+        fs.get_file(folder_name=folder.name, file_name=file.name).health_status
+        is not FileSystemItemHealthStatus.RESTORING
+    )
+    assert fs.get_file(folder_name=folder.name, file_name=file.name).deleted is False
+
+    assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
+    assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid, include_deleted=True).deleted is False

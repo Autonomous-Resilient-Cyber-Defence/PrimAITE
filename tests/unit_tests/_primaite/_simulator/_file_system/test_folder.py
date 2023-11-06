@@ -64,6 +64,7 @@ def test_folder_scan(file_system):
     assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
 
     folder.apply_timestep(timestep=1)
+    folder.apply_timestep(timestep=2)
 
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
     assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPT
@@ -93,6 +94,7 @@ def test_folder_reveal_to_red_scan(file_system):
     assert file2.revealed_to_red is False
 
     folder.apply_timestep(timestep=1)
+    folder.apply_timestep(timestep=2)
 
     assert folder.revealed_to_red is True
     assert file1.revealed_to_red is True

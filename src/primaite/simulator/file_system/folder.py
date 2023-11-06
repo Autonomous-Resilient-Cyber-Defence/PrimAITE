@@ -22,11 +22,23 @@ class Folder(FileSystemItemABC):
     deleted_files: Dict[str, File] = {}
     "Files that have been deleted."
 
-    scan_duration: int = -1
-    "How many timesteps to complete a scan."
+    scan_duration: int = 3
+    "How many timesteps to complete a scan. Default 3 timesteps"
 
-    red_scan_duration: int = -1
-    "How many timesteps to complete reveal to red scan."
+    scan_countdown: int = 0
+    "Time steps needed until scan completion."
+
+    red_scan_duration: int = 3
+    "How many timesteps to complete reveal to red scan. Default 3 timesteps"
+
+    red_scan_countdown: int = 0
+    "Time steps needed until red scan completion."
+
+    restore_duration: int = 3
+    "How many timesteps to complete a restore. Default 3 timesteps"
+
+    restore_countdown: int = 0
+    "Time steps needed until restore completion."
 
     def __init__(self, **kwargs):
         """
@@ -55,6 +67,7 @@ class Folder(FileSystemItemABC):
         """
         state = super().describe_state()
         state["files"] = {file.name: file.describe_state() for uuid, file in self.files.items()}
+        state["deleted_files"] = {file.name: file.describe_state() for uuid, file in self.deleted_files.items()}
         return state
 
     def show(self, markdown: bool = False):
@@ -94,30 +107,57 @@ class Folder(FileSystemItemABC):
         """
         super().apply_timestep(timestep=timestep)
 
-        # scan files each timestep
-        if self.scan_duration >= 0:
-            self.scan_duration -= 1
+        self._scan_timestep()
 
-            if self.scan_duration == 0:
+        self._reveal_to_red_timestep()
+
+        self._restoring_timestep()
+
+        # apply timestep to files in folder
+        for file_id in self.files:
+            self.files[file_id].apply_timestep(timestep=timestep)
+
+    def _scan_timestep(self) -> None:
+        """Apply the scan action timestep."""
+        if self.scan_countdown >= 0:
+            self.scan_countdown -= 1
+
+            if self.scan_countdown == 0:
                 for file_id in self.files:
                     file = self.get_file_by_id(file_uuid=file_id)
                     file.scan()
                     if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
                         self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
 
-        # red scan file at each step
-        if self.red_scan_duration >= 0:
-            self.red_scan_duration -= 1
+    def _reveal_to_red_timestep(self) -> None:
+        """Apply reveal to red timestep."""
+        if self.red_scan_countdown >= 0:
+            self.red_scan_countdown -= 1
 
-            if self.red_scan_duration == 0:
+            if self.red_scan_countdown == 0:
                 self.revealed_to_red = True
                 for file_id in self.files:
                     file = self.get_file_by_id(file_uuid=file_id)
                     file.reveal_to_red()
 
-        # apply timestep to files in folder
-        for file_id in self.files:
-            self.files[file_id].apply_timestep(timestep=timestep)
+    def _restoring_timestep(self) -> None:
+        """Apply restoring timestep."""
+        if self.restore_countdown >= 0:
+            self.restore_countdown -= 1
+
+            if self.restore_countdown == 0:
+                # repair all files
+                for file_id in self.files:
+                    self.restore_file(file_uuid=file_id)
+
+                deleted_files = self.deleted_files.copy()
+                for file_id in deleted_files:
+                    self.restore_file(file_uuid=file_id)
+
+                if self.deleted:
+                    self.deleted = False
+                elif self.health_status in [FileSystemItemHealthStatus.CORRUPT, FileSystemItemHealthStatus.RESTORING]:
+                    self.health_status = FileSystemItemHealthStatus.GOOD
 
     def get_file(self, file_name: str) -> Optional[File]:
         """
@@ -259,9 +299,9 @@ class Folder(FileSystemItemABC):
                     self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
             return
 
-        if self.scan_duration <= 0:
+        if self.scan_countdown <= 0:
             # scan one file per timestep
-            self.scan_duration = len(self.files)
+            self.scan_countdown = self.scan_duration
             self.sys_log.info(f"Scanning folder {self.name} (id: {self.uuid})")
         else:
             # scan already in progress
@@ -284,9 +324,9 @@ class Folder(FileSystemItemABC):
                 file.reveal_to_red()
             return
 
-        if self.red_scan_duration <= 0:
+        if self.red_scan_countdown <= 0:
             # scan one file per timestep
-            self.red_scan_duration = len(self.files)
+            self.red_scan_countdown = self.red_scan_duration
             self.sys_log.info(f"Folder revealed to red agent: {self.name} (id: {self.uuid})")
         else:
             # scan already in progress
@@ -347,18 +387,16 @@ class Folder(FileSystemItemABC):
 
         If the folder is deleted, restore the folder by setting deleted status to False.
         """
-        # repair all files
-        for file_id in self.files:
-            self.restore_file(file_uuid=file_id)
-
-        deleted_files = self.deleted_files.copy()
-        for file_id in deleted_files:
-            self.restore_file(file_uuid=file_id)
-
         if self.deleted:
             self.deleted = False
-        elif self.health_status == FileSystemItemHealthStatus.CORRUPT:
-            self.health_status = FileSystemItemHealthStatus.GOOD
+
+        if self.restore_countdown <= 0:
+            self.restore_countdown = self.restore_duration
+            self.health_status = FileSystemItemHealthStatus.RESTORING
+            self.sys_log.info(f"Restoring folder: {self.name} (id: {self.uuid})")
+        else:
+            # scan already in progress
+            self.sys_log.info(f"Folder restoration already in progress {self.name} (id: {self.uuid})")
 
     def corrupt(self) -> None:
         """Corrupt a File by setting the folder and containing files status to FileSystemItemStatus.CORRUPT."""
