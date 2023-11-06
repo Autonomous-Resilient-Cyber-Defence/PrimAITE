@@ -210,15 +210,24 @@ class Folder(FileSystemItemABC):
         self.files = {}
         self._files_by_name = {}
 
-    def restore_file(self, file: Optional[File]):
+    def restore_file(self, file_uuid: str):
         """
         Restores a file.
 
-        The method can take a File object or a file id.
-
-        :param file: The file to restore
+        :param file_uuid: The id of the file to restore
         """
-        pass
+        # if the file was not deleted, run a repair
+        file = self.get_file_by_id(file_uuid=file_uuid, include_deleted=True)
+        if not file:
+            self.sys_log.error(f"Unable to restore file with uuid {file_uuid}. File does not exist.")
+            return
+
+        file.restore()
+        self.files[file.uuid] = file
+        self._files_by_name[file.name] = file
+
+        if file.deleted:
+            self.deleted_files.pop(file_uuid)
 
     def quarantine(self):
         """Quarantines the File System Folder."""
@@ -338,7 +347,18 @@ class Folder(FileSystemItemABC):
 
         If the folder is deleted, restore the folder by setting deleted status to False.
         """
-        pass
+        # repair all files
+        for file_id in self.files:
+            self.restore_file(file_uuid=file_id)
+
+        deleted_files = self.deleted_files.copy()
+        for file_id in deleted_files:
+            self.restore_file(file_uuid=file_id)
+
+        if self.deleted:
+            self.deleted = False
+        elif self.health_status == FileSystemItemHealthStatus.CORRUPT:
+            self.health_status = FileSystemItemHealthStatus.GOOD
 
     def corrupt(self) -> None:
         """Corrupt a File by setting the folder and containing files status to FileSystemItemStatus.CORRUPT."""

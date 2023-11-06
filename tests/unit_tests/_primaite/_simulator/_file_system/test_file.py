@@ -65,14 +65,18 @@ def test_real_file_check_hash(file_system):
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
 
 
-def test_file_corrupt_repair(file_system):
+def test_file_corrupt_repair_restore(file_system):
     """Test the ability to corrupt and repair files."""
     file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
 
     file.corrupt()
-
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
 
     file.repair()
+    assert file.health_status == FileSystemItemHealthStatus.GOOD
 
+    file.corrupt()
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPT
+
+    file.restore()
     assert file.health_status == FileSystemItemHealthStatus.GOOD

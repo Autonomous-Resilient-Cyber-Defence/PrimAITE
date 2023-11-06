@@ -163,14 +163,6 @@ class File(FileSystemItemABC):
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Repaired file {self.sim_path if self.sim_path else path}")
 
-    def restore(self) -> None:
-        """Restore a corrupted File by setting the status to FileSystemItemStatus.GOOD."""
-        if self.health_status == FileSystemItemHealthStatus.CORRUPT:
-            self.health_status = FileSystemItemHealthStatus.GOOD
-
-        path = self.folder.name + "/" + self.name
-        self.sys_log.info(f"Restored file {self.sim_path if self.sim_path else path}")
-
     def corrupt(self) -> None:
         """Corrupt a File by setting the status to FileSystemItemStatus.CORRUPT."""
         if self.deleted:
@@ -184,10 +176,17 @@ class File(FileSystemItemABC):
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Corrupted file {self.sim_path if self.sim_path else path}")
 
-    def restore(self) -> bool:
+    def restore(self) -> None:
         """Determines if the file needs to be repaired or unmarked as deleted."""
-        super().restore()
-        return True
+        if self.deleted:
+            self.deleted = False
+            return
+
+        if self.health_status == FileSystemItemHealthStatus.CORRUPT:
+            self.health_status = FileSystemItemHealthStatus.GOOD
+
+        path = self.folder.name + "/" + self.name
+        self.sys_log.info(f"Restored file {self.sim_path if self.sim_path else path}")
 
     def delete(self):
         """Marks the file as deleted."""
