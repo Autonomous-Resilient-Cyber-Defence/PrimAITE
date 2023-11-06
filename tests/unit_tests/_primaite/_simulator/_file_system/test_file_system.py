@@ -18,6 +18,8 @@ def test_create_folder_and_file(file_system):
 
     assert file_system.get_folder("test_folder").get_file("test_file.txt")
 
+    file_system.show(full=True)
+
 
 def test_create_file_no_folder(file_system):
     """Tests that creating a file without a folder creates a folder and sets that as the file's parent."""
@@ -26,6 +28,8 @@ def test_create_file_no_folder(file_system):
     assert file_system.get_folder("root").get_file("test_file.txt") == file
     assert file_system.get_folder("root").get_file("test_file.txt").file_type == FileType.TXT
     assert file_system.get_folder("root").get_file("test_file.txt").size == 10
+
+    file_system.show(full=True)
 
 
 def test_delete_file(file_system):
@@ -38,6 +42,8 @@ def test_delete_file(file_system):
     assert len(file_system.folders) == 1
     assert len(file_system.get_folder("root").files) == 0
     assert len(file_system.get_folder("root").deleted_files) == 1
+
+    file_system.show(full=True)
 
 
 def test_delete_non_existent_file(file_system):
@@ -56,6 +62,8 @@ def test_delete_non_existent_file(file_system):
     # The folder should still have 1 file
     assert len(file_system.get_folder("root").files) == 1
 
+    file_system.show(full=True)
+
 
 def test_delete_folder(file_system):
     file_system.create_folder(folder_name="test_folder")
@@ -65,6 +73,8 @@ def test_delete_folder(file_system):
     assert len(file_system.folders) == 1
 
     assert len(file_system.deleted_folders) == 1
+
+    file_system.show(full=True)
 
 
 def test_create_duplicate_folder(file_system):
@@ -77,6 +87,8 @@ def test_create_duplicate_folder(file_system):
         file_system.create_folder(folder_name="test_folder")
 
     assert len(file_system.folders) is 2
+
+    file_system.show(full=True)
 
 
 def test_create_duplicate_file(file_system):
@@ -94,6 +106,8 @@ def test_create_duplicate_file(file_system):
 
     assert len(file_system.get_folder("test_folder").files) == 1
 
+    file_system.show(full=True)
+
 
 def test_deleting_a_non_existent_folder(file_system):
     file_system.create_folder(folder_name="test_folder")
@@ -102,12 +116,16 @@ def test_deleting_a_non_existent_folder(file_system):
     file_system.delete_folder(folder_name="does not exist!")
     assert len(file_system.folders) == 2
 
+    file_system.show(full=True)
+
 
 def test_deleting_root_folder_fails(file_system):
     assert len(file_system.folders) == 1
 
     file_system.delete_folder(folder_name="root")
     assert len(file_system.folders) == 1
+
+    file_system.show(full=True)
 
 
 def test_move_file(file_system):
@@ -127,6 +145,8 @@ def test_move_file(file_system):
     assert len(file_system.get_folder("dst_folder").files) == 1
     assert file_system.get_file("dst_folder", "test_file.txt").uuid == original_uuid
 
+    file_system.show(full=True)
+
 
 def test_copy_file(file_system):
     """Tests the file copy function."""
@@ -145,6 +165,8 @@ def test_copy_file(file_system):
     assert len(file_system.get_folder("dst_folder").files) == 1
     assert file_system.get_file("dst_folder", "test_file.txt").uuid != original_uuid
 
+    file_system.show(full=True)
+
 
 def test_get_file(file_system):
     """Test that files can be retrieved."""
@@ -162,6 +184,8 @@ def test_get_file(file_system):
     file_system.delete_folder(folder_name="test_folder")
     assert file_system.get_file_by_id(file_uuid=file2.uuid, include_deleted=True) is not None
 
+    file_system.show(full=True)
+
 
 @pytest.mark.skip(reason="Skipping until we tackle serialisation")
 def test_serialisation(file_system):
@@ -172,3 +196,5 @@ def test_serialisation(file_system):
     deserialised_file_sys = FileSystem.model_validate_json(serialised_file_sys)
 
     assert file_system.model_dump_json() == deserialised_file_sys.model_dump_json()
+
+    file_system.show(full=True)

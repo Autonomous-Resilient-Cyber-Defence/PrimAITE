@@ -76,13 +76,13 @@ class Folder(FileSystemItemABC):
 
         :param markdown: Whether to display the table in Markdown format or not. Default is `False`.
         """
-        table = PrettyTable(["File", "Size"])
+        table = PrettyTable(["File", "Size", "Deleted"])
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.sys_log.hostname} File System Folder ({self.name})"
         for file in self.files.values():
-            table.add_row([file.name, file.size_str])
+            table.add_row([file.name, file.size_str, file.deleted])
         print(table.get_string(sortby="File"))
 
     @property

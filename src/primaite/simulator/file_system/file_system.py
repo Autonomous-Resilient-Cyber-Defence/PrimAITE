@@ -94,7 +94,7 @@ class FileSystem(SimComponent):
         :param markdown: Flag indicating if output should be in markdown format.
         :param full: Flag indicating if to show full files.
         """
-        headers = ["Folder", "Size"]
+        headers = ["Folder", "Size", "Deleted"]
         if full:
             headers[0] = "File Path"
         table = PrettyTable(headers)
@@ -102,12 +102,17 @@ class FileSystem(SimComponent):
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.sys_log.hostname} File System"
-        for folder in self.folders.values():
+        folders = {**self.folders, **self.deleted_folders}
+        for folder in folders.values():
             if not full:
-                table.add_row([folder.name, folder.size_str])
+                table.add_row([folder.name, folder.size_str, folder.deleted])
             else:
-                for file in folder.files.values():
-                    table.add_row([file.path, file.size_str])
+                files = {**folder.files, **folder.deleted_files}
+                if not files:
+                    table.add_row([folder.name, folder.size_str, folder.deleted])
+                else:
+                    for file in files.values():
+                        table.add_row([file.path, file.size_str, file.deleted])
         if full:
             print(table.get_string(sortby="File Path"))
         else:
@@ -380,6 +385,7 @@ class FileSystem(SimComponent):
         """
         state = super().describe_state()
         state["folders"] = {folder.name: folder.describe_state() for folder in self.folders.values()}
+        state["deleted_folders"] = {folder.name: folder.describe_state() for folder in self.deleted_folders.values()}
         return state
 
     def apply_timestep(self, timestep: int) -> None:

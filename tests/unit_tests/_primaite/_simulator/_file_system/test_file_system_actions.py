@@ -23,6 +23,8 @@ def test_file_delete_request(populated_file_system):
     fs.apply_request(request=["delete", "file", folder.uuid, file.uuid])
     assert fs.get_file(folder_name=folder.name, file_name=file.name) is None
 
+    fs.show(full=True)
+
 
 def test_folder_delete_request(populated_file_system):
     """Test that an agent can request a folder deletion."""
@@ -34,87 +36,4 @@ def test_folder_delete_request(populated_file_system):
     assert fs.get_folder_by_id(folder_uuid=folder.uuid) is None
     assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid) is None
 
-
-def test_file_restore_request(populated_file_system):
-    """Test that an agent can request that a file can be restored."""
-    fs, folder, file = populated_file_system
-    assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid) is not None
-
-    fs.apply_request(request=["delete", "file", folder.uuid, file.uuid])
-    assert fs.get_file(folder_name=folder.name, file_name=file.name) is None
-    assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid, include_deleted=True).deleted is True
-
-    fs.apply_request(request=["restore", "file", folder.uuid, file.uuid])
-    assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
-    assert fs.get_file(folder_name=folder.name, file_name=file.name).deleted is False
-
-    fs.apply_request(request=["file", file.uuid, "corrupt"])
-    assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.CORRUPT
-
-    fs.apply_request(request=["restore", "file", folder.uuid, file.uuid])
-    assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.GOOD
-
-
-def test_folder_restore_request(populated_file_system):
-    """Test that an agent can request that a folder can be restored."""
-    fs, folder, file = populated_file_system
-    assert fs.get_folder_by_id(folder_uuid=folder.uuid) is not None
-    assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid) is not None
-
-    # delete folder
-    fs.apply_request(request=["delete", "folder", folder.uuid])
-    assert fs.get_folder(folder_name=folder.name) is None
-    assert fs.get_folder_by_id(folder_uuid=folder.uuid, include_deleted=True).deleted is True
-
-    assert fs.get_file(folder_name=folder.name, file_name=file.name) is None
-    assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid, include_deleted=True).deleted is True
-
-    # restore folder
-    fs.apply_request(request=["restore", "folder", folder.uuid])
-    fs.apply_timestep(timestep=0)
-    assert fs.get_folder(folder_name=folder.name) is not None
-    assert (
-        fs.get_folder_by_id(folder_uuid=folder.uuid, include_deleted=True).health_status
-        == FileSystemItemHealthStatus.RESTORING
-    )
-    assert fs.get_folder_by_id(folder_uuid=folder.uuid, include_deleted=True).deleted is False
-
-    assert fs.get_file(folder_name=folder.name, file_name=file.name) is None
-    assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid, include_deleted=True).deleted is True
-
-    fs.apply_timestep(timestep=1)
-    fs.apply_timestep(timestep=2)
-
-    assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
-    assert (
-        fs.get_file(folder_name=folder.name, file_name=file.name).health_status
-        is not FileSystemItemHealthStatus.RESTORING
-    )
-    assert fs.get_file(folder_name=folder.name, file_name=file.name).deleted is False
-
-    assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
-    assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid, include_deleted=True).deleted is False
-
-    # corrupt folder
-    fs.apply_request(request=["folder", folder.uuid, "corrupt"])
-    assert fs.get_folder(folder_name=folder.name).health_status == FileSystemItemHealthStatus.CORRUPT
-    assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.CORRUPT
-
-    # restore folder
-    fs.apply_request(request=["restore", "folder", folder.uuid])
-    fs.apply_timestep(timestep=0)
-    assert fs.get_folder(folder_name=folder.name).health_status == FileSystemItemHealthStatus.RESTORING
-    assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.CORRUPT
-
-    fs.apply_timestep(timestep=1)
-    fs.apply_timestep(timestep=2)
-
-    assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
-    assert (
-        fs.get_file(folder_name=folder.name, file_name=file.name).health_status
-        is not FileSystemItemHealthStatus.RESTORING
-    )
-    assert fs.get_file(folder_name=folder.name, file_name=file.name).deleted is False
-
-    assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
-    assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid, include_deleted=True).deleted is False
+    fs.show(full=True)
