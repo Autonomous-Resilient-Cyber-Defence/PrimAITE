@@ -4,9 +4,10 @@ import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Union
+from typing import Any, Dict, Union
 from unittest.mock import patch
 
+import nodeenv
 import pytest
 
 from primaite import getLogger
@@ -16,6 +17,7 @@ from primaite import getLogger
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.networks import arcd_uc2_network
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.service import Service
 from tests.mock_and_patch.get_session_path_mock import get_temp_session_path
@@ -37,6 +39,13 @@ class TestService(Service):
         pass
 
 
+class TestApplication(Application):
+    """Test Application class"""
+
+    def describe_state(self) -> Dict:
+        pass
+
+
 @pytest.fixture(scope="function")
 def uc2_network() -> Network:
     return arcd_uc2_network()
@@ -46,6 +55,13 @@ def uc2_network() -> Network:
 def service(file_system) -> TestService:
     return TestService(
         name="TestService", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="test_service")
+    )
+
+
+@pytest.fixture(scope="function")
+def application(file_system) -> TestApplication:
+    return TestApplication(
+        name="TestApplication", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="test_application")
     )
 
 
