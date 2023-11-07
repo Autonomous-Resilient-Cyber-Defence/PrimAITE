@@ -92,23 +92,33 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
 
 .. toctree::
    :maxdepth: 8
-   :caption: Contents:
+   :caption: About PrimAITE:
+   :hidden:
+
+   source/about
+   source/dependencies
+   source/glossary
+
+.. toctree::
+   :caption: Usage:
    :hidden:
 
    source/getting_started
-   source/about
-   source/config
-   source/simulation
    source/primaite_session
+   source/simulation
+   source/game_layer
    source/custom_agent
+   source/config
+
+.. toctree::
+   :caption: Developer information:
+   :hidden:
+
+   source/state_system
+   source/request_system
    PrimAITE API <source/_autosummary/primaite>
    PrimAITE Tests <source/_autosummary/tests>
-   source/dependencies
-   source/glossary
-   source/migration_1.2_-_2.0
 
-
-.. TODO: Add project links once public repo has been created
 
 .. toctree::
    :caption: Project Links:

@@ -27,6 +27,7 @@ class Simulation(SimComponent):
         rm.add_request("network", RequestType(func=self.network._request_manager))
         # pass through domain requests to the domain object
         rm.add_request("domain", RequestType(func=self.domain._request_manager))
+        rm.add_request("do_nothing", RequestType(func=lambda request, context: ()))
         return rm
 
     def describe_state(self) -> Dict:

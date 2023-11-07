@@ -859,14 +859,14 @@ class ICMP:
 class NodeOperatingState(Enum):
     """Enumeration of Node Operating States."""
 
-    OFF = 0
-    "The node is powered off."
     ON = 1
     "The node is powered on."
-    SHUTTING_DOWN = 2
-    "The node is in the process of shutting down."
+    OFF = 2
+    "The node is powered off."
     BOOTING = 3
     "The node is in the process of booting up."
+    SHUTTING_DOWN = 4
+    "The node is in the process of shutting down."
 
 
 class Node(SimComponent):
@@ -962,6 +962,7 @@ class Node(SimComponent):
             kwargs["file_system"] = FileSystem(sys_log=kwargs["sys_log"], sim_root=kwargs["root"] / "fs")
         if not kwargs.get("software_manager"):
             kwargs["software_manager"] = SoftwareManager(
+                parent_node=self,
                 sys_log=kwargs.get("sys_log"),
                 session_manager=kwargs.get("session_manager"),
                 file_system=kwargs.get("file_system"),
@@ -1369,7 +1370,8 @@ class Node(SimComponent):
         self._service_request_manager.add_request(service.uuid, RequestType(func=service._request_manager))
 
     def uninstall_service(self, service: Service) -> None:
-        """Uninstall and completely remove service from this node.
+        """
+        Uninstall and completely remove service from this node.
 
         :param service: Service object that is currently associated with this node.
         :type service: Service

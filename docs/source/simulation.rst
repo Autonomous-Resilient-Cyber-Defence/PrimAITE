@@ -23,4 +23,8 @@ Contents
    simulation_components/network/network
    simulation_components/system/internal_frame_processing
    simulation_components/system/software
-   action_system
+   simulation_components/system/data_manipulation_bot
+   simulation_components/system/database_client_server
+   simulation_components/system/dns_client_server
+   simulation_components/system/ftp_client_server
+   simulation_components/system/web_browser_and_web_server_service

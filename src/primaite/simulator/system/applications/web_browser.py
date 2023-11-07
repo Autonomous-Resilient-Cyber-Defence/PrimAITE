@@ -38,7 +38,8 @@ class WebBrowser(Application):
 
         :return: A dictionary capturing the current state of the WebBrowser and its child objects.
         """
-        return super().describe_state()
+        state = super().describe_state()
+        state["last_response_status_code"] = self.latest_response.status_code if self.latest_response else None
 
     def reset_component_for_episode(self, episode: int):
         """
