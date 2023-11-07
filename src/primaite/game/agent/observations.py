@@ -585,7 +585,7 @@ class AclObservation(AbstractObservation):
         self,
         node_ip_to_id: Dict[str, int],
         ports: List[int],
-        protocols: list[str],
+        protocols: List[str],
         where: Optional[Tuple[str]] = None,
         num_rules: int = 10,
     ) -> None:
