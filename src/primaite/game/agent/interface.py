@@ -4,9 +4,9 @@ from typing import Dict, List, Optional, Tuple, TypeAlias, Union
 
 import numpy as np
 
-from src.primaite.game.agent.actions import ActionManager
-from src.primaite.game.agent.observations import ObservationSpace
-from src.primaite.game.agent.rewards import RewardFunction
+from primaite.game.agent.actions import ActionManager
+from primaite.game.agent.observations import ObservationSpace
+from primaite.game.agent.rewards import RewardFunction
 
 ObsType: TypeAlias = Union[Dict, np.ndarray]
 

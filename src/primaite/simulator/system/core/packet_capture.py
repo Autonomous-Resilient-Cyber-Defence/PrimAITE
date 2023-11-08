@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from src.primaite.simulator import SIM_OUTPUT
+from primaite.simulator import SIM_OUTPUT
 
 
 class _JSONFilter(logging.Filter):

@@ -1,6 +1,6 @@
 import pytest
 
-from src.primaite.simulator.network.hardware.base import Link, NIC
+from primaite.simulator.network.hardware.base import Link, NIC
 
 
 def test_link_fails_with_same_nic():

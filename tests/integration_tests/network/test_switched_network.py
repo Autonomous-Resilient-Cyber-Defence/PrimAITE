@@ -1,7 +1,7 @@
-from src.primaite.simulator.network.hardware.base import Link, NodeOperatingState
-from src.primaite.simulator.network.hardware.nodes.computer import Computer
-from src.primaite.simulator.network.hardware.nodes.server import Server
-from src.primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.base import Link, NodeOperatingState
+from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.switch import Switch
 
 
 def test_switched_network():

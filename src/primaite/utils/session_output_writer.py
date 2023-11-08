@@ -4,13 +4,13 @@ from logging import Logger
 from typing import Final, List, Tuple, TYPE_CHECKING, Union
 
 from primaite import getLogger
-from src.primaite.transactions.transaction import Transaction
+from primaite.transactions.transaction import Transaction
 
 if TYPE_CHECKING:
     from io import TextIOWrapper
     from pathlib import Path
 
-    from src.primaite.environment.primaite_env import Primaite
+    from primaite.environment.primaite_env import Primaite
 
 _LOGGER: Logger = getLogger(__name__)
 

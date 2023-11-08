@@ -3,11 +3,11 @@ from enum import Enum
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 
-from src.primaite.simulator.core import RequestManager, RequestType, SimComponent
-from src.primaite.simulator.file_system.file_system import FileSystem, Folder
-from src.primaite.simulator.network.transmission.transport_layer import Port
-from src.primaite.simulator.system.core.session_manager import Session
-from src.primaite.simulator.system.core.sys_log import SysLog
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.file_system.file_system import FileSystem, Folder
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.core.session_manager import Session
+from primaite.simulator.system.core.sys_log import SysLog
 
 
 class SoftwareType(Enum):

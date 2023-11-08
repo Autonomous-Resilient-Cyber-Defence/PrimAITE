@@ -2,11 +2,11 @@ from ipaddress import IPv4Address
 from typing import Dict, Optional
 from urllib.parse import urlparse
 
-from src.primaite.simulator.network.protocols.http import HttpRequestMethod, HttpRequestPacket, HttpResponsePacket
-from src.primaite.simulator.network.transmission.network_layer import IPProtocol
-from src.primaite.simulator.network.transmission.transport_layer import Port
-from src.primaite.simulator.system.applications.application import Application
-from src.primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.simulator.network.protocols.http import HttpRequestMethod, HttpRequestPacket, HttpResponsePacket
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.application import Application
+from primaite.simulator.system.services.dns.dns_client import DNSClient
 
 
 class WebBrowser(Application):

@@ -1,8 +1,8 @@
 from typing import Dict
 
-from src.primaite.simulator.core import RequestManager, RequestType, SimComponent
-from src.primaite.simulator.domain.controller import DomainController
-from src.primaite.simulator.network.container import Network
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.domain.controller import DomainController
+from primaite.simulator.network.container import Network
 
 
 class Simulation(SimComponent):

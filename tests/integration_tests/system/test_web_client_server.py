@@ -1,9 +1,9 @@
-from src.primaite.simulator.network.hardware.nodes.computer import Computer
-from src.primaite.simulator.network.hardware.nodes.server import Server
-from src.primaite.simulator.network.protocols.http import HttpStatusCode
-from src.primaite.simulator.system.applications.application import ApplicationOperatingState
-from src.primaite.simulator.system.applications.web_browser import WebBrowser
-from src.primaite.simulator.system.services.service import ServiceOperatingState
+from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.protocols.http import HttpStatusCode
+from primaite.simulator.system.applications.application import ApplicationOperatingState
+from primaite.simulator.system.applications.web_browser import WebBrowser
+from primaite.simulator.system.services.service import ServiceOperatingState
 
 
 def test_web_page_home_page(uc2_network):

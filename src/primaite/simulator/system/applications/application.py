@@ -2,7 +2,7 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Set
 
-from src.primaite.simulator.system.software import IOSoftware, SoftwareHealthState
+from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 
 class ApplicationOperatingState(Enum):

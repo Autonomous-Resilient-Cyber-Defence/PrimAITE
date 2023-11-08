@@ -2,16 +2,16 @@ from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
-from src.primaite.simulator.network.protocols.http import (
+from primaite.simulator.network.protocols.http import (
     HttpRequestMethod,
     HttpRequestPacket,
     HttpResponsePacket,
     HttpStatusCode,
 )
-from src.primaite.simulator.network.transmission.network_layer import IPProtocol
-from src.primaite.simulator.network.transmission.transport_layer import Port
-from src.primaite.simulator.system.applications.database_client import DatabaseClient
-from src.primaite.simulator.system.services.service import Service
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.services.service import Service
 
 
 class WebServer(Service):

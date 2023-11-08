@@ -2,10 +2,10 @@ from typing import Tuple
 
 import pytest
 
-from src.primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
-from src.primaite.simulator.network.hardware.nodes.router import ACLAction, Router
-from src.primaite.simulator.network.transmission.network_layer import IPProtocol
-from src.primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
+from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 
 
 @pytest.fixture(scope="function")

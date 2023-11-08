@@ -6,13 +6,13 @@ from typing import Any, Dict, List, Optional, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
-from src.primaite.simulator.file_system.file_system import File
-from src.primaite.simulator.network.transmission.network_layer import IPProtocol
-from src.primaite.simulator.network.transmission.transport_layer import Port
-from src.primaite.simulator.system.core.software_manager import SoftwareManager
-from src.primaite.simulator.system.services.ftp.ftp_client import FTPClient
-from src.primaite.simulator.system.services.service import Service, ServiceOperatingState
-from src.primaite.simulator.system.software import SoftwareHealthState
+from primaite.simulator.file_system.file_system import File
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.core.software_manager import SoftwareManager
+from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+from primaite.simulator.system.services.service import Service, ServiceOperatingState
+from primaite.simulator.system.software import SoftwareHealthState
 
 
 class DatabaseService(Service):

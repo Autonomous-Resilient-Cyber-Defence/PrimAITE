@@ -1,5 +1,5 @@
 """Agents with predefined behaviours."""
-from src.primaite.game.agent.interface import AbstractScriptedAgent
+from primaite.game.agent.interface import AbstractScriptedAgent
 
 
 class GreenWebBrowsingAgent(AbstractScriptedAgent):

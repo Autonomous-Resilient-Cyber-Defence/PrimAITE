@@ -1,10 +1,10 @@
 import pytest
 
-from src.primaite.simulator.file_system.file import File
-from src.primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
-from src.primaite.simulator.file_system.folder import Folder
-from src.primaite.simulator.network.hardware.base import Node, NodeOperatingState
-from src.primaite.simulator.system.software import SoftwareHealthState
+from primaite.simulator.file_system.file import File
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
+from primaite.simulator.file_system.folder import Folder
+from primaite.simulator.network.hardware.base import Node, NodeOperatingState
+from primaite.simulator.system.software import SoftwareHealthState
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@ from typing import Callable, Dict, List, Literal, Tuple
 import pytest
 from pydantic import ValidationError
 
-from src.primaite.simulator.core import SimComponent
+from primaite.simulator.core import SimComponent
 
 
 class TestIsolatedSimComponent:

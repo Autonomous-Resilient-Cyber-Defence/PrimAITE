@@ -6,8 +6,8 @@ from enum import Enum
 from typing import Dict, Optional
 
 from primaite import getLogger
-from src.primaite.simulator.core import RequestManager, RequestType, SimComponent
-from src.primaite.simulator.system.core.sys_log import SysLog
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.system.core.sys_log import SysLog
 
 _LOGGER = getLogger(__name__)
 

@@ -16,7 +16,7 @@ def get_file_path(path: str) -> Path:
 
     :Example:
 
-    >>> from src.primaite.utils.package_data import get_file_path
+    >>> from primaite.utils.package_data import get_file_path
     >>> main_env_config = get_file_path("config/_package_data/training_config_main.yaml")
 
 

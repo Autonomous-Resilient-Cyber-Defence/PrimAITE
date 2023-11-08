@@ -3,10 +3,10 @@ from typing import Dict, Optional, Tuple
 
 from gymnasium.core import ActType, ObsType
 
-from src.primaite.game.agent.actions import ActionManager
-from src.primaite.game.agent.interface import AbstractGATEAgent, ObsType
-from src.primaite.game.agent.observations import ObservationSpace
-from src.primaite.game.agent.rewards import RewardFunction
+from primaite.game.agent.actions import ActionManager
+from primaite.game.agent.interface import AbstractGATEAgent, ObsType
+from primaite.game.agent.observations import ObservationSpace
+from primaite.game.agent.rewards import RewardFunction
 
 
 class GATERLAgent(AbstractGATEAgent):

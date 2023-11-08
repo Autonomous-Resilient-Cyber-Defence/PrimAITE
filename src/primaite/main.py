@@ -5,10 +5,10 @@ from pathlib import Path
 from typing import Optional, Union
 
 from primaite import getLogger
-from src.primaite.config.load import load
-from src.primaite.game.session import PrimaiteSession
+from primaite.config.load import load
+from primaite.game.session import PrimaiteSession
 
-# from src.primaite.primaite_session import PrimaiteSession
+# from primaite.primaite_session import PrimaiteSession
 
 _LOGGER = getLogger(__name__)
 

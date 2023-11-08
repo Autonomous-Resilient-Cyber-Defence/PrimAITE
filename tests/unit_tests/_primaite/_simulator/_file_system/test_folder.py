@@ -1,8 +1,8 @@
 import pytest
 
-from src.primaite.simulator.file_system.file import File
-from src.primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
-from src.primaite.simulator.file_system.folder import Folder
+from primaite.simulator.file_system.file import File
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
+from primaite.simulator.file_system.folder import Folder
 
 
 @pytest.mark.skip(reason="Implementation for quarantine not needed yet")

@@ -12,14 +12,14 @@ import pytest
 
 from primaite import getLogger
 
-# from src.primaite.environment.primaite_env import Primaite
-# from src.primaite.primaite_session import PrimaiteSession
-from src.primaite.simulator.network.container import Network
-from src.primaite.simulator.network.networks import arcd_uc2_network
-from src.primaite.simulator.network.transmission.transport_layer import Port
-from src.primaite.simulator.system.applications.application import Application
-from src.primaite.simulator.system.core.sys_log import SysLog
-from src.primaite.simulator.system.services.service import Service
+# from primaite.environment.primaite_env import Primaite
+# from primaite.primaite_session import PrimaiteSession
+from primaite.simulator.network.container import Network
+from primaite.simulator.network.networks import arcd_uc2_network
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.application import Application
+from primaite.simulator.system.core.sys_log import SysLog
+from primaite.simulator.system.services.service import Service
 from tests.mock_and_patch.get_session_path_mock import get_temp_session_path
 
 ACTION_SPACE_NODE_VALUES = 1
@@ -28,8 +28,8 @@ ACTION_SPACE_NODE_ACTION_VALUES = 1
 _LOGGER = getLogger(__name__)
 
 # PrimAITE v3 stuff
-from src.primaite.simulator.file_system.file_system import FileSystem
-from src.primaite.simulator.network.hardware.base import Node
+from primaite.simulator.file_system.file_system import FileSystem
+from primaite.simulator.network.hardware.base import Node
 
 
 class TestService(Service):
@@ -121,8 +121,8 @@ def temp_primaite_session(request):
 
     .. code:: python
 
-        from src.primaite.config.lay_down_config import dos_very_basic_config_path
-        from src.primaite.config.training_config import main_training_config_path
+        from primaite.config.lay_down_config import dos_very_basic_config_path
+        from primaite.config.training_config import main_training_config_path
         @pytest.mark.parametrize(
             "temp_primaite_session",
             [

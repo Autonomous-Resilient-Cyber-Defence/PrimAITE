@@ -1,7 +1,7 @@
 import pytest
 
-from src.primaite.simulator.file_system.file_system import FileSystem
-from src.primaite.simulator.file_system.file_type import FileType
+from primaite.simulator.file_system.file_system import FileSystem
+from primaite.simulator.file_system.file_type import FileType
 
 
 def test_create_folder_and_file(file_system):

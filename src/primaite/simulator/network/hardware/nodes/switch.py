@@ -3,9 +3,9 @@ from typing import Dict
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
-from src.primaite.exceptions import NetworkError
-from src.primaite.simulator.network.hardware.base import Link, Node, SwitchPort
-from src.primaite.simulator.network.transmission.data_link_layer import Frame
+from primaite.exceptions import NetworkError
+from primaite.simulator.network.hardware.base import Link, Node, SwitchPort
+from primaite.simulator.network.transmission.data_link_layer import Frame
 
 _LOGGER = getLogger(__name__)
 

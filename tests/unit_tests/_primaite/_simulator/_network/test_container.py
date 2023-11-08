@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from src.primaite.simulator.network.container import Network
+from primaite.simulator.network.container import Network
 
 
 def test_creating_container():

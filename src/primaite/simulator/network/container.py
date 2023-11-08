@@ -6,12 +6,12 @@ from networkx import MultiGraph
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
-from src.primaite.simulator.core import RequestManager, RequestType, SimComponent
-from src.primaite.simulator.network.hardware.base import Link, NIC, Node, SwitchPort
-from src.primaite.simulator.network.hardware.nodes.computer import Computer
-from src.primaite.simulator.network.hardware.nodes.router import Router
-from src.primaite.simulator.network.hardware.nodes.server import Server
-from src.primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.network.hardware.base import Link, NIC, Node, SwitchPort
+from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.router import Router
+from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.switch import Switch
 
 _LOGGER = getLogger(__name__)
 

@@ -5,12 +5,12 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from gymnasium import spaces
 
 from primaite import getLogger
-from src.primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 
 _LOGGER = getLogger(__name__)
 
 if TYPE_CHECKING:
-    from src.primaite.game.session import PrimaiteSession
+    from primaite.game.session import PrimaiteSession
 
 
 class AbstractObservation(ABC):

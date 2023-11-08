@@ -9,27 +9,27 @@ from gymnasium.spaces.utils import flatten, flatten_space
 from pydantic import BaseModel
 
 from primaite import getLogger
-from src.primaite.game.agent.actions import ActionManager
-from src.primaite.game.agent.interface import AbstractAgent, RandomAgent
-from src.primaite.game.agent.observations import ObservationSpace
-from src.primaite.game.agent.rewards import RewardFunction
-from src.primaite.simulator.network.hardware.base import Link, NIC, Node
-from src.primaite.simulator.network.hardware.nodes.computer import Computer
-from src.primaite.simulator.network.hardware.nodes.router import ACLAction, Router
-from src.primaite.simulator.network.hardware.nodes.server import Server
-from src.primaite.simulator.network.hardware.nodes.switch import Switch
-from src.primaite.simulator.network.transmission.network_layer import IPProtocol
-from src.primaite.simulator.network.transmission.transport_layer import Port
-from src.primaite.simulator.sim_container import Simulation
-from src.primaite.simulator.system.applications.application import Application
-from src.primaite.simulator.system.applications.database_client import DatabaseClient
-from src.primaite.simulator.system.applications.web_browser import WebBrowser
-from src.primaite.simulator.system.services.database.database_service import DatabaseService
-from src.primaite.simulator.system.services.dns.dns_client import DNSClient
-from src.primaite.simulator.system.services.dns.dns_server import DNSServer
-from src.primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
-from src.primaite.simulator.system.services.service import Service
-from src.primaite.simulator.system.services.web_server.web_server import WebServer
+from primaite.game.agent.actions import ActionManager
+from primaite.game.agent.interface import AbstractAgent, RandomAgent
+from primaite.game.agent.observations import ObservationSpace
+from primaite.game.agent.rewards import RewardFunction
+from primaite.simulator.network.hardware.base import Link, NIC, Node
+from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
+from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.sim_container import Simulation
+from primaite.simulator.system.applications.application import Application
+from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.web_browser import WebBrowser
+from primaite.simulator.system.services.database.database_service import DatabaseService
+from primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.simulator.system.services.dns.dns_server import DNSServer
+from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
+from primaite.simulator.system.services.service import Service
+from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
 

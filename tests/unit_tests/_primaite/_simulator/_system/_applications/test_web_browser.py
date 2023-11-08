@@ -1,10 +1,10 @@
 import pytest
 
-from src.primaite.simulator.network.hardware.nodes.computer import Computer
-from src.primaite.simulator.network.protocols.http import HttpResponsePacket, HttpStatusCode
-from src.primaite.simulator.network.transmission.network_layer import IPProtocol
-from src.primaite.simulator.network.transmission.transport_layer import Port
-from src.primaite.simulator.system.applications.web_browser import WebBrowser
+from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.protocols.http import HttpResponsePacket, HttpStatusCode
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.web_browser import WebBrowser
 
 
 @pytest.fixture(scope="function")

@@ -2,9 +2,9 @@ from typing import Tuple
 
 import pytest
 
-from src.primaite.simulator.file_system.file import File
-from src.primaite.simulator.file_system.file_system import FileSystem
-from src.primaite.simulator.file_system.folder import Folder
+from primaite.simulator.file_system.file import File
+from primaite.simulator.file_system.file_system import FileSystem
+from primaite.simulator.file_system.folder import Folder
 
 
 @pytest.fixture(scope="function")

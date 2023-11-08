@@ -1,7 +1,7 @@
-from src.primaite.simulator.network.hardware.base import NIC, Node
-from src.primaite.simulator.system.applications.web_browser import WebBrowser
-from src.primaite.simulator.system.services.dns.dns_client import DNSClient
-from src.primaite.simulator.system.services.ftp.ftp_client import FTPClient
+from primaite.simulator.network.hardware.base import NIC, Node
+from primaite.simulator.system.applications.web_browser import WebBrowser
+from primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 
 
 class Computer(Node):

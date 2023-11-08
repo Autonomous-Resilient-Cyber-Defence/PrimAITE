@@ -29,7 +29,7 @@ def reset_notebooks(overwrite: bool = True) -> None:
 
     :param overwrite: If True, will overwrite existing demo notebooks.
     """
-    from src.primaite.setup import reset_demo_notebooks
+    from primaite.setup import reset_demo_notebooks
 
     reset_demo_notebooks.run(overwrite)
 
@@ -98,7 +98,7 @@ def setup(overwrite_existing: bool = True) -> None:
     from arcd_gate.cli import setup as gate_setup
 
     from primaite import getLogger
-    from src.primaite.setup import reset_demo_notebooks, reset_example_configs
+    from primaite.setup import reset_demo_notebooks, reset_example_configs
 
     _LOGGER = getLogger(__name__)
 
@@ -133,9 +133,9 @@ def session(
     """
     from threading import Thread
 
-    from src.primaite.config.load import example_config_path
-    from src.primaite.main import run
-    from src.primaite.utils.start_gate_server import start_gate_server
+    from primaite.config.load import example_config_path
+    from primaite.main import run
+    from primaite.utils.start_gate_server import start_gate_server
 
     server_thread = Thread(target=start_gate_server)
     server_thread.start()

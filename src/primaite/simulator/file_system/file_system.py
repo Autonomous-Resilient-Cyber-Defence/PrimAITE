@@ -7,11 +7,11 @@ from typing import Dict, Optional
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
-from src.primaite.simulator.core import RequestManager, RequestType, SimComponent
-from src.primaite.simulator.file_system.file import File
-from src.primaite.simulator.file_system.file_type import FileType
-from src.primaite.simulator.file_system.folder import Folder
-from src.primaite.simulator.system.core.sys_log import SysLog
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.file_system.file import File
+from primaite.simulator.file_system.file_type import FileType
+from primaite.simulator.file_system.folder import Folder
+from primaite.simulator.system.core.sys_log import SysLog
 
 _LOGGER = getLogger(__name__)
 

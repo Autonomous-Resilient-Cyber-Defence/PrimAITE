@@ -7,12 +7,12 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
-from src.primaite.simulator.core import RequestManager, RequestType, SimComponent
-from src.primaite.simulator.network.hardware.base import ARPCache, ICMP, NIC, Node
-from src.primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from src.primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
-from src.primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
-from src.primaite.simulator.system.core.sys_log import SysLog
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.network.hardware.base import ARPCache, ICMP, NIC, Node
+from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
+from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
+from primaite.simulator.system.core.sys_log import SysLog
 
 
 class ACLAction(Enum):

@@ -1,7 +1,7 @@
 import pytest
 
-from src.primaite.simulator.network.container import Network
-from src.primaite.simulator.network.hardware.base import NIC, Node
+from primaite.simulator.network.container import Network
+from primaite.simulator.network.hardware.base import NIC, Node
 
 
 def test_adding_removing_nodes():

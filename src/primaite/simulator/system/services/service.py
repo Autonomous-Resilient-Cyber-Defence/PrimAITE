@@ -2,8 +2,8 @@ from enum import Enum
 from typing import Dict, Optional
 
 from primaite import getLogger
-from src.primaite.simulator.core import RequestManager, RequestType
-from src.primaite.simulator.system.software import IOSoftware, SoftwareHealthState
+from primaite.simulator.core import RequestManager, RequestType
+from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 _LOGGER = getLogger(__name__)
 

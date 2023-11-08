@@ -1,8 +1,8 @@
 from ipaddress import IPv4Address
 
-from src.primaite.simulator.network.hardware.nodes.router import ACLAction, Router
-from src.primaite.simulator.network.transmission.network_layer import IPProtocol
-from src.primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 
 
 def test_add_rule():

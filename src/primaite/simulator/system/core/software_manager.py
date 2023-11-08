@@ -3,18 +3,18 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
-from src.primaite.simulator.file_system.file_system import FileSystem
-from src.primaite.simulator.network.transmission.network_layer import IPProtocol
-from src.primaite.simulator.network.transmission.transport_layer import Port
-from src.primaite.simulator.system.applications.application import Application, ApplicationOperatingState
-from src.primaite.simulator.system.core.sys_log import SysLog
-from src.primaite.simulator.system.services.service import Service, ServiceOperatingState
-from src.primaite.simulator.system.software import IOSoftware
+from primaite.simulator.file_system.file_system import FileSystem
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
+from primaite.simulator.system.core.sys_log import SysLog
+from primaite.simulator.system.services.service import Service, ServiceOperatingState
+from primaite.simulator.system.software import IOSoftware
 
 if TYPE_CHECKING:
-    from src.primaite.simulator.system.core.session_manager import SessionManager
-    from src.primaite.simulator.system.core.sys_log import SysLog
-    from src.primaite.simulator.network.hardware.base import Node
+    from primaite.simulator.system.core.session_manager import SessionManager
+    from primaite.simulator.system.core.sys_log import SysLog
+    from primaite.simulator.network.hardware.base import Node
 
 from typing import Type, TypeVar
 

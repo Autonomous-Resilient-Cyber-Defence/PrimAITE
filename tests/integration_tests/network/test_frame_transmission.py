@@ -1,4 +1,4 @@
-from src.primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
+from primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
 
 
 def test_node_to_node_ping():

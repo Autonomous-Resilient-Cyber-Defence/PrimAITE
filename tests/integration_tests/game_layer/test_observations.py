@@ -1,8 +1,8 @@
 from gymnasium import spaces
 
-from src.primaite.game.agent.observations import FileObservation
-from src.primaite.simulator.network.hardware.nodes.computer import Computer
-from src.primaite.simulator.sim_container import Simulation
+from primaite.game.agent.observations import FileObservation
+from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.sim_container import Simulation
 
 
 def test_file_observation():

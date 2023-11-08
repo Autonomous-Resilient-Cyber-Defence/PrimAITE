@@ -1,6 +1,6 @@
 import pytest
 
-from src.primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType
+from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType
 
 
 def test_icmp_minimal_header_creation():

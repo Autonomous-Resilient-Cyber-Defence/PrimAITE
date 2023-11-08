@@ -15,12 +15,12 @@ from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 from gymnasium import spaces
 
 from primaite import getLogger
-from src.primaite.simulator.sim_container import Simulation
+from primaite.simulator.sim_container import Simulation
 
 _LOGGER = getLogger(__name__)
 
 if TYPE_CHECKING:
-    from src.primaite.game.session import PrimaiteSession
+    from primaite.game.session import PrimaiteSession
 
 
 class AbstractAction(ABC):

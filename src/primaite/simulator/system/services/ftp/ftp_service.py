@@ -3,10 +3,10 @@ from abc import ABC
 from ipaddress import IPv4Address
 from typing import Optional
 
-from src.primaite.simulator.file_system.file_system import File
-from src.primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
-from src.primaite.simulator.network.transmission.transport_layer import Port
-from src.primaite.simulator.system.services.service import Service
+from primaite.simulator.file_system.file_system import File
+from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.services.service import Service
 
 
 class FTPServiceABC(Service, ABC):
