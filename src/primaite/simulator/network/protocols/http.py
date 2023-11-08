@@ -1,6 +1,6 @@
 from enum import Enum
 
-from primaite.simulator.network.protocols.packet import DataPacket
+from src.primaite.simulator.network.protocols.packet import DataPacket
 
 
 class HttpRequestMethod(Enum):

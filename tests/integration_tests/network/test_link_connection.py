@@ -1,4 +1,4 @@
-from primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
+from src.primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
 
 
 def test_link_up():

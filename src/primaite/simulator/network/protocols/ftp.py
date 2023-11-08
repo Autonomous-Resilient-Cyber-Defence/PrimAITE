@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Optional, Union
 
-from primaite.simulator.network.protocols.packet import DataPacket
+from src.primaite.simulator.network.protocols.packet import DataPacket
 
 
 class FTPCommand(Enum):

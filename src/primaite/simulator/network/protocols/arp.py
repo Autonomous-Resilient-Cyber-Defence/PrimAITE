@@ -5,7 +5,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from primaite.simulator.network.protocols.packet import DataPacket
+from src.primaite.simulator.network.protocols.packet import DataPacket
 
 
 class ARPEntry(BaseModel):

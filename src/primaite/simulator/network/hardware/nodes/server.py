@@ -1,4 +1,4 @@
-from primaite.simulator.network.hardware.nodes.computer import Computer
+from src.primaite.simulator.network.hardware.nodes.computer import Computer
 
 
 class Server(Computer):

@@ -1,4 +1,4 @@
-from primaite.simulator.sim_container import Simulation
+from src.primaite.simulator.sim_container import Simulation
 
 
 def test_creating_empty_simulation():

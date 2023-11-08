@@ -2,7 +2,7 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Set
 
-from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
+from src.primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 
 class ApplicationOperatingState(Enum):
@@ -51,7 +51,7 @@ class Application(IOSoftware):
         state = super().describe_state()
         state.update(
             {
-                "opearting_state": self.operating_state.name,
+                "opearting_state": self.operating_state.value,
                 "execution_control_status": self.execution_control_status,
                 "num_executions": self.num_executions,
                 "groups": list(self.groups),

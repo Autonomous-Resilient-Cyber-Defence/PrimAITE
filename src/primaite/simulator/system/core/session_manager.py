@@ -5,15 +5,15 @@ from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
-from primaite.simulator.core import SimComponent
-from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
+from src.primaite.simulator.core import SimComponent
+from src.primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
+from src.primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
+from src.primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
 
 if TYPE_CHECKING:
-    from primaite.simulator.network.hardware.base import ARPCache
-    from primaite.simulator.system.core.software_manager import SoftwareManager
-    from primaite.simulator.system.core.sys_log import SysLog
+    from src.primaite.simulator.network.hardware.base import ARPCache
+    from src.primaite.simulator.system.core.software_manager import SoftwareManager
+    from src.primaite.simulator.system.core.sys_log import SysLog
 
 
 class Session(SimComponent):

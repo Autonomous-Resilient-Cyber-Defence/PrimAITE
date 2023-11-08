@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from primaite import getLogger
-from primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC, FileSystemItemHealthStatus
-from primaite.simulator.file_system.file_type import FileType, get_file_type_from_extension
+from src.primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC, FileSystemItemHealthStatus
+from src.primaite.simulator.file_system.file_type import FileType, get_file_type_from_extension
 
 _LOGGER = getLogger(__name__)
 

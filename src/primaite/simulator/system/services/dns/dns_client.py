@@ -2,11 +2,11 @@ from ipaddress import IPv4Address
 from typing import Dict, Optional
 
 from primaite import getLogger
-from primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.core.software_manager import SoftwareManager
-from primaite.simulator.system.services.service import Service
+from src.primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
+from src.primaite.simulator.network.transmission.network_layer import IPProtocol
+from src.primaite.simulator.network.transmission.transport_layer import Port
+from src.primaite.simulator.system.core.software_manager import SoftwareManager
+from src.primaite.simulator.system.services.service import Service
 
 _LOGGER = getLogger(__name__)
 

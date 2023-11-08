@@ -4,10 +4,10 @@ from uuid import uuid4
 
 from prettytable import PrettyTable
 
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
-from primaite.simulator.system.core.software_manager import SoftwareManager
+from src.primaite.simulator.network.transmission.network_layer import IPProtocol
+from src.primaite.simulator.network.transmission.transport_layer import Port
+from src.primaite.simulator.system.applications.application import Application, ApplicationOperatingState
+from src.primaite.simulator.system.core.software_manager import SoftwareManager
 
 
 class DatabaseClient(Application):

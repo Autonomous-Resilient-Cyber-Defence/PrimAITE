@@ -1,7 +1,7 @@
 from ipaddress import IPv4Address
 from typing import Optional
 
-from primaite.simulator.system.applications.database_client import DatabaseClient
+from src.primaite.simulator.system.applications.database_client import DatabaseClient
 
 
 class DataManipulationBot(DatabaseClient):

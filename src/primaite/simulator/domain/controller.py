@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Dict, Final, List, Literal, Tuple
 
-from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType, SimComponent
-from primaite.simulator.domain.account import Account, AccountType
+from src.primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType, SimComponent
+from src.primaite.simulator.domain.account import Account, AccountType
 
 
 # placeholder while these objects don't yet exist

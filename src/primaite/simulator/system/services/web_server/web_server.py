@@ -1,21 +1,38 @@
 from ipaddress import IPv4Address
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
-from primaite.simulator.network.protocols.http import (
+from src.primaite.simulator.network.protocols.http import (
     HttpRequestMethod,
     HttpRequestPacket,
     HttpResponsePacket,
     HttpStatusCode,
 )
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.simulator.system.services.service import Service
+from src.primaite.simulator.network.transmission.network_layer import IPProtocol
+from src.primaite.simulator.network.transmission.transport_layer import Port
+from src.primaite.simulator.system.applications.database_client import DatabaseClient
+from src.primaite.simulator.system.services.service import Service
 
 
 class WebServer(Service):
     """Class used to represent a Web Server Service in simulation."""
+
+    last_response_status_code: Optional[HttpStatusCode] = None
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state["last_response_status_code"] = (
+            self.last_response_status_code.value if self.last_response_status_code else None
+        )
+        return state
 
     def __init__(self, **kwargs):
         kwargs["name"] = "WebServer"
@@ -66,6 +83,7 @@ class WebServer(Service):
         self.send(payload=response, session_id=session_id)
 
         # return true if response is OK
+        self.last_response_status_code = response.status_code
         return response.status_code == HttpStatusCode.OK
 
     def _handle_get_request(self, payload: HttpRequestPacket) -> HttpResponsePacket:

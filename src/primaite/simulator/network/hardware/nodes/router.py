@@ -7,12 +7,12 @@ from typing import Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
-from primaite.simulator.core import RequestManager, RequestType, SimComponent
-from primaite.simulator.network.hardware.base import ARPCache, ICMP, NIC, Node
-from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
-from primaite.simulator.system.core.sys_log import SysLog
+from src.primaite.simulator.core import RequestManager, RequestType, SimComponent
+from src.primaite.simulator.network.hardware.base import ARPCache, ICMP, NIC, Node
+from src.primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
+from src.primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
+from src.primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
+from src.primaite.simulator.system.core.sys_log import SysLog
 
 
 class ACLAction(Enum):
@@ -58,7 +58,14 @@ class ACLRule(SimComponent):
 
         :return: A dictionary representing the current state.
         """
-        pass
+        state = super().describe_state()
+        state["action"] = self.action.value
+        state["protocol"] = self.protocol.value if self.protocol else None
+        state["src_ip_address"] = self.src_ip_address if self.src_ip_address else None
+        state["src_port"] = self.src_port.value if self.src_port else None
+        state["dst_ip_address"] = self.dst_ip_address if self.dst_ip_address else None
+        state["dst_port"] = self.dst_port.value if self.dst_port else None
+        return state
 
 
 class AccessControlList(SimComponent):
@@ -104,11 +111,11 @@ class AccessControlList(SimComponent):
             RequestType(
                 func=lambda request, context: self.add_rule(
                     ACLAction[request[0]],
-                    IPProtocol[request[1]],
-                    IPv4Address[request[2]],
-                    Port[request[3]],
-                    IPv4Address[request[4]],
-                    Port[request[5]],
+                    None if request[1] == "ALL" else IPProtocol[request[1]],
+                    IPv4Address(request[2]),
+                    None if request[3] == "ALL" else Port[request[3]],
+                    IPv4Address(request[4]),
+                    None if request[5] == "ALL" else Port[request[5]],
                     int(request[6]),
                 )
             ),
@@ -123,7 +130,12 @@ class AccessControlList(SimComponent):
 
         :return: A dictionary representing the current state.
         """
-        pass
+        state = super().describe_state()
+        state["implicit_action"] = self.implicit_action.value
+        state["implicit_rule"] = self.implicit_rule.describe_state()
+        state["max_acl_rules"] = self.max_acl_rules
+        state["acl"] = {i: r.describe_state() if isinstance(r, ACLRule) else None for i, r in enumerate(self._acl)}
+        return state
 
     @property
     def acl(self) -> List[Optional[ACLRule]]:
@@ -648,7 +660,10 @@ class Router(Node):
 
         :return: A dictionary representing the current state.
         """
-        pass
+        state = super().describe_state()
+        state["num_ports"] = (self.num_ports,)
+        state["acl"] = (self.acl.describe_state(),)
+        return state
 
     def route_frame(self, frame: Frame, from_nic: NIC, re_attempt: bool = False) -> None:
         """

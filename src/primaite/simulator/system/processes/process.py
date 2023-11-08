@@ -2,7 +2,7 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Dict
 
-from primaite.simulator.system.software import Software
+from src.primaite.simulator.system.software import Software
 
 
 class ProcessOperatingState(Enum):

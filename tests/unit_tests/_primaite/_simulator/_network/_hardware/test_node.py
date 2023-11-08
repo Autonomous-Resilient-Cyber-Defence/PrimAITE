@@ -3,7 +3,7 @@ from ipaddress import IPv4Address
 
 import pytest
 
-from primaite.simulator.network.hardware.base import Node
+from src.primaite.simulator.network.hardware.base import Node
 
 
 def test_node_creation():

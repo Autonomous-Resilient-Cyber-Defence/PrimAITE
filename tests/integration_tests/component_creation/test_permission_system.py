@@ -3,8 +3,8 @@ from typing import Dict, List, Literal
 
 import pytest
 
-from primaite.simulator.core import AllowAllValidator, RequestManager, RequestType, SimComponent
-from primaite.simulator.domain.controller import AccountGroup, GroupMembershipValidator
+from src.primaite.simulator.core import AllowAllValidator, RequestManager, RequestType, SimComponent
+from src.primaite.simulator.domain.controller import AccountGroup, GroupMembershipValidator
 
 
 @pytest.mark.skip(reason="Action validation is not currently a required feature.")

@@ -2,8 +2,8 @@ from enum import Enum
 from typing import Dict, Optional
 
 from primaite import getLogger
-from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
+from src.primaite.simulator.core import RequestManager, RequestType
+from src.primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 _LOGGER = getLogger(__name__)
 
@@ -15,14 +15,14 @@ class ServiceOperatingState(Enum):
     "The service is currently running."
     STOPPED = 2
     "The service is not running."
-    INSTALLING = 3
-    "The service is being installed or updated."
-    RESTARTING = 4
-    "The service is in the process of restarting."
-    PAUSED = 5
+    PAUSED = 3
     "The service is temporarily paused."
-    DISABLED = 6
+    DISABLED = 4
     "The service is disabled and cannot be started."
+    INSTALLING = 5
+    "The service is being installed or updated."
+    RESTARTING = 6
+    "The service is in the process of restarting."
 
 
 class Service(IOSoftware):
@@ -68,7 +68,7 @@ class Service(IOSoftware):
         :rtype: Dict
         """
         state = super().describe_state()
-        state["operating_state"] = self.operating_state.name
+        state["operating_state"] = self.operating_state.value
         state["health_state_actual"] = self.health_state_actual
         state["health_state_visible"] = self.health_state_visible
         return state

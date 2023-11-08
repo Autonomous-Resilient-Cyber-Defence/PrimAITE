@@ -3,17 +3,18 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
-from primaite.simulator.file_system.file_system import FileSystem
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
-from primaite.simulator.system.core.sys_log import SysLog
-from primaite.simulator.system.services.service import Service, ServiceOperatingState
-from primaite.simulator.system.software import IOSoftware
+from src.primaite.simulator.file_system.file_system import FileSystem
+from src.primaite.simulator.network.transmission.network_layer import IPProtocol
+from src.primaite.simulator.network.transmission.transport_layer import Port
+from src.primaite.simulator.system.applications.application import Application, ApplicationOperatingState
+from src.primaite.simulator.system.core.sys_log import SysLog
+from src.primaite.simulator.system.services.service import Service, ServiceOperatingState
+from src.primaite.simulator.system.software import IOSoftware
 
 if TYPE_CHECKING:
-    from primaite.simulator.system.core.session_manager import SessionManager
-    from primaite.simulator.system.core.sys_log import SysLog
+    from src.primaite.simulator.system.core.session_manager import SessionManager
+    from src.primaite.simulator.system.core.sys_log import SysLog
+    from src.primaite.simulator.network.hardware.base import Node
 
 from typing import Type, TypeVar
 
@@ -25,6 +26,7 @@ class SoftwareManager:
 
     def __init__(
         self,
+        parent_node: "Node",
         session_manager: "SessionManager",
         sys_log: SysLog,
         file_system: FileSystem,
@@ -35,6 +37,7 @@ class SoftwareManager:
 
         :param session_manager: The session manager handling network communications.
         """
+        self.node = parent_node
         self.session_manager = session_manager
         self.software: Dict[str, Union[Service, Application]] = {}
         self._software_class_to_name_map: Dict[Type[IOSoftwareClass], str] = {}
@@ -62,6 +65,8 @@ class SoftwareManager:
 
         :param software_class: The software class.
         """
+        # TODO: Software manager and node itself both have an install method. Need to refactor to have more logical
+        # separation of concerns.
         if software_class in self._software_class_to_name_map:
             self.sys_log.info(f"Cannot install {software_class} as it is already installed")
             return
@@ -77,6 +82,12 @@ class SoftwareManager:
         if isinstance(software, Application):
             software.operating_state = ApplicationOperatingState.CLOSED
 
+        # add the software to the node's registry after it has been fully initialized
+        if isinstance(software, Service):
+            self.node.install_service(software)
+        elif isinstance(software, Application):
+            self.node.install_application(software)
+
     def uninstall(self, software_name: str):
         """
         Uninstall an Application or Service.
@@ -85,6 +96,10 @@ class SoftwareManager:
         """
         if software_name in self.software:
             software = self.software.pop(software_name)  # noqa
+            if isinstance(software, Application):
+                self.node.uninstall_application(software)
+            elif isinstance(software, Service):
+                self.node.uninstall_service(software)
             del software
             self.sys_log.info(f"Deleted {software_name}")
             return

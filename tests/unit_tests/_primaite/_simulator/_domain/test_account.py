@@ -1,5 +1,5 @@
 """Test the account module of the simulator."""
-from primaite.simulator.domain.account import Account, AccountType
+from src.primaite.simulator.domain.account import Account, AccountType
 
 
 def test_account_serialise():

@@ -4,12 +4,12 @@ from typing import Any, Optional
 from pydantic import BaseModel
 
 from primaite import getLogger
-from primaite.simulator.network.protocols.arp import ARPPacket
-from primaite.simulator.network.protocols.packet import DataPacket
-from primaite.simulator.network.transmission.network_layer import ICMPPacket, IPPacket, IPProtocol
-from primaite.simulator.network.transmission.primaite_layer import PrimaiteHeader
-from primaite.simulator.network.transmission.transport_layer import TCPHeader, UDPHeader
-from primaite.simulator.network.utils import convert_bytes_to_megabits
+from src.primaite.simulator.network.protocols.arp import ARPPacket
+from src.primaite.simulator.network.protocols.packet import DataPacket
+from src.primaite.simulator.network.transmission.network_layer import ICMPPacket, IPPacket, IPProtocol
+from src.primaite.simulator.network.transmission.primaite_layer import PrimaiteHeader
+from src.primaite.simulator.network.transmission.transport_layer import TCPHeader, UDPHeader
+from src.primaite.simulator.network.utils import convert_bytes_to_megabits
 
 _LOGGER = getLogger(__name__)
 

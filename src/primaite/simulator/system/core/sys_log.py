@@ -3,7 +3,7 @@ from pathlib import Path
 
 from prettytable import MARKDOWN, PrettyTable
 
-from primaite.simulator import SIM_OUTPUT
+from src.primaite.simulator import SIM_OUTPUT
 
 
 class _NotJSONFilter(logging.Filter):

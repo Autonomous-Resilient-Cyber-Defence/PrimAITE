@@ -1,6 +1,6 @@
-from primaite.simulator.file_system.file import File
-from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
-from primaite.simulator.file_system.file_type import FileType
+from src.primaite.simulator.file_system.file import File
+from src.primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
+from src.primaite.simulator.file_system.file_type import FileType
 
 
 def test_create_file_no_extension(file_system):

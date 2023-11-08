@@ -1,7 +1,7 @@
 import pytest
 
-from primaite.simulator.network.hardware.base import Node
-from primaite.simulator.system.services.database.database_service import DatabaseService
+from src.primaite.simulator.network.hardware.base import Node
+from src.primaite.simulator.system.services.database.database_service import DatabaseService
 
 
 @pytest.fixture(scope="function")

@@ -3,11 +3,11 @@ from enum import Enum
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 
-from primaite.simulator.core import RequestManager, RequestType, SimComponent
-from primaite.simulator.file_system.file_system import FileSystem, Folder
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.core.session_manager import Session
-from primaite.simulator.system.core.sys_log import SysLog
+from src.primaite.simulator.core import RequestManager, RequestType, SimComponent
+from src.primaite.simulator.file_system.file_system import FileSystem, Folder
+from src.primaite.simulator.network.transmission.transport_layer import Port
+from src.primaite.simulator.system.core.session_manager import Session
+from src.primaite.simulator.system.core.sys_log import SysLog
 
 
 class SoftwareType(Enum):
@@ -121,9 +121,9 @@ class Software(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "health_state": self.health_state_actual.name,
-                "health_state_red_view": self.health_state_visible.name,
-                "criticality": self.criticality.name,
+                "health_state": self.health_state_actual.value,
+                "health_state_red_view": self.health_state_visible.value,
+                "criticality": self.criticality.value,
                 "patching_count": self.patching_count,
                 "scanning_count": self.scanning_count,
                 "revealed_to_red": self.revealed_to_red,

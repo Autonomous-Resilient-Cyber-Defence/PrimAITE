@@ -1,5 +1,5 @@
-from primaite.simulator.system.services.service import ServiceOperatingState
-from primaite.simulator.system.software import SoftwareHealthState
+from src.primaite.simulator.system.services.service import ServiceOperatingState
+from src.primaite.simulator.system.software import SoftwareHealthState
 
 
 def test_scan(service):

@@ -5,17 +5,16 @@ from pathlib import Path
 from typing import Optional, Union
 
 from primaite import getLogger
-from primaite.primaite_session import PrimaiteSession
+from src.primaite.config.load import load
+from src.primaite.game.session import PrimaiteSession
+
+# from src.primaite.primaite_session import PrimaiteSession
 
 _LOGGER = getLogger(__name__)
 
 
 def run(
-    training_config_path: Optional[Union[str, Path]] = "",
-    lay_down_config_path: Optional[Union[str, Path]] = "",
-    session_path: Optional[Union[str, Path]] = None,
-    legacy_training_config: bool = False,
-    legacy_lay_down_config: bool = False,
+    config_path: Optional[Union[str, Path]] = "",
 ) -> None:
     """
     Run the PrimAITE Session.
@@ -31,27 +30,17 @@ def run(
     :param legacy_lay_down_config: True if the lay_down config file is a legacy file from PrimAITE < 2.0,
         otherwise False.
     """
-    session = PrimaiteSession(
-        training_config_path, lay_down_config_path, session_path, legacy_training_config, legacy_lay_down_config
-    )
-
-    session.setup()
-    session.learn()
-    session.evaluate()
+    cfg = load(config_path)
+    sess = PrimaiteSession.from_config(cfg=cfg)
+    sess.start_session()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--tc")
-    parser.add_argument("--ldc")
-    parser.add_argument("--load")
+    parser.add_argument("--config")
 
     args = parser.parse_args()
-    if args.load:
-        run(session_path=args.load)
-    else:
-        if not args.tc:
-            _LOGGER.error("Please provide a training config file using the --tc " "argument")
-        if not args.ldc:
-            _LOGGER.error("Please provide a lay down config file using the --ldc " "argument")
-        run(training_config_path=args.tc, lay_down_config_path=args.ldc)
+    if not args.config:
+        _LOGGER.error("Please provide a config file using the --config " "argument")
+
+    run(session_path=args.config)

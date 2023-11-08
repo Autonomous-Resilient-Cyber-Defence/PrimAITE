@@ -1,19 +1,19 @@
 from ipaddress import IPv4Address
 
-from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.base import NIC, NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.simulator.system.services.database.database_service import DatabaseService
-from primaite.simulator.system.services.dns.dns_server import DNSServer
-from primaite.simulator.system.services.ftp.ftp_server import FTPServer
-from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
-from primaite.simulator.system.services.web_server.web_server import WebServer
+from src.primaite.simulator.network.container import Network
+from src.primaite.simulator.network.hardware.base import NIC, NodeOperatingState
+from src.primaite.simulator.network.hardware.nodes.computer import Computer
+from src.primaite.simulator.network.hardware.nodes.router import ACLAction, Router
+from src.primaite.simulator.network.hardware.nodes.server import Server
+from src.primaite.simulator.network.hardware.nodes.switch import Switch
+from src.primaite.simulator.network.transmission.network_layer import IPProtocol
+from src.primaite.simulator.network.transmission.transport_layer import Port
+from src.primaite.simulator.system.applications.database_client import DatabaseClient
+from src.primaite.simulator.system.services.database.database_service import DatabaseService
+from src.primaite.simulator.system.services.dns.dns_server import DNSServer
+from src.primaite.simulator.system.services.ftp.ftp_server import FTPServer
+from src.primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
+from src.primaite.simulator.system.services.web_server.web_server import WebServer
 
 
 def client_server_routed() -> Network:

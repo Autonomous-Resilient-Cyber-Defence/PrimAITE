@@ -1,8 +1,8 @@
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.simulator.system.services.database.database_service import DatabaseService
-from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
+from src.primaite.simulator.network.hardware.nodes.computer import Computer
+from src.primaite.simulator.network.hardware.nodes.server import Server
+from src.primaite.simulator.system.applications.database_client import DatabaseClient
+from src.primaite.simulator.system.services.database.database_service import DatabaseService
+from src.primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 
 
 def test_data_manipulation(uc2_network):

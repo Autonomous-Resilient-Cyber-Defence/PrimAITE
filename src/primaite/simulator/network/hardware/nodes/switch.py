@@ -3,10 +3,9 @@ from typing import Dict
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
-from primaite.exceptions import NetworkError
-from primaite.links.link import Link
-from primaite.simulator.network.hardware.base import Node, SwitchPort
-from primaite.simulator.network.transmission.data_link_layer import Frame
+from src.primaite.exceptions import NetworkError
+from src.primaite.simulator.network.hardware.base import Link, Node, SwitchPort
+from src.primaite.simulator.network.transmission.data_link_layer import Frame
 
 _LOGGER = getLogger(__name__)
 
@@ -55,12 +54,11 @@ class Switch(Node):
 
         :return: Current state of this object and child objects.
         """
-        return {
-            "uuid": self.uuid,
-            "num_ports": self.num_ports,  # redundant?
-            "ports": {port_num: port.describe_state() for port_num, port in self.switch_ports.items()},
-            "mac_address_table": {mac: port for mac, port in self.mac_address_table.items()},
-        }
+        state = super().describe_state()
+        state["ports"] = {port_num: port.describe_state() for port_num, port in self.switch_ports.items()}
+        state["num_ports"] = self.num_ports  # redundant?
+        state["mac_address_table"] = {mac: port for mac, port in self.mac_address_table.items()}
+        return state
 
     def _add_mac_table_entry(self, mac_address: str, switch_port: SwitchPort):
         """

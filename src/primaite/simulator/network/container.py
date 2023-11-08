@@ -6,12 +6,12 @@ from networkx import MultiGraph
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
-from primaite.simulator.core import RequestManager, RequestType, SimComponent
-from primaite.simulator.network.hardware.base import Link, NIC, Node, SwitchPort
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import Router
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from src.primaite.simulator.core import RequestManager, RequestType, SimComponent
+from src.primaite.simulator.network.hardware.base import Link, NIC, Node, SwitchPort
+from src.primaite.simulator.network.hardware.nodes.computer import Computer
+from src.primaite.simulator.network.hardware.nodes.router import Router
+from src.primaite.simulator.network.hardware.nodes.server import Server
+from src.primaite.simulator.network.hardware.nodes.switch import Switch
 
 _LOGGER = getLogger(__name__)
 
@@ -160,8 +160,8 @@ class Network(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "nodes": {i for i, node in self._node_id_map.items()},
-                "links": {i: link.describe_state() for i, link in self._link_id_map.items()},
+                "nodes": {uuid: node.describe_state() for uuid, node in self.nodes.items()},
+                "links": {uuid: link.describe_state() for uuid, link in self.links.items()},
             }
         )
         return state
@@ -218,7 +218,9 @@ class Network(SimComponent):
         _LOGGER.info(f"Removed node {node.uuid} from network {self.uuid}")
         self._node_request_manager.remove_request(name=node.uuid)
 
-    def connect(self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs) -> None:
+    def connect(
+        self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs
+    ) -> Optional[Link]:
         """
         Connect two endpoints on the network by creating a link between their NICs/SwitchPorts.
 
@@ -245,6 +247,7 @@ class Network(SimComponent):
         self._nx_graph.add_edge(endpoint_a.parent.hostname, endpoint_b.parent.hostname)
         link.parent = self
         _LOGGER.debug(f"Added link {link.uuid} to connect {endpoint_a} and {endpoint_b}")
+        return link
 
     def remove_link(self, link: Link) -> None:
         """Disconnect a link from the network.

@@ -10,22 +10,22 @@ from typing import Any, Dict, Literal, Optional, Tuple, Union
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
-from primaite.exceptions import NetworkError
-from primaite.simulator import SIM_OUTPUT
-from primaite.simulator.core import RequestManager, RequestType, SimComponent
-from primaite.simulator.domain.account import Account
-from primaite.simulator.file_system.file_system import FileSystem
-from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
-from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
-from primaite.simulator.system.applications.application import Application
-from primaite.simulator.system.core.packet_capture import PacketCapture
-from primaite.simulator.system.core.session_manager import SessionManager
-from primaite.simulator.system.core.software_manager import SoftwareManager
-from primaite.simulator.system.core.sys_log import SysLog
-from primaite.simulator.system.processes.process import Process
-from primaite.simulator.system.services.service import Service
+from src.primaite.exceptions import NetworkError
+from src.primaite.simulator import SIM_OUTPUT
+from src.primaite.simulator.core import RequestManager, RequestType, SimComponent
+from src.primaite.simulator.domain.account import Account
+from src.primaite.simulator.file_system.file_system import FileSystem
+from src.primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
+from src.primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
+from src.primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
+from src.primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
+from src.primaite.simulator.system.applications.application import Application
+from src.primaite.simulator.system.core.packet_capture import PacketCapture
+from src.primaite.simulator.system.core.session_manager import SessionManager
+from src.primaite.simulator.system.core.software_manager import SoftwareManager
+from src.primaite.simulator.system.core.sys_log import SysLog
+from src.primaite.simulator.system.processes.process import Process
+from src.primaite.simulator.system.services.service import Service
 
 _LOGGER = getLogger(__name__)
 
@@ -859,14 +859,14 @@ class ICMP:
 class NodeOperatingState(Enum):
     """Enumeration of Node Operating States."""
 
-    OFF = 0
-    "The node is powered off."
     ON = 1
     "The node is powered on."
-    SHUTTING_DOWN = 2
-    "The node is in the process of shutting down."
+    OFF = 2
+    "The node is powered off."
     BOOTING = 3
     "The node is in the process of booting up."
+    SHUTTING_DOWN = 4
+    "The node is in the process of shutting down."
 
 
 class Node(SimComponent):
@@ -962,6 +962,7 @@ class Node(SimComponent):
             kwargs["file_system"] = FileSystem(sys_log=kwargs["sys_log"], sim_root=kwargs["root"] / "fs")
         if not kwargs.get("software_manager"):
             kwargs["software_manager"] = SoftwareManager(
+                parent_node=self,
                 sys_log=kwargs.get("sys_log"),
                 session_manager=kwargs.get("session_manager"),
                 file_system=kwargs.get("file_system"),
@@ -1369,7 +1370,8 @@ class Node(SimComponent):
         self._service_request_manager.add_request(service.uuid, RequestType(func=service._request_manager))
 
     def uninstall_service(self, service: Service) -> None:
-        """Uninstall and completely remove service from this node.
+        """
+        Uninstall and completely remove service from this node.
 
         :param service: Service object that is currently associated with this node.
         :type service: Service

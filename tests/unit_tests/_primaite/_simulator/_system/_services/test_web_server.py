@@ -1,15 +1,15 @@
 import pytest
 
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.protocols.http import (
+from src.primaite.simulator.network.hardware.nodes.server import Server
+from src.primaite.simulator.network.protocols.http import (
     HttpRequestMethod,
     HttpRequestPacket,
     HttpResponsePacket,
     HttpStatusCode,
 )
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.services.web_server.web_server import WebServer
+from src.primaite.simulator.network.transmission.network_layer import IPProtocol
+from src.primaite.simulator.network.transmission.transport_layer import Port
+from src.primaite.simulator.system.services.web_server.web_server import WebServer
 
 
 @pytest.fixture(scope="function")

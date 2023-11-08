@@ -14,7 +14,7 @@ The ``DatabaseService`` provides a SQL database server simulation by extending t
 Key capabilities
 ^^^^^^^^^^^^^^^^
 
-- Initialises a SQLite database file in the ``Node``'s ``FileSystem`` upon creation.
+- Initialises a SQLite database file in the ``Node`` 's ``FileSystem`` upon creation.
 - Handles connecting clients by maintaining a dictionary of connections mapped to session IDs.
 - Authenticates connections using a configurable password.
 - Executes SQL queries against the SQLite database.

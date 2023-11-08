@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Dict
 
 from primaite import getLogger
-from primaite.simulator.core import SimComponent
+from src.primaite.simulator.core import SimComponent
 
 _LOGGER = getLogger(__name__)
 
