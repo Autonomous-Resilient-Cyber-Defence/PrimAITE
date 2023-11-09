@@ -129,7 +129,7 @@ class DatabaseService(Service):
             self._conn.close()
             # replace db file
             self.file_system.delete_file(folder_name=self.folder.name, file_name="downloads.db")
-            self.file_system.move_file(
+            self.file_system.copy_file(
                 src_folder_name="downloads", src_file_name="database.db", dst_folder_name=self.folder.name
             )
             self._db_file = self.file_system.get_file(folder_name=self.folder.name, file_name="database.db")

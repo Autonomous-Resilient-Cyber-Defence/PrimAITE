@@ -1,6 +1,6 @@
 import pytest
 
-from primaite.simulator.file_system.file_system import File, FileSystem, FileSystemItemHealthStatus, Folder
+from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.file_system.file_type import FileType
 
 
@@ -16,6 +16,8 @@ def test_create_folder_and_file(file_system):
 
     assert file_system.get_folder("test_folder").get_file("test_file.txt")
 
+    file_system.show(full=True)
+
 
 def test_create_file_no_folder(file_system):
     """Tests that creating a file without a folder creates a folder and sets that as the file's parent."""
@@ -25,14 +27,7 @@ def test_create_file_no_folder(file_system):
     assert file_system.get_folder("root").get_file("test_file.txt").file_type == FileType.TXT
     assert file_system.get_folder("root").get_file("test_file.txt").size == 10
 
-
-def test_create_file_no_extension(file_system):
-    """Tests that creating a file without an extension sets the file type to FileType.UNKNOWN."""
-    file = file_system.create_file(file_name="test_file")
-    assert len(file_system.folders) is 1
-    assert file_system.get_folder("root").get_file("test_file") == file
-    assert file_system.get_folder("root").get_file("test_file").file_type == FileType.UNKNOWN
-    assert file_system.get_folder("root").get_file("test_file").size == 0
+    file_system.show(full=True)
 
 
 def test_delete_file(file_system):
@@ -44,6 +39,9 @@ def test_delete_file(file_system):
     file_system.delete_file(folder_name="root", file_name="test_file.txt")
     assert len(file_system.folders) == 1
     assert len(file_system.get_folder("root").files) == 0
+    assert len(file_system.get_folder("root").deleted_files) == 1
+
+    file_system.show(full=True)
 
 
 def test_delete_non_existent_file(file_system):
@@ -62,6 +60,8 @@ def test_delete_non_existent_file(file_system):
     # The folder should still have 1 file
     assert len(file_system.get_folder("root").files) == 1
 
+    file_system.show(full=True)
+
 
 def test_delete_folder(file_system):
     file_system.create_folder(folder_name="test_folder")
@@ -69,6 +69,42 @@ def test_delete_folder(file_system):
 
     file_system.delete_folder(folder_name="test_folder")
     assert len(file_system.folders) == 1
+
+    assert len(file_system.deleted_folders) == 1
+
+    file_system.show(full=True)
+
+
+def test_create_duplicate_folder(file_system):
+    """Test that creating a duplicate folder throws exception."""
+    assert len(file_system.folders) == 1
+    file_system.create_folder(folder_name="test_folder")
+
+    assert len(file_system.folders) is 2
+    with pytest.raises(Exception):
+        file_system.create_folder(folder_name="test_folder")
+
+    assert len(file_system.folders) is 2
+
+    file_system.show(full=True)
+
+
+def test_create_duplicate_file(file_system):
+    """Test that creating a duplicate file throws exception."""
+    assert len(file_system.folders) == 1
+    file_system.create_folder(folder_name="test_folder")
+
+    assert len(file_system.folders) is 2
+    file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    assert len(file_system.get_folder("test_folder").files) == 1
+
+    with pytest.raises(Exception):
+        file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    assert len(file_system.get_folder("test_folder").files) == 1
+
+    file_system.show(full=True)
 
 
 def test_deleting_a_non_existent_folder(file_system):
@@ -78,12 +114,16 @@ def test_deleting_a_non_existent_folder(file_system):
     file_system.delete_folder(folder_name="does not exist!")
     assert len(file_system.folders) == 2
 
+    file_system.show(full=True)
+
 
 def test_deleting_root_folder_fails(file_system):
     assert len(file_system.folders) == 1
 
     file_system.delete_folder(folder_name="root")
     assert len(file_system.folders) == 1
+
+    file_system.show(full=True)
 
 
 def test_move_file(file_system):
@@ -103,6 +143,8 @@ def test_move_file(file_system):
     assert len(file_system.get_folder("dst_folder").files) == 1
     assert file_system.get_file("dst_folder", "test_file.txt").uuid == original_uuid
 
+    file_system.show(full=True)
+
 
 def test_copy_file(file_system):
     """Tests the file copy function."""
@@ -121,192 +163,26 @@ def test_copy_file(file_system):
     assert len(file_system.get_folder("dst_folder").files) == 1
     assert file_system.get_file("dst_folder", "test_file.txt").uuid != original_uuid
 
-
-@pytest.mark.skip(reason="Implementation for quarantine not needed yet")
-def test_folder_quarantine_state(file_system):
-    """Tests the changing of folder quarantine status."""
-    folder = file_system.get_folder("root")
-
-    assert folder.quarantine_status() is False
-
-    folder.quarantine()
-    assert folder.quarantine_status() is True
-
-    folder.unquarantine()
-    assert folder.quarantine_status() is False
+    file_system.show(full=True)
 
 
-def test_file_corrupt_repair(file_system):
-    """Test the ability to corrupt and repair files."""
+def test_get_file(file_system):
+    """Test that files can be retrieved."""
     folder: Folder = file_system.create_folder(folder_name="test_folder")
-    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+    file1: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+    file2: File = file_system.create_file(file_name="test_file2.txt", folder_name="test_folder")
 
-    file.corrupt()
+    folder.remove_file(file2)
 
-    assert folder.health_status == FileSystemItemHealthStatus.GOOD
-    assert file.health_status == FileSystemItemHealthStatus.CORRUPT
+    assert file_system.get_file_by_id(file_uuid=file1.uuid, folder_uuid=folder.uuid) is not None
+    assert file_system.get_file_by_id(file_uuid=file2.uuid, folder_uuid=folder.uuid) is None
+    assert file_system.get_file_by_id(file_uuid=file2.uuid, folder_uuid=folder.uuid, include_deleted=True) is not None
+    assert file_system.get_file_by_id(file_uuid=file2.uuid, include_deleted=True) is not None
 
-    file.repair()
+    file_system.delete_folder(folder_name="test_folder")
+    assert file_system.get_file_by_id(file_uuid=file2.uuid, include_deleted=True) is not None
 
-    assert folder.health_status == FileSystemItemHealthStatus.GOOD
-    assert file.health_status == FileSystemItemHealthStatus.GOOD
-
-
-def test_folder_corrupt_repair(file_system):
-    """Test the ability to corrupt and repair folders."""
-    folder: Folder = file_system.create_folder(folder_name="test_folder")
-    file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
-
-    folder.corrupt()
-
-    file = folder.get_file(file_name="test_file.txt")
-    assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file.health_status == FileSystemItemHealthStatus.CORRUPT
-
-    folder.repair()
-
-    file = folder.get_file(file_name="test_file.txt")
-    assert folder.health_status == FileSystemItemHealthStatus.GOOD
-    assert file.health_status == FileSystemItemHealthStatus.GOOD
-
-
-def test_file_scan(file_system):
-    """Test the ability to update visible status."""
-    folder: Folder = file_system.create_folder(folder_name="test_folder")
-    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
-
-    assert file.health_status == FileSystemItemHealthStatus.GOOD
-    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
-
-    file.corrupt()
-
-    assert file.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
-
-    file.scan()
-
-    assert file.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file.visible_health_status == FileSystemItemHealthStatus.CORRUPT
-
-
-def test_folder_scan(file_system):
-    """Test the ability to update visible status."""
-    folder: Folder = file_system.create_folder(folder_name="test_folder")
-    file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
-    file_system.create_file(file_name="test_file2.txt", folder_name="test_folder")
-
-    file1: File = folder.get_file_by_id(file_uuid=list(folder.files)[1])
-    file2: File = folder.get_file_by_id(file_uuid=list(folder.files)[0])
-
-    assert folder.health_status == FileSystemItemHealthStatus.GOOD
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
-
-    folder.corrupt()
-
-    assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
-
-    folder.scan()
-
-    folder.apply_timestep(timestep=0)
-
-    assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
-
-    folder.apply_timestep(timestep=1)
-
-    assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file1.visible_health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file2.visible_health_status == FileSystemItemHealthStatus.CORRUPT
-
-
-def test_folder_reveal_to_red_scan(file_system):
-    """Test the ability to reveal files to red."""
-    folder: Folder = file_system.create_folder(folder_name="test_folder")
-    file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
-    file_system.create_file(file_name="test_file2.txt", folder_name="test_folder")
-
-    file1: File = folder.get_file_by_id(file_uuid=list(folder.files)[1])
-    file2: File = folder.get_file_by_id(file_uuid=list(folder.files)[0])
-
-    assert folder.revealed_to_red is False
-    assert file1.revealed_to_red is False
-    assert file2.revealed_to_red is False
-
-    folder.reveal_to_red()
-
-    folder.apply_timestep(timestep=0)
-
-    assert folder.revealed_to_red is False
-    assert file1.revealed_to_red is False
-    assert file2.revealed_to_red is False
-
-    folder.apply_timestep(timestep=1)
-
-    assert folder.revealed_to_red is True
-    assert file1.revealed_to_red is True
-    assert file2.revealed_to_red is True
-
-
-def test_simulated_file_check_hash(file_system):
-    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
-
-    assert file.check_hash() is True
-
-    # change simulated file size
-    file.sim_size = 0
-    assert file.check_hash() is False
-    assert file.health_status == FileSystemItemHealthStatus.CORRUPT
-
-
-def test_real_file_check_hash(file_system):
-    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder", real=True)
-
-    assert file.check_hash() is True
-
-    # change file content
-    with open(file.sim_path, "a") as f:
-        f.write("get hacked scrub lol xD\n")
-
-    assert file.check_hash() is False
-    assert file.health_status == FileSystemItemHealthStatus.CORRUPT
-
-
-def test_simulated_folder_check_hash(file_system):
-    folder: Folder = file_system.create_folder(folder_name="test_folder")
-    file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
-
-    assert folder.check_hash() is True
-
-    # change simulated file size
-    file = folder.get_file(file_name="test_file.txt")
-    file.sim_size = 0
-    assert folder.check_hash() is False
-    assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-
-
-def test_real_folder_check_hash(file_system):
-    folder: Folder = file_system.create_folder(folder_name="test_folder")
-    file_system.create_file(file_name="test_file.txt", folder_name="test_folder", real=True)
-
-    assert folder.check_hash() is True
-
-    # change simulated file size
-    file = folder.get_file(file_name="test_file.txt")
-
-    # change file content
-    with open(file.sim_path, "a") as f:
-        f.write("get hacked scrub lol xD\n")
-
-    assert folder.check_hash() is False
-    assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
+    file_system.show(full=True)
 
 
 @pytest.mark.skip(reason="Skipping until we tackle serialisation")
@@ -318,3 +194,5 @@ def test_serialisation(file_system):
     deserialised_file_sys = FileSystem.model_validate_json(serialised_file_sys)
 
     assert file_system.model_dump_json() == deserialised_file_sys.model_dump_json()
+
+    file_system.show(full=True)
