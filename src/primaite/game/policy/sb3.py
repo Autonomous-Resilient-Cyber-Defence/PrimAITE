@@ -52,6 +52,7 @@ class SB3Policy(PolicyABC):
         num_episodes = 10  # TODO: populate values once I figure out how to get them from the config / session
         deterministic = True  # TODO: populate values once I figure out how to get them from the config / session
 
+        # TODO: consider moving this loop to the session, only if this makes sense for RAY RLLIB
         for episode in range(num_episodes):
             obs = self.session.env.reset()
             for step in range(time_steps):
