@@ -76,7 +76,7 @@ class AbstractAgent(ABC):
         :return: Action to be taken in the environment.
         :rtype: Tuple[str, Dict]
         """
-        # in RL agent, this method will send CAOS observation to GATE RL agent, then receive a int 0-39,
+        # in RL agent, this method will send CAOS observation to RL agent, then receive a int 0-39,
         # then use a bespoke conversion to take 1-40 int back into CAOS action
         return ("DO_NOTHING", {})
 
@@ -108,9 +108,3 @@ class RandomAgent(AbstractScriptedAgent):
         :rtype: Tuple[str, Dict]
         """
         return self.action_space.get_action(self.action_space.space.sample())
-
-
-class AbstractGATEAgent(AbstractAgent):
-    """Base class for actors controlled via external messages, such as RL policies."""
-
-    ...
