@@ -96,15 +96,16 @@ class PrimaiteSession:
 
     def start_session(self) -> None:
         """Commence the training session, this gives the GATE client control over the simulation/agent loop."""
-        # n_learn_steps = self.training_options.n_learn_steps
+        n_learn_steps = self.training_options.n_learn_steps
         n_learn_episodes = self.training_options.n_learn_episodes
-        # n_eval_steps = self.training_options.n_eval_steps
+        n_eval_steps = self.training_options.n_eval_steps
         n_eval_episodes = self.training_options.n_eval_episodes
+        deterministic_eval = True  # TODO: get this value from config
         if n_learn_episodes > 0:
-            self.policy.learn()
+            self.policy.learn(n_episodes=n_learn_episodes, n_time_steps=n_learn_steps)
 
         if n_eval_episodes > 0:
-            self.policy.eval()
+            self.policy.eval(n_episodes=n_eval_episodes, n_time_steps=n_eval_steps, deterministic=deterministic_eval)
 
     def step(self):
         """

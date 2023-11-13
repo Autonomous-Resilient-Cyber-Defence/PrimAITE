@@ -108,7 +108,7 @@ game_config:
 
     - ref: defender
       team: BLUE
-      type: GATERLAgent
+      type: idk???
 
       observation_space:
         type: UC2BlueObservation

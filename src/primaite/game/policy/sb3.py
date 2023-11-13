@@ -33,35 +33,24 @@ class SB3Policy(PolicyABC):
             seed=...,
         )  # TODO: populate values once I figure out how to get them from the config / session
 
-    def learn(
-        self,
-    ) -> None:
+    def learn(self, n_episodes: int, n_time_steps: int) -> None:
         """Train the agent."""
-        time_steps = 9999  # TODO: populate values once I figure out how to get them from the config / session
-        episodes = 10  # TODO: populate values once I figure out how to get them from the config / session
-        for i in range(episodes):
-            self._agent.learn(total_timesteps=time_steps)
+        # TODO: consider moving this loop to the session, only if this makes sense for RAY RLLIB
+        for i in range(n_episodes):
+            self._agent.learn(total_timesteps=n_time_steps)
             self._save_checkpoint()
         pass
 
-    def eval(
-        self,
-    ) -> None:
+    def eval(self, n_episodes: int, n_time_steps: int, deterministic: bool) -> None:
         """Evaluate the agent."""
-        time_steps = 9999  # TODO: populate values once I figure out how to get them from the config / session
-        num_episodes = 10  # TODO: populate values once I figure out how to get them from the config / session
-        deterministic = True  # TODO: populate values once I figure out how to get them from the config / session
-
         # TODO: consider moving this loop to the session, only if this makes sense for RAY RLLIB
-        for episode in range(num_episodes):
+        for episode in range(n_episodes):
             obs = self.session.env.reset()
-            for step in range(time_steps):
+            for step in range(n_time_steps):
                 action, _states = self._agent.predict(obs, deterministic=deterministic)
                 obs, rewards, truncated, terminated, info = self.session.env.step(action)
 
-    def save(
-        self,
-    ) -> None:
+    def save(self) -> None:
         """Save the agent."""
         savepath = (
             "temp/path/to/save.pth"  # TODO: populate values once I figure out how to get them from the config / session
@@ -69,22 +58,16 @@ class SB3Policy(PolicyABC):
         self._agent.save(savepath)
         pass
 
-    def load(
-        self,
-    ) -> None:
+    def load(self) -> None:
         """Load agent from a checkpoint."""
         self._agent_class.load("temp/path/to/save.pth", env=self.session.env)
         pass
 
-    def close(
-        self,
-    ) -> None:
+    def close(self) -> None:
         """Close the agent."""
         pass
 
     @classmethod
-    def from_config(
-        self,
-    ) -> "SB3Policy":
+    def from_config(self) -> "SB3Policy":
         """Create an agent from config file."""
         pass

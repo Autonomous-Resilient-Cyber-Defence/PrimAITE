@@ -95,8 +95,6 @@ def setup(overwrite_existing: bool = True) -> None:
 
     WARNING: All user-data will be lost.
     """
-    from arcd_gate.cli import setup as gate_setup
-
     from primaite import getLogger
     from primaite.setup import reset_demo_notebooks, reset_example_configs
 
@@ -115,9 +113,6 @@ def setup(overwrite_existing: bool = True) -> None:
     _LOGGER.info("Rebuilding the example notebooks...")
     reset_example_configs.run(overwrite_existing=True)
 
-    _LOGGER.info("Setting up ARCD GATE...")
-    gate_setup()
-
     _LOGGER.info("PrimAITE setup complete!")
 
 
@@ -131,14 +126,8 @@ def session(
     :param config: The path to the config file. Optional, if None, the example config will be used.
     :type config: Optional[str]
     """
-    from threading import Thread
-
     from primaite.config.load import example_config_path
     from primaite.main import run
-    from primaite.utils.start_gate_server import start_gate_server
-
-    server_thread = Thread(target=start_gate_server)
-    server_thread.start()
 
     if not config:
         config = example_config_path()
