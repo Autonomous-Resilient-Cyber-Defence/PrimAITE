@@ -109,6 +109,8 @@ class RandomAgent(AbstractScriptedAgent):
         """
         return self.action_space.get_action(self.action_space.space.sample())
 
+class DataManipulationAgent(AbstractScriptedAgent):
+    pass
 
 class AbstractGATEAgent(AbstractAgent):
     """Base class for actors controlled via external messages, such as RL policies."""

@@ -30,7 +30,7 @@ class WebBrowser(Application):
             kwargs["port"] = Port.HTTP
 
         super().__init__(**kwargs)
-        self.run()
+        self.execute()
 
     def describe_state(self) -> Dict:
         """

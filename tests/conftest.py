@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Dict, Union
 from unittest.mock import patch
 
-import nodeenv
 import pytest
 
 from primaite import getLogger

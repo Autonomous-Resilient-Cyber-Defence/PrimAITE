@@ -10,7 +10,7 @@ def test_web_page_home_page(uc2_network):
     """Test to see if the browser is able to open the main page of the web server."""
     client_1: Computer = uc2_network.get_node_by_hostname("client_1")
     web_client: WebBrowser = client_1.software_manager.software["WebBrowser"]
-    web_client.run()
+    web_client.execute()
     assert web_client.operating_state == ApplicationOperatingState.RUNNING
 
     assert web_client.get_webpage("http://arcd.com/") is True
@@ -24,7 +24,7 @@ def test_web_page_get_users_page_request_with_domain_name(uc2_network):
     """Test to see if the client can handle requests with domain names"""
     client_1: Computer = uc2_network.get_node_by_hostname("client_1")
     web_client: WebBrowser = client_1.software_manager.software["WebBrowser"]
-    web_client.run()
+    web_client.execute()
     assert web_client.operating_state == ApplicationOperatingState.RUNNING
 
     assert web_client.get_webpage("http://arcd.com/users/") is True
@@ -38,7 +38,7 @@ def test_web_page_get_users_page_request_with_ip_address(uc2_network):
     """Test to see if the client can handle requests that use ip_address."""
     client_1: Computer = uc2_network.get_node_by_hostname("client_1")
     web_client: WebBrowser = client_1.software_manager.software["WebBrowser"]
-    web_client.run()
+    web_client.execute()
 
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
     web_server_ip = web_server.nics.get(next(iter(web_server.nics))).ip_address

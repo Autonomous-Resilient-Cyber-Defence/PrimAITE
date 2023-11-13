@@ -19,10 +19,10 @@ class GATERLAgent(AbstractGATEAgent):
 
     def __init__(
         self,
-        agent_name: str | None,
-        action_space: ActionManager | None,
-        observation_space: ObservationSpace | None,
-        reward_function: RewardFunction | None,
+        agent_name: Optional[str],
+        action_space: Optional[ActionManager],
+        observation_space: Optional[ObservationSpace],
+        reward_function: Optional[RewardFunction],
     ) -> None:
         super().__init__(agent_name, action_space, observation_space, reward_function)
         self.most_recent_action: ActType

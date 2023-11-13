@@ -65,6 +65,10 @@ class Application(IOSoftware):
             self.sys_log.info(f"Running Application {self.name}")
             self.operating_state = ApplicationOperatingState.RUNNING
 
+    def _application_loop(self):
+        """THe main application loop."""
+        pass
+
     def close(self) -> None:
         """Close the Application."""
         if self.operating_state == ApplicationOperatingState.RUNNING:

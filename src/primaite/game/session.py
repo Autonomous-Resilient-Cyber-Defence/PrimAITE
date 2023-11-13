@@ -60,7 +60,7 @@ class PrimaiteGATEClient(GATEClient):
         return self.parent_session.training_options.rl_algorithm
 
     @property
-    def seed(self) -> int | None:
+    def seed(self) -> Optional[int]:
         """The seed to use for the environment's random number generator."""
         return self.parent_session.training_options.seed
 
@@ -115,7 +115,7 @@ class PrimaiteGATEClient(GATEClient):
         info = {}
         return obs, rew, term, trunc, info
 
-    def reset(self, *, seed: int | None = None, options: dict[str, Any] | None = None) -> Tuple[ObsType, Dict]:
+    def reset(self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[ObsType, Dict]:
         """Reset the environment.
 
         This method is called when the environment is initialized and at the end of each episode.
