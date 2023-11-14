@@ -1,4 +1,5 @@
-from typing import Literal, TYPE_CHECKING, Union
+"""Stable baselines 3 policy."""
+from typing import Literal, Optional, TYPE_CHECKING, Union
 
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.a2c import MlpPolicy as A2C_MLP
@@ -7,13 +8,13 @@ from stable_baselines3.ppo import MlpPolicy as PPO_MLP
 from primaite.game.policy.policy import PolicyABC
 
 if TYPE_CHECKING:
-    from primaite.game.session import PrimaiteSession
+    from primaite.game.session import PrimaiteSession, TrainingOptions
 
 
 class SB3Policy(PolicyABC):
     """Single agent RL policy using stable baselines 3."""
 
-    def __init__(self, session: "PrimaiteSession", algorithm: Literal["PPO", "A2C"]):
+    def __init__(self, session: "PrimaiteSession", algorithm: Literal["PPO", "A2C"], seed: Optional[int] = None):
         """Initialize a stable baselines 3 policy."""
         super().__init__(session=session)
 
@@ -29,8 +30,8 @@ class SB3Policy(PolicyABC):
         self._agent = self._agent_class(
             policy=policy,
             env=self.session.env,
-            n_steps=...,
-            seed=...,
+            n_steps=128,  # this is not the number of steps in an episode, but the number of steps in a batch
+            seed=seed,
         )  # TODO: populate values once I figure out how to get them from the config / session
 
     def learn(self, n_episodes: int, n_time_steps: int) -> None:
@@ -68,6 +69,6 @@ class SB3Policy(PolicyABC):
         pass
 
     @classmethod
-    def from_config(self) -> "SB3Policy":
+    def from_config(cls, config: "TrainingOptions", session: "PrimaiteSession") -> "SB3Policy":
         """Create an agent from config file."""
-        pass
+        return cls(session=session, algorithm=config.rl_algorithm, seed=config.seed)

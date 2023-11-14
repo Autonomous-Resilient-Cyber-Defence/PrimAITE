@@ -1,13 +1,15 @@
 """PrimAITE session - the main entry point to training agents on PrimAITE."""
 from ipaddress import IPv4Address
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional, SupportsFloat, Tuple
 
+import gymnasium
+from gymnasium.core import ActType, ObsType
 from pydantic import BaseModel
 
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, RandomAgent
-from primaite.game.agent.observations import ObservationSpace
+from primaite.game.agent.interface import AbstractAgent, ProxyAgent, RandomAgent
+from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.policy.policy import PolicyABC
 from primaite.simulator.network.hardware.base import Link, NIC, Node
@@ -31,6 +33,58 @@ from primaite.simulator.system.services.web_server.web_server import WebServer
 _LOGGER = getLogger(__name__)
 
 
+class PrimaiteEnv(gymnasium.Env):
+    """
+    Thin wrapper env to provide agents with a gymnasium API.
+
+    This is always a single agent environment since gymnasium is a single agent API. Therefore, we can make some
+    assumptions about the agent list always having a list of length 1.
+    """
+
+    def __init__(self, session: "PrimaiteSession", agents: List[ProxyAgent]):
+        """Initialise the environment."""
+        super().__init__()
+        self.session: "PrimaiteSession" = session
+        self.agent: ProxyAgent = agents[0]
+
+    def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
+        """Perform a step in the environment."""
+        # make ProxyAgent store the action chosen my the RL policy
+        self.agent.store_action(action)
+        # apply_agent_actions accesses the action we just stored
+        self.session.apply_agent_actions()
+        self.session.advance_timestep()
+        state = self.session.get_sim_state()
+        self.session.update_agents(state)
+
+        next_obs = self.agent.observation_manager.current_observation
+        reward = self.agent.reward_function.current_reward
+        terminated = False
+        truncated = ...
+        info = {}
+
+        return next_obs, reward, terminated, truncated, info
+
+    def reset(self, seed: Optional[int] = None) -> tuple[ObsType, dict[str, Any]]:
+        """Reset the environment."""
+        self.session.reset()
+        state = self.session.get_sim_state()
+        self.session.update_agents(state)
+        next_obs = self.agent.observation_manager.current_observation
+        info = {}
+        return next_obs, info
+
+    @property
+    def action_space(self) -> gymnasium.Space:
+        """Return the action space of the environment."""
+        return self.agent.action_manager.action_space
+
+    @property
+    def observation_space(self) -> gymnasium.Space:
+        """Return the observation space of the environment."""
+        return self.agent.observation_manager.observation_space
+
+
 class PrimaiteSessionOptions(BaseModel):
     """
     Global options which are applicable to all of the agents in the game.
@@ -45,27 +99,28 @@ class PrimaiteSessionOptions(BaseModel):
 class TrainingOptions(BaseModel):
     """Options for training the RL agent."""
 
-    rl_framework: str
-    rl_algorithm: str
+    rl_framework: Literal["SB3", "RLLIB"]
+    rl_algorithm: Literal["PPO", "A2C"]
     seed: Optional[int]
     n_learn_episodes: int
     n_learn_steps: int
-    n_eval_episodes: int
-    n_eval_steps: int
+    n_eval_episodes: int = 0
+    n_eval_steps: Optional[int] = None
+    deterministic_eval: bool
+    n_agents: int
+    agent_references: List[str]
 
 
 class PrimaiteSession:
-    """The main entrypoint for PrimAITE sessions, this manages a simulation, agents, and connections to ARCD GATE."""
+    """The main entrypoint for PrimAITE sessions, this manages a simulation, agents, and environments."""
 
     def __init__(self):
+        """Initialise a PrimaiteSession object."""
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
 
         self.agents: List[AbstractAgent] = []
         """List of agents."""
-
-        # self.rl_agent: AbstractAgent
-        # """The agent from the list which communicates with GATE to perform reinforcement learning."""
 
         self.step_counter: int = 0
         """Current timestep within the episode."""
@@ -94,8 +149,10 @@ class PrimaiteSession:
         self.ref_map_links: Dict[str, Link] = {}
         """Mapping from human-readable link reference to link object. Used when parsing config files."""
 
+        # self.env:
+
     def start_session(self) -> None:
-        """Commence the training session, this gives the GATE client control over the simulation/agent loop."""
+        """Commence the training session."""
         n_learn_steps = self.training_options.n_learn_steps
         n_learn_episodes = self.training_options.n_learn_episodes
         n_eval_steps = self.training_options.n_eval_steps
@@ -119,40 +176,47 @@ class PrimaiteSession:
             4. Each agent chooses an action based on the observation.
             5. Each agent converts the action to a request.
             6. The simulation applies the requests.
+
+        Warning: This method should only be used with scripted agents. For RL agents, the environment that the agent
+        interacts with should implement a step method that calls methods used by this method. For example, if using a
+        single-agent gym, make sure to update the ProxyAgent's action with the action before calling
+        ``self.apply_agent_actions()``.
         """
         _LOGGER.debug(f"Stepping primaite session. Step counter: {self.step_counter}")
-        # currently designed with assumption that all agents act once per step in order
 
+        # Get the current state of the simulation
+        sim_state = self.get_sim_state()
+
+        # Update agents' observations and rewards based on the current state
+        self.update_agents(sim_state)
+
+        # Apply all actions to simulation as requests
+        self.apply_agent_actions()
+
+        # Advance timestep
+        self.advance_timestep()
+
+    def get_sim_state(self) -> Dict:
+        """Get the current state of the simulation."""
+        return self.simulation.describe_state()
+
+    def update_agents(self, state: Dict) -> None:
+        """Update agents' observations and rewards based on the current state."""
         for agent in self.agents:
-            # 3. primaite session asks simulation to provide initial state
-            # 4. primate session gives state to all agents
-            # 5. primaite session asks agents to produce an action based on most recent state
-            _LOGGER.debug(f"Sending simulation state to agent {agent.agent_name}")
-            sim_state = self.simulation.describe_state()
+            agent.update_observation(state)
+            agent.update_reward(state)
 
-            # 6. each agent takes most recent state and converts it to CAOS observation
-            agent_obs = agent.convert_state_to_obs(sim_state)
+    def apply_agent_actions(self) -> None:
+        """Apply all actions to simulation as requests."""
+        for agent in self.agents:
+            obs = agent.observation_manager.current_observation
+            rew = agent.reward_function.current_reward
+            action_choice, options = agent.get_action(obs, rew)
+            request = agent.format_request(action_choice, options)
+            self.simulation.apply_request(request)
 
-            # 7. meanwhile each agent also takes state and calculates reward
-            agent_reward = agent.calculate_reward_from_state(sim_state)
-
-            # 8. each agent takes observation and applies decision rule to observation to create CAOS
-            #    action(such as random, rulebased, or send to GATE) (therefore, converting CAOS action
-            #    to discrete(40) is only necessary for purposes of RL learning, therefore that bit of
-            #    code should live inside of the GATE agent subclass)
-            # gets action in CAOS format
-            _LOGGER.debug("Getting agent action")
-            agent_action, action_options = agent.get_action(agent_obs, agent_reward)
-            # 9. CAOS action is converted into request (extra information might be needed to enrich
-            # the request, this is what the execution definition is there for)
-            _LOGGER.debug(f"Formatting agent action {agent_action}")  # maybe too many debug log statements
-            agent_request = agent.format_request(agent_action, action_options)
-
-            # 10. primaite session receives the action from the agents and asks the simulation to apply each
-            _LOGGER.debug(f"Sending request to simulation: {agent_request}")
-            self.simulation.apply_request(agent_request)
-
-        _LOGGER.debug(f"Initiating simulation step {self.step_counter}")
+    def advance_timestep(self) -> None:
+        """Advance timestep."""
         self.simulation.apply_timestep(self.step_counter)
         self.step_counter += 1
 
@@ -161,7 +225,7 @@ class PrimaiteSession:
         return NotImplemented
 
     def close(self) -> None:
-        """Close the session, this will stop the gate client and close the simulation."""
+        """Close the session, this will stop the env and close the simulation."""
         return NotImplemented
 
     @classmethod
@@ -169,7 +233,7 @@ class PrimaiteSession:
         """Create a PrimaiteSession object from a config dictionary.
 
         The config dictionary should have the following top-level keys:
-        1. training_config: options for training the RL agent. Used by GATE.
+        1. training_config: options for training the RL agent.
         2. game_config: options for the game itself. Used by PrimaiteSession.
         3. simulation: defines the network topology and the initial state of the simulation.
 
@@ -323,7 +387,7 @@ class PrimaiteSession:
             reward_function_cfg = agent_cfg["reward_function"]
 
             # CREATE OBSERVATION SPACE
-            obs_space = ObservationSpace.from_config(observation_space_cfg, sess)
+            obs_space = ObservationManager.from_config(observation_space_cfg, sess)
 
             # CREATE ACTION SPACE
             action_space_cfg["options"]["node_uuids"] = []
@@ -359,15 +423,14 @@ class PrimaiteSession:
                     reward_function=rew_function,
                 )
                 sess.agents.append(new_agent)
-            elif agent_type == "GATERLAgent":
-                new_agent = RandomAgent(
+            elif agent_type == "RLAgent":
+                new_agent = ProxyAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=rew_function,
                 )
                 sess.agents.append(new_agent)
-                sess.rl_agent = new_agent
             elif agent_type == "RedDatabaseCorruptingAgent":
                 new_agent = RandomAgent(
                     agent_name=agent_cfg["ref"],
@@ -378,5 +441,8 @@ class PrimaiteSession:
                 sess.agents.append(new_agent)
             else:
                 print("agent type not found")
+
+            # CREATE POLICY
+            sess.policy = PolicyABC.from_config(sess.training_options)
 
         return sess

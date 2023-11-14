@@ -4,8 +4,12 @@ training_config:
   seed: 333
   n_learn_episodes: 20
   n_learn_steps: 128
-  n_eval_episodes: 20
+  n_eval_episodes: 5
   n_eval_steps: 128
+  deterministic_eval: false
+  n_agents: 1
+  agent_references:
+    - defender
 
 
 game_config:
@@ -108,7 +112,7 @@ game_config:
 
     - ref: defender
       team: BLUE
-      type: idk???
+      type: RLAgent
 
       observation_space:
         type: UC2BlueObservation

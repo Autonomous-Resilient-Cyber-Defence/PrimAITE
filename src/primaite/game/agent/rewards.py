@@ -238,6 +238,7 @@ class RewardFunction:
         """Initialise the reward function object."""
         self.reward_components: List[Tuple[AbstractReward, float]] = []
         "attribute reward_components keeps track of reward components and the weights assigned to each."
+        self.current_reward: float
 
     def regsiter_component(self, component: AbstractReward, weight: float = 1.0) -> None:
         """Add a reward component to the reward function.
@@ -249,7 +250,7 @@ class RewardFunction:
         """
         self.reward_components.append((component, weight))
 
-    def calculate(self, state: Dict) -> float:
+    def update(self, state: Dict) -> float:
         """Calculate the overall reward for the current state.
 
         :param state: The current state of the simulation.
@@ -260,7 +261,8 @@ class RewardFunction:
             comp = comp_and_weight[0]
             weight = comp_and_weight[1]
             total += weight * comp.calculate(state=state)
-        return total
+        self.current_reward = total
+        return self.current_reward
 
     @classmethod
     def from_config(cls, config: Dict, session: "PrimaiteSession") -> "RewardFunction":
