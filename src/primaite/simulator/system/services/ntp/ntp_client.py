@@ -1,5 +1,6 @@
 from ipaddress import IPv4Address
 from typing import Dict, Optional
+from primaite.simulator.network.protocols.ntp import NTPPacket
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import Service
@@ -45,6 +46,48 @@ class NTPClient(Service):
         """
         pass
 
-    def receive(self):
-        """Receives time data from server"""
-        pass
+    def send(
+            self,
+            payload: NTPPacket,
+            session_id: Optional[str] = None,
+            dest_ip_address: Optional[IPv4Address] = None,
+            dest_port: [Port] = Port.NTP,
+            **kwargs,
+    ) -> bool:
+        """Requests NTP data from NTP server.
+
+        :param payload: The payload to be sent.
+        :param session_id: The Session ID the payload is to originate from. Optional.
+        :param dest_ip_address: The ip address of the payload destination.
+        :param dest_port: The port of the payload destination.
+
+        :return: True if successful, False otherwise.
+        """
+        self.sys_log.info(f"{self.name}: Sending NTP request {payload.ntp_request.ntp_client}")
+
+        return super().send(
+            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id, **kwargs
+        )
+
+    def receive(
+        self,
+        payload: NTPPacket,
+        session_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """Receives time data from server
+
+        :param payload: The payload to be sent.
+        :param session_id: The Session ID the payload is to originate from. Optional.
+        :return: True if successful, False otherwise.
+        """
+        if not (isinstance(payload, NTPPacket) and
+                payload.ntp_request.ntp_client):
+            _LOGGER.debug(f"{payload} is not a NTPPacket")
+            return False
+
+        # XXX: compare received datetime with current time. Log error if differ by more than x ms?
+        if payload.ntp_reply.ntp_datetime:
+            self.sys_log.info(
+                f"{self.name}: Received time update from NTP server{payload.ntp_reply.ntp_datetime}")
+            return True
