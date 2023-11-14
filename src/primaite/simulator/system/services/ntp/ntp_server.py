@@ -2,11 +2,14 @@ from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 
 from primaite import getLogger
+from primaite.simulator.network.protocols.ntp import NTPPacket
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import Service
+from datetime import datetime
 
 _LOGGER = getLogger(__name__)
+
 
 class NTPServer(Service):
     """Represents a NTP server as a service"""
@@ -48,9 +51,32 @@ class NTPServer(Service):
             session_id: Optional[str] = None,
             **kwargs,
     ) -> bool:
-        """Receives a request from NTPClient"""
-        pass
+        """Receives a request from NTPClient.
 
-    def send(self):
-        """Sends time data to NTPClient"""
-        pass
+        Check that request has a valid IP address.
+
+        :param payload: The payload to send.
+        :param session_id: Id of the session (Optional).
+
+        :return: True if valid NTP request else False.
+        """
+        if not (isinstance(payload, NTPPacket) and
+                payload.ntp_request.ntp_client):
+            _LOGGER.debug(f"{payload} is not a NTPPacket")
+            return False
+        payload: NTPPacket = payload
+        if payload.ntp_request.ntp_client:
+            self.sys_log.info(
+                f"{self.name}: Received request for {payload.ntp_request.ntp_client} "
+                f"from session {session_id}"
+            )
+            # generate a reply with the current time
+            time = datetime.now()
+            payload = payload.generate_reply(time)
+            self.sys_log.info(
+                f"{self.name}: Responding to NTP request for {payload.ntp_request.ntp_client} "
+                f"with current time: {time}"
+            )
+            # send reply
+            self.send(payload, session_id)
+            return True
