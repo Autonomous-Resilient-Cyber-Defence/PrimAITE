@@ -1,4 +1,4 @@
-from ipaddress import IPv4Address
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 from primaite import getLogger
@@ -6,13 +6,12 @@ from primaite.simulator.network.protocols.ntp import NTPPacket
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import Service
-from datetime import datetime
 
 _LOGGER = getLogger(__name__)
 
 
 class NTPServer(Service):
-    """Represents a NTP server as a service"""
+    """Represents a NTP server as a service."""
 
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPServer"
@@ -46,10 +45,10 @@ class NTPServer(Service):
         pass
 
     def receive(
-            self,
-            payload: Any,
-            session_id: Optional[str] = None,
-            **kwargs,
+        self,
+        payload: Any,
+        session_id: Optional[str] = None,
+        **kwargs,
     ) -> bool:
         """Receives a request from NTPClient.
 
@@ -60,15 +59,13 @@ class NTPServer(Service):
 
         :return: True if valid NTP request else False.
         """
-        if not (isinstance(payload, NTPPacket) and
-                payload.ntp_request.ntp_client):
+        if not (isinstance(payload, NTPPacket) and payload.ntp_request.ntp_client):
             _LOGGER.debug(f"{payload} is not a NTPPacket")
             return False
         payload: NTPPacket = payload
         if payload.ntp_request.ntp_client:
             self.sys_log.info(
-                f"{self.name}: Received request for {payload.ntp_request.ntp_client} "
-                f"from session {session_id}"
+                f"{self.name}: Received request for {payload.ntp_request.ntp_client} " f"from session {session_id}"
             )
             # generate a reply with the current time
             time = datetime.now()

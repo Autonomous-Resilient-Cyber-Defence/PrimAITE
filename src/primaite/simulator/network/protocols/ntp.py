@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from datetime import datetime
 from ipaddress import IPv4Address
 from typing import Optional
+
 from pydantic import BaseModel
+
 from primaite.simulator.network.protocols.packet import DataPacket
-from datetime import datetime
 
 
 class NTPRequest(BaseModel):
@@ -33,7 +35,7 @@ class NTPPacket(DataPacket):
     ntp_reply: Optional[NTPReply] = None
 
     def generate_reply(self, time: datetime) -> NTPPacket:
-        """ Generate a NTPPacket containing the time in a NTPReply object
+        """Generate a NTPPacket containing the time in a NTPReply object.
 
         :param time: datetime object representing the time from the NTP server.
         :return: A new NTPPacket object.
