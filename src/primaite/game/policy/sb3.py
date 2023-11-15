@@ -1,6 +1,7 @@
 """Stable baselines 3 policy."""
 from typing import Literal, Optional, TYPE_CHECKING, Union
 
+import numpy as np
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.a2c import MlpPolicy as A2C_MLP
 from stable_baselines3.ppo import MlpPolicy as PPO_MLP
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
     from primaite.game.session import PrimaiteSession, TrainingOptions
 
 
-class SB3Policy(PolicyABC):
+class SB3Policy(PolicyABC, identifier="SB3"):
     """Single agent RL policy using stable baselines 3."""
 
     def __init__(self, session: "PrimaiteSession", algorithm: Literal["PPO", "A2C"], seed: Optional[int] = None):
@@ -39,16 +40,18 @@ class SB3Policy(PolicyABC):
         # TODO: consider moving this loop to the session, only if this makes sense for RAY RLLIB
         for i in range(n_episodes):
             self._agent.learn(total_timesteps=n_time_steps)
-            self._save_checkpoint()
+            # self._save_checkpoint()
         pass
 
     def eval(self, n_episodes: int, n_time_steps: int, deterministic: bool) -> None:
         """Evaluate the agent."""
         # TODO: consider moving this loop to the session, only if this makes sense for RAY RLLIB
         for episode in range(n_episodes):
-            obs = self.session.env.reset()
+            obs, info = self.session.env.reset()
             for step in range(n_time_steps):
                 action, _states = self._agent.predict(obs, deterministic=deterministic)
+                if isinstance(action, np.ndarray):
+                    action = np.int64(action)
                 obs, rewards, truncated, terminated, info = self.session.env.step(action)
 
     def save(self) -> None:

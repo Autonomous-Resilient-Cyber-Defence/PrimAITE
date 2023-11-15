@@ -33,7 +33,7 @@ from primaite.simulator.system.services.web_server.web_server import WebServer
 _LOGGER = getLogger(__name__)
 
 
-class PrimaiteEnv(gymnasium.Env):
+class PrimaiteGymEnv(gymnasium.Env):
     """
     Thin wrapper env to provide agents with a gymnasium API.
 
@@ -57,10 +57,10 @@ class PrimaiteEnv(gymnasium.Env):
         state = self.session.get_sim_state()
         self.session.update_agents(state)
 
-        next_obs = self.agent.observation_manager.current_observation
+        next_obs = self._get_obs()
         reward = self.agent.reward_function.current_reward
         terminated = False
-        truncated = ...
+        truncated = False
         info = {}
 
         return next_obs, reward, terminated, truncated, info
@@ -70,19 +70,25 @@ class PrimaiteEnv(gymnasium.Env):
         self.session.reset()
         state = self.session.get_sim_state()
         self.session.update_agents(state)
-        next_obs = self.agent.observation_manager.current_observation
+        next_obs = self._get_obs()
         info = {}
         return next_obs, info
 
     @property
     def action_space(self) -> gymnasium.Space:
         """Return the action space of the environment."""
-        return self.agent.action_manager.action_space
+        return self.agent.action_manager.space
 
     @property
     def observation_space(self) -> gymnasium.Space:
         """Return the observation space of the environment."""
-        return self.agent.observation_manager.observation_space
+        return gymnasium.spaces.flatten_space(self.agent.observation_manager.space)
+
+    def _get_obs(self) -> ObsType:
+        """Return the current observation."""
+        unflat_space = self.agent.observation_manager.space
+        unflat_obs = self.agent.observation_manager.current_observation
+        return gymnasium.spaces.flatten(unflat_space, unflat_obs)
 
 
 class PrimaiteSessionOptions(BaseModel):
@@ -122,6 +128,9 @@ class PrimaiteSession:
         self.agents: List[AbstractAgent] = []
         """List of agents."""
 
+        self.rl_agents: List[ProxyAgent] = []
+        """Subset of agent list including only the reinforcement learning agents."""
+
         self.step_counter: int = 0
         """Current timestep within the episode."""
 
@@ -149,7 +158,8 @@ class PrimaiteSession:
         self.ref_map_links: Dict[str, Link] = {}
         """Mapping from human-readable link reference to link object. Used when parsing config files."""
 
-        # self.env:
+        self.env: PrimaiteGymEnv
+        """The environment that the agent can consume. Could be PrimaiteEnv."""
 
     def start_session(self) -> None:
         """Commence the training session."""
@@ -423,7 +433,7 @@ class PrimaiteSession:
                     reward_function=rew_function,
                 )
                 sess.agents.append(new_agent)
-            elif agent_type == "RLAgent":
+            elif agent_type == "ProxyAgent":
                 new_agent = ProxyAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
@@ -431,6 +441,7 @@ class PrimaiteSession:
                     reward_function=rew_function,
                 )
                 sess.agents.append(new_agent)
+                sess.rl_agents.append(new_agent)
             elif agent_type == "RedDatabaseCorruptingAgent":
                 new_agent = RandomAgent(
                     agent_name=agent_cfg["ref"],
@@ -442,7 +453,10 @@ class PrimaiteSession:
             else:
                 print("agent type not found")
 
-            # CREATE POLICY
-            sess.policy = PolicyABC.from_config(sess.training_options)
+        # CREATE ENVIRONMENT
+        sess.env = PrimaiteGymEnv(session=sess, agents=sess.rl_agents)
+
+        # CREATE POLICY
+        sess.policy = PolicyABC.from_config(sess.training_options, session=sess)
 
         return sess

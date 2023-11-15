@@ -16,7 +16,7 @@ class PolicyABC(ABC):
     Automatically populated when PolicyABC subclasses are defined. Used for defining from_config.
     """
 
-    def __init_subclass__(cls, name: str, **kwargs: Any) -> None:
+    def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
         """
         Register a policy subclass.
 
@@ -25,9 +25,9 @@ class PolicyABC(ABC):
         :raises ValueError: When attempting to create a policy with a duplicate name.
         """
         super().__init_subclass__(**kwargs)
-        if name in cls._registry:
-            raise ValueError(f"Duplicate policy name {name}")
-        cls._registry[name] = cls
+        if identifier in cls._registry:
+            raise ValueError(f"Duplicate policy name {identifier}")
+        cls._registry[identifier] = cls
         return
 
     @abstractmethod
@@ -78,6 +78,6 @@ class PolicyABC(ABC):
         # I should really define a config schema class using pydantic.
 
         PolicyType = cls._registry[config.rl_framework]
-        return PolicyType.from_config()
+        return PolicyType.from_config(config=config, session=session)
 
     # saving checkpoints logic will be handled here, it will invoke 'save' method which is implemented by the subclass
