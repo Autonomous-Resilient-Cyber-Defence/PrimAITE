@@ -2,10 +2,10 @@ from ipaddress import IPv4Address
 from typing import Dict, Optional
 
 from primaite import getLogger
-from primaite.simulator.network.protocols.ntp import NTPPacket
+from primaite.simulator.network.protocols.ntp import NTPPacket, NTPRequest
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.services.service import Service
+from primaite.simulator.system.services.service import Service, ServiceOperatingState
 
 _LOGGER = getLogger(__name__)
 
@@ -13,6 +13,7 @@ _LOGGER = getLogger(__name__)
 class NTPClient(Service):
     """Represents a NTP client as a service."""
 
+    ip_addr: Optional[IPv4Address] = None
     ntp_server: Optional[IPv4Address] = None
     "The NTP server the client sends requests to."
 
@@ -30,7 +31,8 @@ class NTPClient(Service):
         The specifics of the software's state, including its health, criticality,
         and any other pertinent information, should be implemented in subclasses.
 
-        :return: A dictionary containing key-value pairs representing the current state of the software.
+        :return: A dictionary containing key-value pairs representing the current state
+        of the software.
         :rtype: Dict
         """
         state = super().describe_state()
@@ -65,7 +67,11 @@ class NTPClient(Service):
         self.sys_log.info(f"{self.name}: Sending NTP request {payload.ntp_request.ntp_client}")
 
         return super().send(
-            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id, **kwargs
+            payload=payload,
+            dest_ip_address=dest_ip_address,
+            dest_port=dest_port,
+            session_id=session_id,
+            **kwargs,
         )
 
     def receive(
@@ -86,5 +92,25 @@ class NTPClient(Service):
 
         # XXX: compare received datetime with current time. Log error if differ by more than x ms?
         if payload.ntp_reply.ntp_datetime:
-            self.sys_log.info(f"{self.name}: Received time update from NTP server{payload.ntp_reply.ntp_datetime}")
+            self.sys_log.info(
+                f"{self.name}: Received time \
+                              update from NTP server{payload.ntp_reply.ntp_datetime}"
+            )
             return True
+
+    def apply_timestep(self, timestep: int) -> None:
+        """
+        For each timestep request the time tfrom the NTP server.
+
+        In this instance, if any multi-timestep processes are currently
+        occurring (such as restarting or installation), then they are brought one step closer to
+        being finished.
+
+        :param timestep: The current timestep number. (Amount of time since simulation episode began)
+        :type timestep: int
+        """
+        super().apply_timestep(timestep)
+        if self.operating_state == ServiceOperatingState.RUNNING:
+            # request time from server
+            ntp_request = NTPPacket(NTPRequest())
+            self.send(ntp_request)

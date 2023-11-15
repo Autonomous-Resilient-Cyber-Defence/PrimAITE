@@ -12,7 +12,7 @@ from primaite.simulator.network.protocols.packet import DataPacket
 class NTPRequest(BaseModel):
     """Represents a NTP Request packet."""
 
-    ntp_client: IPv4Address = None
+    ntp_client: Optional[IPv4Address] = None
 
 
 class NTPReply(BaseModel):
