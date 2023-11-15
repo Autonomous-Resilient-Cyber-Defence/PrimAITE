@@ -1,4 +1,5 @@
 """Stable baselines 3 policy."""
+from pathlib import Path
 from typing import Literal, Optional, TYPE_CHECKING, Union
 
 from stable_baselines3 import A2C, PPO
@@ -50,12 +51,15 @@ class SB3Policy(PolicyABC, identifier="SB3"):
         )
         print(reward_data)
 
-    def save(self) -> None:
-        """Save the agent."""
-        savepath = (
-            "temp/path/to/save.pth"  # TODO: populate values once I figure out how to get them from the config / session
-        )
-        self._agent.save(savepath)
+    def save(self, save_path: Path) -> None:
+        """
+        Save the current policy parameters.
+
+        Warning: The recommended way to save model checkpoints is to use a callback within the `learn()` method. Please
+        refer to https://stable-baselines3.readthedocs.io/en/master/guide/callbacks.html for more information.
+        Therefore, this method is only used to save the final model.
+        """
+        self._agent.save(save_path)
         pass
 
     def load(self) -> None:

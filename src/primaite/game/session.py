@@ -13,6 +13,7 @@ from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent, ProxyAgent, RandomAgent
 from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
+from primaite.game.io import SessionIO, SessionIOSettings
 from primaite.game.policy.policy import PolicyABC
 from primaite.simulator.network.hardware.base import Link, NIC, Node
 from primaite.simulator.network.hardware.nodes.computer import Computer
@@ -179,6 +180,10 @@ class PrimaiteSession:
         """evaluation episodes counter"""
 
         self.mode: SessionMode = SessionMode.MANUAL
+        """Current session mode."""
+
+        self.io_manager = SessionIO()
+        """IO manager for the session."""
 
     def start_session(self) -> None:
         """Commence the training session."""
@@ -190,6 +195,7 @@ class PrimaiteSession:
         n_eval_episodes = self.training_options.n_eval_episodes
         deterministic_eval = self.training_options.deterministic_eval
         self.policy.learn(n_time_steps=n_learn_steps)
+        self.save_models()
 
         self.mode = SessionMode.EVAL
         if n_eval_episodes > 0:
@@ -197,6 +203,11 @@ class PrimaiteSession:
             self.policy.eval(n_episodes=n_eval_episodes, deterministic=deterministic_eval)
 
         self.mode = SessionMode.MANUAL
+
+    def save_models(self) -> None:
+        """Save the RL models."""
+        save_path = self.io_manager.generate_model_save_path("temp_model_name")
+        self.policy.save(save_path)
 
     def step(self):
         """
@@ -499,5 +510,9 @@ class PrimaiteSession:
 
         # CREATE POLICY
         sess.policy = PolicyABC.from_config(sess.training_options, session=sess)
+
+        # READ IO SETTINGS
+        io_settings = cfg.get("io_settings", {})
+        sess.io_manager.settings = SessionIO(settings=SessionIOSettings(**io_settings))
 
         return sess

@@ -1,5 +1,6 @@
 """Base class and common logic for RL policies."""
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -54,7 +55,7 @@ class PolicyABC(ABC):
         pass
 
     @abstractmethod
-    def save(self) -> None:
+    def save(self, save_path: Path) -> None:
         """Save the agent."""
         pass
 
