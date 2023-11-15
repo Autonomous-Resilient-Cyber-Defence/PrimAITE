@@ -2,10 +2,9 @@ training_config:
   rl_framework: SB3
   rl_algorithm: PPO
   seed: 333
-  n_learn_episodes: 20
-  n_learn_steps: 128
+  n_learn_steps: 2560
   n_eval_episodes: 5
-  n_eval_steps: 128
+  max_steps_per_episode: 128
   deterministic_eval: false
   n_agents: 1
   agent_references:

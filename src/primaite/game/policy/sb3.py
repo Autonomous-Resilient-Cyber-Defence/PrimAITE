@@ -1,9 +1,9 @@
 """Stable baselines 3 policy."""
 from typing import Literal, Optional, TYPE_CHECKING, Union
 
-import numpy as np
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.a2c import MlpPolicy as A2C_MLP
+from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.ppo import MlpPolicy as PPO_MLP
 
 from primaite.game.policy.policy import PolicyABC
@@ -33,26 +33,22 @@ class SB3Policy(PolicyABC, identifier="SB3"):
             env=self.session.env,
             n_steps=128,  # this is not the number of steps in an episode, but the number of steps in a batch
             seed=seed,
-        )  # TODO: populate values once I figure out how to get them from the config / session
+        )
 
-    def learn(self, n_episodes: int, n_time_steps: int) -> None:
+    def learn(self, n_time_steps: int) -> None:
         """Train the agent."""
-        # TODO: consider moving this loop to the session, only if this makes sense for RAY RLLIB
-        for i in range(n_episodes):
-            self._agent.learn(total_timesteps=n_time_steps)
-            # self._save_checkpoint()
-        pass
+        self._agent.learn(total_timesteps=n_time_steps)
 
-    def eval(self, n_episodes: int, n_time_steps: int, deterministic: bool) -> None:
+    def eval(self, n_episodes: int, deterministic: bool) -> None:
         """Evaluate the agent."""
-        # TODO: consider moving this loop to the session, only if this makes sense for RAY RLLIB
-        for episode in range(n_episodes):
-            obs, info = self.session.env.reset()
-            for step in range(n_time_steps):
-                action, _states = self._agent.predict(obs, deterministic=deterministic)
-                if isinstance(action, np.ndarray):
-                    action = np.int64(action)
-                obs, rewards, truncated, terminated, info = self.session.env.step(action)
+        reward_data = evaluate_policy(
+            self._agent,
+            self.session.env,
+            n_eval_episodes=n_episodes,
+            deterministic=deterministic,
+            return_episode_rewards=True,
+        )
+        print(reward_data)
 
     def save(self) -> None:
         """Save the agent."""

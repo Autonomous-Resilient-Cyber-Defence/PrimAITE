@@ -133,6 +133,7 @@ def _get_primaite_config() -> Dict:
         "DEBUG": logging.DEBUG,
         "INFO": logging.INFO,
         "WARN": logging.WARN,
+        "WARNING": logging.WARN,
         "ERROR": logging.ERROR,
         "CRITICAL": logging.CRITICAL,
     }
