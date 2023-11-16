@@ -5,7 +5,6 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Union
-from unittest.mock import patch
 
 import nodeenv
 import pytest
@@ -22,12 +21,14 @@ from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.service import Service
-from tests.mock_and_patch.get_session_path_mock import get_temp_session_path
+from tests.mock_and_patch.get_session_path_mock import temp_user_sessions_path
 
 ACTION_SPACE_NODE_VALUES = 1
 ACTION_SPACE_NODE_ACTION_VALUES = 1
 
 _LOGGER = getLogger(__name__)
+
+from primaite import PRIMAITE_PATHS
 
 # PrimAITE v3 stuff
 from primaite.simulator.file_system.file_system import FileSystem
@@ -97,8 +98,9 @@ class TempPrimaiteSession(PrimaiteSession):
 
 
 @pytest.fixture
-def temp_primaite_session(request) -> TempPrimaiteSession:
+def temp_primaite_session(request, monkeypatch) -> TempPrimaiteSession:
     """Create a temporary PrimaiteSession object."""
-
-    config_path = request.param[0]
-    return TempPrimaiteSession.from_config(config_path=config_path)
+    with monkeypatch.context() as m:
+        m.setattr(PRIMAITE_PATHS, "user_sessions_path", temp_user_sessions_path())
+        config_path = request.param[0]
+        return TempPrimaiteSession.from_config(config_path=config_path)

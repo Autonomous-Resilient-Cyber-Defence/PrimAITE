@@ -9,7 +9,7 @@ from primaite import getLogger
 _LOGGER = getLogger(__name__)
 
 
-def get_temp_session_path(session_timestamp: datetime) -> Path:
+def temp_user_sessions_path() -> Path:
     """
     Get a temp directory session path the test session will output to.
 

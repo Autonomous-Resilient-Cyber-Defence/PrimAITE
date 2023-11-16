@@ -29,6 +29,15 @@ class _PrimaitePaths:
 
     def __init__(self) -> None:
         self._dirs: Final[PlatformDirs] = PlatformDirs(appname="primaite", version=__version__)
+        self.user_home_path = self.generate_user_home_path()
+        self.user_sessions_path = self.generate_user_sessions_path()
+        self.user_config_path = self.generate_user_config_path()
+        self.user_notebooks_path = self.generate_user_notebooks_path()
+        self.app_home_path = self.generate_app_home_path()
+        self.app_config_dir_path = self.generate_app_config_dir_path()
+        self.app_config_file_path = self.generate_app_config_file_path()
+        self.app_log_dir_path = self.generate_app_log_dir_path()
+        self.app_log_file_path = self.generate_app_log_file_path()
 
     def _get_dirs_properties(self) -> List[str]:
         class_items = self.__class__.__dict__.items()
@@ -43,55 +52,47 @@ class _PrimaitePaths:
         for p in self._get_dirs_properties():
             getattr(self, p)
 
-    @property
-    def user_home_path(self) -> Path:
+    def generate_user_home_path(self) -> Path:
         """The PrimAITE user home path."""
         path = Path.home() / "primaite" / __version__
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def user_sessions_path(self) -> Path:
+    def generate_user_sessions_path(self) -> Path:
         """The PrimAITE user sessions path."""
         path = self.user_home_path / "sessions"
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def user_config_path(self) -> Path:
+    def generate_user_config_path(self) -> Path:
         """The PrimAITE user config path."""
         path = self.user_home_path / "config"
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def user_notebooks_path(self) -> Path:
+    def generate_user_notebooks_path(self) -> Path:
         """The PrimAITE user notebooks path."""
         path = self.user_home_path / "notebooks"
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def app_home_path(self) -> Path:
+    def generate_app_home_path(self) -> Path:
         """The PrimAITE app home path."""
         path = self._dirs.user_data_path
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def app_config_dir_path(self) -> Path:
+    def generate_app_config_dir_path(self) -> Path:
         """The PrimAITE app config directory path."""
         path = self._dirs.user_config_path
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def app_config_file_path(self) -> Path:
+    def generate_app_config_file_path(self) -> Path:
         """The PrimAITE app config file path."""
         return self.app_config_dir_path / "primaite_config.yaml"
 
-    @property
-    def app_log_dir_path(self) -> Path:
+    def generate_app_log_dir_path(self) -> Path:
         """The PrimAITE app log directory path."""
         if sys.platform == "win32":
             path = self.app_home_path / "logs"
@@ -100,8 +101,7 @@ class _PrimaitePaths:
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def app_log_file_path(self) -> Path:
+    def generate_app_log_file_path(self) -> Path:
         """The PrimAITE app log file path."""
         return self.app_log_dir_path / "primaite.log"
 
