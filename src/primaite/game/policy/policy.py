@@ -45,12 +45,12 @@ class PolicyABC(ABC):
         """Reference to the session."""
 
     @abstractmethod
-    def learn(self, n_episodes: int, n_time_steps: int) -> None:
+    def learn(self, n_episodes: int, timesteps_per_episode: int) -> None:
         """Train the agent."""
         pass
 
     @abstractmethod
-    def eval(self, n_episodes: int, n_time_steps: int, deterministic: bool) -> None:
+    def eval(self, n_episodes: int, timesteps_per_episode: int, deterministic: bool) -> None:
         """Evaluate the agent."""
         pass
 

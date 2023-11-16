@@ -4,6 +4,7 @@ from typing import Literal, Optional, TYPE_CHECKING, Union
 
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.a2c import MlpPolicy as A2C_MLP
+from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.ppo import MlpPolicy as PPO_MLP
 
@@ -36,9 +37,17 @@ class SB3Policy(PolicyABC, identifier="SB3"):
             seed=seed,
         )
 
-    def learn(self, n_time_steps: int) -> None:
+    def learn(self, n_episodes: int, timesteps_per_episode: int) -> None:
         """Train the agent."""
-        self._agent.learn(total_timesteps=n_time_steps)
+        if self.session.io_manager.settings.save_checkpoints:
+            checkpoint_callback = CheckpointCallback(
+                save_freq=timesteps_per_episode * self.session.io_manager.settings.checkpoint_interval,
+                save_path=self.session.io_manager.generate_model_save_path("sb3"),
+                name_prefix="sb3_model",
+            )
+        else:
+            checkpoint_callback = None
+        self._agent.learn(total_timesteps=n_episodes * timesteps_per_episode, callback=checkpoint_callback)
 
     def eval(self, n_episodes: int, deterministic: bool) -> None:
         """Evaluate the agent."""
@@ -60,12 +69,10 @@ class SB3Policy(PolicyABC, identifier="SB3"):
         Therefore, this method is only used to save the final model.
         """
         self._agent.save(save_path)
-        pass
 
-    def load(self) -> None:
+    def load(self, model_path: Path) -> None:
         """Load agent from a checkpoint."""
-        self._agent_class.load("temp/path/to/save.pth", env=self.session.env)
-        pass
+        self._agent = self._agent_class.load(model_path, env=self.session.env)
 
     def close(self) -> None:
         """Close the agent."""

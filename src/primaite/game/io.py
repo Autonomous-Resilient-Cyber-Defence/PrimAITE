@@ -32,8 +32,8 @@ class SessionIO:
     """
 
     def __init__(self, settings: SessionIOSettings = SessionIOSettings()) -> None:
-        self.settings = settings
-        self.session_path = self.generate_session_path()
+        self.settings: SessionIOSettings = settings
+        self.session_path: Path = self.generate_session_path()
 
     def generate_session_path(self, timestamp: Optional[datetime] = None) -> Path:
         """Create a folder for the session and return the path to it."""

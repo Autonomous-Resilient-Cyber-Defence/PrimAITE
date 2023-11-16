@@ -112,11 +112,12 @@ class TrainingOptions(BaseModel):
 
     rl_framework: Literal["SB3", "RLLIB"]
     rl_algorithm: Literal["PPO", "A2C"]
-    seed: Optional[int]
-    n_learn_steps: int
+    n_learn_episodes: int
     n_eval_episodes: Optional[int] = None
     max_steps_per_episode: int
+    # checkpoint_freq: Optional[int] = None
     deterministic_eval: bool
+    seed: Optional[int]
     n_agents: int
     agent_references: List[str]
 
@@ -188,13 +189,18 @@ class PrimaiteSession:
     def start_session(self) -> None:
         """Commence the training session."""
         self.mode = SessionMode.TRAIN
-        self.training_progress_bar = progress_bar_manager.counter(
-            total=self.training_options.n_learn_steps, desc="Training steps"
-        )
-        n_learn_steps = self.training_options.n_learn_steps
+        n_learn_episodes = self.training_options.n_learn_episodes
         n_eval_episodes = self.training_options.n_eval_episodes
+        max_steps_per_episode = self.training_options.max_steps_per_episode
+        self.training_progress_bar = progress_bar_manager.counter(
+            total=n_learn_episodes * max_steps_per_episode, desc="Training steps"
+        )
+
         deterministic_eval = self.training_options.deterministic_eval
-        self.policy.learn(n_time_steps=n_learn_steps)
+        self.policy.learn(
+            n_episodes=n_learn_episodes,
+            timesteps_per_episode=max_steps_per_episode,
+        )
         self.save_models()
 
         self.mode = SessionMode.EVAL
@@ -513,6 +519,6 @@ class PrimaiteSession:
 
         # READ IO SETTINGS
         io_settings = cfg.get("io_settings", {})
-        sess.io_manager.settings = SessionIO(settings=SessionIOSettings(**io_settings))
+        sess.io_manager = SessionIO(settings=SessionIOSettings(**io_settings))
 
         return sess
