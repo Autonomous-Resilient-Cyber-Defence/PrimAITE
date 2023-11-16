@@ -1,6 +1,7 @@
 """PrimAITE session - the main entry point to training agents on PrimAITE."""
 from enum import Enum
 from ipaddress import IPv4Address
+from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, SupportsFloat, Tuple
 
 import enlighten
@@ -297,7 +298,7 @@ class PrimaiteSession:
         return NotImplemented
 
     @classmethod
-    def from_config(cls, cfg: dict) -> "PrimaiteSession":
+    def from_config(cls, cfg: dict, agent_load_path: Optional[str] = None) -> "PrimaiteSession":
         """Create a PrimaiteSession object from a config dictionary.
 
         The config dictionary should have the following top-level keys:
@@ -516,6 +517,8 @@ class PrimaiteSession:
 
         # CREATE POLICY
         sess.policy = PolicyABC.from_config(sess.training_options, session=sess)
+        if agent_load_path:
+            sess.policy.load(Path(agent_load_path))
 
         # READ IO SETTINGS
         io_settings = cfg.get("io_settings", {})

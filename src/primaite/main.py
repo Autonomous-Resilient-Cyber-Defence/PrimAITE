@@ -15,6 +15,7 @@ _LOGGER = getLogger(__name__)
 
 def run(
     config_path: Optional[Union[str, Path]] = "",
+    agent_load_path: Optional[Union[str, Path]] = None,
 ) -> None:
     """
     Run the PrimAITE Session.
@@ -31,7 +32,7 @@ def run(
         otherwise False.
     """
     cfg = load(config_path)
-    sess = PrimaiteSession.from_config(cfg=cfg)
+    sess = PrimaiteSession.from_config(cfg=cfg, agent_load_path=agent_load_path)
     sess.start_session()
 
 

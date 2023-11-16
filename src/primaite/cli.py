@@ -119,6 +119,7 @@ def setup(overwrite_existing: bool = True) -> None:
 @app.command()
 def session(
     config: Optional[str] = None,
+    agent_load_file: Optional[str] = None,
 ) -> None:
     """
     Run a PrimAITE session.
@@ -132,4 +133,4 @@ def session(
     if not config:
         config = example_config_path()
     print(config)
-    run(config_path=config)
+    run(config_path=config, agent_load_path=agent_load_file)
