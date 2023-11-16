@@ -26,7 +26,7 @@ the structure:
 ```
 """
 from abc import abstractmethod
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, List, Tuple, Type, TYPE_CHECKING
 
 from primaite import getLogger
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
@@ -228,7 +228,7 @@ class WebServer404Penalty(AbstractReward):
 class RewardFunction:
     """Manages the reward function for the agent."""
 
-    __rew_class_identifiers: Dict[str, type[AbstractReward]] = {
+    __rew_class_identifiers: Dict[str, Type[AbstractReward]] = {
         "DUMMY": DummyReward,
         "DATABASE_FILE_INTEGRITY": DatabaseFileIntegrity,
         "WEB_SERVER_404_PENALTY": WebServer404Penalty,

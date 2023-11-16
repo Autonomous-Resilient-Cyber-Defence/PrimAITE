@@ -1,6 +1,6 @@
 """Stable baselines 3 policy."""
 from pathlib import Path
-from typing import Literal, Optional, TYPE_CHECKING, Union
+from typing import Literal, Optional, Type, TYPE_CHECKING, Union
 
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.a2c import MlpPolicy as A2C_MLP
@@ -21,7 +21,7 @@ class SB3Policy(PolicyABC, identifier="SB3"):
         """Initialize a stable baselines 3 policy."""
         super().__init__(session=session)
 
-        self._agent_class: type[Union[PPO, A2C]]
+        self._agent_class: Type[Union[PPO, A2C]]
         if algorithm == "PPO":
             self._agent_class = PPO
             policy = PPO_MLP

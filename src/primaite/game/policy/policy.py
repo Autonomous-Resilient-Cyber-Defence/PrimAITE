@@ -1,7 +1,7 @@
 """Base class and common logic for RL policies."""
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, TYPE_CHECKING
+from typing import Any, Dict, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from primaite.game.session import PrimaiteSession, TrainingOptions
@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 class PolicyABC(ABC):
     """Base class for reinforcement learning agents."""
 
-    _registry: Dict[str, type["PolicyABC"]] = {}
+    _registry: Dict[str, Type["PolicyABC"]] = {}
     """
     Registry of policy types, keyed by name.
 

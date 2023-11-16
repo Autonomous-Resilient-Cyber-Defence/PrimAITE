@@ -52,7 +52,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         self.session: "PrimaiteSession" = session
         self.agent: ProxyAgent = agents[0]
 
-    def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, dict[str, Any]]:
+    def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, Dict[str, Any]]:
         """Perform a step in the environment."""
         # make ProxyAgent store the action chosen my the RL policy
         self.agent.store_action(action)
@@ -70,7 +70,7 @@ class PrimaiteGymEnv(gymnasium.Env):
 
         return next_obs, reward, terminated, truncated, info
 
-    def reset(self, seed: Optional[int] = None) -> tuple[ObsType, dict[str, Any]]:
+    def reset(self, seed: Optional[int] = None) -> Tuple[ObsType, Dict[str, Any]]:
         """Reset the environment."""
         self.session.reset()
         state = self.session.get_sim_state()
