@@ -135,3 +135,6 @@ class WebBrowser(Application):
         self.sys_log.info(f"{self.name}: Received HTTP {payload.status_code.value}")
         self.latest_response = payload
         return True
+
+    def execute(self):
+        pass

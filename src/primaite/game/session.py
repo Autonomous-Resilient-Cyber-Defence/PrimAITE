@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, RandomAgent
+from primaite.game.agent.interface import AbstractAgent, RandomAgent, DataManipulationAgent, AgentExecutionDefinition
 from primaite.game.agent.observations import ObservationSpace
 from primaite.game.agent.rewards import RewardFunction
 from primaite.simulator.network.hardware.base import Link, NIC, Node
@@ -438,6 +438,8 @@ class PrimaiteSession:
             # CREATE REWARD FUNCTION
             rew_function = RewardFunction.from_config(reward_function_cfg, session=sess)
 
+            execution_definition = AgentExecutionDefinition(**agent_cfg.get("execution_definition", {}))
+
             # CREATE AGENT
             if agent_type == "GreenWebBrowsingAgent":
                 # TODO: implement non-random agents and fix this parsing
@@ -446,6 +448,7 @@ class PrimaiteSession:
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=rew_function,
+                    execution_definition=execution_definition,
                 )
                 sess.agents.append(new_agent)
             elif agent_type == "GATERLAgent":
@@ -454,15 +457,17 @@ class PrimaiteSession:
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=rew_function,
+                    execution_definition=execution_definition,
                 )
                 sess.agents.append(new_agent)
                 sess.rl_agent = new_agent
             elif agent_type == "RedDatabaseCorruptingAgent":
-                new_agent = RandomAgent(
+                new_agent = DataManipulationAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=rew_function,
+                    execution_definition=execution_definition,
                 )
                 sess.agents.append(new_agent)
             else:

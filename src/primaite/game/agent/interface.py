@@ -3,12 +3,18 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple, TypeAlias, Union
 
 import numpy as np
+from pydantic import BaseModel
 
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.observations import ObservationSpace
 from primaite.game.agent.rewards import RewardFunction
 
 ObsType: TypeAlias = Union[Dict, np.ndarray]
+
+
+class AgentExecutionDefinition(BaseModel):
+    port_scan_p_of_success: float = 0.1
+    data_manipulation_p_of_success: float = 0.1
 
 
 class AbstractAgent(ABC):
@@ -20,6 +26,7 @@ class AbstractAgent(ABC):
         action_space: Optional[ActionManager],
         observation_space: Optional[ObservationSpace],
         reward_function: Optional[RewardFunction],
+        execution_definition: Optional[AgentExecutionDefinition]
     ) -> None:
         """
         Initialize an agent.
@@ -40,7 +47,7 @@ class AbstractAgent(ABC):
 
         # exection definiton converts CAOS action to Primaite simulator request, sometimes having to enrich the info
         # by for example specifying target ip addresses, or converting a node ID into a uuid
-        self.execution_definition = None
+        self.execution_definition = execution_definition or AgentExecutionDefinition()
 
     def convert_state_to_obs(self, state: Dict) -> ObsType:
         """
@@ -110,7 +117,11 @@ class RandomAgent(AbstractScriptedAgent):
         return self.action_space.get_action(self.action_space.space.sample())
 
 class DataManipulationAgent(AbstractScriptedAgent):
-    pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_action(self, obs: ObsType, reward: float = None) -> Tuple[str, Dict]:
+        return self.action_space.get_action(self.action_space.space.sample())
 
 class AbstractGATEAgent(AbstractAgent):
     """Base class for actors controlled via external messages, such as RL policies."""

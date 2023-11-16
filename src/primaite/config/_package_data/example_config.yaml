@@ -58,6 +58,10 @@ game_config:
       team: RED
       type: RedDatabaseCorruptingAgent
 
+      execution_definition:
+        port_scan_p_of_success: 0.1
+        data_manipulation_p_of_success: 0.1
+
       observation_space:
         type: UC2RedObservation
         options:
