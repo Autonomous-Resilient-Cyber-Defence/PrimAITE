@@ -10,6 +10,10 @@ training_config:
   agent_references:
     - defender
 
+io_settings:
+  save_checkpoints: true
+  checkpoint_interval: 5
+
 
 game_config:
   ports:

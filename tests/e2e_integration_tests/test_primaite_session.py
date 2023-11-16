@@ -32,7 +32,18 @@ class TestPrimaiteSession:
         with temp_primaite_session as session:
             session: TempPrimaiteSession
             session.start_session()
-            # TODO: check that env was closed, that the model was saved, etc.
+
+            session_path = session.io_manager.session_path
+            assert session_path.exists()
+            print(list(session_path.glob("*")))
+            checkpoint_dir = session_path / "checkpoints" / "sb3_final"
+            assert checkpoint_dir.exists()
+            checkpoint_1 = checkpoint_dir / "sb3_model_640_steps.zip"
+            checkpoint_2 = checkpoint_dir / "sb3_model_1280_steps.zip"
+            checkpoint_3 = checkpoint_dir / "sb3_model_1920_steps.zip"
+            assert checkpoint_1.exists()
+            assert checkpoint_2.exists()
+            assert not checkpoint_3.exists()
 
     @pytest.mark.parametrize("temp_primaite_session", [[TRAINING_ONLY_PATH]], indirect=True)
     def test_training_only_session(self, temp_primaite_session):

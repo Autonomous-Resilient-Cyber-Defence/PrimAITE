@@ -2,13 +2,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from primaite import PRIMAITE_PATHS
 
 
 class SessionIOSettings(BaseModel):
     """Schema for session IO settings."""
+
+    model_config = ConfigDict(extra="forbid")
 
     save_final_model: bool = True
     """Whether to save the final model right at the end of training."""
@@ -34,6 +36,8 @@ class SessionIO:
     def __init__(self, settings: SessionIOSettings = SessionIOSettings()) -> None:
         self.settings: SessionIOSettings = settings
         self.session_path: Path = self.generate_session_path()
+        # warning TODO: must be careful not to re-initialise sessionIO because it will create a new path each time it's
+        # possible refactor needed
 
     def generate_session_path(self, timestamp: Optional[datetime] = None) -> Path:
         """Create a folder for the session and return the path to it."""

@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Literal, Optional, SupportsFloat, Tuple
 import enlighten
 import gymnasium
 from gymnasium.core import ActType, ObsType
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
@@ -104,12 +104,16 @@ class PrimaiteSessionOptions(BaseModel):
     Currently this is used to restrict which ports and protocols exist in the world of the simulation.
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     ports: List[str]
     protocols: List[str]
 
 
 class TrainingOptions(BaseModel):
     """Options for training the RL agent."""
+
+    model_config = ConfigDict(extra="forbid")
 
     rl_framework: Literal["SB3", "RLLIB"]
     rl_algorithm: Literal["PPO", "A2C"]
@@ -522,6 +526,6 @@ class PrimaiteSession:
 
         # READ IO SETTINGS
         io_settings = cfg.get("io_settings", {})
-        sess.io_manager = SessionIO(settings=SessionIOSettings(**io_settings))
+        sess.io_manager.settings = SessionIOSettings(**io_settings)
 
         return sess
