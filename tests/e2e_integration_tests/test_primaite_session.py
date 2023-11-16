@@ -40,6 +40,8 @@ class TestPrimaiteSession:
         with temp_primaite_session as session:
             session: TempPrimaiteSession
             session.start_session()
+            for i in range(100):
+                print(session.io_manager.generate_session_path())
             # TODO: include checks that the model was trained, e.g. that the loss changed and checkpoints were saved?
 
     @pytest.mark.parametrize("temp_primaite_session", [[EVAL_ONLY_PATH]], indirect=True)

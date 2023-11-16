@@ -100,7 +100,6 @@ class TempPrimaiteSession(PrimaiteSession):
 @pytest.fixture
 def temp_primaite_session(request, monkeypatch) -> TempPrimaiteSession:
     """Create a temporary PrimaiteSession object."""
-    with monkeypatch.context() as m:
-        m.setattr(PRIMAITE_PATHS, "user_sessions_path", temp_user_sessions_path())
-        config_path = request.param[0]
-        return TempPrimaiteSession.from_config(config_path=config_path)
+    monkeypatch.setattr(PRIMAITE_PATHS, "user_sessions_path", temp_user_sessions_path())
+    config_path = request.param[0]
+    return TempPrimaiteSession.from_config(config_path=config_path)
