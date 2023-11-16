@@ -100,7 +100,7 @@ class NTPClient(Service):
 
     def apply_timestep(self, timestep: int) -> None:
         """
-        For each timestep request the time tfrom the NTP server.
+        For each timestep request the time from the NTP server.
 
         In this instance, if any multi-timestep processes are currently
         occurring (such as restarting or installation), then they are brought one step closer to
@@ -114,3 +114,7 @@ class NTPClient(Service):
             # request time from server
             ntp_request = NTPPacket(NTPRequest())
             self.send(ntp_request)
+            return True
+        else:
+            self.sys_log.debug(f"{self.name} ntp client not running")
+            return False
