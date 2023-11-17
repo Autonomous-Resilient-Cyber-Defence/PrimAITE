@@ -35,6 +35,8 @@ def create_ntp_network() -> Network:
     ntp_client.power_on()
     network.connect(endpoint_b=ntp_server.ethernet_port[1], endpoint_a=ntp_client.ethernet_port[1])
 
+    return network
+
 
 # @pytest.fixture()
 # def create_network():
