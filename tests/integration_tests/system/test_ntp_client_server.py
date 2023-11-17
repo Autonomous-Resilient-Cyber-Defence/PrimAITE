@@ -52,8 +52,8 @@ def test_ntp_client_server():
     server: Server = network.get_node_by_hostname("ntp_server")
     client: Computer = network.get_node_by_hostname("ntp_client")
 
-    ntp_server: NTPServer = server.software_manager.software["NTP_Server"]
-    ntp_client: NTPClient = client.software_manager.software["NTP_Client"]
+    ntp_server: NTPServer = server.software_manager.software["NTPServer"]
+    ntp_client: NTPClient = client.software_manager.software["NTPClient"]
 
     assert ntp_server.operating_state == ServiceOperatingState.RUNNING
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
