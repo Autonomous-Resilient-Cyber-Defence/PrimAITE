@@ -1,6 +1,6 @@
 """Interface for agents."""
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple, TypeAlias, Union
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, TypeAlias, Union
 
 import numpy as np
 from pydantic import BaseModel
@@ -8,13 +8,21 @@ from pydantic import BaseModel
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.observations import ObservationSpace
 from primaite.game.agent.rewards import RewardFunction
+from primaite.simulator.network.hardware.base import Node
+
+if TYPE_CHECKING:
+    from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 
 ObsType: TypeAlias = Union[Dict, np.ndarray]
 
 
 class AgentExecutionDefinition(BaseModel):
+    """Additional configuration for agents."""
+
     port_scan_p_of_success: float = 0.1
+    "The probability of a port scan succeeding."
     data_manipulation_p_of_success: float = 0.1
+    "The probability of data manipulation succeeding."
 
 
 class AbstractAgent(ABC):
@@ -26,7 +34,7 @@ class AbstractAgent(ABC):
         action_space: Optional[ActionManager],
         observation_space: Optional[ObservationSpace],
         reward_function: Optional[RewardFunction],
-        execution_definition: Optional[AgentExecutionDefinition]
+        execution_definition: Optional[AgentExecutionDefinition],
     ) -> None:
         """
         Initialize an agent.
@@ -116,12 +124,37 @@ class RandomAgent(AbstractScriptedAgent):
         """
         return self.action_space.get_action(self.action_space.space.sample())
 
+
 class DataManipulationAgent(AbstractScriptedAgent):
+    """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # get node ids that are part of the agent's observation space
+        node_ids: List[str] = [n.where[-1] for n in self.observation_space.obs.nodes]
+        # get all nodes from their ids
+        nodes: List[Node] = [n for n_id, n in self.action_space.sim.network.nodes.items() if n_id in node_ids]
+
+        # get execution definition for data manipulation bots
+        for node in nodes:
+            bot_sw: Optional["DataManipulationBot"] = node.software_manager.software.get("DataManipulationBot")
+
+            if bot_sw is not None:
+                bot_sw.execution_definition = self.execution_definition
+
     def get_action(self, obs: ObsType, reward: float = None) -> Tuple[str, Dict]:
+        """Randomly sample an action from the action space.
+
+        :param obs: _description_
+        :type obs: ObsType
+        :param reward: _description_, defaults to None
+        :type reward: float, optional
+        :return: _description_
+        :rtype: Tuple[str, Dict]
+        """
         return self.action_space.get_action(self.action_space.space.sample())
+
 
 class AbstractGATEAgent(AbstractAgent):
     """Base class for actors controlled via external messages, such as RL policies."""

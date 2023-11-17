@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, RandomAgent, DataManipulationAgent, AgentExecutionDefinition
+from primaite.game.agent.interface import AbstractAgent, AgentExecutionDefinition, DataManipulationAgent, RandomAgent
 from primaite.game.agent.observations import ObservationSpace
 from primaite.game.agent.rewards import RewardFunction
 from primaite.simulator.network.hardware.base import Link, NIC, Node

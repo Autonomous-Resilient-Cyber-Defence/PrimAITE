@@ -2,6 +2,7 @@ from enum import IntEnum
 from ipaddress import IPv4Address
 from typing import Optional
 
+from primaite.game.agent.interface import AgentExecutionDefinition
 from primaite.game.science import simulate_trial
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -14,6 +15,7 @@ class DataManipulationAttackStage(IntEnum):
     This enumeration defines the various stages a data manipulation attack can be in during its lifecycle in the
     simulation. Each stage represents a specific phase in the attack process.
     """
+
     NOT_STARTED = 0
     "Indicates that the attack has not started yet."
     LOGON = 1
@@ -30,17 +32,19 @@ class DataManipulationAttackStage(IntEnum):
 
 class DataManipulationBot(DatabaseClient):
     """A bot that simulates a script which performs a SQL injection attack."""
+
     server_ip_address: Optional[IPv4Address] = None
     payload: Optional[str] = None
     server_password: Optional[str] = None
     attack_stage: DataManipulationAttackStage = DataManipulationAttackStage.NOT_STARTED
+    execution_definition: AgentExecutionDefinition = AgentExecutionDefinition()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "DataManipulationBot"
 
     def configure(
-            self, server_ip_address: IPv4Address, server_password: Optional[str] = None, payload: Optional[str] = None
+        self, server_ip_address: IPv4Address, server_password: Optional[str] = None, payload: Optional[str] = None
     ):
         """
         Configure the DataManipulatorBot to communicate with a DatabaseService.
@@ -96,7 +100,6 @@ class DataManipulationBot(DatabaseClient):
         if self.attack_stage == DataManipulationAttackStage.PORT_SCAN:
             # perform the actual data manipulation attack
             if simulate_trial(p_of_success):
-
                 self.sys_log.info(f"{self.name}: Performing port scan")
                 # perform the attack
                 if not self.connected:
@@ -114,7 +117,7 @@ class DataManipulationBot(DatabaseClient):
 
     def execute(self):
         """
-        Execute the Data Manipulation Bot
+        Execute the Data Manipulation Bot.
 
         Calls the parent classes execute method before starting the application loop.
         """
@@ -127,7 +130,6 @@ class DataManipulationBot(DatabaseClient):
 
         This is the core loop where the bot sequentially goes through the stages of the attack.
         """
-
         if self.operating_state != ApplicationOperatingState.RUNNING:
             return
         if self.server_ip_address and self.payload and self.operating_state:
