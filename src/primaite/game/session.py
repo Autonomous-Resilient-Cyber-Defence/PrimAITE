@@ -4,7 +4,7 @@ from ipaddress import IPv4Address
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, SupportsFloat, Tuple
 
-import enlighten
+import gymnasium
 from gymnasium.core import ActType, ObsType
 from pydantic import BaseModel, ConfigDict
 
@@ -33,8 +33,6 @@ from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.web_server.web_server import WebServer
-
-progress_bar_manager = enlighten.get_manager()
 
 _LOGGER = getLogger(__name__)
 
@@ -121,12 +119,6 @@ class PrimaiteSession:
         self.env: PrimaiteGymEnv
         """The environment that the agent can consume. Could be PrimaiteEnv."""
 
-        self.training_progress_bar: Optional[enlighten.Counter] = None
-        """training steps counter"""
-
-        self.eval_progress_bar: Optional[enlighten.Counter] = None
-        """evaluation episodes counter"""
-
         self.mode: SessionMode = SessionMode.MANUAL
         """Current session mode."""
 
@@ -139,9 +131,6 @@ class PrimaiteSession:
         n_learn_episodes = self.training_options.n_learn_episodes
         n_eval_episodes = self.training_options.n_eval_episodes
         max_steps_per_episode = self.training_options.max_steps_per_episode
-        self.training_progress_bar = progress_bar_manager.counter(
-            total=n_learn_episodes * max_steps_per_episode, desc="Training steps"
-        )
 
         deterministic_eval = self.training_options.deterministic_eval
         self.policy.learn(
@@ -152,7 +141,6 @@ class PrimaiteSession:
 
         self.mode = SessionMode.EVAL
         if n_eval_episodes > 0:
-            self.eval_progress_bar = progress_bar_manager.counter(total=n_eval_episodes, desc="Evaluation episodes")
             self.policy.eval(n_episodes=n_eval_episodes, deterministic=deterministic_eval)
 
         self.mode = SessionMode.MANUAL
@@ -219,9 +207,6 @@ class PrimaiteSession:
         _LOGGER.debug(f"Advancing timestep to {self.step_counter} ")
         self.simulation.apply_timestep(self.step_counter)
 
-        if self.training_progress_bar and self.mode == SessionMode.TRAIN:
-            self.training_progress_bar.update()
-
     def calculate_truncated(self) -> bool:
         """Calculate whether the episode is truncated."""
         current_step = self.step_counter
@@ -236,8 +221,6 @@ class PrimaiteSession:
         self.step_counter = 0
         _LOGGER.debug(f"Restting primaite session, episode = {self.episode_counter}")
         self.simulation.reset_component_for_episode(self.episode_counter)
-        if self.eval_progress_bar and self.mode == SessionMode.EVAL:
-            self.eval_progress_bar.update()
 
     def close(self) -> None:
         """Close the session, this will stop the env and close the simulation."""
