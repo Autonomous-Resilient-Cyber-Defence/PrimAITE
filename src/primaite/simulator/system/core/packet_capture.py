@@ -75,7 +75,7 @@ class PacketCapture:
 
     def _get_log_path(self) -> Path:
         """Get the path for the log file."""
-        root = SIM_OUTPUT / self.hostname
+        root = SIM_OUTPUT.path / self.hostname
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self._logger_name}.log"
 

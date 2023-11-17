@@ -5,6 +5,7 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 from primaite import PRIMAITE_PATHS
+from primaite.simulator import SIM_OUTPUT
 
 
 class SessionIOSettings(BaseModel):
@@ -36,6 +37,10 @@ class SessionIO:
     def __init__(self, settings: SessionIOSettings = SessionIOSettings()) -> None:
         self.settings: SessionIOSettings = settings
         self.session_path: Path = self.generate_session_path()
+
+        # set global SIM_OUTPUT path
+        SIM_OUTPUT.path = self.session_path / "simulation_output"
+
         # warning TODO: must be careful not to re-initialise sessionIO because it will create a new path each time it's
         # possible refactor needed
 

@@ -324,6 +324,11 @@ class PrimaiteSession:
             protocols=cfg["game_config"]["protocols"],
         )
         sess.training_options = TrainingOptions(**cfg["training_config"])
+
+        # READ IO SETTINGS (this sets the global session path as well) # TODO: GLOBAL SIDE EFFECTS...
+        io_settings = cfg.get("io_settings", {})
+        sess.io_manager.settings = SessionIOSettings(**io_settings)
+
         sim = sess.simulation
         net = sim.network
 
@@ -523,9 +528,5 @@ class PrimaiteSession:
         sess.policy = PolicyABC.from_config(sess.training_options, session=sess)
         if agent_load_path:
             sess.policy.load(Path(agent_load_path))
-
-        # READ IO SETTINGS
-        io_settings = cfg.get("io_settings", {})
-        sess.io_manager.settings = SessionIOSettings(**io_settings)
 
         return sess
