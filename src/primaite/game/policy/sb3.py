@@ -74,10 +74,6 @@ class SB3Policy(PolicyABC, identifier="SB3"):
         """Load agent from a checkpoint."""
         self._agent = self._agent_class.load(model_path, env=self.session.env)
 
-    def close(self) -> None:
-        """Close the agent."""
-        pass
-
     @classmethod
     def from_config(cls, config: "TrainingOptions", session: "PrimaiteSession") -> "SB3Policy":
         """Create an agent from config file."""
