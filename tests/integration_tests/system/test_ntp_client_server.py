@@ -28,11 +28,13 @@ def create_ntp_network() -> Network:
         hostname="ntp_server", ip_address="192.168.1.2", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
     )
     ntp_server.power_on()
+    ntp_server.software_manager.install(NTPServer)
 
     ntp_client = Computer(
         hostname="ntp_client", ip_address="192.168.1.3", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
     )
     ntp_client.power_on()
+    ntp_client.software_manager.install(NTPClient)
     network.connect(endpoint_b=ntp_server.ethernet_port[1], endpoint_a=ntp_client.ethernet_port[1])
 
     return network
