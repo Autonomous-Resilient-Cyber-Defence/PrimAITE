@@ -2,17 +2,13 @@ training_config:
   rl_framework: SB3
   rl_algorithm: PPO
   seed: 333
-  n_learn_episodes: 25
+  n_learn_episodes: 0
   n_eval_episodes: 5
   max_steps_per_episode: 128
   deterministic_eval: false
   n_agents: 1
   agent_references:
     - defender
-
-io_settings:
-  save_checkpoints: true
-  checkpoint_interval: 5
 
 
 game_config:
@@ -88,7 +84,7 @@ game_config:
           #   options:
           #     execution_definition:
           #       server_ip: 192.168.1.14
-          #       payload: "DELETE"
+          #       payload: "DROP TABLE IF EXISTS user;"
           #       success_rate: 80%
           - type: NODE_FILE_DELETE
           - type: NODE_FILE_CORRUPT

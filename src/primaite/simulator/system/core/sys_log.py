@@ -41,7 +41,6 @@ class SysLog:
         JSON-like messages.
         """
         log_path = self._get_log_path()
-
         file_handler = logging.FileHandler(filename=log_path)
         file_handler.setLevel(logging.DEBUG)
 
@@ -81,7 +80,7 @@ class SysLog:
 
         :return: Path object representing the location of the log file.
         """
-        root = SIM_OUTPUT / self.hostname
+        root = SIM_OUTPUT.path / self.hostname
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self.hostname}_sys.log"
 
