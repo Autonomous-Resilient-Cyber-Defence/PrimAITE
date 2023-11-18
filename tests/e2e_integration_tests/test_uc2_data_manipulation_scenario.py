@@ -19,16 +19,16 @@ def test_data_manipulation(uc2_network):
     db_service.backup_database()
 
     # First check that the DB client on the web_server can successfully query the users table on the database
-    assert db_client.query("SELECT * FROM user;")
+    assert db_client.query("SELECT")
 
     # Now we run the DataManipulationBot
     db_manipulation_bot.run()
 
     # Now check that the DB client on the web_server cannot query the users table on the database
-    assert not db_client.query("SELECT * FROM user;")
+    assert not db_client.query("SELECT")
 
     # Now restore the database
     db_service.restore_backup()
 
     # Now check that the DB client on the web_server can successfully query the users table on the database
-    assert db_client.query("SELECT * FROM user;")
+    assert db_client.query("SELECT")
