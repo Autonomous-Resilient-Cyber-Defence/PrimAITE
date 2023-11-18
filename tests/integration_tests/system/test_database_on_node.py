@@ -57,7 +57,7 @@ def test_database_client_query(uc2_network):
     db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
     db_client.connect()
 
-    assert db_client.query("SELECT * FROM user;")
+    assert db_client.query("SELECT")
 
 
 def test_create_database_backup(uc2_network):

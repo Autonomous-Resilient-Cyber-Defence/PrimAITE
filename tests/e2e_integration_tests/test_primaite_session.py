@@ -1,3 +1,4 @@
+import pydantic
 import pytest
 
 from tests.conftest import TempPrimaiteSession
@@ -5,6 +6,7 @@ from tests.conftest import TempPrimaiteSession
 CFG_PATH = "tests/assets/configs/test_primaite_session.yaml"
 TRAINING_ONLY_PATH = "tests/assets/configs/train_only_primaite_session.yaml"
 EVAL_ONLY_PATH = "tests/assets/configs/eval_only_primaite_session.yaml"
+MISCONFIGURED_PATH = "tests/assets/configs/bad_primaite_session.yaml"
 
 
 class TestPrimaiteSession:
@@ -60,3 +62,7 @@ class TestPrimaiteSession:
             session: TempPrimaiteSession
             session.start_session()
             # TODO: include checks that the model was loaded and that the eval-only session ran
+
+    def test_error_thrown_on_bad_configuration(self):
+        with pytest.raises(pydantic.ValidationError):
+            session = TempPrimaiteSession.from_config(MISCONFIGURED_PATH)
