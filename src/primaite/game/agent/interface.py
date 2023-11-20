@@ -25,6 +25,24 @@ class AgentExecutionDefinition(BaseModel):
     "The probability of data manipulation succeeding."
 
 
+class AgentStartSettings(BaseModel):
+    """Configuration values for when an agent starts performing actions."""
+
+    start_step: int = 5
+    "The timestep at which an agent begins performing it's actions"
+    frequency: int = 5
+    "The number of timesteps to wait between performing actions"
+    variance: int = 0
+    "The amount the frequency can randomly change to"
+
+
+class AgentSettings(BaseModel):
+    """Settings for configuring the operation of an agent."""
+
+    start_settings: Optional[AgentStartSettings] = None
+    "Configuration for when an agent begins performing it's actions"
+
+
 class AbstractAgent(ABC):
     """Base class for scripted and RL agents."""
 
@@ -35,6 +53,7 @@ class AbstractAgent(ABC):
         observation_space: Optional[ObservationSpace],
         reward_function: Optional[RewardFunction],
         execution_definition: Optional[AgentExecutionDefinition],
+        agent_settings: Optional[AgentSettings],
     ) -> None:
         """
         Initialize an agent.
@@ -56,6 +75,8 @@ class AbstractAgent(ABC):
         # exection definiton converts CAOS action to Primaite simulator request, sometimes having to enrich the info
         # by for example specifying target ip addresses, or converting a node ID into a uuid
         self.execution_definition = execution_definition or AgentExecutionDefinition()
+
+        self.agent_settings = agent_settings or AgentSettings()
 
     def convert_state_to_obs(self, state: Dict) -> ObsType:
         """

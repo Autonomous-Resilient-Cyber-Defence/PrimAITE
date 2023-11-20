@@ -10,7 +10,13 @@ from pydantic import BaseModel
 
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, AgentExecutionDefinition, DataManipulationAgent, RandomAgent
+from primaite.game.agent.interface import (
+    AbstractAgent,
+    AgentExecutionDefinition,
+    AgentSettings,
+    DataManipulationAgent,
+    RandomAgent,
+)
 from primaite.game.agent.observations import ObservationSpace
 from primaite.game.agent.rewards import RewardFunction
 from primaite.simulator.network.hardware.base import Link, NIC, Node
@@ -439,6 +445,7 @@ class PrimaiteSession:
             rew_function = RewardFunction.from_config(reward_function_cfg, session=sess)
 
             execution_definition = AgentExecutionDefinition(**agent_cfg.get("execution_definition", {}))
+            agent_settings = AgentSettings(**agent_cfg.get("agent_settings", {}))
 
             # CREATE AGENT
             if agent_type == "GreenWebBrowsingAgent":
@@ -449,6 +456,7 @@ class PrimaiteSession:
                     observation_space=obs_space,
                     reward_function=rew_function,
                     execution_definition=execution_definition,
+                    agent_settings=agent_settings,
                 )
                 sess.agents.append(new_agent)
             elif agent_type == "GATERLAgent":
@@ -458,6 +466,7 @@ class PrimaiteSession:
                     observation_space=obs_space,
                     reward_function=rew_function,
                     execution_definition=execution_definition,
+                    agent_settings=agent_settings,
                 )
                 sess.agents.append(new_agent)
                 sess.rl_agent = new_agent
@@ -468,6 +477,7 @@ class PrimaiteSession:
                     observation_space=obs_space,
                     reward_function=rew_function,
                     execution_definition=execution_definition,
+                    agent_settings=agent_settings,
                 )
                 sess.agents.append(new_agent)
             else:
