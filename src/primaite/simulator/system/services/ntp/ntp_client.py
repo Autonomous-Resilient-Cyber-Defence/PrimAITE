@@ -89,8 +89,7 @@ class NTPClient(Service):
         if not (isinstance(payload, NTPPacket) and payload.ntp_request.ntp_client):
             _LOGGER.debug(f"{payload} is not a NTPPacket")
             return False
-
-        # XXX: compare received datetime with current time. Log error if differ by more than x ms?
+        print(f">>>>>>>>>>>>>>>>>> payload.ntp_reply.ntp_datetime {payload.ntp_reply.ntp_datetime}")
         if payload.ntp_reply.ntp_datetime:
             self.sys_log.info(
                 f"{self.name}: Received time \
@@ -112,8 +111,9 @@ class NTPClient(Service):
         super().apply_timestep(timestep)
         if self.operating_state == ServiceOperatingState.RUNNING:
             # request time from server
-            ntp_request = NTPPacket(NTPRequest())
-            self.send(ntp_request)
+            ntp_request = NTPRequest(ntp_client=self.ip_addr)
+            ntp_server_packet = NTPPacket(ntp_request=ntp_request)
+            self.send(payload=ntp_server_packet)
             return True
         else:
             self.sys_log.debug(f"{self.name} ntp client not running")
