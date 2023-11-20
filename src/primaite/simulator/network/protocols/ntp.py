@@ -34,11 +34,11 @@ class NTPPacket(DataPacket):
     "NTP Request packet sent by NTP Client."
     ntp_reply: Optional[NTPReply] = None
 
-    def generate_reply(self, time: datetime) -> NTPPacket:
+    def generate_reply(self, ntp_server_time: datetime) -> NTPPacket:
         """Generate a NTPPacket containing the time in a NTPReply object.
 
         :param time: datetime object representing the time from the NTP server.
         :return: A new NTPPacket object.
         """
-        self.ntp_reply = NTPReply(time)
+        self.ntp_reply = NTPReply(ntp_datetime=ntp_server_time)
         return self

@@ -50,7 +50,8 @@ class NTPServer(Service):
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:
-        """Receives a request from NTPClient.
+        """
+        Receives a request from NTPClient.
 
         Check that request has a valid IP address.
 
@@ -75,5 +76,6 @@ class NTPServer(Service):
                 f"with current time: {time}"
             )
             # send reply
-            self.send(payload, session_id)
-            return True
+            if self.send(payload, session_id):
+                return True
+            return False
