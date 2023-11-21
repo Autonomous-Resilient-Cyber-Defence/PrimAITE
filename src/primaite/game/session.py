@@ -444,8 +444,8 @@ class PrimaiteSession:
             # CREATE REWARD FUNCTION
             rew_function = RewardFunction.from_config(reward_function_cfg, session=sess)
 
-            execution_definition = AgentExecutionDefinition(**agent_cfg.get("execution_definition", {}))
-            agent_settings = AgentSettings(**agent_cfg.get("agent_settings", {}))
+            execution_definition = AgentExecutionDefinition.from_config(agent_cfg.get("execution_definition"))
+            agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
 
             # CREATE AGENT
             if agent_type == "GreenWebBrowsingAgent":

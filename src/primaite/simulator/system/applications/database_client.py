@@ -130,7 +130,7 @@ class DatabaseClient(Application):
 
     def execute(self) -> None:
         """Run the DatabaseClient."""
-        super().execute()
+        # super().execute()
         if self.operating_state == ApplicationOperatingState.RUNNING:
             self.connect()
 

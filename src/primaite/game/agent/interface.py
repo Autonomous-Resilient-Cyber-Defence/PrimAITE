@@ -24,6 +24,20 @@ class AgentExecutionDefinition(BaseModel):
     data_manipulation_p_of_success: float = 0.1
     "The probability of data manipulation succeeding."
 
+    @classmethod
+    def from_config(cls, config: Optional[Dict]) -> "AgentExecutionDefinition":
+        """Construct an AgentExecutionDefinition from a config dictionary.
+
+        :param config: A dict of options for the execution definition.
+        :type config: Dict
+        :return: The execution definition.
+        :rtype: AgentExecutionDefinition
+        """
+        if config is None:
+            return cls()
+
+        return cls(**config)
+
 
 class AgentStartSettings(BaseModel):
     """Configuration values for when an agent starts performing actions."""
@@ -41,6 +55,20 @@ class AgentSettings(BaseModel):
 
     start_settings: Optional[AgentStartSettings] = None
     "Configuration for when an agent begins performing it's actions"
+
+    @classmethod
+    def from_config(cls, config: Optional[Dict]) -> "AgentSettings":
+        """Construct agent settings from a config dictionary.
+
+        :param config: A dict of options for the agent settings.
+        :type config: Dict
+        :return: The agent settings.
+        :rtype: AgentSettings
+        """
+        if config is None:
+            return cls()
+
+        return cls(**config)
 
 
 class AbstractAgent(ABC):
@@ -149,6 +177,8 @@ class RandomAgent(AbstractScriptedAgent):
 class DataManipulationAgent(AbstractScriptedAgent):
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
 
+    data_manipulation_bots: List["DataManipulationBot"] = []
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -163,6 +193,7 @@ class DataManipulationAgent(AbstractScriptedAgent):
 
             if bot_sw is not None:
                 bot_sw.execution_definition = self.execution_definition
+                self.data_manipulation_bots.append(bot_sw)
 
     def get_action(self, obs: ObsType, reward: float = None) -> Tuple[str, Dict]:
         """Randomly sample an action from the action space.
@@ -174,7 +205,12 @@ class DataManipulationAgent(AbstractScriptedAgent):
         :return: _description_
         :rtype: Tuple[str, Dict]
         """
-        return self.action_space.get_action(self.action_space.space.sample())
+        # TODO: Move this to the appropriate place
+        # return self.action_space.get_action(self.action_space.space.sample())
+        for bot in self.data_manipulation_bots:
+            bot.execute()
+
+        return ("DONOTHING", {"dummy": 0})
 
 
 class AbstractGATEAgent(AbstractAgent):
