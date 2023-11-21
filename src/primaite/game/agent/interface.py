@@ -1,4 +1,5 @@
 """Interface for agents."""
+import random
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, TypeAlias, Union
 
@@ -178,9 +179,12 @@ class DataManipulationAgent(AbstractScriptedAgent):
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
 
     data_manipulation_bots: List["DataManipulationBot"] = []
+    next_execution_timestep: int = 0
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.next_execution_timestep = self.agent_settings.start_settings.start_step
 
         # get node ids that are part of the agent's observation space
         node_ids: List[str] = [n.where[-1] for n in self.observation_space.obs.nodes]
@@ -207,10 +211,19 @@ class DataManipulationAgent(AbstractScriptedAgent):
         """
         # TODO: Move this to the appropriate place
         # return self.action_space.get_action(self.action_space.space.sample())
+
+        timestep = self.action_space.session.step_counter
+
+        if timestep < self.next_execution_timestep:
+            return "DONOTHING", {"dummy": 0}
+
+        var = random.randint(-self.agent_settings.start_settings.variance, self.agent_settings.start_settings.variance)
+        self.next_execution_timestep = timestep + self.agent_settings.start_settings.frequency + var
+
         for bot in self.data_manipulation_bots:
             bot.execute()
 
-        return ("DONOTHING", {"dummy": 0})
+        return "DONOTHING", {"dummy": 0}
 
 
 class AbstractGATEAgent(AbstractAgent):
