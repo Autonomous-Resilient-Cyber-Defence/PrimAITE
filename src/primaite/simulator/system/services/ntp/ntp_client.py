@@ -1,3 +1,4 @@
+from datetime import datetime
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
@@ -16,6 +17,7 @@ class NTPClient(Service):
     ip_addr: Optional[IPv4Address] = None
     ntp_server: Optional[IPv4Address] = None
     "The NTP server the client sends requests to."
+    time: Optional[datetime] = None
 
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPClient"
@@ -94,6 +96,7 @@ class NTPClient(Service):
                 f"{self.name}: Received time \
                               update from NTP server{payload.ntp_reply.ntp_datetime}"
             )
+            self.time = payload.ntp_reply.ntp_datetime
             return True
 
     def apply_timestep(self, timestep: int) -> None:
