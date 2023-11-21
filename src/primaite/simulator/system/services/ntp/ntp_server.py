@@ -66,7 +66,8 @@ class NTPServer(Service):
         payload: NTPPacket = payload
         if payload.ntp_request.ntp_client:
             self.sys_log.info(
-                f"{self.name}: Received request for {payload.ntp_request.ntp_client} " f"from session {session_id}"
+                f"{self.name}: Received request for {payload.ntp_request.ntp_client} \
+                    from session {session_id}"
             )
             # generate a reply with the current time
             time = datetime.now()
