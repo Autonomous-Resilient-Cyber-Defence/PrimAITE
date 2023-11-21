@@ -26,7 +26,7 @@ the structure:
 ```
 """
 from abc import abstractmethod
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, List, Tuple, Type, TYPE_CHECKING
 
 from primaite import getLogger
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
@@ -228,7 +228,7 @@ class WebServer404Penalty(AbstractReward):
 class RewardFunction:
     """Manages the reward function for the agent."""
 
-    __rew_class_identifiers: Dict[str, type[AbstractReward]] = {
+    __rew_class_identifiers: Dict[str, Type[AbstractReward]] = {
         "DUMMY": DummyReward,
         "DATABASE_FILE_INTEGRITY": DatabaseFileIntegrity,
         "WEB_SERVER_404_PENALTY": WebServer404Penalty,
@@ -238,6 +238,7 @@ class RewardFunction:
         """Initialise the reward function object."""
         self.reward_components: List[Tuple[AbstractReward, float]] = []
         "attribute reward_components keeps track of reward components and the weights assigned to each."
+        self.current_reward: float
 
     def regsiter_component(self, component: AbstractReward, weight: float = 1.0) -> None:
         """Add a reward component to the reward function.
@@ -249,7 +250,7 @@ class RewardFunction:
         """
         self.reward_components.append((component, weight))
 
-    def calculate(self, state: Dict) -> float:
+    def update(self, state: Dict) -> float:
         """Calculate the overall reward for the current state.
 
         :param state: The current state of the simulation.
@@ -260,7 +261,8 @@ class RewardFunction:
             comp = comp_and_weight[0]
             weight = comp_and_weight[1]
             total += weight * comp.calculate(state=state)
-        return total
+        self.current_reward = total
+        return self.current_reward
 
     @classmethod
     def from_config(cls, config: Dict, session: "PrimaiteSession") -> "RewardFunction":
