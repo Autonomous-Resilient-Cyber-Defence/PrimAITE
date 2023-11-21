@@ -35,6 +35,7 @@ SessionManager.
 - DNS Services: `DNSClient` and `DNSServer`
 - FTP Services: `FTPClient` and `FTPServer`
 - HTTP Services: `WebBrowser` to simulate a web client and `WebServer`
+- NTP Services: `NTPClient` and `NTPServer`
 
 ### Removed
 - Removed legacy simulation modules: `acl`, `common`, `environment`, `links`, `nodes`, `pol`
