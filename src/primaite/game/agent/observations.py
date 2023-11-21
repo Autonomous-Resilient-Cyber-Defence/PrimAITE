@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from gymnasium import spaces
+from gymnasium.core import ObsType
 
 from primaite import getLogger
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
@@ -926,7 +927,7 @@ class UC2GreenObservation(NullObservation):
     pass
 
 
-class ObservationSpace:
+class ObservationManager:
     """
     Manage the observations of an Agent.
 
@@ -947,15 +948,17 @@ class ObservationSpace:
         :type observation: AbstractObservation
         """
         self.obs: AbstractObservation = observation
+        self.current_observation: ObsType
 
-    def observe(self, state: Dict) -> Dict:
+    def update(self, state: Dict) -> Dict:
         """
         Generate observation based on the current state of the simulation.
 
         :param state: Simulation state dictionary
         :type state: Dict
         """
-        return self.obs.observe(state)
+        self.current_observation = self.obs.observe(state)
+        return self.current_observation
 
     @property
     def space(self) -> None:
@@ -963,7 +966,7 @@ class ObservationSpace:
         return self.obs.space
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "ObservationSpace":
+    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "ObservationManager":
         """Create observation space from a config.
 
         :param config: Dictionary containing the configuration for this observation space.
