@@ -89,7 +89,6 @@ class NTPClient(Service):
         if not (isinstance(payload, NTPPacket) and payload.ntp_request.ntp_client):
             _LOGGER.debug(f"{payload} is not a NTPPacket")
             return False
-        print(f">>>>>>>>>>>>>>>>>> payload.ntp_reply.ntp_datetime {payload.ntp_reply.ntp_datetime}")
         if payload.ntp_reply.ntp_datetime:
             self.sys_log.info(
                 f"{self.name}: Received time \
