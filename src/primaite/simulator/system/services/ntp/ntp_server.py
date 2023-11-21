@@ -76,6 +76,5 @@ class NTPServer(Service):
                 f"with current time: {time}"
             )
             # send reply
-            if self.send(payload, session_id):
-                return True
-            return False
+            self.send(payload, session_id)
+            return True
