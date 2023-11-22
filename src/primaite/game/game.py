@@ -177,7 +177,7 @@ class PrimaiteGame:
         :rtype: PrimaiteSession
         """
         game = cls()
-        game.options = PrimaiteGameOptions(cfg["game"])
+        game.options = PrimaiteGameOptions(**cfg["game"])
 
         # 1. create simulation
         sim = game.simulation
@@ -305,8 +305,7 @@ class PrimaiteGame:
             game.ref_map_links[link_cfg["ref"]] = new_link.uuid
 
         # 3. create agents
-        game_cfg = cfg["game_config"]
-        agents_cfg = game_cfg["agents"]
+        agents_cfg = cfg["agents"]
 
         for agent_cfg in agents_cfg:
             agent_ref = agent_cfg["ref"]  # noqa: F841

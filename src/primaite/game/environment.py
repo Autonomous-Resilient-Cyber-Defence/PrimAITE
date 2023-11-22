@@ -1,12 +1,10 @@
-from typing import Any, Dict, List, Optional, SupportsFloat, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, SupportsFloat, Tuple
 
 import gymnasium
 from gymnasium.core import ActType, ObsType
 
 from primaite.game.agent.interface import ProxyAgent
-
-if TYPE_CHECKING:
-    from primaite.game.game import PrimaiteGame
+from primaite.game.game import PrimaiteGame
 
 
 class PrimaiteGymEnv(gymnasium.Env):
@@ -17,10 +15,10 @@ class PrimaiteGymEnv(gymnasium.Env):
     assumptions about the agent list always having a list of length 1.
     """
 
-    def __init__(self, session: "PrimaiteGame", agents: List[ProxyAgent]):
+    def __init__(self, game: PrimaiteGame, agents: List[ProxyAgent]):
         """Initialise the environment."""
         super().__init__()
-        self.session: "PrimaiteGame" = session
+        self.game: "PrimaiteGame" = game
         self.agent: ProxyAgent = agents[0]
 
     def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, Dict[str, Any]]:
@@ -28,24 +26,24 @@ class PrimaiteGymEnv(gymnasium.Env):
         # make ProxyAgent store the action chosen my the RL policy
         self.agent.store_action(action)
         # apply_agent_actions accesses the action we just stored
-        self.session.apply_agent_actions()
-        self.session.advance_timestep()
-        state = self.session.get_sim_state()
-        self.session.update_agents(state)
+        self.game.apply_agent_actions()
+        self.game.advance_timestep()
+        state = self.game.get_sim_state()
+        self.game.update_agents(state)
 
         next_obs = self._get_obs()
         reward = self.agent.reward_function.current_reward
         terminated = False
-        truncated = self.session.calculate_truncated()
+        truncated = self.game.calculate_truncated()
         info = {}
 
         return next_obs, reward, terminated, truncated, info
 
     def reset(self, seed: Optional[int] = None) -> Tuple[ObsType, Dict[str, Any]]:
         """Reset the environment."""
-        self.session.reset()
-        state = self.session.get_sim_state()
-        self.session.update_agents(state)
+        self.game.reset()
+        state = self.game.get_sim_state()
+        self.game.update_agents(state)
         next_obs = self._get_obs()
         info = {}
         return next_obs, info
