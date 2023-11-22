@@ -68,8 +68,13 @@ class PrimaiteGymEnv(gymnasium.Env):
 class PrimaiteRayEnv(gymnasium.Env):
     """Ray wrapper that accepts a single `env_config` parameter in init function for compatibility with Ray."""
 
-    def __init__(self, env_config: Dict) -> None:
-        """Initialise the environment."""
+    def __init__(self, env_config: Dict[str, PrimaiteGame]) -> None:
+        """Initialise the environment.
+
+        :param env_config: A dictionary containing the environment configuration. It must contain a single key, `game`
+            which is the PrimaiteGame instance.
+        :type env_config: Dict[str, PrimaiteGame]
+        """
         self.env = PrimaiteGymEnv(game=env_config["game"])
         self.action_space = self.env.action_space
         self.observation_space = self.env.observation_space
