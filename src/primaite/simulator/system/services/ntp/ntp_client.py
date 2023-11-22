@@ -93,9 +93,18 @@ class NTPClient(Service):
             _LOGGER.debug(f"{payload} is not a NTPPacket")
             return False
         if payload.ntp_reply.ntp_datetime:
-            self.sys_log.info(f"{self.name}: Received time update from NTP server{payload.ntp_reply.ntp_datetime}")
+            self.sys_log.info(
+                f"{self.name}: \
+                              Received time update from NTP server{payload.ntp_reply.ntp_datetime}"
+            )
             self.time = payload.ntp_reply.ntp_datetime
             return True
+
+    def request_time(self) -> None:
+        """Send request to ntp_server."""
+        ntp_request = NTPRequest(ntp_client=self.ip_addr)
+        ntp_server_packet = NTPPacket(ntp_request=ntp_request)
+        self.send(payload=ntp_server_packet)
 
     def apply_timestep(self, timestep: int) -> None:
         """
@@ -112,8 +121,6 @@ class NTPClient(Service):
         super().apply_timestep(timestep)
         if self.operating_state == ServiceOperatingState.RUNNING:
             # request time from server
-            ntp_request = NTPRequest(ntp_client=self.ip_addr)
-            ntp_server_packet = NTPPacket(ntp_request=ntp_request)
-            self.send(payload=ntp_server_packet)
+            self.request_time()
         else:
             self.sys_log.debug(f"{self.name} ntp client not running")
