@@ -66,6 +66,7 @@ class NTPClient(Service):
 
         :return: True if successful, False otherwise.
         """
+        self.ip_addr = payload.ntp_request.ntp_client
         self.sys_log.info(f"{self.name}: Sending NTP request {payload.ntp_request.ntp_client}")
 
         return super().send(
@@ -92,10 +93,7 @@ class NTPClient(Service):
             _LOGGER.debug(f"{payload} is not a NTPPacket")
             return False
         if payload.ntp_reply.ntp_datetime:
-            self.sys_log.info(
-                f"{self.name}: Received time \
-                              update from NTP server{payload.ntp_reply.ntp_datetime}"
-            )
+            self.sys_log.info(f"{self.name}: Received time update from NTP server{payload.ntp_reply.ntp_datetime}")
             self.time = payload.ntp_reply.ntp_datetime
             return True
 
@@ -110,13 +108,12 @@ class NTPClient(Service):
         :param timestep: The current timestep number. (Amount of time since simulation episode began)
         :type timestep: int
         """
+        self.sys_log.info(f"{self.name} apply_timestep: IP address: {self.ip_addr}")
         super().apply_timestep(timestep)
         if self.operating_state == ServiceOperatingState.RUNNING:
             # request time from server
             ntp_request = NTPRequest(ntp_client=self.ip_addr)
             ntp_server_packet = NTPPacket(ntp_request=ntp_request)
             self.send(payload=ntp_server_packet)
-            return True
         else:
             self.sys_log.debug(f"{self.name} ntp client not running")
-            return False

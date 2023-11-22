@@ -1,4 +1,5 @@
 from ipaddress import IPv4Address
+from time import sleep
 
 import pytest
 
@@ -61,11 +62,17 @@ def test_ntp_client_server():
     assert ntp_server.receive(payload=ntp_packet) is True
     assert ntp_client.receive(payload=ntp_packet) is True
     assert ntp_client.time is not None
-    assert ntp_client.apply_timestep(1) is True
+    first_time = ntp_client.time
+    sleep(0.1)
+    ntp_client.apply_timestep(1)  # Check time advances
+    ntp_server.receive(payload=ntp_packet)
+    ntp_client.receive(payload=ntp_packet)
+    second_time = ntp_client.time
+    assert first_time != second_time
 
 
 # Test ntp client behaviour when ntp server is unavailable.
-@pytest.mark.skip(reason="NTP needs to know if underly node is RUNNING")
+@pytest.mark.skip(reason="NTP needs to know if underlying node is RUNNING")
 def test_ntp_server_failure():
     network = create_ntp_network()
     server: Server = network.get_node_by_hostname("ntp_server")
