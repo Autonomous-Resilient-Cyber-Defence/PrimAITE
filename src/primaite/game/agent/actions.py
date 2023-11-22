@@ -20,7 +20,7 @@ from primaite.simulator.sim_container import Simulation
 _LOGGER = getLogger(__name__)
 
 if TYPE_CHECKING:
-    from primaite.game.session import PrimaiteSession
+    from primaite.game.game import PrimaiteGame
 
 
 class AbstractAction(ABC):
@@ -559,7 +559,7 @@ class ActionManager:
 
     def __init__(
         self,
-        session: "PrimaiteSession",  # reference to session for looking up stuff
+        session: "PrimaiteGame",  # reference to session for looking up stuff
         actions: List[str],  # stores list of actions available to agent
         node_uuids: List[str],  # allows mapping index to node
         max_folders_per_node: int = 2,  # allows calculating shape
@@ -599,7 +599,7 @@ class ActionManager:
         :param act_map: Action map which maps integers to actions. Used for restricting the set of possible actions.
         :type act_map: Optional[Dict[int, Dict]]
         """
-        self.session: "PrimaiteSession" = session
+        self.session: "PrimaiteGame" = session
         self.sim: Simulation = self.session.simulation
         self.node_uuids: List[str] = node_uuids
         self.protocols: List[str] = protocols
@@ -826,7 +826,7 @@ class ActionManager:
         return nics[nic_idx]
 
     @classmethod
-    def from_config(cls, session: "PrimaiteSession", cfg: Dict) -> "ActionManager":
+    def from_config(cls, session: "PrimaiteGame", cfg: Dict) -> "ActionManager":
         """
         Construct an ActionManager from a config definition.
 

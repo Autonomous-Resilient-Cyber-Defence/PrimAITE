@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from primaite.game.session import PrimaiteSession, TrainingOptions
+    from primaite.game.game import PrimaiteGame, TrainingOptions
 
 
 class PolicyABC(ABC):
@@ -32,7 +32,7 @@ class PolicyABC(ABC):
         return
 
     @abstractmethod
-    def __init__(self, session: "PrimaiteSession") -> None:
+    def __init__(self, session: "PrimaiteGame") -> None:
         """
         Initialize a reinforcement learning policy.
 
@@ -41,7 +41,7 @@ class PolicyABC(ABC):
         :param agents: The agents to train.
         :type agents: List[RLAgent]
         """
-        self.session: "PrimaiteSession" = session
+        self.session: "PrimaiteGame" = session
         """Reference to the session."""
 
     @abstractmethod
@@ -69,7 +69,7 @@ class PolicyABC(ABC):
         pass
 
     @classmethod
-    def from_config(cls, config: "TrainingOptions", session: "PrimaiteSession") -> "PolicyABC":
+    def from_config(cls, config: "TrainingOptions", session: "PrimaiteGame") -> "PolicyABC":
         """
         Create an RL policy from a config by calling the relevant subclass's from_config method.
 

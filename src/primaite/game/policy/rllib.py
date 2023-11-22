@@ -1,26 +1,23 @@
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, SupportsFloat, Tuple, Type, TYPE_CHECKING, Union
+from typing import Dict, Literal, Optional, SupportsFloat, Tuple, TYPE_CHECKING
 
 import gymnasium
 from gymnasium.core import ActType, ObsType
 
-from primaite.game.environment import PrimaiteGymEnv
 from primaite.game.policy.policy import PolicyABC
 
 if TYPE_CHECKING:
-    from primaite.game.agent.interface import ProxyAgent
-    from primaite.game.session import PrimaiteSession, TrainingOptions
+    from primaite.game.game import PrimaiteGame
+    from primaite.session.session import TrainingOptions
 
 import ray
-from ray.rllib.algorithms import Algorithm, ppo
-from ray.rllib.algorithms.ppo import PPOConfig
-from ray.tune.registry import register_env
+from ray.rllib.algorithms import ppo
 
 
 class RaySingleAgentPolicy(PolicyABC, identifier="RLLIB_single_agent"):
     """Single agent RL policy using Ray RLLib."""
 
-    def __init__(self, session: "PrimaiteSession", algorithm: Literal["PPO", "A2C"], seed: Optional[int] = None):
+    def __init__(self, session: "PrimaiteGame", algorithm: Literal["PPO", "A2C"], seed: Optional[int] = None):
         super().__init__(session=session)
         ray.init()
 
@@ -71,21 +68,23 @@ class RaySingleAgentPolicy(PolicyABC, identifier="RLLIB_single_agent"):
 
     def learn(self, n_episodes: int, timesteps_per_episode: int) -> None:
         """Train the agent."""
-
         for ep in range(n_episodes):
             res = self._algo.train()
             print(f"Episode {ep} complete, reward: {res['episode_reward_mean']}")
 
     def eval(self, n_episodes: int, deterministic: bool) -> None:
+        """Evaluate the agent."""
         raise NotImplementedError
 
     def save(self, save_path: Path) -> None:
-        raise NotImplementedError
+        """Save the policy to a file."""
+        self._algo.save(save_path)
 
     def load(self, model_path: Path) -> None:
+        """Load policy parameters from a file."""
         raise NotImplementedError
 
     @classmethod
-    def from_config(cls, config: "TrainingOptions", session: "PrimaiteSession") -> "RaySingleAgentPolicy":
+    def from_config(cls, config: "TrainingOptions", session: "PrimaiteGame") -> "RaySingleAgentPolicy":
         """Create a policy from a config."""
         return cls(session=session, algorithm=config.rl_algorithm, seed=config.seed)

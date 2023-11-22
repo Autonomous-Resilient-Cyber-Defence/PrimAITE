@@ -6,7 +6,7 @@ from typing import Optional, Union
 
 from primaite import getLogger
 from primaite.config.load import load
-from primaite.game.session import PrimaiteSession
+from primaite.game.game import PrimaiteGame
 
 # from primaite.primaite_session import PrimaiteSession
 
@@ -32,7 +32,7 @@ def run(
         otherwise False.
     """
     cfg = load(config_path)
-    sess = PrimaiteSession.from_config(cfg=cfg, agent_load_path=agent_load_path)
+    sess = PrimaiteGame.from_config(cfg=cfg, agent_load_path=agent_load_path)
     sess.start_session()
 
 

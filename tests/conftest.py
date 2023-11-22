@@ -11,7 +11,7 @@ import pytest
 import yaml
 
 from primaite import getLogger
-from primaite.game.session import PrimaiteSession
+from primaite.game.game import PrimaiteGame
 
 # from primaite.environment.primaite_env import Primaite
 # from primaite.primaite_session import PrimaiteSession
@@ -74,7 +74,7 @@ def file_system() -> FileSystem:
 
 
 # PrimAITE v2 stuff
-class TempPrimaiteSession(PrimaiteSession):
+class TempPrimaiteSession(PrimaiteGame):
     """
     A temporary PrimaiteSession class.
 

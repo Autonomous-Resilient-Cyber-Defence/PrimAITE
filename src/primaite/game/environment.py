@@ -6,7 +6,7 @@ from gymnasium.core import ActType, ObsType
 from primaite.game.agent.interface import ProxyAgent
 
 if TYPE_CHECKING:
-    from primaite.game.session import PrimaiteSession
+    from primaite.game.game import PrimaiteGame
 
 
 class PrimaiteGymEnv(gymnasium.Env):
@@ -17,10 +17,10 @@ class PrimaiteGymEnv(gymnasium.Env):
     assumptions about the agent list always having a list of length 1.
     """
 
-    def __init__(self, session: "PrimaiteSession", agents: List[ProxyAgent]):
+    def __init__(self, session: "PrimaiteGame", agents: List[ProxyAgent]):
         """Initialise the environment."""
         super().__init__()
-        self.session: "PrimaiteSession" = session
+        self.session: "PrimaiteGame" = session
         self.agent: ProxyAgent = agents[0]
 
     def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, Dict[str, Any]]:

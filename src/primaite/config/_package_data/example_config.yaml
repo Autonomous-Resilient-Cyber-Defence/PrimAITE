@@ -2,7 +2,7 @@ training_config:
   rl_framework: RLLIB_single_agent
   rl_algorithm: PPO
   seed: 333
-  n_learn_episodes: 25
+  n_learn_episodes: 1
   n_eval_episodes: 5
   max_steps_per_episode: 128
   deterministic_eval: false

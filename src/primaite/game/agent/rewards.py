@@ -34,7 +34,7 @@ from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_ST
 _LOGGER = getLogger(__name__)
 
 if TYPE_CHECKING:
-    from primaite.game.session import PrimaiteSession
+    from primaite.game.game import PrimaiteGame
 
 
 class AbstractReward:
@@ -47,7 +47,7 @@ class AbstractReward:
 
     @classmethod
     @abstractmethod
-    def from_config(cls, config: dict, session: "PrimaiteSession") -> "AbstractReward":
+    def from_config(cls, config: dict, session: "PrimaiteGame") -> "AbstractReward":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor
@@ -68,7 +68,7 @@ class DummyReward(AbstractReward):
         return 0.0
 
     @classmethod
-    def from_config(cls, config: dict, session: "PrimaiteSession") -> "DummyReward":
+    def from_config(cls, config: dict, session: "PrimaiteGame") -> "DummyReward":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor. Should be empty.
@@ -119,7 +119,7 @@ class DatabaseFileIntegrity(AbstractReward):
             return 0
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "DatabaseFileIntegrity":
+    def from_config(cls, config: Dict, session: "PrimaiteGame") -> "DatabaseFileIntegrity":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor
@@ -193,7 +193,7 @@ class WebServer404Penalty(AbstractReward):
             return 0.0
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "WebServer404Penalty":
+    def from_config(cls, config: Dict, session: "PrimaiteGame") -> "WebServer404Penalty":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor
@@ -265,7 +265,7 @@ class RewardFunction:
         return self.current_reward
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "RewardFunction":
+    def from_config(cls, config: Dict, session: "PrimaiteGame") -> "RewardFunction":
         """Create a reward function from a config dictionary.
 
         :param config: dict of options for the reward manager's constructor

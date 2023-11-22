@@ -11,7 +11,7 @@ from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_ST
 _LOGGER = getLogger(__name__)
 
 if TYPE_CHECKING:
-    from primaite.game.session import PrimaiteSession
+    from primaite.game.game import PrimaiteGame
 
 
 class AbstractObservation(ABC):
@@ -37,7 +37,7 @@ class AbstractObservation(ABC):
 
     @classmethod
     @abstractmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession"):
+    def from_config(cls, config: Dict, session: "PrimaiteGame"):
         """Create this observation space component form a serialised format.
 
         The `session` parameter is for a the PrimaiteSession object that spawns this component. During deserialisation,
@@ -91,7 +91,7 @@ class FileObservation(AbstractObservation):
         return spaces.Dict({"health_status": spaces.Discrete(6)})
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where: List[str] = None) -> "FileObservation":
+    def from_config(cls, config: Dict, session: "PrimaiteGame", parent_where: List[str] = None) -> "FileObservation":
         """Create file observation from a config.
 
         :param config: Dictionary containing the configuration for this file observation.
@@ -149,7 +149,7 @@ class ServiceObservation(AbstractObservation):
 
     @classmethod
     def from_config(
-        cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]] = None
+        cls, config: Dict, session: "PrimaiteGame", parent_where: Optional[List[str]] = None
     ) -> "ServiceObservation":
         """Create service observation from a config.
 
@@ -219,7 +219,7 @@ class LinkObservation(AbstractObservation):
         return spaces.Dict({"PROTOCOLS": spaces.Dict({"ALL": spaces.Discrete(11)})})
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "LinkObservation":
+    def from_config(cls, config: Dict, session: "PrimaiteGame") -> "LinkObservation":
         """Create link observation from a config.
 
         :param config: Dictionary containing the configuration for this link observation.
@@ -310,7 +310,7 @@ class FolderObservation(AbstractObservation):
 
     @classmethod
     def from_config(
-        cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]], num_files_per_folder: int = 2
+        cls, config: Dict, session: "PrimaiteGame", parent_where: Optional[List[str]], num_files_per_folder: int = 2
     ) -> "FolderObservation":
         """Create folder observation from a config. Also creates child file observations.
 
@@ -376,9 +376,7 @@ class NicObservation(AbstractObservation):
         return spaces.Dict({"nic_status": spaces.Discrete(3)})
 
     @classmethod
-    def from_config(
-        cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]]
-    ) -> "NicObservation":
+    def from_config(cls, config: Dict, session: "PrimaiteGame", parent_where: Optional[List[str]]) -> "NicObservation":
         """Create NIC observation from a config.
 
         :param config: Dictionary containing the configuration for this NIC observation.
@@ -515,7 +513,7 @@ class NodeObservation(AbstractObservation):
     def from_config(
         cls,
         config: Dict,
-        session: "PrimaiteSession",
+        session: "PrimaiteGame",
         parent_where: Optional[List[str]] = None,
         num_services_per_node: int = 2,
         num_folders_per_node: int = 2,
@@ -694,7 +692,7 @@ class AclObservation(AbstractObservation):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "AclObservation":
+    def from_config(cls, config: Dict, session: "PrimaiteGame") -> "AclObservation":
         """Generate ACL observation from a config.
 
         :param config: Dictionary containing the configuration for this ACL observation.
@@ -740,7 +738,7 @@ class NullObservation(AbstractObservation):
         return spaces.Discrete(1)
 
     @classmethod
-    def from_config(cls, config: Dict, session: Optional["PrimaiteSession"] = None) -> "NullObservation":
+    def from_config(cls, config: Dict, session: Optional["PrimaiteGame"] = None) -> "NullObservation":
         """
         Create null observation from a config.
 
@@ -836,7 +834,7 @@ class UC2BlueObservation(AbstractObservation):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "UC2BlueObservation":
+    def from_config(cls, config: Dict, session: "PrimaiteGame") -> "UC2BlueObservation":
         """Create UC2 blue observation from a config.
 
         :param config: Dictionary containing the configuration for this UC2 blue observation. This includes the nodes,
@@ -907,7 +905,7 @@ class UC2RedObservation(AbstractObservation):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "UC2RedObservation":
+    def from_config(cls, config: Dict, session: "PrimaiteGame") -> "UC2RedObservation":
         """
         Create UC2 red observation from a config.
 
@@ -966,7 +964,7 @@ class ObservationManager:
         return self.obs.space
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "ObservationManager":
+    def from_config(cls, config: Dict, session: "PrimaiteGame") -> "ObservationManager":
         """Create observation space from a config.
 
         :param config: Dictionary containing the configuration for this observation space.
