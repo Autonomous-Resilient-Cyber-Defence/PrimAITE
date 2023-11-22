@@ -38,13 +38,19 @@ class DataManipulationBot(DatabaseClient):
     server_password: Optional[str] = None
     attack_stage: DataManipulationAttackStage = DataManipulationAttackStage.NOT_STARTED
     execution_definition: AgentExecutionDefinition = AgentExecutionDefinition()
+    repeat: bool = False
+    "Whether to repeat attacking once finished."
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "DataManipulationBot"
 
     def configure(
-        self, server_ip_address: IPv4Address, server_password: Optional[str] = None, payload: Optional[str] = None
+        self,
+        server_ip_address: IPv4Address,
+        server_password: Optional[str] = None,
+        payload: Optional[str] = None,
+        repeat: bool = False,
     ):
         """
         Configure the DataManipulatorBot to communicate with a DatabaseService.
@@ -52,12 +58,15 @@ class DataManipulationBot(DatabaseClient):
         :param server_ip_address: The IP address of the Node the DatabaseService is on.
         :param server_password: The password on the DatabaseService.
         :param payload: The data manipulation query payload.
+        :param repeat: Whether to repeat attacking once finished.
         """
         self.server_ip_address = server_ip_address
         self.payload = payload
         self.server_password = server_password
+        self.repeat = repeat
         self.sys_log.info(
-            f"{self.name}: Configured the {self.name} with {server_ip_address=}, {payload=}, {server_password=}."
+            f"{self.name}: Configured the {self.name} with {server_ip_address=}, {payload=}, {server_password=}, "
+            f"{repeat=}."
         )
 
     def _logon(self):
@@ -100,7 +109,7 @@ class DataManipulationBot(DatabaseClient):
         if self.attack_stage == DataManipulationAttackStage.PORT_SCAN:
             # perform the actual data manipulation attack
             if simulate_trial(p_of_success):
-                self.sys_log.info(f"{self.name}: Performing port scan")
+                self.sys_log.info(f"{self.name}: Performing data manipulation")
                 # perform the attack
                 if not self.connected:
                     self.connect()
@@ -109,10 +118,10 @@ class DataManipulationBot(DatabaseClient):
                         self.sys_log.info(f"{self.name} payload delivered: {self.payload}")
                         attack_successful = True
                         if attack_successful:
-                            self.sys_log.info(f"{self.name}: Performing port scan")
+                            self.sys_log.info(f"{self.name}: Data manipulation successful")
                             self.attack_stage = DataManipulationAttackStage.COMPLETE
                         else:
-                            self.sys_log.info(f"{self.name}: Performing port scan")
+                            self.sys_log.info(f"{self.name}: Data manipulation failed")
                             self.attack_stage = DataManipulationAttackStage.FAILED
 
     def execute(self):
@@ -137,6 +146,12 @@ class DataManipulationBot(DatabaseClient):
             self._logon()
             self._perform_port_scan(p_of_success=self.execution_definition.port_scan_p_of_success)
             self._perform_data_manipulation(p_of_success=self.execution_definition.data_manipulation_p_of_success)
+
+            if self.repeat and self.attack_stage in (
+                DataManipulationAttackStage.COMPLETE,
+                DataManipulationAttackStage.FAILED,
+            ):
+                self.attack_stage = DataManipulationAttackStage.NOT_STARTED
         else:
             self.sys_log.error(f"{self.name}: Failed to start as it requires both a target_ip_address and payload.")
 
