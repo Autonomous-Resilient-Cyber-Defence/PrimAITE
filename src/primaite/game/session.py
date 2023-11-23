@@ -1,4 +1,5 @@
 """PrimAITE session - the main entry point to training agents on PrimAITE."""
+from copy import deepcopy
 from enum import Enum
 from ipaddress import IPv4Address
 from pathlib import Path
@@ -140,6 +141,9 @@ class PrimaiteSession:
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
 
+        self._simulation_initial_state = deepcopy(self.simulation)
+        """The Simulation original state (deepcopy of the original Simulation)."""
+
         self.agents: List[AbstractAgent] = []
         """List of agents."""
 
@@ -277,7 +281,7 @@ class PrimaiteSession:
         self.episode_counter += 1
         self.step_counter = 0
         _LOGGER.debug(f"Restting primaite session, episode = {self.episode_counter}")
-        self.simulation.reset_component_for_episode(self.episode_counter)
+        self.simulation = deepcopy(self._simulation_initial_state)
 
     def close(self) -> None:
         """Close the session, this will stop the env and close the simulation."""
@@ -510,5 +514,7 @@ class PrimaiteSession:
         sess.policy = PolicyABC.from_config(sess.training_options, session=sess)
         if agent_load_path:
             sess.policy.load(Path(agent_load_path))
+
+        sess._simulation_initial_state = deepcopy(sess.simulation)  # noqa
 
         return sess
