@@ -1,12 +1,13 @@
 import pydantic
 import pytest
 
+from tests import TEST_ASSETS_ROOT
 from tests.conftest import TempPrimaiteSession
 
-CFG_PATH = "tests/assets/configs/test_primaite_session.yaml"
-TRAINING_ONLY_PATH = "tests/assets/configs/train_only_primaite_session.yaml"
-EVAL_ONLY_PATH = "tests/assets/configs/eval_only_primaite_session.yaml"
-MISCONFIGURED_PATH = "tests/assets/configs/bad_primaite_session.yaml"
+CFG_PATH = TEST_ASSETS_ROOT / "configs/test_primaite_session.yaml"
+TRAINING_ONLY_PATH = TEST_ASSETS_ROOT / "configs/train_only_primaite_session.yaml"
+EVAL_ONLY_PATH = TEST_ASSETS_ROOT / "configs/eval_only_primaite_session.yaml"
+MISCONFIGURED_PATH = TEST_ASSETS_ROOT / "configs/bad_primaite_session.yaml"
 
 
 class TestPrimaiteSession:
@@ -66,3 +67,17 @@ class TestPrimaiteSession:
     def test_error_thrown_on_bad_configuration(self):
         with pytest.raises(pydantic.ValidationError):
             session = TempPrimaiteSession.from_config(MISCONFIGURED_PATH)
+
+    @pytest.mark.parametrize("temp_primaite_session", [[CFG_PATH]], indirect=True)
+    def test_session_sim_reset(self, temp_primaite_session):
+        with temp_primaite_session as session:
+            session: TempPrimaiteSession
+            client_1 = session.simulation.network.get_node_by_hostname("client_1")
+            client_1.software_manager.uninstall("DataManipulationBot")
+
+            assert "DataManipulationBot" not in client_1.software_manager.software
+
+            session.reset()
+            client_1 = session.simulation.network.get_node_by_hostname("client_1")
+
+            assert "DataManipulationBot" in client_1.software_manager.software

@@ -100,8 +100,16 @@ class SoftwareManager:
                 self.node.uninstall_application(software)
             elif isinstance(software, Service):
                 self.node.uninstall_service(software)
+            for key, value in self.port_protocol_mapping.items():
+                if value.name == software_name:
+                    self.port_protocol_mapping.pop(key)
+                    break
+            for key, value in self._software_class_to_name_map.items():
+                if value == software_name:
+                    self._software_class_to_name_map.pop(key)
+                    break
             del software
-            self.sys_log.info(f"Deleted {software_name}")
+            self.sys_log.info(f"Uninstalled {software_name}")
             return
         self.sys_log.error(f"Cannot uninstall {software_name} as it is not installed")
 
