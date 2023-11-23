@@ -36,6 +36,7 @@ def create_ntp_network() -> Network:
     )
     ntp_client.power_on()
     ntp_client.software_manager.install(NTPClient)
+
     network.connect(endpoint_b=ntp_server.ethernet_port[1], endpoint_a=ntp_client.ethernet_port[1])
 
     return network
@@ -54,21 +55,25 @@ def test_ntp_client_server():
 
     assert ntp_server.operating_state == ServiceOperatingState.RUNNING
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
+    ntp_client.configure(
+        ntp_server_ip_address=IPv4Address("192.168.1.2"), ntp_client_ip_address=IPv4Address("192.168.1.3")
+    )
+
     assert ntp_client.time is None
 
-    ntp_request = NTPRequest(ntp_client="192.168.1.3")
-    ntp_packet = NTPPacket(ntp_request=ntp_request)
+    # ntp_request = NTPRequest(ntp_client="192.168.1.3")
+    # ntp_packet = NTPPacket(ntp_request=ntp_request)
     # ntp_client.send(payload=ntp_packet)
-    ntp_client.request_time("192.168.1.3")
+    ntp_client.request_time()
 
-    assert ntp_server.receive(payload=ntp_packet) is True
-    assert ntp_client.receive(payload=ntp_packet) is True
+    # assert ntp_server.receive(payload=ntp_packet) is True
+    # assert ntp_client.receive(payload=ntp_packet) is True
     assert ntp_client.time is not None
     first_time = ntp_client.time
     sleep(0.1)
     ntp_client.apply_timestep(1)  # Check time advances
-    ntp_server.receive(payload=ntp_packet)
-    ntp_client.receive(payload=ntp_packet)
+    # ntp_server.receive(payload=ntp_packet)
+    # ntp_client.receive(payload=ntp_packet)
     second_time = ntp_client.time
     assert first_time != second_time
 
