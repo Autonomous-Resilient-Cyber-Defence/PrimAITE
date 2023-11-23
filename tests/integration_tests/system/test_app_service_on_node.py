@@ -1,7 +1,6 @@
 from typing import Tuple
 
 import pytest
-from conftest import TestApplication, TestService
 
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.server import Server
@@ -10,12 +9,12 @@ from primaite.simulator.system.services.service import Service, ServiceOperating
 
 
 @pytest.fixture(scope="function")
-def populated_node() -> Tuple[Application, Server, Service]:
+def populated_node(service_class, application_class) -> Tuple[Application, Server, Service]:
     server = Server(
         hostname="server", ip_address="192.168.0.1", subnet_mask="255.255.255.0", operating_state=NodeOperatingState.ON
     )
-    server.software_manager.install(TestService)
-    server.software_manager.install(TestApplication)
+    server.software_manager.install(service_class)
+    server.software_manager.install(application_class)
 
     app = server.software_manager.software["TestApplication"]
     app.run()

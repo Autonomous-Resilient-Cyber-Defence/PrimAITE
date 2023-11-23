@@ -75,10 +75,20 @@ def service(file_system) -> TestService:
 
 
 @pytest.fixture(scope="function")
+def service_class():
+    return TestService
+
+
+@pytest.fixture(scope="function")
 def application(file_system) -> TestApplication:
     return TestApplication(
         name="TestApplication", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="test_application")
     )
+
+
+@pytest.fixture(scope="function")
+def application_class():
+    return TestApplication
 
 
 @pytest.fixture(scope="function")
