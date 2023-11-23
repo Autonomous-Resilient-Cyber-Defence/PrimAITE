@@ -100,9 +100,9 @@ class NTPClient(Service):
             self.time = payload.ntp_reply.ntp_datetime
             return True
 
-    def request_time(self) -> None:
+    def request_time(self, ip_address: IPv4Address = ip_addr) -> None:
         """Send request to ntp_server."""
-        ntp_request = NTPRequest(ntp_client=self.ip_addr)
+        ntp_request = NTPRequest(ntp_client=ip_address)
         ntp_server_packet = NTPPacket(ntp_request=ntp_request)
         self.send(payload=ntp_server_packet)
 

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.ntp import NTPPacket
@@ -46,7 +46,7 @@ class NTPServer(Service):
 
     def receive(
         self,
-        payload: Any,
+        payload: NTPPacket,
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:

@@ -58,7 +58,9 @@ def test_ntp_client_server():
 
     ntp_request = NTPRequest(ntp_client="192.168.1.3")
     ntp_packet = NTPPacket(ntp_request=ntp_request)
-    ntp_client.send(payload=ntp_packet)
+    # ntp_client.send(payload=ntp_packet)
+    ntp_client.request_time("192.168.1.3")
+
     assert ntp_server.receive(payload=ntp_packet) is True
     assert ntp_client.receive(payload=ntp_packet) is True
     assert ntp_client.time is not None
