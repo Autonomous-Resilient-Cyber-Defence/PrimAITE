@@ -7,6 +7,7 @@ CFG_PATH = "tests/assets/configs/test_primaite_session.yaml"
 TRAINING_ONLY_PATH = "tests/assets/configs/train_only_primaite_session.yaml"
 EVAL_ONLY_PATH = "tests/assets/configs/eval_only_primaite_session.yaml"
 MISCONFIGURED_PATH = "tests/assets/configs/bad_primaite_session.yaml"
+MULTI_AGENT_PATH = "tests/assets/configs/multi_agent_session.yaml"
 
 
 class TestPrimaiteSession:
@@ -62,6 +63,12 @@ class TestPrimaiteSession:
             session: TempPrimaiteSession
             session.start_session()
             # TODO: include checks that the model was loaded and that the eval-only session ran
+
+    @pytest.mark.parametrize("temp_primaite_session", [[MULTI_AGENT_PATH]], indirect=True)
+    def test_multi_agent_session(self, temp_primaite_session):
+        """Check that we can run a training session with a multi agent system."""
+        with temp_primaite_session as session:
+            session.start_session()
 
     def test_error_thrown_on_bad_configuration(self):
         with pytest.raises(pydantic.ValidationError):
