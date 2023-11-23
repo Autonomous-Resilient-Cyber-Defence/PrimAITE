@@ -173,6 +173,9 @@ class DatabaseService(Service):
         :param session_id: The session identifier.
         :return: True if the Status Code is 200, otherwise False.
         """
+        if not super().receive(payload=payload, session_id=session_id, **kwargs):
+            return False
+
         result = {"status_code": 500, "data": []}
         if isinstance(payload, dict) and payload.get("type"):
             if payload["type"] == "connect_request":

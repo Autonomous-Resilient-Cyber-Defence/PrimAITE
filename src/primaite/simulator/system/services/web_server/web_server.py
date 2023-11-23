@@ -155,12 +155,12 @@ class WebServer(Service):
         :param: payload: The payload to send.
         :param: session_id: The id of the session. Optional.
         """
+        if not super().receive(payload=payload, session_id=session_id, **kwargs):
+            return False
+
         # check if the payload is an HTTPPacket
         if not isinstance(payload, HttpRequestPacket):
             self.sys_log.error("Payload is not an HTTPPacket")
-            return False
-
-        if not super().receive(payload=payload, session_id=session_id, **kwargs):
             return False
 
         return self._process_http_request(payload=payload, session_id=session_id)

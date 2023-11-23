@@ -3,7 +3,7 @@ from enum import Enum
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 
-from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -264,5 +264,6 @@ class IOSoftware(Software):
         """
         # return false if node that software is on is off
         if self.software_manager and self.software_manager.node.operating_state is NodeOperatingState.OFF:
+            _LOGGER.debug(f"{self.name} Error: {self.software_manager.node.hostname} is not online.")
             return False
         return True

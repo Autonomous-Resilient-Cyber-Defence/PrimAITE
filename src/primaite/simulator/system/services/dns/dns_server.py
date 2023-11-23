@@ -88,10 +88,14 @@ class DNSServer(Service):
 
         :return: True if DNS request returns a valid IP, otherwise, False
         """
+        if not super().receive(payload=payload, session_id=session_id, **kwargs):
+            return False
+
         # The payload should be a DNS packet
         if not isinstance(payload, DNSPacket):
             _LOGGER.debug(f"{payload} is not a DNSPacket")
             return False
+
         # cast payload into a DNS packet
         payload: DNSPacket = payload
         if payload.dns_request is not None:
