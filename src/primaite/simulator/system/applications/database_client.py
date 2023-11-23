@@ -2,12 +2,13 @@ from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
-from prettytable import PrettyTable
-
+from primaite import getLogger
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 from primaite.simulator.system.core.software_manager import SoftwareManager
+
+_LOGGER = getLogger(__name__)
 
 
 class DatabaseClient(Application):
@@ -148,21 +149,6 @@ class DatabaseClient(Application):
             self._query_success_tracker[query_id] = False
             return self._query(sql=sql, query_id=query_id)
 
-    def _print_data(self, data: Dict):
-        """
-        Display the contents of the Folder in tabular format.
-
-        :param markdown: Whether to display the table in Markdown format or not. Default is `False`.
-        """
-        if data:
-            table = PrettyTable(list(data.values())[0])
-
-            table.align = "l"
-            table.title = f"{self.sys_log.hostname} Database Client"
-            for row in data.values():
-                table.add_row(row.values())
-            print(table)
-
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
         Receive a payload from the Software Manager.
@@ -179,5 +165,5 @@ class DatabaseClient(Application):
                 status_code = payload.get("status_code")
                 self._query_success_tracker[query_id] = status_code == 200
                 if self._query_success_tracker[query_id]:
-                    self._print_data(payload["data"])
+                    _LOGGER.debug(f"Received payload {payload}")
         return True

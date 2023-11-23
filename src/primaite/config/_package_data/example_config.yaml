@@ -88,7 +88,7 @@ game_config:
           #   options:
           #     execution_definition:
           #       server_ip: 192.168.1.14
-          #       payload: "DROP TABLE IF EXISTS user;"
+          #       payload: "DELETE"
           #       success_rate: 80%
           - type: NODE_FILE_DELETE
           - type: NODE_FILE_CORRUPT
