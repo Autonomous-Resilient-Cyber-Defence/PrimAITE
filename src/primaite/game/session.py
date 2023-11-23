@@ -10,13 +10,7 @@ from pydantic import BaseModel
 
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import (
-    AbstractAgent,
-    AgentExecutionDefinition,
-    AgentSettings,
-    DataManipulationAgent,
-    RandomAgent,
-)
+from primaite.game.agent.interface import AbstractAgent, AgentSettings, DataManipulationAgent, RandomAgent
 from primaite.game.agent.observations import ObservationSpace
 from primaite.game.agent.rewards import RewardFunction
 from primaite.simulator.network.hardware.base import Link, NIC, Node
@@ -366,6 +360,16 @@ class PrimaiteSession:
                             if "domain_mapping" in opt:
                                 for domain, ip in opt["domain_mapping"].items():
                                     new_service.dns_register(domain, ip)
+                    if service_type == "DataManipulationBot":
+                        if "options" in service_cfg:
+                            opt = service_cfg["options"]
+                            new_service.configure(
+                                server_ip_address=opt.get("server_ip"),
+                                payload=opt.get("payload"),
+                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
+                                data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
+                            )
+
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
                     application_ref = application_cfg["ref"]
@@ -444,7 +448,6 @@ class PrimaiteSession:
             # CREATE REWARD FUNCTION
             rew_function = RewardFunction.from_config(reward_function_cfg, session=sess)
 
-            execution_definition = AgentExecutionDefinition.from_config(agent_cfg.get("execution_definition"))
             agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
 
             # CREATE AGENT
@@ -455,7 +458,6 @@ class PrimaiteSession:
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=rew_function,
-                    execution_definition=execution_definition,
                     agent_settings=agent_settings,
                 )
                 sess.agents.append(new_agent)
@@ -465,7 +467,6 @@ class PrimaiteSession:
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=rew_function,
-                    execution_definition=execution_definition,
                     agent_settings=agent_settings,
                 )
                 sess.agents.append(new_agent)
@@ -476,7 +477,6 @@ class PrimaiteSession:
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=rew_function,
-                    execution_definition=execution_definition,
                     agent_settings=agent_settings,
                 )
                 sess.agents.append(new_agent)

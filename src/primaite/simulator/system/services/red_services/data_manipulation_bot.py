@@ -2,7 +2,6 @@ from enum import IntEnum
 from ipaddress import IPv4Address
 from typing import Optional
 
-from primaite.game.agent.interface import AgentExecutionDefinition
 from primaite.game.science import simulate_trial
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -36,8 +35,10 @@ class DataManipulationBot(DatabaseClient):
     server_ip_address: Optional[IPv4Address] = None
     payload: Optional[str] = None
     server_password: Optional[str] = None
+    port_scan_p_of_success: float = 0.1
+    data_manipulation_p_of_success: float = 0.1
+
     attack_stage: DataManipulationAttackStage = DataManipulationAttackStage.NOT_STARTED
-    execution_definition: AgentExecutionDefinition = AgentExecutionDefinition()
     repeat: bool = False
     "Whether to repeat attacking once finished."
 
@@ -50,6 +51,8 @@ class DataManipulationBot(DatabaseClient):
         server_ip_address: IPv4Address,
         server_password: Optional[str] = None,
         payload: Optional[str] = None,
+        port_scan_p_of_success: float = 0.1,
+        data_manipulation_p_of_success: float = 0.1,
         repeat: bool = False,
     ):
         """
@@ -58,11 +61,15 @@ class DataManipulationBot(DatabaseClient):
         :param server_ip_address: The IP address of the Node the DatabaseService is on.
         :param server_password: The password on the DatabaseService.
         :param payload: The data manipulation query payload.
+        :param port_scan_p_of_success: The probability of success for the port scan stage.
+        :param data_manipulation_p_of_success: The probability of success for the data manipulation stage.
         :param repeat: Whether to repeat attacking once finished.
         """
         self.server_ip_address = server_ip_address
         self.payload = payload
         self.server_password = server_password
+        self.port_scan_p_of_success = port_scan_p_of_success
+        self.data_manipulation_p_of_success = data_manipulation_p_of_success
         self.repeat = repeat
         self.sys_log.info(
             f"{self.name}: Configured the {self.name} with {server_ip_address=}, {payload=}, {server_password=}, "

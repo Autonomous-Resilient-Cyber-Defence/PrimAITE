@@ -9,35 +9,11 @@ from pydantic import BaseModel
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.observations import ObservationSpace
 from primaite.game.agent.rewards import RewardFunction
-from primaite.simulator.network.hardware.base import Node
 
 if TYPE_CHECKING:
     from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 
 ObsType: TypeAlias = Union[Dict, np.ndarray]
-
-
-class AgentExecutionDefinition(BaseModel):
-    """Additional configuration for agents."""
-
-    port_scan_p_of_success: float = 0.1
-    "The probability of a port scan succeeding."
-    data_manipulation_p_of_success: float = 0.1
-    "The probability of data manipulation succeeding."
-
-    @classmethod
-    def from_config(cls, config: Optional[Dict]) -> "AgentExecutionDefinition":
-        """Construct an AgentExecutionDefinition from a config dictionary.
-
-        :param config: A dict of options for the execution definition.
-        :type config: Dict
-        :return: The execution definition.
-        :rtype: AgentExecutionDefinition
-        """
-        if config is None:
-            return cls()
-
-        return cls(**config)
 
 
 class AgentStartSettings(BaseModel):
@@ -81,7 +57,6 @@ class AbstractAgent(ABC):
         action_space: Optional[ActionManager],
         observation_space: Optional[ObservationSpace],
         reward_function: Optional[RewardFunction],
-        execution_definition: Optional[AgentExecutionDefinition],
         agent_settings: Optional[AgentSettings],
     ) -> None:
         """
@@ -100,11 +75,6 @@ class AbstractAgent(ABC):
         self.action_space: Optional[ActionManager] = action_space
         self.observation_space: Optional[ObservationSpace] = observation_space
         self.reward_function: Optional[RewardFunction] = reward_function
-
-        # exection definiton converts CAOS action to Primaite simulator request, sometimes having to enrich the info
-        # by for example specifying target ip addresses, or converting a node ID into a uuid
-        self.execution_definition = execution_definition or AgentExecutionDefinition()
-
         self.agent_settings = agent_settings or AgentSettings()
 
     def convert_state_to_obs(self, state: Dict) -> ObsType:
@@ -185,19 +155,6 @@ class DataManipulationAgent(AbstractScriptedAgent):
         super().__init__(*args, **kwargs)
 
         self.next_execution_timestep = self.agent_settings.start_settings.start_step
-
-        # get node ids that are part of the agent's observation space
-        node_ids: List[str] = [n.where[-1] for n in self.observation_space.obs.nodes]
-        # get all nodes from their ids
-        nodes: List[Node] = [n for n_id, n in self.action_space.sim.network.nodes.items() if n_id in node_ids]
-
-        # get execution definition for data manipulation bots
-        for node in nodes:
-            bot_sw: Optional["DataManipulationBot"] = node.software_manager.software.get("DataManipulationBot")
-
-            if bot_sw is not None:
-                bot_sw.execution_definition = self.execution_definition
-                self.data_manipulation_bots.append(bot_sw)
 
     def get_action(self, obs: ObsType, reward: float = None) -> Tuple[str, Dict]:
         """Randomly sample an action from the action space.

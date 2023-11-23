@@ -59,10 +59,6 @@ game_config:
       team: RED
       type: RedDatabaseCorruptingAgent
 
-      execution_definition:
-        port_scan_p_of_success: 0.1
-        data_manipulation_p_of_success: 0.1
-
       observation_space:
         type: UC2RedObservation
         options:
@@ -83,11 +79,6 @@ game_config:
           - type: DONOTHING
           #<not yet implemented
           # - type: NODE_APPLICATION_EXECUTE
-          #   options:
-          #     execution_definition:
-          #       server_ip: 192.168.1.14
-          #       payload: "DROP TABLE IF EXISTS user;"
-          #       success_rate: 80%
           - type: NODE_FILE_DELETE
           - type: NODE_FILE_CORRUPT
           # - type: NODE_FOLDER_DELETE
@@ -662,6 +653,11 @@ simulation:
       services:
       - ref: data_manipulation_bot
         type: DataManipulationBot
+        options:
+          port_scan_p_of_success: 0.1
+          data_manipulation_p_of_success: 0.1
+          payload: "DROP TABLE IF EXISTS user;"
+          server_ip: 192.168.1.14
       - ref: client_1_dns_client
         type: DNSClient
 
