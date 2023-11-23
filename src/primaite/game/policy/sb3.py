@@ -11,13 +11,13 @@ from stable_baselines3.ppo import MlpPolicy as PPO_MLP
 from primaite.game.policy.policy import PolicyABC
 
 if TYPE_CHECKING:
-    from primaite.game.game import PrimaiteGame, TrainingOptions
+    from primaite.session.session import PrimaiteSession, TrainingOptions
 
 
 class SB3Policy(PolicyABC, identifier="SB3"):
     """Single agent RL policy using stable baselines 3."""
 
-    def __init__(self, session: "PrimaiteGame", algorithm: Literal["PPO", "A2C"], seed: Optional[int] = None):
+    def __init__(self, session: "PrimaiteSession", algorithm: Literal["PPO", "A2C"], seed: Optional[int] = None):
         """Initialize a stable baselines 3 policy."""
         super().__init__(session=session)
 
@@ -75,6 +75,6 @@ class SB3Policy(PolicyABC, identifier="SB3"):
         self._agent = self._agent_class.load(model_path, env=self.session.env)
 
     @classmethod
-    def from_config(cls, config: "TrainingOptions", session: "PrimaiteGame") -> "SB3Policy":
+    def from_config(cls, config: "TrainingOptions", session: "PrimaiteSession") -> "SB3Policy":
         """Create an agent from config file."""
         return cls(session=session, algorithm=config.rl_algorithm, seed=config.seed)
