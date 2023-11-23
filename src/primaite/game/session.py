@@ -281,7 +281,7 @@ class PrimaiteSession:
         self.episode_counter += 1
         self.step_counter = 0
         _LOGGER.debug(f"Restting primaite session, episode = {self.episode_counter}")
-        self.simulation = copy.deepcopy(self._simulation_initial_state)
+        self.simulation = deepcopy(self._simulation_initial_state)
 
     def close(self) -> None:
         """Close the session, this will stop the env and close the simulation."""
