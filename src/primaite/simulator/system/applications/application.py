@@ -2,6 +2,7 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Set
 
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 
@@ -61,6 +62,10 @@ class Application(IOSoftware):
 
     def run(self) -> None:
         """Open the Application."""
+        if self.software_manager and self.software_manager.node.operating_state is not NodeOperatingState.ON:
+            self.sys_log.error(f"Unable to run application. {self.software_manager.node.hostname} is not turned on.")
+            return
+
         if self.operating_state == ApplicationOperatingState.CLOSED:
             self.sys_log.info(f"Running Application {self.name}")
             self.operating_state = ApplicationOperatingState.RUNNING

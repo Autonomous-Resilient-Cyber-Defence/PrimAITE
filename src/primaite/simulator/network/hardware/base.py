@@ -1424,7 +1424,17 @@ class Node(SimComponent):
 
     def _start_up_actions(self):
         """Actions to perform when the node is starting up."""
-        pass
+        # Turn on all the services in the node
+        for service_id in self.services:
+            self.services[service_id].start()
+
+        # Turn on all the applications in the node
+        for app_id in self.applications:
+            self.applications[app_id].run()
+
+        # Turn off all processes in the node
+        # for process_id in self.processes:
+        #     self.processes[process_id]
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Service):

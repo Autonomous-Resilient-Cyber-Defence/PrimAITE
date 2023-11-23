@@ -23,6 +23,7 @@ def test_data_manipulation(uc2_network):
 
     # Now we run the DataManipulationBot
     db_manipulation_bot.run()
+    db_manipulation_bot.attack()
 
     # Now check that the DB client on the web_server cannot query the users table on the database
     assert not db_client.query("SELECT")

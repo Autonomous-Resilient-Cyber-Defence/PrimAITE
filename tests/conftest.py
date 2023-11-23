@@ -52,6 +52,12 @@ class TestService(Service):
 class TestApplication(Application):
     """Test Application class"""
 
+    def __init__(self, **kwargs):
+        kwargs["name"] = "TestApplication"
+        kwargs["port"] = Port.HTTP
+        kwargs["protocol"] = IPProtocol.TCP
+        super().__init__(**kwargs)
+
     def describe_state(self) -> Dict:
         pass
 
