@@ -1,8 +1,9 @@
 from enum import Enum
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 _LOGGER = getLogger(__name__)
@@ -39,6 +40,21 @@ class Service(IOSoftware):
     "How many timesteps does it take to restart this service."
     restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
+
+    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
+        """
+        Receives a payload from the SessionManager.
+
+        The specifics of how the payload is processed and whether a response payload
+        is generated should be implemented in subclasses.
+
+
+        :param payload: The payload to receive.
+        :param session_id: The identifier of the session that the payload is associated with.
+        :param kwargs: Additional keyword arguments specific to the implementation.
+        :return: True if the payload was successfully received and processed, False otherwise.
+        """
+        return super().receive(payload=payload, session_id=session_id, **kwargs)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -91,6 +107,11 @@ class Service(IOSoftware):
 
     def start(self, **kwargs) -> None:
         """Start the service."""
+        # cant start the service if the node it is on is off
+        if self.software_manager and self.software_manager.node.operating_state is not NodeOperatingState.ON:
+            self.sys_log.error(f"Unable to start service. {self.software_manager.node.hostname} is not turned on.")
+            return
+
         if self.operating_state == ServiceOperatingState.STOPPED:
             self.sys_log.info(f"Starting service {self.name}")
             self.operating_state = ServiceOperatingState.RUNNING

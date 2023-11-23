@@ -160,4 +160,7 @@ class WebServer(Service):
             self.sys_log.error("Payload is not an HTTPPacket")
             return False
 
+        if not super().receive(payload=payload, session_id=session_id, **kwargs):
+            return False
+
         return self._process_http_request(payload=payload, session_id=session_id)

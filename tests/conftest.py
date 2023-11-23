@@ -17,6 +17,7 @@ from primaite.game.session import PrimaiteSession
 # from primaite.primaite_session import PrimaiteSession
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.networks import arcd_uc2_network
+from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.sys_log import SysLog
@@ -37,6 +38,12 @@ from primaite.simulator.network.hardware.base import Node
 
 class TestService(Service):
     """Test Service class"""
+
+    def __init__(self, **kwargs):
+        kwargs["name"] = "TestService"
+        kwargs["port"] = Port.HTTP
+        kwargs["protocol"] = IPProtocol.TCP
+        super().__init__(**kwargs)
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         pass

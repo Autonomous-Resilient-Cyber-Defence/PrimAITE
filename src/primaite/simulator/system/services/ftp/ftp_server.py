@@ -89,5 +89,8 @@ class FTPServer(FTPServiceABC):
         if payload.status_code is not None:
             return False
 
+        if not super().receive(payload=payload, session_id=session_id, **kwargs):
+            return False
+
         self.send(self._process_ftp_command(payload=payload, session_id=session_id), session_id)
         return True
