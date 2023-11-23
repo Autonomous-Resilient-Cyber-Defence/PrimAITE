@@ -18,6 +18,7 @@ PrimAITE provides the following features:
 * Highly configurable network hosts, including definition of software, file system, and network interfaces,
 * Realistic network traffic simulation, including address and sending packets via internet protocols like TCP, UDP, ICMP, etc.
 * Routers with traffic routing and firewall capabilities
+* Interfaces with ARCD GATE to allow training of agents
 * Simulation of customisable deterministic agents
 * Support for multiple agents, each having their own customisable observation space, action space, and reward function definition.
 
@@ -147,7 +148,7 @@ The game layer is built on top of the simulator and it consumes the simulation a
   Observation Spaces
   ******************
   The observation space provides the blue agent with information about the current status of nodes and links.
-  PrimAITE builds on top of Gym Spaces to create an observation space that is easily configurable for users. It's made up of components which are managed by the :py:class:`primaite.environment.observations.ObservationsHandler`. Each training scenario can define its own observation space, and the user can choose which information to inlude, and how it should be formatted.
+  PrimAITE builds on top of Gymnasium Spaces to create an observation space that is easily configurable for users. It's made up of components which are managed by the :py:class:`primaite.environment.observations.ObservationsHandler`. Each training scenario can define its own observation space, and the user can choose which information to inlude, and how it should be formatted.
   NodeLinkTable component
   -----------------------
   For example, the :py:class:`primaite.environment.observations.NodeLinkTable` component represents the status of nodes and links as a ``gym.spaces.Box`` with an example format shown below:
@@ -278,7 +279,7 @@ The game layer is built on top of the simulator and it consumes the simulation a
   3. Any (Agent can take both node-based and ACL-based actions)
   The choice of action space used during a training session is determined in the config_[name].yaml file.
   **Node-Based**
-  The agent is able to influence the status of nodes by switching them off, resetting, or patching operating systems and services. In this instance, the action space is an OpenAI Gym spaces.Discrete type, as follows:
+  The agent is able to influence the status of nodes by switching them off, resetting, or patching operating systems and services. In this instance, the action space is an Gymnasium spaces.Discrete type, as follows:
   * Dictionary item {... ,1: [x1, x2, x3,x4] ...}
     The placeholders inside the list under the key '1' mean the following:
       * [0, num nodes] - Node ID (0 = nothing, node ID)

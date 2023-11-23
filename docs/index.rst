@@ -30,7 +30,7 @@ PrimAITE incorporates the following features:
 - Uses the concept of Information Exchange Requirements (IERs) to model background pattern of life and adversarial behaviour;
 - An Access Control List (ACL) function, mimicking the behaviour of a network firewall, is applied across the model, following standard ACL rule format (e.g. DENY/ALLOW, source IP address, destination IP address, protocol and port);
 - Application of traffic to the links of the platform / system laydown adheres to the ACL ruleset;
-- Presents both an OpenAI gym and Ray RLLib interface to the environment, allowing integration with any compliant defensive agents;
+- Presents both a Gymnasium and Ray RLLib interface to the environment, allowing integration with any compliant defensive agents;
 - Allows for the saving and loading of trained defensive agents;
 - Stochastic adversarial agent behaviour;
 - Full capture of discrete logs relating to agent training or evaluation (system state, agent actions taken, instantaneous and average reward for every step of every episode);
@@ -40,18 +40,18 @@ PrimAITE incorporates the following features:
 Architecture
 ^^^^^^^^^^^^
 
-PrimAITE is a Python application and is therefore Operating System agnostic. The OpenAI gym and Ray RLLib frameworks are employed to provide an interface and source for AI agents. Configuration of PrimAITE is achieved via included YAML files which support full control over the platform / system laydown being modelled, background pattern of life, adversarial (red agent) behaviour, and step and episode count. NetworkX based nodes and links host Python classes to present attributes and methods, and hence a more representative platform / system can be modelled within the simulation.
+PrimAITE is a Python application and is therefore Operating System agnostic. The Gymnasium and Ray RLLib frameworks are employed to provide an interface and source for AI agents. Configuration of PrimAITE is achieved via included YAML files which support full control over the platform / system laydown being modelled, background pattern of life, adversarial (red agent) behaviour, and step and episode count. NetworkX based nodes and links host Python classes to present attributes and methods, and hence a more representative platform / system can be modelled within the simulation.
 
 
 
 Training & Evaluation Capability
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-PrimAITE provides a training and evaluation capability to AI agents in the context of cyber-attack, via its OpenAI Gym and RLLib compliant interface. Scenarios can be constructed to reflect platform / system laydowns consisting of any configuration of nodes (e.g. PCs, servers, switches etc.) and network links between them. All nodes can be configured to model services (and their status) and the traffic loading between them over the network links. Traffic loading is broken down into a per service granularity, relating directly to a protocol (e.g. Service A would be configured as a TCP service, and TCP traffic then flows between instances of Service A under the direction of a tailored IER). Highlights of PrimAITE’s training and evaluation capability are:
+PrimAITE provides a training and evaluation capability to AI agents in the context of cyber-attack, via its Gymnasium and RLLib compliant interface. Scenarios can be constructed to reflect platform / system laydowns consisting of any configuration of nodes (e.g. PCs, servers, switches etc.) and network links between them. All nodes can be configured to model services (and their status) and the traffic loading between them over the network links. Traffic loading is broken down into a per service granularity, relating directly to a protocol (e.g. Service A would be configured as a TCP service, and TCP traffic then flows between instances of Service A under the direction of a tailored IER). Highlights of PrimAITE’s training and evaluation capability are:
 
 - The scenario is not bound to a representation of any platform, system, or technology;
 - Fully configurable (network / system laydown, IERs, node pattern-of-life, ACL, number of episodes, steps per episode) and repeatable to suit the requirements of AI agents;
-- Can integrate with any OpenAI Gym or RLLib compliant AI agent.
+- Can integrate with any Gymnasium or RLLib compliant AI agent.
 
 Use of PrimAITE default scenarios within ARCD is supported by a “Use Case Profile” tailored to the scenario.
 
@@ -75,7 +75,7 @@ Logs are available in CSV format and provide coverage of the above data for ever
 What is PrimAITE built with
 ---------------------------
 
-* `OpenAI's Gym <https://gym.openai.com/>`_ is used as the basis for AI blue agent interaction with the PrimAITE environment
+* `Gymnasium <https://gymnasium.farama.org/>`_ is used as the basis for AI blue agent interaction with the PrimAITE environment
 * `Networkx <https://github.com/networkx/networkx>`_ is used as the underlying data structure used for the PrimAITE environment
 * `Stable Baselines 3 <https://github.com/DLR-RM/stable-baselines3>`_ is used as a default source of RL algorithms (although PrimAITE is not limited to SB3 agents)
 * `Ray RLlib <https://github.com/ray-project/ray>`_ is used as an additional source of RL algorithms
