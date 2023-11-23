@@ -154,7 +154,17 @@ class DataManipulationAgent(AbstractScriptedAgent):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.next_execution_timestep = self.agent_settings.start_settings.start_step
+        self._set_next_execution_timestep(self.agent_settings.start_settings.start_step)
+
+    def _set_next_execution_timestep(self, timestep: int) -> None:
+        """Set the next execution timestep with a configured random variance.
+
+        :param timestep: The timestep to add variance to.
+        """
+        random_timestep_increment = random.randint(
+            -self.agent_settings.start_settings.variance, self.agent_settings.start_settings.variance
+        )
+        self.next_execution_timestep = timestep + random_timestep_increment
 
     def get_action(self, obs: ObsType, reward: float = None) -> Tuple[str, Dict]:
         """Randomly sample an action from the action space.
@@ -166,21 +176,14 @@ class DataManipulationAgent(AbstractScriptedAgent):
         :return: _description_
         :rtype: Tuple[str, Dict]
         """
-        # TODO: Move this to the appropriate place
-        # return self.action_space.get_action(self.action_space.space.sample())
+        current_timestep = self.action_space.session.step_counter
 
-        timestep = self.action_space.session.step_counter
-
-        if timestep < self.next_execution_timestep:
+        if current_timestep < self.next_execution_timestep:
             return "DONOTHING", {"dummy": 0}
 
-        var = random.randint(-self.agent_settings.start_settings.variance, self.agent_settings.start_settings.variance)
-        self.next_execution_timestep = timestep + self.agent_settings.start_settings.frequency + var
+        self._set_next_execution_timestep(current_timestep + self.agent_settings.start_settings.frequency)
 
-        for bot in self.data_manipulation_bots:
-            bot.execute()
-
-        return "DONOTHING", {"dummy": 0}
+        return "NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}
 
 
 class AbstractGATEAgent(AbstractAgent):

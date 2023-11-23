@@ -1,5 +1,3 @@
-from ipaddress import IPv4Address
-
 import pytest
 
 from primaite.simulator.network.hardware.base import Node

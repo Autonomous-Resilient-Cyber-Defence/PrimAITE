@@ -3,6 +3,7 @@ from ipaddress import IPv4Address
 from typing import Optional
 
 from primaite.game.science import simulate_trial
+from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient
 
@@ -45,6 +46,13 @@ class DataManipulationBot(DatabaseClient):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "DataManipulationBot"
+
+    def _init_request_manager(self) -> RequestManager:
+        rm = super()._init_request_manager()
+
+        rm.add_request(name="execute", request_type=RequestType(func=self.execute))
+
+        return rm
 
     def configure(
         self,

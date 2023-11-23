@@ -78,12 +78,12 @@ game_config:
         action_list:
           - type: DONOTHING
           #<not yet implemented
-          # - type: NODE_APPLICATION_EXECUTE
-          - type: NODE_FILE_DELETE
-          - type: NODE_FILE_CORRUPT
+          - type: NODE_APPLICATION_EXECUTE
+#          - type: NODE_FILE_DELETE
+#          - type: NODE_FILE_CORRUPT
           # - type: NODE_FOLDER_DELETE
           # - type: NODE_FOLDER_CORRUPT
-          - type: NODE_OS_SCAN
+#          - type: NODE_OS_SCAN
           # - type: NODE_LOGON
           # - type: NODE_LOGOFF
         options:
