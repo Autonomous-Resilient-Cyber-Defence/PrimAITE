@@ -18,15 +18,15 @@ class TestPrimaiteSession:
                 raise AssertionError
 
             assert session is not None
-            assert session.simulation
-            assert len(session.agents) == 3
-            assert len(session.rl_agents) == 1
+            assert session.game.simulation
+            assert len(session.game.agents) == 3
+            assert len(session.game.rl_agents) == 1
 
             assert session.policy
             assert session.env
 
-            assert session.simulation.network
-            assert len(session.simulation.network.nodes) == 10
+            assert session.game.simulation.network
+            assert len(session.game.simulation.network.nodes) == 10
 
     @pytest.mark.parametrize("temp_primaite_session", [[CFG_PATH]], indirect=True)
     def test_start_session(self, temp_primaite_session):
