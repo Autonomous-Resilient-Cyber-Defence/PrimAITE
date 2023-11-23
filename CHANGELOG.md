@@ -38,7 +38,7 @@ SessionManager.
 
 ### Removed
 - Removed legacy simulation modules: `acl`, `common`, `environment`, `links`, `nodes`, `pol`
-- Removed legacy training modules, they are replaced by the new ARCD GATE dependency
+- Removed legacy training modules
 - Removed tests for legacy code
 
 

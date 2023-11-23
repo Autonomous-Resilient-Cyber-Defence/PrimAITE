@@ -4,9 +4,9 @@ PrimAITE Game layer
 The Primaite codebase consists of two main modules:
 
 * ``simulator``: The simulation logic including the network topology, the network state, and behaviour of various hardware and software classes.
-* ``game``: The agent-training infrastructure which helps reinforcement learning agents interface with the simulation. This includes the observation, action, and rewards, for RL agents, but also scripted deterministic agents. The game layer orchestrates all the interactions between modules, including ARCD GATE.
+* ``game``: The agent-training infrastructure which helps reinforcement learning agents interface with the simulation. This includes the observation, action, and rewards, for RL agents, but also scripted deterministic agents. The game layer orchestrates all the interactions between modules.
 
-These two components have been decoupled to allow the agent training code in ARCD GATE to be reused with other simulators. The simulator and game layer communicate using the PrimAITE State API and the PrimAITE Request API. The game layer communicates with ARCD gate using the `Farama Gymnasium Spaces API <https://gymnasium.farama.org/api/spaces/>`_.
+ The simulator and game layer communicate using the PrimAITE State API and the PrimAITE Request API.
 
 ..
     TODO: write up these APIs and link them here.
@@ -20,13 +20,13 @@ The game layer is responsible for managing agents and getting them to interface 
 PrimAITE Session
 ^^^^^^^^^^^^^^^
 
-``PrimaiteSession`` is the main entry point into Primaite and it allows the simultaneous coordination of a simulation and agents that interact with it. It also sends messages to ARCD GATE to perform reinforcement learning. ``PrimaiteSession`` keeps track of multiple agents of different types.
+``PrimaiteSession`` is the main entry point into Primaite and it allows the simultaneous coordination of a simulation and agents that interact with it. ``PrimaiteSession`` keeps track of multiple agents of different types.
 
 Agents
 ^^^^^^
 
 All agents inherit from the :py:class:`primaite.game.agent.interface.AbstractAgent` class, which mandates that they have an ObservationManager, ActionManager, and RewardManager. The agent behaviour depends on the type of agent, but there are two main types:
-* RL agents action during each step is decided by an RL algorithm which lives inside of ARCD GATE. The agent within PrimAITE just acts to format and forward actions decided by an RL policy.
+* RL agents action during each step is decided by an appropriate RL algorithm. The agent within PrimAITE just acts to format and forward actions decided by an RL policy.
 * Deterministic agents perform all of their decision making within the PrimAITE game layer. They typically have a scripted policy which always performs the same action or a rule-based policy which performs actions based on the current state of the simulation. They can have a stochastic element, and their seed will be settable.
 
 ..
