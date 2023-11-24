@@ -79,12 +79,12 @@ class TestPrimaiteSession:
     def test_session_sim_reset(self, temp_primaite_session):
         with temp_primaite_session as session:
             session: TempPrimaiteSession
-            client_1 = session.simulation.network.get_node_by_hostname("client_1")
+            client_1 = session.game.simulation.network.get_node_by_hostname("client_1")
             client_1.software_manager.uninstall("DataManipulationBot")
 
             assert "DataManipulationBot" not in client_1.software_manager.software
 
-            session.reset()
-            client_1 = session.simulation.network.get_node_by_hostname("client_1")
+            session.game.reset()
+            client_1 = session.game.simulation.network.get_node_by_hostname("client_1")
 
             assert "DataManipulationBot" in client_1.software_manager.software
