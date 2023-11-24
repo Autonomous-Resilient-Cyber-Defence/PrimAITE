@@ -66,7 +66,7 @@ class Application(IOSoftware):
             self.operating_state = ApplicationOperatingState.RUNNING
 
     def _application_loop(self):
-        """THe main application loop."""
+        """The main application loop."""
         pass
 
     def close(self) -> None:

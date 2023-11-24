@@ -1,7 +1,7 @@
 from random import random
 
 
-def simulate_trial(p_of_success: float):
+def simulate_trial(p_of_success: float) -> bool:
     """
     Simulates the outcome of a single trial in a Bernoulli process.
 
