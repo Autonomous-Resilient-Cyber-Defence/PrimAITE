@@ -54,7 +54,7 @@ class DatabaseClient(Application):
 
     def connect(self) -> bool:
         """Connect to a Database Service."""
-        if not self.connected and self.operating_state.RUNNING:
+        if not self.connected and self.operating_state == ApplicationOperatingState.RUNNING:
             return self._connect(self.server_ip_address, self.server_password)
         return False
 
