@@ -8,6 +8,8 @@ DataManipulationBot
 
 The ``DataManipulationBot`` class provides functionality to connect to a ``DatabaseService`` and execute malicious SQL statements.
 
+The bot is controlled by a ``DataManipulationAgent``.
+
 Overview
 --------
 
@@ -16,15 +18,25 @@ The bot is intended to simulate a malicious actor carrying out attacks like:
 - Dropping tables
 - Deleting records
 - Modifying data
+
 On a database server by abusing an application's trusted database connectivity.
+
+The bot performs attacks in the following stages to simulate the real pattern of an attack:
+
+- Logon - *The bot gains access to the node.*
+- Port Scan - *The bot finds accessible database servers on the network.*
+- Attacking - *The bot delivers the payload to the discovered database servers.*
+
+Each of these stages has a random, configurable probability of succeeding. The bot can also be configured to repeat the attack once complete.
 
 Usage
 -----
 
 - Create an instance and call ``configure`` to set:
-  - Target database server IP
-  - Database password (if needed)
-  - SQL statement payload
+    - Target database server IP
+    - Database password (if needed)
+    - SQL statement payload
+    - Probabilities for succeeding each of the above attack stages
 - Call ``run`` to connect and execute the statement.
 
 The bot handles connecting, executing the statement, and disconnecting.
@@ -52,7 +64,7 @@ Implementation
 The bot extends ``DatabaseClient`` and leverages its connectivity.
 
 - Uses the Application base class for lifecycle management.
-- Credentials and target IP set via ``configure``.
+- Credentials, target IP and other options set via ``configure``.
 - ``run`` handles connecting, executing statement, and disconnecting.
 - SQL payload executed via ``query`` method.
 - Results in malicious SQL being executed on remote database server.
