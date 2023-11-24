@@ -8,8 +8,6 @@ DataManipulationBot
 
 The ``DataManipulationBot`` class provides functionality to connect to a ``DatabaseService`` and execute malicious SQL statements.
 
-The bot is controlled by a ``DataManipulationAgent``.
-
 Overview
 --------
 
@@ -23,11 +21,11 @@ On a database server by abusing an application's trusted database connectivity.
 
 The bot performs attacks in the following stages to simulate the real pattern of an attack:
 
-- Logon - *The bot gains access to the node.*
+- Logon - *The bot gains credentials and accesses the node.*
 - Port Scan - *The bot finds accessible database servers on the network.*
 - Attacking - *The bot delivers the payload to the discovered database servers.*
 
-Each of these stages has a random, configurable probability of succeeding. The bot can also be configured to repeat the attack once complete.
+Each of these stages has a random, configurable probability of succeeding (by default 10%). The bot can also be configured to repeat the attack once complete.
 
 Usage
 -----
@@ -40,6 +38,8 @@ Usage
 - Call ``run`` to connect and execute the statement.
 
 The bot handles connecting, executing the statement, and disconnecting.
+
+In a simulation, the bot can be controlled by using ``DataManipulationAgent`` which calls ``run`` on the bot at configured timesteps.
 
 Example
 -------
@@ -57,6 +57,74 @@ Example
     data_manipulation_bot.run()
 
 This would connect to the database service at 192.168.1.14, authenticate, and execute the SQL statement to drop the 'users' table.
+
+Example with ``DataManipulationAgent``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If not using the data manipulation bot manually, it needs to be used with a data manipulation agent. Below is an example section of configuration file for setting up a simulation with data manipulation bot and agent.
+
+.. code-block:: yaml
+
+    game_config:
+      # ...
+      agents:
+        - ref: data_manipulation_red_bot
+          team: RED
+          type: RedDatabaseCorruptingAgent
+
+          observation_space:
+            type: UC2RedObservation
+            options:
+              nodes:
+                - node_ref: client_1
+                  observations:
+                  - logon_status
+                  - operating_status
+                  applications:
+                  - application_ref: data_manipulation_bot
+                    observations:
+                      operating_status
+                      health_status
+                  folders: {}
+
+          action_space:
+            action_list:
+              - type: DONOTHING
+              - type: NODE_APPLICATION_EXECUTE
+            options:
+              nodes:
+              - node_ref: client_1
+                applications:
+                  - application_ref: data_manipulation_bot
+              max_folders_per_node: 1
+              max_files_per_folder: 1
+              max_services_per_node: 1
+
+          reward_function:
+            reward_components:
+              - type: DUMMY
+
+          agent_settings:
+            start_settings:
+              start_step: 25
+              frequency: 20
+              variance: 5
+    # ...
+
+    simulation:
+      network:
+        nodes:
+        - ref: client_1
+          type: computer
+          # ... additional configuration here
+          applications:
+          - ref: data_manipulation_bot
+            type: DataManipulationBot
+            options:
+              port_scan_p_of_success: 0.1
+              data_manipulation_p_of_success: 0.1
+              payload: "DELETE"
+              server_ip: 192.168.1.14
 
 Implementation
 --------------
