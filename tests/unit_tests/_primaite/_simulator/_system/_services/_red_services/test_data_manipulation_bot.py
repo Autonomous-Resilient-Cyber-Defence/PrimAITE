@@ -27,7 +27,7 @@ def test_create_dm_bot(dm_client):
     assert data_manipulation_bot.name == "DataManipulationBot"
     assert data_manipulation_bot.port == Port.POSTGRES_SERVER
     assert data_manipulation_bot.protocol == IPProtocol.TCP
-    assert data_manipulation_bot.payload == "DROP TABLE IF EXISTS user;"
+    assert data_manipulation_bot.payload == "DELETE"
 
 
 def test_dm_bot_logon(dm_bot):

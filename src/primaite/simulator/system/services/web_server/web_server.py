@@ -106,7 +106,7 @@ class WebServer(Service):
                 # get data from DatabaseServer
                 db_client: DatabaseClient = self.software_manager.software["DatabaseClient"]
                 # get all users
-                if db_client.query("SELECT * FROM user;"):
+                if db_client.query("SELECT"):
                     # query succeeded
                     response.status_code = HttpStatusCode.OK
 

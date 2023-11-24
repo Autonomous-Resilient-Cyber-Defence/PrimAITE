@@ -1,18 +1,21 @@
 """PrimAITE session - the main entry point to training agents on PrimAITE."""
+from copy import deepcopy
+from enum import Enum
 from ipaddress import IPv4Address
-from typing import Any, Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Literal, Optional, SupportsFloat, Tuple
 
-from arcd_gate.client.gate_client import ActType, GATEClient
-from gymnasium import spaces
+import gymnasium
 from gymnasium.core import ActType, ObsType
-from gymnasium.spaces.utils import flatten, flatten_space
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, AgentSettings, DataManipulationAgent, RandomAgent
-from primaite.game.agent.observations import ObservationSpace
+from primaite.game.agent.interface import AbstractAgent, AgentSettings, DataManipulationAgent, ProxyAgent, RandomAgent
+from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
+from primaite.game.io import SessionIO, SessionIOSettings
+from primaite.game.policy.policy import PolicyABC
 from primaite.simulator.network.hardware.base import Link, NIC, Node
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
@@ -34,109 +37,62 @@ from primaite.simulator.system.services.web_server.web_server import WebServer
 _LOGGER = getLogger(__name__)
 
 
-class PrimaiteGATEClient(GATEClient):
-    """Lightweight wrapper around the GATEClient class that allows PrimAITE to message GATE."""
+class PrimaiteGymEnv(gymnasium.Env):
+    """
+    Thin wrapper env to provide agents with a gymnasium API.
 
-    def __init__(self, parent_session: "PrimaiteSession", service_port: int = 50000):
-        """
-        Create a new GATE client for PrimAITE.
+    This is always a single agent environment since gymnasium is a single agent API. Therefore, we can make some
+    assumptions about the agent list always having a list of length 1.
+    """
 
-        :param parent_session: The parent session object.
-        :type parent_session: PrimaiteSession
-        :param service_port: The port on which the GATE service is running.
-        :type service_port: int, optional
-        """
-        super().__init__(service_port=service_port)
-        self.parent_session: "PrimaiteSession" = parent_session
+    def __init__(self, session: "PrimaiteSession", agents: List[ProxyAgent]):
+        """Initialise the environment."""
+        super().__init__()
+        self.session: "PrimaiteSession" = session
+        self.agent: ProxyAgent = agents[0]
 
-    @property
-    def rl_framework(self) -> str:
-        """The reinforcement learning framework to use."""
-        return self.parent_session.training_options.rl_framework
+    def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, Dict[str, Any]]:
+        """Perform a step in the environment."""
+        # make ProxyAgent store the action chosen my the RL policy
+        self.agent.store_action(action)
+        # apply_agent_actions accesses the action we just stored
+        self.session.apply_agent_actions()
+        self.session.advance_timestep()
+        state = self.session.get_sim_state()
+        self.session.update_agents(state)
 
-    @property
-    def rl_algorithm(self) -> str:
-        """The reinforcement learning algorithm to use."""
-        return self.parent_session.training_options.rl_algorithm
-
-    @property
-    def seed(self) -> Optional[int]:
-        """The seed to use for the environment's random number generator."""
-        return self.parent_session.training_options.seed
-
-    @property
-    def n_learn_episodes(self) -> int:
-        """The number of episodes in each learning run."""
-        return self.parent_session.training_options.n_learn_episodes
-
-    @property
-    def n_learn_steps(self) -> int:
-        """The number of steps in each learning episode."""
-        return self.parent_session.training_options.n_learn_steps
-
-    @property
-    def n_eval_episodes(self) -> int:
-        """The number of episodes in each evaluation run."""
-        return self.parent_session.training_options.n_eval_episodes
-
-    @property
-    def n_eval_steps(self) -> int:
-        """The number of steps in each evaluation episode."""
-        return self.parent_session.training_options.n_eval_steps
-
-    @property
-    def action_space(self) -> spaces.Space:
-        """The gym action space of the agent."""
-        return self.parent_session.rl_agent.action_space.space
-
-    @property
-    def observation_space(self) -> spaces.Space:
-        """The gymnasium observation space of the agent."""
-        return flatten_space(self.parent_session.rl_agent.observation_space.space)
-
-    def step(self, action: ActType) -> Tuple[ObsType, float, bool, bool, Dict]:
-        """Take a step in the environment.
-
-        This method is called by GATE to advance the simulation by one timestep.
-
-        :param action: The agent's action.
-        :type action: ActType
-        :return: The observation, reward, terminal flag, truncated flag, and info dictionary.
-        :rtype: Tuple[ObsType, float, bool, bool, Dict]
-        """
-        self.parent_session.rl_agent.most_recent_action = action
-        self.parent_session.step()
-        state = self.parent_session.simulation.describe_state()
-        obs = self.parent_session.rl_agent.observation_space.observe(state)
-        obs = flatten(self.parent_session.rl_agent.observation_space.space, obs)
-        rew = self.parent_session.rl_agent.reward_function.calculate(state)
-        term = False
-        trunc = False
+        next_obs = self._get_obs()
+        reward = self.agent.reward_function.current_reward
+        terminated = False
+        truncated = self.session.calculate_truncated()
         info = {}
-        return obs, rew, term, trunc, info
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[ObsType, Dict]:
-        """Reset the environment.
+        return next_obs, reward, terminated, truncated, info
 
-        This method is called when the environment is initialized and at the end of each episode.
+    def reset(self, seed: Optional[int] = None) -> Tuple[ObsType, Dict[str, Any]]:
+        """Reset the environment."""
+        self.session.reset()
+        state = self.session.get_sim_state()
+        self.session.update_agents(state)
+        next_obs = self._get_obs()
+        info = {}
+        return next_obs, info
 
-        :param seed: The seed to use for the environment's random number generator.
-        :type seed: int, optional
-        :param options: Additional options for the reset. None are used by PrimAITE but this is included for
-            compatibility with GATE.
-        :type options: dict[str, Any], optional
-        :return: The initial observation and an empty info dictionary.
-        :rtype: Tuple[ObsType, Dict]
-        """
-        self.parent_session.reset()
-        state = self.parent_session.simulation.describe_state()
-        obs = self.parent_session.rl_agent.observation_space.observe(state)
-        obs = flatten(self.parent_session.rl_agent.observation_space.space, obs)
-        return obs, {}
+    @property
+    def action_space(self) -> gymnasium.Space:
+        """Return the action space of the environment."""
+        return self.agent.action_manager.space
 
-    def close(self):
-        """Close the session, this will stop the gate client and close the simulation."""
-        self.parent_session.close()
+    @property
+    def observation_space(self) -> gymnasium.Space:
+        """Return the observation space of the environment."""
+        return gymnasium.spaces.flatten_space(self.agent.observation_manager.space)
+
+    def _get_obs(self) -> ObsType:
+        """Return the current observation."""
+        unflat_space = self.agent.observation_manager.space
+        unflat_obs = self.agent.observation_manager.current_observation
+        return gymnasium.spaces.flatten(unflat_space, unflat_obs)
 
 
 class PrimaiteSessionOptions(BaseModel):
@@ -146,6 +102,8 @@ class PrimaiteSessionOptions(BaseModel):
     Currently this is used to restrict which ports and protocols exist in the world of the simulation.
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     ports: List[str]
     protocols: List[str]
 
@@ -153,48 +111,105 @@ class PrimaiteSessionOptions(BaseModel):
 class TrainingOptions(BaseModel):
     """Options for training the RL agent."""
 
-    rl_framework: str
-    rl_algorithm: str
-    seed: Optional[int]
+    model_config = ConfigDict(extra="forbid")
+
+    rl_framework: Literal["SB3", "RLLIB"]
+    rl_algorithm: Literal["PPO", "A2C"]
     n_learn_episodes: int
-    n_learn_steps: int
-    n_eval_episodes: int
-    n_eval_steps: int
+    n_eval_episodes: Optional[int] = None
+    max_steps_per_episode: int
+    # checkpoint_freq: Optional[int] = None
+    deterministic_eval: bool
+    seed: Optional[int]
+    n_agents: int
+    agent_references: List[str]
+
+
+class SessionMode(Enum):
+    """Helper to keep track of the current session mode."""
+
+    TRAIN = "train"
+    EVAL = "eval"
+    MANUAL = "manual"
 
 
 class PrimaiteSession:
-    """The main entrypoint for PrimAITE sessions, this manages a simulation, agents, and connections to ARCD GATE."""
+    """The main entrypoint for PrimAITE sessions, this manages a simulation, agents, and environments."""
 
     def __init__(self):
+        """Initialise a PrimaiteSession object."""
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
+
+        self._simulation_initial_state = deepcopy(self.simulation)
+        """The Simulation original state (deepcopy of the original Simulation)."""
+
         self.agents: List[AbstractAgent] = []
         """List of agents."""
-        self.rl_agent: AbstractAgent
-        """The agent from the list which communicates with GATE to perform reinforcement learning."""
+
+        self.rl_agents: List[ProxyAgent] = []
+        """Subset of agent list including only the reinforcement learning agents."""
+
         self.step_counter: int = 0
         """Current timestep within the episode."""
+
         self.episode_counter: int = 0
         """Current episode number."""
+
         self.options: PrimaiteSessionOptions
         """Special options that apply for the entire game."""
+
         self.training_options: TrainingOptions
         """Options specific to agent training."""
 
+        self.policy: PolicyABC
+        """The reinforcement learning policy."""
+
         self.ref_map_nodes: Dict[str, Node] = {}
         """Mapping from unique node reference name to node object. Used when parsing config files."""
+
         self.ref_map_services: Dict[str, Service] = {}
         """Mapping from human-readable service reference to service object. Used for parsing config files."""
+
         self.ref_map_applications: Dict[str, Application] = {}
         """Mapping from human-readable application reference to application object. Used for parsing config files."""
+
         self.ref_map_links: Dict[str, Link] = {}
         """Mapping from human-readable link reference to link object. Used when parsing config files."""
-        self.gate_client: PrimaiteGATEClient = PrimaiteGATEClient(self)
-        """Reference to a GATE Client object, which will send data to GATE service for training RL agent."""
+
+        self.env: PrimaiteGymEnv
+        """The environment that the agent can consume. Could be PrimaiteEnv."""
+
+        self.mode: SessionMode = SessionMode.MANUAL
+        """Current session mode."""
+
+        self.io_manager = SessionIO()
+        """IO manager for the session."""
 
     def start_session(self) -> None:
-        """Commence the training session, this gives the GATE client control over the simulation/agent loop."""
-        self.gate_client.start()
+        """Commence the training session."""
+        self.mode = SessionMode.TRAIN
+        n_learn_episodes = self.training_options.n_learn_episodes
+        n_eval_episodes = self.training_options.n_eval_episodes
+        max_steps_per_episode = self.training_options.max_steps_per_episode
+
+        deterministic_eval = self.training_options.deterministic_eval
+        self.policy.learn(
+            n_episodes=n_learn_episodes,
+            timesteps_per_episode=max_steps_per_episode,
+        )
+        self.save_models()
+
+        self.mode = SessionMode.EVAL
+        if n_eval_episodes > 0:
+            self.policy.eval(n_episodes=n_eval_episodes, deterministic=deterministic_eval)
+
+        self.mode = SessionMode.MANUAL
+
+    def save_models(self) -> None:
+        """Save the RL models."""
+        save_path = self.io_manager.generate_model_save_path("temp_model_name")
+        self.policy.save(save_path)
 
     def step(self):
         """
@@ -208,57 +223,76 @@ class PrimaiteSession:
             4. Each agent chooses an action based on the observation.
             5. Each agent converts the action to a request.
             6. The simulation applies the requests.
+
+        Warning: This method should only be used with scripted agents. For RL agents, the environment that the agent
+        interacts with should implement a step method that calls methods used by this method. For example, if using a
+        single-agent gym, make sure to update the ProxyAgent's action with the action before calling
+        ``self.apply_agent_actions()``.
         """
         _LOGGER.debug(f"Stepping primaite session. Step counter: {self.step_counter}")
-        # currently designed with assumption that all agents act once per step in order
 
+        # Get the current state of the simulation
+        sim_state = self.get_sim_state()
+
+        # Update agents' observations and rewards based on the current state
+        self.update_agents(sim_state)
+
+        # Apply all actions to simulation as requests
+        self.apply_agent_actions()
+
+        # Advance timestep
+        self.advance_timestep()
+
+    def get_sim_state(self) -> Dict:
+        """Get the current state of the simulation."""
+        return self.simulation.describe_state()
+
+    def update_agents(self, state: Dict) -> None:
+        """Update agents' observations and rewards based on the current state."""
         for agent in self.agents:
-            # 3. primaite session asks simulation to provide initial state
-            # 4. primate session gives state to all agents
-            # 5. primaite session asks agents to produce an action based on most recent state
-            _LOGGER.debug(f"Sending simulation state to agent {agent.agent_name}")
-            sim_state = self.simulation.describe_state()
+            agent.update_observation(state)
+            agent.update_reward(state)
 
-            # 6. each agent takes most recent state and converts it to CAOS observation
-            agent_obs = agent.convert_state_to_obs(sim_state)
+    def apply_agent_actions(self) -> None:
+        """Apply all actions to simulation as requests."""
+        for agent in self.agents:
+            obs = agent.observation_manager.current_observation
+            rew = agent.reward_function.current_reward
+            action_choice, options = agent.get_action(obs, rew)
+            request = agent.format_request(action_choice, options)
+            self.simulation.apply_request(request)
 
-            # 7. meanwhile each agent also takes state and calculates reward
-            agent_reward = agent.calculate_reward_from_state(sim_state)
-
-            # 8. each agent takes observation and applies decision rule to observation to create CAOS
-            #    action(such as random, rulebased, or send to GATE) (therefore, converting CAOS action
-            #    to discrete(40) is only necessary for purposes of RL learning, therefore that bit of
-            #    code should live inside of the GATE agent subclass)
-            # gets action in CAOS format
-            _LOGGER.debug("Getting agent action")
-            agent_action, action_options = agent.get_action(agent_obs, agent_reward)
-            # 9. CAOS action is converted into request (extra information might be needed to enrich
-            # the request, this is what the execution definition is there for)
-            _LOGGER.debug(f"Formatting agent action {agent_action}")  # maybe too many debug log statements
-            agent_request = agent.format_request(agent_action, action_options)
-
-            # 10. primaite session receives the action from the agents and asks the simulation to apply each
-            _LOGGER.debug(f"Sending request to simulation: {agent_request}")
-            self.simulation.apply_request(agent_request)
-
-        _LOGGER.debug(f"Initiating simulation step {self.step_counter}")
-        self.simulation.apply_timestep(self.step_counter)
+    def advance_timestep(self) -> None:
+        """Advance timestep."""
         self.step_counter += 1
+        _LOGGER.debug(f"Advancing timestep to {self.step_counter} ")
+        self.simulation.apply_timestep(self.step_counter)
+
+    def calculate_truncated(self) -> bool:
+        """Calculate whether the episode is truncated."""
+        current_step = self.step_counter
+        max_steps = self.training_options.max_steps_per_episode
+        if current_step >= max_steps:
+            return True
+        return False
 
     def reset(self) -> None:
         """Reset the session, this will reset the simulation."""
-        return NotImplemented
+        self.episode_counter += 1
+        self.step_counter = 0
+        _LOGGER.debug(f"Restting primaite session, episode = {self.episode_counter}")
+        self.simulation = deepcopy(self._simulation_initial_state)
 
     def close(self) -> None:
-        """Close the session, this will stop the gate client and close the simulation."""
+        """Close the session, this will stop the env and close the simulation."""
         return NotImplemented
 
     @classmethod
-    def from_config(cls, cfg: dict) -> "PrimaiteSession":
+    def from_config(cls, cfg: dict, agent_load_path: Optional[str] = None) -> "PrimaiteSession":
         """Create a PrimaiteSession object from a config dictionary.
 
         The config dictionary should have the following top-level keys:
-        1. training_config: options for training the RL agent. Used by GATE.
+        1. training_config: options for training the RL agent.
         2. game_config: options for the game itself. Used by PrimaiteSession.
         3. simulation: defines the network topology and the initial state of the simulation.
 
@@ -276,6 +310,11 @@ class PrimaiteSession:
             protocols=cfg["game_config"]["protocols"],
         )
         sess.training_options = TrainingOptions(**cfg["training_config"])
+
+        # READ IO SETTINGS (this sets the global session path as well) # TODO: GLOBAL SIDE EFFECTS...
+        io_settings = cfg.get("io_settings", {})
+        sess.io_manager.settings = SessionIOSettings(**io_settings)
+
         sim = sess.simulation
         net = sim.network
 
@@ -425,7 +464,7 @@ class PrimaiteSession:
             reward_function_cfg = agent_cfg["reward_function"]
 
             # CREATE OBSERVATION SPACE
-            obs_space = ObservationSpace.from_config(observation_space_cfg, sess)
+            obs_space = ObservationManager.from_config(observation_space_cfg, sess)
 
             # CREATE ACTION SPACE
             action_space_cfg["options"]["node_uuids"] = []
@@ -479,16 +518,15 @@ class PrimaiteSession:
                     agent_settings=agent_settings,
                 )
                 sess.agents.append(new_agent)
-            elif agent_type == "GATERLAgent":
-                new_agent = RandomAgent(
+            elif agent_type == "ProxyAgent":
+                new_agent = ProxyAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=rew_function,
-                    agent_settings=agent_settings,
                 )
                 sess.agents.append(new_agent)
-                sess.rl_agent = new_agent
+                sess.rl_agents.append(new_agent)
             elif agent_type == "RedDatabaseCorruptingAgent":
                 new_agent = DataManipulationAgent(
                     agent_name=agent_cfg["ref"],
@@ -500,5 +538,15 @@ class PrimaiteSession:
                 sess.agents.append(new_agent)
             else:
                 print("agent type not found")
+
+        # CREATE ENVIRONMENT
+        sess.env = PrimaiteGymEnv(session=sess, agents=sess.rl_agents)
+
+        # CREATE POLICY
+        sess.policy = PolicyABC.from_config(sess.training_options, session=sess)
+        if agent_load_path:
+            sess.policy.load(Path(agent_load_path))
+
+        sess._simulation_initial_state = deepcopy(sess.simulation)  # noqa
 
         return sess

@@ -46,7 +46,6 @@ python3 -m venv .venv
 attrib +h .venv /s /d # Hides the .venv directory
 .\.venv\Scripts\activate
 pip install https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/releases/download/v2.0.0/primaite-2.0.0-py3-none-any.whl
-pip install GATE/arcd_gate-0.1.0-py3-none-any.whl
 primaite setup
 ```
 
@@ -75,7 +74,6 @@ cd ~/primaite
 python3 -m venv .venv
 source .venv/bin/activate
 pip install https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/releases/download/v2.0.0/primaite-2.0.0-py3-none-any.whl
-pip install arcd_gate-0.1.0-py3-none-any.whl
 primaite setup
 ```
 
@@ -120,7 +118,6 @@ source venv/bin/activate
 
 ```bash
 python3 -m pip install -e .[dev]
-pip install arcd_gate-0.1.0-py3-none-any.whl
 ```
 
 #### 6. Perform the PrimAITE setup:
