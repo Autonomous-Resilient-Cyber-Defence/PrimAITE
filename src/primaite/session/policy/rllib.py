@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Literal, Optional, TYPE_CHECKING
 
-from primaite.game.policy.policy import PolicyABC
 from primaite.session.environment import PrimaiteRayEnv, PrimaiteRayMARLEnv
+from primaite.session.policy.policy import PolicyABC
 
 if TYPE_CHECKING:
     from primaite.session.session import PrimaiteSession, TrainingOptions

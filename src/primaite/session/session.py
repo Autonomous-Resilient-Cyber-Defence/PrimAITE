@@ -5,11 +5,11 @@ from typing import Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict
 
 from primaite.game.game import PrimaiteGame
-
-# from primaite.game.game import PrimaiteGame
-from primaite.game.policy.policy import PolicyABC
 from primaite.session.environment import PrimaiteGymEnv, PrimaiteRayEnv, PrimaiteRayMARLEnv
 from primaite.session.io import SessionIO, SessionIOSettings
+
+# from primaite.game.game import PrimaiteGame
+from primaite.session.policy.policy import PolicyABC
 
 
 class TrainingOptions(BaseModel):
