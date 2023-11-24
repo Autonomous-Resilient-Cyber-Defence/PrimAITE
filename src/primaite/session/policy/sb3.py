@@ -8,10 +8,10 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.ppo import MlpPolicy as PPO_MLP
 
-from primaite.game.policy.policy import PolicyABC
+from primaite.session.policy.policy import PolicyABC
 
 if TYPE_CHECKING:
-    from primaite.game.session import PrimaiteSession, TrainingOptions
+    from primaite.session.session import PrimaiteSession, TrainingOptions
 
 
 class SB3Policy(PolicyABC, identifier="SB3"):

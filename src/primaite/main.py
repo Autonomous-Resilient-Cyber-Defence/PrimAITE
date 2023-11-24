@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Optional, Union
 
 from primaite import getLogger
-from primaite.config.load import load
-from primaite.game.session import PrimaiteSession
+from primaite.config.load import example_config_path, load
+from primaite.session.session import PrimaiteSession
 
 # from primaite.primaite_session import PrimaiteSession
 
@@ -42,6 +42,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if not args.config:
-        _LOGGER.error("Please provide a config file using the --config " "argument")
+        args.config = example_config_path()
 
-    run(session_path=args.config)
+    run(args.config)
