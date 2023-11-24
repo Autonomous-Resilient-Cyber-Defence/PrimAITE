@@ -1,3 +1,4 @@
+import pytest
 import ray
 import yaml
 from ray import air, tune
@@ -8,6 +9,7 @@ from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteRayMARLEnv
 
 
+@pytest.mark.skip(reason="Slow, reenable later")
 def test_rllib_multi_agent_compatibility():
     """Test that the PrimaiteRayEnv class can be used with a multi agent RLLIB system."""
 

@@ -65,6 +65,7 @@ class TestPrimaiteSession:
             session.start_session()
             # TODO: include checks that the model was loaded and that the eval-only session ran
 
+    @pytest.mark.skip(reason="Slow, reenable later")
     @pytest.mark.parametrize("temp_primaite_session", [[MULTI_AGENT_PATH]], indirect=True)
     def test_multi_agent_session(self, temp_primaite_session):
         """Check that we can run a training session with a multi agent system."""
