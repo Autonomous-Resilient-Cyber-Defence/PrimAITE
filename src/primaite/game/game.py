@@ -1,4 +1,4 @@
-"""PrimAITE session - the main entry point to training agents on PrimAITE."""
+"""PrimAITE game - Encapsulates the simulation and agents."""
 from ipaddress import IPv4Address
 from typing import Dict, List
 
@@ -52,7 +52,7 @@ class PrimaiteGame:
     """
 
     def __init__(self):
-        """Initialise a PrimaiteSession object."""
+        """Initialise a PrimaiteGame object."""
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
 
@@ -101,7 +101,7 @@ class PrimaiteGame:
         single-agent gym, make sure to update the ProxyAgent's action with the action before calling
         ``self.apply_agent_actions()``.
         """
-        _LOGGER.debug(f"Stepping primaite session. Step counter: {self.step_counter}")
+        _LOGGER.debug(f"Stepping. Step counter: {self.step_counter}")
 
         # Get the current state of the simulation
         sim_state = self.get_sim_state()
@@ -149,14 +149,14 @@ class PrimaiteGame:
         return False
 
     def reset(self) -> None:
-        """Reset the session, this will reset the simulation."""
+        """Reset the game, this will reset the simulation."""
         self.episode_counter += 1
         self.step_counter = 0
-        _LOGGER.debug(f"Restting primaite session, episode = {self.episode_counter}")
+        _LOGGER.debug(f"Restting primaite game, episode = {self.episode_counter}")
         self.simulation.reset_component_for_episode(self.episode_counter)
 
     def close(self) -> None:
-        """Close the session, this will stop the env and close the simulation."""
+        """Close the game, this will close the simulation."""
         return NotImplemented
 
     @classmethod
@@ -165,7 +165,7 @@ class PrimaiteGame:
 
         The config dictionary should have the following top-level keys:
         1. training_config: options for training the RL agent.
-        2. game_config: options for the game itself. Used by PrimaiteSession.
+        2. game_config: options for the game itself. Used by PrimaiteGame.
         3. simulation: defines the network topology and the initial state of the simulation.
 
         The specification for each of the three major areas is described in a separate documentation page.
@@ -173,8 +173,8 @@ class PrimaiteGame:
 
         :param cfg: The config dictionary.
         :type cfg: dict
-        :return: A PrimaiteSession object.
-        :rtype: PrimaiteSession
+        :return: A PrimaiteGame object.
+        :rtype: PrimaiteGame
         """
         game = cls()
         game.options = PrimaiteGameOptions(**cfg["game"])
@@ -339,7 +339,7 @@ class PrimaiteGame:
             action_space = ActionManager.from_config(game, action_space_cfg)
 
             # CREATE REWARD FUNCTION
-            rew_function = RewardFunction.from_config(reward_function_cfg, session=game)
+            rew_function = RewardFunction.from_config(reward_function_cfg, game=game)
 
             # CREATE AGENT
             if agent_type == "GreenWebBrowsingAgent":

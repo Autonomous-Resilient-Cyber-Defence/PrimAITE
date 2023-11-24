@@ -47,13 +47,13 @@ class AbstractReward:
 
     @classmethod
     @abstractmethod
-    def from_config(cls, config: dict, session: "PrimaiteGame") -> "AbstractReward":
+    def from_config(cls, config: dict, game: "PrimaiteGame") -> "AbstractReward":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor
         :type config: dict
-        :param session: Reference to the PrimAITE Session object
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimAITE Game object
+        :type game: PrimaiteGame
         :return: The reward component.
         :rtype: AbstractReward
         """
@@ -68,13 +68,13 @@ class DummyReward(AbstractReward):
         return 0.0
 
     @classmethod
-    def from_config(cls, config: dict, session: "PrimaiteGame") -> "DummyReward":
+    def from_config(cls, config: dict, game: "PrimaiteGame") -> "DummyReward":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor. Should be empty.
         :type config: dict
-        :param session: Reference to the PrimAITE Session object
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimAITE Game object
+        :type game: PrimaiteGame
         """
         return cls()
 
@@ -119,13 +119,13 @@ class DatabaseFileIntegrity(AbstractReward):
             return 0
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteGame") -> "DatabaseFileIntegrity":
+    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "DatabaseFileIntegrity":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor
         :type config: Dict
-        :param session: Reference to the PrimAITE Session object
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimAITE Game object
+        :type game: PrimaiteGame
         :return: The reward component.
         :rtype: DatabaseFileIntegrity
         """
@@ -147,7 +147,7 @@ class DatabaseFileIntegrity(AbstractReward):
                 f"{cls.__name__} could not be initialised from config because file_name parameter was not specified"
             )
             return DummyReward()  # TODO: better error handling
-        node_uuid = session.ref_map_nodes[node_ref]
+        node_uuid = game.ref_map_nodes[node_ref]
         if not node_uuid:
             _LOGGER.error(
                 (
@@ -193,13 +193,13 @@ class WebServer404Penalty(AbstractReward):
             return 0.0
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteGame") -> "WebServer404Penalty":
+    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "WebServer404Penalty":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor
         :type config: Dict
-        :param session: Reference to the PrimAITE Session object
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimAITE Game object
+        :type game: PrimaiteGame
         :return: The reward component.
         :rtype: WebServer404Penalty
         """
@@ -212,8 +212,8 @@ class WebServer404Penalty(AbstractReward):
             )
             _LOGGER.warn(msg)
             return DummyReward()  # TODO: should we error out with incorrect inputs? Probably!
-        node_uuid = session.ref_map_nodes[node_ref]
-        service_uuid = session.ref_map_services[service_ref].uuid
+        node_uuid = game.ref_map_nodes[node_ref]
+        service_uuid = game.ref_map_services[service_ref].uuid
         if not (node_uuid and service_uuid):
             msg = (
                 f"{cls.__name__} could not be initialised because node {node_ref} and service {service_ref} were not"
@@ -265,13 +265,13 @@ class RewardFunction:
         return self.current_reward
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteGame") -> "RewardFunction":
+    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "RewardFunction":
         """Create a reward function from a config dictionary.
 
         :param config: dict of options for the reward manager's constructor
         :type config: Dict
-        :param session: Reference to the PrimAITE Session object
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimAITE Game object
+        :type game: PrimaiteGame
         :return: The reward manager.
         :rtype: RewardFunction
         """
@@ -281,6 +281,6 @@ class RewardFunction:
             rew_type = rew_component_cfg["type"]
             weight = rew_component_cfg.get("weight", 1.0)
             rew_class = cls.__rew_class_identifiers[rew_type]
-            rew_instance = rew_class.from_config(config=rew_component_cfg.get("options", {}), session=session)
+            rew_instance = rew_class.from_config(config=rew_component_cfg.get("options", {}), game=game)
             new.regsiter_component(component=rew_instance, weight=weight)
         return new
