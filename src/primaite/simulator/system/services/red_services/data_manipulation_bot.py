@@ -50,7 +50,7 @@ class DataManipulationBot(DatabaseClient):
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 
-        rm.add_request(name="execute", request_type=RequestType(func=lambda request, context: self.execute()))
+        rm.add_request(name="execute", request_type=RequestType(func=lambda request, context: self.run()))
 
         return rm
 
@@ -139,13 +139,13 @@ class DataManipulationBot(DatabaseClient):
                             self.sys_log.info(f"{self.name}: Data manipulation failed")
                             self.attack_stage = DataManipulationAttackStage.FAILED
 
-    def execute(self):
+    def run(self):
         """
-        Execute the Data Manipulation Bot.
+        Run the Data Manipulation Bot.
 
         Calls the parent classes execute method before starting the application loop.
         """
-        super().execute()
+        super().run()
         self._application_loop()
 
     def _application_loop(self):

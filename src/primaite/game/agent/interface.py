@@ -58,7 +58,7 @@ class AbstractAgent(ABC):
         action_space: Optional[ActionManager],
         observation_space: Optional[ObservationManager],
         reward_function: Optional[RewardFunction],
-        agent_settings: Optional[AgentSettings],
+        agent_settings: Optional[AgentSettings] = None,
     ) -> None:
         """
         Initialize an agent.
@@ -217,7 +217,7 @@ class DataManipulationAgent(AbstractScriptedAgent):
         :return: _description_
         :rtype: Tuple[str, Dict]
         """
-        current_timestep = self.action_space.session.step_counter
+        current_timestep = self.action_manager.session.step_counter
 
         if current_timestep < self.next_execution_timestep:
             return "DONOTHING", {"dummy": 0}

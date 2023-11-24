@@ -57,9 +57,10 @@ game_config:
           - type: DUMMY
 
       agent_settings:
-        start_step: 5
-        frequency: 4
-        variance: 3
+        start_settings:
+          start_step: 5
+          frequency: 4
+          variance: 3
 
     - ref: client_1_data_manipulation_red_bot
       team: RED
@@ -73,8 +74,8 @@ game_config:
               observations:
               - logon_status
               - operating_status
-              services:
-              - service_ref: data_manipulation_bot
+              applications:
+              - application_ref: data_manipulation_bot
                 observations:
                   operating_status
                   health_status
@@ -84,22 +85,19 @@ game_config:
         action_list:
           - type: DONOTHING
           #<not yet implemented
-          # - type: NODE_APPLICATION_EXECUTE
-          #   options:
-          #     execution_definition:
-          #       server_ip: 192.168.1.14
-          #       payload: "DROP TABLE IF EXISTS user;"
-          #       success_rate: 80%
-          - type: NODE_FILE_DELETE
-          - type: NODE_FILE_CORRUPT
+          - type: NODE_APPLICATION_EXECUTE
+#          - type: NODE_FILE_DELETE
+#          - type: NODE_FILE_CORRUPT
           # - type: NODE_FOLDER_DELETE
           # - type: NODE_FOLDER_CORRUPT
-          - type: NODE_OS_SCAN
+#          - type: NODE_OS_SCAN
           # - type: NODE_LOGON
           # - type: NODE_LOGOFF
         options:
           nodes:
           - node_ref: client_1
+            applications:
+              - application_ref: data_manipulation_bot
           max_folders_per_node: 1
           max_files_per_folder: 1
           max_services_per_node: 1
@@ -109,9 +107,10 @@ game_config:
           - type: DUMMY
 
       agent_settings: # options specific to this particular agent type, basically args of __init__(self)
-        start_step: 25
-        frequency: 20
-        variance: 5
+        start_settings:
+          start_step: 25
+          frequency: 20
+          variance: 5
 
     - ref: defender
       team: BLUE
@@ -660,9 +659,15 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
-      services:
+      applications:
       - ref: data_manipulation_bot
         type: DataManipulationBot
+        options:
+          port_scan_p_of_success: 0.1
+          data_manipulation_p_of_success: 0.1
+          payload: "DELETE"
+          server_ip: 192.168.1.14
+      services:
       - ref: client_1_dns_client
         type: DNSClient
 

@@ -129,9 +129,9 @@ class DatabaseClient(Application):
             )
             return self._query(sql=sql, query_id=query_id, is_reattempt=True)
 
-    def execute(self) -> None:
+    def run(self) -> None:
         """Run the DatabaseClient."""
-        super().execute()
+        super().run()
         if self.operating_state == ApplicationOperatingState.RUNNING:
             self.connect()
 

@@ -665,7 +665,7 @@ simulation:
         options:
           port_scan_p_of_success: 0.1
           data_manipulation_p_of_success: 0.1
-          payload: "DROP TABLE IF EXISTS user;"
+          payload: "DELETE"
           server_ip: 192.168.1.14
       services:
       - ref: client_1_dns_client
