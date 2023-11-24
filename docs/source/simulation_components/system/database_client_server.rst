@@ -14,9 +14,11 @@ The ``DatabaseService`` provides a SQL database server simulation by extending t
 Key capabilities
 ^^^^^^^^^^^^^^^^
 
-- Initialises a SQLite database file in the ``Node`` 's ``FileSystem`` upon creation.
+- Creates a database file in the ``Node`` 's ``FileSystem`` upon creation.
 - Handles connecting clients by maintaining a dictionary of connections mapped to session IDs.
 - Authenticates connections using a configurable password.
+- Simulates ``SELECT`` and ``DELETE`` SQL queries.
+- Returns query results and status codes back to clients.
 - Leverages the Service base class for install/uninstall, status tracking, etc.
 
 Usage
@@ -28,9 +30,9 @@ Usage
 Implementation
 ^^^^^^^^^^^^^^
 
-- Uses SQLite for persistent storage.
 - Creates the database file within the node's file system.
 - Manages client connections in a dictionary by session ID.
+- Processes SQL queries.
 - Returns results and status codes in a standard dictionary format.
 - Extends Service class for integration with ``SoftwareManager``.
 

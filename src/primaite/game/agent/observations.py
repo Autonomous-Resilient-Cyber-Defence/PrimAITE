@@ -11,7 +11,7 @@ from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_ST
 _LOGGER = getLogger(__name__)
 
 if TYPE_CHECKING:
-    from primaite.game.session import PrimaiteSession
+    from primaite.game.game import PrimaiteGame
 
 
 class AbstractObservation(ABC):
@@ -37,10 +37,10 @@ class AbstractObservation(ABC):
 
     @classmethod
     @abstractmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession"):
+    def from_config(cls, config: Dict, game: "PrimaiteGame"):
         """Create this observation space component form a serialised format.
 
-        The `session` parameter is for a the PrimaiteSession object that spawns this component. During deserialisation,
+        The `game` parameter is for a the PrimaiteGame object that spawns this component. During deserialisation,
         a subclass of this class may need to translate from a 'reference' to a UUID.
         """
         pass
@@ -91,13 +91,13 @@ class FileObservation(AbstractObservation):
         return spaces.Dict({"health_status": spaces.Discrete(6)})
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession", parent_where: List[str] = None) -> "FileObservation":
+    def from_config(cls, config: Dict, game: "PrimaiteGame", parent_where: List[str] = None) -> "FileObservation":
         """Create file observation from a config.
 
         :param config: Dictionary containing the configuration for this file observation.
         :type config: Dict
-        :param session: _description_
-        :type session: PrimaiteSession
+        :param game: _description_
+        :type game: PrimaiteGame
         :param parent_where: _description_, defaults to None
         :type parent_where: _type_, optional
         :return: _description_
@@ -149,20 +149,20 @@ class ServiceObservation(AbstractObservation):
 
     @classmethod
     def from_config(
-        cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]] = None
+        cls, config: Dict, game: "PrimaiteGame", parent_where: Optional[List[str]] = None
     ) -> "ServiceObservation":
         """Create service observation from a config.
 
         :param config: Dictionary containing the configuration for this service observation.
         :type config: Dict
-        :param session: Reference to the PrimaiteSession object that spawned this observation.
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimaiteGame object that spawned this observation.
+        :type game: PrimaiteGame
         :param parent_where: Where in the simulation state dictionary this service's parent node is located. Optional.
         :type parent_where: Optional[List[str]], optional
         :return: Constructed service observation
         :rtype: ServiceObservation
         """
-        return cls(where=parent_where + ["services", session.ref_map_services[config["service_ref"]].uuid])
+        return cls(where=parent_where + ["services", game.ref_map_services[config["service_ref"]].uuid])
 
 
 class LinkObservation(AbstractObservation):
@@ -219,17 +219,17 @@ class LinkObservation(AbstractObservation):
         return spaces.Dict({"PROTOCOLS": spaces.Dict({"ALL": spaces.Discrete(11)})})
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "LinkObservation":
+    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "LinkObservation":
         """Create link observation from a config.
 
         :param config: Dictionary containing the configuration for this link observation.
         :type config: Dict
-        :param session: Reference to the PrimaiteSession object that spawned this observation.
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimaiteGame object that spawned this observation.
+        :type game: PrimaiteGame
         :return: Constructed link observation
         :rtype: LinkObservation
         """
-        return cls(where=["network", "links", session.ref_map_links[config["link_ref"]]])
+        return cls(where=["network", "links", game.ref_map_links[config["link_ref"]]])
 
 
 class FolderObservation(AbstractObservation):
@@ -310,15 +310,15 @@ class FolderObservation(AbstractObservation):
 
     @classmethod
     def from_config(
-        cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]], num_files_per_folder: int = 2
+        cls, config: Dict, game: "PrimaiteGame", parent_where: Optional[List[str]], num_files_per_folder: int = 2
     ) -> "FolderObservation":
         """Create folder observation from a config. Also creates child file observations.
 
         :param config: Dictionary containing the configuration for this folder observation. Includes the name of the
             folder and the files inside of it.
         :type config: Dict
-        :param session: Reference to the PrimaiteSession object that spawned this observation.
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimaiteGame object that spawned this observation.
+        :type game: PrimaiteGame
         :param parent_where: Where in the simulation state dictionary to find the information about this folder's
             parent node. A typical location for a node ``where`` can be:
             ['network','nodes',<node_uuid>,'file_system']
@@ -332,7 +332,7 @@ class FolderObservation(AbstractObservation):
         where = parent_where + ["folders", config["folder_name"]]
 
         file_configs = config["files"]
-        files = [FileObservation.from_config(config=f, session=session, parent_where=where) for f in file_configs]
+        files = [FileObservation.from_config(config=f, game=game, parent_where=where) for f in file_configs]
 
         return cls(where=where, files=files, num_files_per_folder=num_files_per_folder)
 
@@ -376,15 +376,13 @@ class NicObservation(AbstractObservation):
         return spaces.Dict({"nic_status": spaces.Discrete(3)})
 
     @classmethod
-    def from_config(
-        cls, config: Dict, session: "PrimaiteSession", parent_where: Optional[List[str]]
-    ) -> "NicObservation":
+    def from_config(cls, config: Dict, game: "PrimaiteGame", parent_where: Optional[List[str]]) -> "NicObservation":
         """Create NIC observation from a config.
 
         :param config: Dictionary containing the configuration for this NIC observation.
         :type config: Dict
-        :param session: Reference to the PrimaiteSession object that spawned this observation.
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimaiteGame object that spawned this observation.
+        :type game: PrimaiteGame
         :param parent_where: Where in the simulation state dictionary to find the information about this NIC's parent
             node. A typical location for a node ``where`` can be: ['network','nodes',<node_uuid>]
         :type parent_where: Optional[List[str]]
@@ -515,7 +513,7 @@ class NodeObservation(AbstractObservation):
     def from_config(
         cls,
         config: Dict,
-        session: "PrimaiteSession",
+        game: "PrimaiteGame",
         parent_where: Optional[List[str]] = None,
         num_services_per_node: int = 2,
         num_folders_per_node: int = 2,
@@ -526,8 +524,8 @@ class NodeObservation(AbstractObservation):
 
         :param config: Dictionary containing the configuration for this node observation.
         :type config: Dict
-        :param session: Reference to the PrimaiteSession object that spawned this observation.
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimaiteGame object that spawned this observation.
+        :type game: PrimaiteGame
         :param parent_where: Where in the simulation state dictionary to find the information about this node's parent
             network. A typical location for it would be: ['network',]
         :type parent_where: Optional[List[str]]
@@ -543,24 +541,24 @@ class NodeObservation(AbstractObservation):
         :return: Constructed node observation
         :rtype: NodeObservation
         """
-        node_uuid = session.ref_map_nodes[config["node_ref"]]
+        node_uuid = game.ref_map_nodes[config["node_ref"]]
         if parent_where is None:
             where = ["network", "nodes", node_uuid]
         else:
             where = parent_where + ["nodes", node_uuid]
 
         svc_configs = config.get("services", {})
-        services = [ServiceObservation.from_config(config=c, session=session, parent_where=where) for c in svc_configs]
+        services = [ServiceObservation.from_config(config=c, game=game, parent_where=where) for c in svc_configs]
         folder_configs = config.get("folders", {})
         folders = [
             FolderObservation.from_config(
-                config=c, session=session, parent_where=where, num_files_per_folder=num_files_per_folder
+                config=c, game=game, parent_where=where, num_files_per_folder=num_files_per_folder
             )
             for c in folder_configs
         ]
-        nic_uuids = session.simulation.network.nodes[node_uuid].nics.keys()
+        nic_uuids = game.simulation.network.nodes[node_uuid].nics.keys()
         nic_configs = [{"nic_uuid": n for n in nic_uuids}] if nic_uuids else []
-        nics = [NicObservation.from_config(config=c, session=session, parent_where=where) for c in nic_configs]
+        nics = [NicObservation.from_config(config=c, game=game, parent_where=where) for c in nic_configs]
         logon_status = config.get("logon_status", False)
         return cls(
             where=where,
@@ -694,13 +692,13 @@ class AclObservation(AbstractObservation):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "AclObservation":
+    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "AclObservation":
         """Generate ACL observation from a config.
 
         :param config: Dictionary containing the configuration for this ACL observation.
         :type config: Dict
-        :param session: Reference to the PrimaiteSession object that spawned this observation.
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimaiteGame object that spawned this observation.
+        :type game: PrimaiteGame
         :return: Observation object
         :rtype: AclObservation
         """
@@ -709,15 +707,15 @@ class AclObservation(AbstractObservation):
         for ip_idx, ip_map_config in enumerate(config["ip_address_order"]):
             node_ref = ip_map_config["node_ref"]
             nic_num = ip_map_config["nic_num"]
-            node_obj = session.simulation.network.nodes[session.ref_map_nodes[node_ref]]
+            node_obj = game.simulation.network.nodes[game.ref_map_nodes[node_ref]]
             nic_obj = node_obj.ethernet_port[nic_num]
             node_ip_to_idx[nic_obj.ip_address] = ip_idx + 2
 
-        router_uuid = session.ref_map_nodes[config["router_node_ref"]]
+        router_uuid = game.ref_map_nodes[config["router_node_ref"]]
         return cls(
             node_ip_to_id=node_ip_to_idx,
-            ports=session.options.ports,
-            protocols=session.options.protocols,
+            ports=game.options.ports,
+            protocols=game.options.protocols,
             where=["network", "nodes", router_uuid, "acl", "acl"],
             num_rules=max_acl_rules,
         )
@@ -740,7 +738,7 @@ class NullObservation(AbstractObservation):
         return spaces.Discrete(1)
 
     @classmethod
-    def from_config(cls, config: Dict, session: Optional["PrimaiteSession"] = None) -> "NullObservation":
+    def from_config(cls, config: Dict, game: Optional["PrimaiteGame"] = None) -> "NullObservation":
         """
         Create null observation from a config.
 
@@ -836,14 +834,14 @@ class UC2BlueObservation(AbstractObservation):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "UC2BlueObservation":
+    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "UC2BlueObservation":
         """Create UC2 blue observation from a config.
 
         :param config: Dictionary containing the configuration for this UC2 blue observation. This includes the nodes,
             links, ACL and ICS observations.
         :type config: Dict
-        :param session: Reference to the PrimaiteSession object that spawned this observation.
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimaiteGame object that spawned this observation.
+        :type game: PrimaiteGame
         :return: Constructed UC2 blue observation
         :rtype: UC2BlueObservation
         """
@@ -855,7 +853,7 @@ class UC2BlueObservation(AbstractObservation):
         nodes = [
             NodeObservation.from_config(
                 config=n,
-                session=session,
+                game=game,
                 num_services_per_node=num_services_per_node,
                 num_folders_per_node=num_folders_per_node,
                 num_files_per_folder=num_files_per_folder,
@@ -865,13 +863,13 @@ class UC2BlueObservation(AbstractObservation):
         ]
 
         link_configs = config["links"]
-        links = [LinkObservation.from_config(config=link, session=session) for link in link_configs]
+        links = [LinkObservation.from_config(config=link, game=game) for link in link_configs]
 
         acl_config = config["acl"]
-        acl = AclObservation.from_config(config=acl_config, session=session)
+        acl = AclObservation.from_config(config=acl_config, game=game)
 
         ics_config = config["ics"]
-        ics = ICSObservation.from_config(config=ics_config, session=session)
+        ics = ICSObservation.from_config(config=ics_config, game=game)
         new = cls(nodes=nodes, links=links, acl=acl, ics=ics, where=["network"])
         return new
 
@@ -907,17 +905,17 @@ class UC2RedObservation(AbstractObservation):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "UC2RedObservation":
+    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "UC2RedObservation":
         """
         Create UC2 red observation from a config.
 
         :param config: Dictionary containing the configuration for this UC2 red observation.
         :type config: Dict
-        :param session: Reference to the PrimaiteSession object that spawned this observation.
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimaiteGame object that spawned this observation.
+        :type game: PrimaiteGame
         """
         node_configs = config["nodes"]
-        nodes = [NodeObservation.from_config(config=cfg, session=session) for cfg in node_configs]
+        nodes = [NodeObservation.from_config(config=cfg, game=game) for cfg in node_configs]
         return cls(nodes=nodes, where=["network"])
 
 
@@ -966,7 +964,7 @@ class ObservationManager:
         return self.obs.space
 
     @classmethod
-    def from_config(cls, config: Dict, session: "PrimaiteSession") -> "ObservationManager":
+    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "ObservationManager":
         """Create observation space from a config.
 
         :param config: Dictionary containing the configuration for this observation space.
@@ -974,14 +972,14 @@ class ObservationManager:
             UC2BlueObservation, UC2RedObservation, UC2GreenObservation)
             The other key is 'options' which are passed to the constructor of the selected observation class.
         :type config: Dict
-        :param session: Reference to the PrimaiteSession object that spawned this observation.
-        :type session: PrimaiteSession
+        :param game: Reference to the PrimaiteGame object that spawned this observation.
+        :type game: PrimaiteGame
         """
         if config["type"] == "UC2BlueObservation":
-            return cls(UC2BlueObservation.from_config(config.get("options", {}), session=session))
+            return cls(UC2BlueObservation.from_config(config.get("options", {}), game=game))
         elif config["type"] == "UC2RedObservation":
-            return cls(UC2RedObservation.from_config(config.get("options", {}), session=session))
+            return cls(UC2RedObservation.from_config(config.get("options", {}), game=game))
         elif config["type"] == "UC2GreenObservation":
-            return cls(UC2GreenObservation.from_config(config.get("options", {}), session=session))
+            return cls(UC2GreenObservation.from_config(config.get("options", {}), game=game))
         else:
             raise ValueError("Observation space type invalid")
