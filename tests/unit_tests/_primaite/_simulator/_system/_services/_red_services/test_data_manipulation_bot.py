@@ -4,6 +4,7 @@ from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.networks import arcd_uc2_network
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.services.red_services.data_manipulation_bot import (
     DataManipulationAttackStage,
     DataManipulationBot,
@@ -64,6 +65,7 @@ def test_dm_bot_perform_data_manipulation_no_success(dm_bot):
 
 def test_dm_bot_perform_data_manipulation_success(dm_bot):
     dm_bot.attack_stage = DataManipulationAttackStage.PORT_SCAN
+    dm_bot.operating_state = ApplicationOperatingState.RUNNING
 
     dm_bot._perform_data_manipulation(p_of_success=1.0)
 

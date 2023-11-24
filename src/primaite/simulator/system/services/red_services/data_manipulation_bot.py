@@ -128,16 +128,16 @@ class DataManipulationBot(DatabaseClient):
                 # perform the attack
                 if not self.connected:
                     self.connect()
-                    if self.connected:
-                        self.query(self.payload)
-                        self.sys_log.info(f"{self.name} payload delivered: {self.payload}")
-                        attack_successful = True
-                        if attack_successful:
-                            self.sys_log.info(f"{self.name}: Data manipulation successful")
-                            self.attack_stage = DataManipulationAttackStage.COMPLETE
-                        else:
-                            self.sys_log.info(f"{self.name}: Data manipulation failed")
-                            self.attack_stage = DataManipulationAttackStage.FAILED
+                if self.connected:
+                    self.query(self.payload)
+                    self.sys_log.info(f"{self.name} payload delivered: {self.payload}")
+                    attack_successful = True
+                    if attack_successful:
+                        self.sys_log.info(f"{self.name}: Data manipulation successful")
+                        self.attack_stage = DataManipulationAttackStage.COMPLETE
+                    else:
+                        self.sys_log.info(f"{self.name}: Data manipulation failed")
+                        self.attack_stage = DataManipulationAttackStage.FAILED
 
     def run(self):
         """
