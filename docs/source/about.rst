@@ -18,7 +18,6 @@ PrimAITE provides the following features:
 * Highly configurable network hosts, including definition of software, file system, and network interfaces,
 * Realistic network traffic simulation, including address and sending packets via internet protocols like TCP, UDP, ICMP, etc.
 * Routers with traffic routing and firewall capabilities
-* Interfaces with ARCD GATE to allow training of agents
 * Simulation of customisable deterministic agents
 * Support for multiple agents, each having their own customisable observation space, action space, and reward function definition.
 
