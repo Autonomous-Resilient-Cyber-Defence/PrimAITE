@@ -50,7 +50,7 @@ class DataManipulationBot(DatabaseClient):
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 
-        rm.add_request(name="execute", request_type=RequestType(func=self.execute))
+        rm.add_request(name="execute", request_type=RequestType(func=lambda request, context: self.execute()))
 
         return rm
 

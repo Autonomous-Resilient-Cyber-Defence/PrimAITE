@@ -67,8 +67,8 @@ game_config:
               observations:
               - logon_status
               - operating_status
-              services:
-              - service_ref: data_manipulation_bot
+              applications:
+              - application_ref: data_manipulation_bot
                 observations:
                   operating_status
                   health_status
@@ -89,6 +89,8 @@ game_config:
         options:
           nodes:
           - node_ref: client_1
+            applications:
+              - application_ref: data_manipulation_bot
           max_folders_per_node: 1
           max_files_per_folder: 1
           max_services_per_node: 1
@@ -650,7 +652,7 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
-      services:
+      applications:
       - ref: data_manipulation_bot
         type: DataManipulationBot
         options:
@@ -658,6 +660,7 @@ simulation:
           data_manipulation_p_of_success: 0.1
           payload: "DROP TABLE IF EXISTS user;"
           server_ip: 192.168.1.14
+      services:
       - ref: client_1_dns_client
         type: DNSClient
 

@@ -426,11 +426,25 @@ class PrimaiteSession:
 
             # CREATE ACTION SPACE
             action_space_cfg["options"]["node_uuids"] = []
+            action_space_cfg["options"]["application_uuids"] = []
+
             # if a list of nodes is defined, convert them from node references to node UUIDs
             for action_node_option in action_space_cfg.get("options", {}).pop("nodes", {}):
                 if "node_ref" in action_node_option:
                     node_uuid = sess.ref_map_nodes[action_node_option["node_ref"]]
                     action_space_cfg["options"]["node_uuids"].append(node_uuid)
+
+                if "applications" in action_node_option:
+                    node_application_uuids = []
+                    for application_option in action_node_option["applications"]:
+                        # TODO: remove inconsistency with the above nodes
+                        application_uuid = sess.ref_map_applications[application_option["application_ref"]].uuid
+                        node_application_uuids.append(application_uuid)
+
+                    action_space_cfg["options"]["application_uuids"].append(node_application_uuids)
+                else:
+                    action_space_cfg["options"]["application_uuids"].append([])
+
             # Each action space can potentially have a different list of nodes that it can apply to. Therefore,
             # we will pass node_uuids as a part of the action space config.
             # However, it's not possible to specify the node uuids directly in the config, as they are generated

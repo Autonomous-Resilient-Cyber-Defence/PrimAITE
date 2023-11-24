@@ -594,6 +594,7 @@ class ActionManager:
         session: "PrimaiteSession",  # reference to session for looking up stuff
         actions: List[str],  # stores list of actions available to agent
         node_uuids: List[str],  # allows mapping index to node
+        application_uuids: List[List[str]],  # allows mapping index to application
         max_folders_per_node: int = 2,  # allows calculating shape
         max_files_per_folder: int = 2,  # allows calculating shape
         max_services_per_node: int = 2,  # allows calculating shape
@@ -635,6 +636,7 @@ class ActionManager:
         self.session: "PrimaiteSession" = session
         self.sim: Simulation = self.session.simulation
         self.node_uuids: List[str] = node_uuids
+        self.application_uuids: List[List[str]] = application_uuids
         self.protocols: List[str] = protocols
         self.ports: List[str] = ports
 
@@ -819,10 +821,7 @@ class ActionManager:
         :return: The UUID of the service. Or None if the node has fewer services than the given index.
         :rtype: Optional[str]
         """
-        node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node = self.sim.network.nodes[node_uuid]
-        application_uuids = list(node.applications.keys())
-        return application_uuids[application_idx] if len(application_uuids) > application_idx else None
+        return self.application_uuids[node_idx][application_idx]
 
     def get_internet_protocol_by_idx(self, protocol_idx: int) -> str:
         """Get the internet protocol corresponding to the given index.

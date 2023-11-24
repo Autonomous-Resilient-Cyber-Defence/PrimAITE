@@ -141,7 +141,7 @@ class DatabaseClient(Application):
         :param sql: The SQL query.
         :return: True if the query was successful, otherwise False.
         """
-        if self.connected and self.operating_state.RUNNING:
+        if self.connected and self.operating_state == ApplicationOperatingState.RUNNING:
             query_id = str(uuid4())
 
             # Initialise the tracker of this ID to False
