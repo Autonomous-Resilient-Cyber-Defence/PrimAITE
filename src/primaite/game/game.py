@@ -1,4 +1,5 @@
 """PrimAITE game - Encapsulates the simulation and agents."""
+from copy import deepcopy
 from ipaddress import IPv4Address
 from typing import Dict, List
 
@@ -55,6 +56,9 @@ class PrimaiteGame:
         """Initialise a PrimaiteGame object."""
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
+
+        self._simulation_initial_state = deepcopy(self.simulation)
+        """The Simulation original state (deepcopy of the original Simulation)."""
 
         self.agents: List[AbstractAgent] = []
         """List of agents."""
@@ -152,8 +156,8 @@ class PrimaiteGame:
         """Reset the game, this will reset the simulation."""
         self.episode_counter += 1
         self.step_counter = 0
-        _LOGGER.debug(f"Restting primaite game, episode = {self.episode_counter}")
-        self.simulation.reset_component_for_episode(self.episode_counter)
+        _LOGGER.debug(f"Resetting primaite game, episode = {self.episode_counter}")
+        self.simulation = deepcopy(self._simulation_initial_state)
 
     def close(self) -> None:
         """Close the game, this will close the simulation."""
@@ -287,7 +291,7 @@ class PrimaiteGame:
                 node_ref
             ] = (
                 new_node.uuid
-            )  # TODO: fix incosistency with service and link. Node gets added by uuid, but service by object
+            )  # TODO: fix inconsistency with service and link. Node gets added by uuid, but service by object
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
@@ -370,5 +374,7 @@ class PrimaiteGame:
                 game.agents.append(new_agent)
             else:
                 print("agent type not found")
+
+        game._simulation_initial_state = deepcopy(game.simulation)  # noqa
 
         return game
