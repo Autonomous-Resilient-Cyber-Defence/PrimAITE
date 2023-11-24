@@ -331,6 +331,7 @@ class PrimaiteSession:
                 print("invalid node type")
             if "services" in node_cfg:
                 for service_cfg in node_cfg["services"]:
+                    new_service = None
                     service_ref = service_cfg["ref"]
                     service_type = service_cfg["type"]
                     service_types_mapping = {
@@ -339,7 +340,6 @@ class PrimaiteSession:
                         "DatabaseClient": DatabaseClient,
                         "DatabaseService": DatabaseService,
                         "WebServer": WebServer,
-                        "DataManipulationBot": DataManipulationBot,
                     }
                     if service_type in service_types_mapping:
                         print(f"installing {service_type} on node {new_node.hostname}")
@@ -360,22 +360,15 @@ class PrimaiteSession:
                             if "domain_mapping" in opt:
                                 for domain, ip in opt["domain_mapping"].items():
                                     new_service.dns_register(domain, ip)
-                    if service_type == "DataManipulationBot":
-                        if "options" in service_cfg:
-                            opt = service_cfg["options"]
-                            new_service.configure(
-                                server_ip_address=opt.get("server_ip"),
-                                payload=opt.get("payload"),
-                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
-                                data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
-                            )
 
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
+                    new_application = None
                     application_ref = application_cfg["ref"]
                     application_type = application_cfg["type"]
                     application_types_mapping = {
                         "WebBrowser": WebBrowser,
+                        "DataManipulationBot": DataManipulationBot,
                     }
                     if application_type in application_types_mapping:
                         new_node.software_manager.install(application_types_mapping[application_type])
@@ -383,6 +376,16 @@ class PrimaiteSession:
                         sess.ref_map_applications[application_ref] = new_application
                     else:
                         print(f"application type not found {application_type}")
+
+                    if application_type == "DataManipulationBot":
+                        if "options" in application_cfg:
+                            opt = application_cfg["options"]
+                            new_application.configure(
+                                server_ip_address=opt.get("server_ip"),
+                                payload=opt.get("payload"),
+                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
+                                data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
+                            )
             if "nics" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["nics"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
@@ -437,7 +440,8 @@ class PrimaiteSession:
                 if "applications" in action_node_option:
                     node_application_uuids = []
                     for application_option in action_node_option["applications"]:
-                        # TODO: remove inconsistency with the above nodes
+                        # TODO: fix inconsistency with node uuids and application uuids. The node object get added to
+                        #  node_uuid, whereas here the application gets added by uuid.
                         application_uuid = sess.ref_map_applications[application_option["application_ref"]].uuid
                         node_application_uuids.append(application_uuid)
 

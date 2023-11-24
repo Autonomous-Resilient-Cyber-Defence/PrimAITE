@@ -159,8 +159,8 @@ class DataManipulationBot(DatabaseClient):
         if self.server_ip_address and self.payload and self.operating_state:
             self.sys_log.info(f"{self.name}: Running")
             self._logon()
-            self._perform_port_scan(p_of_success=self.execution_definition.port_scan_p_of_success)
-            self._perform_data_manipulation(p_of_success=self.execution_definition.data_manipulation_p_of_success)
+            self._perform_port_scan(p_of_success=self.port_scan_p_of_success)
+            self._perform_data_manipulation(p_of_success=self.data_manipulation_p_of_success)
 
             if self.repeat and self.attack_stage in (
                 DataManipulationAttackStage.COMPLETE,
