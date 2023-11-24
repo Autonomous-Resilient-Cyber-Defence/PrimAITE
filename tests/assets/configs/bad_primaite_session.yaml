@@ -560,7 +560,7 @@ simulation:
           ip_address: 192.168.1.1
           subnet_mask: 255.255.255.0
         2:
-          ip_address: 192.168.1.1
+          ip_address: 192.168.10.1
           subnet_mask: 255.255.255.0
       acl:
         0:
@@ -571,6 +571,14 @@ simulation:
           action: PERMIT
           src_port: DNS
           dst_port: DNS
+        2:
+          action: PERMIT
+          src_port: FTP
+          dst_port: FTP
+        3:
+          action: PERMIT
+          src_port: HTTP
+          dst_port: HTTP
         22:
           action: PERMIT
           src_port: ARP
@@ -607,7 +615,7 @@ simulation:
       hostname: web_server
       ip_address: 192.168.1.12
       subnet_mask: 255.255.255.0
-      default_gateway: 192.168.1.10
+      default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
       - ref: web_server_database_client
@@ -628,6 +636,10 @@ simulation:
       services:
       - ref: database_service
         type: DatabaseService
+        options:
+          backup_server_ip: 192.168.1.16
+      - ref: database_ftp_client
+        type: FTPClient
 
     - ref: backup_server
       type: server
@@ -638,7 +650,7 @@ simulation:
       dns_server: 192.168.1.10
       services:
       - ref: backup_service
-        type: DatabaseBackup
+        type: FTPServer
 
     - ref: security_suite
       type: server

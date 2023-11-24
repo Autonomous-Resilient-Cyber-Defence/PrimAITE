@@ -16,7 +16,7 @@ from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.io import SessionIO, SessionIOSettings
 from primaite.game.policy.policy import PolicyABC
-from primaite.simulator.network.hardware.base import Link, NIC, Node
+from primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.server import Server
@@ -30,6 +30,8 @@ from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
+from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.web_server.web_server import WebServer
@@ -334,6 +336,7 @@ class PrimaiteSession:
                     subnet_mask=node_cfg["subnet_mask"],
                     default_gateway=node_cfg["default_gateway"],
                     dns_server=node_cfg["dns_server"],
+                    operating_state=NodeOperatingState.ON,
                 )
             elif n_type == "server":
                 new_node = Server(
@@ -342,16 +345,26 @@ class PrimaiteSession:
                     subnet_mask=node_cfg["subnet_mask"],
                     default_gateway=node_cfg["default_gateway"],
                     dns_server=node_cfg.get("dns_server"),
+                    operating_state=NodeOperatingState.ON,
                 )
             elif n_type == "switch":
-                new_node = Switch(hostname=node_cfg["hostname"], num_ports=node_cfg.get("num_ports"))
+                new_node = Switch(
+                    hostname=node_cfg["hostname"],
+                    num_ports=node_cfg.get("num_ports"),
+                    operating_state=NodeOperatingState.ON,
+                )
             elif n_type == "router":
-                new_node = Router(hostname=node_cfg["hostname"], num_ports=node_cfg.get("num_ports"))
+                new_node = Router(
+                    hostname=node_cfg["hostname"],
+                    num_ports=node_cfg.get("num_ports"),
+                    operating_state=NodeOperatingState.ON,
+                )
                 if "ports" in node_cfg:
                     for port_num, port_cfg in node_cfg["ports"].items():
                         new_node.configure_port(
                             port=port_num, ip_address=port_cfg["ip_address"], subnet_mask=port_cfg["subnet_mask"]
                         )
+                        # new_node.enable_port(port_num)
                 if "acl" in node_cfg:
                     for r_num, r_cfg in node_cfg["acl"].items():
                         # excuse the uncommon walrus operator ` := `. It's just here as a shorthand, to avoid repeating
@@ -379,6 +392,8 @@ class PrimaiteSession:
                         "DatabaseClient": DatabaseClient,
                         "DatabaseService": DatabaseService,
                         "WebServer": WebServer,
+                        "FTPClient": FTPClient,
+                        "FTPServer": FTPServer,
                     }
                     if service_type in service_types_mapping:
                         print(f"installing {service_type} on node {new_node.hostname}")
@@ -399,6 +414,12 @@ class PrimaiteSession:
                             if "domain_mapping" in opt:
                                 for domain, ip in opt["domain_mapping"].items():
                                     new_service.dns_register(domain, ip)
+                    if service_type == "DatabaseService":
+                        if "options" in service_cfg:
+                            opt = service_cfg["options"]
+                            if "backup_server_ip" in opt:
+                                new_service.configure_backup(backup_server=IPv4Address(opt["backup_server_ip"]))
+                        new_service.start()
 
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
@@ -435,7 +456,7 @@ class PrimaiteSession:
                 node_ref
             ] = (
                 new_node.uuid
-            )  # TODO: fix incosistency with service and link. Node gets added by uuid, but service by object
+            )  # TODO: fix inconsistency with service and link. Node gets added by uuid, but service by object
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
@@ -451,6 +472,8 @@ class PrimaiteSession:
                 endpoint_b = node_b.ethernet_port[link_cfg["endpoint_b_port"]]
             new_link = net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b)
             sess.ref_map_links[link_cfg["ref"]] = new_link.uuid
+            # endpoint_a.enable()
+            # endpoint_b.enable()
 
         # 3. create agents
         game_cfg = cfg["game_config"]
