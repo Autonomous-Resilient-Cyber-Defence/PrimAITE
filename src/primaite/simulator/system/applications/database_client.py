@@ -148,6 +148,7 @@ class DatabaseClient(Application):
             # Initialise the tracker of this ID to False
             self._query_success_tracker[query_id] = False
             return self._query(sql=sql, query_id=query_id)
+        return False
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """

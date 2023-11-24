@@ -1,9 +1,8 @@
 """Interface for agents."""
 import random
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, TypeAlias, Union
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
-import numpy as np
 from gymnasium.core import ActType, ObsType
 from pydantic import BaseModel
 
@@ -13,8 +12,6 @@ from primaite.game.agent.rewards import RewardFunction
 
 if TYPE_CHECKING:
     from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
-
-ObsType: TypeAlias = Union[Dict, np.ndarray]
 
 
 class AgentStartSettings(BaseModel):
