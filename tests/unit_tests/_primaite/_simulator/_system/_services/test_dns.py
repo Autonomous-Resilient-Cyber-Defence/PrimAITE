@@ -11,6 +11,7 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
+from primaite.simulator.system.services.service import ServiceOperatingState
 
 
 @pytest.fixture(scope="function")
@@ -54,6 +55,44 @@ def test_create_dns_client(dns_client):
     assert dns_client_service.protocol is IPProtocol.TCP
 
 
+def test_dns_client_add_domain_to_cache_when_not_running(dns_client):
+    dns_client_service: DNSClient = dns_client.software_manager.software["DNSClient"]
+    assert dns_client.operating_state is NodeOperatingState.OFF
+    assert dns_client_service.operating_state is ServiceOperatingState.STOPPED
+
+    assert (
+        dns_client_service.add_domain_to_cache(domain_name="test.com", ip_address=IPv4Address("192.168.1.100")) is False
+    )
+
+    assert dns_client_service.dns_cache.get("test.com") is None
+
+
+def test_dns_client_check_domain_exists_when_not_running(dns_client):
+    dns_client.operating_state = NodeOperatingState.ON
+    dns_client_service: DNSClient = dns_client.software_manager.software["DNSClient"]
+    dns_client_service.start()
+
+    assert dns_client.operating_state is NodeOperatingState.ON
+    assert dns_client_service.operating_state is ServiceOperatingState.RUNNING
+
+    assert (
+        dns_client_service.add_domain_to_cache(domain_name="test.com", ip_address=IPv4Address("192.168.1.100"))
+        is not False
+    )
+
+    assert dns_client_service.check_domain_exists("test.com") is True
+
+    dns_client.power_off()
+
+    for i in range(dns_client.shut_down_duration + 1):
+        dns_client.apply_timestep(timestep=i)
+
+    assert dns_client.operating_state is NodeOperatingState.OFF
+    assert dns_client_service.operating_state is ServiceOperatingState.STOPPED
+
+    assert dns_client_service.check_domain_exists("test.com") is False
+
+
 def test_dns_server_domain_name_registration(dns_server):
     """Test to check if the domain name registration works."""
     dns_server_service: DNSServer = dns_server.software_manager.software["DNSServer"]
@@ -68,7 +107,9 @@ def test_dns_server_domain_name_registration(dns_server):
 
 def test_dns_client_check_domain_in_cache(dns_client):
     """Test to make sure that the check_domain_in_cache returns the correct values."""
+    dns_client.operating_state = NodeOperatingState.ON
     dns_client_service: DNSClient = dns_client.software_manager.software["DNSClient"]
+    dns_client_service.start()
 
     # add a domain to the dns client cache
     dns_client_service.add_domain_to_cache("real-domain.com", IPv4Address("192.168.1.12"))

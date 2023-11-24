@@ -226,6 +226,21 @@ class IOSoftware(Software):
         )
         return state
 
+    @abstractmethod
+    def _can_perform_action(self) -> bool:
+        """
+        Checks if the software can perform actions.
+
+        This is done by checking if the software is operating properly or the node it is installed
+        in is operational.
+
+        Returns true if the software can perform actions.
+        """
+        if self.software_manager and self.software_manager.node.operating_state is NodeOperatingState.OFF:
+            _LOGGER.debug(f"{self.name} Error: {self.software_manager.node.hostname} is not online.")
+            return False
+        return True
+
     def send(
         self,
         payload: Any,
@@ -244,6 +259,9 @@ class IOSoftware(Software):
 
         :return: True if successful, False otherwise.
         """
+        if not self._can_perform_action():
+            return False
+
         return self.software_manager.send_payload_to_session_manager(
             payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
         )
@@ -262,8 +280,5 @@ class IOSoftware(Software):
         :param kwargs: Additional keyword arguments specific to the implementation.
         :return: True if the payload was successfully received and processed, False otherwise.
         """
-        # return false if node that software is on is off
-        if self.software_manager and self.software_manager.node.operating_state is NodeOperatingState.OFF:
-            _LOGGER.debug(f"{self.name} Error: {self.software_manager.node.hostname} is not online.")
-            return False
-        return True
+        # return false if not allowed to perform actions
+        return self._can_perform_action()

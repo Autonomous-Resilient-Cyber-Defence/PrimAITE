@@ -1,5 +1,5 @@
 from ipaddress import IPv4Address
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
@@ -51,13 +51,16 @@ class DNSClient(Service):
         """
         pass
 
-    def add_domain_to_cache(self, domain_name: str, ip_address: IPv4Address):
+    def add_domain_to_cache(self, domain_name: str, ip_address: IPv4Address) -> Union[bool, None]:
         """
         Adds a domain name to the DNS Client cache.
 
         :param: domain_name: The domain name to save to cache
         :param: ip_address: The IP Address to attach the domain name to
         """
+        if not self._can_perform_action():
+            return False
+
         self.dns_cache[domain_name] = ip_address
 
     def check_domain_exists(
@@ -72,6 +75,9 @@ class DNSClient(Service):
         :param: session_id: The Session ID the payload is to originate from. Optional.
         :param: is_reattempt: Checks if the request has been reattempted. Default is False.
         """
+        if not self._can_perform_action():
+            return False
+
         # check if DNS server is configured
         if self.dns_server is None:
             self.sys_log.error(f"{self.name}: DNS Server is not configured")

@@ -65,6 +65,9 @@ class WebBrowser(Application):
         :param: url: The address of the web page the browser requests
         :type: url: str
         """
+        if not self._can_perform_action():
+            return False
+
         # reset latest response
         self.latest_response = HttpResponsePacket(status_code=HttpStatusCode.NOT_FOUND)
 

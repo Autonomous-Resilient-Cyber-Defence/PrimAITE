@@ -78,3 +78,25 @@ def test_web_page_request_from_shut_down_server(uc2_network):
 
     assert web_client.get_webpage("http://arcd.com/users/") is False
     assert web_client.latest_response.status_code == HttpStatusCode.NOT_FOUND
+
+
+def test_web_page_request_from_closed_web_browser(uc2_network):
+    client_1: Computer = uc2_network.get_node_by_hostname("client_1")
+    web_client: WebBrowser = client_1.software_manager.software["WebBrowser"]
+    web_client.run()
+
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+
+    assert web_client.operating_state == ApplicationOperatingState.RUNNING
+
+    assert web_client.get_webpage("http://arcd.com/users/") is True
+
+    # latest response should have status code 200
+    assert web_client.latest_response.status_code == HttpStatusCode.OK
+
+    web_client.close()
+
+    # node should be off
+    assert web_client.operating_state is ApplicationOperatingState.CLOSED
+
+    assert web_client.get_webpage("http://arcd.com/users/") is False

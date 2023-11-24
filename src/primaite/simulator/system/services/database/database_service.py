@@ -48,6 +48,10 @@ class DatabaseService(Service):
 
     def backup_database(self) -> bool:
         """Create a backup of the database to the configured backup server."""
+        # check if this action can be performed
+        if not self._can_perform_action():
+            return False
+
         # check if the backup server was configured
         if self.backup_server is None:
             self.sys_log.error(f"{self.name} - {self.sys_log.hostname}: not configured.")
@@ -73,6 +77,10 @@ class DatabaseService(Service):
 
     def restore_backup(self) -> bool:
         """Restore a backup from backup server."""
+        # check if this action can be performed
+        if not self._can_perform_action():
+            return False
+
         software_manager: SoftwareManager = self.software_manager
         ftp_client_service: FTPClient = software_manager.software["FTPClient"]
 

@@ -3,7 +3,6 @@ from typing import Any, Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 _LOGGER = getLogger(__name__)
@@ -40,6 +39,25 @@ class Service(IOSoftware):
     "How many timesteps does it take to restart this service."
     restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
+
+    def _can_perform_action(self) -> bool:
+        """
+        Checks if the service can perform actions.
+
+        This is done by checking if the service is operating properly or the node it is installed
+        in is operational.
+
+        Returns true if the software can perform actions.
+        """
+        if not super()._can_perform_action():
+            return False
+
+        if self.operating_state is not self.operating_state.RUNNING:
+            # service is not running
+            _LOGGER.error(f"Cannot perform action: {self.name} is {self.operating_state.name}")
+            return False
+
+        return True
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
@@ -108,8 +126,7 @@ class Service(IOSoftware):
     def start(self, **kwargs) -> None:
         """Start the service."""
         # cant start the service if the node it is on is off
-        if self.software_manager and self.software_manager.node.operating_state is not NodeOperatingState.ON:
-            self.sys_log.error(f"Unable to start service. {self.software_manager.node.hostname} is not turned on.")
+        if not super()._can_perform_action():
             return
 
         if self.operating_state == ServiceOperatingState.STOPPED:

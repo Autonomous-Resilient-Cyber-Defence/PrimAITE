@@ -48,6 +48,9 @@ class DNSServer(Service):
         :param target_domain: The single domain name requested by a DNS client.
         :return ip_address: The IP address of that domain name or None.
         """
+        if not self._can_perform_action():
+            return
+
         return self.dns_table.get(target_domain)
 
     def dns_register(self, domain_name: str, domain_ip_address: IPv4Address):
@@ -60,6 +63,9 @@ class DNSServer(Service):
         :param: domain_ip_address: The IP address that the domain should route to
         :type: domain_ip_address: IPv4Address
         """
+        if not self._can_perform_action():
+            return
+
         self.dns_table[domain_name] = domain_ip_address
 
     def reset_component_for_episode(self, episode: int):

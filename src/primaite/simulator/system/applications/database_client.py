@@ -54,7 +54,10 @@ class DatabaseClient(Application):
 
     def connect(self) -> bool:
         """Connect to a Database Service."""
-        if not self.connected and self.operating_state.RUNNING:
+        if not self._can_perform_action():
+            return False
+
+        if not self.connected:
             return self._connect(self.server_ip_address, self.server_password)
         return False
 
@@ -135,19 +138,31 @@ class DatabaseClient(Application):
         self.operating_state = ApplicationOperatingState.RUNNING
         self.connect()
 
-    def query(self, sql: str) -> bool:
+    def query(self, sql: str, is_reattempt: bool = False) -> bool:
         """
         Send a query to the Database Service.
 
-        :param sql: The SQL query.
+        :param: sql: The SQL query.
+        :param: is_reattempt: If true, the action has been reattempted.
         :return: True if the query was successful, otherwise False.
         """
-        if self.connected and self.operating_state.RUNNING:
+        if not self._can_perform_action():
+            return False
+
+        if self.connected:
             query_id = str(uuid4())
 
             # Initialise the tracker of this ID to False
             self._query_success_tracker[query_id] = False
             return self._query(sql=sql, query_id=query_id)
+        else:
+            if is_reattempt:
+                return False
+
+            if not self.connect():
+                return False
+
+            self.query(sql=sql, is_reattempt=True)
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
