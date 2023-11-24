@@ -16,15 +16,17 @@ The bot is intended to simulate a malicious actor carrying out attacks like:
 - Dropping tables
 - Deleting records
 - Modifying data
-On a database server by abusing an application's trusted database connectivity.
+on a database server by abusing an application's trusted database connectivity.
 
 Usage
 -----
 
 - Create an instance and call ``configure`` to set:
+
   - Target database server IP
   - Database password (if needed)
   - SQL statement payload
+
 - Call ``run`` to connect and execute the statement.
 
 The bot handles connecting, executing the statement, and disconnecting.
