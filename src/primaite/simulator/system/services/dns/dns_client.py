@@ -62,6 +62,7 @@ class DNSClient(Service):
             return False
 
         self.dns_cache[domain_name] = ip_address
+        return True
 
     def check_domain_exists(
         self,

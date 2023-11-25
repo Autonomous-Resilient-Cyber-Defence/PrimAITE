@@ -46,7 +46,7 @@ class DataManipulationBot(DatabaseClient):
             self.sys_log.error(f"Failed to start the {self.name} as it requires both a target_ip_address and payload.")
 
     def attack(self):
-        """Run the datab manipulation attack."""
+        """Run the data manipulation attack."""
         if not self.connected:
             self.connect()
         if self.connected:
