@@ -1,13 +1,22 @@
 training_config:
-  rl_framework: SB3
+  rl_framework: RLLIB_single_agent
   rl_algorithm: PPO
-  se3ed: 333 # Purposeful typo to check that error is raised with bad configuration.
-  n_learn_steps: 2560
+  seed: 333
+  n_learn_episodes: 1
   n_eval_episodes: 5
+  max_steps_per_episode: 256
+  deterministic_eval: false
+  n_agents: 1
+  agent_references:
+    - defender
 
+io_settings:
+  save_checkpoints: true
+  checkpoint_interval: 5
 
 
 game:
+  max_episode_length: 256
   ports:
   - ARP
   - DNS
@@ -27,6 +36,14 @@ agents:
     action_space:
       action_list:
         - type: DONOTHING
+        # <not yet implemented>
+        # - type: NODE_LOGON
+        # - type: NODE_LOGOFF
+        # - type: NODE_APPLICATION_EXECUTE
+          # options:
+            # execution_definition:
+              # target_address: arcd.com
+
       options:
         nodes:
         - node_ref: client_2
@@ -40,11 +57,10 @@ agents:
       reward_components:
         - type: DUMMY
 
-    agent_settings: # options specific to this particular agent type, basically args of __init__(self)
-      start_settings:
-        start_step: 25
-        frequency: 20
-        variance: 5
+    agent_settings:
+      start_step: 5
+      frequency: 4
+      variance: 3
 
   - ref: client_1_data_manipulation_red_bot
     team: RED
@@ -53,20 +69,38 @@ agents:
     observation_space:
       type: UC2RedObservation
       options:
-        nodes: {}
+        nodes:
+          - node_ref: client_1
+            observations:
+            - logon_status
+            - operating_status
+            services:
+            - service_ref: data_manipulation_bot
+              observations:
+                operating_status
+                health_status
+            folders: {}
 
     action_space:
       action_list:
         - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
+        #<not yet implemented
+        # - type: NODE_APPLICATION_EXECUTE
+        #   options:
+        #     execution_definition:
+        #       server_ip: 192.168.1.14
+        #       payload: "DELETE"
+        #       success_rate: 80%
         - type: NODE_FILE_DELETE
         - type: NODE_FILE_CORRUPT
+        # - type: NODE_FOLDER_DELETE
+        # - type: NODE_FOLDER_CORRUPT
         - type: NODE_OS_SCAN
+        # - type: NODE_LOGON
+        # - type: NODE_LOGOFF
       options:
         nodes:
         - node_ref: client_1
-          applications:
-            - application_ref: data_manipulation_bot
         max_folders_per_node: 1
         max_files_per_folder: 1
         max_services_per_node: 1
@@ -76,12 +110,441 @@ agents:
         - type: DUMMY
 
     agent_settings: # options specific to this particular agent type, basically args of __init__(self)
-      start_settings:
-        start_step: 25
-        frequency: 20
-        variance: 5
+      start_step: 25
+      frequency: 20
+      variance: 5
 
-  - ref: defender
+  - ref: defender1
+    team: BLUE
+    type: ProxyAgent
+
+    observation_space:
+      type: UC2BlueObservation
+      options:
+        num_services_per_node: 1
+        num_folders_per_node: 1
+        num_files_per_folder: 1
+        num_nics_per_node: 2
+        nodes:
+        - node_ref: domain_controller
+          services:
+          - service_ref: domain_controller_dns_server
+        - node_ref: web_server
+          services:
+          - service_ref: web_server_database_client
+        - node_ref: database_server
+          services:
+          - service_ref: database_service
+          folders:
+          - folder_name: database
+            files:
+            - file_name: database.db
+        - node_ref: backup_server
+          # services:
+          # - service_ref: backup_service
+        - node_ref: security_suite
+        - node_ref: client_1
+        - node_ref: client_2
+        links:
+        - link_ref: router_1___switch_1
+        - link_ref: router_1___switch_2
+        - link_ref: switch_1___domain_controller
+        - link_ref: switch_1___web_server
+        - link_ref: switch_1___database_server
+        - link_ref: switch_1___backup_server
+        - link_ref: switch_1___security_suite
+        - link_ref: switch_2___client_1
+        - link_ref: switch_2___client_2
+        - link_ref: switch_2___security_suite
+        acl:
+          options:
+            max_acl_rules: 10
+          router_node_ref: router_1
+          ip_address_order:
+            - node_ref: domain_controller
+              nic_num: 1
+            - node_ref: web_server
+              nic_num: 1
+            - node_ref: database_server
+              nic_num: 1
+            - node_ref: backup_server
+              nic_num: 1
+            - node_ref: security_suite
+              nic_num: 1
+            - node_ref: client_1
+              nic_num: 1
+            - node_ref: client_2
+              nic_num: 1
+            - node_ref: security_suite
+              nic_num: 2
+        ics: null
+
+    action_space:
+      action_list:
+        - type: DONOTHING
+        - type: NODE_SERVICE_SCAN
+        - type: NODE_SERVICE_STOP
+        - type: NODE_SERVICE_START
+        - type: NODE_SERVICE_PAUSE
+        - type: NODE_SERVICE_RESUME
+        - type: NODE_SERVICE_RESTART
+        - type: NODE_SERVICE_DISABLE
+        - type: NODE_SERVICE_ENABLE
+        - type: NODE_FILE_SCAN
+        - type: NODE_FILE_CHECKHASH
+        - type: NODE_FILE_DELETE
+        - type: NODE_FILE_REPAIR
+        - type: NODE_FILE_RESTORE
+        - type: NODE_FOLDER_SCAN
+        - type: NODE_FOLDER_CHECKHASH
+        - type: NODE_FOLDER_REPAIR
+        - type: NODE_FOLDER_RESTORE
+        - type: NODE_OS_SCAN
+        - type: NODE_SHUTDOWN
+        - type: NODE_STARTUP
+        - type: NODE_RESET
+        - type: NETWORK_ACL_ADDRULE
+          options:
+            target_router_ref: router_1
+        - type: NETWORK_ACL_REMOVERULE
+          options:
+            target_router_ref: router_1
+        - type: NETWORK_NIC_ENABLE
+        - type: NETWORK_NIC_DISABLE
+
+      action_map:
+          0:
+            action: DONOTHING
+            options: {}
+          # scan webapp service
+          1:
+            action: NODE_SERVICE_SCAN
+            options:
+              node_id: 2
+              service_id: 1
+          # stop webapp service
+          2:
+            action: NODE_SERVICE_STOP
+            options:
+              node_id: 2
+              service_id: 1
+          # start webapp service
+          3:
+            action: "NODE_SERVICE_START"
+            options:
+                node_id: 2
+                service_id: 1
+          4:
+            action: "NODE_SERVICE_PAUSE"
+            options:
+                node_id: 2
+                service_id: 1
+          5:
+            action: "NODE_SERVICE_RESUME"
+            options:
+                node_id: 2
+                service_id: 1
+          6:
+            action: "NODE_SERVICE_RESTART"
+            options:
+                node_id: 2
+                service_id: 1
+          7:
+            action: "NODE_SERVICE_DISABLE"
+            options:
+                node_id: 2
+                service_id: 1
+          8:
+            action: "NODE_SERVICE_ENABLE"
+            options:
+                node_id: 2
+                service_id: 1
+          9:
+            action: "NODE_FILE_SCAN"
+            options:
+                node_id: 3
+                folder_id: 1
+                file_id: 1
+          10:
+            action: "NODE_FILE_CHECKHASH"
+            options:
+                node_id: 3
+                folder_id: 1
+                file_id: 1
+          11:
+            action: "NODE_FILE_DELETE"
+            options:
+                node_id: 3
+                folder_id: 1
+                file_id: 1
+          12:
+            action: "NODE_FILE_REPAIR"
+            options:
+                node_id: 3
+                folder_id: 1
+                file_id: 1
+          13:
+            action: "NODE_FILE_RESTORE"
+            options:
+                node_id: 3
+                folder_id: 1
+                file_id: 1
+          14:
+            action: "NODE_FOLDER_SCAN"
+            options:
+                node_id: 3
+                folder_id: 1
+          15:
+            action: "NODE_FOLDER_CHECKHASH"
+            options:
+                node_id: 3
+                folder_id: 1
+          16:
+            action: "NODE_FOLDER_REPAIR"
+            options:
+                node_id: 3
+                folder_id: 1
+          17:
+            action: "NODE_FOLDER_RESTORE"
+            options:
+                node_id: 3
+                folder_id: 1
+          18:
+            action: "NODE_OS_SCAN"
+            options:
+                node_id: 3
+          19:
+            action: "NODE_SHUTDOWN"
+            options:
+                node_id: 6
+          20:
+            action: "NODE_STARTUP"
+            options:
+                node_id: 6
+          21:
+            action: "NODE_RESET"
+            options:
+                node_id: 6
+          22:
+            action: "NETWORK_ACL_ADDRULE"
+            options:
+                position: 1
+                permission: 2
+                source_ip_id: 7
+                dest_ip_id: 1
+                source_port_id: 1
+                dest_port_id: 1
+                protocol_id: 1
+          23:
+            action: "NETWORK_ACL_ADDRULE"
+            options:
+                position: 1
+                permission: 2
+                source_ip_id: 8
+                dest_ip_id: 1
+                source_port_id: 1
+                dest_port_id: 1
+                protocol_id: 1
+          24:
+            action: "NETWORK_ACL_ADDRULE"
+            options:
+                position: 1
+                permission: 2
+                source_ip_id: 7
+                dest_ip_id: 3
+                source_port_id: 1
+                dest_port_id: 1
+                protocol_id: 3
+          25:
+            action: "NETWORK_ACL_ADDRULE"
+            options:
+                position: 1
+                permission: 2
+                source_ip_id: 8
+                dest_ip_id: 3
+                source_port_id: 1
+                dest_port_id: 1
+                protocol_id: 3
+          26:
+            action: "NETWORK_ACL_ADDRULE"
+            options:
+                position: 1
+                permission: 2
+                source_ip_id: 7
+                dest_ip_id: 4
+                source_port_id: 1
+                dest_port_id: 1
+                protocol_id: 3
+          27:
+            action: "NETWORK_ACL_ADDRULE"
+            options:
+                position: 1
+                permission: 2
+                source_ip_id: 8
+                dest_ip_id: 4
+                source_port_id: 1
+                dest_port_id: 1
+                protocol_id: 3
+          28:
+            action: "NETWORK_ACL_REMOVERULE"
+            options:
+                position: 0
+          29:
+            action: "NETWORK_ACL_REMOVERULE"
+            options:
+                position: 1
+          30:
+            action: "NETWORK_ACL_REMOVERULE"
+            options:
+                position: 2
+          31:
+            action: "NETWORK_ACL_REMOVERULE"
+            options:
+                position: 3
+          32:
+            action: "NETWORK_ACL_REMOVERULE"
+            options:
+                position: 4
+          33:
+            action: "NETWORK_ACL_REMOVERULE"
+            options:
+                position: 5
+          34:
+            action: "NETWORK_ACL_REMOVERULE"
+            options:
+                position: 6
+          35:
+            action: "NETWORK_ACL_REMOVERULE"
+            options:
+                position: 7
+          36:
+            action: "NETWORK_ACL_REMOVERULE"
+            options:
+                position: 8
+          37:
+            action: "NETWORK_ACL_REMOVERULE"
+            options:
+                position: 9
+          38:
+            action: "NETWORK_NIC_DISABLE"
+            options:
+                node_id: 1
+                nic_id: 1
+          39:
+            action: "NETWORK_NIC_ENABLE"
+            options:
+                node_id: 1
+                nic_id: 1
+          40:
+            action: "NETWORK_NIC_DISABLE"
+            options:
+                node_id: 2
+                nic_id: 1
+          41:
+            action: "NETWORK_NIC_ENABLE"
+            options:
+                node_id: 2
+                nic_id: 1
+          42:
+            action: "NETWORK_NIC_DISABLE"
+            options:
+                node_id: 3
+                nic_id: 1
+          43:
+            action: "NETWORK_NIC_ENABLE"
+            options:
+                node_id: 3
+                nic_id: 1
+          44:
+            action: "NETWORK_NIC_DISABLE"
+            options:
+                node_id: 4
+                nic_id: 1
+          45:
+            action: "NETWORK_NIC_ENABLE"
+            options:
+                node_id: 4
+                nic_id: 1
+          46:
+            action: "NETWORK_NIC_DISABLE"
+            options:
+                node_id: 5
+                nic_id: 1
+          47:
+            action: "NETWORK_NIC_ENABLE"
+            options:
+                node_id: 5
+                nic_id: 1
+          48:
+            action: "NETWORK_NIC_DISABLE"
+            options:
+                node_id: 5
+                nic_id: 2
+          49:
+            action: "NETWORK_NIC_ENABLE"
+            options:
+                node_id: 5
+                nic_id: 2
+          50:
+            action: "NETWORK_NIC_DISABLE"
+            options:
+                node_id: 6
+                nic_id: 1
+          51:
+            action: "NETWORK_NIC_ENABLE"
+            options:
+                node_id: 6
+                nic_id: 1
+          52:
+            action: "NETWORK_NIC_DISABLE"
+            options:
+                node_id: 7
+                nic_id: 1
+          53:
+            action: "NETWORK_NIC_ENABLE"
+            options:
+                node_id: 7
+                nic_id: 1
+
+
+      options:
+        nodes:
+        - node_ref: router_1
+        - node_ref: switch_1
+        - node_ref: switch_2
+        - node_ref: domain_controller
+        - node_ref: web_server
+        - node_ref: database_server
+        - node_ref: backup_server
+        - node_ref: security_suite
+        - node_ref: client_1
+        - node_ref: client_2
+        max_folders_per_node: 2
+        max_files_per_folder: 2
+        max_services_per_node: 2
+        max_nics_per_node: 8
+        max_acl_rules: 10
+
+    reward_function:
+      reward_components:
+        - type: DATABASE_FILE_INTEGRITY
+          weight: 0.5
+          options:
+            node_ref: database_server
+            folder_name: database
+            file_name: database.db
+
+
+        - type: WEB_SERVER_404_PENALTY
+          weight: 0.5
+          options:
+            node_ref: web_server
+            service_ref: web_server_web_service
+
+
+    agent_settings:
+      # ...
+  - ref: defender2
     team: BLUE
     type: ProxyAgent
 
@@ -628,15 +1091,9 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
-      applications:
+      services:
       - ref: data_manipulation_bot
         type: DataManipulationBot
-        options:
-          port_scan_p_of_success: 0.1
-          data_manipulation_p_of_success: 0.1
-          payload: "DELETE"
-          server_ip: 192.168.1.14
-      services:
       - ref: client_1_dns_client
         type: DNSClient
 

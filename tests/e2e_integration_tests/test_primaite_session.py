@@ -8,6 +8,7 @@ CFG_PATH = TEST_ASSETS_ROOT / "configs/test_primaite_session.yaml"
 TRAINING_ONLY_PATH = TEST_ASSETS_ROOT / "configs/train_only_primaite_session.yaml"
 EVAL_ONLY_PATH = TEST_ASSETS_ROOT / "configs/eval_only_primaite_session.yaml"
 MISCONFIGURED_PATH = TEST_ASSETS_ROOT / "configs/bad_primaite_session.yaml"
+MULTI_AGENT_PATH = TEST_ASSETS_ROOT / "configs/multi_agent_session.yaml"
 
 
 class TestPrimaiteSession:
@@ -19,15 +20,15 @@ class TestPrimaiteSession:
                 raise AssertionError
 
             assert session is not None
-            assert session.simulation
-            assert len(session.agents) == 3
-            assert len(session.rl_agents) == 1
+            assert session.game.simulation
+            assert len(session.game.agents) == 3
+            assert len(session.game.rl_agents) == 1
 
             assert session.policy
             assert session.env
 
-            assert session.simulation.network
-            assert len(session.simulation.network.nodes) == 10
+            assert session.game.simulation.network
+            assert len(session.game.simulation.network.nodes) == 10
 
     @pytest.mark.parametrize("temp_primaite_session", [[CFG_PATH]], indirect=True)
     def test_start_session(self, temp_primaite_session):
@@ -64,6 +65,13 @@ class TestPrimaiteSession:
             session.start_session()
             # TODO: include checks that the model was loaded and that the eval-only session ran
 
+    @pytest.mark.skip(reason="Slow, reenable later")
+    @pytest.mark.parametrize("temp_primaite_session", [[MULTI_AGENT_PATH]], indirect=True)
+    def test_multi_agent_session(self, temp_primaite_session):
+        """Check that we can run a training session with a multi agent system."""
+        with temp_primaite_session as session:
+            session.start_session()
+
     def test_error_thrown_on_bad_configuration(self):
         with pytest.raises(pydantic.ValidationError):
             session = TempPrimaiteSession.from_config(MISCONFIGURED_PATH)
@@ -72,12 +80,12 @@ class TestPrimaiteSession:
     def test_session_sim_reset(self, temp_primaite_session):
         with temp_primaite_session as session:
             session: TempPrimaiteSession
-            client_1 = session.simulation.network.get_node_by_hostname("client_1")
+            client_1 = session.game.simulation.network.get_node_by_hostname("client_1")
             client_1.software_manager.uninstall("DataManipulationBot")
 
             assert "DataManipulationBot" not in client_1.software_manager.software
 
-            session.reset()
-            client_1 = session.simulation.network.get_node_by_hostname("client_1")
+            session.game.reset()
+            client_1 = session.game.simulation.network.get_node_by_hostname("client_1")
 
             assert "DataManipulationBot" in client_1.software_manager.software

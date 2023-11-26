@@ -38,7 +38,7 @@ class DataManipulationAgent(AbstractScriptedAgent):
         :return: _description_
         :rtype: Tuple[str, Dict]
         """
-        current_timestep = self.action_manager.session.step_counter
+        current_timestep = self.action_manager.game.step_counter
 
         if current_timestep < self.next_execution_timestep:
             return "DONOTHING", {"dummy": 0}

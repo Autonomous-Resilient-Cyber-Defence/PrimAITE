@@ -20,7 +20,7 @@ from primaite.simulator.sim_container import Simulation
 _LOGGER = getLogger(__name__)
 
 if TYPE_CHECKING:
-    from primaite.game.session import PrimaiteSession
+    from primaite.game.game import PrimaiteGame
 
 
 class AbstractAction(ABC):
@@ -43,7 +43,7 @@ class AbstractAction(ABC):
         """Dictionary describing the number of options for each parameter of this action. The keys of this dict must
         align with the keyword args of the form_request method."""
         self.manager: ActionManager = manager
-        """Reference to the ActionManager which created this action. This is used to access the session and simulation
+        """Reference to the ActionManager which created this action. This is used to access the game and simulation
         objects."""
 
     @abstractmethod
@@ -591,7 +591,7 @@ class ActionManager:
 
     def __init__(
         self,
-        session: "PrimaiteSession",  # reference to session for looking up stuff
+        game: "PrimaiteGame",  # reference to game for information lookup
         actions: List[str],  # stores list of actions available to agent
         node_uuids: List[str],  # allows mapping index to node
         application_uuids: List[List[str]],  # allows mapping index to application
@@ -608,8 +608,8 @@ class ActionManager:
     ) -> None:
         """Init method for ActionManager.
 
-        :param session: Reference to the session to which the agent belongs.
-        :type session: PrimaiteSession
+        :param game: Reference to the game to which the agent belongs.
+        :type game: PrimaiteGame
         :param actions: List of action types which should be made available to the agent.
         :type actions: List[str]
         :param node_uuids: List of node UUIDs that this agent can act on.
@@ -633,8 +633,8 @@ class ActionManager:
         :param act_map: Action map which maps integers to actions. Used for restricting the set of possible actions.
         :type act_map: Optional[Dict[int, Dict]]
         """
-        self.session: "PrimaiteSession" = session
-        self.sim: Simulation = self.session.simulation
+        self.game: "PrimaiteGame" = game
+        self.sim: Simulation = self.game.simulation
         self.node_uuids: List[str] = node_uuids
         self.application_uuids: List[List[str]] = application_uuids
         self.protocols: List[str] = protocols
@@ -874,7 +874,7 @@ class ActionManager:
         return nics[nic_idx]
 
     @classmethod
-    def from_config(cls, session: "PrimaiteSession", cfg: Dict) -> "ActionManager":
+    def from_config(cls, game: "PrimaiteGame", cfg: Dict) -> "ActionManager":
         """
         Construct an ActionManager from a config definition.
 
@@ -893,20 +893,20 @@ class ActionManager:
                 These options are used to calculate the shape of the action space, and to provide additional information
                 to the ActionManager which is required to convert the agent's action choice into a CAOS request.
 
-        :param session: The Primaite Session to which the agent belongs.
-        :type session: PrimaiteSession
+        :param game: The Primaite Game to which the agent belongs.
+        :type game: PrimaiteGame
         :param cfg: The action space config.
         :type cfg: Dict
         :return: The constructed ActionManager.
         :rtype: ActionManager
         """
         obj = cls(
-            session=session,
+            game=game,
             actions=cfg["action_list"],
             # node_uuids=cfg["options"]["node_uuids"],
             **cfg["options"],
-            protocols=session.options.protocols,
-            ports=session.options.ports,
+            protocols=game.options.protocols,
+            ports=game.options.ports,
             ip_address_list=None,
             act_map=cfg.get("action_map"),
         )

@@ -1,12 +1,8 @@
-"""PrimAITE session - the main entry point to training agents on PrimAITE."""
+"""PrimAITE game - Encapsulates the simulation and agents."""
 from copy import deepcopy
-from enum import Enum
 from ipaddress import IPv4Address
-from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, SupportsFloat, Tuple
+from typing import Dict, List
 
-import gymnasium
-from gymnasium.core import ActType, ObsType
 from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
@@ -15,8 +11,6 @@ from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent, RandomAgent
 from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
-from primaite.game.io import SessionIO, SessionIOSettings
-from primaite.game.policy.policy import PolicyABC
 from primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
@@ -40,65 +34,7 @@ from primaite.simulator.system.services.web_server.web_server import WebServer
 _LOGGER = getLogger(__name__)
 
 
-class PrimaiteGymEnv(gymnasium.Env):
-    """
-    Thin wrapper env to provide agents with a gymnasium API.
-
-    This is always a single agent environment since gymnasium is a single agent API. Therefore, we can make some
-    assumptions about the agent list always having a list of length 1.
-    """
-
-    def __init__(self, session: "PrimaiteSession", agents: List[ProxyAgent]):
-        """Initialise the environment."""
-        super().__init__()
-        self.session: "PrimaiteSession" = session
-        self.agent: ProxyAgent = agents[0]
-
-    def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, Dict[str, Any]]:
-        """Perform a step in the environment."""
-        # make ProxyAgent store the action chosen my the RL policy
-        self.agent.store_action(action)
-        # apply_agent_actions accesses the action we just stored
-        self.session.apply_agent_actions()
-        self.session.advance_timestep()
-        state = self.session.get_sim_state()
-        self.session.update_agents(state)
-
-        next_obs = self._get_obs()
-        reward = self.agent.reward_function.current_reward
-        terminated = False
-        truncated = self.session.calculate_truncated()
-        info = {}
-
-        return next_obs, reward, terminated, truncated, info
-
-    def reset(self, seed: Optional[int] = None) -> Tuple[ObsType, Dict[str, Any]]:
-        """Reset the environment."""
-        self.session.reset()
-        state = self.session.get_sim_state()
-        self.session.update_agents(state)
-        next_obs = self._get_obs()
-        info = {}
-        return next_obs, info
-
-    @property
-    def action_space(self) -> gymnasium.Space:
-        """Return the action space of the environment."""
-        return self.agent.action_manager.space
-
-    @property
-    def observation_space(self) -> gymnasium.Space:
-        """Return the observation space of the environment."""
-        return gymnasium.spaces.flatten_space(self.agent.observation_manager.space)
-
-    def _get_obs(self) -> ObsType:
-        """Return the current observation."""
-        unflat_space = self.agent.observation_manager.space
-        unflat_obs = self.agent.observation_manager.current_observation
-        return gymnasium.spaces.flatten(unflat_space, unflat_obs)
-
-
-class PrimaiteSessionOptions(BaseModel):
+class PrimaiteGameOptions(BaseModel):
     """
     Global options which are applicable to all of the agents in the game.
 
@@ -107,40 +43,20 @@ class PrimaiteSessionOptions(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    max_episode_length: int = 256
     ports: List[str]
     protocols: List[str]
 
 
-class TrainingOptions(BaseModel):
-    """Options for training the RL agent."""
+class PrimaiteGame:
+    """
+    Primaite game encapsulates the simulation and agents which interact with it.
 
-    model_config = ConfigDict(extra="forbid")
-
-    rl_framework: Literal["SB3", "RLLIB"]
-    rl_algorithm: Literal["PPO", "A2C"]
-    n_learn_episodes: int
-    n_eval_episodes: Optional[int] = None
-    max_steps_per_episode: int
-    # checkpoint_freq: Optional[int] = None
-    deterministic_eval: bool
-    seed: Optional[int]
-    n_agents: int
-    agent_references: List[str]
-
-
-class SessionMode(Enum):
-    """Helper to keep track of the current session mode."""
-
-    TRAIN = "train"
-    EVAL = "eval"
-    MANUAL = "manual"
-
-
-class PrimaiteSession:
-    """The main entrypoint for PrimAITE sessions, this manages a simulation, agents, and environments."""
+    Provides main logic loop for the game. However, it does not provide policy training, or a gymnasium environment.
+    """
 
     def __init__(self):
-        """Initialise a PrimaiteSession object."""
+        """Initialise a PrimaiteGame object."""
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
 
@@ -159,14 +75,8 @@ class PrimaiteSession:
         self.episode_counter: int = 0
         """Current episode number."""
 
-        self.options: PrimaiteSessionOptions
+        self.options: PrimaiteGameOptions
         """Special options that apply for the entire game."""
-
-        self.training_options: TrainingOptions
-        """Options specific to agent training."""
-
-        self.policy: PolicyABC
-        """The reinforcement learning policy."""
 
         self.ref_map_nodes: Dict[str, Node] = {}
         """Mapping from unique node reference name to node object. Used when parsing config files."""
@@ -179,40 +89,6 @@ class PrimaiteSession:
 
         self.ref_map_links: Dict[str, Link] = {}
         """Mapping from human-readable link reference to link object. Used when parsing config files."""
-
-        self.env: PrimaiteGymEnv
-        """The environment that the agent can consume. Could be PrimaiteEnv."""
-
-        self.mode: SessionMode = SessionMode.MANUAL
-        """Current session mode."""
-
-        self.io_manager = SessionIO()
-        """IO manager for the session."""
-
-    def start_session(self) -> None:
-        """Commence the training session."""
-        self.mode = SessionMode.TRAIN
-        n_learn_episodes = self.training_options.n_learn_episodes
-        n_eval_episodes = self.training_options.n_eval_episodes
-        max_steps_per_episode = self.training_options.max_steps_per_episode
-
-        deterministic_eval = self.training_options.deterministic_eval
-        self.policy.learn(
-            n_episodes=n_learn_episodes,
-            timesteps_per_episode=max_steps_per_episode,
-        )
-        self.save_models()
-
-        self.mode = SessionMode.EVAL
-        if n_eval_episodes > 0:
-            self.policy.eval(n_episodes=n_eval_episodes, deterministic=deterministic_eval)
-
-        self.mode = SessionMode.MANUAL
-
-    def save_models(self) -> None:
-        """Save the RL models."""
-        save_path = self.io_manager.generate_model_save_path("temp_model_name")
-        self.policy.save(save_path)
 
     def step(self):
         """
@@ -232,7 +108,7 @@ class PrimaiteSession:
         single-agent gym, make sure to update the ProxyAgent's action with the action before calling
         ``self.apply_agent_actions()``.
         """
-        _LOGGER.debug(f"Stepping primaite session. Step counter: {self.step_counter}")
+        _LOGGER.debug(f"Stepping. Step counter: {self.step_counter}")
 
         # Get the current state of the simulation
         sim_state = self.get_sim_state()
@@ -274,29 +150,29 @@ class PrimaiteSession:
     def calculate_truncated(self) -> bool:
         """Calculate whether the episode is truncated."""
         current_step = self.step_counter
-        max_steps = self.training_options.max_steps_per_episode
+        max_steps = self.options.max_episode_length
         if current_step >= max_steps:
             return True
         return False
 
     def reset(self) -> None:
-        """Reset the session, this will reset the simulation."""
+        """Reset the game, this will reset the simulation."""
         self.episode_counter += 1
         self.step_counter = 0
-        _LOGGER.debug(f"Restting primaite session, episode = {self.episode_counter}")
+        _LOGGER.debug(f"Resetting primaite game, episode = {self.episode_counter}")
         self.simulation = deepcopy(self._simulation_initial_state)
 
     def close(self) -> None:
-        """Close the session, this will stop the env and close the simulation."""
+        """Close the game, this will close the simulation."""
         return NotImplemented
 
     @classmethod
-    def from_config(cls, cfg: dict, agent_load_path: Optional[str] = None) -> "PrimaiteSession":
-        """Create a PrimaiteSession object from a config dictionary.
+    def from_config(cls, cfg: Dict) -> "PrimaiteGame":
+        """Create a PrimaiteGame object from a config dictionary.
 
         The config dictionary should have the following top-level keys:
         1. training_config: options for training the RL agent.
-        2. game_config: options for the game itself. Used by PrimaiteSession.
+        2. game_config: options for the game itself. Used by PrimaiteGame.
         3. simulation: defines the network topology and the initial state of the simulation.
 
         The specification for each of the three major areas is described in a separate documentation page.
@@ -304,26 +180,19 @@ class PrimaiteSession:
 
         :param cfg: The config dictionary.
         :type cfg: dict
-        :return: A PrimaiteSession object.
-        :rtype: PrimaiteSession
+        :return: A PrimaiteGame object.
+        :rtype: PrimaiteGame
         """
-        sess = cls()
-        sess.options = PrimaiteSessionOptions(
-            ports=cfg["game_config"]["ports"],
-            protocols=cfg["game_config"]["protocols"],
-        )
-        sess.training_options = TrainingOptions(**cfg["training_config"])
+        game = cls()
+        game.options = PrimaiteGameOptions(**cfg["game"])
 
-        # READ IO SETTINGS (this sets the global session path as well) # TODO: GLOBAL SIDE EFFECTS...
-        io_settings = cfg.get("io_settings", {})
-        sess.io_manager.settings = SessionIOSettings(**io_settings)
-
-        sim = sess.simulation
+        # 1. create simulation
+        sim = game.simulation
         net = sim.network
 
-        sess.ref_map_nodes: Dict[str, Node] = {}
-        sess.ref_map_services: Dict[str, Service] = {}
-        sess.ref_map_links: Dict[str, Link] = {}
+        game.ref_map_nodes: Dict[str, Node] = {}
+        game.ref_map_services: Dict[str, Service] = {}
+        game.ref_map_links: Dict[str, Link] = {}
 
         nodes_cfg = cfg["simulation"]["network"]["nodes"]
         links_cfg = cfg["simulation"]["network"]["links"]
@@ -400,7 +269,7 @@ class PrimaiteSession:
                         print(f"installing {service_type} on node {new_node.hostname}")
                         new_node.software_manager.install(service_types_mapping[service_type])
                         new_service = new_node.software_manager.software[service_type]
-                        sess.ref_map_services[service_ref] = new_service
+                        game.ref_map_services[service_ref] = new_service
                     else:
                         print(f"service type not found {service_type}")
                     # service-dependent options
@@ -434,7 +303,7 @@ class PrimaiteSession:
                     if application_type in application_types_mapping:
                         new_node.software_manager.install(application_types_mapping[application_type])
                         new_application = new_node.software_manager.software[application_type]
-                        sess.ref_map_applications[application_ref] = new_application
+                        game.ref_map_applications[application_ref] = new_application
                     else:
                         print(f"application type not found {application_type}")
 
@@ -442,7 +311,7 @@ class PrimaiteSession:
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
                             new_application.configure(
-                                server_ip_address=opt.get("server_ip"),
+                                server_ip_address=IPv4Address(opt.get("server_ip")),
                                 payload=opt.get("payload"),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
@@ -453,7 +322,7 @@ class PrimaiteSession:
 
             net.add_node(new_node)
             new_node.power_on()
-            sess.ref_map_nodes[
+            game.ref_map_nodes[
                 node_ref
             ] = (
                 new_node.uuid
@@ -461,8 +330,8 @@ class PrimaiteSession:
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
-            node_a = net.nodes[sess.ref_map_nodes[link_cfg["endpoint_a_ref"]]]
-            node_b = net.nodes[sess.ref_map_nodes[link_cfg["endpoint_b_ref"]]]
+            node_a = net.nodes[game.ref_map_nodes[link_cfg["endpoint_a_ref"]]]
+            node_b = net.nodes[game.ref_map_nodes[link_cfg["endpoint_b_ref"]]]
             if isinstance(node_a, Switch):
                 endpoint_a = node_a.switch_ports[link_cfg["endpoint_a_port"]]
             else:
@@ -472,13 +341,10 @@ class PrimaiteSession:
             else:
                 endpoint_b = node_b.ethernet_port[link_cfg["endpoint_b_port"]]
             new_link = net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b)
-            sess.ref_map_links[link_cfg["ref"]] = new_link.uuid
-            # endpoint_a.enable()
-            # endpoint_b.enable()
+            game.ref_map_links[link_cfg["ref"]] = new_link.uuid
 
         # 3. create agents
-        game_cfg = cfg["game_config"]
-        agents_cfg = game_cfg["agents"]
+        agents_cfg = cfg["agents"]
 
         for agent_cfg in agents_cfg:
             agent_ref = agent_cfg["ref"]  # noqa: F841
@@ -488,7 +354,7 @@ class PrimaiteSession:
             reward_function_cfg = agent_cfg["reward_function"]
 
             # CREATE OBSERVATION SPACE
-            obs_space = ObservationManager.from_config(observation_space_cfg, sess)
+            obs_space = ObservationManager.from_config(observation_space_cfg, game)
 
             # CREATE ACTION SPACE
             action_space_cfg["options"]["node_uuids"] = []
@@ -497,7 +363,7 @@ class PrimaiteSession:
             # if a list of nodes is defined, convert them from node references to node UUIDs
             for action_node_option in action_space_cfg.get("options", {}).pop("nodes", {}):
                 if "node_ref" in action_node_option:
-                    node_uuid = sess.ref_map_nodes[action_node_option["node_ref"]]
+                    node_uuid = game.ref_map_nodes[action_node_option["node_ref"]]
                     action_space_cfg["options"]["node_uuids"].append(node_uuid)
 
                 if "applications" in action_node_option:
@@ -505,7 +371,7 @@ class PrimaiteSession:
                     for application_option in action_node_option["applications"]:
                         # TODO: fix inconsistency with node uuids and application uuids. The node object get added to
                         #  node_uuid, whereas here the application gets added by uuid.
-                        application_uuid = sess.ref_map_applications[application_option["application_ref"]].uuid
+                        application_uuid = game.ref_map_applications[application_option["application_ref"]].uuid
                         node_application_uuids.append(application_uuid)
 
                     action_space_cfg["options"]["application_uuids"].append(node_application_uuids)
@@ -522,12 +388,12 @@ class PrimaiteSession:
                     if "options" in action_config:
                         if "target_router_ref" in action_config["options"]:
                             _target = action_config["options"]["target_router_ref"]
-                            action_config["options"]["target_router_uuid"] = sess.ref_map_nodes[_target]
+                            action_config["options"]["target_router_uuid"] = game.ref_map_nodes[_target]
 
-            action_space = ActionManager.from_config(sess, action_space_cfg)
+            action_space = ActionManager.from_config(game, action_space_cfg)
 
             # CREATE REWARD FUNCTION
-            rew_function = RewardFunction.from_config(reward_function_cfg, session=sess)
+            rew_function = RewardFunction.from_config(reward_function_cfg, game=game)
 
             agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
 
@@ -541,7 +407,7 @@ class PrimaiteSession:
                     reward_function=rew_function,
                     agent_settings=agent_settings,
                 )
-                sess.agents.append(new_agent)
+                game.agents.append(new_agent)
             elif agent_type == "ProxyAgent":
                 new_agent = ProxyAgent(
                     agent_name=agent_cfg["ref"],
@@ -549,8 +415,8 @@ class PrimaiteSession:
                     observation_space=obs_space,
                     reward_function=rew_function,
                 )
-                sess.agents.append(new_agent)
-                sess.rl_agents.append(new_agent)
+                game.agents.append(new_agent)
+                game.rl_agents.append(new_agent)
             elif agent_type == "RedDatabaseCorruptingAgent":
                 new_agent = DataManipulationAgent(
                     agent_name=agent_cfg["ref"],
@@ -559,18 +425,10 @@ class PrimaiteSession:
                     reward_function=rew_function,
                     agent_settings=agent_settings,
                 )
-                sess.agents.append(new_agent)
+                game.agents.append(new_agent)
             else:
                 print("agent type not found")
 
-        # CREATE ENVIRONMENT
-        sess.env = PrimaiteGymEnv(session=sess, agents=sess.rl_agents)
+        game._simulation_initial_state = deepcopy(game.simulation)  # noqa
 
-        # CREATE POLICY
-        sess.policy = PolicyABC.from_config(sess.training_options, session=sess)
-        if agent_load_path:
-            sess.policy.load(Path(agent_load_path))
-
-        sess._simulation_initial_state = deepcopy(sess.simulation)  # noqa
-
-        return sess
+        return game
