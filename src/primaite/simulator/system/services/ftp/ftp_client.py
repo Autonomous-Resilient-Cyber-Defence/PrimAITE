@@ -72,10 +72,7 @@ class FTPClient(FTPServiceABC):
 
         # normally FTP will choose a random port for the transfer, but using the FTP command port will do for now
         # create FTP packet
-        payload: FTPPacket = FTPPacket(
-            ftp_command=FTPCommand.PORT,
-            ftp_command_args=Port.FTP,
-        )
+        payload: FTPPacket = FTPPacket(ftp_command=FTPCommand.PORT, ftp_command_args=Port.FTP)
 
         if self.send(payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id):
             if payload.status_code == FTPStatusCode.OK:
@@ -271,7 +268,10 @@ class FTPClient(FTPServiceABC):
         the same node.
         """
         if payload.status_code is None:
+            self.sys_log.error(f"FTP Server could not be found - Error Code: {payload.status_code.value}")
             return False
+
+        self.sys_log.info(f"{self.name}: Received FTP Response {payload.ftp_command.name} {payload.status_code.value}")
 
         self._process_ftp_command(payload=payload, session_id=session_id)
         return True

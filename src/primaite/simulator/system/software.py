@@ -3,8 +3,9 @@ from enum import Enum
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 
-from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
@@ -225,6 +226,21 @@ class IOSoftware(Software):
         )
         return state
 
+    @abstractmethod
+    def _can_perform_action(self) -> bool:
+        """
+        Checks if the software can perform actions.
+
+        This is done by checking if the software is operating properly or the node it is installed
+        in is operational.
+
+        Returns true if the software can perform actions.
+        """
+        if self.software_manager and self.software_manager.node.operating_state is NodeOperatingState.OFF:
+            _LOGGER.debug(f"{self.name} Error: {self.software_manager.node.hostname} is not online.")
+            return False
+        return True
+
     def send(
         self,
         payload: Any,
@@ -243,6 +259,9 @@ class IOSoftware(Software):
 
         :return: True if successful, False otherwise.
         """
+        if not self._can_perform_action():
+            return False
+
         return self.software_manager.send_payload_to_session_manager(
             payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
         )
@@ -261,4 +280,5 @@ class IOSoftware(Software):
         :param kwargs: Additional keyword arguments specific to the implementation.
         :return: True if the payload was successfully received and processed, False otherwise.
         """
-        pass
+        # return false if not allowed to perform actions
+        return self._can_perform_action()

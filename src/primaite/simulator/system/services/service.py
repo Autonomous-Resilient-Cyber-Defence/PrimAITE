@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType
@@ -39,6 +39,40 @@ class Service(IOSoftware):
     "How many timesteps does it take to restart this service."
     restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
+
+    def _can_perform_action(self) -> bool:
+        """
+        Checks if the service can perform actions.
+
+        This is done by checking if the service is operating properly or the node it is installed
+        in is operational.
+
+        Returns true if the software can perform actions.
+        """
+        if not super()._can_perform_action():
+            return False
+
+        if self.operating_state is not self.operating_state.RUNNING:
+            # service is not running
+            _LOGGER.error(f"Cannot perform action: {self.name} is {self.operating_state.name}")
+            return False
+
+        return True
+
+    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
+        """
+        Receives a payload from the SessionManager.
+
+        The specifics of how the payload is processed and whether a response payload
+        is generated should be implemented in subclasses.
+
+
+        :param payload: The payload to receive.
+        :param session_id: The identifier of the session that the payload is associated with.
+        :param kwargs: Additional keyword arguments specific to the implementation.
+        :return: True if the payload was successfully received and processed, False otherwise.
+        """
+        return super().receive(payload=payload, session_id=session_id, **kwargs)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -91,6 +125,10 @@ class Service(IOSoftware):
 
     def start(self, **kwargs) -> None:
         """Start the service."""
+        # cant start the service if the node it is on is off
+        if not super()._can_perform_action():
+            return
+
         if self.operating_state == ServiceOperatingState.STOPPED:
             self.sys_log.info(f"Starting service {self.name}")
             self.operating_state = ServiceOperatingState.RUNNING

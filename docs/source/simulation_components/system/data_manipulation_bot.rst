@@ -35,9 +35,12 @@ Example
 .. code-block:: python
 
     client_1 = Computer(
-        hostname="client_1", ip_address="192.168.10.21", subnet_mask="255.255.255.0", default_gateway="192.168.10.1"
+        hostname="client_1",
+        ip_address="192.168.10.21",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.10.1"
+        operating_state=NodeOperatingState.ON # initialise the computer in an ON state
     )
-    client_1.power_on()
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
     client_1.software_manager.install(DataManipulationBot)
     data_manipulation_bot: DataManipulationBot = client_1.software_manager.software["DataManipulationBot"]

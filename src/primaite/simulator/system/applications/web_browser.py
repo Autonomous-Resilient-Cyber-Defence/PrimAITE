@@ -2,7 +2,12 @@ from ipaddress import IPv4Address
 from typing import Dict, Optional
 from urllib.parse import urlparse
 
-from primaite.simulator.network.protocols.http import HttpRequestMethod, HttpRequestPacket, HttpResponsePacket
+from primaite.simulator.network.protocols.http import (
+    HttpRequestMethod,
+    HttpRequestPacket,
+    HttpResponsePacket,
+    HttpStatusCode,
+)
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
@@ -60,8 +65,11 @@ class WebBrowser(Application):
         :param: url: The address of the web page the browser requests
         :type: url: str
         """
+        if not self._can_perform_action():
+            return False
+
         # reset latest response
-        self.latest_response = None
+        self.latest_response = HttpResponsePacket(status_code=HttpStatusCode.NOT_FOUND)
 
         try:
             parsed_url = urlparse(url)
@@ -91,11 +99,19 @@ class WebBrowser(Application):
         payload = HttpRequestPacket(request_method=HttpRequestMethod.GET, request_url=url)
 
         # send request
-        return self.send(
+        if self.send(
             payload=payload,
             dest_ip_address=self.domain_name_ip_address,
             dest_port=parsed_url.port if parsed_url.port else Port.HTTP,
-        )
+        ):
+            self.sys_log.info(
+                f"{self.name}: Received HTTP {payload.request_method.name} "
+                f"Response {payload.request_url} - {self.latest_response.status_code.value}"
+            )
+            return self.latest_response.status_code is HttpStatusCode.OK
+        else:
+            self.sys_log.error(f"Error sending Http Packet {str(payload)}")
+            return False
 
     def send(
         self,

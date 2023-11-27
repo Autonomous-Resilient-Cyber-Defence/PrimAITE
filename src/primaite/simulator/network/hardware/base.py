@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 import secrets
-from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
 from typing import Any, Dict, Literal, Optional, Tuple, Union
@@ -15,6 +14,7 @@ from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
@@ -856,19 +856,6 @@ class ICMP:
         return sequence, icmp_packet.identifier
 
 
-class NodeOperatingState(Enum):
-    """Enumeration of Node Operating States."""
-
-    ON = 1
-    "The node is powered on."
-    OFF = 2
-    "The node is powered off."
-    BOOTING = 3
-    "The node is in the process of booting up."
-    SHUTTING_DOWN = 4
-    "The node is in the process of shutting down."
-
-
 class Node(SimComponent):
     """
     A basic Node class that represents a node on the network.
@@ -1090,10 +1077,12 @@ class Node(SimComponent):
         else:
             if self.operating_state == NodeOperatingState.BOOTING:
                 self.operating_state = NodeOperatingState.ON
-                self.sys_log.info("Turned on")
+                self.sys_log.info(f"{self.hostname}: Turned on")
                 for nic in self.nics.values():
                     if nic._connected_link:
                         nic.enable()
+
+                self._start_up_actions()
 
         # count down to shut down
         if self.shut_down_countdown > 0:
@@ -1101,7 +1090,8 @@ class Node(SimComponent):
         else:
             if self.operating_state == NodeOperatingState.SHUTTING_DOWN:
                 self.operating_state = NodeOperatingState.OFF
-                self.sys_log.info("Turned off")
+                self.sys_log.info(f"{self.hostname}: Turned off")
+                self._shut_down_actions()
 
                 # if resetting turn back on
                 if self.is_resetting:
@@ -1197,6 +1187,7 @@ class Node(SimComponent):
             self.start_up_countdown = self.start_up_duration
 
         if self.start_up_duration <= 0:
+            self._start_up_actions()
             self.operating_state = NodeOperatingState.ON
             self.sys_log.info("Turned on")
             for nic in self.nics.values():
@@ -1212,6 +1203,7 @@ class Node(SimComponent):
             self.shut_down_countdown = self.shut_down_duration
 
         if self.shut_down_duration <= 0:
+            self._shut_down_actions()
             self.operating_state = NodeOperatingState.OFF
             self.sys_log.info("Turned off")
 
@@ -1417,6 +1409,34 @@ class Node(SimComponent):
         self.sys_log.info(f"Uninstalled application {application.name}")
         _LOGGER.info(f"Removed application {application.uuid} from node {self.uuid}")
         self._application_request_manager.remove_request(application.uuid)
+
+    def _shut_down_actions(self):
+        """Actions to perform when the node is shut down."""
+        # Turn off all the services in the node
+        for service_id in self.services:
+            self.services[service_id].stop()
+
+        # Turn off all the applications in the node
+        for app_id in self.applications:
+            self.applications[app_id].close()
+
+        # Turn off all processes in the node
+        # for process_id in self.processes:
+        #     self.processes[process_id]
+
+    def _start_up_actions(self):
+        """Actions to perform when the node is starting up."""
+        # Turn on all the services in the node
+        for service_id in self.services:
+            self.services[service_id].start()
+
+        # Turn on all the applications in the node
+        for app_id in self.applications:
+            self.applications[app_id].run()
+
+        # Turn off all processes in the node
+        # for process_id in self.processes:
+        #     self.processes[process_id]
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Service):

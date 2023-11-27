@@ -1,9 +1,11 @@
 from ipaddress import IPv4Address
 
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
+from primaite.simulator.system.services.service import ServiceOperatingState
 
 
 def test_database_client_server_connection(uc2_network):
@@ -55,7 +57,8 @@ def test_database_client_query(uc2_network):
     """Tests DB query across the network returns HTTP status 200 and date."""
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
     db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
-    db_client.connect()
+
+    assert db_client.connected
 
     assert db_client.query("SELECT")
 
@@ -92,3 +95,28 @@ def test_restore_backup(uc2_network):
     assert db_service.restore_backup() is True
 
     assert db_service.file_system.get_file(folder_name="database", file_name="database.db") is not None
+
+
+def test_database_client_cannot_query_offline_database_server(uc2_network):
+    """Tests DB query across the network returns HTTP status 404 when db server is offline."""
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+
+    assert db_server.operating_state is NodeOperatingState.ON
+    assert db_service.operating_state is ServiceOperatingState.RUNNING
+
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    assert db_client.connected
+
+    assert db_client.query("SELECT") is True
+
+    db_server.power_off()
+
+    for i in range(db_server.shut_down_duration + 1):
+        uc2_network.apply_timestep(timestep=i)
+
+    assert db_server.operating_state is NodeOperatingState.OFF
+    assert db_service.operating_state is ServiceOperatingState.STOPPED
+
+    assert db_client.query("SELECT") is False

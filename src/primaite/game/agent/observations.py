@@ -263,7 +263,7 @@ class FolderObservation(AbstractObservation):
             self.files.append(FileObservation())
         while len(self.files) > num_files_per_folder:
             truncated_file = self.files.pop()
-            msg = f"Too many files in folde observation. Truncating file {truncated_file}"
+            msg = f"Too many files in folder observation. Truncating file {truncated_file}"
             _LOGGER.warn(msg)
 
         self.default_observation = {

@@ -86,6 +86,9 @@ class FTPServer(FTPServiceABC):
         prevents an FTP request loop - FTP client and servers can exist on
         the same node.
         """
+        if not super().receive(payload=payload, session_id=session_id, **kwargs):
+            return False
+
         if payload.status_code is not None:
             return False
 
