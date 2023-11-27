@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from primaite.game.session import PrimaiteSession, TrainingOptions
+    from primaite.session.session import PrimaiteSession, TrainingOptions
 
 
 class PolicyABC(ABC):
@@ -80,5 +80,3 @@ class PolicyABC(ABC):
 
         PolicyType = cls._registry[config.rl_framework]
         return PolicyType.from_config(config=config, session=session)
-
-    # saving checkpoints logic will be handled here, it will invoke 'save' method which is implemented by the subclass
