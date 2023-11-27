@@ -24,7 +24,7 @@ class DataManipulationAttackStage(IntEnum):
     "Represents the stage of performing a horizontal port scan on the target."
     ATTACKING = 3
     "Stage of actively attacking the target."
-    COMPLETE = 4
+    SUCCEEDED = 4
     "Indicates the attack has been successfully completed."
     FAILED = 5
     "Signifies that the attack has failed."
@@ -134,7 +134,7 @@ class DataManipulationBot(DatabaseClient):
                     attack_successful = True
                     if attack_successful:
                         self.sys_log.info(f"{self.name}: Data manipulation successful")
-                        self.attack_stage = DataManipulationAttackStage.COMPLETE
+                        self.attack_stage = DataManipulationAttackStage.SUCCEEDED
                     else:
                         self.sys_log.info(f"{self.name}: Data manipulation failed")
                         self.attack_stage = DataManipulationAttackStage.FAILED
@@ -163,7 +163,7 @@ class DataManipulationBot(DatabaseClient):
             self._perform_data_manipulation(p_of_success=self.data_manipulation_p_of_success)
 
             if self.repeat and self.attack_stage in (
-                DataManipulationAttackStage.COMPLETE,
+                DataManipulationAttackStage.SUCCEEDED,
                 DataManipulationAttackStage.FAILED,
             ):
                 self.attack_stage = DataManipulationAttackStage.NOT_STARTED

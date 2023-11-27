@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from gymnasium.core import ActType, ObsType
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.observations import ObservationManager
@@ -22,6 +22,21 @@ class AgentStartSettings(BaseModel):
     "The number of timesteps to wait between performing actions"
     variance: int = 0
     "The amount the frequency can randomly change to"
+
+    @model_validator(mode="after")
+    def check_variance_lt_frequency(self) -> "AgentStartSettings":
+        """
+        Make sure variance is equal to or lower than frequency.
+
+        This is because the calculation for the next execution time is now + (frequency +- variance). If variance were
+        greater than frequency, sometimes the bracketed term would be negative and the attack would never happen again.
+        """
+        if self.variance > self.frequency:
+            raise ValueError(
+                f"Agent start settings error: variance must be lower than frequency "
+                f"{self.variance=}, {self.frequency=}"
+            )
+        return self
 
 
 class AgentSettings(BaseModel):
@@ -180,9 +195,3 @@ class ProxyAgent(AbstractAgent):
         The environment is responsible for calling this method when it receives an action from the agent policy.
         """
         self.most_recent_action = action
-
-
-class AbstractGATEAgent(AbstractAgent):
-    """Base class for actors controlled via external messages, such as RL policies."""
-
-    ...
