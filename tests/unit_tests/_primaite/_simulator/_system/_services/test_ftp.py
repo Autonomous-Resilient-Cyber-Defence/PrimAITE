@@ -3,6 +3,7 @@ from ipaddress import IPv4Address
 import pytest
 
 from primaite.simulator.network.hardware.base import Node
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
@@ -15,17 +16,24 @@ from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 @pytest.fixture(scope="function")
 def ftp_server() -> Node:
     node = Server(
-        hostname="ftp_server", ip_address="192.168.1.10", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+        hostname="ftp_server",
+        ip_address="192.168.1.10",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        operating_state=NodeOperatingState.ON,
     )
     node.software_manager.install(software_class=FTPServer)
-    node.software_manager.software["FTPServer"].start()
     return node
 
 
 @pytest.fixture(scope="function")
 def ftp_client() -> Node:
     node = Computer(
-        hostname="ftp_client", ip_address="192.168.1.11", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+        hostname="ftp_client",
+        ip_address="192.168.1.11",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        operating_state=NodeOperatingState.ON,
     )
     return node
 

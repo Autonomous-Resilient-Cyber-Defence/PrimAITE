@@ -77,6 +77,7 @@ Dependencies
     from primaite.simulator.network.hardware.nodes.server import Server
     from primaite.simulator.system.services.ftp.ftp_server import FTPServer
     from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+    from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 
 Example peer to peer network
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -85,10 +86,18 @@ Example peer to peer network
 
     net = Network()
 
-    pc1 = Computer(hostname="pc1", ip_address="120.10.10.10", subnet_mask="255.255.255.0")
-    srv = Server(hostname="srv", ip_address="120.10.10.20", subnet_mask="255.255.255.0")
-    pc1.power_on()
-    srv.power_on()
+    pc1 = Computer(
+        hostname="pc1",
+        ip_address="120.10.10.10",
+        subnet_mask="255.255.255.0",
+        operating_state=NodeOperatingState.ON # initialise the computer in an ON state
+    )
+    srv = Server(
+        hostname="srv",
+        ip_address="120.10.10.20",
+        subnet_mask="255.255.255.0",
+        operating_state=NodeOperatingState.ON # initialise the server in an ON state
+    )
     net.connect(pc1.ethernet_port[1], srv.ethernet_port[1])
 
 Install the FTP Server

@@ -66,6 +66,17 @@ class Network(SimComponent):
         )
         return rm
 
+    def apply_timestep(self, timestep: int) -> None:
+        """Apply a timestep evolution to this the network and its nodes and links."""
+        super().apply_timestep(timestep=timestep)
+        # apply timestep to nodes
+        for node_id in self.nodes:
+            self.nodes[node_id].apply_timestep(timestep=timestep)
+
+        # apply timestep to links
+        for link_id in self.links:
+            self.links[link_id].apply_timestep(timestep=timestep)
+
     @property
     def routers(self) -> List[Router]:
         """The Routers in the Network."""

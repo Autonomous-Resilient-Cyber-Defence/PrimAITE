@@ -2,7 +2,10 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Set
 
+from primaite import getLogger
 from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
+
+_LOGGER = getLogger(__name__)
 
 
 class ApplicationOperatingState(Enum):
@@ -57,7 +60,7 @@ class Application(IOSoftware):
         state = super().describe_state()
         state.update(
             {
-                "opearting_state": self.operating_state.value,
+                "operating_state": self.operating_state.value,
                 "execution_control_status": self.execution_control_status,
                 "num_executions": self.num_executions,
                 "groups": list(self.groups),
@@ -65,8 +68,30 @@ class Application(IOSoftware):
         )
         return state
 
+    def _can_perform_action(self) -> bool:
+        """
+        Checks if the application can perform actions.
+
+        This is done by checking if the application is operating properly or the node it is installed
+        in is operational.
+
+        Returns true if the software can perform actions.
+        """
+        if not super()._can_perform_action():
+            return False
+
+        if self.operating_state is not self.operating_state.RUNNING:
+            # service is not running
+            _LOGGER.error(f"Cannot perform action: {self.name} is {self.operating_state.name}")
+            return False
+
+        return True
+
     def run(self) -> None:
         """Open the Application."""
+        if not super()._can_perform_action():
+            return
+
         if self.operating_state == ApplicationOperatingState.CLOSED:
             self.sys_log.info(f"Running Application {self.name}")
             self.operating_state = ApplicationOperatingState.RUNNING
@@ -83,6 +108,9 @@ class Application(IOSoftware):
 
     def install(self) -> None:
         """Install Application."""
+        if self._can_perform_action():
+            return
+
         super().install()
         if self.operating_state == ApplicationOperatingState.CLOSED:
             self.sys_log.info(f"Installing Application {self.name}")
@@ -98,4 +126,4 @@ class Application(IOSoftware):
         :param payload: The payload to receive.
         :return: True if successful, False otherwise.
         """
-        pass
+        return super().receive(payload=payload, session_id=session_id, **kwargs)

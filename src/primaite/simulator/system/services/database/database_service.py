@@ -65,6 +65,10 @@ class DatabaseService(Service):
 
     def backup_database(self) -> bool:
         """Create a backup of the database to the configured backup server."""
+        # check if this action can be performed
+        if not self._can_perform_action():
+            return False
+
         # check if the backup server was configured
         if self.backup_server is None:
             self.sys_log.error(f"{self.name} - {self.sys_log.hostname}: not configured.")
@@ -90,6 +94,10 @@ class DatabaseService(Service):
 
     def restore_backup(self) -> bool:
         """Restore a backup from backup server."""
+        # check if this action can be performed
+        if not self._can_perform_action():
+            return False
+
         software_manager: SoftwareManager = self.software_manager
         ftp_client_service: FTPClient = software_manager.software["FTPClient"]
 
@@ -190,6 +198,9 @@ class DatabaseService(Service):
         :param session_id: The session identifier.
         :return: True if the Status Code is 200, otherwise False.
         """
+        if not super().receive(payload=payload, session_id=session_id, **kwargs):
+            return False
+
         result = {"status_code": 500, "data": []}
         if isinstance(payload, dict) and payload.get("type"):
             if payload["type"] == "connect_request":

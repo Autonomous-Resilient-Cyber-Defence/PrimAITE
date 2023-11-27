@@ -13,6 +13,7 @@ from primaite.session.session import PrimaiteSession
 # from primaite.primaite_session import PrimaiteSession
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.networks import arcd_uc2_network
+from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.sys_log import SysLog
@@ -34,12 +35,24 @@ from primaite.simulator.network.hardware.base import Node
 class TestService(Service):
     """Test Service class"""
 
+    def __init__(self, **kwargs):
+        kwargs["name"] = "TestService"
+        kwargs["port"] = Port.HTTP
+        kwargs["protocol"] = IPProtocol.TCP
+        super().__init__(**kwargs)
+
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         pass
 
 
 class TestApplication(Application):
     """Test Application class"""
+
+    def __init__(self, **kwargs):
+        kwargs["name"] = "TestApplication"
+        kwargs["port"] = Port.HTTP
+        kwargs["protocol"] = IPProtocol.TCP
+        super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:
         pass
@@ -58,10 +71,20 @@ def service(file_system) -> TestService:
 
 
 @pytest.fixture(scope="function")
+def service_class():
+    return TestService
+
+
+@pytest.fixture(scope="function")
 def application(file_system) -> TestApplication:
     return TestApplication(
         name="TestApplication", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="test_application")
     )
+
+
+@pytest.fixture(scope="function")
+def application_class():
+    return TestApplication
 
 
 @pytest.fixture(scope="function")
