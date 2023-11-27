@@ -634,7 +634,6 @@ class ActionManager:
         :type act_map: Optional[Dict[int, Dict]]
         """
         self.game: "PrimaiteGame" = game
-        self.sim: Simulation = self.game.simulation
         self.node_uuids: List[str] = node_uuids
         self.application_uuids: List[List[str]] = application_uuids
         self.protocols: List[str] = protocols
@@ -646,7 +645,7 @@ class ActionManager:
         else:
             self.ip_address_list = []
             for node_uuid in self.node_uuids:
-                node_obj = self.sim.network.nodes[node_uuid]
+                node_obj = self.game.simulation.network.nodes[node_uuid]
                 nics = node_obj.nics
                 for nic_uuid, nic_obj in nics.items():
                     self.ip_address_list.append(nic_obj.ip_address)
@@ -770,7 +769,7 @@ class ActionManager:
         :rtype: Optional[str]
         """
         node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node = self.sim.network.nodes[node_uuid]
+        node = self.game.simulation.network.nodes[node_uuid]
         folder_uuids = list(node.file_system.folders.keys())
         return folder_uuids[folder_idx] if len(folder_uuids) > folder_idx else None
 
@@ -788,7 +787,7 @@ class ActionManager:
         :rtype: Optional[str]
         """
         node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node = self.sim.network.nodes[node_uuid]
+        node = self.game.simulation.network.nodes[node_uuid]
         folder_uuids = list(node.file_system.folders.keys())
         if len(folder_uuids) <= folder_idx:
             return None
@@ -807,7 +806,7 @@ class ActionManager:
         :rtype: Optional[str]
         """
         node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node = self.sim.network.nodes[node_uuid]
+        node = self.game.simulation.network.nodes[node_uuid]
         service_uuids = list(node.services.keys())
         return service_uuids[service_idx] if len(service_uuids) > service_idx else None
 
@@ -867,7 +866,7 @@ class ActionManager:
         :rtype: str
         """
         node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node_obj = self.sim.network.nodes[node_uuid]
+        node_obj = self.game.simulation.network.nodes[node_uuid]
         nics = list(node_obj.nics.keys())
         if len(nics) <= nic_idx:
             return None

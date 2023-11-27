@@ -1005,6 +1005,9 @@ class Node(SimComponent):
 
         return rm
 
+    def reset_component_for_episode(self, episode: int):
+        self._init_request_manager()
+
     def _install_system_software(self):
         """Install System Software - software that is usually provided with the OS."""
         pass

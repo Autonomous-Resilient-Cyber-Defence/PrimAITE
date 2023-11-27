@@ -59,8 +59,9 @@ class PrimaiteGame:
         """Initialise a PrimaiteGame object."""
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
+        print(f"Hello, welcome to PrimaiteGame. This is the ID of the ORIGINAL simulation {id(self.simulation)}")
 
-        self._simulation_initial_state = deepcopy(self.simulation)
+        self._simulation_initial_state = None
         """The Simulation original state (deepcopy of the original Simulation)."""
 
         self.agents: List[AbstractAgent] = []
@@ -78,16 +79,16 @@ class PrimaiteGame:
         self.options: PrimaiteGameOptions
         """Special options that apply for the entire game."""
 
-        self.ref_map_nodes: Dict[str, Node] = {}
+        self.ref_map_nodes: Dict[str, str] = {}
         """Mapping from unique node reference name to node object. Used when parsing config files."""
 
-        self.ref_map_services: Dict[str, Service] = {}
+        self.ref_map_services: Dict[str, str] = {}
         """Mapping from human-readable service reference to service object. Used for parsing config files."""
 
-        self.ref_map_applications: Dict[str, Application] = {}
+        self.ref_map_applications: Dict[str, str] = {}
         """Mapping from human-readable application reference to application object. Used for parsing config files."""
 
-        self.ref_map_links: Dict[str, Link] = {}
+        self.ref_map_links: Dict[str, str] = {}
         """Mapping from human-readable link reference to link object. Used when parsing config files."""
 
     def step(self):
@@ -161,6 +162,33 @@ class PrimaiteGame:
         self.step_counter = 0
         _LOGGER.debug(f"Resetting primaite game, episode = {self.episode_counter}")
         self.simulation = deepcopy(self._simulation_initial_state)
+        self._reset_components_for_episode()
+        print("Reset")
+
+    def _reset_components_for_episode(self):
+        print("Performing full reset for episode")
+        for node in self.simulation.network.nodes.values():
+            print(f"Resetting Node: {node.hostname}")
+            node.reset_component_for_episode(self.episode_counter)
+
+            # reset Node NIC
+
+            # Reset Node Services
+
+            # Reset Node Applications
+            print(f"Resetting Software...")
+            for application in node.software_manager.software.values():
+                print(f"Resetting {application.name}")
+                if isinstance(application, WebBrowser):
+                    application.do_this()
+
+            # Reset Node FileSystem
+            # Reset Node FileSystemFolder's
+            # Reset Node FileSystemFile's
+
+        # Reset Router
+
+        # Reset Links
 
     def close(self) -> None:
         """Close the game, this will close the simulation."""
@@ -189,10 +217,6 @@ class PrimaiteGame:
         # 1. create simulation
         sim = game.simulation
         net = sim.network
-
-        game.ref_map_nodes: Dict[str, Node] = {}
-        game.ref_map_services: Dict[str, Service] = {}
-        game.ref_map_links: Dict[str, Link] = {}
 
         nodes_cfg = cfg["simulation"]["network"]["nodes"]
         links_cfg = cfg["simulation"]["network"]["links"]
@@ -269,7 +293,7 @@ class PrimaiteGame:
                         print(f"installing {service_type} on node {new_node.hostname}")
                         new_node.software_manager.install(service_types_mapping[service_type])
                         new_service = new_node.software_manager.software[service_type]
-                        game.ref_map_services[service_ref] = new_service
+                        game.ref_map_services[service_ref] = new_service.uuid
                     else:
                         print(f"service type not found {service_type}")
                     # service-dependent options
@@ -303,7 +327,7 @@ class PrimaiteGame:
                     if application_type in application_types_mapping:
                         new_node.software_manager.install(application_types_mapping[application_type])
                         new_application = new_node.software_manager.software[application_type]
-                        game.ref_map_applications[application_ref] = new_application
+                        game.ref_map_applications[application_ref] = new_application.uuid
                     else:
                         print(f"application type not found {application_type}")
 
@@ -326,11 +350,7 @@ class PrimaiteGame:
 
             net.add_node(new_node)
             new_node.power_on()
-            game.ref_map_nodes[
-                node_ref
-            ] = (
-                new_node.uuid
-            )  # TODO: fix inconsistency with service and link. Node gets added by uuid, but service by object
+            game.ref_map_nodes[node_ref] = new_node.uuid
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
@@ -375,7 +395,7 @@ class PrimaiteGame:
                     for application_option in action_node_option["applications"]:
                         # TODO: fix inconsistency with node uuids and application uuids. The node object get added to
                         #  node_uuid, whereas here the application gets added by uuid.
-                        application_uuid = game.ref_map_applications[application_option["application_ref"]].uuid
+                        application_uuid = game.ref_map_applications[application_option["application_ref"]]
                         node_application_uuids.append(application_uuid)
 
                     action_space_cfg["options"]["application_uuids"].append(node_application_uuids)
@@ -433,5 +453,7 @@ class PrimaiteGame:
                 print("agent type not found")
 
         game._simulation_initial_state = deepcopy(game.simulation)  # noqa
+        web_server = game.simulation.network.get_node_by_hostname("web_server").software_manager.software["WebServer"]
+        print(f"And this is the ID of the original WebServer {id(web_server)}")
 
         return game

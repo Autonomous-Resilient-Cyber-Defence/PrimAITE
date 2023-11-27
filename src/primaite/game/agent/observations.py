@@ -162,7 +162,7 @@ class ServiceObservation(AbstractObservation):
         :return: Constructed service observation
         :rtype: ServiceObservation
         """
-        return cls(where=parent_where + ["services", game.ref_map_services[config["service_ref"]].uuid])
+        return cls(where=parent_where + ["services", game.ref_map_services[config["service_ref"]]])
 
 
 class LinkObservation(AbstractObservation):

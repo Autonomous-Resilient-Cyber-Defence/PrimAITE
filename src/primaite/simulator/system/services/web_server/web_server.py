@@ -17,7 +17,16 @@ from primaite.simulator.system.services.service import Service
 class WebServer(Service):
     """Class used to represent a Web Server Service in simulation."""
 
-    last_response_status_code: Optional[HttpStatusCode] = None
+    _last_response_status_code: Optional[HttpStatusCode] = None
+
+    @property
+    def last_response_status_code(self) -> HttpStatusCode:
+        return self._last_response_status_code
+
+    @last_response_status_code.setter
+    def last_response_status_code(self, val: Any):
+        print(f"val: {val}, type: {type(val)}")
+        self._last_response_status_code = val
 
     def describe_state(self) -> Dict:
         """
@@ -29,9 +38,16 @@ class WebServer(Service):
         :rtype: Dict
         """
         state = super().describe_state()
-
         state["last_response_status_code"] = (
             self.last_response_status_code.value if isinstance(self.last_response_status_code, HttpStatusCode) else None
+        )
+
+        print(
+            f""
+            f"Printing state from Webserver describe func: "
+            f"val={state['last_response_status_code']}, "
+            f"type={type(state['last_response_status_code'])}, "
+            f"Service obj ID={id(self)}"
         )
         return state
 
@@ -85,7 +101,14 @@ class WebServer(Service):
 
         # return true if response is OK
         self.last_response_status_code = response.status_code
-        print(self.last_response_status_code)
+
+        print(
+            f""
+            f"Printing state from Webserver http request func: "
+            f"val={self.last_response_status_code}, "
+            f"type={type(self.last_response_status_code)}, "
+            f"Service obj ID={id(self)}"
+        )
         return response.status_code == HttpStatusCode.OK
 
     def _handle_get_request(self, payload: HttpRequestPacket) -> HttpResponsePacket:

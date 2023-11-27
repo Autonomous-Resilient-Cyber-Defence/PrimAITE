@@ -43,6 +43,13 @@ class WebBrowser(Application):
 
         return rm
 
+    def do_this(self):
+        self._init_request_manager()
+        print(f"Resetting WebBrowser for episode")
+
+    def reset_component_for_episode(self, episode: int):
+        pass
+
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of the WebBrowser.
