@@ -33,7 +33,14 @@ class WebBrowser(Application):
             kwargs["port"] = Port.HTTP
 
         super().__init__(**kwargs)
+        self.set_original_state()
         self.run()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        super().set_original_state()
+        vals_to_include = {"target_url", "domain_name_ip_address", "latest_response"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
@@ -42,13 +49,6 @@ class WebBrowser(Application):
         )
 
         return rm
-
-    def do_this(self):
-        self._init_request_manager()
-        print(f"Resetting WebBrowser for episode")
-
-    def reset_component_for_episode(self, episode: int):
-        pass
 
     def describe_state(self) -> Dict:
         """
@@ -60,14 +60,7 @@ class WebBrowser(Application):
         state["last_response_status_code"] = self.latest_response.status_code if self.latest_response else None
 
     def reset_component_for_episode(self, episode: int):
-        """
-        Resets the Application component for a new episode.
-
-        This method ensures the Application is ready for a new episode, including resetting any
-        stateful properties or statistics, and clearing any message queues.
-        """
-        self.domain_name_ip_address = None
-        self.latest_response = None
+        """Reset the original state of the SimComponent."""
 
     def get_webpage(self) -> bool:
         """

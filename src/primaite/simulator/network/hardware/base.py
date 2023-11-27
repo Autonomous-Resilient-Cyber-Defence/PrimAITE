@@ -121,6 +121,20 @@ class NIC(SimComponent):
             _LOGGER.error(msg)
             raise ValueError(msg)
 
+        self.set_original_state()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        vals_to_include = {"ip_address", "subnet_mask", "mac_address", "speed", "mtu", "wake_on_lan", "enabled"}
+        self._original_state = self.model_dump(include=vals_to_include)
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        super().reset_component_for_episode(episode)
+        if episode and self.pcap:
+            self.pcap.current_episode = episode
+            self.pcap.setup_logger()
+
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -308,6 +322,14 @@ class SwitchPort(SimComponent):
             kwargs["mac_address"] = generate_mac_address()
         super().__init__(**kwargs)
 
+        self.set_original_state()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        vals_to_include = {"port_num", "mac_address", "speed", "mtu", "enabled"}
+        self._original_state = self.model_dump(include=vals_to_include)
+        super().set_original_state()
+
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -454,6 +476,14 @@ class Link(SimComponent):
         self.endpoint_b.connect_link(self)
         self.endpoint_up()
 
+        self.set_original_state()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        vals_to_include = {"bandwidth", "current_load"}
+        self._original_state = self.model_dump(include=vals_to_include)
+        super().set_original_state()
+
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -536,15 +566,6 @@ class Link(SimComponent):
             return True
         return False
 
-    def reset_component_for_episode(self, episode: int):
-        """
-        Link reset function.
-
-        Reset:
-         - returns the link current_load to 0.
-        """
-        self.current_load = 0
-
     def __str__(self) -> str:
         return f"{self.endpoint_a}<-->{self.endpoint_b}"
 
@@ -583,6 +604,10 @@ class ARPCache:
                 ]
             )
         print(table)
+
+    def clear(self):
+        """Clears the arp cache."""
+        self.arp.clear()
 
     def add_arp_cache_entry(self, ip_address: IPv4Address, mac_address: str, nic: NIC, override: bool = False):
         """
@@ -755,6 +780,10 @@ class ICMP:
         self.sys_log: SysLog = sys_log
         self.arp: ARPCache = arp_cache
         self.request_replies = {}
+
+    def clear(self):
+        """Clears the ICMP request replies tracker."""
+        self.request_replies.clear()
 
     def process_icmp(self, frame: Frame, from_nic: NIC, is_reattempt: bool = False):
         """
@@ -972,6 +1001,55 @@ class Node(SimComponent):
         self.arp.nics = self.nics
         self.session_manager.software_manager = self.software_manager
         self._install_system_software()
+        self.set_original_state()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        for software in self.software_manager.software.values():
+            software.set_original_state()
+
+        for nic in self.nics.values():
+            nic.set_original_state()
+
+        vals_to_include = {
+            "hostname",
+            "default_gateway",
+            "operating_state",
+            "revealed_to_red",
+            "start_up_duration",
+            "start_up_countdown",
+            "shut_down_duration",
+            "shut_down_countdown",
+            "is_resetting",
+            "node_scan_duration",
+            "node_scan_countdown",
+            "red_scan_countdown",
+        }
+        self._original_state = self.model_dump(include=vals_to_include)
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        # Reset ARP Cache
+        self.arp.clear()
+
+        # Reset ICMP
+        self.icmp.clear()
+
+        # Reset Session Manager
+        self.session_manager.clear()
+
+        for software in self.software_manager.software.values():
+            software.reset_component_for_episode(episode)
+
+        # Reset all Nics
+        for nic in self.nics.values():
+            nic.reset_component_for_episode(episode)
+
+        if episode and self.sys_log:
+            self.sys_log.current_episode = episode
+            self.sys_log.setup_logger()
+
+        super().reset_component_for_episode(episode)
 
     def _init_request_manager(self) -> RequestManager:
         # TODO: I see that this code is really confusing and hard to read right now... I think some of these things will
@@ -1004,9 +1082,6 @@ class Node(SimComponent):
         rm.add_request("os", RequestType(func=self._os_request_manager))
 
         return rm
-
-    def reset_component_for_episode(self, episode: int):
-        self._init_request_manager()
 
     def _install_system_software(self):
         """Install System Software - software that is usually provided with the OS."""
@@ -1425,99 +1500,3 @@ class Node(SimComponent):
         if isinstance(item, Service):
             return item.uuid in self.services
         return None
-
-
-class Switch(Node):
-    """A class representing a Layer 2 network switch."""
-
-    num_ports: int = 24
-    "The number of ports on the switch."
-    switch_ports: Dict[int, SwitchPort] = {}
-    "The SwitchPorts on the switch."
-    mac_address_table: Dict[str, SwitchPort] = {}
-    "A MAC address table mapping destination MAC addresses to corresponding SwitchPorts."
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if not self.switch_ports:
-            self.switch_ports = {i: SwitchPort() for i in range(1, self.num_ports + 1)}
-        for port_num, port in self.switch_ports.items():
-            port._connected_node = self
-            port.parent = self
-            port.port_num = port_num
-
-    def show(self):
-        """Prints a table of the SwitchPorts on the Switch."""
-        table = PrettyTable(["Port", "MAC Address", "Speed", "Status"])
-
-        for port_num, port in self.switch_ports.items():
-            table.add_row([port_num, port.mac_address, port.speed, "Enabled" if port.enabled else "Disabled"])
-        print(table)
-
-    def describe_state(self) -> Dict:
-        """
-        Produce a dictionary describing the current state of this object.
-
-        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
-
-        :return: Current state of this object and child objects.
-        :rtype: Dict
-        """
-        return {
-            "uuid": self.uuid,
-            "num_ports": self.num_ports,  # redundant?
-            "ports": {port_num: port.describe_state() for port_num, port in self.switch_ports.items()},
-            "mac_address_table": {mac: port for mac, port in self.mac_address_table.items()},
-        }
-
-    def _add_mac_table_entry(self, mac_address: str, switch_port: SwitchPort):
-        mac_table_port = self.mac_address_table.get(mac_address)
-        if not mac_table_port:
-            self.mac_address_table[mac_address] = switch_port
-            self.sys_log.info(f"Added MAC table entry: Port {switch_port.port_num} -> {mac_address}")
-        else:
-            if mac_table_port != switch_port:
-                self.mac_address_table.pop(mac_address)
-                self.sys_log.info(f"Removed MAC table entry: Port {mac_table_port.port_num} -> {mac_address}")
-                self._add_mac_table_entry(mac_address, switch_port)
-
-    def forward_frame(self, frame: Frame, incoming_port: SwitchPort):
-        """
-        Forward a frame to the appropriate port based on the destination MAC address.
-
-        :param frame: The Frame to be forwarded.
-        :param incoming_port: The port number from which the frame was received.
-        """
-        src_mac = frame.ethernet.src_mac_addr
-        dst_mac = frame.ethernet.dst_mac_addr
-        self._add_mac_table_entry(src_mac, incoming_port)
-
-        outgoing_port = self.mac_address_table.get(dst_mac)
-        if outgoing_port or dst_mac != "ff:ff:ff:ff:ff:ff":
-            outgoing_port.send_frame(frame)
-        else:
-            # If the destination MAC is not in the table, flood to all ports except incoming
-            for port in self.switch_ports.values():
-                if port != incoming_port:
-                    port.send_frame(frame)
-
-    def disconnect_link_from_port(self, link: Link, port_number: int):
-        """
-        Disconnect a given link from the specified port number on the switch.
-
-        :param link: The Link object to be disconnected.
-        :param port_number: The port number on the switch from where the link should be disconnected.
-        :raise NetworkError: When an invalid port number is provided or the link does not match the connection.
-        """
-        port = self.switch_ports.get(port_number)
-        if port is None:
-            msg = f"Invalid port number {port_number} on the switch"
-            _LOGGER.error(msg)
-            raise NetworkError(msg)
-
-        if port._connected_link != link:
-            msg = f"The link does not match the connection at port number {port_number}"
-            _LOGGER.error(msg)
-            raise NetworkError(msg)
-
-        port.disconnect_link()

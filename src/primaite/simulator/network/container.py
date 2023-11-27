@@ -43,6 +43,20 @@ class Network(SimComponent):
 
         self._nx_graph = MultiGraph()
 
+    def set_original_state(self):
+        """Sets the original state."""
+        for node in self.nodes.values():
+            node.set_original_state()
+        for link in self.links.values():
+            link.set_original_state()
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        for node in self.nodes.values():
+            node.reset_component_for_episode(episode)
+        for link in self.links.values():
+            link.reset_component_for_episode(episode)
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
         self._node_request_manager = RequestManager()

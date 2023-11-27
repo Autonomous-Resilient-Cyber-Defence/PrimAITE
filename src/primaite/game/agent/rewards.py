@@ -25,7 +25,6 @@ the structure:
                 service_ref: web_server_database_client
 ```
 """
-import json
 from abc import abstractmethod
 from typing import Dict, List, Tuple, Type, TYPE_CHECKING
 

@@ -31,6 +31,13 @@ class DatabaseClient(Application):
         kwargs["port"] = Port.POSTGRES_SERVER
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
+        self.set_original_state()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        super().set_original_state()
+        vals_to_include = {"server_ip_address", "server_password", "connected"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
 
     def describe_state(self) -> Dict:
         """

@@ -52,6 +52,11 @@ class ACLRule(SimComponent):
                 rule_strings.append(f"{key}={value}")
         return ", ".join(rule_strings)
 
+    def set_original_state(self):
+        """Sets the original state."""
+        vals_to_keep = {"action", "protocol", "src_ip_address", "src_port", "dst_ip_address", "dst_port"}
+        self._original_state = self.model_dump(include=vals_to_keep, exclude_none=True)
+
     def describe_state(self) -> Dict:
         """
         Describes the current state of the ACLRule.
@@ -93,6 +98,18 @@ class AccessControlList(SimComponent):
 
         super().__init__(**kwargs)
         self._acl = [None] * (self.max_acl_rules - 1)
+        self.set_original_state()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        self.implicit_rule.set_original_state()
+        vals_to_keep = {"implicit_action", "max_acl_rules", "acl"}
+        self._original_state = self.model_dump(include=vals_to_keep, exclude_none=True)
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        self.implicit_rule.reset_component_for_episode(episode)
+        super().reset_component_for_episode(episode)
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
@@ -637,6 +654,20 @@ class Router(Node):
 
         self.arp.nics = self.nics
         self.icmp.arp = self.arp
+
+        self.set_original_state()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        self.acl.set_original_state()
+        vals_to_include = {"num_ports", "route_table"}
+        self._original_state = self.model_dump(include=vals_to_include)
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        self.arp.clear()
+        self.acl.reset_component_for_episode(episode)
+        super().reset_component_for_episode(episode)
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()

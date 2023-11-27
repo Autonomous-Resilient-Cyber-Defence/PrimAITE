@@ -19,8 +19,14 @@ class WebServer(Service):
 
     _last_response_status_code: Optional[HttpStatusCode] = None
 
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        self._last_response_status_code = None
+        super().reset_component_for_episode(episode)
+
     @property
     def last_response_status_code(self) -> HttpStatusCode:
+        """The latest http response code."""
         return self._last_response_status_code
 
     @last_response_status_code.setter
@@ -40,14 +46,6 @@ class WebServer(Service):
         state = super().describe_state()
         state["last_response_status_code"] = (
             self.last_response_status_code.value if isinstance(self.last_response_status_code, HttpStatusCode) else None
-        )
-
-        print(
-            f""
-            f"Printing state from Webserver describe func: "
-            f"val={state['last_response_status_code']}, "
-            f"type={type(state['last_response_status_code'])}, "
-            f"Service obj ID={id(self)}"
         )
         return state
 
@@ -102,13 +100,6 @@ class WebServer(Service):
         # return true if response is OK
         self.last_response_status_code = response.status_code
 
-        print(
-            f""
-            f"Printing state from Webserver http request func: "
-            f"val={self.last_response_status_code}, "
-            f"type={type(self.last_response_status_code)}, "
-            f"Service obj ID={id(self)}"
-        )
         return response.status_code == HttpStatusCode.OK
 
     def _handle_get_request(self, payload: HttpRequestPacket) -> HttpResponsePacket:

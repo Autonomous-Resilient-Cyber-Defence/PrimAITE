@@ -1,5 +1,4 @@
 """PrimAITE game - Encapsulates the simulation and agents."""
-from copy import deepcopy
 from ipaddress import IPv4Address
 from typing import Dict, List
 
@@ -11,7 +10,7 @@ from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent, RandomAgent
 from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
-from primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
+from primaite.simulator.network.hardware.base import NIC, NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.server import Server
@@ -19,7 +18,6 @@ from primaite.simulator.network.hardware.nodes.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
-from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
@@ -28,7 +26,6 @@ from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
-from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
@@ -59,10 +56,6 @@ class PrimaiteGame:
         """Initialise a PrimaiteGame object."""
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
-        print(f"Hello, welcome to PrimaiteGame. This is the ID of the ORIGINAL simulation {id(self.simulation)}")
-
-        self._simulation_initial_state = None
-        """The Simulation original state (deepcopy of the original Simulation)."""
 
         self.agents: List[AbstractAgent] = []
         """List of agents."""
@@ -161,34 +154,7 @@ class PrimaiteGame:
         self.episode_counter += 1
         self.step_counter = 0
         _LOGGER.debug(f"Resetting primaite game, episode = {self.episode_counter}")
-        self.simulation = deepcopy(self._simulation_initial_state)
-        self._reset_components_for_episode()
-        print("Reset")
-
-    def _reset_components_for_episode(self):
-        print("Performing full reset for episode")
-        for node in self.simulation.network.nodes.values():
-            print(f"Resetting Node: {node.hostname}")
-            node.reset_component_for_episode(self.episode_counter)
-
-            # reset Node NIC
-
-            # Reset Node Services
-
-            # Reset Node Applications
-            print(f"Resetting Software...")
-            for application in node.software_manager.software.values():
-                print(f"Resetting {application.name}")
-                if isinstance(application, WebBrowser):
-                    application.do_this()
-
-            # Reset Node FileSystem
-            # Reset Node FileSystemFolder's
-            # Reset Node FileSystemFile's
-
-        # Reset Router
-
-        # Reset Links
+        self.simulation.reset_component_for_episode(episode=self.episode_counter)
 
     def close(self) -> None:
         """Close the game, this will close the simulation."""
@@ -452,8 +418,6 @@ class PrimaiteGame:
             else:
                 print("agent type not found")
 
-        game._simulation_initial_state = deepcopy(game.simulation)  # noqa
-        web_server = game.simulation.network.get_node_by_hostname("web_server").software_manager.software["WebServer"]
-        print(f"And this is the ID of the original WebServer {id(web_server)}")
+        game.simulation.set_original_state()
 
         return game

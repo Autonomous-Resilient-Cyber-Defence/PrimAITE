@@ -9,7 +9,7 @@ class Simulation(SimComponent):
     """Top-level simulation object which holds a reference to all other parts of the simulation."""
 
     network: Network
-    domain: DomainController
+    # domain: DomainController
 
     def __init__(self, **kwargs):
         """Initialise the Simulation."""
@@ -20,6 +20,14 @@ class Simulation(SimComponent):
             kwargs["domain"] = DomainController()
 
         super().__init__(**kwargs)
+
+    def set_original_state(self):
+        """Sets the original state."""
+        self.network.set_original_state()
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        self.network.reset_component_for_episode(episode)
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()

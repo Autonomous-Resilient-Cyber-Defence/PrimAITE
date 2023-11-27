@@ -38,6 +38,12 @@ class Application(IOSoftware):
         self.health_state_visible = SoftwareHealthState.UNUSED
         self.health_state_actual = SoftwareHealthState.UNUSED
 
+    def set_original_state(self):
+        """Sets the original state."""
+        super().set_original_state()
+        vals_to_include = {"operating_state", "execution_control_status", "num_executions", "groups"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
     @abstractmethod
     def describe_state(self) -> Dict:
         """
@@ -81,15 +87,6 @@ class Application(IOSoftware):
         if self.operating_state == ApplicationOperatingState.CLOSED:
             self.sys_log.info(f"Installing Application {self.name}")
             self.operating_state = ApplicationOperatingState.INSTALLING
-
-    def reset_component_for_episode(self, episode: int):
-        """
-        Resets the Application component for a new episode.
-
-        This method ensures the Application is ready for a new episode, including resetting any
-        stateful properties or statistics, and clearing any message queues.
-        """
-        pass
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
