@@ -1,6 +1,6 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 class PrimaiteError(Exception):
-    """The root PrimAITe Error."""
+    """The root PrimAITE Error."""
 
     pass
 

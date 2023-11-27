@@ -45,17 +45,14 @@ Key features
 ^^^^^^^^^^^^
 
 - Connects to the ``DatabaseService`` via the ``SoftwareManager``.
+- Handles connecting and disconnecting.
 - Executes SQL queries and retrieves result sets.
-- Handles connecting, querying, and disconnecting.
-- Provides a simple ``query`` method for running SQL.
-
 
 Usage
 ^^^^^
 
 - Initialise with server IP address and optional password.
 - Connect to the ``DatabaseService`` with ``connect``.
-- Execute SQL queries via ``query``.
 - Retrieve results in a dictionary.
 - Disconnect when finished.
 
@@ -70,6 +67,5 @@ Implementation
 
 - Leverages ``SoftwareManager`` for sending payloads over the network.
 - Connect and disconnect methods manage sessions.
-- Provides easy interface for applications to query database.
 - Payloads serialised as dictionaries for transmission.
 - Extends base Application class.
