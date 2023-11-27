@@ -1,5 +1,5 @@
 training_config:
-  rl_framework: RLLIB_single_agent
+  rl_framework: SB3
   rl_algorithm: PPO
   seed: 333
   n_learn_episodes: 1
@@ -36,22 +36,16 @@ agents:
     action_space:
       action_list:
         - type: DONOTHING
-        # <not yet implemented>
-        # - type: NODE_LOGON
-        # - type: NODE_LOGOFF
-        # - type: NODE_APPLICATION_EXECUTE
-          # options:
-            # execution_definition:
-              # target_address: arcd.com
-
+        - type: NODE_APPLICATION_EXECUTE
       options:
         nodes:
         - node_ref: client_2
+          applications:
+            - application_ref: client_2_web_browser
         max_folders_per_node: 1
         max_files_per_folder: 1
         max_services_per_node: 1
-        max_nics_per_node: 2
-        max_acl_rules: 10
+        max_applications_per_node: 1
 
     reward_function:
       reward_components:
@@ -549,19 +543,19 @@ simulation:
           ip_address: 192.168.10.1
           subnet_mask: 255.255.255.0
       acl:
-        0:
+        18:
           action: PERMIT
           src_port: POSTGRES_SERVER
           dst_port: POSTGRES_SERVER
-        1:
+        19:
           action: PERMIT
           src_port: DNS
           dst_port: DNS
-        2:
+        20:
           action: PERMIT
           src_port: FTP
           dst_port: FTP
-        3:
+        21:
           action: PERMIT
           src_port: HTTP
           dst_port: HTTP
@@ -679,9 +673,13 @@ simulation:
       applications:
       - ref: client_2_web_browser
         type: WebBrowser
+        options:
+          target_url: http://arcd.com/users/
       services:
       - ref: client_2_dns_client
         type: DNSClient
+
+
 
     links:
     - ref: router_1___switch_1

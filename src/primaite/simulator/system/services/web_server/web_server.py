@@ -29,8 +29,9 @@ class WebServer(Service):
         :rtype: Dict
         """
         state = super().describe_state()
+
         state["last_response_status_code"] = (
-            self.last_response_status_code.value if self.last_response_status_code else None
+            self.last_response_status_code.value if isinstance(self.last_response_status_code, HttpStatusCode) else None
         )
         return state
 
@@ -84,6 +85,7 @@ class WebServer(Service):
 
         # return true if response is OK
         self.last_response_status_code = response.status_code
+        print(self.last_response_status_code)
         return response.status_code == HttpStatusCode.OK
 
     def _handle_get_request(self, payload: HttpRequestPacket) -> HttpResponsePacket:

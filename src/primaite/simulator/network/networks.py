@@ -157,6 +157,8 @@ def arcd_uc2_network() -> Network:
         operating_state=NodeOperatingState.ON,
     )
     client_2.power_on()
+    web_browser = client_2.software_manager["WebBrowser"]
+    web_browser.target_url = "http://arcd.com/users/"
     network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
 
     # Domain Controller

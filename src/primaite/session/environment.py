@@ -37,7 +37,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         terminated = False
         truncated = self.game.calculate_truncated()
         info = {}
-
+        print(f"Episode: {self.game.episode_counter}, Step: {self.game.step_counter}, Reward: {reward}")
         return next_obs, reward, terminated, truncated, info
 
     def reset(self, seed: Optional[int] = None) -> Tuple[ObsType, Dict[str, Any]]:

@@ -2,6 +2,7 @@ from ipaddress import IPv4Address
 from typing import Dict, Optional
 from urllib.parse import urlparse
 
+from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.http import HttpRequestMethod, HttpRequestPacket, HttpResponsePacket
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -15,6 +16,8 @@ class WebBrowser(Application):
 
     The application requests and loads web pages using its domain name and requesting IP addresses using DNS.
     """
+
+    target_url: Optional[str] = None
 
     domain_name_ip_address: Optional[IPv4Address] = None
     "The IP address of the domain name for the webpage."
@@ -31,6 +34,14 @@ class WebBrowser(Application):
 
         super().__init__(**kwargs)
         self.run()
+
+    def _init_request_manager(self) -> RequestManager:
+        rm = super()._init_request_manager()
+        rm.add_request(
+            name="execute", request_type=RequestType(func=lambda request, context: self.get_webpage())  # noqa
+        )
+
+        return rm
 
     def describe_state(self) -> Dict:
         """
@@ -51,7 +62,7 @@ class WebBrowser(Application):
         self.domain_name_ip_address = None
         self.latest_response = None
 
-    def get_webpage(self, url: str) -> bool:
+    def get_webpage(self) -> bool:
         """
         Retrieve the webpage.
 
@@ -60,6 +71,7 @@ class WebBrowser(Application):
         :param: url: The address of the web page the browser requests
         :type: url: str
         """
+        url = self.target_url
         # reset latest response
         self.latest_response = None
 
@@ -71,7 +83,6 @@ class WebBrowser(Application):
 
         # get the IP address of the domain name via DNS
         dns_client: DNSClient = self.software_manager.software["DNSClient"]
-
         domain_exists = dns_client.check_domain_exists(target_domain=parsed_url.hostname)
 
         # if domain does not exist, the request fails

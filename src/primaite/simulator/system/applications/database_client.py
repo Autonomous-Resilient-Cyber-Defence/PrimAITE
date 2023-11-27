@@ -75,11 +75,11 @@ class DatabaseClient(Application):
         """
         if is_reattempt:
             if self.connected:
-                self.sys_log.info(f"{self.name}: DatabaseClient connected to {server_ip_address} authorised")
+                self.sys_log.info(f"{self.name}: DatabaseClient connection to {server_ip_address} authorised")
                 self.server_ip_address = server_ip_address
                 return self.connected
             else:
-                self.sys_log.info(f"{self.name}: DatabaseClient connected to {server_ip_address} declined")
+                self.sys_log.info(f"{self.name}: DatabaseClient connection to {server_ip_address} declined")
                 return False
         payload = {"type": "connect_request", "password": password}
         software_manager: SoftwareManager = self.software_manager

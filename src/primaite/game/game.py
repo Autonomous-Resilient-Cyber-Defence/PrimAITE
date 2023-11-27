@@ -316,6 +316,10 @@ class PrimaiteGame:
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
                             )
+                    elif application_type == "WebBrowser":
+                        if "options" in application_cfg:
+                            opt = application_cfg["options"]
+                            new_application.target_url = opt.get("target_url")
             if "nics" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["nics"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
@@ -377,7 +381,6 @@ class PrimaiteGame:
                     action_space_cfg["options"]["application_uuids"].append(node_application_uuids)
                 else:
                     action_space_cfg["options"]["application_uuids"].append([])
-
             # Each action space can potentially have a different list of nodes that it can apply to. Therefore,
             # we will pass node_uuids as a part of the action space config.
             # However, it's not possible to specify the node uuids directly in the config, as they are generated
