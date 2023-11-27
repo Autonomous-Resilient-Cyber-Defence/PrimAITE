@@ -108,3 +108,14 @@ def test_server_turns_on_service(populated_node):
 
     assert computer.operating_state is NodeOperatingState.ON
     assert app.operating_state is ApplicationOperatingState.RUNNING
+
+    computer.start_up_duration = 0
+    computer.shut_down_duration = 0
+
+    computer.power_off()
+    assert computer.operating_state is NodeOperatingState.OFF
+    assert app.operating_state is ApplicationOperatingState.CLOSED
+
+    computer.power_on()
+    assert computer.operating_state is NodeOperatingState.ON
+    assert app.operating_state is ApplicationOperatingState.RUNNING

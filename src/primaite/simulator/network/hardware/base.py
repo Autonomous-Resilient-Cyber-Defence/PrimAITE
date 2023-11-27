@@ -1187,6 +1187,7 @@ class Node(SimComponent):
             self.start_up_countdown = self.start_up_duration
 
         if self.start_up_duration <= 0:
+            self._start_up_actions()
             self.operating_state = NodeOperatingState.ON
             self.sys_log.info("Turned on")
             for nic in self.nics.values():
@@ -1202,6 +1203,7 @@ class Node(SimComponent):
             self.shut_down_countdown = self.shut_down_duration
 
         if self.shut_down_duration <= 0:
+            self._shut_down_actions()
             self.operating_state = NodeOperatingState.OFF
             self.sys_log.info("Turned off")
 

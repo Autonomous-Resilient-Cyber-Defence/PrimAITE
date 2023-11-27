@@ -1,5 +1,5 @@
 from ipaddress import IPv4Address
-from typing import Dict, Optional, Union
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
@@ -51,7 +51,7 @@ class DNSClient(Service):
         """
         pass
 
-    def add_domain_to_cache(self, domain_name: str, ip_address: IPv4Address) -> Union[bool, None]:
+    def add_domain_to_cache(self, domain_name: str, ip_address: IPv4Address) -> bool:
         """
         Adds a domain name to the DNS Client cache.
 

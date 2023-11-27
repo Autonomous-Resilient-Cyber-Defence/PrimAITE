@@ -35,6 +35,7 @@ SessionManager.
 - DNS Services: `DNSClient` and `DNSServer`
 - FTP Services: `FTPClient` and `FTPServer`
 - HTTP Services: `WebBrowser` to simulate a web client and `WebServer`
+- Fixed an issue where the services were still able to run even though the node the service is installed on is turned off
 
 ### Removed
 - Removed legacy simulation modules: `acl`, `common`, `environment`, `links`, `nodes`, `pol`
