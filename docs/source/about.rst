@@ -278,7 +278,7 @@ The game layer is built on top of the simulator and it consumes the simulation a
   3. Any (Agent can take both node-based and ACL-based actions)
   The choice of action space used during a training session is determined in the config_[name].yaml file.
   **Node-Based**
-  The agent is able to influence the status of nodes by switching them off, resetting, or patching operating systems and services. In this instance, the action space is an Gymnasium spaces.Discrete type, as follows:
+  The agent is able to influence the status of nodes by switching them off, resetting, or patching operating systems and services. In this instance, the action space is a Gymnasium spaces.Discrete type, as follows:
   * Dictionary item {... ,1: [x1, x2, x3,x4] ...}
     The placeholders inside the list under the key '1' mean the following:
       * [0, num nodes] - Node ID (0 = nothing, node ID)
@@ -286,7 +286,7 @@ The game layer is built on top of the simulator and it consumes the simulation a
       * [0, 3] - Action on property (0 = nothing, 1 = on / scan, 2 = off / repair, 3 = reset / patch / restore)
       * [0, num services] - Resolves to service ID (0 = nothing, resolves to service)
   **Access Control List**
-  The blue agent is able to influence the configuration of the Access Control List rule set (which implements a system-wide firewall). In this instance, the action space is an OpenAI spaces.Discrete type, as follows:
+  The blue agent is able to influence the configuration of the Access Control List rule set (which implements a system-wide firewall). In this instance, the action space is an Gymnasium spaces.Discrete type, as follows:
     * Dictionary item {... ,1: [x1, x2, x3, x4, x5, x6] ...}
     The placeholders inside the list under the key '1' mean the following:
       * [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
