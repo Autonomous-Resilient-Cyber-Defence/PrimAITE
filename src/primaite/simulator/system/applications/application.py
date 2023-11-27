@@ -108,9 +108,6 @@ class Application(IOSoftware):
 
     def install(self) -> None:
         """Install Application."""
-        if self._can_perform_action():
-            return
-
         super().install()
         if self.operating_state == ApplicationOperatingState.CLOSED:
             self.sys_log.info(f"Installing Application {self.name}")
