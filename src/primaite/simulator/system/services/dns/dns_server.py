@@ -28,6 +28,22 @@ class DNSServer(Service):
         super().__init__(**kwargs)
         self.start()
 
+    def set_original_state(self):
+        """Sets the original state."""
+        super().set_original_state()
+        vals_to_include = {"dns_table"}
+        self._original_state["dns_table_orig"] = self.model_dump(include=vals_to_include)["dns_table"]
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        print("dns reset")
+        print("DNSServer original state", self._original_state)
+        self.dns_table.clear()
+        for key, value in self._original_state["dns_table_orig"].items():
+            self.dns_table[key] = value
+        super().reset_component_for_episode(episode)
+        self.show()
+
     def describe_state(self) -> Dict:
         """
         Describes the current state of the software.
@@ -67,15 +83,6 @@ class DNSServer(Service):
             return
 
         self.dns_table[domain_name] = domain_ip_address
-
-    def reset_component_for_episode(self, episode: int):
-        """
-        Resets the Service component for a new episode.
-
-        This method ensures the Service is ready for a new episode, including resetting any
-        stateful properties or statistics, and clearing any message queues.
-        """
-        pass
 
     def receive(
         self,

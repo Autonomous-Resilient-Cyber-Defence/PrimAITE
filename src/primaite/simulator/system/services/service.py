@@ -80,6 +80,12 @@ class Service(IOSoftware):
         self.health_state_visible = SoftwareHealthState.UNUSED
         self.health_state_actual = SoftwareHealthState.UNUSED
 
+    def set_original_state(self):
+        """Sets the original state."""
+        super().set_original_state()
+        vals_to_include = {"operating_state", "restart_duration", "restart_countdown"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
         rm.add_request("scan", RequestType(func=lambda request, context: self.scan()))
@@ -106,15 +112,6 @@ class Service(IOSoftware):
         state["health_state_actual"] = self.health_state_actual
         state["health_state_visible"] = self.health_state_visible
         return state
-
-    def reset_component_for_episode(self, episode: int):
-        """
-        Resets the Service component for a new episode.
-
-        This method ensures the Service is ready for a new episode, including resetting any
-        stateful properties or statistics, and clearing any message queues.
-        """
-        pass
 
     def stop(self) -> None:
         """Stop the service."""

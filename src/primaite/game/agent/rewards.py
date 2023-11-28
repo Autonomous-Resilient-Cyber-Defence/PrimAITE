@@ -213,7 +213,7 @@ class WebServer404Penalty(AbstractReward):
             _LOGGER.warn(msg)
             return DummyReward()  # TODO: should we error out with incorrect inputs? Probably!
         node_uuid = game.ref_map_nodes[node_ref]
-        service_uuid = game.ref_map_services[service_ref].uuid
+        service_uuid = game.ref_map_services[service_ref]
         if not (node_uuid and service_uuid):
             msg = (
                 f"{cls.__name__} could not be initialised because node {node_ref} and service {service_ref} were not"

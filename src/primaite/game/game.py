@@ -1,5 +1,4 @@
 """PrimAITE game - Encapsulates the simulation and agents."""
-from copy import deepcopy
 from ipaddress import IPv4Address
 from typing import Dict, List
 
@@ -7,10 +6,11 @@ from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, ProxyAgent, RandomAgent
+from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
+from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent, RandomAgent
 from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
-from primaite.simulator.network.hardware.base import Link, NIC, Node
+from primaite.simulator.network.hardware.base import NIC, NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.server import Server
@@ -18,14 +18,14 @@ from primaite.simulator.network.hardware.nodes.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
-from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
+from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
-from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
@@ -57,9 +57,6 @@ class PrimaiteGame:
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
 
-        self._simulation_initial_state = deepcopy(self.simulation)
-        """The Simulation original state (deepcopy of the original Simulation)."""
-
         self.agents: List[AbstractAgent] = []
         """List of agents."""
 
@@ -75,16 +72,16 @@ class PrimaiteGame:
         self.options: PrimaiteGameOptions
         """Special options that apply for the entire game."""
 
-        self.ref_map_nodes: Dict[str, Node] = {}
+        self.ref_map_nodes: Dict[str, str] = {}
         """Mapping from unique node reference name to node object. Used when parsing config files."""
 
-        self.ref_map_services: Dict[str, Service] = {}
+        self.ref_map_services: Dict[str, str] = {}
         """Mapping from human-readable service reference to service object. Used for parsing config files."""
 
-        self.ref_map_applications: Dict[str, Application] = {}
+        self.ref_map_applications: Dict[str, str] = {}
         """Mapping from human-readable application reference to application object. Used for parsing config files."""
 
-        self.ref_map_links: Dict[str, Link] = {}
+        self.ref_map_links: Dict[str, str] = {}
         """Mapping from human-readable link reference to link object. Used when parsing config files."""
 
     def step(self):
@@ -157,7 +154,7 @@ class PrimaiteGame:
         self.episode_counter += 1
         self.step_counter = 0
         _LOGGER.debug(f"Resetting primaite game, episode = {self.episode_counter}")
-        self.simulation = deepcopy(self._simulation_initial_state)
+        self.simulation.reset_component_for_episode(episode=self.episode_counter)
 
     def close(self) -> None:
         """Close the game, this will close the simulation."""
@@ -187,10 +184,6 @@ class PrimaiteGame:
         sim = game.simulation
         net = sim.network
 
-        game.ref_map_nodes: Dict[str, Node] = {}
-        game.ref_map_services: Dict[str, Service] = {}
-        game.ref_map_links: Dict[str, Link] = {}
-
         nodes_cfg = cfg["simulation"]["network"]["nodes"]
         links_cfg = cfg["simulation"]["network"]["links"]
         for node_cfg in nodes_cfg:
@@ -203,6 +196,7 @@ class PrimaiteGame:
                     subnet_mask=node_cfg["subnet_mask"],
                     default_gateway=node_cfg["default_gateway"],
                     dns_server=node_cfg["dns_server"],
+                    operating_state=NodeOperatingState.ON,
                 )
             elif n_type == "server":
                 new_node = Server(
@@ -211,16 +205,26 @@ class PrimaiteGame:
                     subnet_mask=node_cfg["subnet_mask"],
                     default_gateway=node_cfg["default_gateway"],
                     dns_server=node_cfg.get("dns_server"),
+                    operating_state=NodeOperatingState.ON,
                 )
             elif n_type == "switch":
-                new_node = Switch(hostname=node_cfg["hostname"], num_ports=node_cfg.get("num_ports"))
+                new_node = Switch(
+                    hostname=node_cfg["hostname"],
+                    num_ports=node_cfg.get("num_ports"),
+                    operating_state=NodeOperatingState.ON,
+                )
             elif n_type == "router":
-                new_node = Router(hostname=node_cfg["hostname"], num_ports=node_cfg.get("num_ports"))
+                new_node = Router(
+                    hostname=node_cfg["hostname"],
+                    num_ports=node_cfg.get("num_ports"),
+                    operating_state=NodeOperatingState.ON,
+                )
                 if "ports" in node_cfg:
                     for port_num, port_cfg in node_cfg["ports"].items():
                         new_node.configure_port(
                             port=port_num, ip_address=port_cfg["ip_address"], subnet_mask=port_cfg["subnet_mask"]
                         )
+                        # new_node.enable_port(port_num)
                 if "acl" in node_cfg:
                     for r_num, r_cfg in node_cfg["acl"].items():
                         # excuse the uncommon walrus operator ` := `. It's just here as a shorthand, to avoid repeating
@@ -239,6 +243,7 @@ class PrimaiteGame:
                 print("invalid node type")
             if "services" in node_cfg:
                 for service_cfg in node_cfg["services"]:
+                    new_service = None
                     service_ref = service_cfg["ref"]
                     service_type = service_cfg["type"]
                     service_types_mapping = {
@@ -247,13 +252,14 @@ class PrimaiteGame:
                         "DatabaseClient": DatabaseClient,
                         "DatabaseService": DatabaseService,
                         "WebServer": WebServer,
-                        "DataManipulationBot": DataManipulationBot,
+                        "FTPClient": FTPClient,
+                        "FTPServer": FTPServer,
                     }
                     if service_type in service_types_mapping:
                         print(f"installing {service_type} on node {new_node.hostname}")
                         new_node.software_manager.install(service_types_mapping[service_type])
                         new_service = new_node.software_manager.software[service_type]
-                        game.ref_map_services[service_ref] = new_service
+                        game.ref_map_services[service_ref] = new_service.uuid
                     else:
                         print(f"service type not found {service_type}")
                     # service-dependent options
@@ -268,30 +274,49 @@ class PrimaiteGame:
                             if "domain_mapping" in opt:
                                 for domain, ip in opt["domain_mapping"].items():
                                     new_service.dns_register(domain, ip)
+                    if service_type == "DatabaseService":
+                        if "options" in service_cfg:
+                            opt = service_cfg["options"]
+                            if "backup_server_ip" in opt:
+                                new_service.configure_backup(backup_server=IPv4Address(opt["backup_server_ip"]))
+                        new_service.start()
+
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
+                    new_application = None
                     application_ref = application_cfg["ref"]
                     application_type = application_cfg["type"]
                     application_types_mapping = {
                         "WebBrowser": WebBrowser,
+                        "DataManipulationBot": DataManipulationBot,
                     }
                     if application_type in application_types_mapping:
                         new_node.software_manager.install(application_types_mapping[application_type])
                         new_application = new_node.software_manager.software[application_type]
-                        game.ref_map_applications[application_ref] = new_application
+                        game.ref_map_applications[application_ref] = new_application.uuid
                     else:
                         print(f"application type not found {application_type}")
+
+                    if application_type == "DataManipulationBot":
+                        if "options" in application_cfg:
+                            opt = application_cfg["options"]
+                            new_application.configure(
+                                server_ip_address=IPv4Address(opt.get("server_ip")),
+                                payload=opt.get("payload"),
+                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
+                                data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
+                            )
+                    elif application_type == "WebBrowser":
+                        if "options" in application_cfg:
+                            opt = application_cfg["options"]
+                            new_application.target_url = opt.get("target_url")
             if "nics" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["nics"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
 
             net.add_node(new_node)
             new_node.power_on()
-            game.ref_map_nodes[
-                node_ref
-            ] = (
-                new_node.uuid
-            )  # TODO: fix inconsistency with service and link. Node gets added by uuid, but service by object
+            game.ref_map_nodes[node_ref] = new_node.uuid
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
@@ -323,11 +348,25 @@ class PrimaiteGame:
 
             # CREATE ACTION SPACE
             action_space_cfg["options"]["node_uuids"] = []
+            action_space_cfg["options"]["application_uuids"] = []
+
             # if a list of nodes is defined, convert them from node references to node UUIDs
             for action_node_option in action_space_cfg.get("options", {}).pop("nodes", {}):
                 if "node_ref" in action_node_option:
                     node_uuid = game.ref_map_nodes[action_node_option["node_ref"]]
                     action_space_cfg["options"]["node_uuids"].append(node_uuid)
+
+                if "applications" in action_node_option:
+                    node_application_uuids = []
+                    for application_option in action_node_option["applications"]:
+                        # TODO: fix inconsistency with node uuids and application uuids. The node object get added to
+                        #  node_uuid, whereas here the application gets added by uuid.
+                        application_uuid = game.ref_map_applications[application_option["application_ref"]]
+                        node_application_uuids.append(application_uuid)
+
+                    action_space_cfg["options"]["application_uuids"].append(node_application_uuids)
+                else:
+                    action_space_cfg["options"]["application_uuids"].append([])
             # Each action space can potentially have a different list of nodes that it can apply to. Therefore,
             # we will pass node_uuids as a part of the action space config.
             # However, it's not possible to specify the node uuids directly in the config, as they are generated
@@ -345,6 +384,8 @@ class PrimaiteGame:
             # CREATE REWARD FUNCTION
             rew_function = RewardFunction.from_config(reward_function_cfg, game=game)
 
+            agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
+
             # CREATE AGENT
             if agent_type == "GreenWebBrowsingAgent":
                 # TODO: implement non-random agents and fix this parsing
@@ -353,6 +394,7 @@ class PrimaiteGame:
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=rew_function,
+                    agent_settings=agent_settings,
                 )
                 game.agents.append(new_agent)
             elif agent_type == "ProxyAgent":
@@ -365,16 +407,17 @@ class PrimaiteGame:
                 game.agents.append(new_agent)
                 game.rl_agents.append(new_agent)
             elif agent_type == "RedDatabaseCorruptingAgent":
-                new_agent = RandomAgent(
+                new_agent = DataManipulationAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=rew_function,
+                    agent_settings=agent_settings,
                 )
                 game.agents.append(new_agent)
             else:
                 print("agent type not found")
 
-        game._simulation_initial_state = deepcopy(game.simulation)  # noqa
+        game.simulation.set_original_state()
 
         return game

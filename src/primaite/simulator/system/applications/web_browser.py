@@ -2,6 +2,7 @@ from ipaddress import IPv4Address
 from typing import Dict, Optional
 from urllib.parse import urlparse
 
+from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.http import (
     HttpRequestMethod,
     HttpRequestPacket,
@@ -21,6 +22,8 @@ class WebBrowser(Application):
     The application requests and loads web pages using its domain name and requesting IP addresses using DNS.
     """
 
+    target_url: Optional[str] = None
+
     domain_name_ip_address: Optional[IPv4Address] = None
     "The IP address of the domain name for the webpage."
 
@@ -35,7 +38,22 @@ class WebBrowser(Application):
             kwargs["port"] = Port.HTTP
 
         super().__init__(**kwargs)
+        self.set_original_state()
         self.run()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        super().set_original_state()
+        vals_to_include = {"target_url", "domain_name_ip_address", "latest_response"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
+    def _init_request_manager(self) -> RequestManager:
+        rm = super()._init_request_manager()
+        rm.add_request(
+            name="execute", request_type=RequestType(func=lambda request, context: self.get_webpage())  # noqa
+        )
+
+        return rm
 
     def describe_state(self) -> Dict:
         """
@@ -47,16 +65,9 @@ class WebBrowser(Application):
         state["last_response_status_code"] = self.latest_response.status_code if self.latest_response else None
 
     def reset_component_for_episode(self, episode: int):
-        """
-        Resets the Application component for a new episode.
+        """Reset the original state of the SimComponent."""
 
-        This method ensures the Application is ready for a new episode, including resetting any
-        stateful properties or statistics, and clearing any message queues.
-        """
-        self.domain_name_ip_address = None
-        self.latest_response = None
-
-    def get_webpage(self, url: str) -> bool:
+    def get_webpage(self) -> bool:
         """
         Retrieve the webpage.
 
@@ -65,6 +76,7 @@ class WebBrowser(Application):
         :param: url: The address of the web page the browser requests
         :type: url: str
         """
+        url = self.target_url
         if not self._can_perform_action():
             return False
 
@@ -79,7 +91,6 @@ class WebBrowser(Application):
 
         # get the IP address of the domain name via DNS
         dns_client: DNSClient = self.software_manager.software["DNSClient"]
-
         domain_exists = dns_client.check_domain_exists(target_domain=parsed_url.hostname)
 
         # if domain does not exist, the request fails

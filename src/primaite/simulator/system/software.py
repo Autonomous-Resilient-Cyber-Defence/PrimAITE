@@ -90,6 +90,19 @@ class Software(SimComponent):
     folder: Optional[Folder] = None
     "The folder on the file system the Software uses."
 
+    def set_original_state(self):
+        """Sets the original state."""
+        vals_to_include = {
+            "name",
+            "health_state_actual",
+            "health_state_visible",
+            "criticality",
+            "patching_count",
+            "scanning_count",
+            "revealed_to_red",
+        }
+        self._original_state = self.model_dump(include=vals_to_include)
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
         rm.add_request(
@@ -131,16 +144,6 @@ class Software(SimComponent):
             }
         )
         return state
-
-    def reset_component_for_episode(self, episode: int):
-        """
-        Resets the software component for a new episode.
-
-        This method should ensure the software is ready for a new episode, including resetting any
-        stateful properties or statistics, and clearing any message queues. The specifics of what constitutes a
-        "reset" should be implemented in subclasses.
-        """
-        pass
 
     def set_health_state(self, health_state: SoftwareHealthState) -> None:
         """
@@ -203,6 +206,12 @@ class IOSoftware(Software):
     "Indicates if the software uses UDP protocol for communication. Default is True."
     port: Port
     "The port to which the software is connected."
+
+    def set_original_state(self):
+        """Sets the original state."""
+        super().set_original_state()
+        vals_to_include = {"installing_count", "max_sessions", "tcp", "udp", "port"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
 
     @abstractmethod
     def describe_state(self) -> Dict:

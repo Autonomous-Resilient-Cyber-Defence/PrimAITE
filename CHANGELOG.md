@@ -31,7 +31,8 @@ SessionManager.
   - `DatabaseClient` and `DatabaseService` created to allow emulation of database actions
   - Ability for `DatabaseService` to backup its data to another server via FTP and restore data from backup
 - Red Agent Services:
-  - Data Manipulator Bot - A red agent service which sends a payload to a target machine. (By default this payload is a SQL query that breaks a database)
+  - Data Manipulator Bot - A red agent service which sends a payload to a target machine. (By default this payload is a SQL query that breaks a database). The attack runs in stages with a random, configurable probability of succeeding.
+  - `DataManipulationAgent` runs the Data Manipulator Bot according to a configured start step, frequency and variance.
 - DNS Services: `DNSClient` and `DNSServer`
 - FTP Services: `FTPClient` and `FTPServer`
 - HTTP Services: `WebBrowser` to simulate a web client and `WebServer`

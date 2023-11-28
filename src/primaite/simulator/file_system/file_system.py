@@ -35,6 +35,36 @@ class FileSystem(SimComponent):
         if not self.folders:
             self.create_folder("root")
 
+    def set_original_state(self):
+        """Sets the original state."""
+        for folder in self.folders.values():
+            folder.set_original_state()
+        super().set_original_state()
+        # Capture a list of all 'original' file uuids
+        self._original_state["original_folder_uuids"] = list(self.folders.keys())
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        # Move any 'original' folder that have been deleted back to folders
+        original_folder_uuids = self._original_state.pop("original_folder_uuids")
+        for uuid in original_folder_uuids:
+            if uuid in self.deleted_folders:
+                self.folders[uuid] = self.deleted_folders.pop(uuid)
+
+        # Clear any other deleted folders that aren't original (have been created by agent)
+        self.deleted_folders.clear()
+
+        # Now clear all non-original folders created by agent
+        current_folder_uuids = list(self.folders.keys())
+        for uuid in current_folder_uuids:
+            if uuid not in original_folder_uuids:
+                self.folders.pop(uuid)
+
+        # Now reset all remaining folders
+        for folder in self.folders.values():
+            folder.reset_component_for_episode(episode)
+        super().reset_component_for_episode(episode)
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 

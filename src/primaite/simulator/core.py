@@ -153,12 +153,24 @@ class SimComponent(BaseModel):
     uuid: str
     """The component UUID."""
 
+    _original_state: Dict = {}
+
     def __init__(self, **kwargs):
         if not kwargs.get("uuid"):
             kwargs["uuid"] = str(uuid4())
         super().__init__(**kwargs)
         self._request_manager: RequestManager = self._init_request_manager()
         self._parent: Optional["SimComponent"] = None
+
+    # @abstractmethod
+    def set_original_state(self):
+        """Sets the original state."""
+        pass
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        for key, value in self._original_state.items():
+            self.__setattr__(key, value)
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -224,14 +236,6 @@ class SimComponent(BaseModel):
 
         Override this method with anything that happens automatically in the component such as scheduled restarts or
         sending data.
-        """
-        pass
-
-    def reset_component_for_episode(self, episode: int):
-        """
-        Reset this component to its original state for a new episode.
-
-        Override this method with anything that needs to happen within the component for it to be reset.
         """
         pass
 

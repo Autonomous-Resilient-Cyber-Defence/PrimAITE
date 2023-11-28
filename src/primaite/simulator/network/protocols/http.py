@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
 from primaite.simulator.network.protocols.packet import DataPacket
 
@@ -25,7 +25,7 @@ class HttpRequestMethod(Enum):
     """Apply partial modifications to a resource."""
 
 
-class HttpStatusCode(Enum):
+class HttpStatusCode(IntEnum):
     """List of available HTTP Statuses."""
 
     OK = 200

@@ -17,7 +17,21 @@ from primaite.simulator.system.services.service import Service
 class WebServer(Service):
     """Class used to represent a Web Server Service in simulation."""
 
-    last_response_status_code: Optional[HttpStatusCode] = None
+    _last_response_status_code: Optional[HttpStatusCode] = None
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        self._last_response_status_code = None
+        super().reset_component_for_episode(episode)
+
+    @property
+    def last_response_status_code(self) -> HttpStatusCode:
+        """The latest http response code."""
+        return self._last_response_status_code
+
+    @last_response_status_code.setter
+    def last_response_status_code(self, val: Any):
+        self._last_response_status_code = val
 
     def describe_state(self) -> Dict:
         """
@@ -30,8 +44,9 @@ class WebServer(Service):
         """
         state = super().describe_state()
         state["last_response_status_code"] = (
-            self.last_response_status_code.value if self.last_response_status_code else None
+            self.last_response_status_code.value if isinstance(self.last_response_status_code, HttpStatusCode) else None
         )
+        print(state)
         return state
 
     def __init__(self, **kwargs):

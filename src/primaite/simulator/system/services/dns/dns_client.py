@@ -29,6 +29,17 @@ class DNSClient(Service):
         super().__init__(**kwargs)
         self.start()
 
+    def set_original_state(self):
+        """Sets the original state."""
+        super().set_original_state()
+        vals_to_include = {"dns_server"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        self.dns_cache.clear()
+        super().reset_component_for_episode(episode)
+
     def describe_state(self) -> Dict:
         """
         Describes the current state of the software.

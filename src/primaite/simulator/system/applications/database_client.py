@@ -31,6 +31,13 @@ class DatabaseClient(Application):
         kwargs["port"] = Port.POSTGRES_SERVER
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
+        self.set_original_state()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        super().set_original_state()
+        vals_to_include = {"server_ip_address", "server_password", "connected"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
 
     def describe_state(self) -> Dict:
         """
@@ -78,11 +85,11 @@ class DatabaseClient(Application):
         """
         if is_reattempt:
             if self.connected:
-                self.sys_log.info(f"{self.name}: DatabaseClient connected to {server_ip_address} authorised")
+                self.sys_log.info(f"{self.name}: DatabaseClient connection to {server_ip_address} authorised")
                 self.server_ip_address = server_ip_address
                 return self.connected
             else:
-                self.sys_log.info(f"{self.name}: DatabaseClient connected to {server_ip_address} declined")
+                self.sys_log.info(f"{self.name}: DatabaseClient connection to {server_ip_address} declined")
                 return False
         payload = {"type": "connect_request", "password": password}
         software_manager: SoftwareManager = self.software_manager
@@ -135,8 +142,8 @@ class DatabaseClient(Application):
     def run(self) -> None:
         """Run the DatabaseClient."""
         super().run()
-        self.operating_state = ApplicationOperatingState.RUNNING
-        self.connect()
+        if self.operating_state == ApplicationOperatingState.RUNNING:
+            self.connect()
 
     def query(self, sql: str, is_reattempt: bool = False) -> bool:
         """
