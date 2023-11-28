@@ -38,6 +38,7 @@ class _PrimaitePaths:
         self.app_config_file_path = self.generate_app_config_file_path()
         self.app_log_dir_path = self.generate_app_log_dir_path()
         self.app_log_file_path = self.generate_app_log_file_path()
+        self.episode_steps_log_file_path = self.generate_episode_step_log_file_path()
 
     def _get_dirs_properties(self) -> List[str]:
         class_items = self.__class__.__dict__.items()
@@ -104,6 +105,10 @@ class _PrimaitePaths:
     def generate_app_log_file_path(self) -> Path:
         """The PrimAITE app log file path."""
         return self.app_log_dir_path / "primaite.log"
+
+    def generate_episode_step_log_file_path(self) -> Path:
+        """The PrimAITE app episode step log file path."""
+        return self.app_log_dir_path / "epi_step.json"
 
     def __repr__(self) -> str:
         properties_str = ", ".join([f"{p}='{getattr(self, p)}'" for p in self._get_dirs_properties()])
