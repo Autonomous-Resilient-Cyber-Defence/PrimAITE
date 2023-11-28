@@ -134,6 +134,7 @@ class NIC(SimComponent):
         if episode and self.pcap:
             self.pcap.current_episode = episode
             self.pcap.setup_logger()
+        self.enable()
 
     def describe_state(self) -> Dict:
         """

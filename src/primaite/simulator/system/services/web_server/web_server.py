@@ -31,7 +31,6 @@ class WebServer(Service):
 
     @last_response_status_code.setter
     def last_response_status_code(self, val: Any):
-        print(f"val: {val}, type: {type(val)}")
         self._last_response_status_code = val
 
     def describe_state(self) -> Dict:
@@ -47,6 +46,7 @@ class WebServer(Service):
         state["last_response_status_code"] = (
             self.last_response_status_code.value if isinstance(self.last_response_status_code, HttpStatusCode) else None
         )
+        print(state)
         return state
 
     def __init__(self, **kwargs):
@@ -99,7 +99,6 @@ class WebServer(Service):
 
         # return true if response is OK
         self.last_response_status_code = response.status_code
-
         return response.status_code == HttpStatusCode.OK
 
     def _handle_get_request(self, payload: HttpRequestPacket) -> HttpResponsePacket:
