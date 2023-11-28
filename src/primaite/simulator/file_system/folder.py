@@ -53,6 +53,7 @@ class Folder(FileSystemItemABC):
 
     def set_original_state(self):
         """Sets the original state."""
+        print(f"Setting Folder ({self.name}) original state on node {self.sys_log.hostname}")
         for file in self.files.values():
             file.set_original_state()
         super().set_original_state()
@@ -69,6 +70,7 @@ class Folder(FileSystemItemABC):
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
+        print(f"Resetting Folder ({self.name}) state on node {self.sys_log.hostname}")
         # Move any 'original' file that have been deleted back to files
         original_file_uuids = self._original_state.pop("original_file_uuids")
         for uuid in original_file_uuids:

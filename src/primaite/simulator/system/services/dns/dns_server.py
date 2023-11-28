@@ -30,19 +30,18 @@ class DNSServer(Service):
 
     def set_original_state(self):
         """Sets the original state."""
+        print(f"Setting DNSServer original state on node {self.software_manager.node.hostname}")
         super().set_original_state()
         vals_to_include = {"dns_table"}
         self._original_state["dns_table_orig"] = self.model_dump(include=vals_to_include)["dns_table"]
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        print("dns reset")
-        print("DNSServer original state", self._original_state)
+        print(f"Resetting DNSServer state on node {self.software_manager.node.hostname}")
         self.dns_table.clear()
         for key, value in self._original_state["dns_table_orig"].items():
             self.dns_table[key] = value
         super().reset_component_for_episode(episode)
-        self.show()
 
     def describe_state(self) -> Dict:
         """

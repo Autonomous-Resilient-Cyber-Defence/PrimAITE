@@ -31,12 +31,14 @@ class DNSClient(Service):
 
     def set_original_state(self):
         """Sets the original state."""
+        print(f"Setting DNSClient original state on node {self.software_manager.node.hostname}")
         super().set_original_state()
         vals_to_include = {"dns_server"}
         self._original_state.update(self.model_dump(include=vals_to_include))
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
+        print(f"Resetting DNSClient state on node {self.software_manager.node.hostname}")
         self.dns_cache.clear()
         super().reset_component_for_episode(episode)
 
@@ -52,15 +54,6 @@ class DNSClient(Service):
         """
         state = super().describe_state()
         return state
-
-    def reset_component_for_episode(self, episode: int):
-        """
-        Resets the Service component for a new episode.
-
-        This method ensures the Service is ready for a new episode, including resetting any
-        stateful properties or statistics, and clearing any message queues.
-        """
-        pass
 
     def add_domain_to_cache(self, domain_name: str, ip_address: IPv4Address) -> bool:
         """
