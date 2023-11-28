@@ -1009,6 +1009,8 @@ class Node(SimComponent):
         for software in self.software_manager.software.values():
             software.set_original_state()
 
+        self.file_system.set_original_state()
+
         for nic in self.nics.values():
             nic.set_original_state()
 
@@ -1039,13 +1041,18 @@ class Node(SimComponent):
         # Reset Session Manager
         self.session_manager.clear()
 
+        # Reset software
         for software in self.software_manager.software.values():
             software.reset_component_for_episode(episode)
+
+        # Reset File System
+        self.file_system.reset_component_for_episode(episode)
 
         # Reset all Nics
         for nic in self.nics.values():
             nic.reset_component_for_episode(episode)
 
+        #
         if episode and self.sys_log:
             self.sys_log.current_episode = episode
             self.sys_log.setup_logger()

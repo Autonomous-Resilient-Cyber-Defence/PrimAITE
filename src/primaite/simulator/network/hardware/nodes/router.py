@@ -818,6 +818,7 @@ class Router(Node):
         nic.ip_address = ip_address
         nic.subnet_mask = subnet_mask
         self.sys_log.info(f"Configured port {port} with ip_address={ip_address}/{nic.ip_network.prefixlen}")
+        self.set_original_state()
 
     def enable_port(self, port: int):
         """
