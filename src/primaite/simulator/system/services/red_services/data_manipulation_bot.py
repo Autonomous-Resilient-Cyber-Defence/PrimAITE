@@ -47,6 +47,26 @@ class DataManipulationBot(DatabaseClient):
         super().__init__(**kwargs)
         self.name = "DataManipulationBot"
 
+    def set_original_state(self):
+        """Sets the original state."""
+        print(f"Setting DataManipulationBot original state on node {self.software_manager.node.hostname}")
+        super().set_original_state()
+        vals_to_include = {
+            "server_ip_address",
+            "payload",
+            "server_password",
+            "port_scan_p_of_success",
+            "data_manipulation_p_of_success",
+            "attack_stage",
+            "repeat",
+        }
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        print(f"Resetting DataManipulationBot state on node {self.software_manager.node.hostname}")
+        super().reset_component_for_episode(episode)
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 

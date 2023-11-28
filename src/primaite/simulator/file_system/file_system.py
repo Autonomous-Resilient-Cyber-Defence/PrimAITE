@@ -37,15 +37,20 @@ class FileSystem(SimComponent):
 
     def set_original_state(self):
         """Sets the original state."""
+        print(f"Setting FileSystem original state on node {self.sys_log.hostname}")
         for folder in self.folders.values():
             folder.set_original_state()
-        super().set_original_state()
         # Capture a list of all 'original' file uuids
-        self._original_state["original_folder_uuids"] = list(self.folders.keys())
+        original_keys = list(self.folders.keys())
+        vals_to_include = {"sim_root"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+        self._original_state["original_folder_uuids"] = original_keys
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
+        print(f"Resetting FileSystem state on node {self.sys_log.hostname}")
         # Move any 'original' folder that have been deleted back to folders
+        print(self._original_state)
         original_folder_uuids = self._original_state.pop("original_folder_uuids")
         for uuid in original_folder_uuids:
             if uuid in self.deleted_folders:
