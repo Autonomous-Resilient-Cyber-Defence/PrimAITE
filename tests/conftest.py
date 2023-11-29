@@ -1,6 +1,6 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict, Tuple, Union
 
 import pytest
 import yaml
@@ -12,6 +12,9 @@ from primaite.session.session import PrimaiteSession
 # from primaite.environment.primaite_env import Primaite
 # from primaite.primaite_session import PrimaiteSession
 from primaite.simulator.network.container import Network
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.networks import arcd_uc2_network
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -29,7 +32,7 @@ from primaite import PRIMAITE_PATHS
 
 # PrimAITE v3 stuff
 from primaite.simulator.file_system.file_system import FileSystem
-from primaite.simulator.network.hardware.base import Node
+from primaite.simulator.network.hardware.base import Link, Node
 
 
 class TestService(Service):
@@ -122,3 +125,30 @@ def temp_primaite_session(request, monkeypatch) -> TempPrimaiteSession:
     monkeypatch.setattr(PRIMAITE_PATHS, "user_sessions_path", temp_user_sessions_path())
     config_path = request.param[0]
     return TempPrimaiteSession.from_config(config_path=config_path)
+
+
+@pytest.fixture(scope="function")
+def client_server() -> Tuple[Computer, Server]:
+    # Create Computer
+    computer: Computer = Computer(
+        hostname="test_computer",
+        ip_address="192.168.0.1",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        operating_state=NodeOperatingState.ON,
+    )
+
+    # Create Server
+    server = Server(
+        hostname="server", ip_address="192.168.0.2", subnet_mask="255.255.255.0", operating_state=NodeOperatingState.ON
+    )
+
+    # Connect Computer and Server
+    computer_nic = computer.nics[next(iter(computer.nics))]
+    server_nic = server.nics[next(iter(server.nics))]
+    link = Link(endpoint_a=computer_nic, endpoint_b=server_nic)
+
+    # Should be linked
+    assert link.is_up
+
+    return computer, server
