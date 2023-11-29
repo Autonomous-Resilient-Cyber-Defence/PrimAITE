@@ -993,7 +993,6 @@ class Node(SimComponent):
 
     def set_original_state(self):
         """Sets the original state."""
-        print(f"Setting node original state for {self.hostname}")
         for software in self.software_manager.software.values():
             software.set_original_state()
 
@@ -1020,7 +1019,6 @@ class Node(SimComponent):
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        print(f"Resetting node state for {self.hostname}")
         super().reset_component_for_episode(episode)
 
         # Reset ARP Cache
@@ -1039,10 +1037,12 @@ class Node(SimComponent):
         for nic in self.nics.values():
             nic.reset_component_for_episode(episode)
 
+        for software in self.software_manager.software.values():
+            software.reset_component_for_episode(episode)
+
         if episode and self.sys_log:
             self.sys_log.current_episode = episode
             self.sys_log.setup_logger()
-
 
     def _init_request_manager(self) -> RequestManager:
         # TODO: I see that this code is really confusing and hard to read right now... I think some of these things will

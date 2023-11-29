@@ -31,14 +31,13 @@ class DNSClient(Service):
 
     def set_original_state(self):
         """Sets the original state."""
-        print(f"Setting DNSClient original state on node {self.software_manager.node.hostname}")
+        _LOGGER.debug(f"Setting DNSClient original state on node {self.software_manager.node.hostname}")
         super().set_original_state()
         vals_to_include = {"dns_server"}
         self._original_state.update(self.model_dump(include=vals_to_include))
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        print(f"Resetting DNSClient state on node {self.software_manager.node.hostname}")
         self.dns_cache.clear()
         super().reset_component_for_episode(episode)
 

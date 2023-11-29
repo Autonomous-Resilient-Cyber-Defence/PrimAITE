@@ -2,6 +2,7 @@ from datetime import datetime
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Literal, Optional, Union
 
+from primaite import getLogger
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -9,6 +10,8 @@ from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
+
+_LOGGER = getLogger(__name__)
 
 
 class DatabaseService(Service):
@@ -40,7 +43,7 @@ class DatabaseService(Service):
 
     def set_original_state(self):
         """Sets the original state."""
-        print(f"Setting DatabaseService original state on node {self.software_manager.node.hostname}")
+        _LOGGER.debug(f"Setting DatabaseService original state on node {self.software_manager.node.hostname}")
         super().set_original_state()
         vals_to_include = {
             "password",

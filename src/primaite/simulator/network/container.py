@@ -58,20 +58,18 @@ class Network(SimComponent):
             node.reset_component_for_episode(episode)
         for link in self.links.values():
             link.reset_component_for_episode(episode)
-        
+
         for node in self.nodes.values():
             node.power_on()
 
+            for nic in node.nics.values():
+                nic.enable()
             # Reset software
             for software in node.software_manager.software.values():
-                software.reset_component_for_episode(episode)
                 if isinstance(software, Service):
                     software.start()
                 elif isinstance(software, Application):
                     software.run()
-
-            for nic in node.nics.values():
-                nic.enable()
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
