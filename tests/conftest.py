@@ -14,7 +14,9 @@ from primaite.session.session import PrimaiteSession
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.switch import Switch
 from primaite.simulator.network.networks import arcd_uc2_network
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -152,3 +154,83 @@ def client_server() -> Tuple[Computer, Server]:
     assert link.is_up
 
     return computer, server
+
+
+@pytest.fixture(scope="function")
+def example_network() -> Network:
+    """
+    Create the network used for testing.
+
+    Should only contain the nodes and links.
+    This would act as the base network and services and applications are installed in the relevant test file,
+
+    --------------                                                                       --------------
+    |  client_1  |-----                                                              ----|  server_1  |
+    --------------    |     --------------      ------------      --------------     |   --------------
+                      ------|  switch_1  |------|  router  |------|  switch_2  |------
+    --------------    |     --------------      ------------      --------------     |   --------------
+    |  client_2  |----                                                               ----|  server_2  |
+    --------------                                                                       --------------
+    """
+    network = Network()
+
+    # Router 1
+    router_1 = Router(hostname="router_1", num_ports=5, operating_state=NodeOperatingState.ON)
+    router_1.configure_port(port=1, ip_address="192.168.1.1", subnet_mask="255.255.255.0")
+    router_1.configure_port(port=2, ip_address="192.168.10.1", subnet_mask="255.255.255.0")
+
+    # Switch 1
+    switch_1 = Switch(hostname="switch_1", num_ports=8, operating_state=NodeOperatingState.ON)
+    network.connect(endpoint_a=router_1.ethernet_ports[1], endpoint_b=switch_1.switch_ports[8])
+    router_1.enable_port(1)
+
+    # Switch 2
+    switch_2 = Switch(hostname="switch_2", num_ports=8, operating_state=NodeOperatingState.ON)
+    network.connect(endpoint_a=router_1.ethernet_ports[2], endpoint_b=switch_2.switch_ports[8])
+    router_1.enable_port(2)
+
+    # Client 1
+    client_1 = Computer(
+        hostname="client_1",
+        ip_address="192.168.10.21",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.10.1",
+        operating_state=NodeOperatingState.ON,
+    )
+    network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
+
+    # Client 2
+    client_2 = Computer(
+        hostname="client_2",
+        ip_address="192.168.10.22",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.10.1",
+        operating_state=NodeOperatingState.ON,
+    )
+    network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
+
+    # Domain Controller
+    server_1 = Server(
+        hostname="server_1",
+        ip_address="192.168.1.10",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        operating_state=NodeOperatingState.ON,
+    )
+
+    network.connect(endpoint_b=server_1.ethernet_port[1], endpoint_a=switch_1.switch_ports[1])
+
+    # Database Server
+    server_2 = Server(
+        hostname="server_2",
+        ip_address="192.168.1.14",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        operating_state=NodeOperatingState.ON,
+    )
+    network.connect(endpoint_b=server_2.ethernet_port[1], endpoint_a=switch_1.switch_ports[3])
+
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+
+    return network

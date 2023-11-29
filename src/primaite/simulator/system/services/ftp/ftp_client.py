@@ -264,8 +264,11 @@ class FTPClient(FTPServiceABC):
         This helps prevent an FTP request loop - FTP client and servers can exist on
         the same node.
         """
+        if not self._can_perform_action():
+            return False
+
         if payload.status_code is None:
-            self.sys_log.error(f"FTP Server could not be found - Error Code: {payload.status_code.value}")
+            self.sys_log.error(f"FTP Server could not be found - Error Code: {FTPStatusCode.NOT_FOUND.value}")
             return False
 
         self.sys_log.info(f"{self.name}: Received FTP Response {payload.ftp_command.name} {payload.status_code.value}")

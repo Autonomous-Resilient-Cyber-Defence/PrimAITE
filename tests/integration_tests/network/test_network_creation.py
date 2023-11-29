@@ -2,6 +2,28 @@ import pytest
 
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.base import NIC, Node
+from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.networks import client_server_routed
+
+
+def test_network(example_network):
+    network: Network = example_network
+    client_1: Computer = network.get_node_by_hostname("client_1")
+    client_2: Computer = network.get_node_by_hostname("client_2")
+    server_1: Server = network.get_node_by_hostname("server_1")
+    server_2: Server = network.get_node_by_hostname("server_2")
+
+    assert client_1.ping(client_2.ethernet_port[1].ip_address)
+    assert client_2.ping(client_1.ethernet_port[1].ip_address)
+
+    assert server_1.ping(server_2.ethernet_port[1].ip_address)
+    assert server_2.ping(server_1.ethernet_port[1].ip_address)
+
+    assert client_1.ping(server_1.ethernet_port[1].ip_address)
+    assert client_2.ping(server_1.ethernet_port[1].ip_address)
+    assert client_1.ping(server_2.ethernet_port[1].ip_address)
+    assert client_2.ping(server_2.ethernet_port[1].ip_address)
 
 
 def test_adding_removing_nodes():

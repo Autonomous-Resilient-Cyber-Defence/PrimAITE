@@ -51,14 +51,22 @@ def client_server_routed() -> Network:
 
     # Client 1
     client_1 = Computer(
-        hostname="client_1", ip_address="192.168.2.2", subnet_mask="255.255.255.0", default_gateway="192.168.2.1"
+        hostname="client_1",
+        ip_address="192.168.2.2",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.2.1",
+        operating_state=NodeOperatingState.ON,
     )
     client_1.power_on()
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
 
     # Server 1
     server_1 = Server(
-        hostname="server_1", ip_address="192.168.1.2", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+        hostname="server_1",
+        ip_address="192.168.1.2",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        operating_state=NodeOperatingState.ON,
     )
     server_1.power_on()
     network.connect(endpoint_b=server_1.ethernet_port[1], endpoint_a=switch_1.switch_ports[1])
