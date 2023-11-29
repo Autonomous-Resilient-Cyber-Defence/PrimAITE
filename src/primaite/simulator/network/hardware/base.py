@@ -1035,8 +1035,6 @@ class Node(SimComponent):
         # Reset File System
         self.file_system.reset_component_for_episode(episode)
 
-        self.power_on()
-
         # Reset all Nics
         for nic in self.nics.values():
             nic.reset_component_for_episode(episode)
@@ -1045,16 +1043,6 @@ class Node(SimComponent):
             self.sys_log.current_episode = episode
             self.sys_log.setup_logger()
 
-        # Reset software
-        for software in self.software_manager.software.values():
-            software.reset_component_for_episode(episode)
-            if isinstance(software, Service):
-                software.start()
-            elif isinstance(software, Application):
-                software.run()
-
-        for nic in self.nics.values():
-            nic.enable()
 
     def _init_request_manager(self) -> RequestManager:
         # TODO: I see that this code is really confusing and hard to read right now... I think some of these things will

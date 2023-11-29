@@ -12,6 +12,8 @@ from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import Router
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.system.applications.application import Application
+from primaite.simulator.system.services.service import Service
 
 _LOGGER = getLogger(__name__)
 
@@ -56,6 +58,20 @@ class Network(SimComponent):
             node.reset_component_for_episode(episode)
         for link in self.links.values():
             link.reset_component_for_episode(episode)
+        
+        for node in self.nodes.values():
+            node.power_on()
+
+            # Reset software
+            for software in node.software_manager.software.values():
+                software.reset_component_for_episode(episode)
+                if isinstance(software, Service):
+                    software.start()
+                elif isinstance(software, Application):
+                    software.run()
+
+            for nic in node.nics.values():
+                nic.enable()
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
