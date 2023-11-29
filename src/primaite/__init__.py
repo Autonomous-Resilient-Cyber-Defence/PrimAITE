@@ -108,7 +108,7 @@ class _PrimaitePaths:
 
     def generate_episode_step_log_file_path(self) -> Path:
         """The PrimAITE app episode step log file path."""
-        return self.app_log_dir_path / "epi_step.json"
+        return self.app_log_dir_path / "epi_step.log"
 
     def __repr__(self) -> str:
         properties_str = ", ".join([f"{p}='{getattr(self, p)}'" for p in self._get_dirs_properties()])
