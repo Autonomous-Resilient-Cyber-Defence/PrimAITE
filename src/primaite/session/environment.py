@@ -1,9 +1,11 @@
+import os
 from typing import Any, Dict, Final, Optional, SupportsFloat, Tuple
 
 import gymnasium
 from gymnasium.core import ActType, ObsType
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
+from primaite import PRIMAITE_PATHS
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
 
@@ -30,6 +32,17 @@ class PrimaiteGymEnv(gymnasium.Env):
         self.game.apply_agent_actions()
         self.game.advance_timestep()
         state = self.game.get_sim_state()
+
+        # Create state suitable for dumping to file.
+        dump_state = {self.game.episode_counter: {self.game.step_counter: state}}
+
+        # Dump to file
+        if os.path.isfile(PRIMAITE_PATHS.episode_steps_log_file_path):
+            with open(PRIMAITE_PATHS.episode_steps_log_file_path, "a", encoding="utf-8") as f:
+                f.write(str(dump_state))
+                f.write("\n=================\n")
+                f.flush()
+
         self.game.update_agents(state)
 
         next_obs = self._get_obs()

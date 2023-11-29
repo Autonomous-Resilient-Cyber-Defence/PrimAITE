@@ -1,12 +1,10 @@
 """PrimAITE game - Encapsulates the simulation and agents."""
-import json
-import os
 from ipaddress import IPv4Address
 from typing import Dict, List
 
 from pydantic import BaseModel, ConfigDict
 
-from primaite import getLogger, PRIMAITE_PATHS
+from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent, RandomAgent
@@ -108,13 +106,6 @@ class PrimaiteGame:
 
         # Get the current state of the simulation
         sim_state = self.get_sim_state()
-
-        # Create state suitable for dumping to JSON file.
-        dump_state = {self.episode_counter: {self.step_counter: sim_state}}
-        # Dump to file
-        if os.path.isfile(PRIMAITE_PATHS.episode_steps_log_file_path):
-            with open(PRIMAITE_PATHS.episode_steps_log_file_path, "a") as f:
-                json.dump(dump_state, f)
 
         # Update agents' observations and rewards based on the current state
         self.update_agents(sim_state)
