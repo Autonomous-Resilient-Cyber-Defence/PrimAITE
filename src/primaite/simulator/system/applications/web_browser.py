@@ -76,7 +76,7 @@ class WebBrowser(Application):
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
 
-    def get_webpage(self) -> bool:
+    def get_webpage(self, url: Optional[str] = None) -> bool:
         """
         Retrieve the webpage.
 
@@ -85,7 +85,7 @@ class WebBrowser(Application):
         :param: url: The address of the web page the browser requests
         :type: url: str
         """
-        url = self.target_url
+        url = url or self.target_url
         if not self._can_perform_action():
             return False
 

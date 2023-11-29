@@ -76,6 +76,10 @@ class TestPrimaiteSession:
         with pytest.raises(pydantic.ValidationError):
             session = TempPrimaiteSession.from_config(MISCONFIGURED_PATH)
 
+    @pytest.mark.skip(
+        reason="Currently software cannot be dynamically created/destroyed during simulation. Therefore, "
+        "reset doesn't implement software restore."
+    )
     @pytest.mark.parametrize("temp_primaite_session", [[CFG_PATH]], indirect=True)
     def test_session_sim_reset(self, temp_primaite_session):
         with temp_primaite_session as session:
