@@ -72,7 +72,7 @@ class Folder(FileSystemItemABC):
         """Reset the original state of the SimComponent."""
         _LOGGER.debug(f"Resetting Folder ({self.name}) state on node {self.sys_log.hostname}")
         # Move any 'original' file that have been deleted back to files
-        original_file_uuids = self._original_state.pop("original_file_uuids")
+        original_file_uuids = self._original_state["original_file_uuids"]
         for uuid in original_file_uuids:
             if uuid in self.deleted_files:
                 self.files[uuid] = self.deleted_files.pop(uuid)
