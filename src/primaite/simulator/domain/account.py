@@ -72,7 +72,7 @@ class Account(SimComponent):
                 "num_group_changes": self.num_group_changes,
                 "username": self.username,
                 "password": self.password,
-                "account_type": self.account_type.name,
+                "account_type": self.account_type.value,
                 "enabled": self.enabled,
             }
         )

@@ -8,13 +8,13 @@ from primaite.simulator.system.services.red_services.data_manipulation_bot impor
 def test_data_manipulation(uc2_network):
     """Tests the UC2 data manipulation scenario end-to-end. Is a work in progress."""
     client_1: Computer = uc2_network.get_node_by_hostname("client_1")
-    db_manipulation_bot: DataManipulationBot = client_1.software_manager.software["DataManipulationBot"]
+    db_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
 
     database_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = database_server.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = database_server.software_manager.software.get("DatabaseService")
 
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
-    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
 
     db_service.backup_database()
 

@@ -19,23 +19,23 @@ def web_client_and_web_server(client_server) -> Tuple[WebBrowser, Computer, WebS
 
     # Install Web Browser on computer
     computer.software_manager.install(WebBrowser)
-    web_browser: WebBrowser = computer.software_manager.software["WebBrowser"]
+    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
     web_browser.run()
 
     # Install DNS Client service on computer
     computer.software_manager.install(DNSClient)
-    dns_client: DNSClient = computer.software_manager.software["DNSClient"]
+    dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
     # set dns server
     dns_client.dns_server = server.nics[next(iter(server.nics))].ip_address
 
     # Install Web Server service on server
     server.software_manager.install(WebServer)
-    web_server_service: WebServer = server.software_manager.software["WebServer"]
+    web_server_service: WebServer = server.software_manager.software.get("WebServer")
     web_server_service.start()
 
     # Install DNS Server service on server
     server.software_manager.install(DNSServer)
-    dns_server: DNSServer = server.software_manager.software["DNSServer"]
+    dns_server: DNSServer = server.software_manager.software.get("DNSServer")
     # register arcd.com to DNS
     dns_server.dns_register(domain_name="arcd.com", domain_ip_address=server.nics[next(iter(server.nics))].ip_address)
 

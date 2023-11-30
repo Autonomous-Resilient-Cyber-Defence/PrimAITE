@@ -60,28 +60,28 @@ def web_client_web_server_database() -> Tuple[Computer, Server, Server]:
 
     # Install DatabaseService on db server
     db_server.software_manager.install(DatabaseService)
-    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = db_server.software_manager.software.get("DatabaseService")
     db_service.start()
 
     # Install Web Browser on computer
     computer.software_manager.install(WebBrowser)
-    web_browser: WebBrowser = computer.software_manager.software["WebBrowser"]
+    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
     web_browser.run()
 
     # Install DNS Client service on computer
     computer.software_manager.install(DNSClient)
-    dns_client: DNSClient = computer.software_manager.software["DNSClient"]
+    dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
     # set dns server
     dns_client.dns_server = web_server.nics[next(iter(web_server.nics))].ip_address
 
     # Install Web Server service on web server
     web_server.software_manager.install(WebServer)
-    web_server_service: WebServer = web_server.software_manager.software["WebServer"]
+    web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
     web_server_service.start()
 
     # Install DNS Server service on web server
     web_server.software_manager.install(DNSServer)
-    dns_server: DNSServer = web_server.software_manager.software["DNSServer"]
+    dns_server: DNSServer = web_server.software_manager.software.get("DNSServer")
     # register arcd.com to DNS
     dns_server.dns_register(
         domain_name="arcd.com", domain_ip_address=web_server.nics[next(iter(web_server.nics))].ip_address
@@ -89,7 +89,7 @@ def web_client_web_server_database() -> Tuple[Computer, Server, Server]:
 
     # Install DatabaseClient service on web server
     web_server.software_manager.install(DatabaseClient)
-    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
     db_client.server_ip_address = IPv4Address(db_server_nic.ip_address)  # set IP address of Database Server
     db_client.run()
     assert db_client.connect()
@@ -101,6 +101,6 @@ def web_client_web_server_database() -> Tuple[Computer, Server, Server]:
 def test_web_client_requests_users(web_client_web_server_database):
     computer, web_server, db_server = web_client_web_server_database
 
-    web_browser: WebBrowser = computer.software_manager.software["WebBrowser"]
+    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
 
     web_browser.get_webpage()

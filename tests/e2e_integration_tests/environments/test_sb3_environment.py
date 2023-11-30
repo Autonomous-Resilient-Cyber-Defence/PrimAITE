@@ -11,7 +11,7 @@ from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteGymEnv
 
 
-@pytest.mark.skip(reason="no way of currently testing this")
+# @pytest.mark.skip(reason="no way of currently testing this")
 def test_sb3_compatibility():
     """Test that the Gymnasium environment can be used with an SB3 agent."""
     with open(example_config_path(), "r") as f:

@@ -228,7 +228,7 @@ def example_network() -> Network:
         default_gateway="192.168.1.1",
         operating_state=NodeOperatingState.ON,
     )
-    network.connect(endpoint_b=server_2.ethernet_port[1], endpoint_a=switch_1.switch_ports[3])
+    network.connect(endpoint_b=server_2.ethernet_port[1], endpoint_a=switch_1.switch_ports[2])
 
     router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
     router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
