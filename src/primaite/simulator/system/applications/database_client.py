@@ -73,7 +73,8 @@ class DatabaseClient(Application):
 
         if not self.connected:
             return self._connect(self.server_ip_address, self.server_password)
-        return False
+        # already connected
+        return True
 
     def _connect(
         self, server_ip_address: IPv4Address, password: Optional[str] = None, is_reattempt: bool = False
