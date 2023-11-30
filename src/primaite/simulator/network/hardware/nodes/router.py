@@ -678,8 +678,9 @@ class Router(Node):
         """Sets the original state."""
         self.acl.set_original_state()
         self.route_table.set_original_state()
+        super().set_original_state()
         vals_to_include = {"num_ports"}
-        self._original_state = self.model_dump(include=vals_to_include)
+        self._original_state.update(self.model_dump(include=vals_to_include))
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""

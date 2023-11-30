@@ -27,10 +27,11 @@ def test_web_page_get_users_page_request_with_domain_name(uc2_network):
     web_client: WebBrowser = client_1.software_manager.software["WebBrowser"]
     web_client.run()
     assert web_client.operating_state == ApplicationOperatingState.RUNNING
+    web_client.target_url = "http://arcd.com/users/"
 
     assert web_client.get_webpage() is True
 
-    # latest reponse should have status code 200
+    # latest response should have status code 200
     assert web_client.latest_response is not None
     assert web_client.latest_response.status_code == HttpStatusCode.OK
 
