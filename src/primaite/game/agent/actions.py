@@ -424,7 +424,7 @@ class NetworkACLAddRuleAction(AbstractAction):
         elif permission == 2:
             permission_str = "DENY"
         else:
-            _LOGGER.warn(f"{self.__class__} received permission {permission}, expected 0 or 1.")
+            _LOGGER.warning(f"{self.__class__} received permission {permission}, expected 0 or 1.")
 
         if protocol_id == 0:
             return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
