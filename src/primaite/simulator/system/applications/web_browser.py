@@ -2,6 +2,7 @@ from ipaddress import IPv4Address
 from typing import Dict, Optional
 from urllib.parse import urlparse
 
+from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.http import (
     HttpRequestMethod,
@@ -13,6 +14,8 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.dns.dns_client import DNSClient
+
+_LOGGER = getLogger(__name__)
 
 
 class WebBrowser(Application):
@@ -43,14 +46,14 @@ class WebBrowser(Application):
 
     def set_original_state(self):
         """Sets the original state."""
-        print(f"Setting WebBrowser original state on node {self.software_manager.node.hostname}")
+        _LOGGER.debug(f"Setting WebBrowser original state on node {self.software_manager.node.hostname}")
         super().set_original_state()
         vals_to_include = {"target_url", "domain_name_ip_address", "latest_response"}
         self._original_state.update(self.model_dump(include=vals_to_include))
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        print(f"Resetting WebBrowser state on node {self.software_manager.node.hostname}")
+        _LOGGER.debug(f"Resetting WebBrowser state on node {self.software_manager.node.hostname}")
         super().reset_component_for_episode(episode)
 
     def _init_request_manager(self) -> RequestManager:

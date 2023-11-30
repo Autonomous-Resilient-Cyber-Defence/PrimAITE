@@ -2,10 +2,13 @@ from enum import IntEnum
 from ipaddress import IPv4Address
 from typing import Optional
 
+from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient
+
+_LOGGER = getLogger(__name__)
 
 
 class DataManipulationAttackStage(IntEnum):
@@ -49,7 +52,7 @@ class DataManipulationBot(DatabaseClient):
 
     def set_original_state(self):
         """Sets the original state."""
-        print(f"Setting DataManipulationBot original state on node {self.software_manager.node.hostname}")
+        _LOGGER.debug(f"Setting DataManipulationBot original state on node {self.software_manager.node.hostname}")
         super().set_original_state()
         vals_to_include = {
             "server_ip_address",
@@ -64,7 +67,7 @@ class DataManipulationBot(DatabaseClient):
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        print(f"Resetting DataManipulationBot state on node {self.software_manager.node.hostname}")
+        _LOGGER.debug(f"Resetting DataManipulationBot state on node {self.software_manager.node.hostname}")
         super().reset_component_for_episode(episode)
 
     def _init_request_manager(self) -> RequestManager:

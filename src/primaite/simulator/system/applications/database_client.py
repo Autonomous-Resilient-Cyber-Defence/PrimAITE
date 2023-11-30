@@ -35,15 +35,16 @@ class DatabaseClient(Application):
 
     def set_original_state(self):
         """Sets the original state."""
-        print(f"Setting DatabaseClient WebServer original state on node {self.software_manager.node.hostname}")
+        _LOGGER.debug(f"Setting DatabaseClient WebServer original state on node {self.software_manager.node.hostname}")
         super().set_original_state()
-        vals_to_include = {"server_ip_address", "server_password", "connected"}
+        vals_to_include = {"server_ip_address", "server_password", "connected", "_query_success_tracker"}
         self._original_state.update(self.model_dump(include=vals_to_include))
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        print(f"Resetting DataBaseClient state on node {self.software_manager.node.hostname}")
+        _LOGGER.debug(f"Resetting DataBaseClient state on node {self.software_manager.node.hostname}")
         super().reset_component_for_episode(episode)
+        self._query_success_tracker.clear()
 
     def describe_state(self) -> Dict:
         """
@@ -194,4 +195,6 @@ class DatabaseClient(Application):
                 self._query_success_tracker[query_id] = status_code == 200
                 if self._query_success_tracker[query_id]:
                     _LOGGER.debug(f"Received payload {payload}")
+                else:
+                    self.connected = False
         return True
