@@ -2,6 +2,7 @@ from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
+from primaite import getLogger
 from primaite.simulator.network.protocols.http import (
     HttpRequestMethod,
     HttpRequestPacket,
@@ -13,25 +14,25 @@ from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.service import Service
 
+_LOGGER = getLogger(__name__)
+
 
 class WebServer(Service):
     """Class used to represent a Web Server Service in simulation."""
 
-    _last_response_status_code: Optional[HttpStatusCode] = None
+    last_response_status_code: Optional[HttpStatusCode] = None
+
+    def set_original_state(self):
+        """Sets the original state."""
+        _LOGGER.debug(f"Setting WebServer original state on node {self.software_manager.node.hostname}")
+        super().set_original_state()
+        vals_to_include = {"last_response_status_code"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        self._last_response_status_code = None
+        _LOGGER.debug(f"Resetting WebServer state on node {self.software_manager.node.hostname}")
         super().reset_component_for_episode(episode)
-
-    @property
-    def last_response_status_code(self) -> HttpStatusCode:
-        """The latest http response code."""
-        return self._last_response_status_code
-
-    @last_response_status_code.setter
-    def last_response_status_code(self, val: Any):
-        self._last_response_status_code = val
 
     def describe_state(self) -> Dict:
         """

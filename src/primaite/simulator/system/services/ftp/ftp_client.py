@@ -1,12 +1,15 @@
 from ipaddress import IPv4Address
 from typing import Optional
 
+from primaite import getLogger
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
+
+_LOGGER = getLogger(__name__)
 
 
 class FTPClient(FTPServiceABC):
@@ -26,6 +29,18 @@ class FTPClient(FTPServiceABC):
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
         self.start()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        _LOGGER.debug(f"Setting FTPClient original state on node {self.software_manager.node.hostname}")
+        super().set_original_state()
+        vals_to_include = {"connected"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        _LOGGER.debug(f"Resetting FTPClient state on node {self.software_manager.node.hostname}")
+        super().reset_component_for_episode(episode)
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
         """
