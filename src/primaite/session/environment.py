@@ -43,7 +43,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         """Reset the environment."""
         print(
             f"Resetting environment, episode {self.game.episode_counter}, "
-            "avg. reward: {self.game.rl_agents[0].reward_function.total_reward}"
+            f"avg. reward: {self.game.rl_agents[0].reward_function.total_reward}"
         )
         self.game.reset()
         state = self.game.get_sim_state()
