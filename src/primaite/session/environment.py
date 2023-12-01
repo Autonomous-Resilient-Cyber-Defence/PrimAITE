@@ -1,4 +1,4 @@
-# import os
+import json
 from typing import Any, Dict, Final, Optional, SupportsFloat, Tuple
 
 import gymnasium
@@ -34,14 +34,15 @@ class PrimaiteGymEnv(gymnasium.Env):
         state = self.game.get_sim_state()
 
         # Create state suitable for dumping to file.
-        dump_state = {self.game.episode_counter: {self.game.step_counter: state}}
+        # dump_state = {self.game.episode_counter: {self.game.step_counter: state}}
 
         # Dump to file
         # if os.path.isfile(PRIMAITE_PATHS.episode_steps_log_file_path):
         with open(PRIMAITE_PATHS.episode_log_file_path, "a", encoding="utf-8") as f:
-            f.write(str(dump_state))
-            f.write("\n=================\n")
-            f.flush()
+            # f.write(str(dump_state))
+            # f.write("\n=================\n")
+            # f.flush()
+            json.dump(state, f)
 
         self.game.update_agents(state)
 
