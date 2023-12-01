@@ -239,6 +239,7 @@ class RewardFunction:
         self.reward_components: List[Tuple[AbstractReward, float]] = []
         "attribute reward_components keeps track of reward components and the weights assigned to each."
         self.current_reward: float
+        self.total_reward: float = 0.0
 
     def regsiter_component(self, component: AbstractReward, weight: float = 1.0) -> None:
         """Add a reward component to the reward function.

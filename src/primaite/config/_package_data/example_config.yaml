@@ -655,8 +655,8 @@ simulation:
       - ref: data_manipulation_bot
         type: DataManipulationBot
         options:
-          port_scan_p_of_success: 0.1
-          data_manipulation_p_of_success: 0.1
+          port_scan_p_of_success: 0.8
+          data_manipulation_p_of_success: 0.8
           payload: "DELETE"
           server_ip: 192.168.1.14
       services:

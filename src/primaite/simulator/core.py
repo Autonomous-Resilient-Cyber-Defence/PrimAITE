@@ -113,7 +113,7 @@ class RequestManager(BaseModel):
         """
         if name in self.request_types:
             msg = f"Overwriting request type {name}."
-            _LOGGER.warn(msg)
+            _LOGGER.debug(msg)
 
         self.request_types[name] = request_type
 
