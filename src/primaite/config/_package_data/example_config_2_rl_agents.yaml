@@ -1,14 +1,10 @@
 training_config:
-  rl_framework: RLLIB_single_agent
-  rl_algorithm: PPO
-  seed: 333
-  n_learn_episodes: 1
-  n_eval_episodes: 5
-  max_steps_per_episode: 256
-  deterministic_eval: false
-  n_agents: 1
+  rl_framework: RLLIB_multi_agent
+  # rl_framework: SB3
+  n_agents: 2
   agent_references:
-    - defender
+    - defender_1
+    - defender_2
 
 io_settings:
   save_checkpoints: true
@@ -36,31 +32,26 @@ agents:
     action_space:
       action_list:
         - type: DONOTHING
-        # <not yet implemented>
-        # - type: NODE_LOGON
-        # - type: NODE_LOGOFF
-        # - type: NODE_APPLICATION_EXECUTE
-          # options:
-            # execution_definition:
-              # target_address: arcd.com
-
+        - type: NODE_APPLICATION_EXECUTE
       options:
         nodes:
         - node_ref: client_2
+          applications:
+            - application_ref: client_2_web_browser
         max_folders_per_node: 1
         max_files_per_folder: 1
         max_services_per_node: 1
-        max_nics_per_node: 2
-        max_acl_rules: 10
+        max_applications_per_node: 1
 
     reward_function:
       reward_components:
         - type: DUMMY
 
     agent_settings:
-      start_step: 5
-      frequency: 4
-      variance: 3
+      start_settings:
+        start_step: 5
+        frequency: 4
+        variance: 3
 
   - ref: client_1_data_manipulation_red_bot
     team: RED
@@ -69,38 +60,20 @@ agents:
     observation_space:
       type: UC2RedObservation
       options:
-        nodes:
-          - node_ref: client_1
-            observations:
-            - logon_status
-            - operating_status
-            services:
-            - service_ref: data_manipulation_bot
-              observations:
-                operating_status
-                health_status
-            folders: {}
+        nodes: {}
 
     action_space:
       action_list:
         - type: DONOTHING
-        #<not yet implemented
-        # - type: NODE_APPLICATION_EXECUTE
-        #   options:
-        #     execution_definition:
-        #       server_ip: 192.168.1.14
-        #       payload: "DELETE"
-        #       success_rate: 80%
+        - type: NODE_APPLICATION_EXECUTE
         - type: NODE_FILE_DELETE
         - type: NODE_FILE_CORRUPT
-        # - type: NODE_FOLDER_DELETE
-        # - type: NODE_FOLDER_CORRUPT
         - type: NODE_OS_SCAN
-        # - type: NODE_LOGON
-        # - type: NODE_LOGOFF
       options:
         nodes:
         - node_ref: client_1
+          applications:
+            - application_ref: data_manipulation_bot
         max_folders_per_node: 1
         max_files_per_folder: 1
         max_services_per_node: 1
@@ -110,11 +83,12 @@ agents:
         - type: DUMMY
 
     agent_settings: # options specific to this particular agent type, basically args of __init__(self)
-      start_step: 25
-      frequency: 20
-      variance: 5
+      start_settings:
+        start_step: 25
+        frequency: 20
+        variance: 5
 
-  - ref: defender1
+  - ref: defender_1
     team: BLUE
     type: ProxyAgent
 
@@ -544,7 +518,9 @@ agents:
 
     agent_settings:
       # ...
-  - ref: defender2
+
+
+  - ref: defender_2
     team: BLUE
     type: ProxyAgent
 
@@ -992,17 +968,25 @@ simulation:
           ip_address: 192.168.1.1
           subnet_mask: 255.255.255.0
         2:
-          ip_address: 192.168.1.1
+          ip_address: 192.168.10.1
           subnet_mask: 255.255.255.0
       acl:
-        0:
+        18:
           action: PERMIT
           src_port: POSTGRES_SERVER
           dst_port: POSTGRES_SERVER
-        1:
+        19:
           action: PERMIT
           src_port: DNS
           dst_port: DNS
+        20:
+          action: PERMIT
+          src_port: FTP
+          dst_port: FTP
+        21:
+          action: PERMIT
+          src_port: HTTP
+          dst_port: HTTP
         22:
           action: PERMIT
           src_port: ARP
@@ -1039,7 +1023,7 @@ simulation:
       hostname: web_server
       ip_address: 192.168.1.12
       subnet_mask: 255.255.255.0
-      default_gateway: 192.168.1.10
+      default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
       - ref: web_server_database_client
@@ -1060,6 +1044,10 @@ simulation:
       services:
       - ref: database_service
         type: DatabaseService
+        options:
+          backup_server_ip: 192.168.1.16
+      - ref: database_ftp_client
+        type: FTPClient
 
     - ref: backup_server
       type: server
@@ -1070,7 +1058,7 @@ simulation:
       dns_server: 192.168.1.10
       services:
       - ref: backup_service
-        type: DatabaseBackup
+        type: FTPServer
 
     - ref: security_suite
       type: server
@@ -1091,9 +1079,15 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
-      services:
+      applications:
       - ref: data_manipulation_bot
         type: DataManipulationBot
+        options:
+          port_scan_p_of_success: 0.1
+          data_manipulation_p_of_success: 0.1
+          payload: "DELETE"
+          server_ip: 192.168.1.14
+      services:
       - ref: client_1_dns_client
         type: DNSClient
 
@@ -1107,9 +1101,13 @@ simulation:
       applications:
       - ref: client_2_web_browser
         type: WebBrowser
+        options:
+          target_url: http://arcd.com/users/
       services:
       - ref: client_2_dns_client
         type: DNSClient
+
+
 
     links:
     - ref: router_1___switch_1
