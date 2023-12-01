@@ -56,7 +56,7 @@ class DatabaseService(Service):
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        print("Resetting DatabaseService original state on node {self.software_manager.node.hostname}")
+        _LOGGER.debug("Resetting DatabaseService original state on node {self.software_manager.node.hostname}")
         self.connections.clear()
         super().reset_component_for_episode(episode)
 
