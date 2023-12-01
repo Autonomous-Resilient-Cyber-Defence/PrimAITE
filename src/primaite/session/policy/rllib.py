@@ -12,6 +12,10 @@ from ray import air, tune
 from ray.rllib.algorithms import ppo
 from ray.rllib.algorithms.ppo import PPOConfig
 
+from primaite import getLogger
+
+_LOGGER = getLogger(__name__)
+
 
 class RaySingleAgentPolicy(PolicyABC, identifier="RLLIB_single_agent"):
     """Single agent RL policy using Ray RLLib."""
@@ -19,7 +23,7 @@ class RaySingleAgentPolicy(PolicyABC, identifier="RLLIB_single_agent"):
     def __init__(self, session: "PrimaiteSession", algorithm: Literal["PPO", "A2C"], seed: Optional[int] = None):
         super().__init__(session=session)
 
-        config = {
+        self.config = {
             "env": PrimaiteRayEnv,
             "env_config": {"game": session.game},
             "disable_env_checking": True,
@@ -29,12 +33,13 @@ class RaySingleAgentPolicy(PolicyABC, identifier="RLLIB_single_agent"):
         ray.shutdown()
         ray.init()
 
-        self._algo = ppo.PPO(config=config)
-
     def learn(self, n_episodes: int, timesteps_per_episode: int) -> None:
         """Train the agent."""
-        for ep in range(n_episodes):
-            self._algo.train()
+        self.config["training_iterations"] = n_episodes * timesteps_per_episode
+        self.config["train_batch_size"] = 128
+        self._algo = ppo.PPO(config=self.config)
+        _LOGGER.info("Starting RLLIB training session")
+        self._algo.train()
 
     def eval(self, n_episodes: int, deterministic: bool) -> None:
         """Evaluate the agent."""
