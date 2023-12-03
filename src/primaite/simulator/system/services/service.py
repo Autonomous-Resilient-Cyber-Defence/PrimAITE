@@ -109,8 +109,8 @@ class Service(IOSoftware):
         """
         state = super().describe_state()
         state["operating_state"] = self.operating_state.value
-        state["health_state_actual"] = self.health_state_actual
-        state["health_state_visible"] = self.health_state_visible
+        state["health_state_actual"] = self.health_state_actual.value
+        state["health_state_visible"] = self.health_state_visible.value
         return state
 
     def stop(self) -> None:

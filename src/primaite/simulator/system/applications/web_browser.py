@@ -99,7 +99,7 @@ class WebBrowser(Application):
             return False
 
         # get the IP address of the domain name via DNS
-        dns_client: DNSClient = self.software_manager.software["DNSClient"]
+        dns_client: DNSClient = self.software_manager.software.get("DNSClient")
         domain_exists = dns_client.check_domain_exists(target_domain=parsed_url.hostname)
 
         # if domain does not exist, the request fails

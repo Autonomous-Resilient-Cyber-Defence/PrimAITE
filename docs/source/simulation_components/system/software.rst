@@ -28,7 +28,7 @@ See :ref:`Node Start up and Shut down`
 
     node.software_manager.install(WebServer)
 
-    web_server: WebServer = node.software_manager.software["WebServer"]
+    web_server: WebServer = node.software_manager.software.get("WebServer")
     assert web_server.operating_state is ServiceOperatingState.RUNNING # service is immediately ran after install
 
     node.power_off()

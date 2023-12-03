@@ -54,7 +54,7 @@ Example
     )
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
     client_1.software_manager.install(DataManipulationBot)
-    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software["DataManipulationBot"]
+    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
     data_manipulation_bot.configure(server_ip_address=IPv4Address("192.168.1.14"), payload="DELETE")
     data_manipulation_bot.run()
 

@@ -75,7 +75,10 @@ class Folder(FileSystemItemABC):
         original_file_uuids = self._original_state["original_file_uuids"]
         for uuid in original_file_uuids:
             if uuid in self.deleted_files:
-                self.files[uuid] = self.deleted_files.pop(uuid)
+                file = self.deleted_files[uuid]
+                self.deleted_files.pop(uuid)
+                self.files[uuid] = file
+                self._files_by_name[file.name] = file
 
         # Clear any other deleted files that aren't original (have been created by agent)
         self.deleted_files.clear()
@@ -84,7 +87,9 @@ class Folder(FileSystemItemABC):
         current_file_uuids = list(self.files.keys())
         for uuid in current_file_uuids:
             if uuid not in original_file_uuids:
+                file = self.files[uuid]
                 self.files.pop(uuid)
+                self._files_by_name.pop(file.name)
 
         # Now reset all remaining files
         for file in self.files.values():
