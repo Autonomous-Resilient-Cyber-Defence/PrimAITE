@@ -210,7 +210,7 @@ class WebServer404Penalty(AbstractReward):
                 f"{cls.__name__} could not be initialised from config because node_ref and service_ref were not "
                 "found in reward config."
             )
-            _LOGGER.warn(msg)
+            _LOGGER.warning(msg)
             return DummyReward()  # TODO: should we error out with incorrect inputs? Probably!
         node_uuid = game.ref_map_nodes[node_ref]
         service_uuid = game.ref_map_services[service_ref]
@@ -219,7 +219,7 @@ class WebServer404Penalty(AbstractReward):
                 f"{cls.__name__} could not be initialised because node {node_ref} and service {service_ref} were not"
                 " found in the simulator."
             )
-            _LOGGER.warn(msg)
+            _LOGGER.warning(msg)
             return DummyReward()  # TODO: consider erroring here as well
 
         return cls(node_uuid=node_uuid, service_uuid=service_uuid)

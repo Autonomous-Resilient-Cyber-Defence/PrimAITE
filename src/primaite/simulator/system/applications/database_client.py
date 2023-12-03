@@ -73,7 +73,8 @@ class DatabaseClient(Application):
 
         if not self.connected:
             return self._connect(self.server_ip_address, self.server_password)
-        return False
+        # already connected
+        return True
 
     def _connect(
         self, server_ip_address: IPv4Address, password: Optional[str] = None, is_reattempt: bool = False
@@ -107,7 +108,7 @@ class DatabaseClient(Application):
 
     def disconnect(self):
         """Disconnect from the Database Service."""
-        if self.connected and self.operating_state.RUNNING:
+        if self.connected and self.operating_state is ApplicationOperatingState.RUNNING:
             software_manager: SoftwareManager = self.software_manager
             software_manager.send_payload_to_session_manager(
                 payload={"type": "disconnect"}, dest_ip_address=self.server_ip_address, dest_port=self.port
@@ -186,6 +187,9 @@ class DatabaseClient(Application):
         :param session_id: The session id the payload relates to.
         :return: True.
         """
+        if not self._can_perform_action():
+            return False
+
         if isinstance(payload, dict) and payload.get("type"):
             if payload["type"] == "connect_response":
                 self.connected = payload["response"] == True

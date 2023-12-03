@@ -11,6 +11,7 @@ MISCONFIGURED_PATH = TEST_ASSETS_ROOT / "configs/bad_primaite_session.yaml"
 MULTI_AGENT_PATH = TEST_ASSETS_ROOT / "configs/multi_agent_session.yaml"
 
 
+# @pytest.mark.skip(reason="no way of currently testing this")
 class TestPrimaiteSession:
     @pytest.mark.parametrize("temp_primaite_session", [[CFG_PATH]], indirect=True)
     def test_creating_session(self, temp_primaite_session):

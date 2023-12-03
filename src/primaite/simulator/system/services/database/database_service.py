@@ -80,7 +80,7 @@ class DatabaseService(Service):
             return False
 
         software_manager: SoftwareManager = self.software_manager
-        ftp_client_service: FTPClient = software_manager.software["FTPClient"]
+        ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
 
         # send backup copy of database file to FTP server
         response = ftp_client_service.send_file(
@@ -104,7 +104,7 @@ class DatabaseService(Service):
             return False
 
         software_manager: SoftwareManager = self.software_manager
-        ftp_client_service: FTPClient = software_manager.software["FTPClient"]
+        ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
 
         # retrieve backup file from backup server
         response = ftp_client_service.request_file(

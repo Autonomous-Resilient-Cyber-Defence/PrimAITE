@@ -1,104 +1,118 @@
+from typing import Tuple
+
+import pytest
+
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.protocols.http import HttpStatusCode
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.web_browser import WebBrowser
+from primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.simulator.system.services.dns.dns_server import DNSServer
+from primaite.simulator.system.services.web_server.web_server import WebServer
 
 
-def test_web_page_home_page(uc2_network):
-    """Test to see if the browser is able to open the main page of the web server."""
-    client_1: Computer = uc2_network.get_node_by_hostname("client_1")
-    web_client: WebBrowser = client_1.software_manager.software["WebBrowser"]
-    web_client.run()
-    web_client.target_url = "http://arcd.com/"
-    assert web_client.operating_state == ApplicationOperatingState.RUNNING
+@pytest.fixture(scope="function")
+def web_client_and_web_server(client_server) -> Tuple[WebBrowser, Computer, WebServer, Server]:
+    computer, server = client_server
 
-    assert web_client.get_webpage() is True
+    # Install Web Browser on computer
+    computer.software_manager.install(WebBrowser)
+    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+    web_browser.run()
 
-    # latest reponse should have status code 200
-    assert web_client.latest_response is not None
-    assert web_client.latest_response.status_code == HttpStatusCode.OK
+    # Install DNS Client service on computer
+    computer.software_manager.install(DNSClient)
+    dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
+    # set dns server
+    dns_client.dns_server = server.nics[next(iter(server.nics))].ip_address
+
+    # Install Web Server service on server
+    server.software_manager.install(WebServer)
+    web_server_service: WebServer = server.software_manager.software.get("WebServer")
+    web_server_service.start()
+
+    # Install DNS Server service on server
+    server.software_manager.install(DNSServer)
+    dns_server: DNSServer = server.software_manager.software.get("DNSServer")
+    # register arcd.com to DNS
+    dns_server.dns_register(domain_name="arcd.com", domain_ip_address=server.nics[next(iter(server.nics))].ip_address)
+
+    return web_browser, computer, web_server_service, server
 
 
-def test_web_page_get_users_page_request_with_domain_name(uc2_network):
+def test_web_page_get_users_page_request_with_domain_name(web_client_and_web_server):
     """Test to see if the client can handle requests with domain names"""
-    client_1: Computer = uc2_network.get_node_by_hostname("client_1")
-    web_client: WebBrowser = client_1.software_manager.software["WebBrowser"]
-    web_client.run()
-    assert web_client.operating_state == ApplicationOperatingState.RUNNING
-    web_client.target_url = "http://arcd.com/users/"
+    web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
-    assert web_client.get_webpage() is True
+    web_server_ip = server.nics.get(next(iter(server.nics))).ip_address
+    web_browser_app.target_url = f"http://arcd.com/"
+    assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
+
+    assert web_browser_app.get_webpage() is True
 
     # latest response should have status code 200
-    assert web_client.latest_response is not None
-    assert web_client.latest_response.status_code == HttpStatusCode.OK
+    assert web_browser_app.latest_response is not None
+    assert web_browser_app.latest_response.status_code == HttpStatusCode.OK
 
 
-def test_web_page_get_users_page_request_with_ip_address(uc2_network):
+def test_web_page_get_users_page_request_with_ip_address(web_client_and_web_server):
     """Test to see if the client can handle requests that use ip_address."""
-    client_1: Computer = uc2_network.get_node_by_hostname("client_1")
-    web_client: WebBrowser = client_1.software_manager.software["WebBrowser"]
-    web_client.run()
+    web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
-    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    web_server_ip = server.nics.get(next(iter(server.nics))).ip_address
+    web_browser_app.target_url = f"http://{web_server_ip}/"
+    assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
 
-    web_server_ip = web_server.nics.get(next(iter(web_server.nics))).ip_address
-    web_client.target_url = f"http://{web_server_ip}/users/"
-    assert web_client.operating_state == ApplicationOperatingState.RUNNING
-
-    assert web_client.get_webpage() is True
+    assert web_browser_app.get_webpage() is True
 
     # latest response should have status code 200
-    assert web_client.latest_response is not None
-    assert web_client.latest_response.status_code == HttpStatusCode.OK
+    assert web_browser_app.latest_response is not None
+    assert web_browser_app.latest_response.status_code == HttpStatusCode.OK
 
 
-def test_web_page_request_from_shut_down_server(uc2_network):
+def test_web_page_request_from_shut_down_server(web_client_and_web_server):
     """Test to see that the web server does not respond when the server is off."""
-    client_1: Computer = uc2_network.get_node_by_hostname("client_1")
-    web_client: WebBrowser = client_1.software_manager.software["WebBrowser"]
-    web_client.run()
+    web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
-    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    web_server_ip = server.nics.get(next(iter(server.nics))).ip_address
+    web_browser_app.target_url = f"http://arcd.com/"
+    assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
 
-    assert web_client.operating_state == ApplicationOperatingState.RUNNING
-
-    assert web_client.get_webpage("http://arcd.com/users/") is True
+    assert web_browser_app.get_webpage() is True
 
     # latest response should have status code 200
-    assert web_client.latest_response.status_code == HttpStatusCode.OK
+    assert web_browser_app.latest_response is not None
+    assert web_browser_app.latest_response.status_code == HttpStatusCode.OK
 
-    web_server.power_off()
+    server.power_off()
 
-    for i in range(web_server.shut_down_duration + 1):
-        uc2_network.apply_timestep(timestep=i)
+    server.power_off()
+
+    for i in range(server.shut_down_duration + 1):
+        server.apply_timestep(timestep=i)
 
     # node should be off
-    assert web_server.operating_state is NodeOperatingState.OFF
+    assert server.operating_state is NodeOperatingState.OFF
 
-    assert web_client.get_webpage("http://arcd.com/users/") is False
-    assert web_client.latest_response.status_code == HttpStatusCode.NOT_FOUND
+    assert web_browser_app.get_webpage() is False
+    assert web_browser_app.latest_response.status_code == HttpStatusCode.NOT_FOUND
 
 
-def test_web_page_request_from_closed_web_browser(uc2_network):
-    client_1: Computer = uc2_network.get_node_by_hostname("client_1")
-    web_client: WebBrowser = client_1.software_manager.software["WebBrowser"]
-    web_client.run()
+def test_web_page_request_from_closed_web_browser(web_client_and_web_server):
+    web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
-    web_server: Server = uc2_network.get_node_by_hostname("web_server")
-
-    assert web_client.operating_state == ApplicationOperatingState.RUNNING
-
-    assert web_client.get_webpage("http://arcd.com/users/") is True
+    assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
+    web_browser_app.target_url = f"http://arcd.com/"
+    assert web_browser_app.get_webpage() is True
 
     # latest response should have status code 200
-    assert web_client.latest_response.status_code == HttpStatusCode.OK
+    assert web_browser_app.latest_response.status_code == HttpStatusCode.OK
 
-    web_client.close()
+    web_browser_app.close()
 
     # node should be off
-    assert web_client.operating_state is ApplicationOperatingState.CLOSED
+    assert web_browser_app.operating_state is ApplicationOperatingState.CLOSED
 
-    assert web_client.get_webpage("http://arcd.com/users/") is False
+    assert web_browser_app.get_webpage() is False

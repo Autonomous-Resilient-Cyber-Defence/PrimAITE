@@ -19,11 +19,11 @@ def dm_client() -> Node:
 
 @pytest.fixture
 def dm_bot(dm_client) -> DataManipulationBot:
-    return dm_client.software_manager.software["DataManipulationBot"]
+    return dm_client.software_manager.software.get("DataManipulationBot")
 
 
 def test_create_dm_bot(dm_client):
-    data_manipulation_bot: DataManipulationBot = dm_client.software_manager.software["DataManipulationBot"]
+    data_manipulation_bot: DataManipulationBot = dm_client.software_manager.software.get("DataManipulationBot")
 
     assert data_manipulation_bot.name == "DataManipulationBot"
     assert data_manipulation_bot.port == Port.POSTGRES_SERVER

@@ -5,6 +5,8 @@ def convert_bytes_to_megabits(B: Union[int, float]) -> float:  # noqa - Keep it 
     """
     Convert Bytes (file size) to Megabits (data transfer).
 
+    Technically Mebibits - but for simplicity sake, we'll call it megabit
+
     :param B: The file size in Bytes.
     :return: File bits to transfer in Megabits.
     """

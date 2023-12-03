@@ -252,6 +252,6 @@ class SimComponent(BaseModel):
     def parent(self, new_parent: Union["SimComponent", None]) -> None:
         if self._parent and new_parent:
             msg = f"Overwriting parent of {self.uuid}. Old parent: {self._parent.uuid}, New parent: {new_parent.uuid}"
-            _LOGGER.warn(msg)
+            _LOGGER.warning(msg)
             raise RuntimeWarning(msg)
         self._parent = new_parent

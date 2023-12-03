@@ -8,7 +8,7 @@ from primaite.simulator.system.services.database.database_service import Databas
 def database_server() -> Node:
     node = Node(hostname="db_node")
     node.software_manager.install(DatabaseService)
-    node.software_manager.software["DatabaseService"].start()
+    node.software_manager.software.get("DatabaseService").start()
     return node
 
 
