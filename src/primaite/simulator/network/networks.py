@@ -51,14 +51,22 @@ def client_server_routed() -> Network:
 
     # Client 1
     client_1 = Computer(
-        hostname="client_1", ip_address="192.168.2.2", subnet_mask="255.255.255.0", default_gateway="192.168.2.1"
+        hostname="client_1",
+        ip_address="192.168.2.2",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.2.1",
+        operating_state=NodeOperatingState.ON,
     )
     client_1.power_on()
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
 
     # Server 1
     server_1 = Server(
-        hostname="server_1", ip_address="192.168.1.2", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+        hostname="server_1",
+        ip_address="192.168.1.2",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        operating_state=NodeOperatingState.ON,
     )
     server_1.power_on()
     network.connect(endpoint_b=server_1.ethernet_port[1], endpoint_a=switch_1.switch_ports[1])
@@ -139,7 +147,7 @@ def arcd_uc2_network() -> Network:
     client_1.power_on()
     network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
     client_1.software_manager.install(DataManipulationBot)
-    db_manipulation_bot: DataManipulationBot = client_1.software_manager.software["DataManipulationBot"]
+    db_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
     db_manipulation_bot.configure(
         server_ip_address=IPv4Address("192.168.1.14"),
         payload="DELETE",
@@ -157,7 +165,7 @@ def arcd_uc2_network() -> Network:
         operating_state=NodeOperatingState.ON,
     )
     client_2.power_on()
-    web_browser = client_2.software_manager.software["WebBrowser"]
+    web_browser = client_2.software_manager.software.get("WebBrowser")
     web_browser.target_url = "http://arcd.com/users/"
     network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
 
@@ -241,7 +249,7 @@ def arcd_uc2_network() -> Network:
         # noqa
     ]
     database_server.software_manager.install(DatabaseService)
-    database_service: DatabaseService = database_server.software_manager.software["DatabaseService"]  # noqa
+    database_service: DatabaseService = database_server.software_manager.software.get("DatabaseService")  # noqa
     database_service.start()
     database_service.configure_backup(backup_server=IPv4Address("192.168.1.16"))
     database_service._process_sql(ddl, None)  # noqa
@@ -260,7 +268,7 @@ def arcd_uc2_network() -> Network:
     web_server.power_on()
     web_server.software_manager.install(DatabaseClient)
 
-    database_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    database_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
     database_client.configure(server_ip_address=IPv4Address("192.168.1.14"))
     network.connect(endpoint_b=web_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[2])
     database_client.run()
@@ -269,7 +277,7 @@ def arcd_uc2_network() -> Network:
     web_server.software_manager.install(WebServer)
 
     # register the web_server to a domain
-    dns_server_service: DNSServer = domain_controller.software_manager.software["DNSServer"]  # noqa
+    dns_server_service: DNSServer = domain_controller.software_manager.software.get("DNSServer")  # noqa
     dns_server_service.dns_register("arcd.com", web_server.ip_address)
 
     # Backup Server

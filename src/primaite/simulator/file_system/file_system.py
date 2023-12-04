@@ -53,7 +53,10 @@ class FileSystem(SimComponent):
         original_folder_uuids = self._original_state["original_folder_uuids"]
         for uuid in original_folder_uuids:
             if uuid in self.deleted_folders:
-                self.folders[uuid] = self.deleted_folders.pop(uuid)
+                folder = self.deleted_folders[uuid]
+                self.deleted_folders.pop(uuid)
+                self.folders[uuid] = folder
+                self._folders_by_name[folder.name] = folder
 
         # Clear any other deleted folders that aren't original (have been created by agent)
         self.deleted_folders.clear()
@@ -62,7 +65,9 @@ class FileSystem(SimComponent):
         current_folder_uuids = list(self.folders.keys())
         for uuid in current_folder_uuids:
             if uuid not in original_folder_uuids:
+                folder = self.folders[uuid]
                 self.folders.pop(uuid)
+                self._folders_by_name.pop(folder.name)
 
         # Now reset all remaining folders
         for folder in self.folders.values():

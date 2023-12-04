@@ -181,13 +181,13 @@ class NIC(SimComponent):
         if self.enabled:
             return
         if not self._connected_node:
-            _LOGGER.error(f"NIC {self} cannot be enabled as it is not connected to a Node")
+            _LOGGER.debug(f"NIC {self} cannot be enabled as it is not connected to a Node")
             return
         if self._connected_node.operating_state != NodeOperatingState.ON:
             self._connected_node.sys_log.error(f"NIC {self} cannot be enabled as the endpoint is not turned on")
             return
         if not self._connected_link:
-            _LOGGER.error(f"NIC {self} cannot be enabled as it is not connected to a Link")
+            _LOGGER.debug(f"NIC {self} cannot be enabled as it is not connected to a Link")
             return
 
         self.enabled = True

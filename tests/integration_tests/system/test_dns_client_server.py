@@ -1,3 +1,8 @@
+from ipaddress import IPv4Address
+from typing import Tuple
+
+import pytest
+
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.server import Server
@@ -6,12 +11,31 @@ from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.service import ServiceOperatingState
 
 
-def test_dns_client_server(uc2_network):
-    client_1: Computer = uc2_network.get_node_by_hostname("client_1")
-    domain_controller: Server = uc2_network.get_node_by_hostname("domain_controller")
+@pytest.fixture(scope="function")
+def dns_client_and_dns_server(client_server) -> Tuple[DNSClient, Computer, DNSServer, Server]:
+    computer, server = client_server
 
-    dns_client: DNSClient = client_1.software_manager.software["DNSClient"]
-    dns_server: DNSServer = domain_controller.software_manager.software["DNSServer"]
+    # Install DNS Client on computer
+    computer.software_manager.install(DNSClient)
+    dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
+    dns_client.start()
+    # set server as DNS Server
+    dns_client.dns_server = IPv4Address(server.nics.get(next(iter(server.nics))).ip_address)
+
+    # Install DNS Server on server
+    server.software_manager.install(DNSServer)
+    dns_server: DNSServer = server.software_manager.software.get("DNSServer")
+    dns_server.start()
+    # register arcd.com as a domain
+    dns_server.dns_register(
+        domain_name="arcd.com", domain_ip_address=IPv4Address(server.nics.get(next(iter(server.nics))).ip_address)
+    )
+
+    return dns_client, computer, dns_server, server
+
+
+def test_dns_client_server(dns_client_and_dns_server):
+    dns_client, computer, dns_server, server = dns_client_and_dns_server
 
     assert dns_client.operating_state == ServiceOperatingState.RUNNING
     assert dns_server.operating_state == ServiceOperatingState.RUNNING
@@ -29,12 +53,8 @@ def test_dns_client_server(uc2_network):
     assert len(dns_client.dns_cache) == 1
 
 
-def test_dns_client_requests_offline_dns_server(uc2_network):
-    client_1: Computer = uc2_network.get_node_by_hostname("client_1")
-    domain_controller: Server = uc2_network.get_node_by_hostname("domain_controller")
-
-    dns_client: DNSClient = client_1.software_manager.software["DNSClient"]
-    dns_server: DNSServer = domain_controller.software_manager.software["DNSServer"]
+def test_dns_client_requests_offline_dns_server(dns_client_and_dns_server):
+    dns_client, computer, dns_server, server = dns_client_and_dns_server
 
     assert dns_client.operating_state == ServiceOperatingState.RUNNING
     assert dns_server.operating_state == ServiceOperatingState.RUNNING
@@ -48,12 +68,12 @@ def test_dns_client_requests_offline_dns_server(uc2_network):
     assert len(dns_client.dns_cache) == 1
     dns_client.dns_cache = {}
 
-    domain_controller.power_off()
+    server.power_off()
 
-    for i in range(domain_controller.shut_down_duration + 1):
-        uc2_network.apply_timestep(timestep=i)
+    for i in range(server.shut_down_duration + 1):
+        server.apply_timestep(timestep=i)
 
-    assert domain_controller.operating_state == NodeOperatingState.OFF
+    assert server.operating_state == NodeOperatingState.OFF
     assert dns_server.operating_state == ServiceOperatingState.STOPPED
 
     # this time it should not cache because dns server is not online

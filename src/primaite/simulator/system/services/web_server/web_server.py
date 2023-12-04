@@ -119,7 +119,7 @@ class WebServer(Service):
 
             if path.startswith("users"):
                 # get data from DatabaseServer
-                db_client: DatabaseClient = self.software_manager.software["DatabaseClient"]
+                db_client: DatabaseClient = self.software_manager.software.get("DatabaseClient")
                 # get all users
                 if db_client.query("SELECT"):
                     # query succeeded

@@ -6,7 +6,6 @@ from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPS
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
-from primaite.simulator.system.services.service import ServiceOperatingState
 
 _LOGGER = getLogger(__name__)
 
@@ -58,8 +57,7 @@ class FTPServer(FTPServiceABC):
         payload.status_code = FTPStatusCode.ERROR
 
         # if server service is down, return error
-        if self.operating_state != ServiceOperatingState.RUNNING:
-            self.sys_log.error("FTP Server not running")
+        if not self._can_perform_action():
             return payload
 
         self.sys_log.info(f"{self.name}: Received FTP {payload.ftp_command.name} {payload.ftp_command_args}")
@@ -95,6 +93,9 @@ class FTPServer(FTPServiceABC):
             self.sys_log.error(f"{payload} is not an FTP packet")
             return False
 
+        if not super().receive(payload=payload, session_id=session_id, **kwargs):
+            return False
+
         """
         Ignore ftp payload if status code is defined.
 
@@ -102,9 +103,6 @@ class FTPServer(FTPServiceABC):
         prevents an FTP request loop - FTP client and servers can exist on
         the same node.
         """
-        if not super().receive(payload=payload, session_id=session_id, **kwargs):
-            return False
-
         if payload.status_code is not None:
             return False
 

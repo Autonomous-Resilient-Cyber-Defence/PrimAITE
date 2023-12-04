@@ -62,6 +62,7 @@ class PrimaiteSession:
 
     def start_session(self) -> None:
         """Commence the training/eval session."""
+        print("Starting Primaite Session")
         self.mode = SessionMode.TRAIN
         n_learn_episodes = self.training_options.n_learn_episodes
         n_eval_episodes = self.training_options.n_eval_episodes

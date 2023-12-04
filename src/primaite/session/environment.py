@@ -62,6 +62,10 @@ class PrimaiteGymEnv(gymnasium.Env):
 
     def reset(self, seed: Optional[int] = None) -> Tuple[ObsType, Dict[str, Any]]:
         """Reset the environment."""
+        print(
+            f"Resetting environment, episode {self.game.episode_counter}, "
+            f"avg. reward: {self.game.rl_agents[0].reward_function.total_reward}"
+        )
         self.game.reset()
         state = self.game.get_sim_state()
         self.game.update_agents(state)

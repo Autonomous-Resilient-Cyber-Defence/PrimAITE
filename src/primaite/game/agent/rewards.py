@@ -210,7 +210,7 @@ class WebServer404Penalty(AbstractReward):
                 f"{cls.__name__} could not be initialised from config because node_ref and service_ref were not "
                 "found in reward config."
             )
-            _LOGGER.warn(msg)
+            _LOGGER.warning(msg)
             return DummyReward()  # TODO: should we error out with incorrect inputs? Probably!
         node_uuid = game.ref_map_nodes[node_ref]
         service_uuid = game.ref_map_services[service_ref]
@@ -219,7 +219,7 @@ class WebServer404Penalty(AbstractReward):
                 f"{cls.__name__} could not be initialised because node {node_ref} and service {service_ref} were not"
                 " found in the simulator."
             )
-            _LOGGER.warn(msg)
+            _LOGGER.warning(msg)
             return DummyReward()  # TODO: consider erroring here as well
 
         return cls(node_uuid=node_uuid, service_uuid=service_uuid)
@@ -238,7 +238,8 @@ class RewardFunction:
         """Initialise the reward function object."""
         self.reward_components: List[Tuple[AbstractReward, float]] = []
         "attribute reward_components keeps track of reward components and the weights assigned to each."
-        self.current_reward: float
+        self.current_reward: float = 0.0
+        self.total_reward: float = 0.0
 
     def regsiter_component(self, component: AbstractReward, weight: float = 1.0) -> None:
         """Add a reward component to the reward function.
