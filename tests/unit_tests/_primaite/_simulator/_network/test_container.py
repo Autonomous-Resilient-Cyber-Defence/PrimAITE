@@ -53,7 +53,7 @@ def test_reset_network(network):
     server_1.power_off()
     assert server_1.operating_state is NodeOperatingState.SHUTTING_DOWN
 
-    assert network.describe_state() is not state_before
+    assert network.describe_state() != state_before
 
     network.reset_component_for_episode(episode=1)
 
@@ -79,10 +79,14 @@ def test_apply_timestep_to_nodes(network):
     assert client_1.operating_state is NodeOperatingState.ON
 
     client_1.power_off()
+    assert client_1.operating_state is NodeOperatingState.SHUTTING_DOWN
 
     for i in range(client_1.shut_down_duration + 1):
         network.apply_timestep(timestep=i)
 
+    assert client_1.operating_state is NodeOperatingState.OFF
+
+    network.apply_timestep(client_1.shut_down_duration + 2)
     assert client_1.operating_state is NodeOperatingState.OFF
 
 
