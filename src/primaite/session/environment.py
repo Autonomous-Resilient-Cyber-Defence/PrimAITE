@@ -40,7 +40,8 @@ class PrimaiteGymEnv(gymnasium.Env):
         terminated = False
         truncated = self.game.calculate_truncated()
         info = {}
-        self._write_step_metadata_json(action, state, reward)
+        if self.game.save_step_metadata:
+            self._write_step_metadata_json(action, state, reward)
         print(f"Episode: {self.game.episode_counter}, Step: {self.game.step_counter}, Reward: {reward}")
         return next_obs, reward, terminated, truncated, info
 
@@ -183,7 +184,8 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         infos = {}
         terminateds["__all__"] = len(self.terminateds) == len(self.agents)
         truncateds["__all__"] = self.game.calculate_truncated()
-        self._write_step_metadata_json(actions, state, rewards)
+        if self.game.save_step_metadata:
+            self._write_step_metadata_json(actions, state, rewards)
         return next_obs, rewards, terminateds, truncateds, infos
 
     def _write_step_metadata_json(self, actions: Dict, state: Dict, rewards: Dict):
