@@ -42,7 +42,6 @@ class PrimaiteGymEnv(gymnasium.Env):
         info = {}
         if self.game.save_step_metadata:
             self._write_step_metadata_json(action, state, reward)
-        print(f"Episode: {self.game.episode_counter}, Step: {self.game.step_counter}, Reward: {reward}")
         return next_obs, reward, terminated, truncated, info
 
     def _write_step_metadata_json(self, action: int, state: Dict, reward: int):
