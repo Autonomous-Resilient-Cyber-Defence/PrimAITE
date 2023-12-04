@@ -25,7 +25,7 @@ Agents can be scripted (deterministic and stochastic), or controlled by a reinfo
 
 **type**: Specifies which class should be used for the agent. ``ProxyAgent`` is used for agents that receive instructions from an RL algorithm. Scripted agents like ``RedDatabaseCorruptingAgent`` and ``GreenWebBrowsingAgent`` generate their own behaviour.
 
-**team:**: Specifies if the agent is malicious (RED), benign (GREEN), or defensive (BLUE). Currently this value is not used for anything.
+**team**: Specifies if the agent is malicious (RED), benign (GREEN), or defensive (BLUE). Currently this value is not used for anything.
 
 **observation space:**
     * ``type``: selects which python class from the ``primaite.game.agent.observation`` module is used for the overall observation structure.
@@ -40,7 +40,7 @@ The action space is configured to be made up of individual action types. Once co
 
 Description of configurable items:
     * ``action_list``: a list of action modules. The options are listed in the ``primaite.game.agent.actions`` module.
-    * ``action_map``: (optional). Restricts the possible combinations of action type / action parameter values to reduce the overall size of the action space. By default, every possible combination of actions and parameters will be assigned an integer for the agent's ``MultiDiscrete`` action space. Instead, the action_map allows you to list the actions corresponding to each integer in the ``MultiDiscrete`` space.
+    * ``action_map``: (optional). Restricts the possible combinations of action type / action parameter values to reduce the overall size of the action space. By default, every possible combination of actions and parameters will be assigned an integer for the agent's ``MultiDiscrete`` action space. Instead, the ``action_map`` allows you to list the actions corresponding to each integer in the ``MultiDiscrete`` space.
     * ``options``: Options that apply too all action components.
         * ``nodes``: list the nodes that the agent can act on, the order of this list defines the mapping between nodes and ``node_id`` integers.
         * ``max_folders_per_node``, ``max_files_per_folder``, ``max_services_per_node``, ``max_nics_per_node``, ``max_acl_rules`` all are used to define the size of the action space.
