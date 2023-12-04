@@ -125,6 +125,7 @@ class PrimaiteGame:
         for agent in self.agents:
             agent.update_observation(state)
             agent.update_reward(state)
+            agent.reward_function.total_reward += agent.reward_function.current_reward
 
     def apply_agent_actions(self) -> None:
         """Apply all actions to simulation as requests."""
@@ -155,6 +156,8 @@ class PrimaiteGame:
         self.step_counter = 0
         _LOGGER.debug(f"Resetting primaite game, episode = {self.episode_counter}")
         self.simulation.reset_component_for_episode(episode=self.episode_counter)
+        for agent in self.agents:
+            agent.reward_function.total_reward = 0.0
 
     def close(self) -> None:
         """Close the game, this will close the simulation."""
@@ -240,7 +243,7 @@ class PrimaiteGame:
                             position=r_num,
                         )
             else:
-                print("invalid node type")
+                _LOGGER.warning(f"invalid node type {n_type} in config")
             if "services" in node_cfg:
                 for service_cfg in node_cfg["services"]:
                     new_service = None
@@ -256,12 +259,12 @@ class PrimaiteGame:
                         "FTPServer": FTPServer,
                     }
                     if service_type in service_types_mapping:
-                        print(f"installing {service_type} on node {new_node.hostname}")
+                        _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
                         new_node.software_manager.install(service_types_mapping[service_type])
                         new_service = new_node.software_manager.software[service_type]
                         game.ref_map_services[service_ref] = new_service.uuid
                     else:
-                        print(f"service type not found {service_type}")
+                        _LOGGER.warning(f"service type not found {service_type}")
                     # service-dependent options
                     if service_type == "DatabaseClient":
                         if "options" in service_cfg:
@@ -295,7 +298,7 @@ class PrimaiteGame:
                         new_application = new_node.software_manager.software[application_type]
                         game.ref_map_applications[application_ref] = new_application.uuid
                     else:
-                        print(f"application type not found {application_type}")
+                        _LOGGER.warning(f"application type not found {application_type}")
 
                     if application_type == "DataManipulationBot":
                         if "options" in application_cfg:
@@ -416,7 +419,7 @@ class PrimaiteGame:
                 )
                 game.agents.append(new_agent)
             else:
-                print("agent type not found")
+                _LOGGER.warning(f"agent type {agent_type} not found")
 
         game.simulation.set_original_state()
 

@@ -220,7 +220,7 @@ class Network(SimComponent):
         self._node_id_map[len(self.nodes)] = node
         node.parent = self
         self._nx_graph.add_node(node.hostname)
-        _LOGGER.info(f"Added node {node.uuid} to Network {self.uuid}")
+        _LOGGER.debug(f"Added node {node.uuid} to Network {self.uuid}")
         self._node_request_manager.add_request(name=node.uuid, request_type=RequestType(func=node._request_manager))
 
     def get_node_by_hostname(self, hostname: str) -> Optional[Node]:

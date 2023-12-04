@@ -47,7 +47,6 @@ class WebServer(Service):
         state["last_response_status_code"] = (
             self.last_response_status_code.value if isinstance(self.last_response_status_code, HttpStatusCode) else None
         )
-        print(state)
         return state
 
     def __init__(self, **kwargs):

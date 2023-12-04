@@ -51,14 +51,13 @@ class SB3Policy(PolicyABC, identifier="SB3"):
 
     def eval(self, n_episodes: int, deterministic: bool) -> None:
         """Evaluate the agent."""
-        reward_data = evaluate_policy(
+        _ = evaluate_policy(
             self._agent,
             self.session.env,
             n_eval_episodes=n_episodes,
             deterministic=deterministic,
             return_episode_rewards=True,
         )
-        print(reward_data)
 
     def save(self, save_path: Path) -> None:
         """
