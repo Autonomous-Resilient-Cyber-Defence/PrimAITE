@@ -1,3 +1,4 @@
+import json
 from typing import Any, Dict, Final, Optional, SupportsFloat, Tuple
 
 import gymnasium
@@ -6,6 +7,7 @@ from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
+from primaite.simulator import SIM_OUTPUT
 
 
 class PrimaiteGymEnv(gymnasium.Env):
@@ -30,6 +32,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         self.game.apply_agent_actions()
         self.game.advance_timestep()
         state = self.game.get_sim_state()
+
         self.game.update_agents(state)
 
         next_obs = self._get_obs()
@@ -37,7 +40,25 @@ class PrimaiteGymEnv(gymnasium.Env):
         terminated = False
         truncated = self.game.calculate_truncated()
         info = {}
+        if self.game.save_step_metadata:
+            self._write_step_metadata_json(action, state, reward)
         return next_obs, reward, terminated, truncated, info
+
+    def _write_step_metadata_json(self, action: int, state: Dict, reward: int):
+        output_dir = SIM_OUTPUT.path / f"episode_{self.game.episode_counter}" / "step_metadata"
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        path = output_dir / f"step_{self.game.step_counter}.json"
+
+        data = {
+            "episode": self.game.episode_counter,
+            "step": self.game.step_counter,
+            "action": int(action),
+            "reward": int(reward),
+            "state": state,
+        }
+        with open(path, "w") as file:
+            json.dump(data, file)
 
     def reset(self, seed: Optional[int] = None) -> Tuple[ObsType, Dict[str, Any]]:
         """Reset the environment."""
@@ -162,7 +183,25 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         infos = {}
         terminateds["__all__"] = len(self.terminateds) == len(self.agents)
         truncateds["__all__"] = self.game.calculate_truncated()
+        if self.game.save_step_metadata:
+            self._write_step_metadata_json(actions, state, rewards)
         return next_obs, rewards, terminateds, truncateds, infos
+
+    def _write_step_metadata_json(self, actions: Dict, state: Dict, rewards: Dict):
+        output_dir = SIM_OUTPUT.path / f"episode_{self.game.episode_counter}" / "step_metadata"
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+        path = output_dir / f"step_{self.game.step_counter}.json"
+
+        data = {
+            "episode": self.game.episode_counter,
+            "step": self.game.step_counter,
+            "actions": {agent_name: int(action) for agent_name, action in actions.items()},
+            "reward": rewards,
+            "state": state,
+        }
+        with open(path, "w") as file:
+            json.dump(data, file)
 
     def _get_obs(self) -> Dict[str, ObsType]:
         """Return the current observation."""

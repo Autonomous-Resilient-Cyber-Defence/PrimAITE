@@ -25,6 +25,8 @@ class SessionIOSettings(BaseModel):
     """Whether to save transactions, If true, the session path will have a transactions folder."""
     save_tensorboard_logs: bool = False
     """Whether to save tensorboard logs. If true, the session path will have a tenorboard_logs folder."""
+    save_step_metadata: bool = False
+    """Whether to save the RL agents' action, environment state, and other data at every single step."""
 
 
 class SessionIO:
