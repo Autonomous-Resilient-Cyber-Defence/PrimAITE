@@ -31,9 +31,10 @@ class SysLog:
         :param hostname: The hostname associated with the system logs being recorded.
         """
         self.hostname = hostname
-        self._setup_logger()
+        self.current_episode: int = 1
+        self.setup_logger()
 
-    def _setup_logger(self):
+    def setup_logger(self):
         """
         Configures the logger for this SysLog instance.
 
@@ -80,7 +81,7 @@ class SysLog:
 
         :return: Path object representing the location of the log file.
         """
-        root = SIM_OUTPUT.path / self.hostname
+        root = SIM_OUTPUT.path / f"episode_{self.current_episode}" / self.hostname
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self.hostname}_sys.log"
 

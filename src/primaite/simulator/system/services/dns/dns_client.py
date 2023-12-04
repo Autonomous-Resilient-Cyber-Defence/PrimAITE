@@ -29,6 +29,18 @@ class DNSClient(Service):
         super().__init__(**kwargs)
         self.start()
 
+    def set_original_state(self):
+        """Sets the original state."""
+        _LOGGER.debug(f"Setting DNSClient original state on node {self.software_manager.node.hostname}")
+        super().set_original_state()
+        vals_to_include = {"dns_server"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        self.dns_cache.clear()
+        super().reset_component_for_episode(episode)
+
     def describe_state(self) -> Dict:
         """
         Describes the current state of the software.
@@ -42,23 +54,18 @@ class DNSClient(Service):
         state = super().describe_state()
         return state
 
-    def reset_component_for_episode(self, episode: int):
-        """
-        Resets the Service component for a new episode.
-
-        This method ensures the Service is ready for a new episode, including resetting any
-        stateful properties or statistics, and clearing any message queues.
-        """
-        pass
-
-    def add_domain_to_cache(self, domain_name: str, ip_address: IPv4Address):
+    def add_domain_to_cache(self, domain_name: str, ip_address: IPv4Address) -> bool:
         """
         Adds a domain name to the DNS Client cache.
 
         :param: domain_name: The domain name to save to cache
         :param: ip_address: The IP Address to attach the domain name to
         """
+        if not self._can_perform_action():
+            return False
+
         self.dns_cache[domain_name] = ip_address
+        return True
 
     def check_domain_exists(
         self,
@@ -72,6 +79,9 @@ class DNSClient(Service):
         :param: session_id: The Session ID the payload is to originate from. Optional.
         :param: is_reattempt: Checks if the request has been reattempted. Default is False.
         """
+        if not self._can_perform_action():
+            return False
+
         # check if DNS server is configured
         if self.dns_server is None:
             self.sys_log.error(f"{self.name}: DNS Server is not configured")

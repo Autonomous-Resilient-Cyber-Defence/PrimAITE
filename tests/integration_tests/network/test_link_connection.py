@@ -16,3 +16,9 @@ def test_link_up():
     assert nic_a.enabled
     assert nic_b.enabled
     assert link.is_up
+
+
+def test_ping_between_computer_and_server(client_server):
+    computer, server = client_server
+
+    assert computer.ping(target_ip_address=server.nics[next(iter(server.nics))].ip_address)

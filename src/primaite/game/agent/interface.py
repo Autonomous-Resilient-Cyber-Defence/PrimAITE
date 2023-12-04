@@ -1,12 +1,63 @@
 """Interface for agents."""
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from gymnasium.core import ActType, ObsType
+from pydantic import BaseModel, model_validator
 
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
+
+if TYPE_CHECKING:
+    pass
+
+
+class AgentStartSettings(BaseModel):
+    """Configuration values for when an agent starts performing actions."""
+
+    start_step: int = 5
+    "The timestep at which an agent begins performing it's actions"
+    frequency: int = 5
+    "The number of timesteps to wait between performing actions"
+    variance: int = 0
+    "The amount the frequency can randomly change to"
+
+    @model_validator(mode="after")
+    def check_variance_lt_frequency(self) -> "AgentStartSettings":
+        """
+        Make sure variance is equal to or lower than frequency.
+
+        This is because the calculation for the next execution time is now + (frequency +- variance). If variance were
+        greater than frequency, sometimes the bracketed term would be negative and the attack would never happen again.
+        """
+        if self.variance > self.frequency:
+            raise ValueError(
+                f"Agent start settings error: variance must be lower than frequency "
+                f"{self.variance=}, {self.frequency=}"
+            )
+        return self
+
+
+class AgentSettings(BaseModel):
+    """Settings for configuring the operation of an agent."""
+
+    start_settings: Optional[AgentStartSettings] = None
+    "Configuration for when an agent begins performing it's actions"
+
+    @classmethod
+    def from_config(cls, config: Optional[Dict]) -> "AgentSettings":
+        """Construct agent settings from a config dictionary.
+
+        :param config: A dict of options for the agent settings.
+        :type config: Dict
+        :return: The agent settings.
+        :rtype: AgentSettings
+        """
+        if config is None:
+            return cls()
+
+        return cls(**config)
 
 
 class AbstractAgent(ABC):
@@ -18,6 +69,7 @@ class AbstractAgent(ABC):
         action_space: Optional[ActionManager],
         observation_space: Optional[ObservationManager],
         reward_function: Optional[RewardFunction],
+        agent_settings: Optional[AgentSettings] = None,
     ) -> None:
         """
         Initialize an agent.
@@ -35,10 +87,7 @@ class AbstractAgent(ABC):
         self.action_manager: Optional[ActionManager] = action_space
         self.observation_manager: Optional[ObservationManager] = observation_space
         self.reward_function: Optional[RewardFunction] = reward_function
-
-        # exection definiton converts CAOS action to Primaite simulator request, sometimes having to enrich the info
-        # by for example specifying target ip addresses, or converting a node ID into a uuid
-        self.execution_definition = None
+        self.agent_settings = agent_settings or AgentSettings()
 
     def update_observation(self, state: Dict) -> ObsType:
         """

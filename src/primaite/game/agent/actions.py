@@ -15,7 +15,6 @@ from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 from gymnasium import spaces
 
 from primaite import getLogger
-from primaite.simulator.sim_container import Simulation
 
 _LOGGER = getLogger(__name__)
 
@@ -82,7 +81,7 @@ class NodeServiceAbstractAction(AbstractAction):
     def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes, "service_id": num_services}
-        self.verb: str
+        self.verb: str  # define but don't initialise: defends against children classes not defining this
 
     def form_request(self, node_id: int, service_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
@@ -98,7 +97,7 @@ class NodeServiceScanAction(NodeServiceAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
-        self.verb = "scan"
+        self.verb: str = "scan"
 
 
 class NodeServiceStopAction(NodeServiceAbstractAction):
@@ -106,7 +105,7 @@ class NodeServiceStopAction(NodeServiceAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
-        self.verb = "stop"
+        self.verb: str = "stop"
 
 
 class NodeServiceStartAction(NodeServiceAbstractAction):
@@ -114,7 +113,7 @@ class NodeServiceStartAction(NodeServiceAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
-        self.verb = "start"
+        self.verb: str = "start"
 
 
 class NodeServicePauseAction(NodeServiceAbstractAction):
@@ -122,7 +121,7 @@ class NodeServicePauseAction(NodeServiceAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
-        self.verb = "pause"
+        self.verb: str = "pause"
 
 
 class NodeServiceResumeAction(NodeServiceAbstractAction):
@@ -130,7 +129,7 @@ class NodeServiceResumeAction(NodeServiceAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
-        self.verb = "resume"
+        self.verb: str = "resume"
 
 
 class NodeServiceRestartAction(NodeServiceAbstractAction):
@@ -138,7 +137,7 @@ class NodeServiceRestartAction(NodeServiceAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
-        self.verb = "restart"
+        self.verb: str = "restart"
 
 
 class NodeServiceDisableAction(NodeServiceAbstractAction):
@@ -146,7 +145,7 @@ class NodeServiceDisableAction(NodeServiceAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
-        self.verb = "disable"
+        self.verb: str = "disable"
 
 
 class NodeServiceEnableAction(NodeServiceAbstractAction):
@@ -154,7 +153,38 @@ class NodeServiceEnableAction(NodeServiceAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
-        self.verb = "enable"
+        self.verb: str = "enable"
+
+
+class NodeApplicationAbstractAction(AbstractAction):
+    """
+    Base class for application actions.
+
+    Any action which applies to an application and uses node_id and application_id as its only two parameters can
+    inherit from this base class.
+    """
+
+    @abstractmethod
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_applications: int, **kwargs) -> None:
+        super().__init__(manager=manager)
+        self.shape: Dict[str, int] = {"node_id": num_nodes, "application_id": num_applications}
+        self.verb: str  # define but don't initialise: defends against children classes not defining this
+
+    def form_request(self, node_id: int, application_id: int) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_uuid = self.manager.get_node_uuid_by_idx(node_id)
+        application_uuid = self.manager.get_application_uuid_by_idx(node_id, application_id)
+        if node_uuid is None or application_uuid is None:
+            return ["do_nothing"]
+        return ["network", "node", node_uuid, "application", application_uuid, self.verb]
+
+
+class NodeApplicationExecuteAction(NodeApplicationAbstractAction):
+    """Action which executes an application."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_applications: int, **kwargs) -> None:
+        super().__init__(manager=manager, num_nodes=num_nodes, num_applications=num_applications)
+        self.verb: str = "execute"
 
 
 class NodeFolderAbstractAction(AbstractAction):
@@ -169,7 +199,7 @@ class NodeFolderAbstractAction(AbstractAction):
     def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes, "folder_id": num_folders}
-        self.verb: str
+        self.verb: str  # define but don't initialise: defends against children classes not defining this
 
     def form_request(self, node_id: int, folder_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
@@ -223,7 +253,7 @@ class NodeFileAbstractAction(AbstractAction):
     def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, num_files: int, **kwargs) -> None:
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes, "folder_id": num_folders, "file_id": num_files}
-        self.verb: str
+        self.verb: str  # define but don't initialise: defends against children classes not defining this
 
     def form_request(self, node_id: int, folder_id: int, file_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
@@ -240,7 +270,7 @@ class NodeFileScanAction(NodeFileAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, num_files: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, num_files=num_files, **kwargs)
-        self.verb = "scan"
+        self.verb: str = "scan"
 
 
 class NodeFileCheckhashAction(NodeFileAbstractAction):
@@ -248,7 +278,7 @@ class NodeFileCheckhashAction(NodeFileAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, num_files: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, num_files=num_files, **kwargs)
-        self.verb = "checkhash"
+        self.verb: str = "checkhash"
 
 
 class NodeFileDeleteAction(NodeFileAbstractAction):
@@ -256,7 +286,7 @@ class NodeFileDeleteAction(NodeFileAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, num_files: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, num_files=num_files, **kwargs)
-        self.verb = "delete"
+        self.verb: str = "delete"
 
 
 class NodeFileRepairAction(NodeFileAbstractAction):
@@ -264,7 +294,7 @@ class NodeFileRepairAction(NodeFileAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, num_files: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, num_files=num_files, **kwargs)
-        self.verb = "repair"
+        self.verb: str = "repair"
 
 
 class NodeFileRestoreAction(NodeFileAbstractAction):
@@ -272,7 +302,7 @@ class NodeFileRestoreAction(NodeFileAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, num_files: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, num_files=num_files, **kwargs)
-        self.verb = "restore"
+        self.verb: str = "restore"
 
 
 class NodeFileCorruptAction(NodeFileAbstractAction):
@@ -280,7 +310,7 @@ class NodeFileCorruptAction(NodeFileAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, num_files: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, num_files=num_files, **kwargs)
-        self.verb = "corrupt"
+        self.verb: str = "corrupt"
 
 
 class NodeAbstractAction(AbstractAction):
@@ -294,7 +324,7 @@ class NodeAbstractAction(AbstractAction):
     def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes}
-        self.verb: str
+        self.verb: str  # define but don't initialise: defends against children classes not defining this
 
     def form_request(self, node_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
@@ -307,7 +337,7 @@ class NodeOSScanAction(NodeAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes)
-        self.verb = "scan"
+        self.verb: str = "scan"
 
 
 class NodeShutdownAction(NodeAbstractAction):
@@ -315,7 +345,7 @@ class NodeShutdownAction(NodeAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes)
-        self.verb = "shutdown"
+        self.verb: str = "shutdown"
 
 
 class NodeStartupAction(NodeAbstractAction):
@@ -323,7 +353,7 @@ class NodeStartupAction(NodeAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes)
-        self.verb = "startup"
+        self.verb: str = "startup"
 
 
 class NodeResetAction(NodeAbstractAction):
@@ -331,7 +361,7 @@ class NodeResetAction(NodeAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes)
-        self.verb = "reset"
+        self.verb: str = "reset"
 
 
 class NetworkACLAddRuleAction(AbstractAction):
@@ -394,7 +424,7 @@ class NetworkACLAddRuleAction(AbstractAction):
         elif permission == 2:
             permission_str = "DENY"
         else:
-            _LOGGER.warn(f"{self.__class__} received permission {permission}, expected 0 or 1.")
+            _LOGGER.warning(f"{self.__class__} received permission {permission}, expected 0 or 1.")
 
         if protocol_id == 0:
             return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
@@ -489,7 +519,7 @@ class NetworkNICAbstractAction(AbstractAction):
         """
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes, "nic_id": max_nics_per_node}
-        self.verb: str
+        self.verb: str  # define but don't initialise: defends against children classes not defining this
 
     def form_request(self, node_id: int, nic_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
@@ -512,7 +542,7 @@ class NetworkNICEnableAction(NetworkNICAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, max_nics_per_node=max_nics_per_node, **kwargs)
-        self.verb = "enable"
+        self.verb: str = "enable"
 
 
 class NetworkNICDisableAction(NetworkNICAbstractAction):
@@ -520,7 +550,7 @@ class NetworkNICDisableAction(NetworkNICAbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, max_nics_per_node=max_nics_per_node, **kwargs)
-        self.verb = "disable"
+        self.verb: str = "disable"
 
 
 class ActionManager:
@@ -536,6 +566,7 @@ class ActionManager:
         "NODE_SERVICE_RESTART": NodeServiceRestartAction,
         "NODE_SERVICE_DISABLE": NodeServiceDisableAction,
         "NODE_SERVICE_ENABLE": NodeServiceEnableAction,
+        "NODE_APPLICATION_EXECUTE": NodeApplicationExecuteAction,
         "NODE_FILE_SCAN": NodeFileScanAction,
         "NODE_FILE_CHECKHASH": NodeFileCheckhashAction,
         "NODE_FILE_DELETE": NodeFileDeleteAction,
@@ -562,9 +593,11 @@ class ActionManager:
         game: "PrimaiteGame",  # reference to game for information lookup
         actions: List[str],  # stores list of actions available to agent
         node_uuids: List[str],  # allows mapping index to node
+        application_uuids: List[List[str]],  # allows mapping index to application
         max_folders_per_node: int = 2,  # allows calculating shape
         max_files_per_folder: int = 2,  # allows calculating shape
         max_services_per_node: int = 2,  # allows calculating shape
+        max_applications_per_node: int = 10,  # allows calculating shape
         max_nics_per_node: int = 8,  # allows calculating shape
         max_acl_rules: int = 10,  # allows calculating shape
         protocols: List[str] = ["TCP", "UDP", "ICMP"],  # allow mapping index to protocol
@@ -600,8 +633,8 @@ class ActionManager:
         :type act_map: Optional[Dict[int, Dict]]
         """
         self.game: "PrimaiteGame" = game
-        self.sim: Simulation = self.game.simulation
         self.node_uuids: List[str] = node_uuids
+        self.application_uuids: List[List[str]] = application_uuids
         self.protocols: List[str] = protocols
         self.ports: List[str] = ports
 
@@ -611,7 +644,7 @@ class ActionManager:
         else:
             self.ip_address_list = []
             for node_uuid in self.node_uuids:
-                node_obj = self.sim.network.nodes[node_uuid]
+                node_obj = self.game.simulation.network.nodes[node_uuid]
                 nics = node_obj.nics
                 for nic_uuid, nic_obj in nics.items():
                     self.ip_address_list.append(nic_obj.ip_address)
@@ -622,6 +655,7 @@ class ActionManager:
             "num_folders": max_folders_per_node,
             "num_files": max_files_per_folder,
             "num_services": max_services_per_node,
+            "num_applications": max_applications_per_node,
             "num_nics": max_nics_per_node,
             "num_acl_rules": max_acl_rules,
             "num_protocols": len(self.protocols),
@@ -734,7 +768,7 @@ class ActionManager:
         :rtype: Optional[str]
         """
         node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node = self.sim.network.nodes[node_uuid]
+        node = self.game.simulation.network.nodes[node_uuid]
         folder_uuids = list(node.file_system.folders.keys())
         return folder_uuids[folder_idx] if len(folder_uuids) > folder_idx else None
 
@@ -752,7 +786,7 @@ class ActionManager:
         :rtype: Optional[str]
         """
         node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node = self.sim.network.nodes[node_uuid]
+        node = self.game.simulation.network.nodes[node_uuid]
         folder_uuids = list(node.file_system.folders.keys())
         if len(folder_uuids) <= folder_idx:
             return None
@@ -771,9 +805,21 @@ class ActionManager:
         :rtype: Optional[str]
         """
         node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node = self.sim.network.nodes[node_uuid]
+        node = self.game.simulation.network.nodes[node_uuid]
         service_uuids = list(node.services.keys())
         return service_uuids[service_idx] if len(service_uuids) > service_idx else None
+
+    def get_application_uuid_by_idx(self, node_idx: int, application_idx: int) -> Optional[str]:
+        """Get the application UUID corresponding to the given node and service indices.
+
+        :param node_idx: The index of the node.
+        :type node_idx: int
+        :param application_idx: The index of the service on the node.
+        :type application_idx: int
+        :return: The UUID of the service. Or None if the node has fewer services than the given index.
+        :rtype: Optional[str]
+        """
+        return self.application_uuids[node_idx][application_idx]
 
     def get_internet_protocol_by_idx(self, protocol_idx: int) -> str:
         """Get the internet protocol corresponding to the given index.
@@ -819,7 +865,7 @@ class ActionManager:
         :rtype: str
         """
         node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node_obj = self.sim.network.nodes[node_uuid]
+        node_obj = self.game.simulation.network.nodes[node_uuid]
         nics = list(node_obj.nics.keys())
         if len(nics) <= nic_idx:
             return None

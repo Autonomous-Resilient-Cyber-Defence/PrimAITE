@@ -162,7 +162,7 @@ class ServiceObservation(AbstractObservation):
         :return: Constructed service observation
         :rtype: ServiceObservation
         """
-        return cls(where=parent_where + ["services", game.ref_map_services[config["service_ref"]].uuid])
+        return cls(where=parent_where + ["services", game.ref_map_services[config["service_ref"]]])
 
 
 class LinkObservation(AbstractObservation):
@@ -263,8 +263,8 @@ class FolderObservation(AbstractObservation):
             self.files.append(FileObservation())
         while len(self.files) > num_files_per_folder:
             truncated_file = self.files.pop()
-            msg = f"Too many files in folde observation. Truncating file {truncated_file}"
-            _LOGGER.warn(msg)
+            msg = f"Too many files in folder observation. Truncating file {truncated_file}"
+            _LOGGER.warning(msg)
 
         self.default_observation = {
             "health_status": 0,
@@ -438,7 +438,7 @@ class NodeObservation(AbstractObservation):
         while len(self.services) > num_services_per_node:
             truncated_service = self.services.pop()
             msg = f"Too many services in Node observation space for node. Truncating service {truncated_service.where}"
-            _LOGGER.warn(msg)
+            _LOGGER.warning(msg)
             # truncate service list
 
         self.folders: List[FolderObservation] = folders
@@ -448,7 +448,7 @@ class NodeObservation(AbstractObservation):
         while len(self.folders) > num_folders_per_node:
             truncated_folder = self.folders.pop()
             msg = f"Too many folders in Node observation for node. Truncating service {truncated_folder.where[-1]}"
-            _LOGGER.warn(msg)
+            _LOGGER.warning(msg)
 
         self.nics: List[NicObservation] = nics
         while len(self.nics) < num_nics_per_node:
@@ -456,7 +456,7 @@ class NodeObservation(AbstractObservation):
         while len(self.nics) > num_nics_per_node:
             truncated_nic = self.nics.pop()
             msg = f"Too many NICs in Node observation for node. Truncating service {truncated_nic.where[-1]}"
-            _LOGGER.warn(msg)
+            _LOGGER.warning(msg)
 
         self.logon_status: bool = logon_status
 

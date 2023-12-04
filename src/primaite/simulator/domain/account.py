@@ -42,6 +42,19 @@ class Account(SimComponent):
     "Account Type, currently this can be service account (used by apps) or user account."
     enabled: bool = True
 
+    def set_original_state(self):
+        """Sets the original state."""
+        vals_to_include = {
+            "num_logons",
+            "num_logoffs",
+            "num_group_changes",
+            "username",
+            "password",
+            "account_type",
+            "enabled",
+        }
+        self._original_state = self.model_dump(include=vals_to_include)
+
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -59,7 +72,7 @@ class Account(SimComponent):
                 "num_group_changes": self.num_group_changes,
                 "username": self.username,
                 "password": self.password,
-                "account_type": self.account_type.name,
+                "account_type": self.account_type.value,
                 "enabled": self.enabled,
             }
         )

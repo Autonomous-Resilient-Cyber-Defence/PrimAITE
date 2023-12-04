@@ -3,8 +3,9 @@ from enum import Enum
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 
-from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
@@ -89,6 +90,19 @@ class Software(SimComponent):
     folder: Optional[Folder] = None
     "The folder on the file system the Software uses."
 
+    def set_original_state(self):
+        """Sets the original state."""
+        vals_to_include = {
+            "name",
+            "health_state_actual",
+            "health_state_visible",
+            "criticality",
+            "patching_count",
+            "scanning_count",
+            "revealed_to_red",
+        }
+        self._original_state = self.model_dump(include=vals_to_include)
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
         rm.add_request(
@@ -130,16 +144,6 @@ class Software(SimComponent):
             }
         )
         return state
-
-    def reset_component_for_episode(self, episode: int):
-        """
-        Resets the software component for a new episode.
-
-        This method should ensure the software is ready for a new episode, including resetting any
-        stateful properties or statistics, and clearing any message queues. The specifics of what constitutes a
-        "reset" should be implemented in subclasses.
-        """
-        pass
 
     def set_health_state(self, health_state: SoftwareHealthState) -> None:
         """
@@ -203,6 +207,12 @@ class IOSoftware(Software):
     port: Port
     "The port to which the software is connected."
 
+    def set_original_state(self):
+        """Sets the original state."""
+        super().set_original_state()
+        vals_to_include = {"installing_count", "max_sessions", "tcp", "udp", "port"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
     @abstractmethod
     def describe_state(self) -> Dict:
         """
@@ -225,6 +235,21 @@ class IOSoftware(Software):
         )
         return state
 
+    @abstractmethod
+    def _can_perform_action(self) -> bool:
+        """
+        Checks if the software can perform actions.
+
+        This is done by checking if the software is operating properly or the node it is installed
+        in is operational.
+
+        Returns true if the software can perform actions.
+        """
+        if self.software_manager and self.software_manager.node.operating_state is NodeOperatingState.OFF:
+            _LOGGER.debug(f"{self.name} Error: {self.software_manager.node.hostname} is not online.")
+            return False
+        return True
+
     def send(
         self,
         payload: Any,
@@ -243,6 +268,9 @@ class IOSoftware(Software):
 
         :return: True if successful, False otherwise.
         """
+        if not self._can_perform_action():
+            return False
+
         return self.software_manager.send_payload_to_session_manager(
             payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
         )
@@ -261,4 +289,5 @@ class IOSoftware(Software):
         :param kwargs: Additional keyword arguments specific to the implementation.
         :return: True if the payload was successfully received and processed, False otherwise.
         """
-        pass
+        # return false if not allowed to perform actions
+        return self._can_perform_action()

@@ -93,6 +93,11 @@ class SessionManager:
         """
         pass
 
+    def clear(self):
+        """Clears the sessions."""
+        self.sessions_by_key.clear()
+        self.sessions_by_uuid.clear()
+
     @staticmethod
     def _get_session_key(
         frame: Frame, inbound_frame: bool = True

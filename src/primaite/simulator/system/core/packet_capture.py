@@ -34,9 +34,12 @@ class PacketCapture:
         "The IP address associated with the PCAP logs."
         self.switch_port_number = switch_port_number
         "The SwitchPort number."
-        self._setup_logger()
 
-    def _setup_logger(self):
+        self.current_episode: int = 1
+
+        self.setup_logger()
+
+    def setup_logger(self):
         """Set up the logger configuration."""
         log_path = self._get_log_path()
 
@@ -75,7 +78,7 @@ class PacketCapture:
 
     def _get_log_path(self) -> Path:
         """Get the path for the log file."""
-        root = SIM_OUTPUT.path / self.hostname
+        root = SIM_OUTPUT.path / f"episode_{self.current_episode}" / self.hostname
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self._logger_name}.log"
 

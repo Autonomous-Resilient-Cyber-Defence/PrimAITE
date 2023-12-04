@@ -22,8 +22,6 @@ PrimAITE presents the following features:
 
 - Routers with traffic routing and firewall capabilities
 
-- Integration with ARCD GATE for agent training
-
 - Support for multiple agents, each having their own customisable observation space, action space, and reward function definition, and either deterministic or RL-directed behaviour
 
 ## Getting Started with PrimAITE

@@ -2,6 +2,7 @@ from datetime import datetime
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Literal, Optional, Union
 
+from primaite import getLogger
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -9,6 +10,8 @@ from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
+
+_LOGGER = getLogger(__name__)
 
 
 class DatabaseService(Service):
@@ -38,6 +41,25 @@ class DatabaseService(Service):
         self._db_file: File
         self._create_db_file()
 
+    def set_original_state(self):
+        """Sets the original state."""
+        _LOGGER.debug(f"Setting DatabaseService original state on node {self.software_manager.node.hostname}")
+        super().set_original_state()
+        vals_to_include = {
+            "password",
+            "connections",
+            "backup_server",
+            "latest_backup_directory",
+            "latest_backup_file_name",
+        }
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        _LOGGER.debug("Resetting DatabaseService original state on node {self.software_manager.node.hostname}")
+        self.connections.clear()
+        super().reset_component_for_episode(episode)
+
     def configure_backup(self, backup_server: IPv4Address):
         """
         Set up the database backup.
@@ -48,13 +70,17 @@ class DatabaseService(Service):
 
     def backup_database(self) -> bool:
         """Create a backup of the database to the configured backup server."""
+        # check if this action can be performed
+        if not self._can_perform_action():
+            return False
+
         # check if the backup server was configured
         if self.backup_server is None:
             self.sys_log.error(f"{self.name} - {self.sys_log.hostname}: not configured.")
             return False
 
         software_manager: SoftwareManager = self.software_manager
-        ftp_client_service: FTPClient = software_manager.software["FTPClient"]
+        ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
 
         # send backup copy of database file to FTP server
         response = ftp_client_service.send_file(
@@ -73,8 +99,12 @@ class DatabaseService(Service):
 
     def restore_backup(self) -> bool:
         """Restore a backup from backup server."""
+        # check if this action can be performed
+        if not self._can_perform_action():
+            return False
+
         software_manager: SoftwareManager = self.software_manager
-        ftp_client_service: FTPClient = software_manager.software["FTPClient"]
+        ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
 
         # retrieve backup file from backup server
         response = ftp_client_service.request_file(
@@ -173,6 +203,9 @@ class DatabaseService(Service):
         :param session_id: The session identifier.
         :return: True if the Status Code is 200, otherwise False.
         """
+        if not super().receive(payload=payload, session_id=session_id, **kwargs):
+            return False
+
         result = {"status_code": 500, "data": []}
         if isinstance(payload, dict) and payload.get("type"):
             if payload["type"] == "connect_request":

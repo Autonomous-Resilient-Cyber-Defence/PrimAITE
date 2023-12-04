@@ -62,6 +62,7 @@ class PrimaiteSession:
 
     def start_session(self) -> None:
         """Commence the training/eval session."""
+        print("Starting Primaite Session")
         self.mode = SessionMode.TRAIN
         n_learn_episodes = self.training_options.n_learn_episodes
         n_eval_episodes = self.training_options.n_eval_episodes
@@ -88,15 +89,15 @@ class PrimaiteSession:
     @classmethod
     def from_config(cls, cfg: Dict, agent_load_path: Optional[str] = None) -> "PrimaiteSession":
         """Create a PrimaiteSession object from a config dictionary."""
+        # READ IO SETTINGS (this sets the global session path as well) # TODO: GLOBAL SIDE EFFECTS...
+        io_settings = cfg.get("io_settings", {})
+        io_manager = SessionIO(SessionIOSettings(**io_settings))
+
         game = PrimaiteGame.from_config(cfg)
 
         sess = cls(game=game)
-
+        sess.io_manager = io_manager
         sess.training_options = TrainingOptions(**cfg["training_config"])
-
-        # READ IO SETTINGS (this sets the global session path as well) # TODO: GLOBAL SIDE EFFECTS...
-        io_settings = cfg.get("io_settings", {})
-        sess.io_manager.settings = SessionIOSettings(**io_settings)
 
         # CREATE ENVIRONMENT
         if sess.training_options.rl_framework == "RLLIB_single_agent":

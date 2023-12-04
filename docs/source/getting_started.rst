@@ -87,22 +87,7 @@ Install PrimAITE
 
     pip install path\to\your\primaite.whl
 
-
-5. Install ARCD GATE from wheel file
-
-
-.. code-block:: bash
-    :caption: Unix
-
-    pip install path/to/your/arcd_gate-0.1.0-py3-none-any.whl
-
-.. code-block:: powershell
-    :caption: Windows (Powershell)
-
-    pip install path\to\your\arcd_gate-0.1.0-py3-none-any.whl
-
-
-6. Perform the PrimAITE setup
+5. Perform the PrimAITE setup
 
 .. code-block:: bash
     :caption: Unix
@@ -152,18 +137,5 @@ of your choice:
     :caption: Windows (Powershell)
 
     pip install -e .[dev]
-
-
-4. Install ARCD GATE from wheel file
-
-.. code-block:: bash
-    :caption: Unix
-
-    pip install GATE/arcd_gate-0.1.0-py3-none-any.whl
-
-.. code-block:: powershell
-    :caption: Windows (Powershell)
-
-    pip install GATE\arcd_gate-0.1.0-py3-none-any.whl
 
 To view the complete list of packages installed during PrimAITE installation, go to the dependencies page (:ref:`Dependencies`).

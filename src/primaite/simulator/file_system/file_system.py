@@ -35,6 +35,45 @@ class FileSystem(SimComponent):
         if not self.folders:
             self.create_folder("root")
 
+    def set_original_state(self):
+        """Sets the original state."""
+        _LOGGER.debug(f"Setting FileSystem original state on node {self.sys_log.hostname}")
+        for folder in self.folders.values():
+            folder.set_original_state()
+        # Capture a list of all 'original' file uuids
+        original_keys = list(self.folders.keys())
+        vals_to_include = {"sim_root"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+        self._original_state["original_folder_uuids"] = original_keys
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        _LOGGER.debug(f"Resetting FileSystem state on node {self.sys_log.hostname}")
+        # Move any 'original' folder that have been deleted back to folders
+        original_folder_uuids = self._original_state["original_folder_uuids"]
+        for uuid in original_folder_uuids:
+            if uuid in self.deleted_folders:
+                folder = self.deleted_folders[uuid]
+                self.deleted_folders.pop(uuid)
+                self.folders[uuid] = folder
+                self._folders_by_name[folder.name] = folder
+
+        # Clear any other deleted folders that aren't original (have been created by agent)
+        self.deleted_folders.clear()
+
+        # Now clear all non-original folders created by agent
+        current_folder_uuids = list(self.folders.keys())
+        for uuid in current_folder_uuids:
+            if uuid not in original_folder_uuids:
+                folder = self.folders[uuid]
+                self.folders.pop(uuid)
+                self._folders_by_name.pop(folder.name)
+
+        # Now reset all remaining folders
+        for folder in self.folders.values():
+            folder.reset_component_for_episode(episode)
+        super().reset_component_for_episode(episode)
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 

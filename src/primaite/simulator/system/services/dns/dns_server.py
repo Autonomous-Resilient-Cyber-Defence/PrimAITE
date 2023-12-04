@@ -28,6 +28,20 @@ class DNSServer(Service):
         super().__init__(**kwargs)
         self.start()
 
+    def set_original_state(self):
+        """Sets the original state."""
+        _LOGGER.debug(f"Setting DNSServer original state on node {self.software_manager.node.hostname}")
+        super().set_original_state()
+        vals_to_include = {"dns_table"}
+        self._original_state["dns_table_orig"] = self.model_dump(include=vals_to_include)["dns_table"]
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        self.dns_table.clear()
+        for key, value in self._original_state["dns_table_orig"].items():
+            self.dns_table[key] = value
+        super().reset_component_for_episode(episode)
+
     def describe_state(self) -> Dict:
         """
         Describes the current state of the software.
@@ -48,6 +62,9 @@ class DNSServer(Service):
         :param target_domain: The single domain name requested by a DNS client.
         :return ip_address: The IP address of that domain name or None.
         """
+        if not self._can_perform_action():
+            return
+
         return self.dns_table.get(target_domain)
 
     def dns_register(self, domain_name: str, domain_ip_address: IPv4Address):
@@ -60,16 +77,10 @@ class DNSServer(Service):
         :param: domain_ip_address: The IP address that the domain should route to
         :type: domain_ip_address: IPv4Address
         """
+        if not self._can_perform_action():
+            return
+
         self.dns_table[domain_name] = domain_ip_address
-
-    def reset_component_for_episode(self, episode: int):
-        """
-        Resets the Service component for a new episode.
-
-        This method ensures the Service is ready for a new episode, including resetting any
-        stateful properties or statistics, and clearing any message queues.
-        """
-        pass
 
     def receive(
         self,
@@ -88,10 +99,14 @@ class DNSServer(Service):
 
         :return: True if DNS request returns a valid IP, otherwise, False
         """
+        if not super().receive(payload=payload, session_id=session_id, **kwargs):
+            return False
+
         # The payload should be a DNS packet
         if not isinstance(payload, DNSPacket):
             _LOGGER.debug(f"{payload} is not a DNSPacket")
             return False
+
         # cast payload into a DNS packet
         payload: DNSPacket = payload
         if payload.dns_request is not None:

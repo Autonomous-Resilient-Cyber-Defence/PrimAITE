@@ -37,6 +37,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+junit/
 htmlcov/
 .tox/
 .nox/
@@ -154,3 +155,4 @@ simulation_output/
 benchmark/output
 # src/primaite/notebooks/scratch.ipynb
 src/primaite/notebooks/scratch.py
+sandbox.py

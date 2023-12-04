@@ -1,13 +1,15 @@
 from ipaddress import IPv4Address
 from typing import Optional
 
+from primaite import getLogger
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
-from primaite.simulator.system.services.service import ServiceOperatingState
+
+_LOGGER = getLogger(__name__)
 
 
 class FTPClient(FTPServiceABC):
@@ -28,6 +30,18 @@ class FTPClient(FTPServiceABC):
         super().__init__(**kwargs)
         self.start()
 
+    def set_original_state(self):
+        """Sets the original state."""
+        _LOGGER.debug(f"Setting FTPClient original state on node {self.software_manager.node.hostname}")
+        super().set_original_state()
+        vals_to_include = {"connected"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        _LOGGER.debug(f"Resetting FTPClient state on node {self.software_manager.node.hostname}")
+        super().reset_component_for_episode(episode)
+
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
         """
         Process the command in the FTP Packet.
@@ -38,8 +52,7 @@ class FTPClient(FTPServiceABC):
         :type: session_id: Optional[str]
         """
         # if client service is down, return error
-        if self.operating_state != ServiceOperatingState.RUNNING:
-            self.sys_log.error("FTP Client is not running")
+        if not self._can_perform_action():
             payload.status_code = FTPStatusCode.ERROR
             return payload
 
@@ -66,16 +79,12 @@ class FTPClient(FTPServiceABC):
         :type: is_reattempt: Optional[bool]
         """
         # make sure the service is running before attempting
-        if self.operating_state != ServiceOperatingState.RUNNING:
-            self.sys_log.error(f"FTPClient not running for {self.sys_log.hostname}")
+        if not self._can_perform_action():
             return False
 
         # normally FTP will choose a random port for the transfer, but using the FTP command port will do for now
         # create FTP packet
-        payload: FTPPacket = FTPPacket(
-            ftp_command=FTPCommand.PORT,
-            ftp_command_args=Port.FTP,
-        )
+        payload: FTPPacket = FTPPacket(ftp_command=FTPCommand.PORT, ftp_command_args=Port.FTP)
 
         if self.send(payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id):
             if payload.status_code == FTPStatusCode.OK:
@@ -270,8 +279,14 @@ class FTPClient(FTPServiceABC):
         This helps prevent an FTP request loop - FTP client and servers can exist on
         the same node.
         """
-        if payload.status_code is None:
+        if not self._can_perform_action():
             return False
+
+        if payload.status_code is None:
+            self.sys_log.error(f"FTP Server could not be found - Error Code: {FTPStatusCode.NOT_FOUND.value}")
+            return False
+
+        self.sys_log.info(f"{self.name}: Received FTP Response {payload.ftp_command.name} {payload.status_code.value}")
 
         self._process_ftp_command(payload=payload, session_id=session_id)
         return True

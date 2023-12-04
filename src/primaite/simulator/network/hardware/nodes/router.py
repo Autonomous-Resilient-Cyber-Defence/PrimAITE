@@ -52,6 +52,11 @@ class ACLRule(SimComponent):
                 rule_strings.append(f"{key}={value}")
         return ", ".join(rule_strings)
 
+    def set_original_state(self):
+        """Sets the original state."""
+        vals_to_keep = {"action", "protocol", "src_ip_address", "src_port", "dst_ip_address", "dst_port"}
+        self._original_state = self.model_dump(include=vals_to_keep, exclude_none=True)
+
     def describe_state(self) -> Dict:
         """
         Describes the current state of the ACLRule.
@@ -93,6 +98,18 @@ class AccessControlList(SimComponent):
 
         super().__init__(**kwargs)
         self._acl = [None] * (self.max_acl_rules - 1)
+        self.set_original_state()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        self.implicit_rule.set_original_state()
+        vals_to_keep = {"implicit_action", "max_acl_rules", "acl"}
+        self._original_state = self.model_dump(include=vals_to_keep, exclude_none=True)
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        self.implicit_rule.reset_component_for_episode(episode)
+        super().reset_component_for_episode(episode)
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
@@ -337,6 +354,11 @@ class RouteEntry(SimComponent):
                 kwargs[key] = IPv4Address(kwargs[key])
         super().__init__(**kwargs)
 
+    def set_original_state(self):
+        """Sets the original state."""
+        vals_to_include = {"address", "subnet_mask", "next_hop_ip_address", "metric"}
+        self._original_values = self.model_dump(include=vals_to_include)
+
     def describe_state(self) -> Dict:
         """
         Describes the current state of the RouteEntry.
@@ -367,6 +389,18 @@ class RouteTable(SimComponent):
 
     routes: List[RouteEntry] = []
     sys_log: SysLog
+
+    def set_original_state(self):
+        """Sets the original state."""
+        """Sets the original state."""
+        super().set_original_state()
+        self._original_state["routes_orig"] = self.routes
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        self.routes.clear()
+        self.routes = self._original_state["routes_orig"]
+        super().reset_component_for_episode(episode)
 
     def describe_state(self) -> Dict:
         """
@@ -638,6 +672,27 @@ class Router(Node):
         self.arp.nics = self.nics
         self.icmp.arp = self.arp
 
+        self.set_original_state()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        self.acl.set_original_state()
+        self.route_table.set_original_state()
+        super().set_original_state()
+        vals_to_include = {"num_ports"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        self.arp.clear()
+        self.acl.reset_component_for_episode(episode)
+        self.route_table.reset_component_for_episode(episode)
+        for i, nic in self.ethernet_ports.items():
+            nic.reset_component_for_episode(episode)
+            self.enable_port(i)
+
+        super().reset_component_for_episode(episode)
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
         rm.add_request("acl", RequestType(func=self.acl._request_manager))
@@ -730,6 +785,7 @@ class Router(Node):
             dst_ip_address=dst_ip_address,
             dst_port=dst_port,
         )
+
         if not permitted:
             at_port = self._get_port_of_nic(from_nic)
             self.sys_log.info(f"Frame blocked at port {at_port} by rule {rule}")
@@ -763,6 +819,7 @@ class Router(Node):
         nic.ip_address = ip_address
         nic.subnet_mask = subnet_mask
         self.sys_log.info(f"Configured port {port} with ip_address={ip_address}/{nic.ip_network.prefixlen}")
+        self.set_original_state()
 
     def enable_port(self, port: int):
         """

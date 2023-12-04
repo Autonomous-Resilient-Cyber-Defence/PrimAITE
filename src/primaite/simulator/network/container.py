@@ -12,6 +12,8 @@ from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import Router
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.system.applications.application import Application
+from primaite.simulator.system.services.service import Service
 
 _LOGGER = getLogger(__name__)
 
@@ -43,6 +45,32 @@ class Network(SimComponent):
 
         self._nx_graph = MultiGraph()
 
+    def set_original_state(self):
+        """Sets the original state."""
+        for node in self.nodes.values():
+            node.set_original_state()
+        for link in self.links.values():
+            link.set_original_state()
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        for node in self.nodes.values():
+            node.reset_component_for_episode(episode)
+        for link in self.links.values():
+            link.reset_component_for_episode(episode)
+
+        for node in self.nodes.values():
+            node.power_on()
+
+            for nic in node.nics.values():
+                nic.enable()
+            # Reset software
+            for software in node.software_manager.software.values():
+                if isinstance(software, Service):
+                    software.start()
+                elif isinstance(software, Application):
+                    software.run()
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
         self._node_request_manager = RequestManager()
@@ -51,6 +79,17 @@ class Network(SimComponent):
             RequestType(func=self._node_request_manager),
         )
         return rm
+
+    def apply_timestep(self, timestep: int) -> None:
+        """Apply a timestep evolution to this the network and its nodes and links."""
+        super().apply_timestep(timestep=timestep)
+        # apply timestep to nodes
+        for node_id in self.nodes:
+            self.nodes[node_id].apply_timestep(timestep=timestep)
+
+        # apply timestep to links
+        for link_id in self.links:
+            self.links[link_id].apply_timestep(timestep=timestep)
 
     @property
     def routers(self) -> List[Router]:
@@ -181,7 +220,7 @@ class Network(SimComponent):
         self._node_id_map[len(self.nodes)] = node
         node.parent = self
         self._nx_graph.add_node(node.hostname)
-        _LOGGER.info(f"Added node {node.uuid} to Network {self.uuid}")
+        _LOGGER.debug(f"Added node {node.uuid} to Network {self.uuid}")
         self._node_request_manager.add_request(name=node.uuid, request_type=RequestType(func=node._request_manager))
 
     def get_node_by_hostname(self, hostname: str) -> Optional[Node]:

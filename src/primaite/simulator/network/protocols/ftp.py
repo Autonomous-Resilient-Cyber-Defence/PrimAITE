@@ -35,6 +35,9 @@ class FTPCommand(Enum):
 class FTPStatusCode(Enum):
     """Status code of the current FTP request."""
 
+    NOT_FOUND = 14
+    """Destination not found."""
+
     OK = 200
     """Command successful."""
 

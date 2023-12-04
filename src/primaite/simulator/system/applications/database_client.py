@@ -31,6 +31,20 @@ class DatabaseClient(Application):
         kwargs["port"] = Port.POSTGRES_SERVER
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
+        self.set_original_state()
+
+    def set_original_state(self):
+        """Sets the original state."""
+        _LOGGER.debug(f"Setting DatabaseClient WebServer original state on node {self.software_manager.node.hostname}")
+        super().set_original_state()
+        vals_to_include = {"server_ip_address", "server_password", "connected", "_query_success_tracker"}
+        self._original_state.update(self.model_dump(include=vals_to_include))
+
+    def reset_component_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        _LOGGER.debug(f"Resetting DataBaseClient state on node {self.software_manager.node.hostname}")
+        super().reset_component_for_episode(episode)
+        self._query_success_tracker.clear()
 
     def describe_state(self) -> Dict:
         """
@@ -54,9 +68,13 @@ class DatabaseClient(Application):
 
     def connect(self) -> bool:
         """Connect to a Database Service."""
-        if not self.connected and self.operating_state.RUNNING:
+        if not self._can_perform_action():
+            return False
+
+        if not self.connected:
             return self._connect(self.server_ip_address, self.server_password)
-        return False
+        # already connected
+        return True
 
     def _connect(
         self, server_ip_address: IPv4Address, password: Optional[str] = None, is_reattempt: bool = False
@@ -75,11 +93,11 @@ class DatabaseClient(Application):
         """
         if is_reattempt:
             if self.connected:
-                self.sys_log.info(f"{self.name}: DatabaseClient connected to {server_ip_address} authorised")
+                self.sys_log.info(f"{self.name}: DatabaseClient connection to {server_ip_address} authorised")
                 self.server_ip_address = server_ip_address
                 return self.connected
             else:
-                self.sys_log.info(f"{self.name}: DatabaseClient connected to {server_ip_address} declined")
+                self.sys_log.info(f"{self.name}: DatabaseClient connection to {server_ip_address} declined")
                 return False
         payload = {"type": "connect_request", "password": password}
         software_manager: SoftwareManager = self.software_manager
@@ -90,7 +108,7 @@ class DatabaseClient(Application):
 
     def disconnect(self):
         """Disconnect from the Database Service."""
-        if self.connected and self.operating_state.RUNNING:
+        if self.connected and self.operating_state is ApplicationOperatingState.RUNNING:
             software_manager: SoftwareManager = self.software_manager
             software_manager.send_payload_to_session_manager(
                 payload={"type": "disconnect"}, dest_ip_address=self.server_ip_address, dest_port=self.port
@@ -132,22 +150,34 @@ class DatabaseClient(Application):
     def run(self) -> None:
         """Run the DatabaseClient."""
         super().run()
-        self.operating_state = ApplicationOperatingState.RUNNING
-        self.connect()
+        if self.operating_state == ApplicationOperatingState.RUNNING:
+            self.connect()
 
-    def query(self, sql: str) -> bool:
+    def query(self, sql: str, is_reattempt: bool = False) -> bool:
         """
         Send a query to the Database Service.
 
-        :param sql: The SQL query.
+        :param: sql: The SQL query.
+        :param: is_reattempt: If true, the action has been reattempted.
         :return: True if the query was successful, otherwise False.
         """
-        if self.connected and self.operating_state.RUNNING:
+        if not self._can_perform_action():
+            return False
+
+        if self.connected:
             query_id = str(uuid4())
 
             # Initialise the tracker of this ID to False
             self._query_success_tracker[query_id] = False
             return self._query(sql=sql, query_id=query_id)
+        else:
+            if is_reattempt:
+                return False
+
+            if not self.connect():
+                return False
+
+            self.query(sql=sql, is_reattempt=True)
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
@@ -157,6 +187,9 @@ class DatabaseClient(Application):
         :param session_id: The session id the payload relates to.
         :return: True.
         """
+        if not self._can_perform_action():
+            return False
+
         if isinstance(payload, dict) and payload.get("type"):
             if payload["type"] == "connect_response":
                 self.connected = payload["response"] == True
@@ -166,4 +199,6 @@ class DatabaseClient(Application):
                 self._query_success_tracker[query_id] = status_code == 200
                 if self._query_success_tracker[query_id]:
                     _LOGGER.debug(f"Received payload {payload}")
+                else:
+                    self.connected = False
         return True
