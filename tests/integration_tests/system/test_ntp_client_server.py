@@ -1,5 +1,6 @@
 from ipaddress import IPv4Address
 from time import sleep
+from typing import Tuple
 
 import pytest
 
@@ -14,7 +15,8 @@ from primaite.simulator.system.services.service import ServiceOperatingState
 # Create simple network for testing
 
 
-def create_ntp_network() -> Network:
+@pytest.fixture(scope="function")
+def create_ntp_network(client_server) -> Tuple[NTPClient, Computer, NTPServer, Server]:
     """
     +------------+            +------------+
     |    ntp     |            |     ntp    |
@@ -23,32 +25,26 @@ def create_ntp_network() -> Network:
     +------------+            +------------+
 
     """
+    client, server = client_server
 
-    network = Network()
-    ntp_server = Server(
-        hostname="ntp_server", ip_address="192.168.1.2", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
-    )
-    ntp_server.power_on()
-    ntp_server.software_manager.install(NTPServer)
+    server.power_on()
+    server.software_manager.install(NTPServer)
+    ntp_server: NTPServer = server.software_manager.software.get("NTPServer")
+    ntp_server.start()
 
-    ntp_client = Computer(
-        hostname="ntp_client", ip_address="192.168.1.3", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
-    )
-    ntp_client.power_on()
-    ntp_client.software_manager.install(NTPClient)
+    client.power_on()
+    client.software_manager.install(NTPClient)
+    ntp_client: NTPClient = client.software_manager.software.get("NTPClient")
+    ntp_client.start()
 
-    network.connect(endpoint_b=ntp_server.ethernet_port[1], endpoint_a=ntp_client.ethernet_port[1])
-
-    return network
+    return ntp_client, client, ntp_server, server
 
 
 # Define one node to be an NTP server and another node to be a NTP Client.
 
 
-def test_ntp_client_server():
-    network = create_ntp_network()
-    server: Server = network.get_node_by_hostname("ntp_server")
-    client: Computer = network.get_node_by_hostname("ntp_client")
+def test_ntp_client_server(create_ntp_network):
+    ntp_client, client, ntp_server, server = create_ntp_network
 
     ntp_server: NTPServer = server.software_manager.software["NTPServer"]
     ntp_client: NTPClient = client.software_manager.software["NTPClient"]
@@ -56,24 +52,15 @@ def test_ntp_client_server():
     assert ntp_server.operating_state == ServiceOperatingState.RUNNING
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
     ntp_client.configure(
-        ntp_server_ip_address=IPv4Address("192.168.1.2"), ntp_client_ip_address=IPv4Address("192.168.1.3")
+        ntp_server_ip_address=IPv4Address("192.168.0.2"), ntp_client_ip_address=IPv4Address("192.168.0.1")
     )
 
     assert ntp_client.time is None
-
-    # ntp_request = NTPRequest(ntp_client="192.168.1.3")
-    # ntp_packet = NTPPacket(ntp_request=ntp_request)
-    # ntp_client.send(payload=ntp_packet)
     ntp_client.request_time()
-
-    # assert ntp_server.receive(payload=ntp_packet) is True
-    # assert ntp_client.receive(payload=ntp_packet) is True
     assert ntp_client.time is not None
     first_time = ntp_client.time
     sleep(0.1)
     ntp_client.apply_timestep(1)  # Check time advances
-    # ntp_server.receive(payload=ntp_packet)
-    # ntp_client.receive(payload=ntp_packet)
     second_time = ntp_client.time
     assert first_time != second_time
 
