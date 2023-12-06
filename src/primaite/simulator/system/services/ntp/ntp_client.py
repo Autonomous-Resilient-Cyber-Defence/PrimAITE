@@ -23,7 +23,7 @@ class NTPClient(Service):
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPClient"
         kwargs["port"] = Port.NTP
-        kwargs["protocol"] = IPProtocol.UDP
+        kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
         self.start()
 
@@ -65,7 +65,7 @@ class NTPClient(Service):
         self,
         payload: NTPPacket,
         session_id: Optional[str] = None,
-        dest_ip_address: IPv4Address = ntp_server,
+        dest_ip_address: IPv4Address = None,
         dest_port: [Port] = Port.NTP,
         **kwargs,
     ) -> bool:
@@ -79,8 +79,6 @@ class NTPClient(Service):
         :return: True if successful, False otherwise.
         """
         self.ip_addr = payload.ntp_request.ntp_client
-        self.sys_log.info(f"{self.name}: Sending NTP request {payload.ntp_request.ntp_client}")
-
         return super().send(
             payload=payload,
             dest_ip_address=dest_ip_address,
@@ -101,6 +99,8 @@ class NTPClient(Service):
         :param session_id: The Session ID the payload is to originate from. Optional.
         :return: True if successful, False otherwise.
         """
+        self.sys_log.info(f"{self.name}: Receiving NTP request from {payload.ntp_request.ntp_client}")
+
         if not (isinstance(payload, NTPPacket) and payload.ntp_request.ntp_client):
             _LOGGER.debug(f"{payload} is not a NTPPacket")
             return False
@@ -116,7 +116,7 @@ class NTPClient(Service):
         """Send request to ntp_server."""
         ntp_request = NTPRequest(ntp_client=self.ip_addr)
         ntp_server_packet = NTPPacket(ntp_request=ntp_request)
-        self.send(payload=ntp_server_packet)
+        self.send(payload=ntp_server_packet, dest_ip_address=self.ntp_server)
 
     def apply_timestep(self, timestep: int) -> None:
         """

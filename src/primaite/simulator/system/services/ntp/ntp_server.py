@@ -16,7 +16,7 @@ class NTPServer(Service):
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPServer"
         kwargs["port"] = Port.NTP
-        kwargs["protocol"] = IPProtocol.UDP
+        kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
         self.start()
 
@@ -60,6 +60,7 @@ class NTPServer(Service):
 
         :return: True if valid NTP request else False.
         """
+        self.sys_log.info(f"{self.name} received request from {payload.ntp_request.ntp_client}")
         if not (isinstance(payload, NTPPacket) and payload.ntp_request.ntp_client):
             _LOGGER.debug(f"{payload} is not a NTPPacket")
             return False
