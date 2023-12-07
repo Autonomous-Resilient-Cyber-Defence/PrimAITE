@@ -9,6 +9,7 @@ training_config:
 io_settings:
   save_checkpoints: true
   checkpoint_interval: 5
+  save_step_metadata: false
 
 
 game:
