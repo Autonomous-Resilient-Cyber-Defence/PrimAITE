@@ -66,27 +66,27 @@ def test_ntp_client_server(create_ntp_network):
 
 
 # Test ntp client behaviour when ntp server is unavailable.
-@pytest.mark.skip(reason="NTP needs to know if underlying node is RUNNING")
-def test_ntp_server_failure():
-    network = create_ntp_network()
-    server: Server = network.get_node_by_hostname("ntp_server")
-    client: Computer = network.get_node_by_hostname("ntp_client")
+def test_ntp_server_failure(create_ntp_network):
+    ntp_client, client, ntp_server, server = create_ntp_network
 
     ntp_server: NTPServer = server.software_manager.software["NTPServer"]
     ntp_client: NTPClient = client.software_manager.software["NTPClient"]
 
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
+    assert ntp_client.operating_state == ServiceOperatingState.RUNNING
+    ntp_client.configure(
+        ntp_server_ip_address=IPv4Address("192.168.0.2"), ntp_client_ip_address=IPv4Address("192.168.0.1")
+    )
 
     # Turn off ntp server.
     ntp_server.stop()
     assert ntp_server.operating_state == ServiceOperatingState.STOPPED
     # And request a time update.
-    ntp_request = NTPRequest(ntp_client="192.168.1.3")
-    ntp_packet = NTPPacket(ntp_request=ntp_request)
-    ntp_client.send(payload=ntp_packet)
-    assert ntp_server.receive(payload=ntp_packet) is False
-    assert ntp_client.receive(payload=ntp_packet) is False
+    ntp_client.request_time()
+    assert ntp_client.time is None
 
     # Restart ntp server.
     ntp_server.start()
     assert ntp_server.operating_state == ServiceOperatingState.RUNNING
+    ntp_client.request_time()
+    assert ntp_client.time is not None
