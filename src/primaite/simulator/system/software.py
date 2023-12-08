@@ -198,7 +198,7 @@ class IOSoftware(Software):
 
     installing_count: int = 0
     "The number of times the software has been installed. Default is 0."
-    max_sessions: int = 1
+    max_sessions: int = 100
     "The maximum number of sessions that the software can handle simultaneously. Default is 0."
     tcp: bool = True
     "Indicates if the software uses TCP protocol for communication. Default is True."

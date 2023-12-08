@@ -149,9 +149,9 @@ class DataManipulationBot(DatabaseClient):
             if simulate_trial(p_of_success):
                 self.sys_log.info(f"{self.name}: Performing data manipulation")
                 # perform the attack
-                if not self.connected:
+                if not len(self.connections):
                     self.connect()
-                if self.connected:
+                if len(self.connections):
                     self.query(self.payload)
                     self.sys_log.info(f"{self.name} payload delivered: {self.payload}")
                     attack_successful = True

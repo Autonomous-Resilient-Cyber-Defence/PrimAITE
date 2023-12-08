@@ -1,3 +1,5 @@
+import copy
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional
 
@@ -40,6 +42,15 @@ class Service(IOSoftware):
     restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
 
+    _connections: Dict[str, Dict] = {}
+    "Active connections to the Service."
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.health_state_visible = SoftwareHealthState.UNUSED
+        self.health_state_actual = SoftwareHealthState.UNUSED
+
     def _can_perform_action(self) -> bool:
         """
         Checks if the service can perform actions.
@@ -74,12 +85,6 @@ class Service(IOSoftware):
         """
         return super().receive(payload=payload, session_id=session_id, **kwargs)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.health_state_visible = SoftwareHealthState.UNUSED
-        self.health_state_actual = SoftwareHealthState.UNUSED
-
     def set_original_state(self):
         """Sets the original state."""
         super().set_original_state()
@@ -98,6 +103,11 @@ class Service(IOSoftware):
         rm.add_request("enable", RequestType(func=lambda request, context: self.enable()))
         return rm
 
+    @property
+    def connections(self) -> Dict[str, Dict]:
+        """Return the public version of connections."""
+        return copy.copy(self._connections)
+
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -112,6 +122,56 @@ class Service(IOSoftware):
         state["health_state_actual"] = self.health_state_actual.value
         state["health_state_visible"] = self.health_state_visible.value
         return state
+
+    def add_connection(self, connection_id: str, session_id: Optional[str] = None) -> bool:
+        """
+        Create a new connection to this service.
+
+        Returns true if connection successfully created
+
+        :param: connection_id: UUID of the connection to create
+        :type: string
+        """
+        # if over or at capacity, set to overwhelmed
+        if len(self._connections) >= self.max_sessions:
+            self.health_state_actual = SoftwareHealthState.OVERWHELMED
+            self.sys_log.error(f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity.")
+            return False
+        else:
+            # if service was previously overwhelmed, set to good because there is enough space for connections
+            if self.health_state_actual == SoftwareHealthState.OVERWHELMED:
+                self.health_state_actual = SoftwareHealthState.GOOD
+
+            # check that connection already doesn't exist
+            if not self._connections.get(connection_id):
+                session_details = None
+                if session_id:
+                    session_details = self._get_session_details(session_id)
+                self._connections[connection_id] = {
+                    "ip_address": session_details.with_ip_address if session_details else None,
+                    "time": datetime.now(),
+                }
+                self.sys_log.info(f"{self.name}: Connect request for {connection_id=} authorised")
+                return True
+            # connection with given id already exists
+            self.sys_log.error(
+                f"{self.name}: Connect request for {connection_id=} declined. Connection already exists."
+            )
+            return False
+
+    def remove_connection(self, connection_id: str) -> bool:
+        """
+        Remove a connection from this service.
+
+        Returns true if connection successfully removed
+
+        :param: connection_id: UUID of the connection to create
+        :type: string
+        """
+        if self._connections.get(connection_id):
+            self._connections.pop(connection_id)
+            self.sys_log.info(f"{self.name}: Connection {connection_id=} closed.")
+            return True
 
     def stop(self) -> None:
         """Stop the service."""

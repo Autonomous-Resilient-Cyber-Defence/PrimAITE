@@ -252,9 +252,9 @@ def arcd_uc2_network() -> Network:
     database_service: DatabaseService = database_server.software_manager.software.get("DatabaseService")  # noqa
     database_service.start()
     database_service.configure_backup(backup_server=IPv4Address("192.168.1.16"))
-    database_service._process_sql(ddl, None)  # noqa
+    database_service._process_sql(ddl, None, None)  # noqa
     for insert_statement in user_insert_statements:
-        database_service._process_sql(insert_statement, None)  # noqa
+        database_service._process_sql(insert_statement, None, None)  # noqa
 
     # Web Server
     web_server = Server(

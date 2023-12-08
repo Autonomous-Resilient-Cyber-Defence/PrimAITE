@@ -1,6 +1,9 @@
 from ipaddress import IPv4Address
+from typing import Tuple
 
-from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+import pytest
+
+from primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.database.database_service import DatabaseService
@@ -8,57 +11,109 @@ from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.service import ServiceOperatingState
 
 
-def test_database_client_server_connection(uc2_network):
-    web_server: Server = uc2_network.get_node_by_hostname("web_server")
-    db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
+@pytest.fixture(scope="function")
+def peer_to_peer() -> Tuple[Node, Node]:
+    node_a = Node(hostname="node_a", operating_state=NodeOperatingState.ON)
+    nic_a = NIC(ip_address="192.168.0.10", subnet_mask="255.255.255.0", operating_state=NodeOperatingState.ON)
+    node_a.connect_nic(nic_a)
+    node_a.software_manager.get_open_ports()
 
-    db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software.get("DatabaseService")
+    node_b = Node(hostname="node_b", operating_state=NodeOperatingState.ON)
+    nic_b = NIC(ip_address="192.168.0.11", subnet_mask="255.255.255.0")
+    node_b.connect_nic(nic_b)
 
+    Link(endpoint_a=nic_a, endpoint_b=nic_b)
+
+    assert node_a.ping("192.168.0.11")
+
+    node_a.software_manager.install(DatabaseClient)
+    node_a.software_manager.software["DatabaseClient"].configure(server_ip_address=IPv4Address("192.168.0.11"))
+    node_a.software_manager.software["DatabaseClient"].run()
+
+    node_b.software_manager.install(DatabaseService)
+    database_service: DatabaseService = node_b.software_manager.software["DatabaseService"]  # noqa
+    database_service.start()
+    return node_a, node_b
+
+
+@pytest.fixture(scope="function")
+def peer_to_peer_secure_db() -> Tuple[Node, Node]:
+    node_a = Node(hostname="node_a", operating_state=NodeOperatingState.ON)
+    nic_a = NIC(ip_address="192.168.0.10", subnet_mask="255.255.255.0", operating_state=NodeOperatingState.ON)
+    node_a.connect_nic(nic_a)
+    node_a.software_manager.get_open_ports()
+
+    node_b = Node(hostname="node_b", operating_state=NodeOperatingState.ON)
+    nic_b = NIC(ip_address="192.168.0.11", subnet_mask="255.255.255.0")
+    node_b.connect_nic(nic_b)
+
+    Link(endpoint_a=nic_a, endpoint_b=nic_b)
+
+    assert node_a.ping("192.168.0.11")
+
+    node_a.software_manager.install(DatabaseClient)
+    node_a.software_manager.software["DatabaseClient"].configure(server_ip_address=IPv4Address("192.168.0.11"))
+    node_a.software_manager.software["DatabaseClient"].run()
+
+    node_b.software_manager.install(DatabaseService)
+    database_service: DatabaseService = node_b.software_manager.software["DatabaseService"]  # noqa
+    database_service.password = "12345"
+    database_service.start()
+    return node_a, node_b
+
+
+def test_database_client_server_connection(peer_to_peer):
+    node_a, node_b = peer_to_peer
+
+    db_client: DatabaseClient = node_a.software_manager.software["DatabaseClient"]
+
+    db_service: DatabaseService = node_b.software_manager.software["DatabaseService"]
+
+    db_client.connect()
+    assert len(db_client.connections) == 1
     assert len(db_service.connections) == 1
 
     db_client.disconnect()
+    assert len(db_client.connections) == 0
     assert len(db_service.connections) == 0
 
 
-def test_database_client_server_correct_password(uc2_network):
-    web_server: Server = uc2_network.get_node_by_hostname("web_server")
-    db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
+def test_database_client_server_correct_password(peer_to_peer_secure_db):
+    node_a, node_b = peer_to_peer_secure_db
 
-    db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software.get("DatabaseService")
+    db_client: DatabaseClient = node_a.software_manager.software["DatabaseClient"]
 
-    db_client.disconnect()
+    db_service: DatabaseService = node_b.software_manager.software["DatabaseService"]
 
-    db_client.configure(server_ip_address=IPv4Address("192.168.1.14"), server_password="12345")
-    db_service.password = "12345"
-
-    assert db_client.connect()
-
+    db_client.configure(server_ip_address=IPv4Address("192.168.0.11"), server_password="12345")
+    db_client.connect()
+    assert len(db_client.connections) == 1
     assert len(db_service.connections) == 1
 
 
-def test_database_client_server_incorrect_password(uc2_network):
-    web_server: Server = uc2_network.get_node_by_hostname("web_server")
-    db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
+def test_database_client_server_incorrect_password(peer_to_peer_secure_db):
+    node_a, node_b = peer_to_peer_secure_db
 
-    db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software.get("DatabaseService")
+    db_client: DatabaseClient = node_a.software_manager.software["DatabaseClient"]
 
-    db_client.disconnect()
-    db_client.configure(server_ip_address=IPv4Address("192.168.1.14"), server_password="54321")
-    db_service.password = "12345"
+    db_service: DatabaseService = node_b.software_manager.software["DatabaseService"]
 
-    assert not db_client.connect()
+    # should fail
+    db_client.connect()
+    assert len(db_client.connections) == 0
+    assert len(db_service.connections) == 0
+
+    db_client.configure(server_ip_address=IPv4Address("192.168.0.11"), server_password="wrongpass")
+    db_client.connect()
+    assert len(db_client.connections) == 0
     assert len(db_service.connections) == 0
 
 
 def test_database_client_query(uc2_network):
     """Tests DB query across the network returns HTTP status 200 and date."""
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
-    db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
-
-    assert db_client.connected
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    db_client.connect()
 
     assert db_client.query("SELECT")
 
@@ -66,13 +121,13 @@ def test_database_client_query(uc2_network):
 def test_create_database_backup(uc2_network):
     """Run the backup_database method and check if the FTP server has the relevant file."""
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software.get("DatabaseService")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
 
     # back up should be created
     assert db_service.backup_database() is True
 
     backup_server: Server = uc2_network.get_node_by_hostname("backup_server")
-    ftp_server: FTPServer = backup_server.software_manager.software.get("FTPServer")
+    ftp_server: FTPServer = backup_server.software_manager.software["FTPServer"]
 
     # backup file should exist in the backup server
     assert ftp_server.file_system.get_file(folder_name=db_service.uuid, file_name="database.db") is not None
@@ -81,7 +136,7 @@ def test_create_database_backup(uc2_network):
 def test_restore_backup(uc2_network):
     """Run the restore_backup method and check if the backup is properly restored."""
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software.get("DatabaseService")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
 
     # create a back up
     assert db_service.backup_database() is True
@@ -107,7 +162,7 @@ def test_database_client_cannot_query_offline_database_server(uc2_network):
 
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
     db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
-    assert db_client.connected
+    assert len(db_client.connections)
 
     assert db_client.query("SELECT") is True
 
