@@ -20,13 +20,13 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
-from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
@@ -314,6 +314,7 @@ class PrimaiteGame:
                             opt = application_cfg["options"]
                             new_application.configure(
                                 server_ip_address=IPv4Address(opt.get("server_ip")),
+                                server_password=opt.get("server_password"),
                                 payload=opt.get("payload"),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
