@@ -49,7 +49,7 @@ class DoSBot(DatabaseClient, Application):
     port_scan_p_of_success: float = 0.1
     """Probability of port scanning being sucessful."""
 
-    dos_intensity: float = 0.25
+    dos_intensity: float = 1
     """How much of the max sessions will be used by the DoS when attacking."""
 
     def __init__(self, **kwargs):
@@ -91,6 +91,8 @@ class DoSBot(DatabaseClient, Application):
         target_port: Optional[Port] = Port.POSTGRES_SERVER,
         payload: Optional[str] = None,
         repeat: bool = False,
+        port_scan_p_of_success: float = 0.1,
+        dos_intensity: float = 1,
         max_sessions: int = 1000,
     ):
         """
@@ -100,15 +102,21 @@ class DoSBot(DatabaseClient, Application):
         :param: target_port: The port of the target service. Optional - Default is `Port.HTTP`
         :param: payload: The payload the DoS Bot will throw at the target service. Optional - Default is `None`
         :param: repeat: If True, the bot will maintain the attack. Optional - Default is `True`
+        :param: port_scan_p_of_success: The chance of the port scan being sucessful. Optional - Default is 0.1 (10%)
+        :param: dos_intensity: The intensity of the DoS attack.
+            Multiplied with the application's max session - Default is 1.0
         :param: max_sessions: The maximum number of sessions the DoS bot will attack with. Optional - Default is 1000
         """
         self.target_ip_address = target_ip_address
         self.target_port = target_port
         self.payload = payload
         self.repeat = repeat
+        self.port_scan_p_of_success = port_scan_p_of_success
+        self.dos_intensity = dos_intensity
         self.max_sessions = max_sessions
         self.sys_log.info(
-            f"{self.name}: Configured the {self.name} with {target_ip_address=}, {target_port=}, {payload=}, {repeat=}."
+            f"{self.name}: Configured the {self.name} with {target_ip_address=}, {target_port=}, {payload=}, "
+            f"{repeat=}, {port_scan_p_of_success=}, {dos_intensity=}, {max_sessions=}."
         )
 
     def run(self):
