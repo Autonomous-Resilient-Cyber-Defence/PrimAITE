@@ -14,8 +14,6 @@ _LOGGER = getLogger(__name__)
 class NTPClient(Service):
     """Represents a NTP client as a service."""
 
-    ip_addr: Optional[IPv4Address] = None
-    "The IP address of the NTP client"
     ntp_server: Optional[IPv4Address] = None
     "The NTP server the client sends requests to."
     time: Optional[datetime] = None
@@ -27,16 +25,15 @@ class NTPClient(Service):
         super().__init__(**kwargs)
         self.start()
 
-    def configure(self, ntp_server_ip_address: IPv4Address, ntp_client_ip_address: IPv4Address) -> None:
+    def configure(self, ntp_server_ip_address: IPv4Address) -> None:
         """
         Set the IP address for the NTP server.
 
         :param ntp_server_ip_address: IPv4 address of NTP server.
         :param ntp_client_ip_Address: IPv4 address of NTP client.
         """
-        self.ip_addr = ntp_client_ip_address
         self.ntp_server = ntp_server_ip_address
-        self.sys_log.info(f"{self.name}: ip_addr: {self.ip_addr}, ntp_server: {self.ntp_server}")
+        self.sys_log.info(f"{self.name}: ntp_server: {self.ntp_server}")
 
     def describe_state(self) -> Dict:
         """
@@ -78,7 +75,6 @@ class NTPClient(Service):
 
         :return: True if successful, False otherwise.
         """
-        self.ip_addr = payload.ntp_request.ntp_client
         return super().send(
             payload=payload,
             dest_ip_address=dest_ip_address,
@@ -99,9 +95,7 @@ class NTPClient(Service):
         :param session_id: The Session ID the payload is to originate from. Optional.
         :return: True if successful, False otherwise.
         """
-        self.sys_log.info(f"{self.name}: Receiving NTP request from {payload.ntp_request.ntp_client}")
-
-        if not (isinstance(payload, NTPPacket) and payload.ntp_request.ntp_client):
+        if not isinstance(payload, NTPPacket):
             _LOGGER.debug(f"{payload} is not a NTPPacket")
             return False
         if payload.ntp_reply.ntp_datetime:
@@ -114,7 +108,7 @@ class NTPClient(Service):
 
     def request_time(self) -> None:
         """Send request to ntp_server."""
-        ntp_request = NTPRequest(ntp_client=self.ip_addr)
+        ntp_request = NTPRequest()
         ntp_server_packet = NTPPacket(ntp_request=ntp_request)
         self.send(payload=ntp_server_packet, dest_ip_address=self.ntp_server)
 
@@ -129,7 +123,7 @@ class NTPClient(Service):
         :param timestep: The current timestep number. (Amount of time since simulation episode began)
         :type timestep: int
         """
-        self.sys_log.info(f"{self.name} apply_timestep: IP address: {self.ip_addr}")
+        self.sys_log.info(f"{self.name} apply_timestep")
         super().apply_timestep(timestep)
         if self.operating_state == ServiceOperatingState.RUNNING:
             # request time from server

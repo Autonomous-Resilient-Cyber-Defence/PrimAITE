@@ -60,23 +60,14 @@ class NTPServer(Service):
 
         :return: True if valid NTP request else False.
         """
-        self.sys_log.info(f"{self.name} received request from {payload.ntp_request.ntp_client}")
-        if not (isinstance(payload, NTPPacket) and payload.ntp_request.ntp_client):
+        if not (isinstance(payload, NTPPacket)):
             _LOGGER.debug(f"{payload} is not a NTPPacket")
             return False
         payload: NTPPacket = payload
-        if payload.ntp_request.ntp_client:
-            self.sys_log.info(
-                f"{self.name}: Received request for {payload.ntp_request.ntp_client} \
-                    from session {session_id}"
-            )
-            # generate a reply with the current time
-            time = datetime.now()
-            payload = payload.generate_reply(time)
-            self.sys_log.info(
-                f"{self.name}: Responding to NTP request for {payload.ntp_request.ntp_client} "
-                f"with current time: {time}"
-            )
-            # send reply
-            self.send(payload, session_id)
-            return True
+
+        # generate a reply with the current time
+        time = datetime.now()
+        payload = payload.generate_reply(time)
+        # send reply
+        self.send(payload, session_id)
+        return True

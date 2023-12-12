@@ -51,9 +51,7 @@ def test_ntp_client_server(create_ntp_network):
 
     assert ntp_server.operating_state == ServiceOperatingState.RUNNING
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
-    ntp_client.configure(
-        ntp_server_ip_address=IPv4Address("192.168.0.2"), ntp_client_ip_address=IPv4Address("192.168.0.1")
-    )
+    ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.0.2"))
 
     assert ntp_client.time is None
     ntp_client.request_time()
@@ -74,9 +72,7 @@ def test_ntp_server_failure(create_ntp_network):
 
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
-    ntp_client.configure(
-        ntp_server_ip_address=IPv4Address("192.168.0.2"), ntp_client_ip_address=IPv4Address("192.168.0.1")
-    )
+    ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.0.2"))
 
     # Turn off ntp server.
     ntp_server.stop()
