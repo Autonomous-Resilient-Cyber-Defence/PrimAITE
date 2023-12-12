@@ -63,15 +63,24 @@ def test_disconnect_when_client_is_closed(database_client_on_computer):
 
 
 def test_disconnect(database_client_on_computer):
-    """Database client should set connected to False and remove the database server ip address."""
+    """Database client should remove the connection."""
     database_client, computer = database_client_on_computer
 
-    database_client.connections[uuid4()] = {}
+    database_client._connections[str(uuid4())] = {"item": True}
+    assert len(database_client.connections) == 1
 
     assert database_client.operating_state is ApplicationOperatingState.RUNNING
     assert database_client.server_ip_address is not None
 
     database_client.disconnect()
+
+    assert len(database_client.connections) == 0
+
+    uuid = str(uuid4())
+    database_client._connections[uuid] = {"item": True}
+    assert len(database_client.connections) == 1
+
+    database_client.disconnect(connection_id=uuid)
 
     assert len(database_client.connections) == 0
 

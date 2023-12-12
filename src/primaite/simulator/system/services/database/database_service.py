@@ -45,7 +45,7 @@ class DatabaseService(Service):
         super().set_original_state()
         vals_to_include = {
             "password",
-            "connections",
+            "_connections",
             "backup_server",
             "latest_backup_directory",
             "latest_backup_file_name",
@@ -55,7 +55,7 @@ class DatabaseService(Service):
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         _LOGGER.debug("Resetting DatabaseService original state on node {self.software_manager.node.hostname}")
-        self.connections.clear()
+        self.clear_connections()
         super().reset_component_for_episode(episode)
 
     def configure_backup(self, backup_server: IPv4Address):
@@ -225,9 +225,6 @@ class DatabaseService(Service):
         :param session_id: The session identifier.
         :return: True if the Status Code is 200, otherwise False.
         """
-        if not super().receive(payload=payload, session_id=session_id, **kwargs):
-            return False
-
         result = {"status_code": 500, "data": []}
 
         # if server service is down, return error

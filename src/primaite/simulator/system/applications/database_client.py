@@ -5,7 +5,7 @@ from uuid import uuid4
 from primaite import getLogger
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
+from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.software_manager import SoftwareManager
 
 _LOGGER = getLogger(__name__)
@@ -23,7 +23,6 @@ class DatabaseClient(Application):
 
     server_ip_address: Optional[IPv4Address] = None
     server_password: Optional[str] = None
-    connections: Dict[str, Dict] = {}
     _query_success_tracker: Dict[str, bool] = {}
 
     def __init__(self, **kwargs):
@@ -143,7 +142,7 @@ class DatabaseClient(Application):
             dest_ip_address=self.server_ip_address,
             dest_port=self.port,
         )
-        self.connections.pop(connection_id)
+        self.remove_connection(connection_id=connection_id)
 
         self.sys_log.info(
             f"{self.name}: DatabaseClient disconnected connection {connection_id} from {self.server_ip_address}"
@@ -181,8 +180,6 @@ class DatabaseClient(Application):
     def run(self) -> None:
         """Run the DatabaseClient."""
         super().run()
-        if self.operating_state == ApplicationOperatingState.RUNNING:
-            self.connect()
 
     def query(self, sql: str, connection_id: Optional[str] = None) -> bool:
         """
@@ -221,7 +218,8 @@ class DatabaseClient(Application):
         if isinstance(payload, dict) and payload.get("type"):
             if payload["type"] == "connect_response":
                 if payload["response"] is True:
-                    self.connections[payload.get("connection_id")] = payload
+                    # add connection
+                    self.add_connection(connection_id=payload.get("connection_id"), session_id=session_id)
             elif payload["type"] == "sql":
                 query_id = payload.get("uuid")
                 status_code = payload.get("status_code")

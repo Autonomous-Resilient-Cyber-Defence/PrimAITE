@@ -37,7 +37,7 @@ class FTPServer(FTPServiceABC):
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         _LOGGER.debug(f"Resetting FTPServer state on node {self.software_manager.node.hostname}")
-        self.connections.clear()
+        self.clear_connections()
         super().reset_component_for_episode(episode)
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
