@@ -7,7 +7,7 @@ import pytest
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.protocols.ntp import NTPPacket, NTPRequest
+from primaite.simulator.network.protocols.ntp import NTPPacket
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.simulator.system.services.ntp.ntp_server import NTPServer
 from primaite.simulator.system.services.service import ServiceOperatingState

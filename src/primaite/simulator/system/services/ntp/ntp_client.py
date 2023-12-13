@@ -3,7 +3,7 @@ from ipaddress import IPv4Address
 from typing import Dict, Optional
 
 from primaite import getLogger
-from primaite.simulator.network.protocols.ntp import NTPPacket, NTPRequest
+from primaite.simulator.network.protocols.ntp import NTPPacket
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
@@ -108,8 +108,8 @@ class NTPClient(Service):
 
     def request_time(self) -> None:
         """Send request to ntp_server."""
-        ntp_request = NTPRequest()
-        ntp_server_packet = NTPPacket(ntp_request=ntp_request)
+        ntp_server_packet = NTPPacket()
+
         self.send(payload=ntp_server_packet, dest_ip_address=self.ntp_server)
 
     def apply_timestep(self, timestep: int) -> None:
