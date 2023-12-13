@@ -58,7 +58,7 @@ class Service(IOSoftware):
         if not super()._can_perform_action():
             return False
 
-        if self.operating_state is not self.operating_state.RUNNING:
+        if self.operating_state is not ServiceOperatingState.RUNNING:
             # service is not running
             _LOGGER.error(f"Cannot perform action: {self.name} is {self.operating_state.name}")
             return False

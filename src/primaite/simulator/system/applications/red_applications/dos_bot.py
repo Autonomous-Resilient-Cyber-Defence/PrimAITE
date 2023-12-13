@@ -49,7 +49,7 @@ class DoSBot(DatabaseClient, Application):
     port_scan_p_of_success: float = 0.1
     """Probability of port scanning being sucessful."""
 
-    dos_intensity: float = 1
+    dos_intensity: float = 1.0
     """How much of the max sessions will be used by the DoS when attacking."""
 
     def __init__(self, **kwargs):
@@ -92,7 +92,7 @@ class DoSBot(DatabaseClient, Application):
         payload: Optional[str] = None,
         repeat: bool = False,
         port_scan_p_of_success: float = 0.1,
-        dos_intensity: float = 1,
+        dos_intensity: float = 1.0,
         max_sessions: int = 1000,
     ):
         """

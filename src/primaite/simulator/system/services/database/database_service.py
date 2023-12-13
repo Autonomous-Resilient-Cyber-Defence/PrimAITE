@@ -143,6 +143,10 @@ class DatabaseService(Service):
         status_code = 500  # Default internal server error
         if self.operating_state == ServiceOperatingState.RUNNING:
             status_code = 503  # service unavailable
+            if self.health_state_actual == SoftwareHealthState.OVERWHELMED:
+                self.sys_log.error(
+                    f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity."
+                )
             if self.health_state_actual == SoftwareHealthState.GOOD:
                 if self.password == password:
                     status_code = 200  # ok
