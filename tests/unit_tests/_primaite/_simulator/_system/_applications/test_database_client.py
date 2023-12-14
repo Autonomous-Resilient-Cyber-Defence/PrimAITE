@@ -1,5 +1,6 @@
 from ipaddress import IPv4Address
 from typing import Tuple, Union
+from uuid import uuid4
 
 import pytest
 
@@ -62,18 +63,26 @@ def test_disconnect_when_client_is_closed(database_client_on_computer):
 
 
 def test_disconnect(database_client_on_computer):
-    """Database client should set connected to False and remove the database server ip address."""
+    """Database client should remove the connection."""
     database_client, computer = database_client_on_computer
 
-    database_client.connected = True
+    database_client._connections[str(uuid4())] = {"item": True}
+    assert len(database_client.connections) == 1
 
     assert database_client.operating_state is ApplicationOperatingState.RUNNING
     assert database_client.server_ip_address is not None
 
     database_client.disconnect()
 
-    assert database_client.connected is False
-    assert database_client.server_ip_address is None
+    assert len(database_client.connections) == 0
+
+    uuid = str(uuid4())
+    database_client._connections[uuid] = {"item": True}
+    assert len(database_client.connections) == 1
+
+    database_client.disconnect(connection_id=uuid)
+
+    assert len(database_client.connections) == 0
 
 
 def test_query_when_client_is_closed(database_client_on_computer):
@@ -84,19 +93,6 @@ def test_query_when_client_is_closed(database_client_on_computer):
     assert database_client.operating_state is ApplicationOperatingState.CLOSED
 
     assert database_client.query(sql="test") is False
-
-
-def test_query_failed_reattempt(database_client_on_computer):
-    """Database client query should return False if the reattempt fails."""
-    database_client, computer = database_client_on_computer
-
-    def return_false():
-        return False
-
-    database_client.connect = return_false
-
-    database_client.connected = False
-    assert database_client.query(sql="test", is_reattempt=True) is False
 
 
 def test_query_fail_to_connect(database_client_on_computer):

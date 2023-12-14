@@ -5,7 +5,7 @@ from primaite.simulator.network.networks import arcd_uc2_network
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
-from primaite.simulator.system.services.red_services.data_manipulation_bot import (
+from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
     DataManipulationAttackStage,
     DataManipulationBot,
 )
@@ -70,4 +70,4 @@ def test_dm_bot_perform_data_manipulation_success(dm_bot):
     dm_bot._perform_data_manipulation(p_of_success=1.0)
 
     assert dm_bot.attack_stage in (DataManipulationAttackStage.SUCCEEDED, DataManipulationAttackStage.FAILED)
-    assert dm_bot.connected
+    assert len(dm_bot.connections)
