@@ -91,6 +91,8 @@ class NIC(SimComponent):
     "Indicates if the NIC supports Wake-on-LAN functionality."
     _connected_node: Optional[Node] = None
     "The Node to which the NIC is connected."
+    _port_num_on_node: Optional[int] = None
+    "Which port number is assigned on this NIC"
     _connected_link: Optional[Link] = None
     "The Link to which the NIC is connected."
     enabled: bool = False
@@ -148,7 +150,7 @@ class NIC(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "ip_adress": str(self.ip_address),
+                "ip_address": str(self.ip_address),
                 "subnet_mask": str(self.subnet_mask),
                 "mac_address": self.mac_address,
                 "speed": self.speed,
@@ -311,6 +313,8 @@ class SwitchPort(SimComponent):
     "The Maximum Transmission Unit (MTU) of the SwitchPort in Bytes. Default is 1500 B"
     _connected_node: Optional[Node] = None
     "The Node to which the SwitchPort is connected."
+    _port_num_on_node: Optional[int] = None
+    "The port num on the connected node."
     _connected_link: Optional[Link] = None
     "The Link to which the SwitchPort is connected."
     enabled: bool = False
@@ -497,8 +501,8 @@ class Link(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "endpoint_a": self.endpoint_a.uuid,
-                "endpoint_b": self.endpoint_b.uuid,
+                "endpoint_a": self.endpoint_a.uuid,  # TODO: consider if using UUID is the best way to do this
+                "endpoint_b": self.endpoint_b.uuid,  # TODO: consider if using UUID is the best way to do this
                 "bandwidth": self.bandwidth,
                 "current_load": self.current_load,
             }
@@ -1094,12 +1098,12 @@ class Node(SimComponent):
             {
                 "hostname": self.hostname,
                 "operating_state": self.operating_state.value,
-                "NICs": {uuid: nic.describe_state() for uuid, nic in self.nics.items()},
+                "NICs": {eth_num: nic.describe_state() for eth_num, nic in self.ethernet_port.items()},
                 # "switch_ports": {uuid, sp for uuid, sp in self.switch_ports.items()},
                 "file_system": self.file_system.describe_state(),
-                "applications": {uuid: app.describe_state() for uuid, app in self.applications.items()},
-                "services": {uuid: svc.describe_state() for uuid, svc in self.services.items()},
-                "process": {uuid: proc.describe_state() for uuid, proc in self.processes.items()},
+                "applications": {app.name: app.describe_state() for app in self.applications.values()},
+                "services": {svc.name: svc.describe_state() for svc in self.services.values()},
+                "process": {proc.name: proc.describe_state() for proc in self.processes.values()},
                 "revealed_to_red": self.revealed_to_red,
             }
         )
@@ -1316,6 +1320,7 @@ class Node(SimComponent):
             self.nics[nic.uuid] = nic
             self.ethernet_port[len(self.nics)] = nic
             nic._connected_node = self
+            nic._port_num_on_node = len(self.nics)
             nic.parent = self
             self.sys_log.info(f"Connected NIC {nic}")
             if self.operating_state == NodeOperatingState.ON:

@@ -199,10 +199,24 @@ class Network(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "nodes": {uuid: node.describe_state() for uuid, node in self.nodes.items()},
-                "links": {uuid: link.describe_state() for uuid, link in self.links.items()},
+                "nodes": {node.hostname: node.describe_state() for node in self.nodes.values()},
+                "links": {},
             }
         )
+        # Update the links one-by-one. The key is a 4-tuple of `hostname_a, port_a, hostname_b, port_b`
+        for uuid, link in self.links.items():
+            node_a = link.endpoint_a._connected_node
+            node_b = link.endpoint_b._connected_node
+            hostname_a = node_a.hostname if node_a else None
+            hostname_b = node_b.hostname if node_b else None
+            port_a = link.endpoint_a._port_num_on_node
+            port_b = link.endpoint_b._port_num_on_node
+            state["links"][uuid] = link.describe_state()
+            state["links"][uuid]["hostname_a"] = hostname_a
+            state["links"][uuid]["hostname_b"] = hostname_b
+            state["links"][uuid]["port_a"] = port_a
+            state["links"][uuid]["port_b"] = port_b
+
         return state
 
     def add_node(self, node: Node) -> None:

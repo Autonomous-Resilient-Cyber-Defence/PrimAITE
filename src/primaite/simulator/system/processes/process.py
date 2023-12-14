@@ -41,5 +41,5 @@ class Process(Software):
         :rtype: Dict
         """
         state = super().describe_state()
-        state.update({"operating_state": self.operating_state.name})
+        state.update({"operating_state": self.operating_state.value})
         return state
