@@ -346,7 +346,7 @@ class NicObservation(AbstractObservation):
 
         :param where: Where in the simulation state dictionary to find the relevant information for this NIC. A typical
             example may look like this:
-            ['network','nodes',<node_hostname>,'NICs',<nic_index>]
+            ['network','nodes',<node_hostname>,'NICs',<nic_number>]
             If None, this denotes that the NIC does not exist and the observation will be populated with zeroes.
         :type where: Optional[Tuple[str]], optional
         """

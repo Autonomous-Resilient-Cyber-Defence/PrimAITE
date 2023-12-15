@@ -132,7 +132,7 @@ class DatabaseFileIntegrity(AbstractReward):
         node_hostname = config.get("node_hostname")
         folder_name = config.get("folder_name")
         file_name = config.get("file_name")
-        if not node_hostname and folder_name and file_name:
+        if not (node_hostname and folder_name and file_name):
             msg = f"{cls.__name__} could not be initialised with parameters {config}"
             _LOGGER.error(msg)
             raise ValueError(msg)
@@ -148,8 +148,8 @@ class WebServer404Penalty(AbstractReward):
 
         :param node_hostname: Hostname of the node which contains the web server service.
         :type node_hostname: str
-        :param service_node: Name of the web server service.
-        :type service_node: str
+        :param service_name: Name of the web server service.
+        :type service_name: str
         """
         self.location_in_state = ["network", "nodes", node_hostname, "services", service_name]
 
