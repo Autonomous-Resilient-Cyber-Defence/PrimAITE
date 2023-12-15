@@ -1441,14 +1441,14 @@ class Node(SimComponent):
         :type service: Service
         """
         if service in self:
-            _LOGGER.warning(f"Can't add service {service.uuid} to node {self.uuid}. It's already installed.")
+            _LOGGER.warning(f"Can't add service {service.name} to node {self.hostname}. It's already installed.")
             return
         self.services[service.uuid] = service
         service.parent = self
         service.install()  # Perform any additional setup, such as creating files for this service on the node.
         self.sys_log.info(f"Installed service {service.name}")
-        _LOGGER.info(f"Added service {service.uuid} to node {self.uuid}")
-        self._service_request_manager.add_request(service.uuid, RequestType(func=service._request_manager))
+        _LOGGER.info(f"Added service {service.name} to node {self.hostname}")
+        self._service_request_manager.add_request(service.name, RequestType(func=service._request_manager))
 
     def uninstall_service(self, service: Service) -> None:
         """
@@ -1458,14 +1458,14 @@ class Node(SimComponent):
         :type service: Service
         """
         if service not in self:
-            _LOGGER.warning(f"Can't remove service {service.uuid} from node {self.uuid}. It's not installed.")
+            _LOGGER.warning(f"Can't remove service {service.name} from node {self.hostname}. It's not installed.")
             return
         service.uninstall()  # Perform additional teardown, such as removing files or restarting the machine.
         self.services.pop(service.uuid)
         service.parent = None
         self.sys_log.info(f"Uninstalled service {service.name}")
-        _LOGGER.info(f"Removed service {service.uuid} from node {self.uuid}")
-        self._service_request_manager.remove_request(service.uuid)
+        _LOGGER.info(f"Removed service {service.name} from node {self.hostname}")
+        self._service_request_manager.remove_request(service.name)
 
     def install_application(self, application: Application) -> None:
         """
@@ -1475,13 +1475,15 @@ class Node(SimComponent):
         :type application: Application
         """
         if application in self:
-            _LOGGER.warning(f"Can't add application {application.uuid} to node {self.uuid}. It's already installed.")
+            _LOGGER.warning(
+                f"Can't add application {application.name} to node {self.hostname}. It's already installed."
+            )
             return
         self.applications[application.uuid] = application
         application.parent = self
         self.sys_log.info(f"Installed application {application.name}")
-        _LOGGER.info(f"Added application {application.uuid} to node {self.uuid}")
-        self._application_request_manager.add_request(application.uuid, RequestType(func=application._request_manager))
+        _LOGGER.info(f"Added application {application.name} to node {self.hostname}")
+        self._application_request_manager.add_request(application.name, RequestType(func=application._request_manager))
 
     def uninstall_application(self, application: Application) -> None:
         """
@@ -1491,13 +1493,15 @@ class Node(SimComponent):
         :type application: Application
         """
         if application not in self:
-            _LOGGER.warning(f"Can't remove application {application.uuid} from node {self.uuid}. It's not installed.")
+            _LOGGER.warning(
+                f"Can't remove application {application.name} from node {self.hostname}. It's not installed."
+            )
             return
         self.applications.pop(application.uuid)
         application.parent = None
         self.sys_log.info(f"Uninstalled application {application.name}")
-        _LOGGER.info(f"Removed application {application.uuid} from node {self.uuid}")
-        self._application_request_manager.remove_request(application.uuid)
+        _LOGGER.info(f"Removed application {application.name} from node {self.hostname}")
+        self._application_request_manager.remove_request(application.name)
 
     def _shut_down_actions(self):
         """Actions to perform when the node is shut down."""
