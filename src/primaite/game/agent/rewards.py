@@ -82,11 +82,11 @@ class DummyReward(AbstractReward):
 class DatabaseFileIntegrity(AbstractReward):
     """Reward function component which rewards the agent for maintaining the integrity of a database file."""
 
-    def __init__(self, node_uuid: str, folder_name: str, file_name: str) -> None:
+    def __init__(self, node_hostname: str, folder_name: str, file_name: str) -> None:
         """Initialise the reward component.
 
-        :param node_uuid: UUID of the node which contains the database file.
-        :type node_uuid: str
+        :param node_hostname: Hostname of the node which contains the database file.
+        :type node_hostname: str
         :param folder_name: folder which contains the database file.
         :type folder_name: str
         :param file_name: name of the database file.
@@ -95,7 +95,7 @@ class DatabaseFileIntegrity(AbstractReward):
         self.location_in_state = [
             "network",
             "nodes",
-            node_uuid,
+            node_hostname,
             "file_system",
             "folders",
             folder_name,
@@ -129,49 +129,29 @@ class DatabaseFileIntegrity(AbstractReward):
         :return: The reward component.
         :rtype: DatabaseFileIntegrity
         """
-        node_ref = config.get("node_ref")
+        node_hostname = config.get("node_hostname")
         folder_name = config.get("folder_name")
         file_name = config.get("file_name")
-        if not node_ref:
-            _LOGGER.error(
-                f"{cls.__name__} could not be initialised from config because node_ref parameter was not specified"
-            )
-            return DummyReward()  # TODO: better error handling
-        if not folder_name:
-            _LOGGER.error(
-                f"{cls.__name__} could not be initialised from config because folder_name parameter was not specified"
-            )
-            return DummyReward()  # TODO: better error handling
-        if not file_name:
-            _LOGGER.error(
-                f"{cls.__name__} could not be initialised from config because file_name parameter was not specified"
-            )
-            return DummyReward()  # TODO: better error handling
-        node_uuid = game.ref_map_nodes[node_ref]
-        if not node_uuid:
-            _LOGGER.error(
-                (
-                    f"{cls.__name__} could not be initialised from config because the referenced node could not be "
-                    f"found in the simulation"
-                )
-            )
-            return DummyReward()  # TODO: better error handling
+        if not node_hostname and folder_name and file_name:
+            msg = f"{cls.__name__} could not be initialised with parameters {config}"
+            _LOGGER.error(msg)
+            raise ValueError(msg)
 
-        return cls(node_uuid=node_uuid, folder_name=folder_name, file_name=file_name)
+        return cls(node_hostname=node_hostname, folder_name=folder_name, file_name=file_name)
 
 
 class WebServer404Penalty(AbstractReward):
     """Reward function component which penalises the agent when the web server returns a 404 error."""
 
-    def __init__(self, node_uuid: str, service_uuid: str) -> None:
+    def __init__(self, node_hostname: str, service_name: str) -> None:
         """Initialise the reward component.
 
-        :param node_uuid: UUID of the node which contains the web server service.
-        :type node_uuid: str
-        :param service_uuid: UUID of the web server service.
-        :type service_uuid: str
+        :param node_hostname: Hostname of the node which contains the web server service.
+        :type node_hostname: str
+        :param service_node: Name of the web server service.
+        :type service_node: str
         """
-        self.location_in_state = ["network", "nodes", node_uuid, "services", service_uuid]
+        self.location_in_state = ["network", "nodes", node_hostname, "services", service_name]
 
     def calculate(self, state: Dict) -> float:
         """Calculate the reward for the current state.
@@ -203,26 +183,17 @@ class WebServer404Penalty(AbstractReward):
         :return: The reward component.
         :rtype: WebServer404Penalty
         """
-        node_ref = config.get("node_ref")
-        service_ref = config.get("service_ref")
-        if not (node_ref and service_ref):
+        node_hostname = config.get("node_hostname")
+        service_name = config.get("service_name")
+        if not (node_hostname and service_name):
             msg = (
                 f"{cls.__name__} could not be initialised from config because node_ref and service_ref were not "
                 "found in reward config."
             )
             _LOGGER.warning(msg)
-            return DummyReward()  # TODO: should we error out with incorrect inputs? Probably!
-        node_uuid = game.ref_map_nodes[node_ref]
-        service_uuid = game.ref_map_services[service_ref]
-        if not (node_uuid and service_uuid):
-            msg = (
-                f"{cls.__name__} could not be initialised because node {node_ref} and service {service_ref} were not"
-                " found in the simulator."
-            )
-            _LOGGER.warning(msg)
-            return DummyReward()  # TODO: consider erroring here as well
+            raise ValueError(msg)
 
-        return cls(node_uuid=node_uuid, service_uuid=service_uuid)
+        return cls(node_hostname=node_hostname, service_name=service_name)
 
 
 class RewardFunction:
