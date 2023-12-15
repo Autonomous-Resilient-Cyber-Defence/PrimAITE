@@ -60,7 +60,7 @@ def test_ntp_client_server(create_ntp_network):
     sleep(0.1)
     ntp_client.apply_timestep(1)  # Check time advances
     second_time = ntp_client.time
-    assert first_time != second_time
+    assert first_time < second_time
 
 
 # Test ntp client behaviour when ntp server is unavailable.
