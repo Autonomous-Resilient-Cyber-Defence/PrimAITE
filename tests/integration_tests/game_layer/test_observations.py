@@ -14,7 +14,7 @@ def test_file_observation():
     state = sim.describe_state()
 
     dog_file_obs = FileObservation(
-        where=["network", "nodes", pc.uuid, "file_system", "folders", "root", "files", "dog.png"]
+        where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"]
     )
     assert dog_file_obs.observe(state) == {"health_status": 1}
     assert dog_file_obs.space == spaces.Dict({"health_status": spaces.Discrete(6)})
