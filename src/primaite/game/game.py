@@ -27,6 +27,8 @@ from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
+from primaite.simulator.system.services.ntp.ntp_client import NTPClient
+from primaite.simulator.system.services.ntp.ntp_server import NTPServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
@@ -266,6 +268,8 @@ class PrimaiteGame:
                         "WebServer": WebServer,
                         "FTPClient": FTPClient,
                         "FTPServer": FTPServer,
+                        "NTPClient": NTPClient,
+                        "NTPServer": NTPServer,
                     }
                     if service_type in service_types_mapping:
                         _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
