@@ -13,6 +13,7 @@ from primaite.simulator.system.services.ntp.ntp_server import NTPServer
 from primaite.simulator.system.services.service import ServiceOperatingState
 
 # Create simple network for testing
+# Define one node to be an NTP server and another node to be a NTP Client.
 
 
 @pytest.fixture(scope="function")
@@ -38,9 +39,6 @@ def create_ntp_network(client_server) -> Tuple[NTPClient, Computer, NTPServer, S
     ntp_client.start()
 
     return ntp_client, client, ntp_server, server
-
-
-# Define one node to be an NTP server and another node to be a NTP Client.
 
 
 def test_ntp_client_server(create_ntp_network):
