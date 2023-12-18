@@ -33,7 +33,7 @@ class AbstractAction(ABC):
         All action init functions should accept **kwargs as a way of ignoring extra arguments.
 
         Since many parameters are defined for the action space as a whole (such as max files per folder, max services
-        per node), we need to pass those options to every action that gets created. To pervent verbosity, these
+        per node), we need to pass those options to every action that gets created. To prevent verbosity, these
         parameters are just broadcasted to all actions and the actions can pay attention to the ones that apply.
         """
         self.name: str = ""
@@ -85,11 +85,11 @@ class NodeServiceAbstractAction(AbstractAction):
 
     def form_request(self, node_id: int, service_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_uuid = self.manager.get_node_uuid_by_idx(node_id)
-        service_uuid = self.manager.get_service_uuid_by_idx(node_id, service_id)
-        if node_uuid is None or service_uuid is None:
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        service_name = self.manager.get_service_name_by_idx(node_id, service_id)
+        if node_name is None or service_name is None:
             return ["do_nothing"]
-        return ["network", "node", node_uuid, "services", service_uuid, self.verb]
+        return ["network", "node", node_name, "services", service_name, self.verb]
 
 
 class NodeServiceScanAction(NodeServiceAbstractAction):
@@ -172,11 +172,11 @@ class NodeApplicationAbstractAction(AbstractAction):
 
     def form_request(self, node_id: int, application_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_uuid = self.manager.get_node_uuid_by_idx(node_id)
-        application_uuid = self.manager.get_application_uuid_by_idx(node_id, application_id)
-        if node_uuid is None or application_uuid is None:
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        application_name = self.manager.get_application_name_by_idx(node_id, application_id)
+        if node_name is None or application_name is None:
             return ["do_nothing"]
-        return ["network", "node", node_uuid, "application", application_uuid, self.verb]
+        return ["network", "node", node_name, "application", application_name, self.verb]
 
 
 class NodeApplicationExecuteAction(NodeApplicationAbstractAction):
@@ -203,11 +203,11 @@ class NodeFolderAbstractAction(AbstractAction):
 
     def form_request(self, node_id: int, folder_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_uuid = self.manager.get_node_uuid_by_idx(node_id)
-        folder_uuid = self.manager.get_folder_uuid_by_idx(node_idx=node_id, folder_idx=folder_id)
-        if node_uuid is None or folder_uuid is None:
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        folder_name = self.manager.get_folder_name_by_idx(node_idx=node_id, folder_idx=folder_id)
+        if node_name is None or folder_name is None:
             return ["do_nothing"]
-        return ["network", "node", node_uuid, "file_system", "folder", folder_uuid, self.verb]
+        return ["network", "node", node_name, "file_system", "folder", folder_name, self.verb]
 
 
 class NodeFolderScanAction(NodeFolderAbstractAction):
@@ -257,12 +257,12 @@ class NodeFileAbstractAction(AbstractAction):
 
     def form_request(self, node_id: int, folder_id: int, file_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_uuid = self.manager.get_node_uuid_by_idx(node_id)
-        folder_uuid = self.manager.get_folder_uuid_by_idx(node_idx=node_id, folder_idx=folder_id)
-        file_uuid = self.manager.get_file_uuid_by_idx(node_idx=node_id, folder_idx=folder_id, file_idx=file_id)
-        if node_uuid is None or folder_uuid is None or file_uuid is None:
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        folder_name = self.manager.get_folder_name_by_idx(node_idx=node_id, folder_idx=folder_id)
+        file_name = self.manager.get_file_name_by_idx(node_idx=node_id, folder_idx=folder_id, file_idx=file_id)
+        if node_name is None or folder_name is None or file_name is None:
             return ["do_nothing"]
-        return ["network", "node", node_uuid, "file_system", "folder", folder_uuid, "files", file_uuid, self.verb]
+        return ["network", "node", node_name, "file_system", "folder", folder_name, "files", file_name, self.verb]
 
 
 class NodeFileScanAction(NodeFileAbstractAction):
@@ -328,8 +328,8 @@ class NodeAbstractAction(AbstractAction):
 
     def form_request(self, node_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_uuid = self.manager.get_node_uuid_by_idx(node_id)
-        return ["network", "node", node_uuid, self.verb]
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return ["network", "node", node_name, self.verb]
 
 
 class NodeOSScanAction(NodeAbstractAction):
@@ -370,7 +370,7 @@ class NetworkACLAddRuleAction(AbstractAction):
     def __init__(
         self,
         manager: "ActionManager",
-        target_router_uuid: str,
+        target_router_hostname: str,
         max_acl_rules: int,
         num_ips: int,
         num_ports: int,
@@ -381,8 +381,8 @@ class NetworkACLAddRuleAction(AbstractAction):
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
-        :param target_router_uuid: UUID of the router to which the ACL rule should be added.
-        :type target_router_uuid: str
+        :param target_router_name: hostname of the router to which the ACL rule should be added.
+        :type target_router_name: str
         :param max_acl_rules: Maximum number of ACL rules that can be added to the router.
         :type max_acl_rules: int
         :param num_ips: Number of IP addresses in the simulation.
@@ -403,7 +403,7 @@ class NetworkACLAddRuleAction(AbstractAction):
             "dest_port_id": num_ports,
             "protocol_id": num_protocols,
         }
-        self.target_router_uuid: str = target_router_uuid
+        self.target_router_name: str = target_router_hostname
 
     def form_request(
         self,
@@ -464,7 +464,7 @@ class NetworkACLAddRuleAction(AbstractAction):
         return [
             "network",
             "node",
-            self.target_router_uuid,
+            self.target_router_name,
             "acl",
             "add_rule",
             permission_str,
@@ -480,23 +480,23 @@ class NetworkACLAddRuleAction(AbstractAction):
 class NetworkACLRemoveRuleAction(AbstractAction):
     """Action which removes a rule from a router's ACL."""
 
-    def __init__(self, manager: "ActionManager", target_router_uuid: str, max_acl_rules: int, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", target_router_hostname: str, max_acl_rules: int, **kwargs) -> None:
         """Init method for NetworkACLRemoveRuleAction.
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
-        :param target_router_uuid: UUID of the router from which the ACL rule should be removed.
-        :type target_router_uuid: str
+        :param target_router_name: Hostname of the router from which the ACL rule should be removed.
+        :type target_router_name: str
         :param max_acl_rules: Maximum number of ACL rules that can be added to the router.
         :type max_acl_rules: int
         """
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"position": max_acl_rules}
-        self.target_router_uuid: str = target_router_uuid
+        self.target_router_name: str = target_router_hostname
 
     def form_request(self, position: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["network", "node", self.target_router_uuid, "acl", "remove_rule", position]
+        return ["network", "node", self.target_router_name, "acl", "remove_rule", position]
 
 
 class NetworkNICAbstractAction(AbstractAction):
@@ -523,16 +523,16 @@ class NetworkNICAbstractAction(AbstractAction):
 
     def form_request(self, node_id: int, nic_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_uuid = self.manager.get_node_uuid_by_idx(node_idx=node_id)
-        nic_uuid = self.manager.get_nic_uuid_by_idx(node_idx=node_id, nic_idx=nic_id)
-        if node_uuid is None or nic_uuid is None:
+        node_name = self.manager.get_node_name_by_idx(node_idx=node_id)
+        nic_num = self.manager.get_nic_num_by_idx(node_idx=node_id, nic_idx=nic_id)
+        if node_name is None or nic_num is None:
             return ["do_nothing"]
         return [
             "network",
             "node",
-            node_uuid,
+            node_name,
             "nic",
-            nic_uuid,
+            nic_num,
             self.verb,
         ]
 
@@ -592,12 +592,11 @@ class ActionManager:
         self,
         game: "PrimaiteGame",  # reference to game for information lookup
         actions: List[str],  # stores list of actions available to agent
-        node_uuids: List[str],  # allows mapping index to node
-        application_uuids: List[List[str]],  # allows mapping index to application
+        nodes: List[Dict],  # extra configuration for each node
         max_folders_per_node: int = 2,  # allows calculating shape
         max_files_per_folder: int = 2,  # allows calculating shape
         max_services_per_node: int = 2,  # allows calculating shape
-        max_applications_per_node: int = 10,  # allows calculating shape
+        max_applications_per_node: int = 2,  # allows calculating shape
         max_nics_per_node: int = 8,  # allows calculating shape
         max_acl_rules: int = 10,  # allows calculating shape
         protocols: List[str] = ["TCP", "UDP", "ICMP"],  # allow mapping index to protocol
@@ -633,8 +632,60 @@ class ActionManager:
         :type act_map: Optional[Dict[int, Dict]]
         """
         self.game: "PrimaiteGame" = game
-        self.node_uuids: List[str] = node_uuids
-        self.application_uuids: List[List[str]] = application_uuids
+        self.node_names: List[str] = [n["node_name"] for n in nodes]
+        """List of node names in this action space. The list order is the mapping between node index and node name."""
+        self.application_names: List[List[str]] = []
+        """
+        List of applications per node. The list order gives the two-index mapping between (node_id, app_id) to app name.
+        The first index corresponds to node id, the second index is the app id on that particular node.
+        For instance, self.application_names[0][2] is the name of the third application on the first node.
+        """
+        self.service_names: List[List[str]] = []
+        """
+        List of services per node. The list order gives the two-index mapping between (node_id, svc_id) to svc name.
+        The first index corresponds to node id, the second index is the service id on that particular node.
+        For instance, self.service_names[0][2] is the name of the third service on the first node.
+        """
+        self.folder_names: List[List[str]] = []
+        """
+        List of folders per node. The list order gives the two-index mapping between (node_id, folder_id) to folder
+        name. The first index corresponds to node id, the second index is the folder id on that particular node.
+        For instance, self.folder_names[0][2] is the name of the third folder on the first node.
+        """
+        self.file_names: List[List[List[str]]] = []
+        """
+        List of files per folder per node. The list order gives the three-index mapping between
+        (node_id, folder_id, file_id) to file name. The first index corresponds to node id, the second index is the
+        folder id on that particular node, and the third index is the file id in that particular folder.
+        For instance, self.file_names[0][2][1] is the name of the second file in the third folder on the first node.
+        """
+
+        # Populate lists of apps, services, files, folders, etc on nodes.
+        for n in nodes:
+            app_list = [a["application_name"] for a in n.get("applications", [])]
+            while len(app_list) < max_applications_per_node:
+                app_list.append(None)
+            self.application_names.append(app_list)
+
+            svc_list = [s["service_name"] for s in n.get("services", [])]
+            while len(svc_list) < max_services_per_node:
+                svc_list.append(None)
+            self.service_names.append(svc_list)
+
+            folder_list = [f["folder_name"] for f in n.get("folders", [])]
+            while len(folder_list) < max_folders_per_node:
+                folder_list.append(None)
+            self.folder_names.append(folder_list)
+
+            file_sublist = []
+            for folder in n.get("folders", [{"files": []}]):
+                file_list = [f["file_name"] for f in folder.get("files", [])]
+                while len(file_list) < max_files_per_folder:
+                    file_list.append(None)
+                file_sublist.append(file_list)
+            while len(file_sublist) < max_folders_per_node:
+                file_sublist.append([None] * max_files_per_folder)
+            self.file_names.append(file_sublist)
         self.protocols: List[str] = protocols
         self.ports: List[str] = ports
 
@@ -643,15 +694,17 @@ class ActionManager:
             self.ip_address_list = ip_address_list
         else:
             self.ip_address_list = []
-            for node_uuid in self.node_uuids:
-                node_obj = self.game.simulation.network.nodes[node_uuid]
+            for node_name in self.node_names:
+                node_obj = self.game.simulation.network.get_node_by_hostname(node_name)
+                if node_obj is None:
+                    continue
                 nics = node_obj.nics
                 for nic_uuid, nic_obj in nics.items():
                     self.ip_address_list.append(nic_obj.ip_address)
 
         # action_args are settings which are applied to the action space as a whole.
         global_action_args = {
-            "num_nodes": len(node_uuids),
+            "num_nodes": len(self.node_names),
             "num_folders": max_folders_per_node,
             "num_files": max_files_per_folder,
             "num_services": max_services_per_node,
@@ -696,7 +749,7 @@ class ActionManager:
     ) -> Dict[int, Tuple[str, Dict]]:
         """Generate a list of all the possible actions that could be taken.
 
-        This enumerates all actions all combinations of parametes you could choose for those actions. The output
+        This enumerates all actions all combinations of parameters you could choose for those actions. The output
         of this function is intended to populate the self.action_map parameter in the situation where the user provides
         a list of action types, but doesn't specify any subset of actions that should be made available to the agent.
 
@@ -745,34 +798,31 @@ class ActionManager:
         """Return the gymnasium action space for this agent."""
         return spaces.Discrete(len(self.action_map))
 
-    def get_node_uuid_by_idx(self, node_idx: int) -> str:
+    def get_node_name_by_idx(self, node_idx: int) -> str:
         """
-        Get the node UUID corresponding to the given index.
+        Get the node name corresponding to the given index.
 
         :param node_idx: The index of the node to retrieve.
         :type node_idx: int
-        :return: The node UUID.
+        :return: The node hostname.
         :rtype: str
         """
-        return self.node_uuids[node_idx]
+        return self.node_names[node_idx]
 
-    def get_folder_uuid_by_idx(self, node_idx: int, folder_idx: int) -> Optional[str]:
+    def get_folder_name_by_idx(self, node_idx: int, folder_idx: int) -> Optional[str]:
         """
-        Get the folder UUID corresponding to the given node and folder indices.
+        Get the folder name corresponding to the given node and folder indices.
 
         :param node_idx: The index of the node.
         :type node_idx: int
         :param folder_idx: The index of the folder on the node.
         :type folder_idx: int
-        :return: The UUID of the folder. Or None if the node has fewer folders than the given index.
+        :return: The name of the folder. Or None if the node has fewer folders than the given index.
         :rtype: Optional[str]
         """
-        node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node = self.game.simulation.network.nodes[node_uuid]
-        folder_uuids = list(node.file_system.folders.keys())
-        return folder_uuids[folder_idx] if len(folder_uuids) > folder_idx else None
+        return self.folder_names[node_idx][folder_idx]
 
-    def get_file_uuid_by_idx(self, node_idx: int, folder_idx: int, file_idx: int) -> Optional[str]:
+    def get_file_name_by_idx(self, node_idx: int, folder_idx: int, file_idx: int) -> Optional[str]:
         """Get the file UUID corresponding to the given node, folder, and file indices.
 
         :param node_idx: The index of the node.
@@ -781,45 +831,35 @@ class ActionManager:
         :type folder_idx: int
         :param file_idx: The index of the file in the folder.
         :type file_idx: int
-        :return: The UUID of the file. Or None if the node has fewer folders than the given index, or the folder has
+        :return: The name of the file. Or None if the node has fewer folders than the given index, or the folder has
             fewer files than the given index.
         :rtype: Optional[str]
         """
-        node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node = self.game.simulation.network.nodes[node_uuid]
-        folder_uuids = list(node.file_system.folders.keys())
-        if len(folder_uuids) <= folder_idx:
-            return None
-        folder = node.file_system.folders[folder_uuids[folder_idx]]
-        file_uuids = list(folder.files.keys())
-        return file_uuids[file_idx] if len(file_uuids) > file_idx else None
+        return self.file_names[node_idx][folder_idx][file_idx]
 
-    def get_service_uuid_by_idx(self, node_idx: int, service_idx: int) -> Optional[str]:
-        """Get the service UUID corresponding to the given node and service indices.
+    def get_service_name_by_idx(self, node_idx: int, service_idx: int) -> Optional[str]:
+        """Get the service name corresponding to the given node and service indices.
 
         :param node_idx: The index of the node.
         :type node_idx: int
         :param service_idx: The index of the service on the node.
         :type service_idx: int
-        :return: The UUID of the service. Or None if the node has fewer services than the given index.
+        :return: The name of the service. Or None if the node has fewer services than the given index.
         :rtype: Optional[str]
         """
-        node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node = self.game.simulation.network.nodes[node_uuid]
-        service_uuids = list(node.services.keys())
-        return service_uuids[service_idx] if len(service_uuids) > service_idx else None
+        return self.service_names[node_idx][service_idx]
 
-    def get_application_uuid_by_idx(self, node_idx: int, application_idx: int) -> Optional[str]:
-        """Get the application UUID corresponding to the given node and service indices.
+    def get_application_name_by_idx(self, node_idx: int, application_idx: int) -> Optional[str]:
+        """Get the application name corresponding to the given node and service indices.
 
         :param node_idx: The index of the node.
         :type node_idx: int
         :param application_idx: The index of the service on the node.
         :type application_idx: int
-        :return: The UUID of the service. Or None if the node has fewer services than the given index.
+        :return: The name of the service. Or None if the node has fewer services than the given index.
         :rtype: Optional[str]
         """
-        return self.application_uuids[node_idx][application_idx]
+        return self.application_names[node_idx][application_idx]
 
     def get_internet_protocol_by_idx(self, protocol_idx: int) -> str:
         """Get the internet protocol corresponding to the given index.
@@ -853,23 +893,18 @@ class ActionManager:
         """
         return self.ports[port_idx]
 
-    def get_nic_uuid_by_idx(self, node_idx: int, nic_idx: int) -> str:
+    def get_nic_num_by_idx(self, node_idx: int, nic_idx: int) -> int:
         """
-        Get the NIC UUID corresponding to the given node and NIC indices.
+        Get the NIC number corresponding to the given node and NIC indices.
 
         :param node_idx: The index of the node.
         :type node_idx: int
         :param nic_idx: The index of the NIC on the node.
         :type nic_idx: int
-        :return: The NIC UUID.
-        :rtype: str
+        :return: The NIC number.
+        :rtype: int
         """
-        node_uuid = self.get_node_uuid_by_idx(node_idx)
-        node_obj = self.game.simulation.network.nodes[node_uuid]
-        nics = list(node_obj.nics.keys())
-        if len(nics) <= nic_idx:
-            return None
-        return nics[nic_idx]
+        return nic_idx + 1
 
     @classmethod
     def from_config(cls, game: "PrimaiteGame", cfg: Dict) -> "ActionManager":
@@ -878,7 +913,7 @@ class ActionManager:
 
         The action space config supports the following three sections:
             1. ``action_list``
-                ``action_list`` contians a list action components which need to be included in the action space.
+                ``action_list`` contains a list action components which need to be included in the action space.
                 Each action component has a ``type`` which maps to a subclass of AbstractAction, and additional options
                 which will be passed to the action class's __init__ method during initialisation.
             2. ``action_map``

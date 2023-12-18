@@ -1318,14 +1318,15 @@ class Node(SimComponent):
         """
         if nic.uuid not in self.nics:
             self.nics[nic.uuid] = nic
-            self.ethernet_port[len(self.nics)] = nic
+            new_nic_num = len(self.nics)
+            self.ethernet_port[new_nic_num] = nic
             nic._connected_node = self
-            nic._port_num_on_node = len(self.nics)
+            nic._port_num_on_node = new_nic_num
             nic.parent = self
             self.sys_log.info(f"Connected NIC {nic}")
             if self.operating_state == NodeOperatingState.ON:
                 nic.enable()
-            self._nic_request_manager.add_request(nic.uuid, RequestType(func=nic._request_manager))
+            self._nic_request_manager.add_request(new_nic_num, RequestType(func=nic._request_manager))
         else:
             msg = f"Cannot connect NIC {nic} as it is already connected"
             self.sys_log.logger.error(msg)
@@ -1342,15 +1343,17 @@ class Node(SimComponent):
         if isinstance(nic, str):
             nic = self.nics.get(nic)
         if nic or nic.uuid in self.nics:
+            nic_num = -1
             for port, _nic in self.ethernet_port.items():
                 if nic == _nic:
                     self.ethernet_port.pop(port)
+                    nic_num = port
                     break
             self.nics.pop(nic.uuid)
             nic.parent = None
             nic.disable()
             self.sys_log.info(f"Disconnected NIC {nic}")
-            self._nic_request_manager.remove_request(nic.uuid)
+            self._nic_request_manager.remove_request(nic_num)
         else:
             msg = f"Cannot disconnect NIC {nic} as it is not connected"
             self.sys_log.logger.error(msg)

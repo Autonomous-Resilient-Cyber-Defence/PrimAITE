@@ -175,7 +175,7 @@ class FileSystem(SimComponent):
         self.folders[folder.uuid] = folder
         self._folders_by_name[folder.name] = folder
         self._folder_request_manager.add_request(
-            name=folder.uuid, request_type=RequestType(func=folder._request_manager)
+            name=folder.name, request_type=RequestType(func=folder._request_manager)
         )
         return folder
 
@@ -282,7 +282,7 @@ class FileSystem(SimComponent):
             sys_log=self.sys_log,
         )
         folder.add_file(file)
-        self._file_request_manager.add_request(name=file.uuid, request_type=RequestType(func=file._request_manager))
+        self._file_request_manager.add_request(name=file.name, request_type=RequestType(func=file._request_manager))
         return file
 
     def get_file(self, folder_name: str, file_name: str) -> Optional[File]:
