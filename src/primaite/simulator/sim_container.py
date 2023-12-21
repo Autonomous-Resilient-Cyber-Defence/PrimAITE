@@ -55,3 +55,9 @@ class Simulation(SimComponent):
             }
         )
         return state
+
+    def apply_timestep(self, timestep: int) -> None:
+        """Apply a timestep to the simulation."""
+        super().apply_timestep(timestep)
+        self.network.apply_timestep(timestep)
+        # self.domain.apply_timestep(timestep)

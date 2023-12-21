@@ -89,7 +89,7 @@ class NodeServiceAbstractAction(AbstractAction):
         service_uuid = self.manager.get_service_uuid_by_idx(node_id, service_id)
         if node_uuid is None or service_uuid is None:
             return ["do_nothing"]
-        return ["network", "node", node_uuid, "services", service_uuid, self.verb]
+        return ["network", "node", node_uuid, "service", service_uuid, self.verb]
 
 
 class NodeServiceScanAction(NodeServiceAbstractAction):
@@ -154,6 +154,14 @@ class NodeServiceEnableAction(NodeServiceAbstractAction):
     def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
         self.verb: str = "enable"
+
+
+class NodeServicePatchAction(NodeServiceAbstractAction):
+    """Action which patches a service."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
+        super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
+        self.verb: str = "patch"
 
 
 class NodeApplicationAbstractAction(AbstractAction):
@@ -262,7 +270,7 @@ class NodeFileAbstractAction(AbstractAction):
         file_uuid = self.manager.get_file_uuid_by_idx(node_idx=node_id, folder_idx=folder_id, file_idx=file_id)
         if node_uuid is None or folder_uuid is None or file_uuid is None:
             return ["do_nothing"]
-        return ["network", "node", node_uuid, "file_system", "folder", folder_uuid, "files", file_uuid, self.verb]
+        return ["network", "node", node_uuid, "file_system", "folder", folder_uuid, "file", file_uuid, self.verb]
 
 
 class NodeFileScanAction(NodeFileAbstractAction):
@@ -566,6 +574,7 @@ class ActionManager:
         "NODE_SERVICE_RESTART": NodeServiceRestartAction,
         "NODE_SERVICE_DISABLE": NodeServiceDisableAction,
         "NODE_SERVICE_ENABLE": NodeServiceEnableAction,
+        "NODE_SERVICE_PATCH": NodeServicePatchAction,
         "NODE_APPLICATION_EXECUTE": NodeApplicationExecuteAction,
         "NODE_FILE_SCAN": NodeFileScanAction,
         "NODE_FILE_CHECKHASH": NodeFileCheckhashAction,
@@ -594,6 +603,7 @@ class ActionManager:
         actions: List[str],  # stores list of actions available to agent
         node_uuids: List[str],  # allows mapping index to node
         application_uuids: List[List[str]],  # allows mapping index to application
+        service_uuids: List[List[str]],  # allows mapping index to service
         max_folders_per_node: int = 2,  # allows calculating shape
         max_files_per_folder: int = 2,  # allows calculating shape
         max_services_per_node: int = 2,  # allows calculating shape
@@ -635,6 +645,7 @@ class ActionManager:
         self.game: "PrimaiteGame" = game
         self.node_uuids: List[str] = node_uuids
         self.application_uuids: List[List[str]] = application_uuids
+        self.service_uuids: List[List[str]] = service_uuids
         self.protocols: List[str] = protocols
         self.ports: List[str] = ports
 
@@ -804,6 +815,11 @@ class ActionManager:
         :return: The UUID of the service. Or None if the node has fewer services than the given index.
         :rtype: Optional[str]
         """
+        # if a mapping was specified, use that mapping, otherwise just use the list of all installed services
+        if self.service_uuids:
+            if self.service_uuids[node_idx]:
+                return self.service_uuids[node_idx][service_idx]
+
         node_uuid = self.get_node_uuid_by_idx(node_idx)
         node = self.game.simulation.network.nodes[node_uuid]
         service_uuids = list(node.services.keys())
