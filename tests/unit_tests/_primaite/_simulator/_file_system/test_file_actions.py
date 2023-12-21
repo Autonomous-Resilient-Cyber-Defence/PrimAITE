@@ -25,7 +25,7 @@ def test_file_scan_request(populated_file_system):
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
     assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
 
-    fs.apply_request(request=["file", file.uuid, "scan"])
+    fs.apply_request(request=["file", file.name, "scan"])
 
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
     assert file.visible_health_status == FileSystemItemHealthStatus.CORRUPT

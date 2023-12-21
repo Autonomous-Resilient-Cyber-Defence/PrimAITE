@@ -40,7 +40,7 @@ agents:
 
       options:
         nodes:
-        - node_ref: client_2
+        - node_hostname: client_2
         max_folders_per_node: 1
         max_files_per_folder: 1
         max_services_per_node: 1
@@ -75,9 +75,9 @@ agents:
         - type: NODE_OS_SCAN
       options:
         nodes:
-        - node_ref: client_1
+        - node_hostname: client_1
           applications:
-            - application_ref: data_manipulation_bot
+            - application_name: data_manipulation_bot
         max_folders_per_node: 1
         max_files_per_folder: 1
         max_services_per_node: 1
@@ -118,8 +118,6 @@ agents:
             files:
             - file_name: database.db
         - node_hostname: backup_server
-          # services:
-          # - service_ref: backup_service
         - node_hostname: security_suite
         - node_hostname: client_1
         - node_hostname: client_2
@@ -139,21 +137,21 @@ agents:
             max_acl_rules: 10
           router_hostname: router_1
           ip_address_order:
-            - node_ref: domain_controller
+            - node_hostname: domain_controller
               nic_num: 1
-            - node_ref: web_server
+            - node_hostname: web_server
               nic_num: 1
-            - node_ref: database_server
+            - node_hostname: database_server
               nic_num: 1
-            - node_ref: backup_server
+            - node_hostname: backup_server
               nic_num: 1
-            - node_ref: security_suite
+            - node_hostname: security_suite
               nic_num: 1
-            - node_ref: client_1
+            - node_hostname: client_1
               nic_num: 1
-            - node_ref: client_2
+            - node_hostname: client_2
               nic_num: 1
-            - node_ref: security_suite
+            - node_hostname: security_suite
               nic_num: 2
         ics: null
 
@@ -183,10 +181,10 @@ agents:
         - type: NODE_RESET
         - type: NETWORK_ACL_ADDRULE
           options:
-            target_router_ref: router_1
+            target_router_hostname: router_1
         - type: NETWORK_ACL_REMOVERULE
           options:
-            target_router_ref: router_1
+            target_router_hostname: router_1
         - type: NETWORK_NIC_ENABLE
         - type: NETWORK_NIC_DISABLE
 
@@ -487,16 +485,16 @@ agents:
 
       options:
         nodes:
-        - node_ref: router_1
-        - node_ref: switch_1
-        - node_ref: switch_2
-        - node_ref: domain_controller
-        - node_ref: web_server
-        - node_ref: database_server
-        - node_ref: backup_server
-        - node_ref: security_suite
-        - node_ref: client_1
-        - node_ref: client_2
+        - node_hostname: router_1
+        - node_hostname: switch_1
+        - node_hostname: switch_2
+        - node_hostname: domain_controller
+        - node_hostname: web_server
+        - node_hostname: database_server
+        - node_hostname: backup_server
+        - node_hostname: security_suite
+        - node_hostname: client_1
+        - node_hostname: client_2
         max_folders_per_node: 2
         max_files_per_folder: 2
         max_services_per_node: 2
@@ -549,8 +547,6 @@ agents:
             files:
             - file_name: database.db
         - node_hostname: backup_server
-          # services:
-          # - service_ref: backup_service
         - node_hostname: security_suite
         - node_hostname: client_1
         - node_hostname: client_2
@@ -570,21 +566,21 @@ agents:
             max_acl_rules: 10
           router_hostname: router_1
           ip_address_order:
-            - node_ref: domain_controller
+            - node_hostname: domain_controller
               nic_num: 1
-            - node_ref: web_server
+            - node_hostname: web_server
               nic_num: 1
-            - node_ref: database_server
+            - node_hostname: database_server
               nic_num: 1
-            - node_ref: backup_server
+            - node_hostname: backup_server
               nic_num: 1
-            - node_ref: security_suite
+            - node_hostname: security_suite
               nic_num: 1
-            - node_ref: client_1
+            - node_hostname: client_1
               nic_num: 1
-            - node_ref: client_2
+            - node_hostname: client_2
               nic_num: 1
-            - node_ref: security_suite
+            - node_hostname: security_suite
               nic_num: 2
         ics: null
 
@@ -614,10 +610,10 @@ agents:
         - type: NODE_RESET
         - type: NETWORK_ACL_ADDRULE
           options:
-            target_router_ref: router_1
+            target_router_hostname: router_1
         - type: NETWORK_ACL_REMOVERULE
           options:
-            target_router_ref: router_1
+            target_router_hostname: router_1
         - type: NETWORK_NIC_ENABLE
         - type: NETWORK_NIC_DISABLE
 
@@ -918,16 +914,16 @@ agents:
 
       options:
         nodes:
-        - node_ref: router_1
-        - node_ref: switch_1
-        - node_ref: switch_2
-        - node_ref: domain_controller
-        - node_ref: web_server
-        - node_ref: database_server
-        - node_ref: backup_server
-        - node_ref: security_suite
-        - node_ref: client_1
-        - node_ref: client_2
+        - node_hostname: router_1
+        - node_hostname: switch_1
+        - node_hostname: switch_2
+        - node_hostname: domain_controller
+        - node_hostname: web_server
+        - node_hostname: database_server
+        - node_hostname: backup_server
+        - node_hostname: security_suite
+        - node_hostname: client_1
+        - node_hostname: client_2
         max_folders_per_node: 2
         max_files_per_folder: 2
         max_services_per_node: 2
