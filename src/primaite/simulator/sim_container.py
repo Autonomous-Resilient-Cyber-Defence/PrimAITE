@@ -60,4 +60,3 @@ class Simulation(SimComponent):
         """Apply a timestep to the simulation."""
         super().apply_timestep(timestep)
         self.network.apply_timestep(timestep)
-        # self.domain.apply_timestep(timestep)
