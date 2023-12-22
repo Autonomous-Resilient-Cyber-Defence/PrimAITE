@@ -4,7 +4,7 @@ import re
 import secrets
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
@@ -282,6 +282,9 @@ class NIC(SimComponent):
         """
         if self.enabled:
             frame.decrement_ttl()
+            if frame.ip and frame.ip.ttl < 1:
+                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
+                return False
             frame.set_received_timestamp()
             self.pcap.capture(frame)
             # If this destination or is broadcast
@@ -436,6 +439,9 @@ class SwitchPort(SimComponent):
         """
         if self.enabled:
             frame.decrement_ttl()
+            if frame.ip and frame.ip.ttl < 1:
+                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
+                return False
             self.pcap.capture(frame)
             connected_node: Node = self._connected_node
             connected_node.forward_frame(frame=frame, incoming_port=self)
@@ -671,7 +677,9 @@ class ARPCache:
         """Clear the entire ARP cache, removing all stored entries."""
         self.arp.clear()
 
-    def send_arp_request(self, target_ip_address: Union[IPv4Address, str]):
+    def send_arp_request(
+        self, target_ip_address: Union[IPv4Address, str], ignore_networks: Optional[List[IPv4Address]] = None
+    ):
         """
         Perform a standard ARP request for a given target IP address.
 
@@ -681,7 +689,12 @@ class ARPCache:
         :param target_ip_address: The target IP address to send an ARP request for.
         """
         for nic in self.nics.values():
-            if nic.enabled:
+            use_nic = True
+            if ignore_networks:
+                for ipv4 in ignore_networks:
+                    if ipv4 in nic.ip_network:
+                        use_nic = False
+            if nic.enabled and use_nic:
                 self.sys_log.info(f"Sending ARP request from NIC {nic} for ip {target_ip_address}")
                 tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
@@ -806,7 +819,6 @@ class ICMP:
                 self.arp.send_arp_request(frame.ip.src_ip_address)
                 self.process_icmp(frame=frame, from_nic=from_nic, is_reattempt=True)
                 return
-            tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
             # Network Layer
             ip_packet = IPPacket(
@@ -821,9 +833,7 @@ class ICMP:
                 sequence=frame.icmp.sequence + 1,
             )
             payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
-            frame = Frame(
-                ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, icmp=icmp_reply_packet, payload=payload
-            )
+            frame = Frame(ethernet=ethernet_header, ip=ip_packet, icmp=icmp_reply_packet, payload=payload)
             self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip_address}")
 
             src_nic.send_frame(frame)
@@ -1447,7 +1457,6 @@ class Node(SimComponent):
         service.parent = self
         service.install()  # Perform any additional setup, such as creating files for this service on the node.
         self.sys_log.info(f"Installed service {service.name}")
-        _LOGGER.info(f"Added service {service.uuid} to node {self.uuid}")
         self._service_request_manager.add_request(service.uuid, RequestType(func=service._request_manager))
 
     def uninstall_service(self, service: Service) -> None:
@@ -1480,7 +1489,6 @@ class Node(SimComponent):
         self.applications[application.uuid] = application
         application.parent = self
         self.sys_log.info(f"Installed application {application.name}")
-        _LOGGER.info(f"Added application {application.uuid} to node {self.uuid}")
         self._application_request_manager.add_request(application.uuid, RequestType(func=application._request_manager))
 
     def uninstall_application(self, application: Application) -> None:

@@ -39,6 +39,10 @@ SessionManager.
 - Fixed an issue where the services were still able to run even though the node the service is installed on is turned off
 - NTP Services: `NTPClient` and `NTPServer`
 
+### Changed
+- Integrated the RouteTable into the Routers frame processing.
+- Frames are now dropped when their TTL reaches 0
+
 ### Removed
 - Removed legacy simulation modules: `acl`, `common`, `environment`, `links`, `nodes`, `pol`
 - Removed legacy training modules
