@@ -549,7 +549,7 @@ class NetworkNICDisableAction(NetworkNICAbstractAction):
 class ActionManager:
     """Class which manages the action space for an agent."""
 
-    __act_class_identifiers: Dict[str, type] = {
+    _act_class_identifiers: Dict[str, type] = {
         "DONOTHING": DoNothingAction,
         "NODE_SERVICE_SCAN": NodeServiceScanAction,
         "NODE_SERVICE_STOP": NodeServiceStopAction,
@@ -584,7 +584,7 @@ class ActionManager:
     def __init__(
         self,
         game: "PrimaiteGame",  # reference to game for information lookup
-        actions: List[str],  # stores list of actions available to agent
+        actions: List[Dict],  # stores list of actions available to agent
         nodes: List[Dict],  # extra configuration for each node
         max_folders_per_node: int = 2,  # allows calculating shape
         max_files_per_folder: int = 2,  # allows calculating shape
@@ -601,8 +601,9 @@ class ActionManager:
 
         :param game: Reference to the game to which the agent belongs.
         :type game: PrimaiteGame
-        :param actions: List of action types which should be made available to the agent.
-        :type actions: List[str]
+        :param actions: List of action specs which should be made available to the agent. The keys of each spec are:
+            'type' and 'options' for passing any options to the action class's init method
+        :type actions: List[dict]
         :param nodes: Extra configuration for each node.
         :type nodes: Dict
         :param max_folders_per_node: Maximum number of folders per node. Used for calculating action shape.
@@ -728,7 +729,7 @@ class ActionManager:
             # and `options` is an optional dict of options to pass to the init method of the action class
             act_type = act_spec.get("type")
             act_options = act_spec.get("options", {})
-            self.actions[act_type] = self.__act_class_identifiers[act_type](self, **global_action_args, **act_options)
+            self.actions[act_type] = self._act_class_identifiers[act_type](self, **global_action_args, **act_options)
 
         self.action_map: Dict[int, Tuple[str, Dict]] = {}
         """
