@@ -527,14 +527,7 @@ class NetworkNICAbstractAction(AbstractAction):
         nic_num = self.manager.get_nic_num_by_idx(node_idx=node_id, nic_idx=nic_id)
         if node_name is None or nic_num is None:
             return ["do_nothing"]
-        return [
-            "network",
-            "node",
-            node_name,
-            "nic",
-            nic_num,
-            self.verb,
-        ]
+        return ["network", "node", node_name, "nic", nic_num, self.verb]
 
 
 class NetworkNICEnableAction(NetworkNICAbstractAction):
@@ -610,8 +603,8 @@ class ActionManager:
         :type game: PrimaiteGame
         :param actions: List of action types which should be made available to the agent.
         :type actions: List[str]
-        :param node_uuids: List of node UUIDs that this agent can act on.
-        :type node_uuids: List[str]
+        :param nodes: Extra configuration for each node.
+        :type nodes: Dict
         :param max_folders_per_node: Maximum number of folders per node. Used for calculating action shape.
         :type max_folders_per_node: int
         :param max_files_per_folder: Maximum number of files per folder. Used for calculating action shape.
@@ -690,6 +683,13 @@ class ActionManager:
         self.ports: List[str] = ports
 
         self.ip_address_list: List[str]
+
+        # If the user has provided a list of IP addresses, use that. Otherwise, generate a list of IP addresses from
+        # the nodes in the simulation.
+        # TODO: refactor. Options:
+        # 1: This should be pulled out into it's own function for clarity
+        # 2: The simulation itself should be able to provide a list of IP addresses with its API, rather than having to
+        #    go through the nodes here.
         if ip_address_list is not None:
             self.ip_address_list = ip_address_list
         else:
@@ -936,7 +936,6 @@ class ActionManager:
         obj = cls(
             game=game,
             actions=cfg["action_list"],
-            # node_uuids=cfg["options"]["node_uuids"],
             **cfg["options"],
             protocols=game.options.protocols,
             ports=game.options.ports,
