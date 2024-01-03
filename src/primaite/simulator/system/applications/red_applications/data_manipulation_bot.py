@@ -5,7 +5,6 @@ from typing import Optional
 from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient
 
 _LOGGER = getLogger(__name__)
@@ -149,9 +148,9 @@ class DataManipulationBot(DatabaseClient):
             if simulate_trial(p_of_success):
                 self.sys_log.info(f"{self.name}: Performing data manipulation")
                 # perform the attack
-                if not self.connected:
+                if not len(self.connections):
                     self.connect()
-                if self.connected:
+                if len(self.connections):
                     self.query(self.payload)
                     self.sys_log.info(f"{self.name} payload delivered: {self.payload}")
                     attack_successful = True
@@ -177,9 +176,9 @@ class DataManipulationBot(DatabaseClient):
 
         This is the core loop where the bot sequentially goes through the stages of the attack.
         """
-        if self.operating_state != ApplicationOperatingState.RUNNING:
+        if not self._can_perform_action():
             return
-        if self.server_ip_address and self.payload and self.operating_state:
+        if self.server_ip_address and self.payload:
             self.sys_log.info(f"{self.name}: Running")
             self._logon()
             self._perform_port_scan(p_of_success=self.port_scan_p_of_success)

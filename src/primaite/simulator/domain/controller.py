@@ -102,7 +102,7 @@ class DomainController(SimComponent):
         :rtype: Dict
         """
         state = super().describe_state()
-        state.update({"accounts": {uuid: acct.describe_state() for uuid, acct in self.accounts.items()}})
+        state.update({"accounts": {acct.username: acct.describe_state() for acct in self.accounts.values()}})
         return state
 
     def _register_account(self, account: Account) -> None:

@@ -1,4 +1,3 @@
-from datetime import datetime
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Literal, Optional, Union
 
@@ -22,7 +21,6 @@ class DatabaseService(Service):
     """
 
     password: Optional[str] = None
-    connections: Dict[str, datetime] = {}
 
     backup_server: IPv4Address = None
     """IP address of the backup server."""
@@ -47,7 +45,7 @@ class DatabaseService(Service):
         super().set_original_state()
         vals_to_include = {
             "password",
-            "connections",
+            "_connections",
             "backup_server",
             "latest_backup_directory",
             "latest_backup_file_name",
@@ -57,7 +55,7 @@ class DatabaseService(Service):
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         _LOGGER.debug("Resetting DatabaseService original state on node {self.software_manager.node.hostname}")
-        self.connections.clear()
+        self.clear_connections()
         super().reset_component_for_episode(episode)
 
     def configure_backup(self, backup_server: IPv4Address):
@@ -140,24 +138,39 @@ class DatabaseService(Service):
         self.folder = self.file_system.get_folder_by_id(self._db_file.folder_id)
 
     def _process_connect(
-        self, session_id: str, password: Optional[str] = None
+        self, connection_id: str, password: Optional[str] = None
     ) -> Dict[str, Union[int, Dict[str, bool]]]:
         status_code = 500  # Default internal server error
         if self.operating_state == ServiceOperatingState.RUNNING:
             status_code = 503  # service unavailable
+            if self.health_state_actual == SoftwareHealthState.OVERWHELMED:
+                self.sys_log.error(
+                    f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity."
+                )
             if self.health_state_actual == SoftwareHealthState.GOOD:
                 if self.password == password:
                     status_code = 200  # ok
-                    self.connections[session_id] = datetime.now()
-                    self.sys_log.info(f"{self.name}: Connect request for {session_id=} authorised")
+                    # try to create connection
+                    if not self.add_connection(connection_id=connection_id):
+                        status_code = 500
+                        self.sys_log.info(f"{self.name}: Connect request for {connection_id=} declined")
+                    else:
+                        self.sys_log.info(f"{self.name}: Connect request for {connection_id=} authorised")
                 else:
                     status_code = 401  # Unauthorised
-                    self.sys_log.info(f"{self.name}: Connect request for {session_id=} declined")
+                    self.sys_log.info(f"{self.name}: Connect request for {connection_id=} declined")
         else:
             status_code = 404  # service not found
-        return {"status_code": status_code, "type": "connect_response", "response": status_code == 200}
+        return {
+            "status_code": status_code,
+            "type": "connect_response",
+            "response": status_code == 200,
+            "connection_id": connection_id,
+        }
 
-    def _process_sql(self, query: Literal["SELECT", "DELETE"], query_id: str) -> Dict[str, Union[int, List[Any]]]:
+    def _process_sql(
+        self, query: Literal["SELECT", "DELETE"], query_id: str, connection_id: Optional[str] = None
+    ) -> Dict[str, Union[int, List[Any]]]:
         """
         Executes the given SQL query and returns the result.
 
@@ -169,15 +182,28 @@ class DatabaseService(Service):
         :return: Dictionary containing status code and data fetched.
         """
         self.sys_log.info(f"{self.name}: Running {query}")
+
         if query == "SELECT":
             if self.health_state_actual == SoftwareHealthState.GOOD:
-                return {"status_code": 200, "type": "sql", "data": True, "uuid": query_id}
+                return {
+                    "status_code": 200,
+                    "type": "sql",
+                    "data": True,
+                    "uuid": query_id,
+                    "connection_id": connection_id,
+                }
             else:
                 return {"status_code": 404, "data": False}
         elif query == "DELETE":
             if self.health_state_actual == SoftwareHealthState.GOOD:
                 self.health_state_actual = SoftwareHealthState.COMPROMISED
-                return {"status_code": 200, "type": "sql", "data": False, "uuid": query_id}
+                return {
+                    "status_code": 200,
+                    "type": "sql",
+                    "data": False,
+                    "uuid": query_id,
+                    "connection_id": connection_id,
+                }
             else:
                 return {"status_code": 404, "data": False}
         else:
@@ -203,19 +229,25 @@ class DatabaseService(Service):
         :param session_id: The session identifier.
         :return: True if the Status Code is 200, otherwise False.
         """
-        if not super().receive(payload=payload, session_id=session_id, **kwargs):
+        result = {"status_code": 500, "data": []}
+
+        # if server service is down, return error
+        if not self._can_perform_action():
             return False
 
-        result = {"status_code": 500, "data": []}
         if isinstance(payload, dict) and payload.get("type"):
             if payload["type"] == "connect_request":
-                result = self._process_connect(session_id=session_id, password=payload.get("password"))
+                result = self._process_connect(
+                    connection_id=payload.get("connection_id"), password=payload.get("password")
+                )
             elif payload["type"] == "disconnect":
-                if session_id in self.connections:
-                    self.connections.pop(session_id)
+                if payload["connection_id"] in self.connections:
+                    self.remove_connection(connection_id=payload["connection_id"])
             elif payload["type"] == "sql":
-                if session_id in self.connections:
-                    result = self._process_sql(query=payload["sql"], query_id=payload["uuid"])
+                if payload.get("connection_id") in self.connections:
+                    result = self._process_sql(
+                        query=payload["sql"], query_id=payload["uuid"], connection_id=payload["connection_id"]
+                    )
                 else:
                     result = {"status_code": 401, "type": "sql"}
         self.send(payload=result, session_id=session_id)
