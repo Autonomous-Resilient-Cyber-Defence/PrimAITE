@@ -593,7 +593,7 @@ class ActionManager:
         max_nics_per_node: int = 8,  # allows calculating shape
         max_acl_rules: int = 10,  # allows calculating shape
         protocols: List[str] = ["TCP", "UDP", "ICMP"],  # allow mapping index to protocol
-        ports: List[str] = ["HTTP", "DNS", "ARP", "FTP"],  # allow mapping index to port
+        ports: List[str] = ["HTTP", "DNS", "ARP", "FTP", "NTP"],  # allow mapping index to port
         ip_address_list: Optional[List[str]] = None,  # to allow us to map an index to an ip address.
         act_map: Optional[Dict[int, Dict]] = None,  # allows restricting set of possible actions
     ) -> None:

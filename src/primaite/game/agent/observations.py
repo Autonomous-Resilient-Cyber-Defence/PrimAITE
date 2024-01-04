@@ -139,7 +139,10 @@ class ServiceObservation(AbstractObservation):
         service_state = access_from_nested_dict(state, self.where)
         if service_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
-        return {"operating_status": service_state["operating_state"], "health_status": service_state["health_state"]}
+        return {
+            "operating_status": service_state["operating_state"],
+            "health_status": service_state["health_state_visible"],
+        }
 
     @property
     def space(self) -> spaces.Space:
@@ -346,7 +349,7 @@ class NicObservation(AbstractObservation):
 
         :param where: Where in the simulation state dictionary to find the relevant information for this NIC. A typical
             example may look like this:
-            ['network','nodes',<node_hostname>,'NICs',<nic_index>]
+            ['network','nodes',<node_hostname>,'NICs',<nic_number>]
             If None, this denotes that the NIC does not exist and the observation will be populated with zeroes.
         :type where: Optional[Tuple[str]], optional
         """
