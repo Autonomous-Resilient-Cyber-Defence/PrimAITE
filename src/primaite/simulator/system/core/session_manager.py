@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ipaddress import IPv4Address
+from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
@@ -141,41 +141,76 @@ class SessionManager:
     def receive_payload_from_software_manager(
         self,
         payload: Any,
-        dst_ip_address: Optional[IPv4Address] = None,
+        dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
         dst_port: Optional[Port] = None,
         session_id: Optional[str] = None,
         is_reattempt: bool = False,
     ) -> Union[Any, None]:
         """
-        Receive a payload from the SoftwareManager.
+        Receive a payload from the SoftwareManager and send it to the appropriate NIC for transmission.
 
-        If no session_id, a Session is established. Once established, the payload is sent to ``send_payload_to_nic``.
+        This method supports both unicast and Layer 3 broadcast transmissions. If `dst_ip_address` is an
+        IPv4Network, a broadcast is initiated. For unicast, the destination MAC address is resolved via ARP.
+        A new session is established if `session_id` is not provided, and an existing session is used otherwise.
 
         :param payload: The payload to be sent.
-        :param session_id: The Session ID the payload is to originate from. Optional. If None, one will be created.
+        :param dst_ip_address: The destination IP address or network for broadcast. Optional.
+        :param dst_port: The destination port for the TCP packet. Optional.
+        :param session_id: The Session ID from which the payload originates. Optional.
+        :param is_reattempt: Flag to indicate if this is a reattempt after an ARP request. Default is False.
+        :return: The outcome of sending the frame, or None if sending was unsuccessful.
         """
+        is_broadcast = False
+        outbound_nic = None
+        dst_mac_address = None
+
+        # Use session details if session_id is provided
         if session_id:
             session = self.sessions_by_uuid[session_id]
-            dst_ip_address = self.sessions_by_uuid[session_id].with_ip_address
-            dst_port = self.sessions_by_uuid[session_id].dst_port
+            dst_ip_address = session.with_ip_address
+            dst_port = session.dst_port
 
-        dst_mac_address = self.arp_cache.get_arp_cache_mac_address(dst_ip_address)
+        # Determine if the payload is for broadcast or unicast
 
-        if dst_mac_address:
-            outbound_nic = self.arp_cache.get_arp_cache_nic(dst_ip_address)
+        # Handle broadcast transmission
+        if isinstance(dst_ip_address, IPv4Network):
+            is_broadcast = True
+            dst_ip_address = dst_ip_address.broadcast_address
+            if dst_ip_address:
+                # Find a suitable NIC for the broadcast
+                for nic in self.arp_cache.nics.values():
+                    if dst_ip_address in nic.ip_network and nic.enabled:
+                        dst_mac_address = "ff:ff:ff:ff:ff:ff"
+                        outbound_nic = nic
         else:
-            if not is_reattempt:
-                self.arp_cache.send_arp_request(dst_ip_address)
-                return self.receive_payload_from_software_manager(
-                    payload=payload,
-                    dst_ip_address=dst_ip_address,
-                    dst_port=dst_port,
-                    session_id=session_id,
-                    is_reattempt=True,
-                )
-            else:
-                return
+            # Resolve MAC address for unicast transmission
+            dst_mac_address = self.arp_cache.get_arp_cache_mac_address(dst_ip_address)
 
+            # Resolve outbound NIC for unicast transmission
+            if dst_mac_address:
+                outbound_nic = self.arp_cache.get_arp_cache_nic(dst_ip_address)
+
+            # If MAC address not found, initiate ARP request
+            else:
+                if not is_reattempt:
+                    self.arp_cache.send_arp_request(dst_ip_address)
+                    # Reattempt payload transmission after ARP request
+                    return self.receive_payload_from_software_manager(
+                        payload=payload,
+                        dst_ip_address=dst_ip_address,
+                        dst_port=dst_port,
+                        session_id=session_id,
+                        is_reattempt=True,
+                    )
+                else:
+                    # Return None if reattempt fails
+                    return
+
+        # Check if outbound NIC and destination MAC address are resolved
+        if not outbound_nic or not dst_mac_address:
+            return False
+
+        # Construct the frame for transmission
         frame = Frame(
             ethernet=EthernetHeader(src_mac_addr=outbound_nic.mac_address, dst_mac_addr=dst_mac_address),
             ip=IPPacket(
@@ -189,15 +224,17 @@ class SessionManager:
             payload=payload,
         )
 
-        if not session_id:
+        # Manage session for unicast transmission
+        if not (is_broadcast and session_id):
             session_key = self._get_session_key(frame, inbound_frame=False)
             session = self.sessions_by_key.get(session_key)
             if not session:
-                # Create new session
+                # Create a new session if it doesn't exist
                 session = Session.from_session_key(session_key)
                 self.sessions_by_key[session_key] = session
                 self.sessions_by_uuid[session.uuid] = session
 
+        # Send the frame through the NIC
         return outbound_nic.send_frame(frame)
 
     def receive_frame(self, frame: Frame):

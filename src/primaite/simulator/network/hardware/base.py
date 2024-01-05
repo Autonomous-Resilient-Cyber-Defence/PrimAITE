@@ -274,11 +274,20 @@ class NIC(SimComponent):
 
     def receive_frame(self, frame: Frame) -> bool:
         """
-        Receive a network frame from the connected link if the NIC is enabled.
+        Receive a network frame from the connected link, processing it if the NIC is enabled.
 
-        The Frame is passed to the Node.
+        This method decrements the Time To Live (TTL) of the frame, captures it using PCAP (Packet Capture), and checks
+        if the frame is either a broadcast or destined for this NIC. If the frame is acceptable, it is passed to the
+        connected node. The method also handles the discarding of frames with TTL expired and logs this event.
 
-        :param frame: The network frame being received.
+        The frame's reception is based on various conditions:
+        - If the NIC is disabled, the frame is not processed.
+        - If the TTL of the frame reaches zero after decrement, it is discarded and logged.
+        - If the frame is a broadcast or its destination MAC/IP address matches this NIC's, it is accepted.
+        - All other frames are dropped and logged or printed to the console.
+
+        :param frame: The network frame being received. This should be an instance of the Frame class.
+        :return: Returns True if the frame is processed and passed to the node, False otherwise.
         """
         if self.enabled:
             frame.decrement_ttl()
@@ -288,7 +297,17 @@ class NIC(SimComponent):
             frame.set_received_timestamp()
             self.pcap.capture(frame)
             # If this destination or is broadcast
-            if frame.ethernet.dst_mac_addr == self.mac_address or frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
+            accept_frame = False
+
+            # Check if it's a broadcast:
+            if frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
+                if frame.ip.dst_ip_address in {self.ip_address, self.ip_network.broadcast_address}:
+                    accept_frame = True
+            else:
+                if frame.ethernet.dst_mac_addr == self.mac_address:
+                    accept_frame = True
+
+            if accept_frame:
                 self._connected_node.receive_frame(frame=frame, from_nic=self)
                 return True
         return False

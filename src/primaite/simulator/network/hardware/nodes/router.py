@@ -690,6 +690,47 @@ class RouterICMP(ICMP):
             self.router.process_frame(frame, from_nic)
 
 
+class RouterNIC(NIC):
+    """
+    A Router-specific Network Interface Card (NIC) that extends the standard NIC functionality.
+
+    This class overrides the standard Node NIC's Layer 3 (L3) broadcast/unicast checks. It is designed
+    to handle network frames in a manner specific to routers, allowing them to efficiently process
+    and route network traffic.
+    """
+
+    def receive_frame(self, frame: Frame) -> bool:
+        """
+        Receive and process a network frame from the connected link, provided the NIC is enabled.
+
+        This method is tailored for router behavior. It decrements the frame's Time To Live (TTL), checks for TTL
+        expiration, and captures the frame using PCAP (Packet Capture). The frame is accepted if it is destined for
+        this NIC's MAC address or is a broadcast frame.
+
+        Key Differences from Standard NIC:
+        - Does not perform Layer 3 (IP-based) broadcast checks.
+        - Only checks for Layer 2 (Ethernet) destination MAC address and broadcast frames.
+
+        :param frame: The network frame being received. This should be an instance of the Frame class.
+        :return: Returns True if the frame is processed and passed to the connected node, False otherwise.
+        """
+        if self.enabled:
+            frame.decrement_ttl()
+            if frame.ip and frame.ip.ttl < 1:
+                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
+                return False
+            frame.set_received_timestamp()
+            self.pcap.capture(frame)
+            # If this destination or is broadcast
+            if frame.ethernet.dst_mac_addr == self.mac_address or frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
+                self._connected_node.receive_frame(frame=frame, from_nic=self)
+                return True
+        return False
+
+    def __str__(self) -> str:
+        return f"{self.mac_address}/{self.ip_address}"
+
+
 class Router(Node):
     """
     A class to represent a network router node.
@@ -700,7 +741,7 @@ class Router(Node):
     """
 
     num_ports: int
-    ethernet_ports: Dict[int, NIC] = {}
+    ethernet_ports: Dict[int, RouterNIC] = {}
     acl: AccessControlList
     route_table: RouteTable
     arp: RouterARPCache
@@ -719,7 +760,7 @@ class Router(Node):
             kwargs["icmp"] = RouterICMP(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"), router=self)
         super().__init__(hostname=hostname, num_ports=num_ports, **kwargs)
         for i in range(1, self.num_ports + 1):
-            nic = NIC(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
+            nic = RouterNIC(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
             self.connect_nic(nic)
             self.ethernet_ports[i] = nic
 
