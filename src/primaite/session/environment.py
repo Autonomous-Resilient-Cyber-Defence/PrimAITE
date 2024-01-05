@@ -23,6 +23,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         super().__init__()
         self.game: "PrimaiteGame" = game
         self.agent: ProxyAgent = self.game.rl_agents[0]
+        self.flatten_obs: bool = False
 
     def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, Dict[str, Any]]:
         """Perform a step in the environment."""
@@ -81,13 +82,19 @@ class PrimaiteGymEnv(gymnasium.Env):
     @property
     def observation_space(self) -> gymnasium.Space:
         """Return the observation space of the environment."""
-        return gymnasium.spaces.flatten_space(self.agent.observation_manager.space)
+        if self.agent.flatten_obs:
+            return gymnasium.spaces.flatten_space(self.agent.observation_manager.space)
+        else:
+            return self.agent.observation_manager.space
 
     def _get_obs(self) -> ObsType:
         """Return the current observation."""
-        unflat_space = self.agent.observation_manager.space
-        unflat_obs = self.agent.observation_manager.current_observation
-        return gymnasium.spaces.flatten(unflat_space, unflat_obs)
+        if not self.agent.flatten_obs:
+            return self.agent.observation_manager.current_observation
+        else:
+            unflat_space = self.agent.observation_manager.space
+            unflat_obs = self.agent.observation_manager.current_observation
+            return gymnasium.spaces.flatten(unflat_space, unflat_obs)
 
 
 class PrimaiteRayEnv(gymnasium.Env):

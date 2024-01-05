@@ -525,7 +525,7 @@ agents:
 
 
     agent_settings:
-      # ...
+      flatten_obs: true
 
 
 

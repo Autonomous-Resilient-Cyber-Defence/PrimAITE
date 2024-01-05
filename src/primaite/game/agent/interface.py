@@ -44,6 +44,7 @@ class AgentSettings(BaseModel):
 
     start_settings: Optional[AgentStartSettings] = None
     "Configuration for when an agent begins performing it's actions"
+    flatten_obs: bool = True
 
     @classmethod
     def from_config(cls, config: Optional[Dict]) -> "AgentSettings":
@@ -166,6 +167,7 @@ class ProxyAgent(AbstractAgent):
         action_space: Optional[ActionManager],
         observation_space: Optional[ObservationManager],
         reward_function: Optional[RewardFunction],
+        agent_settings: Optional[AgentSettings] = None,
     ) -> None:
         super().__init__(
             agent_name=agent_name,
@@ -174,6 +176,7 @@ class ProxyAgent(AbstractAgent):
             reward_function=reward_function,
         )
         self.most_recent_action: ActType
+        self.flatten_obs: bool = agent_settings.flatten_obs
 
     def get_action(self, obs: ObsType, reward: float = 0.0) -> Tuple[str, Dict]:
         """
