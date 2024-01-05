@@ -41,6 +41,9 @@ class SysLog:
         The logger is set to the DEBUG level, and is equipped with a handler that writes to a file and filters out
         JSON-like messages.
         """
+        if not SIM_OUTPUT.save_sys_logs:
+            return
+
         log_path = self._get_log_path()
         file_handler = logging.FileHandler(filename=log_path)
         file_handler.setLevel(logging.DEBUG)
@@ -91,7 +94,8 @@ class SysLog:
 
         :param msg: The message to be logged.
         """
-        self.logger.debug(msg)
+        if SIM_OUTPUT.save_sys_logs:
+            self.logger.debug(msg)
 
     def info(self, msg: str):
         """
@@ -99,7 +103,8 @@ class SysLog:
 
         :param msg: The message to be logged.
         """
-        self.logger.info(msg)
+        if SIM_OUTPUT.save_sys_logs:
+            self.logger.info(msg)
 
     def warning(self, msg: str):
         """
@@ -107,7 +112,8 @@ class SysLog:
 
         :param msg: The message to be logged.
         """
-        self.logger.warning(msg)
+        if SIM_OUTPUT.save_sys_logs:
+            self.logger.warning(msg)
 
     def error(self, msg: str):
         """
@@ -115,7 +121,8 @@ class SysLog:
 
         :param msg: The message to be logged.
         """
-        self.logger.error(msg)
+        if SIM_OUTPUT.save_sys_logs:
+            self.logger.error(msg)
 
     def critical(self, msg: str):
         """
@@ -123,4 +130,5 @@ class SysLog:
 
         :param msg: The message to be logged.
         """
-        self.logger.critical(msg)
+        if SIM_OUTPUT.save_sys_logs:
+            self.logger.critical(msg)

@@ -54,7 +54,7 @@ class PrimaiteSession:
         self.policy: PolicyABC
         """The reinforcement learning policy."""
 
-        self.io_manager = SessionIO()
+        self.io_manager: Optional["SessionIO"] = None
         """IO manager for the session."""
 
         self.game: PrimaiteGame = game
