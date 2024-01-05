@@ -41,6 +41,9 @@ class PacketCapture:
 
     def setup_logger(self):
         """Set up the logger configuration."""
+        if not SIM_OUTPUT.save_pcap_logs:
+            return
+
         log_path = self._get_log_path()
 
         file_handler = logging.FileHandler(filename=log_path)
@@ -88,5 +91,6 @@ class PacketCapture:
 
         :param frame: The PCAP frame to capture.
         """
-        msg = frame.model_dump_json()
-        self.logger.log(level=60, msg=msg)  # Log at custom log level > CRITICAL
+        if SIM_OUTPUT.save_pcap_logs:
+            msg = frame.model_dump_json()
+            self.logger.log(level=60, msg=msg)  # Log at custom log level > CRITICAL
