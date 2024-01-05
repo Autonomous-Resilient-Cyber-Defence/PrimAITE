@@ -366,6 +366,7 @@ class PrimaiteGame:
             # CREATE ACTION SPACE
             action_space_cfg["options"]["node_uuids"] = []
             action_space_cfg["options"]["application_uuids"] = []
+            action_space_cfg["options"]["service_uuids"] = []
 
             # if a list of nodes is defined, convert them from node references to node UUIDs
             for action_node_option in action_space_cfg.get("options", {}).pop("nodes", {}):
@@ -380,10 +381,21 @@ class PrimaiteGame:
                         #  node_uuid, whereas here the application gets added by uuid.
                         application_uuid = game.ref_map_applications[application_option["application_ref"]]
                         node_application_uuids.append(application_uuid)
-
                     action_space_cfg["options"]["application_uuids"].append(node_application_uuids)
+
                 else:
                     action_space_cfg["options"]["application_uuids"].append([])
+
+                if "services" in action_node_option:
+                    node_service_uuids = []
+                    for service_option in action_node_option["services"]:
+                        service_uuid = game.ref_map_services[service_option["service_ref"]]
+                        node_service_uuids.append(service_uuid)
+                    action_space_cfg["options"]["service_uuids"].append(node_service_uuids)
+
+                else:
+                    action_space_cfg["options"]["service_uuids"].append([])
+
             # Each action space can potentially have a different list of nodes that it can apply to. Therefore,
             # we will pass node_uuids as a part of the action space config.
             # However, it's not possible to specify the node uuids directly in the config, as they are generated
