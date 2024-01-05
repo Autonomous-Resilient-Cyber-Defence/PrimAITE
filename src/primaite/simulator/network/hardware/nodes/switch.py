@@ -90,7 +90,7 @@ class Switch(Node):
         self._add_mac_table_entry(src_mac, incoming_port)
 
         outgoing_port = self.mac_address_table.get(dst_mac)
-        if outgoing_port and dst_mac != "ff:ff:ff:ff:ff:ff":
+        if outgoing_port and dst_mac.lower() != "ff:ff:ff:ff:ff:ff":
             outgoing_port.send_frame(frame)
         else:
             # If the destination MAC is not in the table, flood to all ports except incoming

@@ -590,8 +590,8 @@ class RouterARPCache(ARPCache):
                     self.send_arp_request(route.next_hop_ip_address, ignore_networks=[frame.ip.src_ip_address])
                     return self.process_arp_packet(from_nic, frame, route_table, is_reattempt=True)
                 else:
-                    pass
-                    # TODO: destination unavailable/No ARP netry found
+                    self.sys_log.info("Ignoring ARP request as destination unavailable/No ARP entry found")
+                    return
             else:
                 arp_reply = arp_packet.generate_reply(from_nic.mac_address)
                 self.send_arp_reply(arp_reply, from_nic)
@@ -797,7 +797,7 @@ class Router(Node):
             return self.process_frame(frame=frame, from_nic=from_nic, re_attempt=True)
 
         if not nic.enabled:
-            # TODO: Add sys_log here
+            self.sys_log.info(f"Frame dropped as NIC {nic} is not enabled")
             return
 
         if frame.ip.dst_ip_address in nic.ip_network:
@@ -829,7 +829,7 @@ class Router(Node):
                 return self.process_frame(frame=frame, from_nic=from_nic, re_attempt=True)
 
             if not nic.enabled:
-                # TODO: Add sys_log here
+                self.sys_log.info(f"Frame dropped as NIC {nic} is not enabled")
                 return
 
             from_port = self._get_port_of_nic(from_nic)

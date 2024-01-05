@@ -9,6 +9,8 @@ from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.services.ntp.ntp_client import NTPClient
+from primaite.simulator.system.services.ntp.ntp_server import NTPServer
 
 
 @pytest.fixture(scope="function")
@@ -143,3 +145,41 @@ def test_with_routes_can_ping(multi_hop_network):
     )
 
     assert pc_a.ping(pc_b.ethernet_port[1].ip_address)
+
+
+def test_routing_services(multi_hop_network):
+    pc_a = multi_hop_network.get_node_by_hostname("pc_a")
+
+    pc_b = multi_hop_network.get_node_by_hostname("pc_b")
+
+    pc_a.software_manager.install(NTPClient)
+    ntp_client = pc_a.software_manager.software["NTPClient"]
+    ntp_client.start()
+
+    pc_b.software_manager.install(NTPServer)
+    pc_b.software_manager.software["NTPServer"].start()
+
+    ntp_client.configure(ntp_server_ip_address=pc_b.ethernet_port[1].ip_address)
+
+    router_1: Router = multi_hop_network.get_node_by_hostname("router_1")  # noqa
+    router_2: Router = multi_hop_network.get_node_by_hostname("router_2")  # noqa
+
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=21)
+    router_2.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=21)
+
+    assert ntp_client.time is None
+    ntp_client.request_time()
+    assert ntp_client.time is None
+
+    # Configure Route from Router 1 to PC B subnet
+    router_1.route_table.add_route(
+        address="192.168.2.0", subnet_mask="255.255.255.0", next_hop_ip_address="192.168.1.2"
+    )
+
+    # Configure Route from Router 2 to PC A subnet
+    router_2.route_table.add_route(
+        address="192.168.0.2", subnet_mask="255.255.255.0", next_hop_ip_address="192.168.1.1"
+    )
+
+    ntp_client.request_time()
+    assert ntp_client.time is not None
