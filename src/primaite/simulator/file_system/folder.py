@@ -102,6 +102,11 @@ class Folder(FileSystemItemABC):
             name="delete",
             request_type=RequestType(func=lambda request, context: self.remove_file_by_id(file_uuid=request[0])),
         )
+        self._file_request_manager = RequestManager()
+        rm.add_request(
+            name="file",
+            request_type=RequestType(func=lambda request, context: self._file_request_manager),
+        )
         return rm
 
     def describe_state(self) -> Dict:
@@ -254,6 +259,7 @@ class Folder(FileSystemItemABC):
         # add to list
         self.files[file.uuid] = file
         self._files_by_name[file.name] = file
+        self._file_request_manager.add_request(file.uuid, RequestType(func=file._request_manager))
         file.folder = self
 
     def remove_file(self, file: Optional[File]):
@@ -273,6 +279,7 @@ class Folder(FileSystemItemABC):
             self.deleted_files[file.uuid] = file
             file.delete()
             self.sys_log.info(f"Removed file {file.name} (id: {file.uuid})")
+            self._file_request_manager.remove_request(file.uuid)
         else:
             _LOGGER.debug(f"File with UUID {file.uuid} was not found.")
 

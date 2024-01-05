@@ -89,6 +89,10 @@ class Software(SimComponent):
     "The FileSystem of the Node the Software is installed on."
     folder: Optional[Folder] = None
     "The folder on the file system the Software uses."
+    patching_duration: int = 2
+    "The number of ticks it takes to patch the software."
+    _patching_countdown: Optional[int] = None
+    "Current number of ticks left to patch the software."
 
     def set_original_state(self):
         """Sets the original state."""
@@ -109,6 +113,12 @@ class Software(SimComponent):
             "compromise",
             RequestType(
                 func=lambda request, context: self.set_health_state(SoftwareHealthState.COMPROMISED),
+            ),
+        )
+        rm.add_request(
+            "patch",
+            RequestType(
+                func=lambda request, context: self.patch(),
             ),
         )
         rm.add_request("scan", RequestType(func=lambda request, context: self.scan()))
@@ -181,9 +191,32 @@ class Software(SimComponent):
         """Update the observed health status to match the actual health status."""
         self.health_state_visible = self.health_state_actual
 
+    def patch(self) -> None:
+        """Perform a patch on the software."""
+        self._patching_countdown = self.patching_duration
+        self.set_health_state(SoftwareHealthState.PATCHING)
+
+    def _update_patch_status(self) -> None:
+        """Update the patch status of the software."""
+        self._patching_countdown -= 1
+        if self._patching_countdown <= 0:
+            self.set_health_state(SoftwareHealthState.GOOD)
+            self._patching_countdown = None
+            self.patching_count += 1
+
     def reveal_to_red(self) -> None:
         """Reveals the software to the red agent."""
         self.revealed_to_red = True
+
+    def apply_timestep(self, timestep: int) -> None:
+        """
+        Apply a single timestep to the software.
+
+        :param timestep: The current timestep of the simulation.
+        """
+        super().apply_timestep(timestep)
+        if self.health_state_actual == SoftwareHealthState.PATCHING:
+            self._update_patch_status()
 
 
 class IOSoftware(Software):

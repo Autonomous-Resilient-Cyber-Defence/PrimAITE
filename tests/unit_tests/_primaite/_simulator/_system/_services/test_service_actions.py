@@ -78,3 +78,16 @@ def test_service_enable(service):
 
     service.apply_request(["enable"])
     assert service.operating_state == ServiceOperatingState.STOPPED
+
+
+def test_service_patch(service):
+    """Test that a service can be patched and that it takes two timesteps to complete."""
+    service.start()
+    assert service.health_state_actual == SoftwareHealthState.GOOD
+
+    service.apply_request(["patch"])
+    assert service.health_state_actual == SoftwareHealthState.PATCHING
+    service.apply_timestep(1)
+    assert service.health_state_actual == SoftwareHealthState.PATCHING
+    service.apply_timestep(2)
+    assert service.health_state_actual == SoftwareHealthState.GOOD
