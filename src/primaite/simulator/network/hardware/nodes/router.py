@@ -324,11 +324,10 @@ class RouteEntry(SimComponent):
     """
     Represents a single entry in a routing table.
 
-    Attributes:
-        address (IPv4Address): The destination IP address or network address.
-        subnet_mask (IPv4Address): The subnet mask for the network.
-        next_hop_ip_address (IPv4Address): The next hop IP address to which packets should be forwarded.
-        metric (int): The cost metric for this route. Default is 0.0.
+    :ivar address: The destination IP address or network address.
+    :ivar subnet_mask: The subnet mask for the network.
+    :ivar next_hop_ip_address: The next hop IP address to which packets should be forwarded.
+    :ivar metric: The cost metric for this route. Default is 0.0.
 
     Example:
         >>> entry = RouteEntry(
@@ -347,12 +346,6 @@ class RouteEntry(SimComponent):
     "The next hop IP address to which packets should be forwarded."
     metric: float = 0.0
     "The cost metric for this route. Default is 0.0."
-
-    def __init__(self, **kwargs):
-        for key in {"address", "subnet_mask", "next_hop_ip_address"}:
-            if not isinstance(kwargs[key], IPv4Address):
-                kwargs[key] = IPv4Address(kwargs[key])
-        super().__init__(**kwargs)
 
     def set_original_state(self):
         """Sets the original state."""
@@ -388,6 +381,7 @@ class RouteTable(SimComponent):
     """
 
     routes: List[RouteEntry] = []
+    default_route: Optional[RouteEntry] = None
     sys_log: SysLog
 
     def set_original_state(self):
@@ -433,11 +427,34 @@ class RouteTable(SimComponent):
         )
         self.routes.append(route)
 
+    def set_default_route_next_hop_ip_address(self, ip_address: IPv4Address):
+        """
+        Sets the next-hop IP address for the default route in a routing table.
+
+        This method checks if a default route (0.0.0.0/0) exists in the routing table. If it does not exist,
+         the method creates a new default route with the specified next-hop IP address. If a default route already
+         exists, it updates the next-hop IP address of the existing default route. After setting the next-hop
+         IP address, the method logs this action.
+
+        :param ip_address: The next-hop IP address to be set for the default route.
+        """
+        if not self.default_route:
+            self.default_route = RouteEntry(
+                ip_address=IPv4Address("0.0.0.0"),
+                subnet_mask=IPv4Address("0.0.0.0"),
+                next_hop_ip_address=ip_address,
+            )
+        else:
+            self.default_route.next_hop_ip_address = ip_address
+        self.sys_log.info(f"Default configured to use {ip_address} as the next-hop")
+
     def find_best_route(self, destination_ip: Union[str, IPv4Address]) -> Optional[RouteEntry]:
         """
         Find the best route for a given destination IP.
 
         This method uses the Longest Prefix Match algorithm and considers metrics to find the best route.
+
+        If no dedicated route exists but a default route does, then the default route is returned as a last resort.
 
         :param destination_ip: The destination IP to find the route for.
         :return: The best matching RouteEntry, or None if no route matches.
@@ -457,6 +474,9 @@ class RouteTable(SimComponent):
                     best_route = route
                     longest_prefix = prefix_len
                     lowest_metric = route.metric
+
+        if not best_route and self.default_route:
+            best_route = self.default_route
 
         return best_route
 
@@ -489,12 +509,26 @@ class RouterARPCache(ARPCache):
         super().__init__(sys_log)
         self.router: Router = router
 
-    def process_arp_packet(self, from_nic: NIC, frame: Frame):
+    def process_arp_packet(
+        self, from_nic: NIC, frame: Frame, route_table: RouteTable, is_reattempt: bool = False
+    ) -> None:
         """
-        Overridden method to process a received ARP packet in a router-specific way.
+        Processes a received ARP (Address Resolution Protocol) packet in a router-specific way.
+
+        This method is responsible for handling both ARP requests and responses. It processes ARP packets received on a
+        Network Interface Card (NIC) and performs actions based on whether the packet is a request or a reply. This
+        includes updating the ARP cache, forwarding ARP replies, sending ARP requests for unknown destinations, and
+        handling packet TTL (Time To Live).
+
+        The method first checks if the ARP packet is a request or a reply. For ARP replies, it updates the ARP cache
+        and forwards the reply if necessary. For ARP requests, it checks if the target IP matches one of the router's
+        NICs and sends an ARP reply if so. If the destination is not directly connected, it consults the routing table
+        to find the best route and reattempts ARP request processing if needed.
 
         :param from_nic: The NIC that received the ARP packet.
-        :param frame: The original ARP frame.
+        :param frame: The frame containing the ARP packet.
+        :param route_table: The routing table of the router.
+        :param is_reattempt: Flag to indicate if this is a reattempt of processing the ARP packet, defaults to False.
         """
         arp_packet = frame.arp
 
@@ -522,7 +556,11 @@ class RouterARPCache(ARPCache):
                 )
                 arp_packet.sender_mac_addr = nic.mac_address
                 frame.decrement_ttl()
+                if frame.ip and frame.ip.ttl < 1:
+                    self.sys_log.info("Frame discarded as TTL limit reached")
+                    return
                 nic.send_frame(frame)
+            return
 
         # ARP Request
         self.sys_log.info(
@@ -533,15 +571,31 @@ class RouterARPCache(ARPCache):
         self.add_arp_cache_entry(
             ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic
         )
-        arp_packet = arp_packet.generate_reply(from_nic.mac_address)
-        self.send_arp_reply(arp_packet, from_nic)
 
         # If the target IP matches one of the router's NICs
         for nic in self.nics.values():
-            if nic.enabled and nic.ip_address == arp_packet.target_ip_address:
+            if arp_packet.target_ip_address in nic.ip_network:
+                # if nic.enabled and nic.ip_address == arp_packet.target_ip_address:
                 arp_reply = arp_packet.generate_reply(from_nic.mac_address)
                 self.send_arp_reply(arp_reply, from_nic)
                 return
+
+        # Check Route Table
+        route = route_table.find_best_route(arp_packet.target_ip_address)
+        if route:
+            nic = self.get_arp_cache_nic(route.next_hop_ip_address)
+
+            if not nic:
+                if not is_reattempt:
+                    self.send_arp_request(route.next_hop_ip_address, ignore_networks=[frame.ip.src_ip_address])
+                    return self.process_arp_packet(from_nic, frame, route_table, is_reattempt=True)
+                else:
+                    self.sys_log.info("Ignoring ARP request as destination unavailable/No ARP entry found")
+                    return
+            else:
+                arp_reply = arp_packet.generate_reply(from_nic.mac_address)
+                self.send_arp_reply(arp_reply, from_nic)
+            return
 
 
 class RouterICMP(ICMP):
@@ -613,7 +667,7 @@ class RouterICMP(ICMP):
                     return
 
             # Route the frame
-            self.router.route_frame(frame, from_nic)
+            self.router.process_frame(frame, from_nic)
 
         elif frame.icmp.icmp_type == ICMPType.ECHO_REPLY:
             for nic in self.router.nics.values():
@@ -633,7 +687,48 @@ class RouterICMP(ICMP):
 
                     return
             # Route the frame
-            self.router.route_frame(frame, from_nic)
+            self.router.process_frame(frame, from_nic)
+
+
+class RouterNIC(NIC):
+    """
+    A Router-specific Network Interface Card (NIC) that extends the standard NIC functionality.
+
+    This class overrides the standard Node NIC's Layer 3 (L3) broadcast/unicast checks. It is designed
+    to handle network frames in a manner specific to routers, allowing them to efficiently process
+    and route network traffic.
+    """
+
+    def receive_frame(self, frame: Frame) -> bool:
+        """
+        Receive and process a network frame from the connected link, provided the NIC is enabled.
+
+        This method is tailored for router behavior. It decrements the frame's Time To Live (TTL), checks for TTL
+        expiration, and captures the frame using PCAP (Packet Capture). The frame is accepted if it is destined for
+        this NIC's MAC address or is a broadcast frame.
+
+        Key Differences from Standard NIC:
+        - Does not perform Layer 3 (IP-based) broadcast checks.
+        - Only checks for Layer 2 (Ethernet) destination MAC address and broadcast frames.
+
+        :param frame: The network frame being received. This should be an instance of the Frame class.
+        :return: Returns True if the frame is processed and passed to the connected node, False otherwise.
+        """
+        if self.enabled:
+            frame.decrement_ttl()
+            if frame.ip and frame.ip.ttl < 1:
+                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
+                return False
+            frame.set_received_timestamp()
+            self.pcap.capture(frame)
+            # If this destination or is broadcast
+            if frame.ethernet.dst_mac_addr == self.mac_address or frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
+                self._connected_node.receive_frame(frame=frame, from_nic=self)
+                return True
+        return False
+
+    def __str__(self) -> str:
+        return f"{self.mac_address}/{self.ip_address}"
 
 
 class Router(Node):
@@ -646,7 +741,7 @@ class Router(Node):
     """
 
     num_ports: int
-    ethernet_ports: Dict[int, NIC] = {}
+    ethernet_ports: Dict[int, RouterNIC] = {}
     acl: AccessControlList
     route_table: RouteTable
     arp: RouterARPCache
@@ -665,7 +760,7 @@ class Router(Node):
             kwargs["icmp"] = RouterICMP(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"), router=self)
         super().__init__(hostname=hostname, num_ports=num_ports, **kwargs)
         for i in range(1, self.num_ports + 1):
-            nic = NIC(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
+            nic = RouterNIC(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
             self.connect_nic(nic)
             self.ethernet_ports[i] = nic
 
@@ -720,9 +815,9 @@ class Router(Node):
         state["acl"] = (self.acl.describe_state(),)
         return state
 
-    def route_frame(self, frame: Frame, from_nic: NIC, re_attempt: bool = False) -> None:
+    def process_frame(self, frame: Frame, from_nic: NIC, re_attempt: bool = False) -> None:
         """
-        Route a given frame from a source NIC to its destination.
+        Process a Frame.
 
         :param frame: The frame to be routed.
         :param from_nic: The source network interface.
@@ -737,25 +832,57 @@ class Router(Node):
             return
 
         if not nic:
-            self.arp.send_arp_request(frame.ip.dst_ip_address)
-            return self.route_frame(frame=frame, from_nic=from_nic, re_attempt=True)
+            self.arp.send_arp_request(
+                frame.ip.dst_ip_address, ignore_networks=[frame.ip.src_ip_address, from_nic.ip_address]
+            )
+            return self.process_frame(frame=frame, from_nic=from_nic, re_attempt=True)
 
         if not nic.enabled:
-            # TODO: Add sys_log here
+            self.sys_log.info(f"Frame dropped as NIC {nic} is not enabled")
             return
 
         if frame.ip.dst_ip_address in nic.ip_network:
             from_port = self._get_port_of_nic(from_nic)
             to_port = self._get_port_of_nic(nic)
-            self.sys_log.info(f"Routing frame to internally from port {from_port} to port {to_port}")
+            self.sys_log.info(f"Forwarding frame to internally from port {from_port} to port {to_port}")
             frame.decrement_ttl()
+            if frame.ip and frame.ip.ttl < 1:
+                self.sys_log.info("Frame discarded as TTL limit reached")
+                return
             frame.ethernet.src_mac_addr = nic.mac_address
             frame.ethernet.dst_mac_addr = target_mac
             nic.send_frame(frame)
             return
         else:
-            pass
-            # TODO: Deal with routing from route tables
+            self._route_frame(frame, from_nic)
+
+    def _route_frame(self, frame: Frame, from_nic: NIC, re_attempt: bool = False) -> None:
+        route = self.route_table.find_best_route(frame.ip.dst_ip_address)
+        if route:
+            nic = self.arp.get_arp_cache_nic(route.next_hop_ip_address)
+            target_mac = self.arp.get_arp_cache_mac_address(route.next_hop_ip_address)
+            if re_attempt and not nic:
+                self.sys_log.info(f"Destination {frame.ip.dst_ip_address} is unreachable")
+                return
+
+            if not nic:
+                self.arp.send_arp_request(frame.ip.dst_ip_address, ignore_networks=[frame.ip.src_ip_address])
+                return self.process_frame(frame=frame, from_nic=from_nic, re_attempt=True)
+
+            if not nic.enabled:
+                self.sys_log.info(f"Frame dropped as NIC {nic} is not enabled")
+                return
+
+            from_port = self._get_port_of_nic(from_nic)
+            to_port = self._get_port_of_nic(nic)
+            self.sys_log.info(f"Routing frame to internally from port {from_port} to port {to_port}")
+            frame.decrement_ttl()
+            if frame.ip and frame.ip.ttl < 1:
+                self.sys_log.info("Frame discarded as TTL limit reached")
+                return
+            frame.ethernet.src_mac_addr = nic.mac_address
+            frame.ethernet.dst_mac_addr = target_mac
+            nic.send_frame(frame)
 
     def receive_frame(self, frame: Frame, from_nic: NIC):
         """
@@ -764,7 +891,7 @@ class Router(Node):
         :param frame: The incoming frame.
         :param from_nic: The network interface where the frame is coming from.
         """
-        route_frame = False
+        process_frame = False
         protocol = frame.ip.protocol
         src_ip_address = frame.ip.src_ip_address
         dst_ip_address = frame.ip.dst_ip_address
@@ -796,12 +923,12 @@ class Router(Node):
             self.icmp.process_icmp(frame=frame, from_nic=from_nic)
         else:
             if src_port == Port.ARP:
-                self.arp.process_arp_packet(from_nic=from_nic, frame=frame)
+                self.arp.process_arp_packet(from_nic=from_nic, frame=frame, route_table=self.route_table)
             else:
                 # All other traffic
-                route_frame = True
-        if route_frame:
-            self.route_frame(frame, from_nic)
+                process_frame = True
+        if process_frame:
+            self.process_frame(frame, from_nic)
 
     def configure_port(self, port: int, ip_address: Union[IPv4Address, str], subnet_mask: Union[IPv4Address, str]):
         """

@@ -1,4 +1,4 @@
-from ipaddress import IPv4Address
+from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
@@ -130,20 +130,28 @@ class SoftwareManager:
     def send_payload_to_session_manager(
         self,
         payload: Any,
-        dest_ip_address: Optional[IPv4Address] = None,
+        dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
         dest_port: Optional[Port] = None,
         session_id: Optional[str] = None,
     ) -> bool:
         """
-        Send a payload to the SessionManager.
+        Sends a payload to the SessionManager for network transmission.
+
+        This method is responsible for initiating the process of sending network payloads. It supports both
+        unicast and Layer 3 broadcast transmissions. For broadcasts, the destination IP should be specified
+        as an IPv4Network.
 
         :param payload: The payload to be sent.
-        :param dest_ip_address: The ip address of the payload destination.
-        :param dest_port: The port of the payload destination.
-        :param session_id: The Session ID the payload is to originate from. Optional.
+        :param dest_ip_address: The IP address or network (for broadcasts) of the payload destination.
+        :param dest_port: The destination port for the payload. Optional.
+        :param session_id: The Session ID from which the payload originates. Optional.
+        :return: True if the payload was successfully sent, False otherwise.
         """
         return self.session_manager.receive_payload_from_software_manager(
-            payload=payload, dst_ip_address=dest_ip_address, dst_port=dest_port, session_id=session_id
+            payload=payload,
+            dst_ip_address=dest_ip_address,
+            dst_port=dest_port,
+            session_id=session_id,
         )
 
     def receive_payload_from_session_manager(self, payload: Any, port: Port, protocol: IPProtocol, session_id: str):
