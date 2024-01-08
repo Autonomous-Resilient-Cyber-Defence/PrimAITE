@@ -703,9 +703,15 @@ class ARPCache:
         Perform a standard ARP request for a given target IP address.
 
         Broadcasts the request through all enabled NICs to determine the MAC address corresponding to the target IP
-        address.
+        address. This method can be configured to ignore specific networks when sending out ARP requests,
+        which is useful in environments where certain addresses should not be queried.
 
         :param target_ip_address: The target IP address to send an ARP request for.
+        :param ignore_networks: An optional list of IPv4 addresses representing networks to be excluded from the ARP
+            request broadcast. Each address in this list indicates a network which will not be queried during the ARP
+            request process. This is particularly useful in complex network environments where traffic should be
+            minimized or controlled to specific subnets. It is mainly used by the router to prevent ARP requests being
+            sent back to their source.
         """
         for nic in self.nics.values():
             use_nic = True
