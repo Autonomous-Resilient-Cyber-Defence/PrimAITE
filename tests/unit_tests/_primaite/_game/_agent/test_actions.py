@@ -62,7 +62,7 @@ def test_service_action_form_request(node_name, service_name, expect_to_do_nothi
     if expect_to_do_nothing:
         assert request == ["do_nothing"]
     else:
-        assert request == ["network", "node", node_name, "services", service_name, action_verb]
+        assert request == ["network", "node", node_name, "service", service_name, action_verb]
 
 
 @pytest.mark.parametrize(
@@ -87,4 +87,4 @@ def test_service_scan_form_request(node_name, service_name, expect_to_do_nothing
     if expect_to_do_nothing:
         assert request == ["do_nothing"]
     else:
-        assert request == ["network", "node", node_name, "services", service_name, "scan"]
+        assert request == ["network", "node", node_name, "service", service_name, "scan"]
