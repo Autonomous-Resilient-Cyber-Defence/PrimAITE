@@ -156,6 +156,14 @@ class NodeServiceEnableAction(NodeServiceAbstractAction):
         self.verb: str = "enable"
 
 
+class NodeServicePatchAction(NodeServiceAbstractAction):
+    """Action which patches a service."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
+        super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
+        self.verb: str = "patch"
+
+
 class NodeApplicationAbstractAction(AbstractAction):
     """
     Base class for application actions.
@@ -559,6 +567,7 @@ class ActionManager:
         "NODE_SERVICE_RESTART": NodeServiceRestartAction,
         "NODE_SERVICE_DISABLE": NodeServiceDisableAction,
         "NODE_SERVICE_ENABLE": NodeServiceEnableAction,
+        "NODE_SERVICE_PATCH": NodeServicePatchAction,
         "NODE_APPLICATION_EXECUTE": NodeApplicationExecuteAction,
         "NODE_FILE_SCAN": NodeFileScanAction,
         "NODE_FILE_CHECKHASH": NodeFileCheckhashAction,
