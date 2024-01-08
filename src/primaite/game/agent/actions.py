@@ -89,7 +89,7 @@ class NodeServiceAbstractAction(AbstractAction):
         service_name = self.manager.get_service_name_by_idx(node_id, service_id)
         if node_name is None or service_name is None:
             return ["do_nothing"]
-        return ["network", "node", node_name, "services", service_name, self.verb]
+        return ["network", "node", node_name, "service", service_name, self.verb]
 
 
 class NodeServiceScanAction(NodeServiceAbstractAction):
@@ -460,13 +460,13 @@ class NetworkACLAddRuleAction(AbstractAction):
             dst_ip = "ALL"
             return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
         else:
-            dst_ip = self.manager.get_ip_address_by_idx(dest_ip_id)
+            dst_ip = self.manager.get_ip_address_by_idx(dest_ip_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
         if dest_port_id == 1:
             dst_port = "ALL"
         else:
-            dst_port = self.manager.get_port_by_idx(dest_port_id)
+            dst_port = self.manager.get_port_by_idx(dest_port_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
         return [
