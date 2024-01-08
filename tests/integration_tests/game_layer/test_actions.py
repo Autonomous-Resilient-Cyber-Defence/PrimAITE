@@ -128,8 +128,12 @@ def install_stuff_to_sim(sim: Simulation):
     # 3: Install server software
     server_1.software_manager.install(DNSServer)
     dns_service: DNSServer = server_1.software_manager.software.get("DNSServer")  # noqa
-    dns_service.dns_register("example.com", server_2.ip_address)
+    dns_service.dns_register("www.example.com", server_2.ip_address)
     server_2.software_manager.install(WebServer)
+
+    # 3.1: Ensure that the dns clients are configured correctly
+    client_1.software_manager.software.get("DNSClient").dns_server = server_1.ethernet_port[1].ip_address
+    server_2.software_manager.software.get("DNSClient").dns_server = server_1.ethernet_port[1].ip_address
 
     # 4: Check that client came pre-installed with web browser and dns client
     assert isinstance(client_1.software_manager.software.get("WebBrowser"), WebBrowser)
@@ -260,7 +264,7 @@ def test_do_nothing_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent])
     game.step()
 
 
-# @pytest.mark.skip(reason="Waiting to merge ticket 2166")
+@pytest.mark.skip(reason="Waiting to merge ticket 2166")
 def test_node_service_scan_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     """
     Test that the NodeServiceScanAction can form a request and that it is accepted by the simulation.
@@ -385,4 +389,94 @@ def test_network_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Pro
     assert server_1.ping("10.0.2.3")  # Can ping server_2
 
 
-# def test_network_acl_removerule_integration()
+def test_network_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that the NetworkACLRemoveRuleAction can form a request and that it is accepted by the simulation."""
+    game, agent = game_and_agent
+
+    # 1: Check that http traffic is going across the network nicely.
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")
+    server_1 = game.simulation.network.get_node_by_hostname("server_1")
+    router = game.simulation.network.get_node_by_hostname("router")
+
+    browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
+    browser.run()
+    browser.target_url = "http://www.example.com"
+    assert browser.get_webpage()  # check that the browser can access example.com before we block it
+
+    # 2: Remove rule that allows HTTP traffic across the network
+    action = (
+        "NETWORK_ACL_REMOVERULE",
+        {
+            "position": 3,  # 4th rule
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    # 3: Check that the ACL now has 3 rules, and that client 1 cannot access example.com
+    assert router.acl.num_rules == 3
+    assert not browser.get_webpage()
+    client_1.software_manager.software.get("DNSClient").dns_cache.clear()
+    assert client_1.ping("10.0.2.2")  # pinging still works because ICMP is allowed
+    assert client_1.ping("10.0.2.3")
+
+
+def test_network_nic_disable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that the NetworkNICDisableAction can form a request and that it is accepted by the simulation."""
+    game, agent = game_and_agent
+
+    # 1: Check that client_1 can access the network
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")
+    server_1 = game.simulation.network.get_node_by_hostname("server_1")
+    server_2 = game.simulation.network.get_node_by_hostname("server_2")
+
+    browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
+    browser.run()
+    browser.target_url = "http://www.example.com"
+    assert browser.get_webpage()  # check that the browser can access example.com before we block it
+
+    # 2: Disable the NIC on client_1
+    action = (
+        "NETWORK_NIC_DISABLE",
+        {
+            "node_id": 0,  # client_1
+            "nic_id": 0,  # the only nic (eth-1)
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    # 3: Check that the NIC is disabled, and that client 1 cannot access example.com
+    assert client_1.ethernet_port[1].enabled == False
+    assert not browser.get_webpage()
+    assert not client_1.ping("10.0.2.2")
+    assert not client_1.ping("10.0.2.3")
+
+    # 4: check that servers can still communicate
+    assert server_1.ping("10.0.2.3")
+
+
+def test_network_nic_enable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that the NetworkNICEnableAction can form a request and that it is accepted by the simulation."""
+
+    game, agent = game_and_agent
+
+    # 1: Disable client_1 nic
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")
+    client_1.ethernet_port[1].disable()
+    assert not client_1.ping("10.0.2.2")
+
+    # 2: Use action to enable nic
+    action = (
+        "NETWORK_NIC_ENABLE",
+        {
+            "node_id": 0,  # client_1
+            "nic_id": 0,  # the only nic (eth-1)
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    # 3: Check that the NIC is enabled, and that client 1 can ping again
+    assert client_1.ethernet_port[1].enabled == True
+    assert client_1.ping("10.0.2.3")
