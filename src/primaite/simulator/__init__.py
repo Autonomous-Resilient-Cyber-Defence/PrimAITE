@@ -7,11 +7,13 @@ from primaite import _PRIMAITE_ROOT
 __all__ = ["SIM_OUTPUT"]
 
 
-class __SimOutput:
+class _SimOutput:
     def __init__(self):
         self._path: Path = (
             _PRIMAITE_ROOT.parent.parent / "simulation_output" / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         )
+        self.save_pcap_logs: bool = False
+        self.save_sys_logs: bool = False
 
     @property
     def path(self) -> Path:
@@ -23,4 +25,4 @@ class __SimOutput:
         self._path.mkdir(exist_ok=True, parents=True)
 
 
-SIM_OUTPUT = __SimOutput()
+SIM_OUTPUT = _SimOutput()

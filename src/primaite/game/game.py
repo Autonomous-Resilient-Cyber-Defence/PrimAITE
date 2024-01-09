@@ -432,6 +432,7 @@ class PrimaiteGame:
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=rew_function,
+                    agent_settings=agent_settings,
                 )
                 game.agents.append(new_agent)
                 game.rl_agents.append(new_agent)
