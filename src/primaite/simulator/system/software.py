@@ -145,8 +145,8 @@ class Software(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "health_state": self.health_state_actual.value,
-                "health_state_red_view": self.health_state_visible.value,
+                "health_state_actual": self.health_state_actual.value,
+                "health_state_visible": self.health_state_visible.value,
                 "criticality": self.criticality.value,
                 "patching_count": self.patching_count,
                 "scanning_count": self.scanning_count,
