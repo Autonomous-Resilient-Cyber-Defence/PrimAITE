@@ -162,6 +162,7 @@ class PrimaiteGame:
         self.simulation.reset_component_for_episode(episode=self.episode_counter)
         for agent in self.agents:
             agent.reward_function.total_reward = 0.0
+            agent.reset_agent_for_episode()
 
     def close(self) -> None:
         """Close the game, this will close the simulation."""
