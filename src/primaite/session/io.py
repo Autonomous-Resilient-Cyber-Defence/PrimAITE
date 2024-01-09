@@ -24,9 +24,13 @@ class SessionIOSettings(BaseModel):
     save_transactions: bool = True
     """Whether to save transactions, If true, the session path will have a transactions folder."""
     save_tensorboard_logs: bool = False
-    """Whether to save tensorboard logs. If true, the session path will have a tenorboard_logs folder."""
+    """Whether to save tensorboard logs. If true, the session path will have a tensorboard_logs folder."""
     save_step_metadata: bool = False
     """Whether to save the RL agents' action, environment state, and other data at every single step."""
+    save_pcap_logs: bool = False
+    """Whether to save PCAP logs."""
+    save_sys_logs: bool = False
+    """Whether to save system logs."""
 
 
 class SessionIO:
@@ -39,9 +43,10 @@ class SessionIO:
     def __init__(self, settings: SessionIOSettings = SessionIOSettings()) -> None:
         self.settings: SessionIOSettings = settings
         self.session_path: Path = self.generate_session_path()
-
         # set global SIM_OUTPUT path
         SIM_OUTPUT.path = self.session_path / "simulation_output"
+        SIM_OUTPUT.save_pcap_logs = self.settings.save_pcap_logs
+        SIM_OUTPUT.save_sys_logs = self.settings.save_sys_logs
 
         # warning TODO: must be careful not to re-initialise sessionIO because it will create a new path each time it's
         # possible refactor needed

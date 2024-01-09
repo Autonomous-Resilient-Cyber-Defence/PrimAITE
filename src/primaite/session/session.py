@@ -54,7 +54,7 @@ class PrimaiteSession:
         self.policy: PolicyABC
         """The reinforcement learning policy."""
 
-        self.io_manager = SessionIO()
+        self.io_manager: Optional["SessionIO"] = None
         """IO manager for the session."""
 
         self.game: PrimaiteGame = game
@@ -101,9 +101,9 @@ class PrimaiteSession:
 
         # CREATE ENVIRONMENT
         if sess.training_options.rl_framework == "RLLIB_single_agent":
-            sess.env = PrimaiteRayEnv(env_config={"game": game})
+            sess.env = PrimaiteRayEnv(env_config={"cfg": cfg})
         elif sess.training_options.rl_framework == "RLLIB_multi_agent":
-            sess.env = PrimaiteRayMARLEnv(env_config={"game": game})
+            sess.env = PrimaiteRayMARLEnv(env_config={"cfg": cfg})
         elif sess.training_options.rl_framework == "SB3":
             sess.env = PrimaiteGymEnv(game=game)
 
