@@ -36,12 +36,12 @@ class SoftwareHealthState(Enum):
     "Unused state."
     GOOD = 1
     "The software is in a good and healthy condition."
-    COMPROMISED = 2
-    "The software's security has been compromised."
-    OVERWHELMED = 3
-    "he software is overwhelmed and not functioning properly."
-    PATCHING = 4
+    PATCHING = 2
     "The software is undergoing patching or updates."
+    COMPROMISED = 3
+    "The software's security has been compromised."
+    OVERWHELMED = 4
+    "he software is overwhelmed and not functioning properly."
 
 
 class SoftwareCriticality(Enum):
