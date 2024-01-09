@@ -303,13 +303,13 @@ class IOSoftware(Software):
         """
         # if over or at capacity, set to overwhelmed
         if len(self._connections) >= self.max_sessions:
-            self.health_state_actual = SoftwareHealthState.OVERWHELMED
+            self.set_health_state(SoftwareHealthState.OVERWHELMED)
             self.sys_log.error(f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity.")
             return False
         else:
             # if service was previously overwhelmed, set to good because there is enough space for connections
             if self.health_state_actual == SoftwareHealthState.OVERWHELMED:
-                self.health_state_actual = SoftwareHealthState.GOOD
+                self.set_health_state(SoftwareHealthState.GOOD)
 
             # check that connection already doesn't exist
             if not self._connections.get(connection_id):

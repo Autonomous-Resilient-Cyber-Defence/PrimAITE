@@ -196,7 +196,7 @@ class DatabaseService(Service):
                 return {"status_code": 404, "data": False}
         elif query == "DELETE":
             if self.health_state_actual == SoftwareHealthState.GOOD:
-                self.health_state_actual = SoftwareHealthState.COMPROMISED
+                self.set_health_state(SoftwareHealthState.COMPROMISED)
                 return {
                     "status_code": 200,
                     "type": "sql",

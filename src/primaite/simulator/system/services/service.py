@@ -127,7 +127,7 @@ class Service(IOSoftware):
             self.operating_state = ServiceOperatingState.RUNNING
             # set software health state to GOOD if initially set to UNUSED
             if self.health_state_actual == SoftwareHealthState.UNUSED:
-                self.health_state_actual = SoftwareHealthState.GOOD
+                self.set_health_state(SoftwareHealthState.GOOD)
 
     def pause(self) -> None:
         """Pause the service."""

@@ -53,12 +53,12 @@ def test_node_os_scan(node, service, application):
     # TODO implement processes
 
     # add services to node
-    service.health_state_actual = SoftwareHealthState.COMPROMISED
+    service.set_health_state(SoftwareHealthState.COMPROMISED)
     node.install_service(service=service)
     assert service.health_state_visible == SoftwareHealthState.UNUSED
 
     # add application to node
-    application.health_state_actual = SoftwareHealthState.COMPROMISED
+    application.set_health_state(SoftwareHealthState.COMPROMISED)
     node.install_application(application=application)
     assert application.health_state_visible == SoftwareHealthState.UNUSED
 
@@ -101,7 +101,7 @@ def test_node_red_scan(node, service, application):
     assert service.revealed_to_red is False
 
     # add application to node
-    application.health_state_actual = SoftwareHealthState.COMPROMISED
+    application.set_health_state(SoftwareHealthState.COMPROMISED)
     node.install_application(application=application)
     assert application.revealed_to_red is False
 

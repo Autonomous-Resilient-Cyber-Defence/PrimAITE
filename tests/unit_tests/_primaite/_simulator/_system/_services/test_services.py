@@ -57,12 +57,15 @@ def test_restart(service):
     assert service.operating_state == ServiceOperatingState.STOPPED
     assert service.health_state_actual == SoftwareHealthState.UNUSED
     service.restart()
+    # Service is STOPPED. Restart will only work if the service was PAUSED or RUNNING
     assert service.operating_state == ServiceOperatingState.STOPPED
     assert service.health_state_actual == SoftwareHealthState.UNUSED
 
     service.start()
+    assert service.operating_state == ServiceOperatingState.RUNNING
     assert service.health_state_actual == SoftwareHealthState.GOOD
     service.restart()
+    # Service is RUNNING. Restart should work
     assert service.operating_state == ServiceOperatingState.RESTARTING
     assert service.health_state_actual == SoftwareHealthState.GOOD
 
@@ -77,17 +80,11 @@ def test_restart(service):
 
 
 def test_restart_compromised(service):
-    assert service.operating_state == ServiceOperatingState.STOPPED
-    assert service.health_state_actual == SoftwareHealthState.UNUSED
-    service.restart()
-    assert service.operating_state == ServiceOperatingState.STOPPED
-    assert service.health_state_actual == SoftwareHealthState.UNUSED
-
     service.start()
     assert service.health_state_actual == SoftwareHealthState.GOOD
 
     # compromise the service
-    service.health_state_actual = SoftwareHealthState.COMPROMISED
+    service.set_health_state(SoftwareHealthState.COMPROMISED)
 
     service.restart()
     assert service.operating_state == ServiceOperatingState.RESTARTING
@@ -118,7 +115,7 @@ def test_compromised_service_remains_compromised(service):
     service.start()
     assert service.health_state_actual == SoftwareHealthState.GOOD
 
-    service.health_state_actual = SoftwareHealthState.COMPROMISED
+    service.set_health_state(SoftwareHealthState.COMPROMISED)
 
     service.stop()
     assert service.health_state_actual == SoftwareHealthState.COMPROMISED
@@ -143,7 +140,7 @@ def test_service_patching(service):
     service.start()
     assert service.health_state_actual == SoftwareHealthState.GOOD
 
-    service.health_state_actual = SoftwareHealthState.COMPROMISED
+    service.set_health_state(SoftwareHealthState.COMPROMISED)
 
     service.patch()
     assert service.health_state_actual == SoftwareHealthState.PATCHING

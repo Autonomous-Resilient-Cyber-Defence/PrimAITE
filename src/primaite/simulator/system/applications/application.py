@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, Dict, Set
 
 from primaite import getLogger
-from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
+from primaite.simulator.system.software import IOSoftware
 
 _LOGGER = getLogger(__name__)
 
@@ -37,9 +37,6 @@ class Application(IOSoftware):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-        self.health_state_visible = SoftwareHealthState.UNUSED
-        self.health_state_actual = SoftwareHealthState.UNUSED
 
     def set_original_state(self):
         """Sets the original state."""
