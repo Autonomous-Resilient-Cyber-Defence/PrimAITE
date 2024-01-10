@@ -15,7 +15,6 @@ class DataManipulationAgent(AbstractScriptedAgent):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self._set_next_execution_timestep(self.agent_settings.start_settings.start_step)
 
     def _set_next_execution_timestep(self, timestep: int) -> None:
@@ -46,3 +45,8 @@ class DataManipulationAgent(AbstractScriptedAgent):
         self._set_next_execution_timestep(current_timestep + self.agent_settings.start_settings.frequency)
 
         return "NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}
+
+    def reset_agent_for_episode(self) -> None:
+        """Set the next execution timestep when the episode resets."""
+        super().reset_agent_for_episode()
+        self._set_next_execution_timestep(self.agent_settings.start_settings.start_step)
