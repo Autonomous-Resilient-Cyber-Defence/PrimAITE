@@ -71,9 +71,9 @@ class Software(SimComponent):
 
     name: str
     "The name of the software."
-    health_state_actual: SoftwareHealthState = SoftwareHealthState.GOOD
+    health_state_actual: SoftwareHealthState = SoftwareHealthState.UNUSED
     "The actual health state of the software."
-    health_state_visible: SoftwareHealthState = SoftwareHealthState.GOOD
+    health_state_visible: SoftwareHealthState = SoftwareHealthState.UNUSED
     "The health state of the software visible to the red agent."
     criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
     "The criticality level of the software."
@@ -282,7 +282,7 @@ class IOSoftware(Software):
 
         Returns true if the software can perform actions.
         """
-        if self.software_manager and self.software_manager.node.operating_state is NodeOperatingState.OFF:
+        if self.software_manager and self.software_manager.node.operating_state != NodeOperatingState.ON:
             _LOGGER.debug(f"{self.name} Error: {self.software_manager.node.hostname} is not online.")
             return False
         return True
@@ -303,13 +303,13 @@ class IOSoftware(Software):
         """
         # if over or at capacity, set to overwhelmed
         if len(self._connections) >= self.max_sessions:
-            self.health_state_actual = SoftwareHealthState.OVERWHELMED
+            self.set_health_state(SoftwareHealthState.OVERWHELMED)
             self.sys_log.error(f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity.")
             return False
         else:
             # if service was previously overwhelmed, set to good because there is enough space for connections
             if self.health_state_actual == SoftwareHealthState.OVERWHELMED:
-                self.health_state_actual = SoftwareHealthState.GOOD
+                self.set_health_state(SoftwareHealthState.GOOD)
 
             # check that connection already doesn't exist
             if not self._connections.get(connection_id):

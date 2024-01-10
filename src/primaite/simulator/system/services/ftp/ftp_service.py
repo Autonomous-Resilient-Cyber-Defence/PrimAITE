@@ -1,7 +1,7 @@
 import shutil
 from abc import ABC
 from ipaddress import IPv4Address
-from typing import Optional
+from typing import Dict, Optional
 
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
@@ -15,6 +15,10 @@ class FTPServiceABC(Service, ABC):
 
     Contains shared methods between both classes.
     """
+
+    def describe_state(self) -> Dict:
+        """Returns a Dict of the FTPService state."""
+        return super().describe_state()
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
         """

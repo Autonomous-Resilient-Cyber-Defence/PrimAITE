@@ -90,7 +90,7 @@ def test_repeating_dos_attack(dos_bot_and_db_server):
     assert db_server_service.health_state_actual is SoftwareHealthState.OVERWHELMED
 
     db_server_service.clear_connections()
-    db_server_service.health_state_actual = SoftwareHealthState.GOOD
+    db_server_service.set_health_state(SoftwareHealthState.GOOD)
     assert len(db_server_service.connections) == 0
 
     computer.apply_timestep(timestep=1)
@@ -121,7 +121,7 @@ def test_non_repeating_dos_attack(dos_bot_and_db_server):
     assert db_server_service.health_state_actual is SoftwareHealthState.OVERWHELMED
 
     db_server_service.clear_connections()
-    db_server_service.health_state_actual = SoftwareHealthState.GOOD
+    db_server_service.set_health_state(SoftwareHealthState.GOOD)
     assert len(db_server_service.connections) == 0
 
     computer.apply_timestep(timestep=1)
