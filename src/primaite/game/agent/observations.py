@@ -555,7 +555,7 @@ class NodeObservation(AbstractObservation):
         folder_configs = config.get("folders", {})
         folders = [
             FolderObservation.from_config(
-                config=c, game=game, parent_where=where, num_files_per_folder=num_files_per_folder
+                config=c, game=game, parent_where=where + ["file_system"], num_files_per_folder=num_files_per_folder
             )
             for c in folder_configs
         ]

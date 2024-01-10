@@ -23,7 +23,6 @@ class PrimaiteGymEnv(gymnasium.Env):
         super().__init__()
         self.game: "PrimaiteGame" = game
         self.agent: ProxyAgent = self.game.rl_agents[0]
-        self.flatten_obs: bool = False
 
     def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, Dict[str, Any]]:
         """Perform a step in the environment."""

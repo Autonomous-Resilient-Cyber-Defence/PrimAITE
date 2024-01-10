@@ -13,6 +13,7 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.service import Service
+from primaite.simulator.system.software import SoftwareHealthState
 
 _LOGGER = getLogger(__name__)
 
@@ -123,7 +124,10 @@ class WebServer(Service):
                 # get all users
                 if db_client.query("SELECT"):
                     # query succeeded
+                    self.set_health_state(SoftwareHealthState.GOOD)
                     response.status_code = HttpStatusCode.OK
+                else:
+                    self.set_health_state(SoftwareHealthState.COMPROMISED)
 
             return response
         except Exception:

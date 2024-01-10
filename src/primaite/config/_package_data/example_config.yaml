@@ -112,10 +112,8 @@ agents:
           - service_ref: domain_controller_dns_server
         - node_ref: web_server
           services:
-          - service_ref: web_server_database_client
+          - service_ref: web_server_web_service
         - node_ref: database_server
-          services:
-          - service_ref: database_service
           folders:
           - folder_name: database
             files:
