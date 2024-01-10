@@ -36,12 +36,12 @@ class SoftwareHealthState(Enum):
     "Unused state."
     GOOD = 1
     "The software is in a good and healthy condition."
-    COMPROMISED = 2
-    "The software's security has been compromised."
-    OVERWHELMED = 3
-    "he software is overwhelmed and not functioning properly."
-    PATCHING = 4
+    PATCHING = 2
     "The software is undergoing patching or updates."
+    COMPROMISED = 3
+    "The software's security has been compromised."
+    OVERWHELMED = 4
+    "he software is overwhelmed and not functioning properly."
 
 
 class SoftwareCriticality(Enum):
@@ -145,8 +145,8 @@ class Software(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "health_state": self.health_state_actual.value,
-                "health_state_red_view": self.health_state_visible.value,
+                "health_state_actual": self.health_state_actual.value,
+                "health_state_visible": self.health_state_visible.value,
                 "criticality": self.criticality.value,
                 "patching_count": self.patching_count,
                 "scanning_count": self.scanning_count,
@@ -278,7 +278,7 @@ class IOSoftware(Software):
 
         Returns true if the software can perform actions.
         """
-        if self.software_manager and self.software_manager.node.operating_state is NodeOperatingState.OFF:
+        if self.software_manager and self.software_manager.node.operating_state is not NodeOperatingState.ON:
             _LOGGER.debug(f"{self.name} Error: {self.software_manager.node.hostname} is not online.")
             return False
         return True
