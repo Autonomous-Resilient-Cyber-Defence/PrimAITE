@@ -40,6 +40,9 @@ from primaite.simulator.network.hardware.base import Link, Node
 class TestService(Service):
     """Test Service class"""
 
+    def describe_state(self) -> Dict:
+        return super().describe_state()
+
     def __init__(self, **kwargs):
         kwargs["name"] = "TestService"
         kwargs["port"] = Port.HTTP
@@ -60,7 +63,7 @@ class TestApplication(Application):
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:
-        pass
+        return super().describe_state()
 
 
 @pytest.fixture(scope="function")

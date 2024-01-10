@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Optional
 
@@ -95,6 +96,7 @@ class Service(IOSoftware):
         rm.add_request("enable", RequestType(func=lambda request, context: self.enable()))
         return rm
 
+    @abstractmethod
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.

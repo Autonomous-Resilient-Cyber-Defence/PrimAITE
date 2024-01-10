@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, Dict, Set
 
 from primaite import getLogger
-from primaite.simulator.system.software import IOSoftware
+from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 _LOGGER = getLogger(__name__)
 
@@ -92,6 +92,9 @@ class Application(IOSoftware):
         if self.operating_state == ApplicationOperatingState.CLOSED:
             self.sys_log.info(f"Running Application {self.name}")
             self.operating_state = ApplicationOperatingState.RUNNING
+            # set software health state to GOOD if initially set to UNUSED
+            if self.health_state_actual == SoftwareHealthState.UNUSED:
+                self.set_health_state(SoftwareHealthState.GOOD)
 
     def _application_loop(self):
         """The main application loop."""
