@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 
 from primaite import getLogger
 from primaite.simulator.file_system.file_system import File
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
@@ -24,7 +25,7 @@ class DatabaseService(Service):
     password: Optional[str] = None
     connections: Dict[str, datetime] = {}
 
-    backup_server: IPv4Address = None
+    backup_server_ip: IPv4Address = None
     """IP address of the backup server."""
 
     latest_backup_directory: str = None
@@ -66,7 +67,7 @@ class DatabaseService(Service):
 
         :param: backup_server_ip: The IP address of the backup server
         """
-        self.backup_server = backup_server
+        self.backup_server_ip = backup_server
 
     def backup_database(self) -> bool:
         """Create a backup of the database to the configured backup server."""
@@ -75,7 +76,7 @@ class DatabaseService(Service):
             return False
 
         # check if the backup server was configured
-        if self.backup_server is None:
+        if self.backup_server_ip is None:
             self.sys_log.error(f"{self.name} - {self.sys_log.hostname}: not configured.")
             return False
 
@@ -84,7 +85,7 @@ class DatabaseService(Service):
 
         # send backup copy of database file to FTP server
         response = ftp_client_service.send_file(
-            dest_ip_address=self.backup_server,
+            dest_ip_address=self.backup_server_ip,
             src_file_name=self._db_file.name,
             src_folder_name=self.folder.name,
             dest_folder_name=str(self.uuid),
@@ -112,7 +113,7 @@ class DatabaseService(Service):
             src_file_name="database.db",
             dest_folder_name="downloads",
             dest_file_name="database.db",
-            dest_ip_address=self.backup_server,
+            dest_ip_address=self.backup_server_ip,
         )
 
         if not response:
@@ -170,16 +171,13 @@ class DatabaseService(Service):
         """
         self.sys_log.info(f"{self.name}: Running {query}")
         if query == "SELECT":
-            if self.health_state_actual == SoftwareHealthState.GOOD:
+            if self._db_file.health_status == FileSystemItemHealthStatus.GOOD:
                 return {"status_code": 200, "type": "sql", "data": True, "uuid": query_id}
             else:
                 return {"status_code": 404, "data": False}
         elif query == "DELETE":
-            if self.health_state_actual == SoftwareHealthState.GOOD:
-                self.health_state_actual = SoftwareHealthState.COMPROMISED
-                return {"status_code": 200, "type": "sql", "data": False, "uuid": query_id}
-            else:
-                return {"status_code": 404, "data": False}
+            self._db_file.health_status = FileSystemItemHealthStatus.COMPROMISED
+            return {"status_code": 200, "type": "sql", "data": False, "uuid": query_id}
         else:
             # Invalid query
             return {"status_code": 500, "data": False}
