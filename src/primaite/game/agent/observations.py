@@ -205,12 +205,15 @@ class LinkObservation(AbstractObservation):
 
         bandwidth = link_state["bandwidth"]
         load = link_state["current_load"]
-        utilisation_fraction = load / bandwidth
-        # 0 is UNUSED, 1 is 0%-10%. 2 is 10%-20%. 3 is 20%-30%. And so on... 10 is exactly 100%
-        utilisation_category = int(utilisation_fraction * 10) + 1
+        if load == 0:
+            utilisation_category = 0
+        else:
+            utilisation_fraction = load / bandwidth
+            # 0 is UNUSED, 1 is 0%-10%. 2 is 10%-20%. 3 is 20%-30%. And so on... 10 is exactly 100%
+            utilisation_category = int(utilisation_fraction * 9) + 1
 
         # TODO: once the links support separte load per protocol, this needs amendment to reflect that.
-        return {"PROTOCOLS": {"ALL": utilisation_category}}
+        return {"PROTOCOLS": {"ALL": min(utilisation_category, 10)}}
 
     @property
     def space(self) -> spaces.Space:
