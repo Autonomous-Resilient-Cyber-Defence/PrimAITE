@@ -181,7 +181,6 @@ class WebServer404Penalty(AbstractReward):
         """
         web_service_state = access_from_nested_dict(state, self.location_in_state)
         if web_service_state is NOT_PRESENT_IN_STATE:
-            print("error getting web service state")
             return 0.0
         most_recent_return_code = web_service_state["last_response_status_code"]
         # TODO: reward needs to use the current web state. Observation should return web state at the time of last scan.

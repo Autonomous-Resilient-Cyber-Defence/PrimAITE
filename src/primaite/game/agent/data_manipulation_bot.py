@@ -15,8 +15,6 @@ class DataManipulationAgent(AbstractScriptedAgent):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        print("red start step: ", self.agent_settings.start_settings.start_step)
-
         self._set_next_execution_timestep(self.agent_settings.start_settings.start_step)
 
     def _set_next_execution_timestep(self, timestep: int) -> None:
@@ -28,7 +26,6 @@ class DataManipulationAgent(AbstractScriptedAgent):
             -self.agent_settings.start_settings.variance, self.agent_settings.start_settings.variance
         )
         self.next_execution_timestep = timestep + random_timestep_increment
-        print("next execution red step: ", self.next_execution_timestep)
 
     def get_action(self, obs: ObsType, reward: float = None) -> Tuple[str, Dict]:
         """Randomly sample an action from the action space.
@@ -43,12 +40,10 @@ class DataManipulationAgent(AbstractScriptedAgent):
         current_timestep = self.action_manager.game.step_counter
 
         if current_timestep < self.next_execution_timestep:
-            print("red agent doing nothing")
             return "DONOTHING", {"dummy": 0}
 
         self._set_next_execution_timestep(current_timestep + self.agent_settings.start_settings.frequency)
 
-        print("red agent doing an execute")
         return "NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}
 
     def reset_agent_for_episode(self) -> None:
