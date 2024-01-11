@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made observation space flattening optional (on by default). To turn off for an agent, change the agent_settings.flatten_obs setting in the config.
 - Fixed an issue where the data manipulation attack was triggered at episode start.
 - Fixed a bug where FTP STOR stored an additional copy on the client machine's filesystem
+- Fixed a bug where the red agent acted to early
+- Fixed the order of service health state
+- Fixed an issue where starting a node didn't start the services on it
+
 
 
 ### Added
