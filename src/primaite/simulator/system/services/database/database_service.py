@@ -247,3 +247,8 @@ class DatabaseService(Service):
         if timestep == 1:
             self.backup_database()
         return super().apply_timestep(timestep)
+
+    def _update_patch_status(self) -> None:
+        super()._update_patch_status()
+        if self._patching_countdown is None:
+            self.restore_backup()

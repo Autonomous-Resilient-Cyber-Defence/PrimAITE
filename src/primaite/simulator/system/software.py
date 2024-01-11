@@ -193,8 +193,9 @@ class Software(SimComponent):
 
     def patch(self) -> None:
         """Perform a patch on the software."""
-        self._patching_countdown = self.patching_duration
-        self.set_health_state(SoftwareHealthState.PATCHING)
+        if self.health_state_actual in (SoftwareHealthState.COMPROMISED, SoftwareHealthState.GOOD):
+            self._patching_countdown = self.patching_duration
+            self.set_health_state(SoftwareHealthState.PATCHING)
 
     def _update_patch_status(self) -> None:
         """Update the patch status of the software."""
