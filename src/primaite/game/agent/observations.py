@@ -79,7 +79,7 @@ class FileObservation(AbstractObservation):
         file_state = access_from_nested_dict(state, self.where)
         if file_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
-        return {"health_status": file_state["health_status"]}
+        return {"health_status": file_state["visible_status"]}
 
     @property
     def space(self) -> spaces.Space:

@@ -111,7 +111,7 @@ class DatabaseFileIntegrity(AbstractReward):
         """
         database_file_state = access_from_nested_dict(state, self.location_in_state)
         health_status = database_file_state["health_status"]
-        if health_status == 3:
+        if health_status == 2:
             return -1
         elif health_status == 1:
             return 1

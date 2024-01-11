@@ -105,7 +105,7 @@ class Folder(FileSystemItemABC):
         self._file_request_manager = RequestManager()
         rm.add_request(
             name="file",
-            request_type=RequestType(func=lambda request, context: self._file_request_manager),
+            request_type=RequestType(func=self._file_request_manager),
         )
         return rm
 
