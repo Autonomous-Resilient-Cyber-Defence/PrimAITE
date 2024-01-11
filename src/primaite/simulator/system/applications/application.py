@@ -38,9 +38,6 @@ class Application(IOSoftware):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.health_state_visible = SoftwareHealthState.UNUSED
-        self.health_state_actual = SoftwareHealthState.UNUSED
-
     def set_original_state(self):
         """Sets the original state."""
         super().set_original_state()
@@ -95,6 +92,7 @@ class Application(IOSoftware):
         if self.operating_state == ApplicationOperatingState.CLOSED:
             self.sys_log.info(f"Running Application {self.name}")
             self.operating_state = ApplicationOperatingState.RUNNING
+            # set software health state to GOOD if initially set to UNUSED
             if self.health_state_actual == SoftwareHealthState.UNUSED:
                 self.set_health_state(SoftwareHealthState.GOOD)
 

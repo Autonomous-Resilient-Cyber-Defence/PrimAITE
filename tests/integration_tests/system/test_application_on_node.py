@@ -24,8 +24,8 @@ def populated_node(application_class) -> Tuple[Application, Computer]:
     return app, computer
 
 
-def test_service_on_offline_node(application_class):
-    """Test to check that the service cannot be interacted with when node it is on is off."""
+def test_application_on_offline_node(application_class):
+    """Test to check that the application cannot be interacted with when node it is on is off."""
     computer: Computer = Computer(
         hostname="test_computer",
         ip_address="192.168.1.2",
@@ -49,8 +49,8 @@ def test_service_on_offline_node(application_class):
     assert app.operating_state is ApplicationOperatingState.CLOSED
 
 
-def test_server_turns_off_service(populated_node):
-    """Check that the service is turned off when the server is turned off"""
+def test_server_turns_off_application(populated_node):
+    """Check that the application is turned off when the server is turned off"""
     app, computer = populated_node
 
     assert computer.operating_state is NodeOperatingState.ON
@@ -65,8 +65,8 @@ def test_server_turns_off_service(populated_node):
     assert app.operating_state is ApplicationOperatingState.CLOSED
 
 
-def test_service_cannot_be_turned_on_when_server_is_off(populated_node):
-    """Check that the service cannot be started when the server is off."""
+def test_application_cannot_be_turned_on_when_server_is_off(populated_node):
+    """Check that the application cannot be started when the server is off."""
     app, computer = populated_node
 
     assert computer.operating_state is NodeOperatingState.ON
@@ -86,8 +86,8 @@ def test_service_cannot_be_turned_on_when_server_is_off(populated_node):
     assert app.operating_state is ApplicationOperatingState.CLOSED
 
 
-def test_server_turns_on_service(populated_node):
-    """Check that turning on the server turns on service."""
+def test_server_turns_on_application(populated_node):
+    """Check that turning on the server turns on application."""
     app, computer = populated_node
 
     assert computer.operating_state is NodeOperatingState.ON
@@ -109,13 +109,14 @@ def test_server_turns_on_service(populated_node):
     assert computer.operating_state is NodeOperatingState.ON
     assert app.operating_state is ApplicationOperatingState.RUNNING
 
-    computer.start_up_duration = 0
-    computer.shut_down_duration = 0
-
     computer.power_off()
+    for i in range(computer.start_up_duration + 1):
+        computer.apply_timestep(timestep=i)
     assert computer.operating_state is NodeOperatingState.OFF
     assert app.operating_state is ApplicationOperatingState.CLOSED
 
     computer.power_on()
+    for i in range(computer.start_up_duration + 1):
+        computer.apply_timestep(timestep=i)
     assert computer.operating_state is NodeOperatingState.ON
     assert app.operating_state is ApplicationOperatingState.RUNNING
