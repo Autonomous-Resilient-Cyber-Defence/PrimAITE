@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made packet capture and system logging optional (off by default). To turn on, change the io_settings.save_pcap_logs and io_settings.save_sys_logs settings in the config.
 - Made observation space flattening optional (on by default). To turn off for an agent, change the agent_settings.flatten_obs setting in the config.
 - Fixed an issue where the data manipulation attack was triggered at episode start.
+- Fixed a bug where FTP STOR stored an additional copy on the client machine's filesystem
+
 
 ### Added
 - Network Hardware - Added base hardware module with NIC, SwitchPort, Node, and Link. Nodes have
