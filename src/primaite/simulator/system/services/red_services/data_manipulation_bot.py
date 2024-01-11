@@ -84,7 +84,7 @@ class DataManipulationBot(DatabaseClient):
         payload: Optional[str] = None,
         port_scan_p_of_success: float = 0.1,
         data_manipulation_p_of_success: float = 0.1,
-        repeat: bool = False,
+        repeat: bool = True,
     ):
         """
         Configure the DataManipulatorBot to communicate with a DatabaseService.

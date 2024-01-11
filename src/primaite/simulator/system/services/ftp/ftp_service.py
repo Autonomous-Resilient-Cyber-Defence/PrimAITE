@@ -1,7 +1,7 @@
 import shutil
 from abc import ABC
 from ipaddress import IPv4Address
-from typing import Optional
+from typing import Dict, Optional
 
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
@@ -15,6 +15,10 @@ class FTPServiceABC(Service, ABC):
 
     Contains shared methods between both classes.
     """
+
+    def describe_state(self) -> Dict:
+        """Returns a Dict of the FTPService state."""
+        return super().describe_state()
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
         """
@@ -52,10 +56,12 @@ class FTPServiceABC(Service, ABC):
             folder_name = payload.ftp_command_args["dest_folder_name"]
             file_size = payload.ftp_command_args["file_size"]
             real_file_path = payload.ftp_command_args.get("real_file_path")
+            health_status = payload.ftp_command_args["health_status"]
             is_real = real_file_path is not None
             file = self.file_system.create_file(
                 file_name=file_name, folder_name=folder_name, size=file_size, real=is_real
             )
+            file.health_status = health_status
             self.sys_log.info(
                 f"{self.name}: Created item in {self.sys_log.hostname}: {payload.ftp_command_args['dest_folder_name']}/"
                 f"{payload.ftp_command_args['dest_file_name']}"
@@ -110,6 +116,7 @@ class FTPServiceABC(Service, ABC):
                 "dest_file_name": dest_file_name,
                 "file_size": file.sim_size,
                 "real_file_path": file.sim_path if file.real else None,
+                "health_status": file.health_status,
             },
             packet_payload_size=file.sim_size,
             status_code=FTPStatusCode.OK if is_response else None,

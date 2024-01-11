@@ -2,6 +2,7 @@ from ipaddress import IPv4Address
 
 import pytest
 
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
@@ -42,6 +43,7 @@ def test_ftp_client_store_file(ftp_client):
             "dest_folder_name": "downloads",
             "dest_file_name": "file.txt",
             "file_size": 24,
+            "health_status": FileSystemItemHealthStatus.GOOD,
         },
         packet_payload_size=24,
         status_code=FTPStatusCode.OK,

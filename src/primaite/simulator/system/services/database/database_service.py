@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Literal, Optional, Union
 
 from primaite import getLogger
 from primaite.simulator.file_system.file_system import File
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
+from primaite.simulator.file_system.folder import Folder
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
@@ -24,7 +26,7 @@ class DatabaseService(Service):
     password: Optional[str] = None
     connections: Dict[str, datetime] = {}
 
-    backup_server: IPv4Address = None
+    backup_server_ip: IPv4Address = None
     """IP address of the backup server."""
 
     latest_backup_directory: str = None
@@ -38,7 +40,6 @@ class DatabaseService(Service):
         kwargs["port"] = Port.POSTGRES_SERVER
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
-        self._db_file: File
         self._create_db_file()
 
     def set_original_state(self):
@@ -48,7 +49,7 @@ class DatabaseService(Service):
         vals_to_include = {
             "password",
             "connections",
-            "backup_server",
+            "backup_server_ip",
             "latest_backup_directory",
             "latest_backup_file_name",
         }
@@ -66,7 +67,7 @@ class DatabaseService(Service):
 
         :param: backup_server_ip: The IP address of the backup server
         """
-        self.backup_server = backup_server
+        self.backup_server_ip = backup_server
 
     def backup_database(self) -> bool:
         """Create a backup of the database to the configured backup server."""
@@ -75,7 +76,7 @@ class DatabaseService(Service):
             return False
 
         # check if the backup server was configured
-        if self.backup_server is None:
+        if self.backup_server_ip is None:
             self.sys_log.error(f"{self.name} - {self.sys_log.hostname}: not configured.")
             return False
 
@@ -84,9 +85,9 @@ class DatabaseService(Service):
 
         # send backup copy of database file to FTP server
         response = ftp_client_service.send_file(
-            dest_ip_address=self.backup_server,
-            src_file_name=self._db_file.name,
-            src_folder_name=self.folder.name,
+            dest_ip_address=self.backup_server_ip,
+            src_file_name=self.db_file.name,
+            src_folder_name="database",
             dest_folder_name=str(self.uuid),
             dest_file_name="database.db",
         )
@@ -112,7 +113,7 @@ class DatabaseService(Service):
             src_file_name="database.db",
             dest_folder_name="downloads",
             dest_file_name="database.db",
-            dest_ip_address=self.backup_server,
+            dest_ip_address=self.backup_server_ip,
         )
 
         if not response:
@@ -120,13 +121,10 @@ class DatabaseService(Service):
             return False
 
         # replace db file
-        self.file_system.delete_file(folder_name=self.folder.name, file_name="downloads.db")
-        self.file_system.copy_file(
-            src_folder_name="downloads", src_file_name="database.db", dst_folder_name=self.folder.name
-        )
-        self._db_file = self.file_system.get_file(folder_name=self.folder.name, file_name="database.db")
+        self.file_system.delete_file(folder_name="database", file_name="downloads.db")
+        self.file_system.copy_file(src_folder_name="downloads", src_file_name="database.db", dst_folder_name="database")
 
-        if self._db_file is None:
+        if self.db_file is None:
             self.sys_log.error("Copying database backup failed.")
             return False
 
@@ -136,8 +134,17 @@ class DatabaseService(Service):
 
     def _create_db_file(self):
         """Creates the Simulation File and sqlite file in the file system."""
-        self._db_file: File = self.file_system.create_file(folder_name="database", file_name="database.db")
-        self.folder = self.file_system.get_folder_by_id(self._db_file.folder_id)
+        self.file_system.create_file(folder_name="database", file_name="database.db")
+
+    @property
+    def db_file(self) -> File:
+        """Returns the database file."""
+        return self.file_system.get_file(folder_name="database", file_name="database.db")
+
+    @property
+    def folder(self) -> Folder:
+        """Returns the database folder."""
+        return self.file_system.get_folder_by_id(self.db_file.folder_id)
 
     def _process_connect(
         self, session_id: str, password: Optional[str] = None
@@ -170,16 +177,13 @@ class DatabaseService(Service):
         """
         self.sys_log.info(f"{self.name}: Running {query}")
         if query == "SELECT":
-            if self.health_state_actual == SoftwareHealthState.GOOD:
+            if self.db_file.health_status == FileSystemItemHealthStatus.GOOD:
                 return {"status_code": 200, "type": "sql", "data": True, "uuid": query_id}
             else:
                 return {"status_code": 404, "data": False}
         elif query == "DELETE":
-            if self.health_state_actual == SoftwareHealthState.GOOD:
-                self.health_state_actual = SoftwareHealthState.COMPROMISED
-                return {"status_code": 200, "type": "sql", "data": False, "uuid": query_id}
-            else:
-                return {"status_code": 404, "data": False}
+            self.db_file.health_status = FileSystemItemHealthStatus.COMPROMISED
+            return {"status_code": 200, "type": "sql", "data": False, "uuid": query_id}
         else:
             # Invalid query
             return {"status_code": 500, "data": False}
@@ -233,3 +237,13 @@ class DatabaseService(Service):
         software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
 
         return payload["status_code"] == 200
+
+    def apply_timestep(self, timestep: int) -> None:
+        """
+        Apply a single timestep of simulation dynamics to this service.
+
+        Here at the first step, the database backup is created, in addition to normal service update logic.
+        """
+        if timestep == 1:
+            self.backup_database()
+        return super().apply_timestep(timestep)

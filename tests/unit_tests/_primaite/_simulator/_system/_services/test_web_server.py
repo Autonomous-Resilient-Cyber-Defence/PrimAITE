@@ -1,5 +1,6 @@
 import pytest
 
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.protocols.http import (
     HttpRequestMethod,
@@ -15,7 +16,11 @@ from primaite.simulator.system.services.web_server.web_server import WebServer
 @pytest.fixture(scope="function")
 def web_server() -> Server:
     node = Server(
-        hostname="web_server", ip_address="192.168.1.10", subnet_mask="255.255.255.0", default_gateway="192.168.1.1"
+        hostname="web_server",
+        ip_address="192.168.1.10",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        operating_state=NodeOperatingState.ON,
     )
     node.software_manager.install(software_class=WebServer)
     node.software_manager.software.get("WebServer").start()
