@@ -96,7 +96,7 @@ class Application(IOSoftware):
             self.sys_log.info(f"Running Application {self.name}")
             self.operating_state = ApplicationOperatingState.RUNNING
             if self.health_state_actual == SoftwareHealthState.UNUSED:
-                self.health_state_actual = SoftwareHealthState.GOOD
+                self.set_health_state(SoftwareHealthState.GOOD)
 
     def _application_loop(self):
         """The main application loop."""
