@@ -296,6 +296,16 @@ class NodeFileDeleteAction(NodeFileAbstractAction):
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, num_files=num_files, **kwargs)
         self.verb: str = "delete"
 
+    def form_request(self, node_id: int, folder_id: int, file_id: int) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_uuid = self.manager.get_node_uuid_by_idx(node_id)
+        folder_uuid = self.manager.get_folder_uuid_by_idx(node_idx=node_id, folder_idx=folder_id)
+        file_uuid = self.manager.get_file_uuid_by_idx(node_idx=node_id, folder_idx=folder_id, file_idx=file_id)
+        if node_uuid is None or folder_uuid is None or file_uuid is None:
+            return ["do_nothing"]
+        return ["do_nothing"]
+        # return ["network", "node", node_uuid, "file_system", "delete", "file", folder_uuid, file_uuid]
+
 
 class NodeFileRepairAction(NodeFileAbstractAction):
     """Action which repairs a file."""

@@ -84,6 +84,10 @@ class DatabaseService(Service):
         ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
 
         # send backup copy of database file to FTP server
+        if not self.db_file:
+            self.sys_log.error("Attempted to backup database file but it doesn't exist.")
+            return False
+
         response = ftp_client_service.send_file(
             dest_ip_address=self.backup_server_ip,
             src_file_name=self.db_file.name,

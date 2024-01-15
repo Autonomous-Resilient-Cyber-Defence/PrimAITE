@@ -276,7 +276,7 @@ class Folder(FileSystemItemABC):
             self.deleted_files[file.uuid] = file
             file.delete()
             self.sys_log.info(f"Removed file {file.name} (id: {file.uuid})")
-            self._file_request_manager.remove_request(file.uuid)
+            # self._file_request_manager.remove_request(file.uuid)
         else:
             _LOGGER.debug(f"File with UUID {file.uuid} was not found.")
 
