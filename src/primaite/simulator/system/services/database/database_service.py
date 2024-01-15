@@ -125,7 +125,7 @@ class DatabaseService(Service):
             return False
 
         # replace db file
-        self.file_system.delete_file(folder_name="database", file_name="downloads.db")
+        self.file_system.delete_file(folder_name="database", file_name="database.db")
         self.file_system.copy_file(src_folder_name="downloads", src_file_name="database.db", dst_folder_name="database")
 
         if self.db_file is None:
