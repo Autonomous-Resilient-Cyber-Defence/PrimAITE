@@ -470,13 +470,13 @@ class NetworkACLAddRuleAction(AbstractAction):
             dst_ip = "ALL"
             return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
         else:
-            dst_ip = self.manager.get_ip_address_by_idx(dest_ip_id)
+            dst_ip = self.manager.get_ip_address_by_idx(dest_ip_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
         if dest_port_id == 1:
             dst_port = "ALL"
         else:
-            dst_port = self.manager.get_port_by_idx(dest_port_id)
+            dst_port = self.manager.get_port_by_idx(dest_port_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
         return [
@@ -924,6 +924,15 @@ class ActionManager:
         :return: The constructed ActionManager.
         :rtype: ActionManager
         """
+        ip_address_order = cfg["options"].pop("ip_address_order", {})
+        ip_address_list = []
+        for entry in ip_address_order:
+            node_ref = entry["node_ref"]
+            nic_num = entry["nic_num"]
+            node_obj = game.simulation.network.get_node_by_hostname(node_ref)
+            ip_address = node_obj.ethernet_port[nic_num].ip_address
+            ip_address_list.append(ip_address)
+
         obj = cls(
             game=game,
             actions=cfg["action_list"],
@@ -931,7 +940,7 @@ class ActionManager:
             **cfg["options"],
             protocols=game.options.protocols,
             ports=game.options.ports,
-            ip_address_list=None,
+            ip_address_list=ip_address_list or None,
             act_map=cfg.get("action_map"),
         )
 
