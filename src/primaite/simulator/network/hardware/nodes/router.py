@@ -9,6 +9,7 @@ from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.hardware.base import ARPCache, ICMP, NIC, Node
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
@@ -89,6 +90,8 @@ class AccessControlList(SimComponent):
     implicit_rule: ACLRule
     max_acl_rules: int = 25
     _acl: List[Optional[ACLRule]] = [None] * 24
+    _default_config: dict[int, dict] = {}
+    """Config dict describing how the ACL list should look at episode start"""
 
     def __init__(self, **kwargs) -> None:
         if not kwargs.get("implicit_action"):
@@ -110,6 +113,21 @@ class AccessControlList(SimComponent):
         """Reset the original state of the SimComponent."""
         self.implicit_rule.reset_component_for_episode(episode)
         super().reset_component_for_episode(episode)
+        self._reset_rules_to_default()
+
+    def _reset_rules_to_default(self) -> None:
+        """Clear all ACL rules and set them to the default rules config."""
+        self._acl = [None] * (self.max_acl_rules - 1)
+        for r_num, r_cfg in self._default_config.items():
+            self.add_rule(
+                action=ACLAction[r_cfg["action"]],
+                src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                src_ip_address=r_cfg.get("ip_address"),
+                dst_ip_address=r_cfg.get("ip_address"),
+                position=r_num,
+            )
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
@@ -391,7 +409,6 @@ class RouteTable(SimComponent):
     sys_log: SysLog
 
     def set_original_state(self):
-        """Sets the original state."""
         """Sets the original state."""
         super().set_original_state()
         self._original_state["routes_orig"] = self.routes
@@ -864,3 +881,63 @@ class Router(Node):
                 ]
             )
         print(table)
+
+    @classmethod
+    def from_config(cls, cfg: dict) -> "Router":
+        """Create a router based on a config dict.
+
+        Schema:
+          - hostname (str): unique name for this router.
+          - num_ports (int, optional): Number of network ports on the router. 8 by default
+          - ports (dict): Dict with integers from 1 - num_ports as keys. The values should be another dict specifying
+                ip_address and subnet_mask assigned to that ports (as strings)
+          - acl (dict): Dict with integers from 1 - max_acl_rules as keys. The key defines the position within the ACL
+                where the rule will be added (lower number is resolved first). The values should describe valid ACL
+                Rules as:
+              - action (str): either PERMIT or DENY
+              - src_port (str, optional): the named port such as HTTP, HTTPS, or POSTGRES_SERVER
+              - dst_port (str, optional): the named port such as HTTP, HTTPS, or POSTGRES_SERVER
+              - protocol (str, optional): the named IP protocol such as ICMP, TCP, or UDP
+              - src_ip_address (str, optional): IP address octet written in base 10
+              - dst_ip_address (str, optional): IP address octet written in base 10
+
+        Example config:
+        ```
+        {
+            'hostname': 'router_1',
+            'num_ports': 5,
+            'ports': {
+                1: {
+                    'ip_address' : '192.168.1.1',
+                    'subnet_mask' : '255.255.255.0',
+                }
+            },
+            'acl' : {
+                21: {'action': 'PERMIT', 'src_port': 'HTTP', dst_port: 'HTTP'},
+                22: {'action': 'PERMIT', 'src_port': 'ARP', 'dst_port': 'ARP'},
+                23: {'action': 'PERMIT', 'protocol': 'ICMP'},
+            },
+        }
+        ```
+
+        :param cfg: Router config adhering to schema described in main docstring body
+        :type cfg: dict
+        :return: Configured router.
+        :rtype: Router
+        """
+        new = Router(
+            hostname=cfg["hostname"],
+            num_ports=cfg.get("num_ports"),
+            operating_state=NodeOperatingState.ON,
+        )
+        if "ports" in cfg:
+            for port_num, port_cfg in cfg["ports"].items():
+                new.configure_port(
+                    port=port_num,
+                    ip_address=port_cfg["ip_address"],
+                    subnet_mask=port_cfg["subnet_mask"],
+                )
+        if "acl" in cfg:
+            new.acl._default_config = cfg["acl"]  # save the config to allow resetting
+            new.acl._reset_rules_to_default()  # read the config and apply rules
+        return new

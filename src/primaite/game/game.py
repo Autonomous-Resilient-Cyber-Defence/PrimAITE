@@ -13,11 +13,9 @@ from primaite.game.agent.rewards import RewardFunction
 from primaite.session.io import SessionIO, SessionIOSettings
 from primaite.simulator.network.hardware.base import NIC, NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
+from primaite.simulator.network.hardware.nodes.router import Router
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.hardware.nodes.switch import Switch
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.web_browser import WebBrowser
@@ -227,31 +225,7 @@ class PrimaiteGame:
                     operating_state=NodeOperatingState.ON,
                 )
             elif n_type == "router":
-                new_node = Router(
-                    hostname=node_cfg["hostname"],
-                    num_ports=node_cfg.get("num_ports"),
-                    operating_state=NodeOperatingState.ON,
-                )
-                if "ports" in node_cfg:
-                    for port_num, port_cfg in node_cfg["ports"].items():
-                        new_node.configure_port(
-                            port=port_num, ip_address=port_cfg["ip_address"], subnet_mask=port_cfg["subnet_mask"]
-                        )
-                        # new_node.enable_port(port_num)
-                if "acl" in node_cfg:
-                    for r_num, r_cfg in node_cfg["acl"].items():
-                        # excuse the uncommon walrus operator ` := `. It's just here as a shorthand, to avoid repeating
-                        # this: 'r_cfg.get('src_port')'
-                        # Port/IPProtocol. TODO Refactor
-                        new_node.acl.add_rule(
-                            action=ACLAction[r_cfg["action"]],
-                            src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                            dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                            protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
-                            src_ip_address=r_cfg.get("ip_address"),
-                            dst_ip_address=r_cfg.get("ip_address"),
-                            position=r_num,
-                        )
+                new_node = Router.from_config(node_cfg)
             else:
                 _LOGGER.warning(f"invalid node type {n_type} in config")
             if "services" in node_cfg:
