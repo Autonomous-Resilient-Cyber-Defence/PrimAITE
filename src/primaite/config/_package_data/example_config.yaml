@@ -31,7 +31,7 @@ game:
   - UDP
 
 agents:
-  - ref: client_1_green_user
+  - ref: client_2_green_user
     team: GREEN
     type: GreenWebBrowsingAgent
     observation_space:
@@ -304,63 +304,63 @@ agents:
             action: "NODE_RESET"
             options:
                 node_id: 5
-          22:
+          22: # "ACL: ADDRULE - Block outgoing traffic from client 1" (not supported in Primaite)
             action: "NETWORK_ACL_ADDRULE"
             options:
                 position: 1
                 permission: 2
-                source_ip_id: 7
-                dest_ip_id: 1
+                source_ip_id: 7 # client 1
+                dest_ip_id: 1 # ALL
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 1
-          23:
+          23: # "ACL: ADDRULE - Block outgoing traffic from client 2" (not supported in Primaite)
             action: "NETWORK_ACL_ADDRULE"
             options:
-                position: 1
+                position: 2
                 permission: 2
-                source_ip_id: 8
-                dest_ip_id: 1
+                source_ip_id: 8 # client 2
+                dest_ip_id: 1 # ALL
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 1
-          24:
+          24: # block tcp traffic from client 1 to web app
             action: "NETWORK_ACL_ADDRULE"
             options:
-                position: 1
+                position: 3
                 permission: 2
-                source_ip_id: 7
-                dest_ip_id: 3
+                source_ip_id: 7 # client 1
+                dest_ip_id: 3 # web server
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
-          25:
+          25: # block tcp traffic from client 2 to web app
             action: "NETWORK_ACL_ADDRULE"
             options:
-                position: 1
+                position: 4
                 permission: 2
-                source_ip_id: 8
-                dest_ip_id: 3
+                source_ip_id: 8 # client 2
+                dest_ip_id: 3 # web server
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
           26:
             action: "NETWORK_ACL_ADDRULE"
             options:
-                position: 1
+                position: 5
                 permission: 2
-                source_ip_id: 7
-                dest_ip_id: 4
+                source_ip_id: 7 # client 1
+                dest_ip_id: 4 # database
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
           27:
             action: "NETWORK_ACL_ADDRULE"
             options:
-                position: 1
+                position: 6
                 permission: 2
-                source_ip_id: 8
-                dest_ip_id: 4
+                source_ip_id: 8 # client 2
+                dest_ip_id: 4 # database
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
@@ -504,6 +504,24 @@ agents:
         max_services_per_node: 2
         max_nics_per_node: 8
         max_acl_rules: 10
+        ip_address_order:
+        - node_ref: domain_controller
+          nic_num: 1
+        - node_ref: web_server
+          nic_num: 1
+        - node_ref: database_server
+          nic_num: 1
+        - node_ref: backup_server
+          nic_num: 1
+        - node_ref: security_suite
+          nic_num: 1
+        - node_ref: client_1
+          nic_num: 1
+        - node_ref: client_2
+          nic_num: 1
+        - node_ref: security_suite
+          nic_num: 2
+
 
     reward_function:
       reward_components:

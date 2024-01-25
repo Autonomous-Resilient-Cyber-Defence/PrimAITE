@@ -296,6 +296,16 @@ class NodeFileDeleteAction(NodeFileAbstractAction):
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, num_files=num_files, **kwargs)
         self.verb: str = "delete"
 
+    def form_request(self, node_id: int, folder_id: int, file_id: int) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_uuid = self.manager.get_node_uuid_by_idx(node_id)
+        folder_uuid = self.manager.get_folder_uuid_by_idx(node_idx=node_id, folder_idx=folder_id)
+        file_uuid = self.manager.get_file_uuid_by_idx(node_idx=node_id, folder_idx=folder_id, file_idx=file_id)
+        if node_uuid is None or folder_uuid is None or file_uuid is None:
+            return ["do_nothing"]
+        return ["do_nothing"]
+        # return ["network", "node", node_uuid, "file_system", "delete", "file", folder_uuid, file_uuid]
+
 
 class NodeFileRepairAction(NodeFileAbstractAction):
     """Action which repairs a file."""
@@ -460,13 +470,13 @@ class NetworkACLAddRuleAction(AbstractAction):
             dst_ip = "ALL"
             return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
         else:
-            dst_ip = self.manager.get_ip_address_by_idx(dest_ip_id)
+            dst_ip = self.manager.get_ip_address_by_idx(dest_ip_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
         if dest_port_id == 1:
             dst_port = "ALL"
         else:
-            dst_port = self.manager.get_port_by_idx(dest_port_id)
+            dst_port = self.manager.get_port_by_idx(dest_port_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
         return [
@@ -914,6 +924,15 @@ class ActionManager:
         :return: The constructed ActionManager.
         :rtype: ActionManager
         """
+        ip_address_order = cfg["options"].pop("ip_address_order", {})
+        ip_address_list = []
+        for entry in ip_address_order:
+            node_ref = entry["node_ref"]
+            nic_num = entry["nic_num"]
+            node_obj = game.simulation.network.get_node_by_hostname(node_ref)
+            ip_address = node_obj.ethernet_port[nic_num].ip_address
+            ip_address_list.append(ip_address)
+
         obj = cls(
             game=game,
             actions=cfg["action_list"],
@@ -921,7 +940,7 @@ class ActionManager:
             **cfg["options"],
             protocols=game.options.protocols,
             ports=game.options.ports,
-            ip_address_list=None,
+            ip_address_list=ip_address_list or None,
             act_map=cfg.get("action_map"),
         )
 

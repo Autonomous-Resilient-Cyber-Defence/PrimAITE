@@ -17,8 +17,6 @@ class Folder(FileSystemItemABC):
 
     files: Dict[str, File] = {}
     "Files stored in the folder."
-    _files_by_name: Dict[str, File] = {}
-    "Files by their name as <file name>.<file type>."
     deleted_files: Dict[str, File] = {}
     "Files that have been deleted."
 
@@ -78,7 +76,6 @@ class Folder(FileSystemItemABC):
                 file = self.deleted_files[uuid]
                 self.deleted_files.pop(uuid)
                 self.files[uuid] = file
-                self._files_by_name[file.name] = file
 
         # Clear any other deleted files that aren't original (have been created by agent)
         self.deleted_files.clear()
@@ -89,7 +86,6 @@ class Folder(FileSystemItemABC):
             if uuid not in original_file_uuids:
                 file = self.files[uuid]
                 self.files.pop(uuid)
-                self._files_by_name.pop(file.name)
 
         # Now reset all remaining files
         for file in self.files.values():
@@ -219,7 +215,10 @@ class Folder(FileSystemItemABC):
         :return: The matching File.
         """
         # TODO: Increment read count?
-        return self._files_by_name.get(file_name)
+        for file in self.files.values():
+            if file.name == file_name:
+                return file
+        return None
 
     def get_file_by_id(self, file_uuid: str, include_deleted: Optional[bool] = False) -> File:
         """
@@ -250,15 +249,14 @@ class Folder(FileSystemItemABC):
             raise Exception(f"Invalid file: {file}")
 
         # check if file with id or name already exists in folder
-        if (force is not True) and file.name in self._files_by_name:
+        if self.get_file(file.name) is not None and not force:
             raise Exception(f"File with name {file.name} already exists in folder")
 
-        if (force is not True) and file.uuid in self.files:
+        if (file.uuid in self.files) and not force:
             raise Exception(f"File with uuid {file.uuid} already exists in folder")
 
         # add to list
         self.files[file.uuid] = file
-        self._files_by_name[file.name] = file
         self._file_request_manager.add_request(file.uuid, RequestType(func=file._request_manager))
         file.folder = self
 
@@ -275,11 +273,10 @@ class Folder(FileSystemItemABC):
 
         if self.files.get(file.uuid):
             self.files.pop(file.uuid)
-            self._files_by_name.pop(file.name)
             self.deleted_files[file.uuid] = file
             file.delete()
             self.sys_log.info(f"Removed file {file.name} (id: {file.uuid})")
-            self._file_request_manager.remove_request(file.uuid)
+            # self._file_request_manager.remove_request(file.uuid)
         else:
             _LOGGER.debug(f"File with UUID {file.uuid} was not found.")
 
@@ -300,7 +297,6 @@ class Folder(FileSystemItemABC):
             self.deleted_files[file_id] = file
 
         self.files = {}
-        self._files_by_name = {}
 
     def restore_file(self, file_uuid: str):
         """
@@ -316,7 +312,6 @@ class Folder(FileSystemItemABC):
 
         file.restore()
         self.files[file.uuid] = file
-        self._files_by_name[file.name] = file
 
         if file.deleted:
             self.deleted_files.pop(file_uuid)
