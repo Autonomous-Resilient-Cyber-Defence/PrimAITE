@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Fixed a bug where ACL rules were not resetting on episode reset.
+- Fixed a bug where blue agent's ACL actions were being applied against the wrong IP addresses
+- Fixed a bug where deleted files and folders did not reset correctly on episode reset.
+- Fixed a bug where service health status was using the actual health state instead of the visible health state
+- Fixed a bug where the database file health status was using the incorrect value for negative rewards
+- Fixed a bug preventing file actions from reaching their intended file
+- Made database patch correctly take 2 timesteps instead of being immediate
+- Made database patch only possible when the software is compromised or good, it's no longer possible when the software is OFF or RESETTING
+- Temporarily disable the blue agent file delete action due to crashes. This issue is resolved in another branch that will be merged into dev soon.
+- Fix a bug where ACLs were not showing up correctly in the observation space.
+- Added a notebook which explains Data manipulation scenario, demonstrates the attack, and shows off blue agent's action space, observation space, and reward function.
 - Made packet capture and system logging optional (off by default). To turn on, change the io_settings.save_pcap_logs and io_settings.save_sys_logs settings in the config.
 - Made observation space flattening optional (on by default). To turn off for an agent, change the agent_settings.flatten_obs setting in the config.
 - Fixed an issue where the data manipulation attack was triggered at episode start.
