@@ -33,7 +33,7 @@ Currently, the PrimAITE wheel can only be installed from GitHub. This may change
 #### Windows (PowerShell)
 
 **Prerequisites:**
-* Manual install of Python >= 3.8 < 3.11
+* Manual install of Python >= 3.9 < 3.12
 
 **Install:**
 
@@ -56,7 +56,7 @@ primaite session
 #### Unix
 
 **Prerequisites:**
-* Manual install of Python >= 3.8 < 3.11
+* Manual install of Python >= 3.9 < 3.12
 
 ``` bash
 sudo add-apt-repository ppa:deadsnakes/ppa
@@ -80,6 +80,7 @@ primaite setup
 ``` bash
 primaite session
 ```
+
 
 
 ### Developer Install from Source
@@ -138,3 +139,7 @@ make html
 cd docs
 .\make.bat html
 ```
+
+
+## Example notebooks
+Check out the example notebooks to learn more about how PrimAITE works and how you can use it to train agents. They are automatically copied to your primaite installation directory when you run `primaite setup`.
