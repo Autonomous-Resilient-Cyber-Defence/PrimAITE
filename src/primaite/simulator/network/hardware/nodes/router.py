@@ -90,7 +90,7 @@ class AccessControlList(SimComponent):
     implicit_rule: ACLRule
     max_acl_rules: int = 25
     _acl: List[Optional[ACLRule]] = [None] * 24
-    _default_config: dict[int, dict] = {}
+    _default_config: Dict[int, dict] = {}
     """Config dict describing how the ACL list should look at episode start"""
 
     def __init__(self, **kwargs) -> None:
@@ -109,6 +109,21 @@ class AccessControlList(SimComponent):
         vals_to_keep = {"implicit_action", "max_acl_rules", "acl"}
         self._original_state = self.model_dump(include=vals_to_keep, exclude_none=True)
 
+        for i, rule in enumerate(self._acl):
+            if not rule:
+                continue
+            self._default_config[i] = {"action": rule.action.name}
+            if rule.src_ip_address:
+                self._default_config[i]["src_ip"] = str(rule.src_ip_address)
+            if rule.dst_ip_address:
+                self._default_config[i]["dst_ip"] = str(rule.dst_ip_address)
+            if rule.src_port:
+                self._default_config[i]["src_port"] = rule.src_port.name
+            if rule.dst_port:
+                self._default_config[i]["dst_port"] = rule.dst_port.name
+            if rule.protocol:
+                self._default_config[i]["protocol"] = rule.protocol.name
+
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         self.implicit_rule.reset_component_for_episode(episode)
@@ -124,8 +139,8 @@ class AccessControlList(SimComponent):
                 src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
                 dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
                 protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
-                src_ip_address=r_cfg.get("ip_address"),
-                dst_ip_address=r_cfg.get("ip_address"),
+                src_ip_address=r_cfg.get("src_ip"),
+                dst_ip_address=r_cfg.get("dst_ip"),
                 position=r_num,
             )
 
