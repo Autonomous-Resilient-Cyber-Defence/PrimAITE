@@ -162,9 +162,9 @@ class AccessControlList(SimComponent):
                 func=lambda request, context: self.add_rule(
                     ACLAction[request[0]],
                     None if request[1] == "ALL" else IPProtocol[request[1]],
-                    IPv4Address(request[2]),
+                    None if request[2] == "ALL" else IPv4Address(request[2]),
                     None if request[3] == "ALL" else Port[request[3]],
-                    IPv4Address(request[4]),
+                    None if request[4] == "ALL" else IPv4Address(request[4]),
                     None if request[5] == "ALL" else Port[request[5]],
                     int(request[6]),
                 )

@@ -453,27 +453,33 @@ class NetworkACLAddRuleAction(AbstractAction):
             protocol = self.manager.get_internet_protocol_by_idx(protocol_id - 2)
             # subtract 2 to account for UNUSED=0 and ALL=1.
 
-        if source_ip_id in [0, 1]:
+        if source_ip_id == 0:
+            return ["do_nothing"]  # invalid formulation
+        elif source_ip_id == 1:
             src_ip = "ALL"
-            return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
         else:
             src_ip = self.manager.get_ip_address_by_idx(source_ip_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
-        if source_port_id == 1:
+        if source_port_id == 0:
+            return ["do_nothing"]  # invalid formulation
+        elif source_port_id == 1:
             src_port = "ALL"
         else:
             src_port = self.manager.get_port_by_idx(source_port_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
-        if dest_ip_id in (0, 1):
+        if source_ip_id == 0:
+            return ["do_nothing"]  # invalid formulation
+        elif dest_ip_id == 1:
             dst_ip = "ALL"
-            return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
         else:
             dst_ip = self.manager.get_ip_address_by_idx(dest_ip_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
-        if dest_port_id == 1:
+        if dest_port_id == 0:
+            return ["do_nothing"]  # invalid formulation
+        elif dest_port_id == 1:
             dst_port = "ALL"
         else:
             dst_port = self.manager.get_port_by_idx(dest_port_id - 2)
