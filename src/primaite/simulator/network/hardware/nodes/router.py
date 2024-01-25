@@ -19,8 +19,8 @@ from primaite.simulator.system.core.sys_log import SysLog
 class ACLAction(Enum):
     """Enum for defining the ACL action types."""
 
-    DENY = 0
     PERMIT = 1
+    DENY = 2
 
 
 class ACLRule(SimComponent):
@@ -66,11 +66,11 @@ class ACLRule(SimComponent):
         """
         state = super().describe_state()
         state["action"] = self.action.value
-        state["protocol"] = self.protocol.value if self.protocol else None
+        state["protocol"] = self.protocol.name if self.protocol else None
         state["src_ip_address"] = str(self.src_ip_address) if self.src_ip_address else None
-        state["src_port"] = self.src_port.value if self.src_port else None
+        state["src_port"] = self.src_port.name if self.src_port else None
         state["dst_ip_address"] = str(self.dst_ip_address) if self.dst_ip_address else None
-        state["dst_port"] = self.dst_port.value if self.dst_port else None
+        state["dst_port"] = self.dst_port.name if self.dst_port else None
         return state
 
 
@@ -733,8 +733,8 @@ class Router(Node):
         :return: A dictionary representing the current state.
         """
         state = super().describe_state()
-        state["num_ports"] = (self.num_ports,)
-        state["acl"] = (self.acl.describe_state(),)
+        state["num_ports"] = self.num_ports
+        state["acl"] = self.acl.describe_state()
         return state
 
     def route_frame(self, frame: Frame, from_nic: NIC, re_attempt: bool = False) -> None:
