@@ -19,7 +19,7 @@ game:
   - UDP
 
 agents:
-  - ref: client_1_green_user
+  - ref: client_2_green_user
     team: GREEN
     type: GreenWebBrowsingAgent
     observation_space:

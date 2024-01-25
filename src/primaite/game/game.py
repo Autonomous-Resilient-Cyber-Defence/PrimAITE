@@ -113,7 +113,7 @@ class PrimaiteGame:
         self.update_agents(sim_state)
 
         # Apply all actions to simulation as requests
-        self.apply_agent_actions()
+        agent_actions = self.apply_agent_actions()  # noqa
 
         # Advance timestep
         self.advance_timestep()
@@ -131,12 +131,15 @@ class PrimaiteGame:
 
     def apply_agent_actions(self) -> None:
         """Apply all actions to simulation as requests."""
+        agent_actions = {}
         for agent in self.agents:
             obs = agent.observation_manager.current_observation
             rew = agent.reward_function.current_reward
             action_choice, options = agent.get_action(obs, rew)
+            agent_actions[agent.agent_name] = (action_choice, options)
             request = agent.format_request(action_choice, options)
             self.simulation.apply_request(request)
+        return agent_actions
 
     def advance_timestep(self) -> None:
         """Advance timestep."""
