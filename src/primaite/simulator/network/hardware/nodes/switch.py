@@ -30,6 +30,7 @@ class Switch(Node):
             self.switch_ports = {i: SwitchPort() for i in range(1, self.num_ports + 1)}
         for port_num, port in self.switch_ports.items():
             port._connected_node = self
+            port._port_num_on_node = port_num
             port.parent = self
             port.port_num = port_num
 
@@ -89,12 +90,12 @@ class Switch(Node):
         self._add_mac_table_entry(src_mac, incoming_port)
 
         outgoing_port = self.mac_address_table.get(dst_mac)
-        if outgoing_port or dst_mac != "ff:ff:ff:ff:ff:ff":
+        if outgoing_port and dst_mac.lower() != "ff:ff:ff:ff:ff:ff":
             outgoing_port.send_frame(frame)
         else:
             # If the destination MAC is not in the table, flood to all ports except incoming
             for port in self.switch_ports.values():
-                if port != incoming_port:
+                if port.enabled and port != incoming_port:
                     port.send_frame(frame)
 
     def disconnect_link_from_port(self, link: Link, port_number: int):

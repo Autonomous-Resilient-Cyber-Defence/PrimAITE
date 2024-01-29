@@ -20,9 +20,6 @@ class FTPClient(FTPServiceABC):
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
 
-    connected: bool = False
-    """Keeps track of whether or not the FTP client is connected to an FTP server."""
-
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPClient"
         kwargs["port"] = Port.FTP
@@ -129,10 +126,7 @@ class FTPClient(FTPServiceABC):
         software_manager.send_payload_to_session_manager(
             payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port
         )
-        if payload.status_code == FTPStatusCode.OK:
-            self.connected = False
-            return True
-        return False
+        return payload.status_code == FTPStatusCode.OK
 
     def send_file(
         self,
@@ -179,9 +173,9 @@ class FTPClient(FTPServiceABC):
             return False
 
         # check if FTP is currently connected to IP
-        self.connected = self._connect_to_server(dest_ip_address=dest_ip_address, dest_port=dest_port)
+        self._connect_to_server(dest_ip_address=dest_ip_address, dest_port=dest_port)
 
-        if not self.connected:
+        if not len(self.connections):
             return False
         else:
             self.sys_log.info(f"Sending file {src_folder_name}/{src_file_name} to {str(dest_ip_address)}")
@@ -230,9 +224,9 @@ class FTPClient(FTPServiceABC):
         :type: dest_port: Optional[Port]
         """
         # check if FTP is currently connected to IP
-        self.connected = self._connect_to_server(dest_ip_address=dest_ip_address, dest_port=dest_port)
+        self._connect_to_server(dest_ip_address=dest_ip_address, dest_port=dest_port)
 
-        if not self.connected:
+        if not len(self.connections):
             return False
         else:
             # send retrieve request
@@ -285,6 +279,14 @@ class FTPClient(FTPServiceABC):
         if payload.status_code is None:
             self.sys_log.error(f"FTP Server could not be found - Error Code: {FTPStatusCode.NOT_FOUND.value}")
             return False
+
+        # if PORT succeeded, add the connection as an active connection list
+        if payload.ftp_command is FTPCommand.PORT and payload.status_code is FTPStatusCode.OK:
+            self.add_connection(connection_id=session_id, session_id=session_id)
+
+        # if QUIT succeeded, remove the session from active connection list
+        if payload.ftp_command is FTPCommand.QUIT and payload.status_code is FTPStatusCode.OK:
+            self.remove_connection(connection_id=session_id)
 
         self.sys_log.info(f"{self.name}: Received FTP Response {payload.ftp_command.name} {payload.status_code.value}")
 

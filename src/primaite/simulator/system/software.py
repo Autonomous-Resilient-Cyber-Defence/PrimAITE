@@ -1,7 +1,9 @@
+import copy
 from abc import abstractmethod
+from datetime import datetime
 from enum import Enum
-from ipaddress import IPv4Address
-from typing import Any, Dict, Optional
+from ipaddress import IPv4Address, IPv4Network
+from typing import Any, Dict, Optional, Union
 
 from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
@@ -232,7 +234,7 @@ class IOSoftware(Software):
 
     installing_count: int = 0
     "The number of times the software has been installed. Default is 0."
-    max_sessions: int = 1
+    max_sessions: int = 100
     "The maximum number of sessions that the software can handle simultaneously. Default is 0."
     tcp: bool = True
     "Indicates if the software uses TCP protocol for communication. Default is True."
@@ -240,6 +242,8 @@ class IOSoftware(Software):
     "Indicates if the software uses UDP protocol for communication. Default is True."
     port: Port
     "The port to which the software is connected."
+    _connections: Dict[str, Dict] = {}
+    "Active connections."
 
     def set_original_state(self):
         """Sets the original state."""
@@ -284,23 +288,85 @@ class IOSoftware(Software):
             return False
         return True
 
+    @property
+    def connections(self) -> Dict[str, Dict]:
+        """Return the public version of connections."""
+        return copy.copy(self._connections)
+
+    def add_connection(self, connection_id: str, session_id: Optional[str] = None) -> bool:
+        """
+        Create a new connection to this service.
+
+        Returns true if connection successfully created
+
+        :param: connection_id: UUID of the connection to create
+        :type: string
+        """
+        # if over or at capacity, set to overwhelmed
+        if len(self._connections) >= self.max_sessions:
+            self.set_health_state(SoftwareHealthState.OVERWHELMED)
+            self.sys_log.error(f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity.")
+            return False
+        else:
+            # if service was previously overwhelmed, set to good because there is enough space for connections
+            if self.health_state_actual == SoftwareHealthState.OVERWHELMED:
+                self.set_health_state(SoftwareHealthState.GOOD)
+
+            # check that connection already doesn't exist
+            if not self._connections.get(connection_id):
+                session_details = None
+                if session_id:
+                    session_details = self._get_session_details(session_id)
+                self._connections[connection_id] = {
+                    "ip_address": session_details.with_ip_address if session_details else None,
+                    "time": datetime.now(),
+                }
+                self.sys_log.info(f"{self.name}: Connect request for {connection_id=} authorised")
+                return True
+            # connection with given id already exists
+            self.sys_log.error(
+                f"{self.name}: Connect request for {connection_id=} declined. Connection already exists."
+            )
+            return False
+
+    def remove_connection(self, connection_id: str) -> bool:
+        """
+        Remove a connection from this service.
+
+        Returns true if connection successfully removed
+
+        :param: connection_id: UUID of the connection to create
+        :type: string
+        """
+        if self.connections.get(connection_id):
+            self._connections.pop(connection_id)
+            self.sys_log.info(f"{self.name}: Connection {connection_id=} closed.")
+            return True
+
+    def clear_connections(self):
+        """Clears all the connections from the software."""
+        self._connections = {}
+
     def send(
         self,
         payload: Any,
         session_id: Optional[str] = None,
-        dest_ip_address: Optional[IPv4Address] = None,
+        dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
         dest_port: Optional[Port] = None,
         **kwargs,
     ) -> bool:
         """
-        Sends a payload to the SessionManager.
+        Sends a payload to the SessionManager for network transmission.
+
+        This method is responsible for initiating the process of sending network payloads. It supports both
+        unicast and Layer 3 broadcast transmissions. For broadcasts, the destination IP should be specified
+        as an IPv4Network. It delegates the actual sending process to the SoftwareManager.
 
         :param payload: The payload to be sent.
-        :param dest_ip_address: The ip address of the payload destination.
-        :param dest_port: The port of the payload destination.
-        :param session_id: The Session ID the payload is to originate from. Optional.
-
-        :return: True if successful, False otherwise.
+        :param dest_ip_address: The IP address or network (for broadcasts) of the payload destination.
+        :param dest_port: The destination port for the payload. Optional.
+        :param session_id: The Session ID from which the payload originates. Optional.
+        :return: True if the payload was successfully sent, False otherwise.
         """
         if not self._can_perform_action():
             return False

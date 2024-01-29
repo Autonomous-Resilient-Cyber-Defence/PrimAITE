@@ -41,6 +41,9 @@ class Service(IOSoftware):
     restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def _can_perform_action(self) -> bool:
         """
         Checks if the service can perform actions.
@@ -53,7 +56,7 @@ class Service(IOSoftware):
         if not super()._can_perform_action():
             return False
 
-        if self.operating_state is not self.operating_state.RUNNING:
+        if self.operating_state is not ServiceOperatingState.RUNNING:
             # service is not running
             _LOGGER.error(f"Cannot perform action: {self.name} is {self.operating_state.name}")
             return False
@@ -74,9 +77,6 @@ class Service(IOSoftware):
         :return: True if the payload was successfully received and processed, False otherwise.
         """
         return super().receive(payload=payload, session_id=session_id, **kwargs)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
     def set_original_state(self):
         """Sets the original state."""

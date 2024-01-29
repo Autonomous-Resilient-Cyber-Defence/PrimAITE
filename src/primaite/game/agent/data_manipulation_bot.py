@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple
 from gymnasium.core import ObsType
 
 from primaite.game.agent.interface import AbstractScriptedAgent
-from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
+from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
 
 
 class DataManipulationAgent(AbstractScriptedAgent):

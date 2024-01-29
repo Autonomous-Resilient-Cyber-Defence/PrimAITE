@@ -41,8 +41,7 @@ class AbstractObservation(ABC):
     def from_config(cls, config: Dict, game: "PrimaiteGame"):
         """Create this observation space component form a serialised format.
 
-        The `game` parameter is for a the PrimaiteGame object that spawns this component. During deserialisation,
-        a subclass of this class may need to translate from a 'reference' to a UUID.
+        The `game` parameter is for a the PrimaiteGame object that spawns this component.
         """
         pass
 
@@ -54,12 +53,12 @@ class FileObservation(AbstractObservation):
         """
         Initialise file observation.
 
-        :param where: Store information about where in the simulation state dictionary to find the relevatn information.
+        :param where: Store information about where in the simulation state dictionary to find the relevant information.
             Optional. If None, this corresponds that the file does not exist and the observation will be populated with
             zeroes.
 
             A typical location for a file looks like this:
-            ['network','nodes',<node_uuid>,'file_system', 'folders',<folder_name>,'files',<file_name>]
+            ['network','nodes',<node_hostname>,'file_system', 'folders',<folder_name>,'files',<file_name>]
         :type where: Optional[List[str]]
         """
         super().__init__()
@@ -121,7 +120,7 @@ class ServiceObservation(AbstractObservation):
             zeroes.
 
             A typical location for a service looks like this:
-            `['network','nodes',<node_uuid>,'services', <service_uuid>]`
+            `['network','nodes',<node_hostname>,'services', <service_name>]`
         :type where: Optional[List[str]]
         """
         super().__init__()
@@ -166,7 +165,7 @@ class ServiceObservation(AbstractObservation):
         :return: Constructed service observation
         :rtype: ServiceObservation
         """
-        return cls(where=parent_where + ["services", game.ref_map_services[config["service_ref"]]])
+        return cls(where=parent_where + ["services", config["service_name"]])
 
 
 class LinkObservation(AbstractObservation):
@@ -183,7 +182,7 @@ class LinkObservation(AbstractObservation):
             zeroes.
 
             A typical location for a service looks like this:
-            `['network','nodes',<node_uuid>,'servics', <service_uuid>]`
+            `['network','nodes',<node_hostname>,'servics', <service_name>]`
         :type where: Optional[List[str]]
         """
         super().__init__()
@@ -249,7 +248,7 @@ class FolderObservation(AbstractObservation):
 
         :param where: Where in the simulation state dictionary to find the relevant information for this folder.
             A typical location for a file looks like this:
-            ['network','nodes',<node_uuid>,'file_system', 'folders',<folder_name>]
+            ['network','nodes',<node_hostname>,'file_system', 'folders',<folder_name>]
         :type where: Optional[List[str]]
         :param max_files: As size of the space must remain static, define max files that can be in this folder
             , defaults to 5
@@ -328,7 +327,7 @@ class FolderObservation(AbstractObservation):
         :type game: PrimaiteGame
         :param parent_where: Where in the simulation state dictionary to find the information about this folder's
             parent node. A typical location for a node ``where`` can be:
-            ['network','nodes',<node_uuid>,'file_system']
+            ['network','nodes',<node_hostname>,'file_system']
         :type parent_where: Optional[List[str]]
         :param num_files_per_folder: How many spaces for files are in this folder observation (to preserve static
             observation size) , defaults to 2
@@ -354,7 +353,7 @@ class NicObservation(AbstractObservation):
 
         :param where: Where in the simulation state dictionary to find the relevant information for this NIC. A typical
             example may look like this:
-            ['network','nodes',<node_uuid>,'NICs',<nic_uuid>]
+            ['network','nodes',<node_hostname>,'NICs',<nic_number>]
             If None, this denotes that the NIC does not exist and the observation will be populated with zeroes.
         :type where: Optional[Tuple[str]], optional
         """
@@ -391,12 +390,12 @@ class NicObservation(AbstractObservation):
         :param game: Reference to the PrimaiteGame object that spawned this observation.
         :type game: PrimaiteGame
         :param parent_where: Where in the simulation state dictionary to find the information about this NIC's parent
-            node. A typical location for a node ``where`` can be: ['network','nodes',<node_uuid>]
+            node. A typical location for a node ``where`` can be: ['network','nodes',<node_hostname>]
         :type parent_where: Optional[List[str]]
         :return: Constructed NIC observation
         :rtype: NicObservation
         """
-        return cls(where=parent_where + ["NICs", config["nic_uuid"]])
+        return cls(where=parent_where + ["NICs", config["nic_num"]])
 
 
 class NodeObservation(AbstractObservation):
@@ -419,9 +418,9 @@ class NodeObservation(AbstractObservation):
 
         :param where: Where in the simulation state dictionary for find relevant information for this observation.
             A typical location for a node looks like this:
-            ['network','nodes',<node_uuid>]. If empty list, a default null observation will be output, defaults to []
+            ['network','nodes',<hostname>]. If empty list, a default null observation will be output, defaults to []
         :type where: List[str], optional
-        :param services: Mapping between position in observation space and service UUID, defaults to {}
+        :param services: Mapping between position in observation space and service name, defaults to {}
         :type services: Dict[int,str], optional
         :param max_services: Max number of services that can be presented in observation space for this node
             , defaults to 2
@@ -430,7 +429,7 @@ class NodeObservation(AbstractObservation):
         :type folders: Dict[int,str], optional
         :param max_folders: Max number of folders in this node's obs space, defaults to 2
         :type max_folders: int, optional
-        :param nics: Mapping between position in observation space and NIC UUID, defaults to {}
+        :param nics: Mapping between position in observation space and NIC idx, defaults to {}
         :type nics: Dict[int,str], optional
         :param max_nics: Max number of NICS in this node's obs space, defaults to 5
         :type max_nics: int, optional
@@ -548,11 +547,11 @@ class NodeObservation(AbstractObservation):
         :return: Constructed node observation
         :rtype: NodeObservation
         """
-        node_uuid = game.ref_map_nodes[config["node_ref"]]
+        node_hostname = config["node_hostname"]
         if parent_where is None:
-            where = ["network", "nodes", node_uuid]
+            where = ["network", "nodes", node_hostname]
         else:
-            where = parent_where + ["nodes", node_uuid]
+            where = parent_where + ["nodes", node_hostname]
 
         svc_configs = config.get("services", {})
         services = [ServiceObservation.from_config(config=c, game=game, parent_where=where) for c in svc_configs]
@@ -563,8 +562,8 @@ class NodeObservation(AbstractObservation):
             )
             for c in folder_configs
         ]
-        nic_uuids = game.simulation.network.nodes[node_uuid].nics.keys()
-        nic_configs = [{"nic_uuid": n for n in nic_uuids}] if nic_uuids else []
+        # create some configs for the NIC observation in the format {"nic_num":1}, {"nic_num":2}, {"nic_num":3}, etc.
+        nic_configs = [{"nic_num": i for i in range(num_nics_per_node)}]
         nics = [NicObservation.from_config(config=c, game=game, parent_where=where) for c in nic_configs]
         logon_status = config.get("logon_status", False)
         return cls(
@@ -605,7 +604,7 @@ class AclObservation(AbstractObservation):
         :type protocols: list[str]
         :param where: Where in the simulation state dictionary to find the relevant information for this ACL. A typical
             example may look like this:
-            ['network','nodes',<router_uuid>,'acl','acl']
+            ['network','nodes',<router_hostname>,'acl','acl']
         :type where: Optional[Tuple[str]], optional
         :param num_rules: , defaults to 10
         :type num_rules: int, optional
@@ -732,12 +731,12 @@ class AclObservation(AbstractObservation):
             nic_obj = node_obj.ethernet_port[nic_num]
             node_ip_to_idx[nic_obj.ip_address] = ip_idx + 2
 
-        router_uuid = game.ref_map_nodes[config["router_node_ref"]]
+        router_hostname = config["router_hostname"]
         return cls(
             node_ip_to_id=node_ip_to_idx,
             ports=game.options.ports,
             protocols=game.options.protocols,
-            where=["network", "nodes", router_uuid, "acl", "acl"],
+            where=["network", "nodes", router_hostname, "acl", "acl"],
             num_rules=max_acl_rules,
         )
 
@@ -867,6 +866,7 @@ class UC2BlueObservation(AbstractObservation):
         :rtype: UC2BlueObservation
         """
         node_configs = config["nodes"]
+
         num_services_per_node = config["num_services_per_node"]
         num_folders_per_node = config["num_folders_per_node"]
         num_files_per_folder = config["num_files_per_folder"]

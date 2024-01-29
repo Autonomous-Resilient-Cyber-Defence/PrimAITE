@@ -37,13 +37,6 @@ agents:
     action_space:
       action_list:
         - type: DONOTHING
-        # <not yet implemented>
-        # - type: NODE_LOGON
-        # - type: NODE_LOGOFF
-        # - type: NODE_APPLICATION_EXECUTE
-          # options:
-            # execution_definition:
-              # target_address: arcd.com
 
       options:
         nodes:
@@ -111,25 +104,25 @@ agents:
         num_files_per_folder: 1
         num_nics_per_node: 2
         nodes:
-        - node_ref: domain_controller
+        - node_hostname: domain_controller
           services:
-          - service_ref: domain_controller_dns_server
-        - node_ref: web_server
+          - service_name: domain_controller_dns_server
+        - node_hostname: web_server
           services:
-          - service_ref: web_server_database_client
-        - node_ref: database_server
+          - service_name: web_server_database_client
+        - node_hostname: database_server
           services:
-          - service_ref: database_service
+          - service_name: database_service
           folders:
           - folder_name: database
             files:
             - file_name: database.db
-        - node_ref: backup_server
+        - node_hostname: backup_server
           # services:
           # - service_ref: backup_service
-        - node_ref: security_suite
-        - node_ref: client_1
-        - node_ref: client_2
+        - node_hostname: security_suite
+        - node_hostname: client_1
+        - node_hostname: client_2
         links:
         - link_ref: router_1___switch_1
         - link_ref: router_1___switch_2
@@ -144,7 +137,7 @@ agents:
         acl:
           options:
             max_acl_rules: 10
-          router_node_ref: router_1
+          router_hostname: router_1
           ip_address_order:
             - node_ref: domain_controller
               nic_num: 1
@@ -532,7 +525,7 @@ agents:
         - type: DATABASE_FILE_INTEGRITY
           weight: 0.5
           options:
-            node_ref: database_server
+            node_hostname: database_server
             folder_name: database
             file_name: database.db
 
@@ -540,8 +533,8 @@ agents:
         - type: WEB_SERVER_404_PENALTY
           weight: 0.5
           options:
-            node_ref: web_server
-            service_ref: web_server_web_service
+            node_hostname: web_server
+            service_name: web_server_web_service
 
 
     agent_settings:
@@ -559,25 +552,25 @@ agents:
         num_files_per_folder: 1
         num_nics_per_node: 2
         nodes:
-        - node_ref: domain_controller
+        - node_hostname: domain_controller
           services:
-          - service_ref: domain_controller_dns_server
-        - node_ref: web_server
+          - service_name: domain_controller_dns_server
+        - node_hostname: web_server
           services:
-          - service_ref: web_server_database_client
-        - node_ref: database_server
+          - service_name: web_server_database_client
+        - node_hostname: database_server
           services:
-          - service_ref: database_service
+          - service_name: database_service
           folders:
           - folder_name: database
             files:
             - file_name: database.db
-        - node_ref: backup_server
+        - node_hostname: backup_server
           # services:
           # - service_ref: backup_service
-        - node_ref: security_suite
-        - node_ref: client_1
-        - node_ref: client_2
+        - node_hostname: security_suite
+        - node_hostname: client_1
+        - node_hostname: client_2
         links:
         - link_ref: router_1___switch_1
         - link_ref: router_1___switch_2
@@ -592,7 +585,7 @@ agents:
         acl:
           options:
             max_acl_rules: 10
-          router_node_ref: router_1
+          router_hostname: router_1
           ip_address_order:
             - node_ref: domain_controller
               nic_num: 1
@@ -980,7 +973,7 @@ agents:
         - type: DATABASE_FILE_INTEGRITY
           weight: 0.5
           options:
-            node_ref: database_server
+            node_hostname: database_server
             folder_name: database
             file_name: database.db
 
@@ -988,8 +981,8 @@ agents:
         - type: WEB_SERVER_404_PENALTY
           weight: 0.5
           options:
-            node_ref: web_server
-            service_ref: web_server_web_service
+            node_hostname: web_server
+            service_name: web_server_web_service
 
 
     agent_settings:

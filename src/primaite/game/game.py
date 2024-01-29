@@ -18,13 +18,15 @@ from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.hardware.nodes.switch import Switch
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
-from primaite.simulator.system.services.red_services.data_manipulation_bot import DataManipulationBot
+from primaite.simulator.system.services.ntp.ntp_client import NTPClient
+from primaite.simulator.system.services.ntp.ntp_server import NTPServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
@@ -244,6 +246,8 @@ class PrimaiteGame:
                         "WebServer": WebServer,
                         "FTPClient": FTPClient,
                         "FTPServer": FTPServer,
+                        "NTPClient": NTPClient,
+                        "NTPServer": NTPServer,
                     }
                     if service_type in service_types_mapping:
                         _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
@@ -292,6 +296,7 @@ class PrimaiteGame:
                             opt = application_cfg["options"]
                             new_application.configure(
                                 server_ip_address=IPv4Address(opt.get("server_ip")),
+                                server_password=opt.get("server_password"),
                                 payload=opt.get("payload"),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),

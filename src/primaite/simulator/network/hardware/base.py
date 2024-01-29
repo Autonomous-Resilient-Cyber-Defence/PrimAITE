@@ -4,7 +4,7 @@ import re
 import secrets
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
@@ -91,6 +91,8 @@ class NIC(SimComponent):
     "Indicates if the NIC supports Wake-on-LAN functionality."
     _connected_node: Optional[Node] = None
     "The Node to which the NIC is connected."
+    _port_num_on_node: Optional[int] = None
+    "Which port number is assigned on this NIC"
     _connected_link: Optional[Link] = None
     "The Link to which the NIC is connected."
     enabled: bool = False
@@ -148,7 +150,7 @@ class NIC(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "ip_adress": str(self.ip_address),
+                "ip_address": str(self.ip_address),
                 "subnet_mask": str(self.subnet_mask),
                 "mac_address": self.mac_address,
                 "speed": self.speed,
@@ -272,18 +274,40 @@ class NIC(SimComponent):
 
     def receive_frame(self, frame: Frame) -> bool:
         """
-        Receive a network frame from the connected link if the NIC is enabled.
+        Receive a network frame from the connected link, processing it if the NIC is enabled.
 
-        The Frame is passed to the Node.
+        This method decrements the Time To Live (TTL) of the frame, captures it using PCAP (Packet Capture), and checks
+        if the frame is either a broadcast or destined for this NIC. If the frame is acceptable, it is passed to the
+        connected node. The method also handles the discarding of frames with TTL expired and logs this event.
 
-        :param frame: The network frame being received.
+        The frame's reception is based on various conditions:
+        - If the NIC is disabled, the frame is not processed.
+        - If the TTL of the frame reaches zero after decrement, it is discarded and logged.
+        - If the frame is a broadcast or its destination MAC/IP address matches this NIC's, it is accepted.
+        - All other frames are dropped and logged or printed to the console.
+
+        :param frame: The network frame being received. This should be an instance of the Frame class.
+        :return: Returns True if the frame is processed and passed to the node, False otherwise.
         """
         if self.enabled:
             frame.decrement_ttl()
+            if frame.ip and frame.ip.ttl < 1:
+                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
+                return False
             frame.set_received_timestamp()
             self.pcap.capture(frame)
             # If this destination or is broadcast
-            if frame.ethernet.dst_mac_addr == self.mac_address or frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
+            accept_frame = False
+
+            # Check if it's a broadcast:
+            if frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
+                if frame.ip.dst_ip_address in {self.ip_address, self.ip_network.broadcast_address}:
+                    accept_frame = True
+            else:
+                if frame.ethernet.dst_mac_addr == self.mac_address:
+                    accept_frame = True
+
+            if accept_frame:
                 self._connected_node.receive_frame(frame=frame, from_nic=self)
                 return True
         return False
@@ -311,6 +335,8 @@ class SwitchPort(SimComponent):
     "The Maximum Transmission Unit (MTU) of the SwitchPort in Bytes. Default is 1500 B"
     _connected_node: Optional[Node] = None
     "The Node to which the SwitchPort is connected."
+    _port_num_on_node: Optional[int] = None
+    "The port num on the connected node."
     _connected_link: Optional[Link] = None
     "The Link to which the SwitchPort is connected."
     enabled: bool = False
@@ -432,6 +458,9 @@ class SwitchPort(SimComponent):
         """
         if self.enabled:
             frame.decrement_ttl()
+            if frame.ip and frame.ip.ttl < 1:
+                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
+                return False
             self.pcap.capture(frame)
             connected_node: Node = self._connected_node
             connected_node.forward_frame(frame=frame, incoming_port=self)
@@ -497,8 +526,8 @@ class Link(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "endpoint_a": self.endpoint_a.uuid,
-                "endpoint_b": self.endpoint_b.uuid,
+                "endpoint_a": self.endpoint_a.uuid,  # TODO: consider if using UUID is the best way to do this
+                "endpoint_b": self.endpoint_b.uuid,  # TODO: consider if using UUID is the best way to do this
                 "bandwidth": self.bandwidth,
                 "current_load": self.current_load,
             }
@@ -667,17 +696,30 @@ class ARPCache:
         """Clear the entire ARP cache, removing all stored entries."""
         self.arp.clear()
 
-    def send_arp_request(self, target_ip_address: Union[IPv4Address, str]):
+    def send_arp_request(
+        self, target_ip_address: Union[IPv4Address, str], ignore_networks: Optional[List[IPv4Address]] = None
+    ):
         """
         Perform a standard ARP request for a given target IP address.
 
         Broadcasts the request through all enabled NICs to determine the MAC address corresponding to the target IP
-        address.
+        address. This method can be configured to ignore specific networks when sending out ARP requests,
+        which is useful in environments where certain addresses should not be queried.
 
         :param target_ip_address: The target IP address to send an ARP request for.
+        :param ignore_networks: An optional list of IPv4 addresses representing networks to be excluded from the ARP
+            request broadcast. Each address in this list indicates a network which will not be queried during the ARP
+            request process. This is particularly useful in complex network environments where traffic should be
+            minimized or controlled to specific subnets. It is mainly used by the router to prevent ARP requests being
+            sent back to their source.
         """
         for nic in self.nics.values():
-            if nic.enabled:
+            use_nic = True
+            if ignore_networks:
+                for ipv4 in ignore_networks:
+                    if ipv4 in nic.ip_network:
+                        use_nic = False
+            if nic.enabled and use_nic:
                 self.sys_log.info(f"Sending ARP request from NIC {nic} for ip {target_ip_address}")
                 tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
@@ -802,7 +844,6 @@ class ICMP:
                 self.arp.send_arp_request(frame.ip.src_ip_address)
                 self.process_icmp(frame=frame, from_nic=from_nic, is_reattempt=True)
                 return
-            tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
             # Network Layer
             ip_packet = IPPacket(
@@ -817,9 +858,7 @@ class ICMP:
                 sequence=frame.icmp.sequence + 1,
             )
             payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
-            frame = Frame(
-                ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, icmp=icmp_reply_packet, payload=payload
-            )
+            frame = Frame(ethernet=ethernet_header, ip=ip_packet, icmp=icmp_reply_packet, payload=payload)
             self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip_address}")
 
             src_nic.send_frame(frame)
@@ -1094,12 +1133,12 @@ class Node(SimComponent):
             {
                 "hostname": self.hostname,
                 "operating_state": self.operating_state.value,
-                "NICs": {uuid: nic.describe_state() for uuid, nic in self.nics.items()},
+                "NICs": {eth_num: nic.describe_state() for eth_num, nic in self.ethernet_port.items()},
                 # "switch_ports": {uuid, sp for uuid, sp in self.switch_ports.items()},
                 "file_system": self.file_system.describe_state(),
-                "applications": {uuid: app.describe_state() for uuid, app in self.applications.items()},
-                "services": {uuid: svc.describe_state() for uuid, svc in self.services.items()},
-                "process": {uuid: proc.describe_state() for uuid, proc in self.processes.items()},
+                "applications": {app.name: app.describe_state() for app in self.applications.values()},
+                "services": {svc.name: svc.describe_state() for svc in self.services.values()},
+                "process": {proc.name: proc.describe_state() for proc in self.processes.values()},
                 "revealed_to_red": self.revealed_to_red,
             }
         )
@@ -1316,6 +1355,7 @@ class Node(SimComponent):
             self.nics[nic.uuid] = nic
             self.ethernet_port[len(self.nics)] = nic
             nic._connected_node = self
+            nic._port_num_on_node = len(self.nics)
             nic.parent = self
             self.sys_log.info(f"Connected NIC {nic}")
             if self.operating_state == NodeOperatingState.ON:
@@ -1442,7 +1482,6 @@ class Node(SimComponent):
         service.parent = self
         service.install()  # Perform any additional setup, such as creating files for this service on the node.
         self.sys_log.info(f"Installed service {service.name}")
-        _LOGGER.info(f"Added service {service.uuid} to node {self.uuid}")
         self._service_request_manager.add_request(service.uuid, RequestType(func=service._request_manager))
 
     def uninstall_service(self, service: Service) -> None:
@@ -1475,7 +1514,6 @@ class Node(SimComponent):
         self.applications[application.uuid] = application
         application.parent = self
         self.sys_log.info(f"Installed application {application.name}")
-        _LOGGER.info(f"Added application {application.uuid} to node {self.uuid}")
         self._application_request_manager.add_request(application.uuid, RequestType(func=application._request_manager))
 
     def uninstall_application(self, application: Application) -> None:

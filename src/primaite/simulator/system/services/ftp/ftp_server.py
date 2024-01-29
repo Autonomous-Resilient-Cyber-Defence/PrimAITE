@@ -1,5 +1,4 @@
-from ipaddress import IPv4Address
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
@@ -21,9 +20,6 @@ class FTPServer(FTPServiceABC):
     server_password: Optional[str] = None
     """Password needed to connect to FTP server. Default is None."""
 
-    connections: Dict[str, IPv4Address] = {}
-    """Current active connections to the FTP server."""
-
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPServer"
         kwargs["port"] = Port.FTP
@@ -41,7 +37,7 @@ class FTPServer(FTPServiceABC):
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         _LOGGER.debug(f"Resetting FTPServer state on node {self.software_manager.node.hostname}")
-        self.connections.clear()
+        self.clear_connections()
         super().reset_component_for_episode(episode)
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
@@ -62,9 +58,6 @@ class FTPServer(FTPServiceABC):
 
         self.sys_log.info(f"{self.name}: Received FTP {payload.ftp_command.name} {payload.ftp_command_args}")
 
-        if session_id:
-            session_details = self._get_session_details(session_id)
-
         if payload.ftp_command is not None:
             self.sys_log.info(f"Received FTP {payload.ftp_command.name} command.")
 
@@ -73,7 +66,7 @@ class FTPServer(FTPServiceABC):
             # check that the port is valid
             if isinstance(payload.ftp_command_args, Port) and payload.ftp_command_args.value in range(0, 65535):
                 # return successful connection
-                self.connections[session_id] = session_details.with_ip_address
+                self.add_connection(connection_id=session_id, session_id=session_id)
                 payload.status_code = FTPStatusCode.OK
                 return payload
 
@@ -81,7 +74,7 @@ class FTPServer(FTPServiceABC):
             return payload
 
         if payload.ftp_command == FTPCommand.QUIT:
-            self.connections.pop(session_id)
+            self.remove_connection(connection_id=session_id)
             payload.status_code = FTPStatusCode.OK
             return payload
 

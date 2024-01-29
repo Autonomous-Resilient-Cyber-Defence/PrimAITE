@@ -65,8 +65,8 @@ def test_server_turns_off_application(populated_node):
     assert app.operating_state is ApplicationOperatingState.CLOSED
 
 
-def test_application_cannot_be_turned_on_when_server_is_off(populated_node):
-    """Check that the application cannot be started when the server is off."""
+def test_application_cannot_be_turned_on_when_computer_is_off(populated_node):
+    """Check that the application cannot be started when the computer is off."""
     app, computer = populated_node
 
     assert computer.operating_state is NodeOperatingState.ON
@@ -86,8 +86,8 @@ def test_application_cannot_be_turned_on_when_server_is_off(populated_node):
     assert app.operating_state is ApplicationOperatingState.CLOSED
 
 
-def test_server_turns_on_application(populated_node):
-    """Check that turning on the server turns on application."""
+def test_computer_runs_applications(populated_node):
+    """Check that turning on the computer will turn on applications."""
     app, computer = populated_node
 
     assert computer.operating_state is NodeOperatingState.ON
