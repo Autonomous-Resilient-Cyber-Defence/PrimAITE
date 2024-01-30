@@ -151,6 +151,15 @@ class DatabaseService(Service):
     def _process_connect(
         self, connection_id: str, password: Optional[str] = None
     ) -> Dict[str, Union[int, Dict[str, bool]]]:
+        """Process an incoming connection request.
+
+        :param connection_id: A unique identifier for the connection
+        :type connection_id: str
+        :param password: Supplied password. It must match self.password for connection success, defaults to None
+        :type password: Optional[str], optional
+        :return: Response to connection request containing success info.
+        :rtype: Dict[str, Union[int, Dict[str, bool]]]
+        """
         status_code = 500  # Default internal server error
         if self.operating_state == ServiceOperatingState.RUNNING:
             status_code = 503  # service unavailable
@@ -279,6 +288,7 @@ class DatabaseService(Service):
         return super().apply_timestep(timestep)
 
     def _update_patch_status(self) -> None:
+        """Perform a database restore when the patching countdown is finished."""
         super()._update_patch_status()
         if self._patching_countdown is None:
             self.restore_backup()

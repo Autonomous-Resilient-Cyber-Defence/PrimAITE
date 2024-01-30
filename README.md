@@ -33,7 +33,7 @@ Currently, the PrimAITE wheel can only be installed from GitHub. This may change
 #### Windows (PowerShell)
 
 **Prerequisites:**
-* Manual install of Python >= 3.9 < 3.12
+* Manual install of Python >= 3.8 < 3.12
 
 **Install:**
 
@@ -56,7 +56,7 @@ primaite session
 #### Unix
 
 **Prerequisites:**
-* Manual install of Python >= 3.9 < 3.12
+* Manual install of Python >= 3.8 < 3.12
 
 ``` bash
 sudo add-apt-repository ppa:deadsnakes/ppa
