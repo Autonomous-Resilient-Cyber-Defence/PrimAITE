@@ -136,6 +136,10 @@ class AbstractAgent(ABC):
         request = self.action_manager.form_request(action_identifier=action, action_options=options)
         return request
 
+    def reset_agent_for_episode(self) -> None:
+        """Agent reset logic should go here."""
+        pass
+
 
 class AbstractScriptedAgent(AbstractAgent):
     """Base class for actors which generate their own behaviour."""

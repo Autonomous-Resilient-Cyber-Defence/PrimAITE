@@ -13,11 +13,9 @@ from primaite.game.agent.rewards import RewardFunction
 from primaite.session.io import SessionIO, SessionIOSettings
 from primaite.simulator.network.hardware.base import NIC, NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
+from primaite.simulator.network.hardware.nodes.router import Router
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.hardware.nodes.switch import Switch
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
@@ -117,7 +115,7 @@ class PrimaiteGame:
         self.update_agents(sim_state)
 
         # Apply all actions to simulation as requests
-        self.apply_agent_actions()
+        agent_actions = self.apply_agent_actions()  # noqa
 
         # Advance timestep
         self.advance_timestep()
@@ -135,12 +133,15 @@ class PrimaiteGame:
 
     def apply_agent_actions(self) -> None:
         """Apply all actions to simulation as requests."""
+        agent_actions = {}
         for agent in self.agents:
             obs = agent.observation_manager.current_observation
             rew = agent.reward_function.current_reward
             action_choice, options = agent.get_action(obs, rew)
+            agent_actions[agent.agent_name] = (action_choice, options)
             request = agent.format_request(action_choice, options)
             self.simulation.apply_request(request)
+        return agent_actions
 
     def advance_timestep(self) -> None:
         """Advance timestep."""
@@ -164,6 +165,7 @@ class PrimaiteGame:
         self.simulation.reset_component_for_episode(episode=self.episode_counter)
         for agent in self.agents:
             agent.reward_function.total_reward = 0.0
+            agent.reset_agent_for_episode()
 
     def close(self) -> None:
         """Close the game, this will close the simulation."""
@@ -228,31 +230,7 @@ class PrimaiteGame:
                     operating_state=NodeOperatingState.ON,
                 )
             elif n_type == "router":
-                new_node = Router(
-                    hostname=node_cfg["hostname"],
-                    num_ports=node_cfg.get("num_ports"),
-                    operating_state=NodeOperatingState.ON,
-                )
-                if "ports" in node_cfg:
-                    for port_num, port_cfg in node_cfg["ports"].items():
-                        new_node.configure_port(
-                            port=port_num, ip_address=port_cfg["ip_address"], subnet_mask=port_cfg["subnet_mask"]
-                        )
-                        # new_node.enable_port(port_num)
-                if "acl" in node_cfg:
-                    for r_num, r_cfg in node_cfg["acl"].items():
-                        # excuse the uncommon walrus operator ` := `. It's just here as a shorthand, to avoid repeating
-                        # this: 'r_cfg.get('src_port')'
-                        # Port/IPProtocol. TODO Refactor
-                        new_node.acl.add_rule(
-                            action=ACLAction[r_cfg["action"]],
-                            src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                            dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                            protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
-                            src_ip_address=r_cfg.get("ip_address"),
-                            dst_ip_address=r_cfg.get("ip_address"),
-                            position=r_num,
-                        )
+                new_node = Router.from_config(node_cfg)
             else:
                 _LOGGER.warning(f"invalid node type {n_type} in config")
             if "services" in node_cfg:

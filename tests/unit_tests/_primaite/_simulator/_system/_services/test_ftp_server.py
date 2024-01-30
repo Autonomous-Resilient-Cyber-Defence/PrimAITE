@@ -1,5 +1,6 @@
 import pytest
 
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.server import Server
@@ -41,6 +42,7 @@ def test_ftp_server_store_file(ftp_server):
             "dest_folder_name": "downloads",
             "dest_file_name": "file.txt",
             "file_size": 24,
+            "health_status": FileSystemItemHealthStatus.GOOD,
         },
         packet_payload_size=24,
     )
