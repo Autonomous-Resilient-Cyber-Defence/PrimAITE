@@ -526,3 +526,31 @@ def test_node_file_scan_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAge
     game.step()
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
     assert file.visible_health_status == FileSystemItemHealthStatus.CORRUPT
+
+
+def test_node_file_delete_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that a file can be deleted by the agent."""
+    game, agent = game_and_agent
+
+    # 1: assert the file is there
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")
+    file = client_1.file_system.get_file("downloads", "cat.png")
+    assert file is not None
+    assert not file.deleted
+
+    # 2: delete the file
+    action = (
+        "NODE_FILE_DELETE",
+        {
+            "node_id": 0,  # client_1
+            "folder_id": 0,  # downloads
+            "file_id": 0,  # cat.png
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    # 3. Check that the file is not there any more
+    assert not client_1.file_system.get_file("downloads", "cat.png")
+    # 3.1 (but with the reference to the original file, we can check that deleted flag is True )
+    assert file.deleted

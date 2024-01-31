@@ -78,12 +78,12 @@ class FileSystem(SimComponent):
         self._delete_manager.add_request(
             name="file",
             request_type=RequestType(
-                func=lambda request, context: self.delete_file_by_id(folder_uuid=request[0], file_uuid=request[1])
+                func=lambda request, context: self.delete_file(folder_name=request[0], file_name=request[1])
             ),
         )
         self._delete_manager.add_request(
             name="folder",
-            request_type=RequestType(func=lambda request, context: self.delete_folder_by_id(folder_uuid=request[0])),
+            request_type=RequestType(func=lambda request, context: self.delete_folder(folder_name=request[0])),
         )
         rm.add_request(
             name="delete",

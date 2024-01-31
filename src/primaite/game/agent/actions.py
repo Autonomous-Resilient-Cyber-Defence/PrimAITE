@@ -303,8 +303,7 @@ class NodeFileDeleteAction(NodeFileAbstractAction):
         file_name = self.manager.get_file_name_by_idx(node_idx=node_id, folder_idx=folder_id, file_idx=file_id)
         if node_name is None or folder_name is None or file_name is None:
             return ["do_nothing"]
-        return ["do_nothing"]
-        # return ["network", "node", node_name, "file_system", "delete", "file", folder_name, file_name]
+        return ["network", "node", node_name, "file_system", "delete", "file", folder_name, file_name]
 
 
 class NodeFileRepairAction(NodeFileAbstractAction):
