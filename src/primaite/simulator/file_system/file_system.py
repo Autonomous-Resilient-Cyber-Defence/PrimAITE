@@ -23,7 +23,6 @@ class FileSystem(SimComponent):
     "List containing all the folders in the file system."
     deleted_folders: Dict[str, Folder] = {}
     "List containing all the folders that have been deleted."
-    _folders_by_name: Dict[str, Folder] = {}
     sys_log: SysLog
     "Instance of SysLog used to create system logs."
     sim_root: Path
@@ -56,7 +55,6 @@ class FileSystem(SimComponent):
                 folder = self.deleted_folders[uuid]
                 self.deleted_folders.pop(uuid)
                 self.folders[uuid] = folder
-                self._folders_by_name[folder.name] = folder
 
         # Clear any other deleted folders that aren't original (have been created by agent)
         self.deleted_folders.clear()
@@ -67,7 +65,6 @@ class FileSystem(SimComponent):
             if uuid not in original_folder_uuids:
                 folder = self.folders[uuid]
                 self.folders.pop(uuid)
-                self._folders_by_name.pop(folder.name)
 
         # Now reset all remaining folders
         for folder in self.folders.values():
@@ -173,7 +170,6 @@ class FileSystem(SimComponent):
         folder = Folder(name=folder_name, sys_log=self.sys_log)
 
         self.folders[folder.uuid] = folder
-        self._folders_by_name[folder.name] = folder
         self._folder_request_manager.add_request(
             name=folder.name, request_type=RequestType(func=folder._request_manager)
         )
@@ -188,14 +184,13 @@ class FileSystem(SimComponent):
         if folder_name == "root":
             self.sys_log.warning("Cannot delete the root folder.")
             return
-        folder = self._folders_by_name.get(folder_name)
+        folder = self.get_folder(folder_name)
         if folder:
             # set folder to deleted state
             folder.delete()
 
             # remove from folder list
             self.folders.pop(folder.uuid)
-            self._folders_by_name.pop(folder.name)
 
             # add to deleted list
             folder.remove_all_files()
@@ -221,7 +216,10 @@ class FileSystem(SimComponent):
         :param folder_name: The folder name.
         :return: The matching Folder.
         """
-        return self._folders_by_name.get(folder_name)
+        for folder in self.folders.values():
+            if folder.name == folder_name:
+                return folder
+        return None
 
     def get_folder_by_id(self, folder_uuid: str, include_deleted: bool = False) -> Optional[Folder]:
         """
@@ -261,13 +259,13 @@ class FileSystem(SimComponent):
         """
         if folder_name:
             # check if file with name already exists
-            folder = self._folders_by_name.get(folder_name)
+            folder = self.get_folder(folder_name)
             # If not then create it
             if not folder:
                 folder = self.create_folder(folder_name)
         else:
             # Use root folder if folder_name not supplied
-            folder = self._folders_by_name["root"]
+            folder = self.get_folder("root")
 
         # Create the file and add it to the folder
         file = File(
@@ -474,7 +472,6 @@ class FileSystem(SimComponent):
 
         folder.restore()
         self.folders[folder.uuid] = folder
-        self._folders_by_name[folder.name] = folder
 
         if folder.deleted:
             self.deleted_folders.pop(folder.uuid)

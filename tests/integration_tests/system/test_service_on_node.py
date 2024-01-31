@@ -117,13 +117,14 @@ def test_server_turns_on_service(populated_node):
     assert server.operating_state is NodeOperatingState.ON
     assert service.operating_state is ServiceOperatingState.RUNNING
 
-    server.start_up_duration = 0
-    server.shut_down_duration = 0
-
     server.power_off()
+    for i in range(server.start_up_duration + 1):
+        server.apply_timestep(timestep=i)
     assert server.operating_state is NodeOperatingState.OFF
     assert service.operating_state is ServiceOperatingState.STOPPED
 
     server.power_on()
+    for i in range(server.start_up_duration + 1):
+        server.apply_timestep(timestep=i)
     assert server.operating_state is NodeOperatingState.ON
     assert service.operating_state is ServiceOperatingState.RUNNING

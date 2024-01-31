@@ -1,5 +1,6 @@
 """Manages the observation space for the agent."""
 from abc import ABC, abstractmethod
+from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from gymnasium import spaces
@@ -78,7 +79,7 @@ class FileObservation(AbstractObservation):
         file_state = access_from_nested_dict(state, self.where)
         if file_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
-        return {"health_status": file_state["health_status"]}
+        return {"health_status": file_state["visible_status"]}
 
     @property
     def space(self) -> spaces.Space:
@@ -204,12 +205,15 @@ class LinkObservation(AbstractObservation):
 
         bandwidth = link_state["bandwidth"]
         load = link_state["current_load"]
-        utilisation_fraction = load / bandwidth
-        # 0 is UNUSED, 1 is 0%-10%. 2 is 10%-20%. 3 is 20%-30%. And so on... 10 is exactly 100%
-        utilisation_category = int(utilisation_fraction * 10) + 1
+        if load == 0:
+            utilisation_category = 0
+        else:
+            utilisation_fraction = load / bandwidth
+            # 0 is UNUSED, 1 is 0%-10%. 2 is 10%-20%. 3 is 20%-30%. And so on... 10 is exactly 100%
+            utilisation_category = int(utilisation_fraction * 9) + 1
 
         # TODO: once the links support separte load per protocol, this needs amendment to reflect that.
-        return {"PROTOCOLS": {"ALL": utilisation_category}}
+        return {"PROTOCOLS": {"ALL": min(utilisation_category, 10)}}
 
     @property
     def space(self) -> spaces.Space:
@@ -554,7 +558,7 @@ class NodeObservation(AbstractObservation):
         folder_configs = config.get("folders", {})
         folders = [
             FolderObservation.from_config(
-                config=c, game=game, parent_where=where, num_files_per_folder=num_files_per_folder
+                config=c, game=game, parent_where=where + ["file_system"], num_files_per_folder=num_files_per_folder
             )
             for c in folder_configs
         ]
@@ -644,10 +648,13 @@ class AclObservation(AbstractObservation):
 
         # TODO: what if the ACL has more rules than num of max rules for obs space
         obs = {}
-        for i, rule_state in acl_state.items():
+        acl_items = dict(acl_state.items())
+        i = 1  # don't show rule 0 for compatibility reasons.
+        while i < self.num_rules + 1:
+            rule_state = acl_items[i]
             if rule_state is None:
-                obs[i + 1] = {
-                    "position": i,
+                obs[i] = {
+                    "position": i - 1,
                     "permission": 0,
                     "source_node_id": 0,
                     "source_port": 0,
@@ -656,15 +663,26 @@ class AclObservation(AbstractObservation):
                     "protocol": 0,
                 }
             else:
-                obs[i + 1] = {
-                    "position": i,
+                src_ip = rule_state["src_ip_address"]
+                src_node_id = 1 if src_ip is None else self.node_to_id[IPv4Address(src_ip)]
+                dst_ip = rule_state["dst_ip_address"]
+                dst_node_ip = 1 if dst_ip is None else self.node_to_id[IPv4Address(dst_ip)]
+                src_port = rule_state["src_port"]
+                src_port_id = 1 if src_port is None else self.port_to_id[src_port]
+                dst_port = rule_state["dst_port"]
+                dst_port_id = 1 if dst_port is None else self.port_to_id[dst_port]
+                protocol = rule_state["protocol"]
+                protocol_id = 1 if protocol is None else self.protocol_to_id[protocol]
+                obs[i] = {
+                    "position": i - 1,
                     "permission": rule_state["action"],
-                    "source_node_id": self.node_to_id[rule_state["src_ip_address"]],
-                    "source_port": self.port_to_id[rule_state["src_port"]],
-                    "dest_node_id": self.node_to_id[rule_state["dst_ip_address"]],
-                    "dest_port": self.port_to_id[rule_state["dst_port"]],
-                    "protocol": self.protocol_to_id[rule_state["protocol"]],
+                    "source_node_id": src_node_id,
+                    "source_port": src_port_id,
+                    "dest_node_id": dst_node_ip,
+                    "dest_port": dst_port_id,
+                    "protocol": protocol_id,
                 }
+            i += 1
         return obs
 
     @property

@@ -110,10 +110,17 @@ class DatabaseFileIntegrity(AbstractReward):
         :type state: Dict
         """
         database_file_state = access_from_nested_dict(state, self.location_in_state)
+        if database_file_state is NOT_PRESENT_IN_STATE:
+            _LOGGER.info(
+                f"Could not calculate {self.__class__} reward because "
+                "simulation state did not contain enough information."
+            )
+            return 0.0
+
         health_status = database_file_state["health_status"]
-        if health_status == "corrupted":
+        if health_status == 2:
             return -1
-        elif health_status == "good":
+        elif health_status == 1:
             return 1
         else:
             return 0

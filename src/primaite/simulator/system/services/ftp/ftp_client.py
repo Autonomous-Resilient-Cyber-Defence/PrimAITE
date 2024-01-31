@@ -89,6 +89,7 @@ class FTPClient(FTPServiceABC):
                     f"{self.name}: Successfully connected to FTP Server "
                     f"{dest_ip_address} via port {payload.ftp_command_args.value}"
                 )
+                self.add_connection(connection_id="server_connection", session_id=session_id)
                 return True
             else:
                 if is_reattempt:

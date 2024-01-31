@@ -2,8 +2,8 @@ import copy
 from abc import abstractmethod
 from datetime import datetime
 from enum import Enum
-from ipaddress import IPv4Address
-from typing import Any, Dict, Optional
+from ipaddress import IPv4Address, IPv4Network
+from typing import Any, Dict, Optional, Union
 
 from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
@@ -38,12 +38,12 @@ class SoftwareHealthState(Enum):
     "Unused state."
     GOOD = 1
     "The software is in a good and healthy condition."
-    COMPROMISED = 2
-    "The software's security has been compromised."
-    OVERWHELMED = 3
-    "he software is overwhelmed and not functioning properly."
-    PATCHING = 4
+    PATCHING = 2
     "The software is undergoing patching or updates."
+    COMPROMISED = 3
+    "The software's security has been compromised."
+    OVERWHELMED = 4
+    "he software is overwhelmed and not functioning properly."
 
 
 class SoftwareCriticality(Enum):
@@ -71,9 +71,9 @@ class Software(SimComponent):
 
     name: str
     "The name of the software."
-    health_state_actual: SoftwareHealthState = SoftwareHealthState.GOOD
+    health_state_actual: SoftwareHealthState = SoftwareHealthState.UNUSED
     "The actual health state of the software."
-    health_state_visible: SoftwareHealthState = SoftwareHealthState.GOOD
+    health_state_visible: SoftwareHealthState = SoftwareHealthState.UNUSED
     "The health state of the software visible to the red agent."
     criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
     "The criticality level of the software."
@@ -195,8 +195,9 @@ class Software(SimComponent):
 
     def patch(self) -> None:
         """Perform a patch on the software."""
-        self._patching_countdown = self.patching_duration
-        self.set_health_state(SoftwareHealthState.PATCHING)
+        if self.health_state_actual in (SoftwareHealthState.COMPROMISED, SoftwareHealthState.GOOD):
+            self._patching_countdown = self.patching_duration
+            self.set_health_state(SoftwareHealthState.PATCHING)
 
     def _update_patch_status(self) -> None:
         """Update the patch status of the software."""
@@ -282,7 +283,7 @@ class IOSoftware(Software):
 
         Returns true if the software can perform actions.
         """
-        if self.software_manager and self.software_manager.node.operating_state is NodeOperatingState.OFF:
+        if self.software_manager and self.software_manager.node.operating_state != NodeOperatingState.ON:
             _LOGGER.debug(f"{self.name} Error: {self.software_manager.node.hostname} is not online.")
             return False
         return True
@@ -303,13 +304,13 @@ class IOSoftware(Software):
         """
         # if over or at capacity, set to overwhelmed
         if len(self._connections) >= self.max_sessions:
-            self.health_state_actual = SoftwareHealthState.OVERWHELMED
+            self.set_health_state(SoftwareHealthState.OVERWHELMED)
             self.sys_log.error(f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity.")
             return False
         else:
             # if service was previously overwhelmed, set to good because there is enough space for connections
             if self.health_state_actual == SoftwareHealthState.OVERWHELMED:
-                self.health_state_actual = SoftwareHealthState.GOOD
+                self.set_health_state(SoftwareHealthState.GOOD)
 
             # check that connection already doesn't exist
             if not self._connections.get(connection_id):
@@ -350,19 +351,22 @@ class IOSoftware(Software):
         self,
         payload: Any,
         session_id: Optional[str] = None,
-        dest_ip_address: Optional[IPv4Address] = None,
+        dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
         dest_port: Optional[Port] = None,
         **kwargs,
     ) -> bool:
         """
-        Sends a payload to the SessionManager.
+        Sends a payload to the SessionManager for network transmission.
+
+        This method is responsible for initiating the process of sending network payloads. It supports both
+        unicast and Layer 3 broadcast transmissions. For broadcasts, the destination IP should be specified
+        as an IPv4Network. It delegates the actual sending process to the SoftwareManager.
 
         :param payload: The payload to be sent.
-        :param dest_ip_address: The ip address of the payload destination.
-        :param dest_port: The port of the payload destination.
-        :param session_id: The Session ID the payload is to originate from. Optional.
-
-        :return: True if successful, False otherwise.
+        :param dest_ip_address: The IP address or network (for broadcasts) of the payload destination.
+        :param dest_port: The destination port for the payload. Optional.
+        :param session_id: The Session ID from which the payload originates. Optional.
+        :return: True if the payload was successfully sent, False otherwise.
         """
         if not self._can_perform_action():
             return False

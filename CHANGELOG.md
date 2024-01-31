@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Fixed a bug where ACL rules were not resetting on episode reset.
+- Fixed a bug where blue agent's ACL actions were being applied against the wrong IP addresses
+- Fixed a bug where deleted files and folders did not reset correctly on episode reset.
+- Fixed a bug where service health status was using the actual health state instead of the visible health state
+- Fixed a bug where the database file health status was using the incorrect value for negative rewards
+- Fixed a bug preventing file actions from reaching their intended file
+- Made database patch correctly take 2 timesteps instead of being immediate
+- Made database patch only possible when the software is compromised or good, it's no longer possible when the software is OFF or RESETTING
+- Temporarily disable the blue agent file delete action due to crashes. This issue is resolved in another branch that will be merged into dev soon.
+- Fix a bug where ACLs were not showing up correctly in the observation space.
+- Added a notebook which explains Data manipulation scenario, demonstrates the attack, and shows off blue agent's action space, observation space, and reward function.
+- Made packet capture and system logging optional (off by default). To turn on, change the io_settings.save_pcap_logs and io_settings.save_sys_logs settings in the config.
+- Made observation space flattening optional (on by default). To turn off for an agent, change the agent_settings.flatten_obs setting in the config.
+- Fixed an issue where the data manipulation attack was triggered at episode start.
+- Fixed a bug where FTP STOR stored an additional copy on the client machine's filesystem
+- Fixed a bug where the red agent acted to early
+- Fixed the order of service health state
+- Fixed an issue where starting a node didn't start the services on it
 
 
 
@@ -38,6 +56,18 @@ SessionManager.
 - HTTP Services: `WebBrowser` to simulate a web client and `WebServer`
 - Fixed an issue where the services were still able to run even though the node the service is installed on is turned off
 - NTP Services: `NTPClient` and `NTPServer`
+- **RouterNIC Class**: Introduced a new class `RouterNIC`, extending the standard `NIC` functionality. This class is specifically designed for router operations, optimizing the processing and routing of network traffic.
+  - **Custom Layer-3 Processing**: The `RouterNIC` class includes custom handling for network frames, bypassing standard Node NIC's Layer 3 broadcast/unicast checks. This allows for more efficient routing behavior in network scenarios where router-specific frame processing is required.
+  - **Enhanced Frame Reception**: The `receive_frame` method in `RouterNIC` is tailored to handle frames based on Layer 2 (Ethernet) checks, focusing on MAC address-based routing and broadcast frame acceptance.
+- **Subnet-Wide Broadcasting for Services and Applications**: Implemented the ability for services and applications to conduct broadcasts across an entire IPv4 subnet within the network simulation framework.
+
+### Changed
+- Integrated the RouteTable into the Routers frame processing.
+- Frames are now dropped when their TTL reaches 0
+- **NIC Functionality Update**: Updated the Network Interface Card (`NIC`) functionality to support Layer 3 (L3) broadcasts.
+  - **Layer 3 Broadcast Handling**: Enhanced the existing `NIC` classes to correctly process and handle Layer 3 broadcasts. This update allows devices using standard NICs to effectively participate in network activities that involve L3 broadcasting.
+  - **Improved Frame Reception Logic**: The `receive_frame` method of the `NIC` class has been updated to include additional checks and handling for L3 broadcasts, ensuring proper frame processing in a wider range of network scenarios.
+
 
 ### Removed
 - Removed legacy simulation modules: `acl`, `common`, `environment`, `links`, `nodes`, `pol`

@@ -13,7 +13,25 @@ This section allows selecting which training framework and algorithm to use, and
 
 ``io_settings``
 ---------------
-This section configures how the ``PrimaiteSession`` saves data.
+This section configures how PrimAITE saves data during simulation and training.
+
+**save_final_model**: Only used if training with PrimaiteSession, if true, the policy will be saved after the final training iteration.
+
+**save_checkpoints**: Only used if training with PrimaiteSession, if true, the policy will be saved periodically during training.
+
+**checkpoint_interval**: Only used if training with PrimaiteSession and if ``save_checkpoints`` is true. Defines how often to save the policy during training.
+
+**save_logs**: *currently unused*.
+
+**save_transactions**: *currently unused*.
+
+**save_tensorboard_logs**: *currently unused*.
+
+**save_step_metadata**: Whether to save the RL agents' action, environment state, and other data at every single step.
+
+**save_pcap_logs**: Whether to save pcap files of all network traffic during the simulation.
+
+**save_sys_logs**: Whether to save system logs from all nodes during the simulation.
 
 ``game``
 --------
@@ -55,6 +73,10 @@ Description of configurable items:
 
 **agent_settings**:
 Settings passed to the agent during initialisation. These depend on the agent class.
+
+Reinforcement learning agents use the ``ProxyAgent`` class, they accept these agent settings:
+
+**flatten_obs**: If true, gymnasium flattening will be performed on the observation space before sending to the agent. Set this to true if your agent does not support nested observation spaces.
 
 ``simulation``
 --------------

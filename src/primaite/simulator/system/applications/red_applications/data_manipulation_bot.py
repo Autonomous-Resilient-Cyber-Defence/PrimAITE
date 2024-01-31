@@ -72,7 +72,7 @@ class DataManipulationBot(DatabaseClient):
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 
-        rm.add_request(name="execute", request_type=RequestType(func=lambda request, context: self.run()))
+        rm.add_request(name="execute", request_type=RequestType(func=lambda request, context: self.attack()))
 
         return rm
 
@@ -83,7 +83,7 @@ class DataManipulationBot(DatabaseClient):
         payload: Optional[str] = None,
         port_scan_p_of_success: float = 0.1,
         data_manipulation_p_of_success: float = 0.1,
-        repeat: bool = False,
+        repeat: bool = True,
     ):
         """
         Configure the DataManipulatorBot to communicate with a DatabaseService.
@@ -168,6 +168,12 @@ class DataManipulationBot(DatabaseClient):
         Calls the parent classes execute method before starting the application loop.
         """
         super().run()
+
+    def attack(self):
+        """Perform the attack steps after opening the application."""
+        if not self._can_perform_action():
+            _LOGGER.debug("Data manipulation application attempted to execute but it cannot perform actions right now.")
+            self.run()
         self._application_loop()
 
     def _application_loop(self):
@@ -198,4 +204,4 @@ class DataManipulationBot(DatabaseClient):
 
         :param timestep: The timestep value to update the bot's state.
         """
-        self._application_loop()
+        pass

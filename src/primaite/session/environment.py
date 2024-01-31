@@ -29,7 +29,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         # make ProxyAgent store the action chosen my the RL policy
         self.agent.store_action(action)
         # apply_agent_actions accesses the action we just stored
-        self.game.apply_agent_actions()
+        agent_actions = self.game.apply_agent_actions()
         self.game.advance_timestep()
         state = self.game.get_sim_state()
 
@@ -39,7 +39,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         reward = self.agent.reward_function.current_reward
         terminated = False
         truncated = self.game.calculate_truncated()
-        info = {}
+        info = {"agent_actions": agent_actions}  # tell us what all the agents did for convenience.
         if self.game.save_step_metadata:
             self._write_step_metadata_json(action, state, reward)
         return next_obs, reward, terminated, truncated, info
@@ -81,13 +81,19 @@ class PrimaiteGymEnv(gymnasium.Env):
     @property
     def observation_space(self) -> gymnasium.Space:
         """Return the observation space of the environment."""
-        return gymnasium.spaces.flatten_space(self.agent.observation_manager.space)
+        if self.agent.flatten_obs:
+            return gymnasium.spaces.flatten_space(self.agent.observation_manager.space)
+        else:
+            return self.agent.observation_manager.space
 
     def _get_obs(self) -> ObsType:
         """Return the current observation."""
-        unflat_space = self.agent.observation_manager.space
-        unflat_obs = self.agent.observation_manager.current_observation
-        return gymnasium.spaces.flatten(unflat_space, unflat_obs)
+        if not self.agent.flatten_obs:
+            return self.agent.observation_manager.current_observation
+        else:
+            unflat_space = self.agent.observation_manager.space
+            unflat_obs = self.agent.observation_manager.current_observation
+            return gymnasium.spaces.flatten(unflat_space, unflat_obs)
 
 
 class PrimaiteRayEnv(gymnasium.Env):
@@ -166,7 +172,7 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         # 1. Perform actions
         for agent_name, action in actions.items():
             self.agents[agent_name].store_action(action)
-        self.game.apply_agent_actions()
+        agent_actions = self.game.apply_agent_actions()
 
         # 2. Advance timestep
         self.game.advance_timestep()
@@ -180,7 +186,7 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         rewards = {name: agent.reward_function.current_reward for name, agent in self.agents.items()}
         terminateds = {name: False for name, _ in self.agents.items()}
         truncateds = {name: self.game.calculate_truncated() for name, _ in self.agents.items()}
-        infos = {}
+        infos = {"agent_actions": agent_actions}
         terminateds["__all__"] = len(self.terminateds) == len(self.agents)
         truncateds["__all__"] = self.game.calculate_truncated()
         if self.game.save_step_metadata:

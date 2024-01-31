@@ -10,6 +10,22 @@ from primaite.simulator.system.applications.database_client import DatabaseClien
 from primaite.simulator.system.services.database.database_service import DatabaseService
 
 
+def filter_keys_nested_item(data, keys):
+    stack = [(data, {})]
+    while stack:
+        current, filtered = stack.pop()
+        if isinstance(current, dict):
+            for k, v in current.items():
+                if k in keys:
+                    filtered[k] = filter_keys_nested_item(v, keys)
+                elif isinstance(v, (dict, list)):
+                    stack.append((v, {}))
+        elif isinstance(current, list):
+            for item in current:
+                stack.append((item, {}))
+    return filtered
+
+
 @pytest.fixture(scope="function")
 def network(example_network) -> Network:
     assert len(example_network.routers) is 1
@@ -59,10 +75,10 @@ def test_reset_network(network):
 
     assert client_1.operating_state is NodeOperatingState.ON
     assert server_1.operating_state is NodeOperatingState.ON
-
-    assert json.dumps(network.describe_state(), sort_keys=True, indent=2) == json.dumps(
-        state_before, sort_keys=True, indent=2
-    )
+    # don't worry if UUIDs change
+    a = filter_keys_nested_item(json.dumps(network.describe_state(), sort_keys=True, indent=2), ["uuid"])
+    b = filter_keys_nested_item(json.dumps(state_before, sort_keys=True, indent=2), ["uuid"])
+    assert a == b
 
 
 def test_creating_container():

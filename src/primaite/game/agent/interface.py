@@ -44,6 +44,8 @@ class AgentSettings(BaseModel):
 
     start_settings: Optional[AgentStartSettings] = None
     "Configuration for when an agent begins performing it's actions"
+    flatten_obs: bool = True
+    "Whether to flatten the observation space before passing it to the agent. True by default."
 
     @classmethod
     def from_config(cls, config: Optional[Dict]) -> "AgentSettings":
@@ -134,6 +136,10 @@ class AbstractAgent(ABC):
         request = self.action_manager.form_request(action_identifier=action, action_options=options)
         return request
 
+    def reset_agent_for_episode(self) -> None:
+        """Agent reset logic should go here."""
+        pass
+
 
 class AbstractScriptedAgent(AbstractAgent):
     """Base class for actors which generate their own behaviour."""
@@ -166,6 +172,7 @@ class ProxyAgent(AbstractAgent):
         action_space: Optional[ActionManager],
         observation_space: Optional[ObservationManager],
         reward_function: Optional[RewardFunction],
+        agent_settings: Optional[AgentSettings] = None,
     ) -> None:
         super().__init__(
             agent_name=agent_name,
@@ -174,6 +181,7 @@ class ProxyAgent(AbstractAgent):
             reward_function=reward_function,
         )
         self.most_recent_action: ActType
+        self.flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False
 
     def get_action(self, obs: ObsType, reward: float = 0.0) -> Tuple[str, Dict]:
         """
