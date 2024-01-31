@@ -508,21 +508,21 @@ agents:
         max_nics_per_node: 8
         max_acl_rules: 10
         ip_address_order:
-        - node_ref: domain_controller
+        - node_name: domain_controller
           nic_num: 1
-        - node_ref: web_server
+        - node_name: web_server
           nic_num: 1
-        - node_ref: database_server
+        - node_name: database_server
           nic_num: 1
-        - node_ref: backup_server
+        - node_name: backup_server
           nic_num: 1
-        - node_ref: security_suite
+        - node_name: security_suite
           nic_num: 1
-        - node_ref: client_1
+        - node_name: client_1
           nic_num: 1
-        - node_ref: client_2
+        - node_name: client_2
           nic_num: 1
-        - node_ref: security_suite
+        - node_name: security_suite
           nic_num: 2
 
 

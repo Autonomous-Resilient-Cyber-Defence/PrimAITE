@@ -298,13 +298,13 @@ class NodeFileDeleteAction(NodeFileAbstractAction):
 
     def form_request(self, node_id: int, folder_id: int, file_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_uuid = self.manager.get_node_uuid_by_idx(node_id)
-        folder_uuid = self.manager.get_folder_uuid_by_idx(node_idx=node_id, folder_idx=folder_id)
-        file_uuid = self.manager.get_file_uuid_by_idx(node_idx=node_id, folder_idx=folder_id, file_idx=file_id)
-        if node_uuid is None or folder_uuid is None or file_uuid is None:
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        folder_name = self.manager.get_folder_name_by_idx(node_idx=node_id, folder_idx=folder_id)
+        file_name = self.manager.get_file_name_by_idx(node_idx=node_id, folder_idx=folder_id, file_idx=file_id)
+        if node_name is None or folder_name is None or file_name is None:
             return ["do_nothing"]
         return ["do_nothing"]
-        # return ["network", "node", node_uuid, "file_system", "delete", "file", folder_uuid, file_uuid]
+        # return ["network", "node", node_name, "file_system", "delete", "file", folder_name, file_name]
 
 
 class NodeFileRepairAction(NodeFileAbstractAction):
@@ -849,7 +849,7 @@ class ActionManager:
         return self.folder_names[node_idx][folder_idx]
 
     def get_file_name_by_idx(self, node_idx: int, folder_idx: int, file_idx: int) -> Optional[str]:
-        """Get the file UUID corresponding to the given node, folder, and file indices.
+        """Get the file name corresponding to the given node, folder, and file indices.
 
         :param node_idx: The index of the node.
         :type node_idx: int
@@ -962,9 +962,9 @@ class ActionManager:
         ip_address_order = cfg["options"].pop("ip_address_order", {})
         ip_address_list = []
         for entry in ip_address_order:
-            node_ref = entry["node_ref"]
+            node_name = entry["node_name"]
             nic_num = entry["nic_num"]
-            node_obj = game.simulation.network.get_node_by_hostname(node_ref)
+            node_obj = game.simulation.network.get_node_by_hostname(node_name)
             ip_address = node_obj.ethernet_port[nic_num].ip_address
             ip_address_list.append(ip_address)
 
