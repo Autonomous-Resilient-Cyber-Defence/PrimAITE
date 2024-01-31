@@ -270,7 +270,7 @@ class NodeFileAbstractAction(AbstractAction):
         file_name = self.manager.get_file_name_by_idx(node_idx=node_id, folder_idx=folder_id, file_idx=file_id)
         if node_name is None or folder_name is None or file_name is None:
             return ["do_nothing"]
-        return ["network", "node", node_name, "file_system", "folder", folder_name, "files", file_name, self.verb]
+        return ["network", "node", node_name, "file_system", "folder", folder_name, "file", file_name, self.verb]
 
 
 class NodeFileScanAction(NodeFileAbstractAction):

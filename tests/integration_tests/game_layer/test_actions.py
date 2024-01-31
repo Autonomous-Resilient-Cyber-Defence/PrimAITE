@@ -19,6 +19,7 @@ from primaite.game.agent.interface import AbstractAgent, ProxyAgent
 from primaite.game.agent.observations import ICSObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.game import PrimaiteGame
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
@@ -62,7 +63,7 @@ class ControlledAgent(AbstractAgent):
 
 
 def install_stuff_to_sim(sim: Simulation):
-    """Create a simulation with a three computers, two switches, and a router."""
+    """Create a simulation with a computer, two servers, two switches, and a router."""
 
     # 0: Pull out the network
     network = sim.network
@@ -138,6 +139,9 @@ def install_stuff_to_sim(sim: Simulation):
     # 4: Check that client came pre-installed with web browser and dns client
     assert isinstance(client_1.software_manager.software.get("WebBrowser"), WebBrowser)
     assert isinstance(client_1.software_manager.software.get("DNSClient"), DNSClient)
+
+    # 4.1: Create a file on the computer
+    client_1.file_system.create_file("cat.png", 300, folder_name="downloads")
 
     # 5: Assert that the simulation starts off in the state that we expect
     assert len(sim.network.nodes) == 6
@@ -221,7 +225,11 @@ def game_and_agent():
         game=game,
         actions=actions,  # ALL POSSIBLE ACTIONS
         nodes=[
-            {"node_name": "client_1", "applications": [{"application_name": "WebBrowser"}]},
+            {
+                "node_name": "client_1",
+                "applications": [{"application_name": "WebBrowser"}],
+                "folders": [{"folder_name": "downloads", "files": [{"file_name": "cat.png"}]}],
+            },
             {"node_name": "server_1", "services": [{"service_name": "DNSServer"}]},
             {"node_name": "server_2", "services": [{"service_name": "WebServer"}]},
         ],
@@ -480,3 +488,41 @@ def test_network_nic_enable_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     # 3: Check that the NIC is enabled, and that client 1 can ping again
     assert client_1.ethernet_port[1].enabled == True
     assert client_1.ping("10.0.2.3")
+
+
+def test_node_file_scan_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that a when a file is scanned, it's visible health status gets set to the actual health status."""
+
+    game, agent = game_and_agent
+
+    # 1: assert file is healthy
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")
+    file = client_1.file_system.get_file("downloads", "cat.png")
+    assert file.health_status == FileSystemItemHealthStatus.GOOD
+    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
+
+    # 2: perform a scan and make sure nothing has changed
+    action = (
+        "NODE_FILE_SCAN",
+        {
+            "node_id": 0,  # client_1,
+            "folder_id": 0,  # downloads,
+            "file_id": 0,  # cat.png
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    assert file.health_status == FileSystemItemHealthStatus.GOOD
+    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
+
+    # 3: Set the file to corrupted, and check that only actual updates, not visible.
+    file.health_status = FileSystemItemHealthStatus.CORRUPT
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPT
+    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
+
+    # 4: Perform a scan and check that it updates
+    agent.store_action(action)
+    game.step()
+    assert file.health_status == FileSystemItemHealthStatus.CORRUPT
+    assert file.visible_health_status == FileSystemItemHealthStatus.CORRUPT

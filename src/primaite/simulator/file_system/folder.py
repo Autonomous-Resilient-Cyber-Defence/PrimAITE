@@ -257,7 +257,7 @@ class Folder(FileSystemItemABC):
 
         # add to list
         self.files[file.uuid] = file
-        self._file_request_manager.add_request(file.uuid, RequestType(func=file._request_manager))
+        self._file_request_manager.add_request(file.name, RequestType(func=file._request_manager))
         file.folder = self
 
     def remove_file(self, file: Optional[File]):
