@@ -260,7 +260,7 @@ class Network(SimComponent):
         :type node: Node
         """
         if node not in self:
-            _LOGGER.warning(f"Can't remove node {node.uuid}. It's not in the network.")
+            _LOGGER.warning(f"Can't remove node {node.hostname}. It's not in the network.")
             return
         self.nodes.pop(node.uuid)
         for i, _node in self._node_id_map.items():
@@ -268,8 +268,8 @@ class Network(SimComponent):
                 self._node_id_map.pop(i)
                 break
         node.parent = None
-        _LOGGER.info(f"Removed node {node.uuid} from network {self.uuid}")
-        self._node_request_manager.remove_request(name=node.uuid)
+        self._node_request_manager.remove_request(name=node.hostname)
+        _LOGGER.info(f"Removed node {node.hostname} from network {self.uuid}")
 
     def connect(
         self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs
