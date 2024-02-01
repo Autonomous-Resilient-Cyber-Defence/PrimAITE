@@ -8,10 +8,10 @@ from prettytable import MARKDOWN, PrettyTable
 from primaite.simulator.core import SimComponent
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
+from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader, UDPHeader
 
 if TYPE_CHECKING:
-    from primaite.simulator.network.hardware.base import ARPCache
+    from primaite.simulator.network.hardware.base import ARPCache, NIC
     from primaite.simulator.system.core.software_manager import SoftwareManager
     from primaite.simulator.system.core.sys_log import SysLog
 
@@ -138,37 +138,19 @@ class SessionManager:
             dst_port = None
         return protocol, with_ip_address, src_port, dst_port
 
-    def receive_payload_from_software_manager(
-        self,
-        payload: Any,
-        dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
-        dst_port: Optional[Port] = None,
-        session_id: Optional[str] = None,
-        is_reattempt: bool = False,
-    ) -> Union[Any, None]:
-        """
-        Receive a payload from the SoftwareManager and send it to the appropriate NIC for transmission.
-
-        This method supports both unicast and Layer 3 broadcast transmissions. If `dst_ip_address` is an
-        IPv4Network, a broadcast is initiated. For unicast, the destination MAC address is resolved via ARP.
-        A new session is established if `session_id` is not provided, and an existing session is used otherwise.
-
-        :param payload: The payload to be sent.
-        :param dst_ip_address: The destination IP address or network for broadcast. Optional.
-        :param dst_port: The destination port for the TCP packet. Optional.
-        :param session_id: The Session ID from which the payload originates. Optional.
-        :param is_reattempt: Flag to indicate if this is a reattempt after an ARP request. Default is False.
-        :return: The outcome of sending the frame, or None if sending was unsuccessful.
-        """
+    def resolve_outbound_transmission_details(
+        self, dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None, session_id: Optional[str] = None
+    ) -> Tuple[Optional["NIC"], Optional[str], Optional[IPProtocol], bool]:
         is_broadcast = False
         outbound_nic = None
         dst_mac_address = None
+        protocol = None
 
         # Use session details if session_id is provided
         if session_id:
             session = self.sessions_by_uuid[session_id]
             dst_ip_address = session.with_ip_address
-            dst_port = session.dst_port
+            protocol = session.protocol
 
         # Determine if the payload is for broadcast or unicast
 
@@ -182,47 +164,81 @@ class SessionManager:
                     if dst_ip_address in nic.ip_network and nic.enabled:
                         dst_mac_address = "ff:ff:ff:ff:ff:ff"
                         outbound_nic = nic
+                        break
         else:
             # Resolve MAC address for unicast transmission
-            dst_mac_address = self.arp_cache.get_arp_cache_mac_address(dst_ip_address)
+            use_default_gateway = True
+            for nic in self.arp_cache.nics.values():
+                if dst_ip_address in nic.ip_network and nic.enabled:
+                    dst_mac_address = self.arp_cache.get_arp_cache_mac_address(dst_ip_address)
+                    break
 
-            # Resolve outbound NIC for unicast transmission
-            if dst_mac_address:
+            if dst_ip_address:
+                use_default_gateway = False
                 outbound_nic = self.arp_cache.get_arp_cache_nic(dst_ip_address)
 
-            # If MAC address not found, initiate ARP request
-            else:
-                if not is_reattempt:
-                    self.arp_cache.send_arp_request(dst_ip_address)
-                    # Reattempt payload transmission after ARP request
-                    return self.receive_payload_from_software_manager(
-                        payload=payload,
-                        dst_ip_address=dst_ip_address,
-                        dst_port=dst_port,
-                        session_id=session_id,
-                        is_reattempt=True,
-                    )
-                else:
-                    # Return None if reattempt fails
-                    return
+            if use_default_gateway:
+                dst_mac_address = self.arp_cache.get_default_gateway_mac_address()
+                outbound_nic = self.arp_cache.get_default_gateway_nic()
+        return outbound_nic, dst_mac_address, protocol, is_broadcast
+
+    def receive_payload_from_software_manager(
+        self,
+        payload: Any,
+        dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
+        dst_port: Optional[Port] = None,
+        session_id: Optional[str] = None,
+        ip_protocol: IPProtocol = IPProtocol.TCP,
+    ) -> Union[Any, None]:
+        """
+        Receive a payload from the SoftwareManager and send it to the appropriate NIC for transmission.
+
+        This method supports both unicast and Layer 3 broadcast transmissions. If `dst_ip_address` is an
+        IPv4Network, a broadcast is initiated. For unicast, the destination MAC address is resolved via ARP.
+        A new session is established if `session_id` is not provided, and an existing session is used otherwise.
+
+        :param payload: The payload to be sent.
+        :param dst_ip_address: The destination IP address or network for broadcast. Optional.
+        :param dst_port: The destination port for the TCP packet. Optional.
+        :param session_id: The Session ID from which the payload originates. Optional.
+        :return: The outcome of sending the frame, or None if sending was unsuccessful.
+        """
+        print(ip_protocol)
+        outbound_nic, dst_mac_address, protocol, is_broadcast = self.resolve_outbound_transmission_details(
+            dst_ip_address=dst_ip_address, session_id=session_id
+        )
+
+        if protocol:
+            ip_protocol = protocol
+
+        print(ip_protocol)
 
         # Check if outbound NIC and destination MAC address are resolved
         if not outbound_nic or not dst_mac_address:
             return False
 
+        tcp_header = None
+        udp_header = None
+        if ip_protocol == IPProtocol.TCP:
+            TCPHeader(
+                src_port=dst_port,
+                dst_port=dst_port,
+            )
+        elif ip_protocol == IPProtocol:
+            udp_header = UDPHeader(
+                src_port=dst_port,
+                dst_port=dst_port,
+            )
+
         # Construct the frame for transmission
         frame = Frame(
             ethernet=EthernetHeader(src_mac_addr=outbound_nic.mac_address, dst_mac_addr=dst_mac_address),
-            ip=IPPacket(
-                src_ip_address=outbound_nic.ip_address,
-                dst_ip_address=dst_ip_address,
-            ),
-            tcp=TCPHeader(
-                src_port=dst_port,
-                dst_port=dst_port,
-            ),
+            ip=IPPacket(src_ip_address=outbound_nic.ip_address, dst_ip_address=dst_ip_address, ip_protocol=ip_protocol),
+            tcp=tcp_header,
+            udp_header=udp_header,
             payload=payload,
         )
+        print(frame)
 
         # Manage session for unicast transmission
         if not (is_broadcast and session_id):
@@ -237,7 +253,7 @@ class SessionManager:
         # Send the frame through the NIC
         return outbound_nic.send_frame(frame)
 
-    def receive_frame(self, frame: Frame):
+    def receive_frame(self, frame: Frame, from_nic: NIC):
         """
         Receive a Frame.
 
@@ -253,8 +269,13 @@ class SessionManager:
             session = Session.from_session_key(session_key)
             self.sessions_by_key[session_key] = session
             self.sessions_by_uuid[session.uuid] = session
+        dst_port = None
+        if frame.tcp:
+            dst_port = frame.tcp.dst_port
+        elif frame.udp:
+            dst_port = frame.udp.dst_port
         self.software_manager.receive_payload_from_session_manager(
-            payload=frame.payload, port=frame.tcp.dst_port, protocol=frame.ip.protocol, session_id=session.uuid
+            payload=frame.payload, port=dst_port, protocol=frame.ip.protocol, session_id=session.uuid, from_nic=from_nic
         )
 
     def show(self, markdown: bool = False):

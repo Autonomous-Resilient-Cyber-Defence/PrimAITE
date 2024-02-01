@@ -18,7 +18,7 @@ from primaite.simulator.network.hardware.node_operating_state import NodeOperati
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
+from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader, UDPHeader
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.packet_capture import PacketCapture
 from primaite.simulator.system.core.session_manager import SessionManager
@@ -617,6 +617,7 @@ class ARPCache:
         self.sys_log: "SysLog" = sys_log
         self.arp: Dict[IPv4Address, ARPEntry] = {}
         self.nics: Dict[str, "NIC"] = {}
+        self.node = None
 
     def show(self, markdown: bool = False):
         """Prints a table of ARC Cache."""
@@ -669,6 +670,36 @@ class ARPCache:
         if ip_address in self.arp:
             del self.arp[ip_address]
 
+    def get_default_gateway_mac_address(self) -> Optional[str]:
+        if self.arp.node.default_gateway:
+            return self.get_arp_cache_mac_address(self.arp.node.default_gateway)
+
+    def get_default_gateway_nic(self) -> Optional[NIC]:
+        if self.arp.node.default_gateway:
+            return self.get_arp_cache_nic(self.arp.node.default_gateway)
+
+    def _get_arp_cache_mac_address(
+        self, ip_address: IPv4Address, is_reattempt: bool = False, is_default_gateway_attempt: bool = False
+    ) -> Optional[str]:
+        arp_entry = self.arp.get(ip_address)
+
+        if arp_entry:
+            return arp_entry.mac_address
+        else:
+            if not is_reattempt:
+                self.send_arp_request(ip_address)
+                return self._get_arp_cache_mac_address(
+                    ip_address=ip_address, is_reattempt=True, is_default_gateway_attempt=is_default_gateway_attempt
+                )
+            else:
+                if self.node.default_gateway:
+                    if not is_default_gateway_attempt:
+                        self.send_arp_request(self.node.default_gateway)
+                        return self._get_arp_cache_mac_address(
+                            ip_address=self.node.default_gateway, is_reattempt=True, is_default_gateway_attempt=True
+                        )
+        return None
+
     def get_arp_cache_mac_address(self, ip_address: IPv4Address) -> Optional[str]:
         """
         Get the MAC address associated with an IP address.
@@ -676,9 +707,29 @@ class ARPCache:
         :param ip_address: The IP address to look up in the cache.
         :return: The MAC address associated with the IP address, or None if not found.
         """
+        return self._get_arp_cache_mac_address(ip_address)
+
+    def _get_arp_cache_nic(
+        self, ip_address: IPv4Address, is_reattempt: bool = False, is_default_gateway_attempt: bool = False
+    ) -> Optional[NIC]:
         arp_entry = self.arp.get(ip_address)
+
         if arp_entry:
-            return arp_entry.mac_address
+            return self.nics[arp_entry.nic_uuid]
+        else:
+            if not is_reattempt:
+                self.send_arp_request(ip_address)
+                return self._get_arp_cache_nic(
+                    ip_address=ip_address, is_reattempt=True, is_default_gateway_attempt=is_default_gateway_attempt
+                )
+            else:
+                if self.node.default_gateway:
+                    if not is_default_gateway_attempt:
+                        self.send_arp_request(self.node.default_gateway)
+                        return self._get_arp_cache_nic(
+                            ip_address=self.node.default_gateway, is_reattempt=True, is_default_gateway_attempt=True
+                        )
+        return None
 
     def get_arp_cache_nic(self, ip_address: IPv4Address) -> Optional[NIC]:
         """
@@ -687,10 +738,7 @@ class ARPCache:
         :param ip_address: The IP address to look up in the cache.
         :return: The NIC associated with the IP address, or None if not found.
         """
-        arp_entry = self.arp.get(ip_address)
-
-        if arp_entry:
-            return self.nics[arp_entry.nic_uuid]
+        return self._get_arp_cache_nic(ip_address)
 
     def clear_arp_cache(self):
         """Clear the entire ARP cache, removing all stored entries."""
@@ -721,12 +769,11 @@ class ARPCache:
                         use_nic = False
             if nic.enabled and use_nic:
                 self.sys_log.info(f"Sending ARP request from NIC {nic} for ip {target_ip_address}")
-                tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
+                udp_header = UDPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
                 # Network Layer
                 ip_packet = IPPacket(
-                    src_ip_address=nic.ip_address,
-                    dst_ip_address=target_ip_address,
+                    src_ip_address=nic.ip_address, dst_ip_address=target_ip_address, protocol=IPProtocol.UDP
                 )
                 # Data Link Layer
                 ethernet_header = EthernetHeader(src_mac_addr=nic.mac_address, dst_mac_addr="ff:ff:ff:ff:ff:ff")
@@ -735,7 +782,7 @@ class ARPCache:
                     sender_mac_addr=nic.mac_address,
                     target_ip_address=target_ip_address,
                 )
-                frame = Frame(ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, arp=arp_packet)
+                frame = Frame(ethernet=ethernet_header, ip=ip_packet, udp=udp_header, payload=arp_packet)
                 nic.send_frame(frame)
 
     def send_arp_reply(self, arp_reply: ARPPacket, from_nic: NIC):
@@ -888,25 +935,14 @@ class ICMP:
             was not found in the ARP cache.
         """
         nic = self.arp.get_arp_cache_nic(target_ip_address)
-        # TODO: Eventually this ARP request needs to be done elsewhere. It's not the responsibility of the
-        # ping function to handle ARP lookups
 
-        # Already tried once and cannot get ARP entry, stop trying
-        if sequence == -1:
-            if not nic:
-                return 4, None
-            else:
-                sequence = 0
-
-        # No existing ARP entry
         if not nic:
-            self.sys_log.info(f"No entry in ARP cache for {target_ip_address}")
-            self.arp.send_arp_request(target_ip_address)
-            return -1, None
+            return pings, None
 
         # ARP entry exists
         sequence += 1
         target_mac_address = self.arp.get_arp_cache_mac_address(target_ip_address)
+
         src_nic = self.arp.get_arp_cache_nic(target_ip_address)
         tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
@@ -1026,6 +1062,7 @@ class Node(SimComponent):
             )
         super().__init__(**kwargs)
         self.arp.nics = self.nics
+        self.arp.node = self
         self.session_manager.software_manager = self.software_manager
         self._install_system_software()
         self.set_original_state()
@@ -1407,7 +1444,9 @@ class Node(SimComponent):
                 self.sys_log.info("Pinging loopback address")
                 return any(nic.enabled for nic in self.nics.values())
             if self.operating_state == NodeOperatingState.ON:
-                self.sys_log.info(f"Pinging {target_ip_address}:")
+                output = f"Pinging {target_ip_address}:"
+                self.sys_log.info(output)
+                print(output)
                 sequence, identifier = 0, None
                 while sequence < pings:
                     sequence, identifier = self.icmp.ping(target_ip_address, sequence, identifier, pings)
@@ -1417,12 +1456,14 @@ class Node(SimComponent):
                     self.icmp.request_replies.pop(identifier)
                 else:
                     request_replies = 0
-                self.sys_log.info(
+                output = (
                     f"Ping statistics for {target_ip_address}: "
                     f"Packets: Sent = {pings}, "
                     f"Received = {request_replies}, "
                     f"Lost = {pings - request_replies} ({(pings - request_replies) / pings * 100}% loss)"
                 )
+                self.sys_log.info(output)
+                print(output)
                 return passed
         return False
 
@@ -1456,12 +1497,18 @@ class Node(SimComponent):
                 self.icmp.process_icmp(frame=frame, from_nic=from_nic)
                 return
             # Check if the destination port is open on the Node
-            if frame.tcp.dst_port in self.software_manager.get_open_ports():
+            dst_port = None
+            if frame.tcp:
+                dst_port = frame.tcp.dst_port
+            elif frame.udp:
+                dst_port = frame.udp.dst_port
+            if dst_port in self.software_manager.get_open_ports():
                 # accept thr frame as the port is open
-                if frame.tcp.src_port == Port.ARP:
-                    self.arp.process_arp_packet(from_nic=from_nic, arp_packet=frame.arp)
-                else:
-                    self.session_manager.receive_frame(frame)
+                self.session_manager.receive_frame(frame, from_nic)
+                # if frame.tcp.src_port == Port.ARP:
+                #     self.arp.process_arp_packet(from_nic=from_nic, arp_packet=frame.arp)
+                # else:
+                #     self.session_manager.receive_frame(frame)
             else:
                 # denied as port closed
                 self.sys_log.info(f"Ignoring frame for port {frame.tcp.dst_port.value} from {frame.ip.src_ip_address}")

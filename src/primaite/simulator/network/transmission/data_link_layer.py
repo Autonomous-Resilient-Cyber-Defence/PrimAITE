@@ -73,7 +73,7 @@ class Frame(BaseModel):
             msg = "Cannot build a Frame using the TCP IP Protocol without a TCPHeader"
             _LOGGER.error(msg)
             raise ValueError(msg)
-        if kwargs["ip"].protocol == IPProtocol.UDP and not kwargs.get("UDP"):
+        if kwargs["ip"].protocol == IPProtocol.UDP and not kwargs.get("udp"):
             msg = "Cannot build a Frame using the UDP IP Protocol without a UDPHeader"
             _LOGGER.error(msg)
             raise ValueError(msg)
@@ -95,8 +95,6 @@ class Frame(BaseModel):
     "UDP header."
     icmp: Optional[ICMPPacket] = None
     "ICMP header."
-    arp: Optional[ARPPacket] = None
-    "ARP packet."
     primaite: PrimaiteHeader
     "PrimAITE header."
     payload: Optional[Any] = None

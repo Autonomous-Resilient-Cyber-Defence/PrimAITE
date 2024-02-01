@@ -14,7 +14,7 @@ from primaite.simulator.system.software import IOSoftware
 if TYPE_CHECKING:
     from primaite.simulator.system.core.session_manager import SessionManager
     from primaite.simulator.system.core.sys_log import SysLog
-    from primaite.simulator.network.hardware.base import Node
+    from primaite.simulator.network.hardware.base import Node, NIC
 
 from typing import Type, TypeVar
 
@@ -52,11 +52,10 @@ class SoftwareManager:
 
         :return: A list of all open ports on the Node.
         """
-        open_ports = [Port.ARP]
+        open_ports = []
         for software in self.port_protocol_mapping.values():
             if software.operating_state in {ApplicationOperatingState.RUNNING, ServiceOperatingState.RUNNING}:
                 open_ports.append(software.port)
-        open_ports.sort(key=lambda port: port.value)
         return open_ports
 
     def install(self, software_class: Type[IOSoftwareClass]):
@@ -132,6 +131,7 @@ class SoftwareManager:
         payload: Any,
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
         dest_port: Optional[Port] = None,
+        ip_protocol: IPProtocol = IPProtocol.TCP,
         session_id: Optional[str] = None,
     ) -> bool:
         """
@@ -154,7 +154,9 @@ class SoftwareManager:
             session_id=session_id,
         )
 
-    def receive_payload_from_session_manager(self, payload: Any, port: Port, protocol: IPProtocol, session_id: str):
+    def receive_payload_from_session_manager(
+        self, payload: Any, port: Port, protocol: IPProtocol, session_id: str, from_nic: "NIC"
+    ):
         """
         Receive a payload from the SessionManager and forward it to the corresponding service or application.
 
@@ -163,7 +165,7 @@ class SoftwareManager:
         """
         receiver: Optional[Union[Service, Application]] = self.port_protocol_mapping.get((port, protocol), None)
         if receiver:
-            receiver.receive(payload=payload, session_id=session_id)
+            receiver.receive(payload=payload, session_id=session_id, from_nic=from_nic)
         else:
             self.sys_log.error(f"No service or application found for port {port} and protocol {protocol}")
         pass

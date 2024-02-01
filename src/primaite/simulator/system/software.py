@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Union
 from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
@@ -242,6 +243,8 @@ class IOSoftware(Software):
     "Indicates if the software uses UDP protocol for communication. Default is True."
     port: Port
     "The port to which the software is connected."
+    protocol: IPProtocol
+    "The IP Protocol the Software operates on."
     _connections: Dict[str, Dict] = {}
     "Active connections."
 

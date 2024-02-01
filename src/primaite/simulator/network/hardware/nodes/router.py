@@ -566,33 +566,32 @@ class RouterARPCache(ARPCache):
 
         # ARP Reply
         if not arp_packet.request:
-            for nic in self.router.nics.values():
-                if arp_packet.target_ip_address == nic.ip_address:
-                    # reply to the Router specifically
-                    self.sys_log.info(
-                        f"Received ARP response for {arp_packet.sender_ip_address} "
-                        f"from {arp_packet.sender_mac_addr} via NIC {from_nic}"
-                    )
-                    self.add_arp_cache_entry(
-                        ip_address=arp_packet.sender_ip_address,
-                        mac_address=arp_packet.sender_mac_addr,
-                        nic=from_nic,
-                    )
-                    return
-
-            # Reply for a connected requested
-            nic = self.get_arp_cache_nic(arp_packet.target_ip_address)
-            if nic:
+            if arp_packet.target_ip_address == from_nic.ip_address:
+                # reply to the Router specifically
                 self.sys_log.info(
-                    f"Forwarding arp reply for {arp_packet.target_ip_address}, from {arp_packet.sender_ip_address}"
+                    f"Received ARP response for {arp_packet.sender_ip_address} "
+                    f"from {arp_packet.sender_mac_addr} via NIC {from_nic}"
                 )
-                arp_packet.sender_mac_addr = nic.mac_address
-                frame.decrement_ttl()
-                if frame.ip and frame.ip.ttl < 1:
-                    self.sys_log.info("Frame discarded as TTL limit reached")
-                    return
-                nic.send_frame(frame)
-            return
+                self.add_arp_cache_entry(
+                    ip_address=arp_packet.sender_ip_address,
+                    mac_address=arp_packet.sender_mac_addr,
+                    nic=from_nic,
+                )
+                return
+
+            # # Reply for a connected requested
+            # nic = self.get_arp_cache_nic(arp_packet.target_ip_address)
+            # if nic:
+            #     self.sys_log.info(
+            #         f"Forwarding arp reply for {arp_packet.target_ip_address}, from {arp_packet.sender_ip_address}"
+            #     )
+            #     arp_packet.sender_mac_addr = nic.mac_address
+            #     frame.decrement_ttl()
+            #     if frame.ip and frame.ip.ttl < 1:
+            #         self.sys_log.info("Frame discarded as TTL limit reached")
+            #         return
+            #     nic.send_frame(frame)
+            # return
 
         # ARP Request
         self.sys_log.info(
@@ -606,28 +605,27 @@ class RouterARPCache(ARPCache):
 
         # If the target IP matches one of the router's NICs
         for nic in self.nics.values():
-            if arp_packet.target_ip_address in nic.ip_network:
-                # if nic.enabled and nic.ip_address == arp_packet.target_ip_address:
+            if nic.enabled and nic.ip_address == arp_packet.target_ip_address:
                 arp_reply = arp_packet.generate_reply(from_nic.mac_address)
                 self.send_arp_reply(arp_reply, from_nic)
                 return
 
-        # Check Route Table
-        route = route_table.find_best_route(arp_packet.target_ip_address)
-        if route:
-            nic = self.get_arp_cache_nic(route.next_hop_ip_address)
-
-            if not nic:
-                if not is_reattempt:
-                    self.send_arp_request(route.next_hop_ip_address, ignore_networks=[frame.ip.src_ip_address])
-                    return self.process_arp_packet(from_nic, frame, route_table, is_reattempt=True)
-                else:
-                    self.sys_log.info("Ignoring ARP request as destination unavailable/No ARP entry found")
-                    return
-            else:
-                arp_reply = arp_packet.generate_reply(from_nic.mac_address)
-                self.send_arp_reply(arp_reply, from_nic)
-            return
+        # # Check Route Table
+        # route = route_table.find_best_route(arp_packet.target_ip_address)
+        # if route and route != self.router.route_table.default_route:
+        #     nic = self.get_arp_cache_nic(route.next_hop_ip_address)
+        #
+        #     if not nic:
+        #         if not is_reattempt:
+        #             self.send_arp_request(route.next_hop_ip_address, ignore_networks=[frame.ip.src_ip_address])
+        #             return self.process_arp_packet(from_nic, frame, route_table, is_reattempt=True)
+        #         else:
+        #             self.sys_log.info("Ignoring ARP request as destination unavailable/No ARP entry found")
+        #             return
+        #     else:
+        #         arp_reply = arp_packet.generate_reply(from_nic.mac_address)
+        #         self.send_arp_reply(arp_reply, from_nic)
+        #     return
 
 
 class RouterICMP(ICMP):
@@ -949,13 +947,13 @@ class Router(Node):
             at_port = self._get_port_of_nic(from_nic)
             self.sys_log.info(f"Frame blocked at port {at_port} by rule {rule}")
             return
-        if not self.arp.get_arp_cache_nic(src_ip_address):
-            self.arp.add_arp_cache_entry(src_ip_address, frame.ethernet.src_mac_addr, from_nic)
+        self.arp.add_arp_cache_entry(src_ip_address, frame.ethernet.src_mac_addr, from_nic)
         if frame.ip.protocol == IPProtocol.ICMP:
             self.icmp.process_icmp(frame=frame, from_nic=from_nic)
         else:
             if src_port == Port.ARP:
                 self.arp.process_arp_packet(from_nic=from_nic, frame=frame, route_table=self.route_table)
+                return
             else:
                 # All other traffic
                 process_frame = True
