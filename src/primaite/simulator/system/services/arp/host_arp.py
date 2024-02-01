@@ -53,7 +53,7 @@ class HostARP(ARP):
         arp_entry = self.arp.get(ip_address)
 
         if arp_entry:
-            return self.nics[arp_entry.nic_uuid]
+            return self.software_manager.node.nics[arp_entry.nic_uuid]
         else:
             if not is_reattempt:
                 self.send_arp_request(ip_address)

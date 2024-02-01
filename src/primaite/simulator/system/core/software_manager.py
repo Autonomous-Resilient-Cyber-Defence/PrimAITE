@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from primaite.simulator.system.core.session_manager import SessionManager
     from primaite.simulator.system.core.sys_log import SysLog
     from primaite.simulator.network.hardware.base import Node, NIC
+    from primaite.simulator.system.services.arp.arp import ARP
 
 from typing import Type, TypeVar
 
@@ -45,6 +46,10 @@ class SoftwareManager:
         self.sys_log: SysLog = sys_log
         self.file_system: FileSystem = file_system
         self.dns_server: Optional[IPv4Address] = dns_server
+
+    @property
+    def arp(self) -> 'ARP':
+        return self.software.get("ARP")  # noqa
 
     def get_open_ports(self) -> List[Port]:
         """

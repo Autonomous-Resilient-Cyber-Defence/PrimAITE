@@ -18,7 +18,7 @@ from primaite.simulator.network.hardware.node_operating_state import NodeOperati
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader, UDPHeader
+from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.packet_capture import PacketCapture
 from primaite.simulator.system.core.session_manager import SessionManager
@@ -761,29 +761,30 @@ class ARPCache:
             minimized or controlled to specific subnets. It is mainly used by the router to prevent ARP requests being
             sent back to their source.
         """
-        for nic in self.nics.values():
-            use_nic = True
-            if ignore_networks:
-                for ipv4 in ignore_networks:
-                    if ipv4 in nic.ip_network:
-                        use_nic = False
-            if nic.enabled and use_nic:
-                self.sys_log.info(f"Sending ARP request from NIC {nic} for ip {target_ip_address}")
-                udp_header = UDPHeader(src_port=Port.ARP, dst_port=Port.ARP)
-
-                # Network Layer
-                ip_packet = IPPacket(
-                    src_ip_address=nic.ip_address, dst_ip_address=target_ip_address, protocol=IPProtocol.UDP
-                )
-                # Data Link Layer
-                ethernet_header = EthernetHeader(src_mac_addr=nic.mac_address, dst_mac_addr="ff:ff:ff:ff:ff:ff")
-                arp_packet = ARPPacket(
-                    sender_ip_address=nic.ip_address,
-                    sender_mac_addr=nic.mac_address,
-                    target_ip_address=target_ip_address,
-                )
-                frame = Frame(ethernet=ethernet_header, ip=ip_packet, udp=udp_header, payload=arp_packet)
-                nic.send_frame(frame)
+        pass
+        # for nic in self.nics.values():
+        #     use_nic = True
+        #     if ignore_networks:
+        #         for ipv4 in ignore_networks:
+        #             if ipv4 in nic.ip_network:
+        #                 use_nic = False
+        #     if nic.enabled and use_nic:
+        #         self.sys_log.info(f"Sending ARP request from NIC {nic} for ip {target_ip_address}")
+        #         udp_header = UDPHeader(src_port=Port.ARP, dst_port=Port.ARP)
+        #
+        #         # Network Layer
+        #         ip_packet = IPPacket(
+        #             src_ip_address=nic.ip_address, dst_ip_address=target_ip_address, protocol=IPProtocol.UDP
+        #         )
+        #         # Data Link Layer
+        #         ethernet_header = EthernetHeader(src_mac_addr=nic.mac_address, dst_mac_addr="ff:ff:ff:ff:ff:ff")
+        #         arp_packet = ARPPacket(
+        #             sender_ip_address=nic.ip_address,
+        #             sender_mac_addr=nic.mac_address,
+        #             target_ip_address=target_ip_address,
+        #         )
+        #         frame = Frame(ethernet=ethernet_header, ip=ip_packet, udp=udp_header, payload=arp_packet)
+        #         nic.send_frame(frame)
 
     def send_arp_reply(self, arp_reply: ARPPacket, from_nic: NIC):
         """
@@ -860,7 +861,7 @@ class ICMP:
     Provides functionalities for managing and handling ICMP packets, including echo requests and replies.
     """
 
-    def __init__(self, sys_log: SysLog, arp_cache: ARPCache):
+    def __init__(self, sys_log: SysLog):
         """
         Initialize the ICMP (Internet Control Message Protocol) service.
 
@@ -868,7 +869,7 @@ class ICMP:
         :param arp_cache: The ARP cache for resolving IP to MAC address mappings.
         """
         self.sys_log: SysLog = sys_log
-        self.arp: ARPCache = arp_cache
+        self.software_manager: SoftwareManager = None ## noqa
         self.request_replies = {}
 
     def clear(self):
@@ -884,11 +885,11 @@ class ICMP:
         if frame.icmp.icmp_type == ICMPType.ECHO_REQUEST:
             if not is_reattempt:
                 self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
-            target_mac_address = self.arp.get_arp_cache_mac_address(frame.ip.src_ip_address)
+            target_mac_address = self.software_manager.arp.get_arp_cache_mac_address(frame.ip.src_ip_address)
 
-            src_nic = self.arp.get_arp_cache_nic(frame.ip.src_ip_address)
+            src_nic = self.software_manager.arp.get_arp_cache_nic(frame.ip.src_ip_address)
             if not src_nic:
-                self.arp.send_arp_request(frame.ip.src_ip_address)
+                self.software_manager.arp.send_arp_request(frame.ip.src_ip_address)
                 self.process_icmp(frame=frame, from_nic=from_nic, is_reattempt=True)
                 return
 
@@ -934,16 +935,16 @@ class ICMP:
         :return: A tuple containing the next sequence number and the identifier, or (0, None) if the target IP address
             was not found in the ARP cache.
         """
-        nic = self.arp.get_arp_cache_nic(target_ip_address)
+        nic = self.software_manager.arp.get_arp_cache_nic(target_ip_address)
 
         if not nic:
             return pings, None
 
         # ARP entry exists
         sequence += 1
-        target_mac_address = self.arp.get_arp_cache_mac_address(target_ip_address)
+        target_mac_address = self.software_manager.arp.get_arp_cache_mac_address(target_ip_address)
 
-        src_nic = self.arp.get_arp_cache_nic(target_ip_address)
+        src_nic = self.software_manager.arp.get_arp_cache_nic(target_ip_address)
         tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 
         # Network Layer
@@ -998,7 +999,6 @@ class Node(SimComponent):
     root: Path
     "Root directory for simulation output."
     sys_log: SysLog
-    arp: ARPCache
     icmp: ICMP
     session_manager: SessionManager
     software_manager: SoftwareManager
@@ -1042,10 +1042,8 @@ class Node(SimComponent):
                 kwargs["default_gateway"] = IPv4Address(kwargs["default_gateway"])
         if not kwargs.get("sys_log"):
             kwargs["sys_log"] = SysLog(kwargs["hostname"])
-        if not kwargs.get("arp"):
-            kwargs["arp"] = ARPCache(sys_log=kwargs.get("sys_log"))
         if not kwargs.get("icmp"):
-            kwargs["icmp"] = ICMP(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"))
+            kwargs["icmp"] = ICMP(sys_log=kwargs.get("sys_log"))
         if not kwargs.get("session_manager"):
             kwargs["session_manager"] = SessionManager(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"))
         if not kwargs.get("root"):
@@ -1061,11 +1059,12 @@ class Node(SimComponent):
                 dns_server=kwargs.get("dns_server"),
             )
         super().__init__(**kwargs)
-        self.arp.nics = self.nics
-        self.arp.node = self
+        self.icmp.software_manager = self.software_manager
+        self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
         self._install_system_software()
         self.set_original_state()
+
 
     def set_original_state(self):
         """Sets the original state."""
@@ -1489,8 +1488,8 @@ class Node(SimComponent):
         """
         if self.operating_state == NodeOperatingState.ON:
             if frame.ip:
-                if frame.ip.src_ip_address in self.arp:
-                    self.arp.add_arp_cache_entry(
+                if frame.ip.src_ip_address in self.software_manager.arp:
+                    self.software_manager.arp.add_arp_cache_entry(
                         ip_address=frame.ip.src_ip_address, mac_address=frame.ethernet.src_mac_addr, nic=from_nic
                     )
             if frame.ip.protocol == IPProtocol.ICMP:

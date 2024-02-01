@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.core import SimComponent
+from primaite.simulator.network.protocols.arp import ARPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader, UDPHeader
@@ -80,7 +81,9 @@ class SessionManager:
         self.sessions_by_uuid: Dict[str, Session] = {}
         self.sys_log: SysLog = sys_log
         self.software_manager: SoftwareManager = None  # Noqa
-        self.arp_cache: "ARPCache" = arp_cache
+        self.node: Node = None  # noqa
+
+
 
     def describe_state(self) -> Dict:
         """
@@ -138,9 +141,17 @@ class SessionManager:
             dst_port = None
         return protocol, with_ip_address, src_port, dst_port
 
+    def resolve_outbound_nic(self, dst_ip_address: IPv4Address) -> Optional[NIC]:
+        for nic in self.node.nics.values():
+            if dst_ip_address in nic.ip_network and nic.enabled:
+                return nic
+        return self.software_manager.arp.get_default_gateway_nic()
+
     def resolve_outbound_transmission_details(
         self, dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None, session_id: Optional[str] = None
     ) -> Tuple[Optional["NIC"], Optional[str], Optional[IPProtocol], bool]:
+        if not isinstance(dst_ip_address, IPv4Address):
+            dst_ip_address = IPv4Address(dst_ip_address)
         is_broadcast = False
         outbound_nic = None
         dst_mac_address = None
@@ -160,7 +171,7 @@ class SessionManager:
             dst_ip_address = dst_ip_address.broadcast_address
             if dst_ip_address:
                 # Find a suitable NIC for the broadcast
-                for nic in self.arp_cache.nics.values():
+                for nic in self.node.nics.values():
                     if dst_ip_address in nic.ip_network and nic.enabled:
                         dst_mac_address = "ff:ff:ff:ff:ff:ff"
                         outbound_nic = nic
@@ -168,18 +179,18 @@ class SessionManager:
         else:
             # Resolve MAC address for unicast transmission
             use_default_gateway = True
-            for nic in self.arp_cache.nics.values():
+            for nic in self.node.nics.values():
                 if dst_ip_address in nic.ip_network and nic.enabled:
-                    dst_mac_address = self.arp_cache.get_arp_cache_mac_address(dst_ip_address)
+                    dst_mac_address = self.software_manager.arp.get_arp_cache_mac_address(dst_ip_address)
                     break
 
             if dst_ip_address:
                 use_default_gateway = False
-                outbound_nic = self.arp_cache.get_arp_cache_nic(dst_ip_address)
+                outbound_nic = self.software_manager.arp.get_arp_cache_nic(dst_ip_address)
 
             if use_default_gateway:
-                dst_mac_address = self.arp_cache.get_default_gateway_mac_address()
-                outbound_nic = self.arp_cache.get_default_gateway_nic()
+                dst_mac_address = self.software_manager.arp.get_default_gateway_mac_address()
+                outbound_nic = self.software_manager.arp.get_default_gateway_nic()
         return outbound_nic, dst_mac_address, protocol, is_broadcast
 
     def receive_payload_from_software_manager(
@@ -203,15 +214,23 @@ class SessionManager:
         :param session_id: The Session ID from which the payload originates. Optional.
         :return: The outcome of sending the frame, or None if sending was unsuccessful.
         """
-        print(ip_protocol)
-        outbound_nic, dst_mac_address, protocol, is_broadcast = self.resolve_outbound_transmission_details(
-            dst_ip_address=dst_ip_address, session_id=session_id
-        )
+        if isinstance(payload, ARPPacket):
+            # ARP requests need to be handles differently
+            if payload.request:
+                dst_mac_address = "ff:ff:ff:ff:ff:ff"
+            else:
+                dst_mac_address = payload.sender_mac_addr
+            outbound_nic = self.resolve_outbound_nic(payload.target_ip_address)
+            is_broadcast = payload.request
+            ip_protocol = IPProtocol.UDP
+        else:
+            outbound_nic, dst_mac_address, protocol, is_broadcast = self.resolve_outbound_transmission_details(
+                dst_ip_address=dst_ip_address, session_id=session_id
+            )
 
-        if protocol:
-            ip_protocol = protocol
+            if protocol:
+                ip_protocol = protocol
 
-        print(ip_protocol)
 
         # Check if outbound NIC and destination MAC address are resolved
         if not outbound_nic or not dst_mac_address:
@@ -224,21 +243,21 @@ class SessionManager:
                 src_port=dst_port,
                 dst_port=dst_port,
             )
-        elif ip_protocol == IPProtocol:
+        elif ip_protocol == IPProtocol.UDP:
             udp_header = UDPHeader(
                 src_port=dst_port,
                 dst_port=dst_port,
             )
 
         # Construct the frame for transmission
+
         frame = Frame(
             ethernet=EthernetHeader(src_mac_addr=outbound_nic.mac_address, dst_mac_addr=dst_mac_address),
-            ip=IPPacket(src_ip_address=outbound_nic.ip_address, dst_ip_address=dst_ip_address, ip_protocol=ip_protocol),
+            ip=IPPacket(src_ip_address=outbound_nic.ip_address, dst_ip_address=dst_ip_address, protocol=ip_protocol),
             tcp=tcp_header,
-            udp_header=udp_header,
+            udp=udp_header,
             payload=payload,
         )
-        print(frame)
 
         # Manage session for unicast transmission
         if not (is_broadcast and session_id):

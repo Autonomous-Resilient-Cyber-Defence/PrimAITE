@@ -105,8 +105,7 @@ class ARP(Service):
             minimized or controlled to specific subnets. It is mainly used by the router to prevent ARP requests being
             sent back to their source.
         """
-        vals: Tuple = self.software_manager.session_manager.resolve_outbound_transmission_details(target_ip_address)
-        outbound_nic, _, _, _ = vals
+        outbound_nic = self.software_manager.session_manager.resolve_outbound_nic(target_ip_address)
         if outbound_nic:
             self.sys_log.info(f"Sending ARP request from NIC {outbound_nic} for ip {target_ip_address}")
             arp_packet = ARPPacket(
@@ -114,8 +113,8 @@ class ARP(Service):
                 sender_mac_addr=outbound_nic.mac_address,
                 target_ip_address=target_ip_address,
             )
-            self.software_manager.session_manager.receive_payload_from_software_manage(
-                payload=arp_packet, dst_port=Port.ARP, ip_protocol=self.protocol
+            self.software_manager.session_manager.receive_payload_from_software_manager(
+                payload=arp_packet, dst_ip_address=target_ip_address, dst_port=Port.ARP, ip_protocol=self.protocol
             )
         else:
             print(f"failed for {target_ip_address}")
