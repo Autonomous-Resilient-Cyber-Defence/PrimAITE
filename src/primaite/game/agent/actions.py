@@ -398,8 +398,8 @@ class NetworkACLAddRuleAction(AbstractAction):
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
-        :param target_router_name: hostname of the router to which the ACL rule should be added.
-        :type target_router_name: str
+        :param target_router_hostname: hostname of the router to which the ACL rule should be added.
+        :type target_router_hostname: str
         :param max_acl_rules: Maximum number of ACL rules that can be added to the router.
         :type max_acl_rules: int
         :param num_ips: Number of IP addresses in the simulation.
@@ -508,8 +508,8 @@ class NetworkACLRemoveRuleAction(AbstractAction):
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
-        :param target_router_name: Hostname of the router from which the ACL rule should be removed.
-        :type target_router_name: str
+        :param target_router_hostname: Hostname of the router from which the ACL rule should be removed.
+        :type target_router_hostname: str
         :param max_acl_rules: Maximum number of ACL rules that can be added to the router.
         :type max_acl_rules: int
         """
@@ -629,7 +629,7 @@ class ActionManager:
             'type' and 'options' for passing any options to the action class's init method
         :type actions: List[dict]
         :param nodes: Extra configuration for each node.
-        :type nodes: Dict
+        :type nodes: List[Dict]
         :param max_folders_per_node: Maximum number of folders per node. Used for calculating action shape.
         :type max_folders_per_node: int
         :param max_files_per_folder: Maximum number of files per folder. Used for calculating action shape.
@@ -679,24 +679,24 @@ class ActionManager:
         """
 
         # Populate lists of apps, services, files, folders, etc on nodes.
-        for n in nodes:
-            app_list = [a["application_name"] for a in n.get("applications", [])]
+        for node in nodes:
+            app_list = [a["application_name"] for a in node.get("applications", [])]
             while len(app_list) < max_applications_per_node:
                 app_list.append(None)
             self.application_names.append(app_list)
 
-            svc_list = [s["service_name"] for s in n.get("services", [])]
+            svc_list = [s["service_name"] for s in node.get("services", [])]
             while len(svc_list) < max_services_per_node:
                 svc_list.append(None)
             self.service_names.append(svc_list)
 
-            folder_list = [f["folder_name"] for f in n.get("folders", [])]
+            folder_list = [f["folder_name"] for f in node.get("folders", [])]
             while len(folder_list) < max_folders_per_node:
                 folder_list.append(None)
             self.folder_names.append(folder_list)
 
             file_sublist = []
-            for folder in n.get("folders", [{"files": []}]):
+            for folder in node.get("folders", [{"files": []}]):
                 file_list = [f["file_name"] for f in folder.get("files", [])]
                 while len(file_list) < max_files_per_folder:
                     file_list.append(None)

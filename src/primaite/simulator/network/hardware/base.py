@@ -1388,7 +1388,8 @@ class Node(SimComponent):
             nic.parent = None
             nic.disable()
             self.sys_log.info(f"Disconnected NIC {nic}")
-            self._nic_request_manager.remove_request(nic_num)
+            if nic_num != -1:
+                self._nic_request_manager.remove_request(nic_num)
         else:
             msg = f"Cannot disconnect NIC {nic} as it is not connected"
             self.sys_log.logger.error(msg)
