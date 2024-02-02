@@ -218,7 +218,7 @@ class RewardFunction:
         self.current_reward: float = 0.0
         self.total_reward: float = 0.0
 
-    def regsiter_component(self, component: AbstractReward, weight: float = 1.0) -> None:
+    def register_component(self, component: AbstractReward, weight: float = 1.0) -> None:
         """Add a reward component to the reward function.
 
         :param component: Instance of a reward component.
@@ -260,5 +260,5 @@ class RewardFunction:
             weight = rew_component_cfg.get("weight", 1.0)
             rew_class = cls.__rew_class_identifiers[rew_type]
             rew_instance = rew_class.from_config(config=rew_component_cfg.get("options", {}), game=game)
-            new.regsiter_component(component=rew_instance, weight=weight)
+            new.register_component(component=rew_instance, weight=weight)
         return new

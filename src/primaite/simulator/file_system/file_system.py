@@ -78,12 +78,12 @@ class FileSystem(SimComponent):
         self._delete_manager.add_request(
             name="file",
             request_type=RequestType(
-                func=lambda request, context: self.delete_file_by_id(folder_uuid=request[0], file_uuid=request[1])
+                func=lambda request, context: self.delete_file(folder_name=request[0], file_name=request[1])
             ),
         )
         self._delete_manager.add_request(
             name="folder",
-            request_type=RequestType(func=lambda request, context: self.delete_folder_by_id(folder_uuid=request[0])),
+            request_type=RequestType(func=lambda request, context: self.delete_folder(folder_name=request[0])),
         )
         rm.add_request(
             name="delete",
@@ -171,7 +171,7 @@ class FileSystem(SimComponent):
 
         self.folders[folder.uuid] = folder
         self._folder_request_manager.add_request(
-            name=folder.uuid, request_type=RequestType(func=folder._request_manager)
+            name=folder.name, request_type=RequestType(func=folder._request_manager)
         )
         return folder
 
@@ -280,7 +280,7 @@ class FileSystem(SimComponent):
             sys_log=self.sys_log,
         )
         folder.add_file(file)
-        self._file_request_manager.add_request(name=file.uuid, request_type=RequestType(func=file._request_manager))
+        self._file_request_manager.add_request(name=file.name, request_type=RequestType(func=file._request_manager))
         return file
 
     def get_file(self, folder_name: str, file_name: str) -> Optional[File]:

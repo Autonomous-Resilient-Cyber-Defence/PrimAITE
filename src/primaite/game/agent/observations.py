@@ -725,7 +725,7 @@ class AclObservation(AbstractObservation):
         max_acl_rules = config["options"]["max_acl_rules"]
         node_ip_to_idx = {}
         for ip_idx, ip_map_config in enumerate(config["ip_address_order"]):
-            node_ref = ip_map_config["node_ref"]
+            node_ref = ip_map_config["node_hostname"]
             nic_num = ip_map_config["nic_num"]
             node_obj = game.simulation.network.nodes[game.ref_map_nodes[node_ref]]
             nic_obj = node_obj.ethernet_port[nic_num]

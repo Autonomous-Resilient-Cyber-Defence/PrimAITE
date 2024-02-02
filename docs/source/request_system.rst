@@ -7,25 +7,28 @@ Request System
 
 ``SimComponent`` objects in the simulation are decoupled from the agent training logic. However, they still need a managed means of accepting requests to perform actions. For this, they use ``RequestManager`` and ``RequestType``.
 
-Just like other aspects of SimComponent, the request types are not managed centrally for the whole simulation, but instead they are dynamically created and updated based on the nodes, links, and other components that currently exist. This was achieved in the following way:
+Just like other aspects of SimComponent, the request types are not managed centrally for the whole simulation, but instead they are dynamically created and updated based on the nodes, links, and other components that currently exist in the simulation. This is achieved in the following way:
 
 - API
-    A ``RequestType`` contains two elements:
+    When requesting an action within the simulation, these two arguments must be provided:
 
-    1. ``request`` - selects which action you want to take on this ``SimComponent``. This is formatted as a list of strings such as `['network', 'node', '<node-uuid>', 'service', '<service-uuid>', 'restart']`.
+    1. ``request`` - selects which action you want to take on this ``SimComponent``. This is formatted as a list of strings such as `['network', 'node', '<node-name>', 'service', '<service-name>', 'restart']`.
     2. ``context`` - optional extra information that can be used to decide how to process the request. This is formatted as a dictionary. For example, if the request requires authentication, the context can include information about the user that initiated the request to decide if their permissions are sufficient.
 
-- request
+- ``request`` detail
     The request is a list of strings which help specify who should handle the request. The strings in the request list help RequestManagers traverse the 'ownership tree' of SimComponent. The example given above would be handled in the following way:
 
-    1. ``Simulation`` receives `['network', 'node', '<node-uuid>', 'service', '<service-uuid>', 'restart']`.
+    1. ``Simulation`` receives `['network', 'node', '<node-name>', 'service', '<service-name>', 'restart']`.
         The first element of the request is ``network``, therefore it passes the request down to its network.
-    2. ``Network`` receives `['node', '<node-uuid>', 'service', '<service-uuid>', 'restart']`.
-        The first element of the request is ``node``, therefore the network looks at the node uuid and passes the request down to the node with that uuid.
-    3. ``Node`` receives `['service', '<service-uuid>', 'restart']`.
-        The first element of the request is ``service``, therefore the node looks at the service uuid and passes the rest of the request to the service with that uuid.
+    2. ``Network`` receives `['node', '<node-name>', 'service', '<service-name>', 'restart']`.
+        The first element of the request is ``node``, therefore the network looks at the node name and passes the request down to the node with that name.
+    3. ``Node`` receives `['service', '<service-name>', 'restart']`.
+        The first element of the request is ``service``, therefore the node looks at the service name and passes the rest of the request to the service with that name.
     4. ``Service`` receives ``['restart']``.
         Since ``restart`` is a defined request type in the service's own RequestManager, the service performs a restart.
+
+- ``context`` detail
+    The context is not used by any of the currently implemented components or requests.
 
 Technical Detail
 ----------------
@@ -75,16 +78,18 @@ An example of how this works is in the :py:class:`primaite.simulator.network.har
             request_manager.add_request("turn_on", RequestType(func=lambda request, context: self.turn_on()))
 
             # if the Node receives a request where the first word is 'service', it will use a dummy manager
-            # called self._service_request_manager to pass on the reqeust to the relevant service. This dummy
-            # manager is simply here to map the service UUID that that service's own action manager. This is
-            # done because the next string after "service" is always the uuid of that service, so we need an
+            # called self._service_request_manager to pass on the request to the relevant service. This dummy
+            # manager is simply here to map the service name that that service's own action manager. This is
+            # done because the next string after "service" is always the name of that service, so we need an
             # RequestManager to pop that string before sending it onto the relevant service's RequestManager.
             self._service_request_manager = RequestManager()
             request_manager.add_request("service", RequestType(func=self._service_request_manager))
             ...
 
         def install_service(self, service):
-            self.services[service.uuid] = service
+            self.services[service.name] = service
             ...
-            # Here, the service UUID is registered to allow passing actions between the node and the service.
-            self._service_request_manager.add_request(service.uuid, RequestType(func=service._request_manager))
+            # Here, the service name is registered to allow passing actions between the node and the service.
+            self._service_request_manager.add_request(service.name, RequestType(func=service._request_manager))
+
+This process is repeated until the request word corresponds to a callable function rather than another ``RequestManager`` .

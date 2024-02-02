@@ -352,6 +352,15 @@ class AccessControlList(SimComponent):
                 )
         print(table)
 
+    @property
+    def num_rules(self) -> int:
+        """
+        Get the number of rules in the ACL.
+
+        :return: The number of rules in the ACL.
+        """
+        return len([rule for rule in self._acl if rule is not None])
+
 
 class RouteEntry(SimComponent):
     """
