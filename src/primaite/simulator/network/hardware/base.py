@@ -679,7 +679,7 @@ class Node(SimComponent):
         if not kwargs.get("sys_log"):
             kwargs["sys_log"] = SysLog(kwargs["hostname"])
         if not kwargs.get("session_manager"):
-            kwargs["session_manager"] = SessionManager(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"))
+            kwargs["session_manager"] = SessionManager(sys_log=kwargs.get("sys_log"))
         if not kwargs.get("root"):
             kwargs["root"] = SIM_OUTPUT.path / kwargs["hostname"]
         if not kwargs.get("file_system"):

@@ -356,6 +356,7 @@ class IOSoftware(Software):
         session_id: Optional[str] = None,
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
         dest_port: Optional[Port] = None,
+        ip_protocol: IPProtocol = IPProtocol.TCP,
         **kwargs,
     ) -> bool:
         """
@@ -375,7 +376,11 @@ class IOSoftware(Software):
             return False
 
         return self.software_manager.send_payload_to_session_manager(
-            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
+            payload=payload,
+            dest_ip_address=dest_ip_address,
+            dest_port=dest_port,
+            ip_protocol=ip_protocol,
+            session_id=session_id
         )
 
     @abstractmethod

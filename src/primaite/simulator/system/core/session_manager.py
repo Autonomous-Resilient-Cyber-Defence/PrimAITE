@@ -75,7 +75,7 @@ class SessionManager:
     :param arp_cache: A reference to the ARP cache component.
     """
 
-    def __init__(self, sys_log: SysLog, arp_cache: "ARPCache"):
+    def __init__(self, sys_log: SysLog):
         self.sessions_by_key: Dict[
             Tuple[IPProtocol, IPv4Address, IPv4Address, Optional[Port], Optional[Port]], Session
         ] = {}
@@ -150,8 +150,8 @@ class SessionManager:
 
     def resolve_outbound_transmission_details(
         self, dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None, session_id: Optional[str] = None
-    ) -> Tuple[Optional["NIC"], Optional[str], Optional[IPProtocol], bool]:
-        if not isinstance(dst_ip_address, IPv4Address):
+    ) -> Tuple[Optional["NIC"], Optional[str], IPv4Address, Optional[IPProtocol], bool]:
+        if not isinstance(dst_ip_address, (IPv4Address, IPv4Network)):
             dst_ip_address = IPv4Address(dst_ip_address)
         is_broadcast = False
         outbound_nic = None
@@ -192,7 +192,7 @@ class SessionManager:
             if use_default_gateway:
                 dst_mac_address = self.software_manager.arp.get_default_gateway_mac_address()
                 outbound_nic = self.software_manager.arp.get_default_gateway_nic()
-        return outbound_nic, dst_mac_address, protocol, is_broadcast
+        return outbound_nic, dst_mac_address, dst_ip_address, protocol, is_broadcast
 
     def receive_payload_from_software_manager(
         self,
@@ -226,13 +226,12 @@ class SessionManager:
             is_broadcast = payload.request
             ip_protocol = IPProtocol.UDP
         else:
-            outbound_nic, dst_mac_address, protocol, is_broadcast = self.resolve_outbound_transmission_details(
+            vals = self.resolve_outbound_transmission_details(
                 dst_ip_address=dst_ip_address, session_id=session_id
             )
-
+            outbound_nic, dst_mac_address, dst_ip_address, protocol, is_broadcast = vals
             if protocol:
                 ip_protocol = protocol
-
 
         # Check if outbound NIC and destination MAC address are resolved
         if not outbound_nic or not dst_mac_address:
@@ -241,7 +240,7 @@ class SessionManager:
         tcp_header = None
         udp_header = None
         if ip_protocol == IPProtocol.TCP:
-            TCPHeader(
+            tcp_header = TCPHeader(
                 src_port=dst_port,
                 dst_port=dst_port,
             )
@@ -250,7 +249,6 @@ class SessionManager:
                 src_port=dst_port,
                 dst_port=dst_port,
             )
-
         # Construct the frame for transmission
         frame = Frame(
             ethernet=EthernetHeader(src_mac_addr=outbound_nic.mac_address, dst_mac_addr=dst_mac_address),

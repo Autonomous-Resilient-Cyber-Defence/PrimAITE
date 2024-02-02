@@ -41,6 +41,7 @@ class BroadcastService(Service):
             payload="broadcast",
             dest_ip_address=ip_network,
             dest_port=Port.HTTP,
+            ip_protocol=self.protocol
         )
 
 

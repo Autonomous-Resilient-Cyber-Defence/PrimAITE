@@ -1,6 +1,6 @@
 import secrets
 from enum import Enum
-from ipaddress import IPv4Address
+from ipaddress import IPv4Address, IPv4Network
 from typing import Union
 
 from pydantic import BaseModel, field_validator, validate_call
@@ -86,10 +86,3 @@ class IPPacket(BaseModel):
     "Time to Live (TTL) for the packet."
     precedence: Precedence = Precedence.ROUTINE
     "Precedence level for Quality of Service (default is Precedence.ROUTINE)."
-
-    def __init__(self, **kwargs):
-        if not isinstance(kwargs["src_ip_address"], IPv4Address):
-            kwargs["src_ip_address"] = IPv4Address(kwargs["src_ip_address"])
-        if not isinstance(kwargs["dst_ip_address"], IPv4Address):
-            kwargs["dst_ip_address"] = IPv4Address(kwargs["dst_ip_address"])
-        super().__init__(**kwargs)

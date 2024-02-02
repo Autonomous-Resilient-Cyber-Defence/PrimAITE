@@ -134,29 +134,70 @@ def temp_primaite_session(request, monkeypatch) -> TempPrimaiteSession:
 
 @pytest.fixture(scope="function")
 def client_server() -> Tuple[Computer, Server]:
+    network = Network()
+
     # Create Computer
-    computer: Computer = Computer(
-        hostname="test_computer",
-        ip_address="192.168.0.1",
+    computer = Computer(
+        hostname="computer",
+        ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
+    computer.power_on()
 
     # Create Server
     server = Server(
-        hostname="server", ip_address="192.168.0.2", subnet_mask="255.255.255.0", operating_state=NodeOperatingState.ON
+        hostname="server",
+        ip_address="192.168.1.3",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        start_up_duration=0,
     )
+    server.power_on()
 
     # Connect Computer and Server
-    computer_nic = computer.nics[next(iter(computer.nics))]
-    server_nic = server.nics[next(iter(server.nics))]
-    link = Link(endpoint_a=computer_nic, endpoint_b=server_nic)
+    network.connect(computer.ethernet_port[1], server.ethernet_port[1])
 
     # Should be linked
-    assert link.is_up
+    assert next(iter(network.links.values())).is_up
 
     return computer, server
+
+
+@pytest.fixture(scope="function")
+def client_switch_server() -> Tuple[Computer, Switch, Server]:
+    network = Network()
+
+    # Create Computer
+    computer = Computer(
+        hostname="computer",
+        ip_address="192.168.1.2",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        start_up_duration=0,
+    )
+    computer.power_on()
+
+    # Create Server
+    server = Server(
+        hostname="server",
+        ip_address="192.168.1.3",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        start_up_duration=0,
+    )
+    server.power_on()
+
+    switch = Switch(hostname="switch", start_up_duration=0)
+    switch.power_on()
+
+    network.connect(endpoint_a=computer.ethernet_port[1], endpoint_b=switch.switch_ports[1])
+    network.connect(endpoint_a=server.ethernet_port[1], endpoint_b=switch.switch_ports[2])
+
+    assert all(link.is_up for link in network.links.values())
+
+    return computer, switch, server
 
 
 @pytest.fixture(scope="function")
