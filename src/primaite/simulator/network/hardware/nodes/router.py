@@ -558,7 +558,7 @@ class RouterNIC(NIC):
                 self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
                 return False
             frame.set_received_timestamp()
-            self.pcap.capture(frame)
+            self.pcap.capture_inbound(frame)
             # If this destination or is broadcast
             if frame.ethernet.dst_mac_addr == self.mac_address or frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
                 self._connected_node.receive_frame(frame=frame, from_nic=self)

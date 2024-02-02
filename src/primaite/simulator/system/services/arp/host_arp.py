@@ -92,4 +92,4 @@ class HostARP(ARP):
             ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic
         )
         arp_packet = arp_packet.generate_reply(from_nic.mac_address)
-        self.send_arp_reply(arp_packet, from_nic)
+        self.send_arp_reply(arp_packet)

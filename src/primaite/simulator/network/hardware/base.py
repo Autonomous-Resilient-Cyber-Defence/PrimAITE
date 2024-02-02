@@ -266,7 +266,7 @@ class NIC(SimComponent):
         """
         if self.enabled:
             frame.set_sent_timestamp()
-            self.pcap.capture(frame)
+            self.pcap.capture_outbound(frame)
             self._connected_link.transmit_frame(sender_nic=self, frame=frame)
             return True
         # Cannot send Frame as the NIC is not enabled
@@ -295,7 +295,7 @@ class NIC(SimComponent):
                 self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
                 return False
             frame.set_received_timestamp()
-            self.pcap.capture(frame)
+            self.pcap.capture_inbound(frame)
             # If this destination or is broadcast
             accept_frame = False
 
@@ -442,7 +442,7 @@ class SwitchPort(SimComponent):
         :param frame: The network frame to be sent.
         """
         if self.enabled:
-            self.pcap.capture(frame)
+            self.pcap.capture_outbound(frame)
             self._connected_link.transmit_frame(sender_nic=self, frame=frame)
             return True
         # Cannot send Frame as the SwitchPort is not enabled
@@ -461,7 +461,7 @@ class SwitchPort(SimComponent):
             if frame.ip and frame.ip.ttl < 1:
                 self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
                 return False
-            self.pcap.capture(frame)
+            self.pcap.capture_inbound(frame)
             connected_node: Node = self._connected_node
             connected_node.forward_frame(frame=frame, incoming_port=self)
             return True

@@ -15,6 +15,12 @@ from primaite.simulator.system.services.service import Service
 
 
 class ARP(Service):
+    """
+    The ARP (Address Resolution Protocol) Service.
+
+    Manages ARP for resolving network layer addresses into link layer addresses. It maintains an ARP cache,
+    sends ARP requests and replies, and processes incoming ARP packets.
+    """
     arp: Dict[IPv4Address, ARPEntry] = {}
 
     def __init__(self, **kwargs):
@@ -27,7 +33,11 @@ class ARP(Service):
         pass
 
     def show(self, markdown: bool = False):
-        """Prints a table of ARC Cache."""
+        """
+        Prints the current state of the ARP cache in a table format.
+
+        :param markdown: If True, format the output as Markdown. Otherwise, use plain text.
+        """
         table = PrettyTable(["IP Address", "MAC Address", "Via"])
         if markdown:
             table.set_style(MARKDOWN)
@@ -71,37 +81,28 @@ class ARP(Service):
     @abstractmethod
     def get_arp_cache_mac_address(self, ip_address: IPv4Address) -> Optional[str]:
         """
-        Get the MAC address associated with an IP address.
+        Retrieves the MAC address associated with a given IP address from the ARP cache.
 
-        :param ip_address: The IP address to look up in the cache.
-        :return: The MAC address associated with the IP address, or None if not found.
+        :param ip_address: The IP address to look up.
+        :return: The associated MAC address, if found. Otherwise, returns None.
         """
         pass
 
     @abstractmethod
     def get_arp_cache_nic(self, ip_address: IPv4Address) -> Optional[NIC]:
         """
-        Get the NIC associated with an IP address.
+        Retrieves the NIC associated with a given IP address from the ARP cache.
 
-        :param ip_address: The IP address to look up in the cache.
-        :return: The NIC associated with the IP address, or None if not found.
+        :param ip_address: The IP address to look up.
+        :return: The associated NIC, if found. Otherwise, returns None.
         """
         pass
 
     def send_arp_request(self, target_ip_address: Union[IPv4Address, str]):
         """
-        Perform a standard ARP request for a given target IP address.
+        Sends an ARP request to resolve the MAC address of a target IP address.
 
-        Broadcasts the request through all enabled NICs to determine the MAC address corresponding to the target IP
-        address. This method can be configured to ignore specific networks when sending out ARP requests,
-        which is useful in environments where certain addresses should not be queried.
-
-        :param target_ip_address: The target IP address to send an ARP request for.
-        :param ignore_networks: An optional list of IPv4 addresses representing networks to be excluded from the ARP
-            request broadcast. Each address in this list indicates a network which will not be queried during the ARP
-            request process. This is particularly useful in complex network environments where traffic should be
-            minimized or controlled to specific subnets. It is mainly used by the router to prevent ARP requests being
-            sent back to their source.
+        :param target_ip_address: The target IP address for which the MAC address is being requested.
         """
         outbound_nic = self.software_manager.session_manager.resolve_outbound_nic(target_ip_address)
         if outbound_nic:
@@ -112,68 +113,59 @@ class ARP(Service):
                 target_ip_address=target_ip_address,
             )
             self.software_manager.session_manager.receive_payload_from_software_manager(
-                payload=arp_packet, dst_ip_address=target_ip_address, dst_port=Port.ARP, ip_protocol=self.protocol
+                payload=arp_packet, dst_ip_address=target_ip_address, dst_port=self.port, ip_protocol=self.protocol
             )
         else:
-            print(f"failed for {target_ip_address}")
-
-    def send_arp_reply(self, arp_reply: ARPPacket, from_nic: NIC):
-        """
-        Send an ARP reply back through the NIC it came from.
-
-        :param arp_reply: The ARP reply to send.
-        :param from_nic: The NIC to send the ARP reply from.
-        """
-        self.sys_log.info(
-            f"Sending ARP reply from {arp_reply.sender_mac_addr}/{arp_reply.sender_ip_address} "
-            f"to {arp_reply.target_ip_address}/{arp_reply.target_mac_addr} "
-        )
-        udp_header = UDPHeader(src_port=Port.ARP, dst_port=Port.ARP)
-
-        ip_packet = IPPacket(
-            src_ip_address=arp_reply.sender_ip_address,
-            dst_ip_address=arp_reply.target_ip_address,
-            protocol=IPProtocol.UDP,
-        )
-
-        ethernet_header = EthernetHeader(src_mac_addr=arp_reply.sender_mac_addr, dst_mac_addr=arp_reply.target_mac_addr)
-
-        frame = Frame(ethernet=ethernet_header, ip=ip_packet, udp=udp_header, payload=arp_reply)
-        from_nic.send_frame(frame)
-
-    def process_arp_packet(self, from_nic: NIC, arp_packet: ARPPacket):
-        """
-        Process a received ARP packet, handling both ARP requests and responses.
-
-        If an ARP request is received for the local IP, a response is sent back.
-        If an ARP response is received, the ARP cache is updated with the new entry.
-
-        :param from_nic: The NIC that received the ARP packet.
-        :param arp_packet: The ARP packet to be processed.
-        """
-
-        # Unmatched ARP Request
-        if arp_packet.target_ip_address != from_nic.ip_address:
-            self.sys_log.info(
-                f"Ignoring ARP request for {arp_packet.target_ip_address}. Current IP address is {from_nic.ip_address}"
+            self.sys_log.error(
+                "Cannot send ARP request as there is no outbound NIC to use. Try configuring the default gateway."
             )
-            return
 
-        # Matched ARP request
-        self.add_arp_cache_entry(
-            ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic
-        )
-        arp_packet = arp_packet.generate_reply(from_nic.mac_address)
-        self.send_arp_reply(arp_packet, from_nic)
+    def send_arp_reply(self, arp_reply: ARPPacket):
+        """
+        Sends an ARP reply in response to an ARP request.
+
+        :param arp_reply: The ARP packet containing the reply.
+        :param from_nic: The NIC from which the ARP reply is sent.
+        """
+
+        outbound_nic = self.software_manager.session_manager.resolve_outbound_nic(arp_reply.target_ip_address)
+        if outbound_nic:
+            self.sys_log.info(
+                f"Sending ARP reply from {arp_reply.sender_mac_addr}/{arp_reply.sender_ip_address} "
+                f"to {arp_reply.target_ip_address}/{arp_reply.target_mac_addr} "
+            )
+            self.software_manager.session_manager.receive_payload_from_software_manager(
+                payload=arp_reply,
+                dst_ip_address=arp_reply.target_ip_address,
+                dst_port=self.port,
+                ip_protocol=self.protocol
+            )
+        else:
+            self.sys_log.error(
+                "Cannot send ARP reply as there is no outbound NIC to use. Try configuring the default gateway."
+            )
+
 
     @abstractmethod
     def _process_arp_request(self, arp_packet: ARPPacket, from_nic: NIC):
+        """
+        Processes an incoming ARP request.
+
+        :param arp_packet: The ARP packet containing the request.
+        :param from_nic: The NIC that received the ARP request.
+        """
         self.sys_log.info(
             f"Received ARP request for {arp_packet.target_ip_address} from "
             f"{arp_packet.sender_mac_addr}/{arp_packet.sender_ip_address} "
         )
 
     def _process_arp_reply(self, arp_packet: ARPPacket, from_nic: NIC):
+        """
+        Processes an incoming ARP reply.
+
+        :param arp_packet: The ARP packet containing the reply.
+        :param from_nic: The NIC that received the ARP reply.
+        """
         self.sys_log.info(
             f"Received ARP response for {arp_packet.sender_ip_address} "
             f"from {arp_packet.sender_mac_addr} via NIC {from_nic}"
@@ -183,6 +175,14 @@ class ARP(Service):
         )
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
+        """
+        Processes received data, handling ARP packets.
+
+        :param payload: The payload received.
+        :param session_id: The session ID associated with the received data.
+        :param kwargs: Additional keyword arguments.
+        :return: True if the payload was processed successfully, otherwise False.
+        """
         if not isinstance(payload, ARPPacket):
             print("failied on payload check", type(payload))
             return False
@@ -194,4 +194,10 @@ class ARP(Service):
             self._process_arp_reply(arp_packet=payload, from_nic=from_nic)
 
     def __contains__(self, item: Any) -> bool:
+        """
+        Checks if an item is in the ARP cache.
+
+        :param item: The item to check.
+        :return: True if the item is in the cache, otherwise False.
+        """
         return item in self.arp

@@ -221,7 +221,7 @@ class SessionManager:
             if payload.request:
                 dst_mac_address = "ff:ff:ff:ff:ff:ff"
             else:
-                dst_mac_address = payload.sender_mac_addr
+                dst_mac_address = payload.target_mac_addr
             outbound_nic = self.resolve_outbound_nic(payload.target_ip_address)
             is_broadcast = payload.request
             ip_protocol = IPProtocol.UDP
