@@ -7,6 +7,8 @@ from pydantic import BaseModel
 class Port(Enum):
     """Enumeration of common known TCP/UDP ports used by protocols for operation of network applications."""
 
+    NONE = 0
+    "Place holder for a non-port."
     WOL = 9
     "Wake-on-Lan (WOL) - Used to turn or awaken a computer from sleep mode by a network message."
     FTP_DATA = 20

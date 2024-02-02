@@ -88,47 +88,62 @@ class SysLog:
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self.hostname}_sys.log"
 
-    def debug(self, msg: str):
+    def debug(self, msg: str, to_terminal: bool = False):
         """
         Logs a message with the DEBUG level.
 
         :param msg: The message to be logged.
+        :param to_terminal: If True, prints to the terminal too.
         """
         if SIM_OUTPUT.save_sys_logs:
             self.logger.debug(msg)
+        if to_terminal:
+            print(msg)
 
-    def info(self, msg: str):
+    def info(self, msg: str, to_terminal: bool = False):
         """
         Logs a message with the INFO level.
 
         :param msg: The message to be logged.
+        :param to_terminal: If True, prints to the terminal too.
         """
         if SIM_OUTPUT.save_sys_logs:
             self.logger.info(msg)
+        if to_terminal:
+            print(msg)
 
-    def warning(self, msg: str):
+    def warning(self, msg: str, to_terminal: bool = False):
         """
         Logs a message with the WARNING level.
 
         :param msg: The message to be logged.
+        :param to_terminal: If True, prints to the terminal too.
         """
         if SIM_OUTPUT.save_sys_logs:
             self.logger.warning(msg)
+        if to_terminal:
+            print(msg)
 
-    def error(self, msg: str):
+    def error(self, msg: str, to_terminal: bool = False):
         """
         Logs a message with the ERROR level.
 
         :param msg: The message to be logged.
+        :param to_terminal: If True, prints to the terminal too.
         """
         if SIM_OUTPUT.save_sys_logs:
             self.logger.error(msg)
+        if to_terminal:
+            print(msg)
 
-    def critical(self, msg: str):
+    def critical(self, msg: str, to_terminal: bool = False):
         """
         Logs a message with the CRITICAL level.
 
         :param msg: The message to be logged.
+        :param to_terminal: If True, prints to the terminal too.
         """
         if SIM_OUTPUT.save_sys_logs:
             self.logger.critical(msg)
+        if to_terminal:
+            print(msg)

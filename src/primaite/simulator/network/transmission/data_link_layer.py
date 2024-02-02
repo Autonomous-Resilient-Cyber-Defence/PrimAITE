@@ -5,8 +5,9 @@ from pydantic import BaseModel
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.arp import ARPPacket
+from primaite.simulator.network.protocols.icmp import ICMPPacket
 from primaite.simulator.network.protocols.packet import DataPacket
-from primaite.simulator.network.transmission.network_layer import ICMPPacket, IPPacket, IPProtocol
+from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
 from primaite.simulator.network.transmission.primaite_layer import PrimaiteHeader
 from primaite.simulator.network.transmission.transport_layer import TCPHeader, UDPHeader
 from primaite.simulator.network.utils import convert_bytes_to_megabits

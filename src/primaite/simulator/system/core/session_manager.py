@@ -293,8 +293,15 @@ class SessionManager:
             dst_port = frame.tcp.dst_port
         elif frame.udp:
             dst_port = frame.udp.dst_port
+        elif frame.icmp:
+            dst_port = Port.NONE
         self.software_manager.receive_payload_from_session_manager(
-            payload=frame.payload, port=dst_port, protocol=frame.ip.protocol, session_id=session.uuid, from_nic=from_nic
+            payload=frame.payload,
+            port=dst_port,
+            protocol=frame.ip.protocol,
+            session_id=session.uuid,
+            from_nic=from_nic,
+            frame=frame
         )
 
     def show(self, markdown: bool = False):

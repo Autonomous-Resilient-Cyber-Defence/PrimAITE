@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.file_system.file_system import FileSystem
+from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
     from primaite.simulator.system.core.sys_log import SysLog
     from primaite.simulator.network.hardware.base import Node, NIC
     from primaite.simulator.system.services.arp.arp import ARP
+    from primaite.simulator.system.services.icmp.icmp import ICMP
 
 from typing import Type, TypeVar
 
@@ -50,6 +52,10 @@ class SoftwareManager:
     @property
     def arp(self) -> 'ARP':
         return self.software.get("ARP")  # noqa
+
+    @property
+    def icmp(self) -> 'ICMP':
+        return self.software.get("ICMP")  # noqa
 
     def get_open_ports(self) -> List[Port]:
         """
@@ -160,7 +166,7 @@ class SoftwareManager:
         )
 
     def receive_payload_from_session_manager(
-        self, payload: Any, port: Port, protocol: IPProtocol, session_id: str, from_nic: "NIC"
+        self, payload: Any, port: Port, protocol: IPProtocol, session_id: str, from_nic: "NIC", frame: Frame
     ):
         """
         Receive a payload from the SessionManager and forward it to the corresponding service or application.
@@ -170,7 +176,7 @@ class SoftwareManager:
         """
         receiver: Optional[Union[Service, Application]] = self.port_protocol_mapping.get((port, protocol), None)
         if receiver:
-            receiver.receive(payload=payload, session_id=session_id, from_nic=from_nic)
+            receiver.receive(payload=payload, session_id=session_id, from_nic=from_nic, frame=frame)
         else:
             self.sys_log.error(f"No service or application found for port {port} and protocol {protocol}")
         pass
@@ -181,7 +187,7 @@ class SoftwareManager:
 
         :param markdown: If True, outputs the table in markdown format. Default is False.
         """
-        table = PrettyTable(["Name", "Type", "Operating State", "Health State", "Port"])
+        table = PrettyTable(["Name", "Type", "Operating State", "Health State", "Port", "Protocol"])
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
@@ -194,7 +200,8 @@ class SoftwareManager:
                     software_type,
                     software.operating_state.name,
                     software.health_state_actual.name,
-                    software.port.value,
+                    software.port.value if software.port != Port.NONE else None,
+                    software.protocol.value
                 ]
             )
         print(table)

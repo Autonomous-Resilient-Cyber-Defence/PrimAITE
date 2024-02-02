@@ -4,7 +4,7 @@ import re
 import secrets
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
@@ -17,7 +17,7 @@ from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
+from primaite.simulator.network.transmission.network_layer import IPPacket
 from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.packet_capture import PacketCapture
@@ -854,113 +854,6 @@ class ARPCache:
         return item in self.arp
 
 
-class ICMP:
-    """
-    The ICMP (Internet Control Message Protocol) class.
-
-    Provides functionalities for managing and handling ICMP packets, including echo requests and replies.
-    """
-
-    def __init__(self, sys_log: SysLog):
-        """
-        Initialize the ICMP (Internet Control Message Protocol) service.
-
-        :param sys_log: The system log to store system messages and information.
-        :param arp_cache: The ARP cache for resolving IP to MAC address mappings.
-        """
-        self.sys_log: SysLog = sys_log
-        self.software_manager: SoftwareManager = None ## noqa
-        self.request_replies = {}
-
-    def clear(self):
-        """Clears the ICMP request replies tracker."""
-        self.request_replies.clear()
-
-    def process_icmp(self, frame: Frame, from_nic: NIC, is_reattempt: bool = False):
-        """
-        Process an ICMP packet, including handling echo requests and replies.
-
-        :param frame: The Frame containing the ICMP packet to process.
-        """
-        if frame.icmp.icmp_type == ICMPType.ECHO_REQUEST:
-            if not is_reattempt:
-                self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
-            target_mac_address = self.software_manager.arp.get_arp_cache_mac_address(frame.ip.src_ip_address)
-
-            src_nic = self.software_manager.arp.get_arp_cache_nic(frame.ip.src_ip_address)
-            if not src_nic:
-                self.software_manager.arp.send_arp_request(frame.ip.src_ip_address)
-                self.process_icmp(frame=frame, from_nic=from_nic, is_reattempt=True)
-                return
-
-            # Network Layer
-            ip_packet = IPPacket(
-                src_ip_address=src_nic.ip_address, dst_ip_address=frame.ip.src_ip_address, protocol=IPProtocol.ICMP
-            )
-            # Data Link Layer
-            ethernet_header = EthernetHeader(src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address)
-            icmp_reply_packet = ICMPPacket(
-                icmp_type=ICMPType.ECHO_REPLY,
-                icmp_code=0,
-                identifier=frame.icmp.identifier,
-                sequence=frame.icmp.sequence + 1,
-            )
-            payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
-            frame = Frame(ethernet=ethernet_header, ip=ip_packet, icmp=icmp_reply_packet, payload=payload)
-            self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip_address}")
-
-            src_nic.send_frame(frame)
-        elif frame.icmp.icmp_type == ICMPType.ECHO_REPLY:
-            time = frame.transmission_duration()
-            time_str = f"{time}ms" if time > 0 else "<1ms"
-            self.sys_log.info(
-                f"Reply from {frame.ip.src_ip_address}: "
-                f"bytes={len(frame.payload)}, "
-                f"time={time_str}, "
-                f"TTL={frame.ip.ttl}"
-            )
-            if not self.request_replies.get(frame.icmp.identifier):
-                self.request_replies[frame.icmp.identifier] = 0
-            self.request_replies[frame.icmp.identifier] += 1
-
-    def ping(
-        self, target_ip_address: IPv4Address, sequence: int = 0, identifier: Optional[int] = None, pings: int = 4
-    ) -> Tuple[int, Union[int, None]]:
-        """
-        Send an ICMP echo request (ping) to a target IP address and manage the sequence and identifier.
-
-        :param target_ip_address: The target IP address to send the ping.
-        :param sequence: The sequence number of the echo request. Defaults to 0.
-        :param identifier: An optional identifier for the ICMP packet. If None, a default will be used.
-        :return: A tuple containing the next sequence number and the identifier, or (0, None) if the target IP address
-            was not found in the ARP cache.
-        """
-        nic = self.software_manager.arp.get_arp_cache_nic(target_ip_address)
-
-        if not nic:
-            return pings, None
-
-        # ARP entry exists
-        sequence += 1
-        target_mac_address = self.software_manager.arp.get_arp_cache_mac_address(target_ip_address)
-
-        src_nic = self.software_manager.arp.get_arp_cache_nic(target_ip_address)
-        tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
-
-        # Network Layer
-        ip_packet = IPPacket(
-            src_ip_address=nic.ip_address,
-            dst_ip_address=target_ip_address,
-            protocol=IPProtocol.ICMP,
-        )
-        # Data Link Layer
-        ethernet_header = EthernetHeader(src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address)
-        icmp_packet = ICMPPacket(identifier=identifier, sequence=sequence)
-        payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
-        frame = Frame(ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, icmp=icmp_packet, payload=payload)
-        nic.send_frame(frame)
-        return sequence, icmp_packet.identifier
-
 
 class Node(SimComponent):
     """
@@ -999,7 +892,6 @@ class Node(SimComponent):
     root: Path
     "Root directory for simulation output."
     sys_log: SysLog
-    icmp: ICMP
     session_manager: SessionManager
     software_manager: SoftwareManager
 
@@ -1042,8 +934,6 @@ class Node(SimComponent):
                 kwargs["default_gateway"] = IPv4Address(kwargs["default_gateway"])
         if not kwargs.get("sys_log"):
             kwargs["sys_log"] = SysLog(kwargs["hostname"])
-        if not kwargs.get("icmp"):
-            kwargs["icmp"] = ICMP(sys_log=kwargs.get("sys_log"))
         if not kwargs.get("session_manager"):
             kwargs["session_manager"] = SessionManager(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"))
         if not kwargs.get("root"):
@@ -1059,7 +949,6 @@ class Node(SimComponent):
                 dns_server=kwargs.get("dns_server"),
             )
         super().__init__(**kwargs)
-        self.icmp.software_manager = self.software_manager
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
         self._install_system_software()
@@ -1095,12 +984,6 @@ class Node(SimComponent):
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         super().reset_component_for_episode(episode)
-
-        # Reset ARP Cache
-        self.arp.clear()
-
-        # Reset ICMP
-        self.icmp.clear()
 
         # Reset Session Manager
         self.session_manager.clear()
@@ -1436,35 +1319,9 @@ class Node(SimComponent):
         :param pings: The number of pings to attempt, default is 4.
         :return: True if the ping is successful, otherwise False.
         """
-        if self.operating_state == NodeOperatingState.ON:
-            if not isinstance(target_ip_address, IPv4Address):
-                target_ip_address = IPv4Address(target_ip_address)
-            if target_ip_address.is_loopback:
-                self.sys_log.info("Pinging loopback address")
-                return any(nic.enabled for nic in self.nics.values())
-            if self.operating_state == NodeOperatingState.ON:
-                output = f"Pinging {target_ip_address}:"
-                self.sys_log.info(output)
-                print(output)
-                sequence, identifier = 0, None
-                while sequence < pings:
-                    sequence, identifier = self.icmp.ping(target_ip_address, sequence, identifier, pings)
-                request_replies = self.icmp.request_replies.get(identifier)
-                passed = request_replies == pings
-                if request_replies:
-                    self.icmp.request_replies.pop(identifier)
-                else:
-                    request_replies = 0
-                output = (
-                    f"Ping statistics for {target_ip_address}: "
-                    f"Packets: Sent = {pings}, "
-                    f"Received = {request_replies}, "
-                    f"Lost = {pings - request_replies} ({(pings - request_replies) / pings * 100}% loss)"
-                )
-                self.sys_log.info(output)
-                print(output)
-                return passed
-        return False
+        if not isinstance(target_ip_address, IPv4Address):
+            target_ip_address = IPv4Address(target_ip_address)
+        return self.software_manager.icmp.ping(target_ip_address)
 
     def send_frame(self, frame: Frame):
         """
@@ -1492,22 +1349,23 @@ class Node(SimComponent):
                     self.software_manager.arp.add_arp_cache_entry(
                         ip_address=frame.ip.src_ip_address, mac_address=frame.ethernet.src_mac_addr, nic=from_nic
                     )
-            if frame.ip.protocol == IPProtocol.ICMP:
-                self.icmp.process_icmp(frame=frame, from_nic=from_nic)
-                return
+
             # Check if the destination port is open on the Node
             dst_port = None
             if frame.tcp:
                 dst_port = frame.tcp.dst_port
             elif frame.udp:
                 dst_port = frame.udp.dst_port
-            if dst_port in self.software_manager.get_open_ports():
-                # accept thr frame as the port is open
+
+            accept_frame = False
+            if frame.icmp or dst_port in self.software_manager.get_open_ports():
+                # accept the frame as the port is open or if it's an ICMP frame
+                accept_frame = True
+
+            # TODO: add internal node firewall check here?
+
+            if accept_frame:
                 self.session_manager.receive_frame(frame, from_nic)
-                # if frame.tcp.src_port == Port.ARP:
-                #     self.arp.process_arp_packet(from_nic=from_nic, arp_packet=frame.arp)
-                # else:
-                #     self.session_manager.receive_frame(frame)
             else:
                 # denied as port closed
                 self.sys_log.info(f"Ignoring frame for port {frame.tcp.dst_port.value} from {frame.ip.src_ip_address}")
@@ -1527,7 +1385,6 @@ class Node(SimComponent):
         self.services[service.uuid] = service
         service.parent = self
         service.install()  # Perform any additional setup, such as creating files for this service on the node.
-        self.sys_log.info(f"Installed service {service.name}")
         self._service_request_manager.add_request(service.uuid, RequestType(func=service._request_manager))
 
     def uninstall_service(self, service: Service) -> None:
@@ -1559,7 +1416,6 @@ class Node(SimComponent):
             return
         self.applications[application.uuid] = application
         application.parent = self
-        self.sys_log.info(f"Installed application {application.name}")
         self._application_request_manager.add_request(application.uuid, RequestType(func=application._request_manager))
 
     def uninstall_application(self, application: Application) -> None:

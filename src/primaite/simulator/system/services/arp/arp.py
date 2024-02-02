@@ -2,17 +2,15 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from ipaddress import IPv4Address
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import BaseModel
 
 from primaite.simulator.network.hardware.base import NIC
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
-from primaite.simulator.network.protocols.packet import DataPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader, UDPHeader
+from primaite.simulator.network.transmission.transport_layer import Port, UDPHeader
 from primaite.simulator.system.services.service import Service
 
 
@@ -191,7 +189,6 @@ class ARP(Service):
 
         from_nic = kwargs.get("from_nic")
         if payload.request:
-            print(from_nic)
             self._process_arp_request(arp_packet=payload, from_nic=from_nic)
         else:
             self._process_arp_reply(arp_packet=payload, from_nic=from_nic)
