@@ -7,6 +7,7 @@ from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.core import SimComponent
 from primaite.simulator.network.protocols.arp import ARPPacket
+from primaite.simulator.network.protocols.icmp import ICMPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader, UDPHeader
@@ -200,6 +201,7 @@ class SessionManager:
         dst_port: Optional[Port] = None,
         session_id: Optional[str] = None,
         ip_protocol: IPProtocol = IPProtocol.TCP,
+        icmp_packet: Optional[ICMPPacket] = None
     ) -> Union[Any, None]:
         """
         Receive a payload from the SoftwareManager and send it to the appropriate NIC for transmission.
@@ -250,16 +252,17 @@ class SessionManager:
             )
 
         # Construct the frame for transmission
-
         frame = Frame(
             ethernet=EthernetHeader(src_mac_addr=outbound_nic.mac_address, dst_mac_addr=dst_mac_address),
             ip=IPPacket(src_ip_address=outbound_nic.ip_address, dst_ip_address=dst_ip_address, protocol=ip_protocol),
             tcp=tcp_header,
             udp=udp_header,
+            icmp=icmp_packet,
             payload=payload,
         )
 
         # Manage session for unicast transmission
+        # TODO: Only create sessions for TCP
         if not (is_broadcast and session_id):
             session_key = self._get_session_key(frame, inbound_frame=False)
             session = self.sessions_by_key.get(session_key)
@@ -281,6 +284,7 @@ class SessionManager:
 
         :param frame: The frame being received.
         """
+        # TODO: Only create sessions for TCP
         session_key = self._get_session_key(frame, inbound_frame=True)
         session: Session = self.sessions_by_key.get(session_key)
         if not session:

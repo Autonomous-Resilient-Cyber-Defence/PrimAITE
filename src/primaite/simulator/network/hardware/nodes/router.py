@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple, Union
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
-from primaite.simulator.network.hardware.base import ARPCache, NIC, Node
+from primaite.simulator.network.hardware.base import NIC, Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
@@ -528,108 +528,6 @@ class RouteTable(SimComponent):
             table.add_row([index, f"{route.address}/{network.prefixlen}", route.next_hop_ip_address, route.metric])
         print(table)
 
-
-class RouterARPCache(ARPCache):
-    """
-    Inherits from ARPCache and adds router-specific ARP packet processing.
-
-    :ivar SysLog sys_log: A system log for logging messages.
-    :ivar Router router: The router to which this ARP cache belongs.
-    """
-
-    def __init__(self, sys_log: SysLog, router: Router):
-        super().__init__(sys_log)
-        self.router: Router = router
-
-    def process_arp_packet(
-        self, from_nic: NIC, frame: Frame, route_table: RouteTable, is_reattempt: bool = False
-    ) -> None:
-        """
-        Processes a received ARP (Address Resolution Protocol) packet in a router-specific way.
-
-        This method is responsible for handling both ARP requests and responses. It processes ARP packets received on a
-        Network Interface Card (NIC) and performs actions based on whether the packet is a request or a reply. This
-        includes updating the ARP cache, forwarding ARP replies, sending ARP requests for unknown destinations, and
-        handling packet TTL (Time To Live).
-
-        The method first checks if the ARP packet is a request or a reply. For ARP replies, it updates the ARP cache
-        and forwards the reply if necessary. For ARP requests, it checks if the target IP matches one of the router's
-        NICs and sends an ARP reply if so. If the destination is not directly connected, it consults the routing table
-        to find the best route and reattempts ARP request processing if needed.
-
-        :param from_nic: The NIC that received the ARP packet.
-        :param frame: The frame containing the ARP packet.
-        :param route_table: The routing table of the router.
-        :param is_reattempt: Flag to indicate if this is a reattempt of processing the ARP packet, defaults to False.
-        """
-        arp_packet = frame.arp
-
-        # ARP Reply
-        if not arp_packet.request:
-            if arp_packet.target_ip_address == from_nic.ip_address:
-                # reply to the Router specifically
-                self.sys_log.info(
-                    f"Received ARP response for {arp_packet.sender_ip_address} "
-                    f"from {arp_packet.sender_mac_addr} via NIC {from_nic}"
-                )
-                self.add_arp_cache_entry(
-                    ip_address=arp_packet.sender_ip_address,
-                    mac_address=arp_packet.sender_mac_addr,
-                    nic=from_nic,
-                )
-                return
-
-            # # Reply for a connected requested
-            # nic = self.get_arp_cache_nic(arp_packet.target_ip_address)
-            # if nic:
-            #     self.sys_log.info(
-            #         f"Forwarding arp reply for {arp_packet.target_ip_address}, from {arp_packet.sender_ip_address}"
-            #     )
-            #     arp_packet.sender_mac_addr = nic.mac_address
-            #     frame.decrement_ttl()
-            #     if frame.ip and frame.ip.ttl < 1:
-            #         self.sys_log.info("Frame discarded as TTL limit reached")
-            #         return
-            #     nic.send_frame(frame)
-            # return
-
-        # ARP Request
-        self.sys_log.info(
-            f"Received ARP request for {arp_packet.target_ip_address} from "
-            f"{arp_packet.sender_mac_addr}/{arp_packet.sender_ip_address} "
-        )
-        # Matched ARP request
-        self.add_arp_cache_entry(
-            ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic
-        )
-
-        # If the target IP matches one of the router's NICs
-        for nic in self.nics.values():
-            if nic.enabled and nic.ip_address == arp_packet.target_ip_address:
-                arp_reply = arp_packet.generate_reply(from_nic.mac_address)
-                self.send_arp_reply(arp_reply, from_nic)
-                return
-
-        # # Check Route Table
-        # route = route_table.find_best_route(arp_packet.target_ip_address)
-        # if route and route != self.router.route_table.default_route:
-        #     nic = self.get_arp_cache_nic(route.next_hop_ip_address)
-        #
-        #     if not nic:
-        #         if not is_reattempt:
-        #             self.send_arp_request(route.next_hop_ip_address, ignore_networks=[frame.ip.src_ip_address])
-        #             return self.process_arp_packet(from_nic, frame, route_table, is_reattempt=True)
-        #         else:
-        #             self.sys_log.info("Ignoring ARP request as destination unavailable/No ARP entry found")
-        #             return
-        #     else:
-        #         arp_reply = arp_packet.generate_reply(from_nic.mac_address)
-        #         self.send_arp_reply(arp_reply, from_nic)
-        #     return
-
-
-
-
 class RouterNIC(NIC):
     """
     A Router-specific Network Interface Card (NIC) that extends the standard NIC functionality.
@@ -684,8 +582,8 @@ class Router(Node):
     ethernet_ports: Dict[int, RouterNIC] = {}
     acl: AccessControlList
     route_table: RouteTable
-    arp: RouterARPCache
-    icmp: RouterICMP
+    # arp: RouterARPCache
+    # icmp: RouterICMP
 
     def __init__(self, hostname: str, num_ports: int = 5, **kwargs):
         if not kwargs.get("sys_log"):
@@ -694,12 +592,13 @@ class Router(Node):
             kwargs["acl"] = AccessControlList(sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY)
         if not kwargs.get("route_table"):
             kwargs["route_table"] = RouteTable(sys_log=kwargs["sys_log"])
-        if not kwargs.get("arp"):
-            kwargs["arp"] = RouterARPCache(sys_log=kwargs.get("sys_log"), router=self)
+        # if not kwargs.get("arp"):
+        #     kwargs["arp"] = RouterARPCache(sys_log=kwargs.get("sys_log"), router=self)
         # if not kwargs.get("icmp"):
         #     kwargs["icmp"] = RouterICMP(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"), router=self)
         super().__init__(hostname=hostname, num_ports=num_ports, **kwargs)
-        # TODO: Install RoputerICMP
+        # TODO: Install RouterICMP
+        # TODO: Install RouterARP
         for i in range(1, self.num_ports + 1):
             nic = RouterNIC(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
             self.connect_nic(nic)

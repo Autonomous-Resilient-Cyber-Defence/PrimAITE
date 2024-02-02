@@ -23,20 +23,16 @@ class Host(Node):
     Instances of computer come 'pre-packaged' with the following:
 
     * Core Functionality:
-        * ARP
-        * ICMP
         * Packet Capture
         * Sys Log
     * Services:
+        * ARP Service
+        * ICMP Service
         * DNS Client
         * FTP Client
-        * LDAP Client
         * NTP Client
     * Applications:
-        * Email Client
         * Web Browser
-    * Processes:
-        * Placeholder
     """
 
     def __init__(self, **kwargs):

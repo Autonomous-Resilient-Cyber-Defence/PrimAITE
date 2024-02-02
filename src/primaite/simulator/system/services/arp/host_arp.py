@@ -30,11 +30,11 @@ class HostARP(ARP):
                     ip_address=ip_address, is_reattempt=True, is_default_gateway_attempt=is_default_gateway_attempt
                 )
             else:
-                if self.node.default_gateway:
+                if self.software_manager.node.default_gateway:
                     if not is_default_gateway_attempt:
-                        self.send_arp_request(self.node.default_gateway)
+                        self.send_arp_request(self.software_manager.node.default_gateway)
                         return self._get_arp_cache_mac_address(
-                            ip_address=self.node.default_gateway, is_reattempt=True, is_default_gateway_attempt=True
+                            ip_address=self.software_manager.node.default_gateway, is_reattempt=True, is_default_gateway_attempt=True
                         )
         return None
 
@@ -61,11 +61,11 @@ class HostARP(ARP):
                     ip_address=ip_address, is_reattempt=True, is_default_gateway_attempt=is_default_gateway_attempt
                 )
             else:
-                if self.node.default_gateway:
+                if self.software_manager.node.default_gateway:
                     if not is_default_gateway_attempt:
-                        self.send_arp_request(self.node.default_gateway)
+                        self.send_arp_request(self.software_manager.node.default_gateway)
                         return self._get_arp_cache_nic(
-                            ip_address=self.node.default_gateway, is_reattempt=True, is_default_gateway_attempt=True
+                            ip_address=self.software_manager.node.default_gateway, is_reattempt=True, is_default_gateway_attempt=True
                         )
         return None
 

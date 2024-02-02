@@ -5,8 +5,8 @@ from typing import Dict, Any, Union, Optional, Tuple
 from primaite import getLogger
 from primaite.simulator.network.hardware.base import NIC
 from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
-from primaite.simulator.network.transmission.data_link_layer import Frame, EthernetHeader
-from primaite.simulator.network.transmission.network_layer import IPProtocol, IPPacket
+from primaite.simulator.network.transmission.data_link_layer import Frame
+from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import Service
 
@@ -14,6 +14,12 @@ _LOGGER = getLogger(__name__)
 
 
 class ICMP(Service):
+    """
+    The Internet Control Message Protocol (ICMP) services.
+
+    Enables the sending and receiving of ICMP messages such as echo requests and replies. This is typically used for
+    network diagnostics, notably the ping command.
+    """
     request_replies: Dict = {}
 
     def __init__(self, **kwargs):
@@ -26,53 +32,22 @@ class ICMP(Service):
         pass
 
     def clear(self):
-        """Clears the ICMP request replies tracker."""
+        """
+        Clears the ICMP request and reply tracker.
+
+        This is typically used to reset the state of the service, removing all tracked ICMP echo requests and their
+        corresponding replies.
+        """
         self.request_replies.clear()
-
-    def _send_icmp_echo_request(
-            self, target_ip_address: IPv4Address, sequence: int = 0, identifier: Optional[int] = None, pings: int = 4
-    ) -> Tuple[int, Union[int, None]]:
-        """
-        Send an ICMP echo request (ping) to a target IP address and manage the sequence and identifier.
-
-        :param target_ip_address: The target IP address to send the ping.
-        :param sequence: The sequence number of the echo request. Defaults to 0.
-        :param identifier: An optional identifier for the ICMP packet. If None, a default will be used.
-        :return: A tuple containing the next sequence number and the identifier, or (0, None) if the target IP address
-            was not found in the ARP cache.
-        """
-        nic = self.software_manager.arp.get_arp_cache_nic(target_ip_address)
-
-        if not nic:
-            return pings, None
-
-        # ARP entry exists
-        sequence += 1
-        target_mac_address = self.software_manager.arp.get_arp_cache_mac_address(target_ip_address)
-
-        src_nic = self.software_manager.arp.get_arp_cache_nic(target_ip_address)
-
-        # Network Layer
-        ip_packet = IPPacket(
-            src_ip_address=nic.ip_address,
-            dst_ip_address=target_ip_address,
-            protocol=IPProtocol.ICMP,
-        )
-        # Data Link Layer
-        ethernet_header = EthernetHeader(src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address)
-        icmp_packet = ICMPPacket(identifier=identifier, sequence=sequence)
-        payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
-        frame = Frame(ethernet=ethernet_header, ip=ip_packet, icmp=icmp_packet, payload=payload)
-        nic.send_frame(frame)
-        return sequence, icmp_packet.identifier
 
     def ping(self, target_ip_address: Union[IPv4Address, str], pings: int = 4) -> bool:
         """
-        Ping an IP address, performing a standard ICMP echo request/response.
+        Pings a target IP address by sending an ICMP echo request and waiting for a reply.
 
-        :param target_ip_address: The target IP address to ping.
-        :param pings: The number of pings to attempt, default is 4.
-        :return: True if the ping is successful, otherwise False.
+        :param target_ip_address: The IP address to be pinged.
+        :param pings: The number of echo requests to send. Defaults to 4.
+        :return: True if the ping was successful (i.e., if a reply was received for every request sent), otherwise
+            False.
         """
         if not self._can_perform_action():
             return False
@@ -101,37 +76,79 @@ class ICMP(Service):
 
         return passed
 
-    def _process_icmp_echo_request(self, frame: Frame, from_nic: NIC, is_reattempt: bool = False):
-        if frame.icmp.icmp_type == ICMPType.ECHO_REQUEST:
-            if not is_reattempt:
-                self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
-            target_mac_address = self.software_manager.arp.get_arp_cache_mac_address(frame.ip.src_ip_address)
+    def _send_icmp_echo_request(
+            self, target_ip_address: IPv4Address, sequence: int = 0, identifier: Optional[int] = None, pings: int = 4
+    ) -> Tuple[int, Union[int, None]]:
+        """
+        Sends an ICMP echo request to a specified target IP address.
 
-            src_nic = self.software_manager.arp.get_arp_cache_nic(frame.ip.src_ip_address)
-            if not src_nic:
-                self.software_manager.arp.send_arp_request(frame.ip.src_ip_address)
-                self.process_icmp(frame=frame, from_nic=from_nic, is_reattempt=True)
-                return
+        :param target_ip_address: The target IP address for the echo request.
+        :param sequence: The sequence number of the echo request.
+        :param identifier: The identifier for the ICMP packet. If None, a default identifier is used.
+        :param pings: The number of pings to send. Defaults to 4.
+        :return: A tuple containing the next sequence number and the identifier.
+        """
+        nic = self.software_manager.session_manager.resolve_outbound_nic(target_ip_address)
 
-            # Network Layer
-            ip_packet = IPPacket(
-                src_ip_address=src_nic.ip_address, dst_ip_address=frame.ip.src_ip_address, protocol=IPProtocol.ICMP
+        if not nic:
+            self.sys_log.error(
+                "Cannot send ICMP echo request as there is no outbound NIC to use. Try configuring the default gateway."
             )
-            # Data Link Layer
-            ethernet_header = EthernetHeader(src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address)
-            icmp_reply_packet = ICMPPacket(
-                icmp_type=ICMPType.ECHO_REPLY,
-                icmp_code=0,
-                identifier=frame.icmp.identifier,
-                sequence=frame.icmp.sequence + 1,
+            return pings, None
+
+        sequence += 1
+
+        icmp_packet = ICMPPacket(identifier=identifier, sequence=sequence)
+        payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
+
+        self.software_manager.session_manager.receive_payload_from_software_manager(
+            payload=payload,
+            dst_ip_address=target_ip_address,
+            dst_port=self.port,
+            ip_protocol=self.protocol,
+            icmp_packet=icmp_packet
+        )
+        return sequence, icmp_packet.identifier
+
+    def _process_icmp_echo_request(self, frame: Frame):
+        """
+        Processes an ICMP echo request received by the service.
+
+        :param frame: The network frame containing the ICMP echo request.
+        """
+        self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
+
+        nic = self.software_manager.session_manager.resolve_outbound_nic(frame.ip.src_ip_address)
+
+        if not nic:
+            self.sys_log.error(
+                "Cannot send ICMP echo reply as there is no outbound NIC to use. Try configuring the default gateway."
             )
-            payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
-            frame = Frame(ethernet=ethernet_header, ip=ip_packet, icmp=icmp_reply_packet, payload=payload)
-            self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip_address}")
+            return
 
-            src_nic.send_frame(frame)
+        icmp_packet = ICMPPacket(
+            icmp_type=ICMPType.ECHO_REPLY,
+            icmp_code=0,
+            identifier=frame.icmp.identifier,
+            sequence=frame.icmp.sequence + 1,
+        )
+        payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
+        self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip_address}")
 
-    def _process_icmp_echo_reply(self, frame: Frame, from_nic: NIC, is_reattempt: bool = False):
+        self.software_manager.session_manager.receive_payload_from_software_manager(
+            payload=payload,
+            dst_ip_address=frame.ip.src_ip_address,
+            dst_port=self.port,
+            ip_protocol=self.protocol,
+            icmp_packet=icmp_packet
+        )
+
+    def _process_icmp_echo_reply(self, frame: Frame):
+        """
+        Processes an ICMP echo reply received by the service, logging the reply details.
+
+        :param frame: The network frame containing the ICMP echo reply.
+        """
         time = frame.transmission_duration()
         time_str = f"{time}ms" if time > 0 else "<1ms"
         self.sys_log.info(
@@ -146,14 +163,21 @@ class ICMP(Service):
         self.request_replies[frame.icmp.identifier] += 1
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
+        """
+        Processes received data, handling ICMP echo requests and replies.
+
+        :param payload: The payload received.
+        :param session_id: The session ID associated with the received data.
+        :param kwargs: Additional keyword arguments.
+        :return: True if the payload was processed successfully, otherwise False.
+        """
         frame: Frame = kwargs["frame"]
-        from_nic = kwargs["from_nic"]
 
         if not frame.icmp:
             return False
 
         if frame.icmp.icmp_type == ICMPType.ECHO_REQUEST:
-            self._process_icmp_echo_request(frame, from_nic)
+            self._process_icmp_echo_request(frame)
         elif frame.icmp.icmp_type == ICMPType.ECHO_REPLY:
-            self._process_icmp_echo_reply(frame, from_nic)
+            self._process_icmp_echo_reply(frame)
         return True

@@ -1,7 +1,7 @@
-from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.host import Host
 
 
-class Server(Computer):
+class Server(Host):
     """
     A basic Server class.
 
@@ -17,18 +17,15 @@ class Server(Computer):
     Instances of Server come 'pre-packaged' with the following:
 
     * Core Functionality:
-        * ARP
-        * ICMP
         * Packet Capture
         * Sys Log
     * Services:
+        * ARP Service
+        * ICMP Service
         * DNS Client
         * FTP Client
-        * LDAP Client
         * NTP Client
     * Applications:
-        * Email Client
         * Web Browser
-    * Processes:
-        * Placeholder
     """
+    pass
