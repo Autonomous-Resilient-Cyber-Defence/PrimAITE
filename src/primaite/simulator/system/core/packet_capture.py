@@ -21,7 +21,7 @@ class PacketCapture:
     The PCAPs are logged to: <simulation output directory>/<hostname>/<hostname>_<ip address>_pcap.log
     """
 
-    def __init__(self, hostname: str, ip_address: Optional[str] = None, switch_port_number: Optional[int] = None):
+    def __init__(self, hostname: str, ip_address: Optional[str] = None, interface_num: Optional[int] = None):
         """
         Initialize the PacketCapture process.
 
@@ -32,8 +32,8 @@ class PacketCapture:
         "The hostname for which PCAP logs are being recorded."
         self.ip_address: str = ip_address
         "The IP address associated with the PCAP logs."
-        self.switch_port_number = switch_port_number
-        "The SwitchPort number."
+        self.interface_num = interface_num
+        "The interface num on the Node."
 
         self.inbound_logger = None
         self.outbound_logger = None
@@ -81,8 +81,8 @@ class PacketCapture:
         """Get PCAP the logger name."""
         if self.ip_address:
             return f"{self.hostname}_{self.ip_address}_{'outbound' if outbound else 'inbound'}_pcap"
-        if self.switch_port_number:
-            return f"{self.hostname}_port-{self.switch_port_number}_{'outbound' if outbound else 'inbound'}_pcap"
+        if self.interface_num:
+            return f"{self.hostname}_port-{self.interface_num}_{'outbound' if outbound else 'inbound'}_pcap"
         return f"{self.hostname}_{'outbound' if outbound else 'inbound'}_pcap"
 
     def _get_log_path(self, outbound: bool = False) -> Path:

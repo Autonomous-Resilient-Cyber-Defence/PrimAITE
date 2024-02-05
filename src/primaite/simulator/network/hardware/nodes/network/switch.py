@@ -1,16 +1,93 @@
-from typing import Dict
+from __future__ import annotations
+from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
-from primaite.simulator.network.hardware.base import Link, Node, SwitchPort
+from primaite.simulator.network.hardware.base import WiredNetworkInterface, NetworkInterface, Link
+from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
 from primaite.simulator.network.transmission.data_link_layer import Frame
 
 _LOGGER = getLogger(__name__)
 
 
-class Switch(Node):
+class SwitchPort(WiredNetworkInterface):
+    """
+    Represents a Switch Port.
+
+    Switch ports connect devices within the same network. They operate at the data link layer (Layer 2) of the OSI model
+    and are responsible for receiving and forwarding frames based on MAC addresses. Despite operating at Layer 2,
+    they are an essential part of network infrastructure, enabling LAN segmentation, bandwidth management, and
+    the creation of VLANs.
+
+    Inherits from:
+    - WiredNetworkInterface: Provides properties and methods specific to wired connections.
+
+    Switch ports typically do not have IP addresses assigned to them as they function at Layer 2, but managed switches
+    can have management IP addresses for remote management and configuration purposes.
+    """
+    _connected_node: Optional[Switch] = None
+    "The Switch to which the SwitchPort is connected."
+
+    def set_original_state(self):
+        """Sets the original state."""
+        vals_to_include = {"port_num", "mac_address", "speed", "mtu", "enabled"}
+        self._original_state = self.model_dump(include=vals_to_include)
+        super().set_original_state()
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        state.update(
+            {
+                "mac_address": self.mac_address,
+                "speed": self.speed,
+                "mtu": self.mtu,
+                "enabled": self.enabled,
+            }
+        )
+        return state
+
+    def send_frame(self, frame: Frame) -> bool:
+        """
+        Attempts to send a network frame through the interface.
+
+        :param frame: The network frame to be sent.
+        :return: A boolean indicating whether the frame was successfully sent.
+        """
+        if self.enabled:
+            self.pcap.capture_outbound(frame)
+            self._connected_link.transmit_frame(sender_nic=self, frame=frame)
+            return True
+        # Cannot send Frame as the SwitchPort is not enabled
+        return False
+
+    def receive_frame(self, frame: Frame) -> bool:
+        """
+        Receives a network frame on the interface.
+
+        :param frame: The network frame being received.
+        :return: A boolean indicating whether the frame was successfully received.
+        """
+        if self.enabled:
+            frame.decrement_ttl()
+            if frame.ip and frame.ip.ttl < 1:
+                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
+                return False
+            self.pcap.capture_inbound(frame)
+            self._connected_node.receive_frame(frame=frame, from_network_interface=self)
+            return True
+        return False
+
+
+class Switch(NetworkNode):
     """
     A class representing a Layer 2 network switch.
 
@@ -30,7 +107,7 @@ class Switch(Node):
             self.switch_ports = {i: SwitchPort() for i in range(1, self.num_ports + 1)}
         for port_num, port in self.switch_ports.items():
             port._connected_node = self
-            port._port_num_on_node = port_num
+            port.port_num = port_num
             port.parent = self
             port.port_num = port_num
 
@@ -78,16 +155,16 @@ class Switch(Node):
                 self.sys_log.info(f"Removed MAC table entry: Port {mac_table_port.port_num} -> {mac_address}")
                 self._add_mac_table_entry(mac_address, switch_port)
 
-    def forward_frame(self, frame: Frame, incoming_port: SwitchPort):
+    def receive_frame(self, frame: Frame, from_network_interface: SwitchPort):
         """
         Forward a frame to the appropriate port based on the destination MAC address.
 
-        :param frame: The Frame to be forwarded.
-        :param incoming_port: The port number from which the frame was received.
+        :param frame: The Frame being received.
+        :param from_network_interface: The SwitchPort that received the frame.
         """
         src_mac = frame.ethernet.src_mac_addr
         dst_mac = frame.ethernet.dst_mac_addr
-        self._add_mac_table_entry(src_mac, incoming_port)
+        self._add_mac_table_entry(src_mac, from_network_interface)
 
         outgoing_port = self.mac_address_table.get(dst_mac)
         if outgoing_port and dst_mac.lower() != "ff:ff:ff:ff:ff:ff":
@@ -95,7 +172,7 @@ class Switch(Node):
         else:
             # If the destination MAC is not in the table, flood to all ports except incoming
             for port in self.switch_ports.values():
-                if port.enabled and port != incoming_port:
+                if port.enabled and port != from_network_interface:
                     port.send_frame(frame)
 
     def disconnect_link_from_port(self, link: Link, port_number: int):

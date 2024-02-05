@@ -4,7 +4,7 @@ from typing import Tuple
 import pytest
 
 from primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
-from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer

@@ -4,7 +4,7 @@ import pytest
 
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port

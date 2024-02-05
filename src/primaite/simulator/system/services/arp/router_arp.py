@@ -1,98 +1,78 @@
-# class RouterARPCache(ARPCache):
+# from ipaddress import IPv4Address
+# from typing import Optional, Any
+#
+# from primaite.simulator.network.hardware.nodes.network.router import RouterInterface, Router
+# from primaite.simulator.network.protocols.arp import ARPPacket
+# from primaite.simulator.network.transmission.data_link_layer import Frame
+# from primaite.simulator.system.services.arp.arp import ARP
+#
+#
+# class RouterARP(ARP):
 #     """
 #     Inherits from ARPCache and adds router-specific ARP packet processing.
 #
 #     :ivar SysLog sys_log: A system log for logging messages.
 #     :ivar Router router: The router to which this ARP cache belongs.
 #     """
+#     router: Router
 #
-#     def __init__(self, sys_log: SysLog, router: Router):
-#         super().__init__(sys_log)
-#         self.router: Router = router
+#     def get_arp_cache_mac_address(self, ip_address: IPv4Address) -> Optional[str]:
+#         arp_entry = self.arp.get(ip_address)
 #
-#     def process_arp_packet(
-#         self, from_nic: NIC, frame: Frame, route_table: RouteTable, is_reattempt: bool = False
-#     ) -> None:
-#         """
-#         Processes a received ARP (Address Resolution Protocol) packet in a router-specific way.
+#         if arp_entry:
+#             return arp_entry.mac_address
+#         return None
 #
-#         This method is responsible for handling both ARP requests and responses. It processes ARP packets received on a
-#         Network Interface Card (NIC) and performs actions based on whether the packet is a request or a reply. This
-#         includes updating the ARP cache, forwarding ARP replies, sending ARP requests for unknown destinations, and
-#         handling packet TTL (Time To Live).
+#     def get_arp_cache_network_interface(self, ip_address: IPv4Address) -> Optional[RouterInterface]:
+#         arp_entry = self.arp.get(ip_address)
+#         if arp_entry:
+#             return self.software_manager.node.network_interfaces[arp_entry.network_interface_uuid]
+#         return None
 #
-#         The method first checks if the ARP packet is a request or a reply. For ARP replies, it updates the ARP cache
-#         and forwards the reply if necessary. For ARP requests, it checks if the target IP matches one of the router's
-#         NICs and sends an ARP reply if so. If the destination is not directly connected, it consults the routing table
-#         to find the best route and reattempts ARP request processing if needed.
-#
-#         :param from_nic: The NIC that received the ARP packet.
-#         :param frame: The frame containing the ARP packet.
-#         :param route_table: The routing table of the router.
-#         :param is_reattempt: Flag to indicate if this is a reattempt of processing the ARP packet, defaults to False.
-#         """
-#         arp_packet = frame.arp
-#
-#         # ARP Reply
-#         if not arp_packet.request:
-#             if arp_packet.target_ip_address == from_nic.ip_address:
-#                 # reply to the Router specifically
-#                 self.sys_log.info(
-#                     f"Received ARP response for {arp_packet.sender_ip_address} "
-#                     f"from {arp_packet.sender_mac_addr} via NIC {from_nic}"
-#                 )
-#                 self.add_arp_cache_entry(
-#                     ip_address=arp_packet.sender_ip_address,
-#                     mac_address=arp_packet.sender_mac_addr,
-#                     nic=from_nic,
-#                 )
-#                 return
-#
-#             # # Reply for a connected requested
-#             # nic = self.get_arp_cache_nic(arp_packet.target_ip_address)
-#             # if nic:
-#             #     self.sys_log.info(
-#             #         f"Forwarding arp reply for {arp_packet.target_ip_address}, from {arp_packet.sender_ip_address}"
-#             #     )
-#             #     arp_packet.sender_mac_addr = nic.mac_address
-#             #     frame.decrement_ttl()
-#             #     if frame.ip and frame.ip.ttl < 1:
-#             #         self.sys_log.info("Frame discarded as TTL limit reached")
-#             #         return
-#             #     nic.send_frame(frame)
-#             # return
-#
-#         # ARP Request
-#         self.sys_log.info(
-#             f"Received ARP request for {arp_packet.target_ip_address} from "
-#             f"{arp_packet.sender_mac_addr}/{arp_packet.sender_ip_address} "
-#         )
-#         # Matched ARP request
+#     def _process_arp_request(self, arp_packet: ARPPacket, from_network_interface: RouterInterface):
+#         super()._process_arp_request(arp_packet, from_network_interface)
 #         self.add_arp_cache_entry(
-#             ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic
+#             ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr,
+#             network_interface=from_network_interface
 #         )
 #
 #         # If the target IP matches one of the router's NICs
-#         for nic in self.nics.values():
-#             if nic.enabled and nic.ip_address == arp_packet.target_ip_address:
-#                 arp_reply = arp_packet.generate_reply(from_nic.mac_address)
-#                 self.send_arp_reply(arp_reply, from_nic)
+#         for network_interface in self.network_interfaces.values():
+#             if network_interface.enabled and network_interface.ip_address == arp_packet.target_ip_address:
+#                 arp_reply = arp_packet.generate_reply(from_network_interface.mac_address)
+#                 self.send_arp_reply(arp_reply)
 #                 return
 #
-#         # # Check Route Table
-#         # route = route_table.find_best_route(arp_packet.target_ip_address)
-#         # if route and route != self.router.route_table.default_route:
-#         #     nic = self.get_arp_cache_nic(route.next_hop_ip_address)
-#         #
-#         #     if not nic:
-#         #         if not is_reattempt:
-#         #             self.send_arp_request(route.next_hop_ip_address, ignore_networks=[frame.ip.src_ip_address])
-#         #             return self.process_arp_packet(from_nic, frame, route_table, is_reattempt=True)
-#         #         else:
-#         #             self.sys_log.info("Ignoring ARP request as destination unavailable/No ARP entry found")
-#         #             return
-#         #     else:
-#         #         arp_reply = arp_packet.generate_reply(from_nic.mac_address)
-#         #         self.send_arp_reply(arp_reply, from_nic)
-#         #     return
+#     def _process_arp_reply(self, arp_packet: ARPPacket, from_network_interface: RouterInterface):
+#         if arp_packet.target_ip_address == from_network_interface.ip_address:
+#             super()._process_arp_reply(arp_packet, from_network_interface)
 #
+#     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
+#         """
+#         Processes received data, handling ARP packets.
+#
+#         :param payload: The payload received.
+#         :param session_id: The session ID associated with the received data.
+#         :param kwargs: Additional keyword arguments.
+#         :return: True if the payload was processed successfully, otherwise False.
+#         """
+#         if not super().receive(payload, session_id, **kwargs):
+#             return False
+#
+#         arp_packet: ARPPacket = payload
+#         from_network_interface: RouterInterface = kwargs["from_network_interface"]
+#
+#         for network_interface in self.network_interfaces.values():
+#             # ARP frame is for this Router
+#             if network_interface.ip_address == arp_packet.target_ip_address:
+#                 if payload.request:
+#                     self._process_arp_request(arp_packet=arp_packet, from_network_interface=from_network_interface)
+#                 else:
+#                     self._process_arp_reply(arp_packet=arp_packet, from_network_interface=from_network_interface)
+#                 return True
+#
+#         # ARP frame is not for this router, pass back down to Router to continue routing
+#         frame: Frame = kwargs["frame"]
+#         self.router.process_frame(frame=frame, from_network_interface=from_network_interface)
+#
+#         return True

@@ -1,7 +1,7 @@
 from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 
 
 
@@ -30,8 +30,8 @@ def test_node_to_node_ping():
     switch_1 = Switch(hostname="switch_1", start_up_duration=0)
     switch_1.power_on()
 
-    network.connect(endpoint_a=client_1.ethernet_port[1], endpoint_b=switch_1.switch_ports[1])
-    network.connect(endpoint_a=server_1.ethernet_port[1], endpoint_b=switch_1.switch_ports[2])
+    network.connect(endpoint_a=client_1.network_interface[1], endpoint_b=switch_1.switch_ports[1])
+    network.connect(endpoint_a=server_1.network_interface[1], endpoint_b=switch_1.switch_ports[2])
 
     assert client_1.ping("192.168.1.11")
 

@@ -555,7 +555,7 @@ class NetworkNICAbstractAction(AbstractAction):
             "network",
             "node",
             node_uuid,
-            "nic",
+            "network_interface",
             nic_uuid,
             self.verb,
         ]
@@ -672,8 +672,8 @@ class ActionManager:
             self.ip_address_list = []
             for node_uuid in self.node_uuids:
                 node_obj = self.game.simulation.network.nodes[node_uuid]
-                nics = node_obj.nics
-                for nic_uuid, nic_obj in nics.items():
+                network_interfaces = node_obj.network_interfaces
+                for nic_uuid, nic_obj in network_interfaces.items():
                     self.ip_address_list.append(nic_obj.ip_address)
 
         # action_args are settings which are applied to the action space as a whole.
@@ -898,10 +898,10 @@ class ActionManager:
         """
         node_uuid = self.get_node_uuid_by_idx(node_idx)
         node_obj = self.game.simulation.network.nodes[node_uuid]
-        nics = list(node_obj.nics.keys())
-        if len(nics) <= nic_idx:
+        network_interfaces = list(node_obj.network_interfaces.keys())
+        if len(network_interfaces) <= nic_idx:
             return None
-        return nics[nic_idx]
+        return network_interfaces[nic_idx]
 
     @classmethod
     def from_config(cls, game: "PrimaiteGame", cfg: Dict) -> "ActionManager":
@@ -936,7 +936,7 @@ class ActionManager:
             node_ref = entry["node_ref"]
             nic_num = entry["nic_num"]
             node_obj = game.simulation.network.get_node_by_hostname(node_ref)
-            ip_address = node_obj.ethernet_port[nic_num].ip_address
+            ip_address = node_obj.network_interface[nic_num].ip_address
             ip_address_list.append(ip_address)
 
         obj = cls(

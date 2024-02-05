@@ -7,11 +7,11 @@ from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
-from primaite.simulator.network.hardware.base import Link, NIC, Node, SwitchPort
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import Router
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.base import Link, Node, WiredNetworkInterface
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.network.router import Router
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.service import Service
 
@@ -62,8 +62,8 @@ class Network(SimComponent):
         for node in self.nodes.values():
             node.power_on()
 
-            for nic in node.nics.values():
-                nic.enable()
+            for network_interface in node.network_interfaces.values():
+                network_interface.enable()
             # Reset software
             for software in node.software_manager.software.values():
                 if isinstance(software, Service):
@@ -148,7 +148,7 @@ class Network(SimComponent):
             table.title = "IP Addresses"
             for nodes in nodes_type_map.values():
                 for node in nodes:
-                    for i, port in node.ethernet_port.items():
+                    for i, port in node.network_interface.items():
                         table.add_row([node.hostname, i, port.ip_address, port.subnet_mask, node.default_gateway])
             print(table)
 
@@ -209,8 +209,8 @@ class Network(SimComponent):
             node_b = link.endpoint_b._connected_node
             hostname_a = node_a.hostname if node_a else None
             hostname_b = node_b.hostname if node_b else None
-            port_a = link.endpoint_a._port_num_on_node
-            port_b = link.endpoint_b._port_num_on_node
+            port_a = link.endpoint_a.port_num
+            port_b = link.endpoint_b.port_num
             state["links"][uuid] = link.describe_state()
             state["links"][uuid]["hostname_a"] = hostname_a
             state["links"][uuid]["hostname_b"] = hostname_b
@@ -272,7 +272,7 @@ class Network(SimComponent):
         self._node_request_manager.remove_request(name=node.uuid)
 
     def connect(
-        self, endpoint_a: Union[NIC, SwitchPort], endpoint_b: Union[NIC, SwitchPort], **kwargs
+        self, endpoint_a: Union[WiredNetworkInterface], endpoint_b: Union[WiredNetworkInterface], **kwargs
     ) -> Optional[Link]:
         """
         Connect two endpoints on the network by creating a link between their NICs/SwitchPorts.
@@ -280,9 +280,9 @@ class Network(SimComponent):
         .. note:: If the nodes owning the endpoints are not already in the network, they are automatically added.
 
         :param endpoint_a: The first endpoint to connect.
-        :type endpoint_a: Union[NIC, SwitchPort]
+        :type endpoint_a: WiredNetworkInterface
         :param endpoint_b: The second endpoint to connect.
-        :type endpoint_b: Union[NIC, SwitchPort]
+        :type endpoint_b: WiredNetworkInterface
         :raises RuntimeError: If any validation or runtime checks fail.
         """
         node_a: Node = endpoint_a.parent

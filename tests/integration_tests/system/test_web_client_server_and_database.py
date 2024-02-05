@@ -4,10 +4,9 @@ from typing import Tuple
 import pytest
 
 from primaite.simulator.network.hardware.base import Link
-from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
-from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
+from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.web_browser import WebBrowser
@@ -44,9 +43,9 @@ def web_client_web_server_database(example_network) -> Tuple[Computer, Server, S
     db_server = example_network.get_node_by_hostname("server_2")
 
     # Get the NICs
-    computer_nic = computer.nics[next(iter(computer.nics))]
-    server_nic = web_server.nics[next(iter(web_server.nics))]
-    db_server_nic = db_server.nics[next(iter(db_server.nics))]
+    computer_nic = computer.network_interfaces[next(iter(computer.network_interfaces))]
+    server_nic = web_server.network_interfaces[next(iter(web_server.network_interfaces))]
+    db_server_nic = db_server.network_interfaces[next(iter(db_server.network_interfaces))]
 
     # Connect Computer and Server
     link_computer_server = Link(endpoint_a=computer_nic, endpoint_b=server_nic)
@@ -74,7 +73,7 @@ def web_client_web_server_database(example_network) -> Tuple[Computer, Server, S
     computer.software_manager.install(DNSClient)
     dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
     # set dns server
-    dns_client.dns_server = web_server.nics[next(iter(web_server.nics))].ip_address
+    dns_client.dns_server = web_server.network_interfaces[next(iter(web_server.network_interfaces))].ip_address
 
     # Install Web Server service on web server
     web_server.software_manager.install(WebServer)
@@ -86,7 +85,7 @@ def web_client_web_server_database(example_network) -> Tuple[Computer, Server, S
     dns_server: DNSServer = web_server.software_manager.software.get("DNSServer")
     # register arcd.com to DNS
     dns_server.dns_register(
-        domain_name="arcd.com", domain_ip_address=web_server.nics[next(iter(web_server.nics))].ip_address
+        domain_name="arcd.com", domain_ip_address=web_server.network_interfaces[next(iter(web_server.network_interfaces))].ip_address
     )
 
     # Install DatabaseClient service on web server

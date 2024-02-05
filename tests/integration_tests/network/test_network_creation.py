@@ -1,10 +1,7 @@
-import pytest
-
 from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.base import NIC, Node
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.networks import client_server_routed
+from primaite.simulator.network.hardware.base import Node
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
 
 
 def test_network(example_network):
@@ -14,16 +11,16 @@ def test_network(example_network):
     server_1: Server = network.get_node_by_hostname("server_1")
     server_2: Server = network.get_node_by_hostname("server_2")
 
-    assert client_1.ping(client_2.ethernet_port[1].ip_address)
-    assert client_2.ping(client_1.ethernet_port[1].ip_address)
+    assert client_1.ping(client_2.network_interface[1].ip_address)
+    assert client_2.ping(client_1.network_interface[1].ip_address)
 
-    assert server_1.ping(server_2.ethernet_port[1].ip_address)
-    assert server_2.ping(server_1.ethernet_port[1].ip_address)
+    assert server_1.ping(server_2.network_interface[1].ip_address)
+    assert server_2.ping(server_1.network_interface[1].ip_address)
 
-    assert client_1.ping(server_1.ethernet_port[1].ip_address)
-    assert client_2.ping(server_1.ethernet_port[1].ip_address)
-    assert client_1.ping(server_2.ethernet_port[1].ip_address)
-    assert client_2.ping(server_2.ethernet_port[1].ip_address)
+    assert client_1.ping(server_1.network_interface[1].ip_address)
+    assert client_2.ping(server_1.network_interface[1].ip_address)
+    assert client_1.ping(server_2.network_interface[1].ip_address)
+    assert client_2.ping(server_2.network_interface[1].ip_address)
 
 
 def test_adding_removing_nodes():
@@ -71,7 +68,7 @@ def test_connecting_nodes():
     net.add_node(n1)
     net.add_node(n2)
 
-    net.connect(n1.nics[n1_nic.uuid], n2.nics[n2_nic.uuid], bandwidth=30)
+    net.connect(n1.network_interfaces[n1_nic.uuid], n2.network_interfaces[n2_nic.uuid], bandwidth=30)
 
     assert len(net.links) == 1
     link = list(net.links.values())[0]
@@ -89,7 +86,7 @@ def test_connecting_node_to_itself():
 
     net.add_node(node)
 
-    net.connect(node.nics[nic1.uuid], node.nics[nic2.uuid], bandwidth=30)
+    net.connect(node.network_interfaces[nic1.uuid], node.network_interfaces[nic2.uuid], bandwidth=30)
 
     assert node in net
     assert nic1._connected_link is None
@@ -110,7 +107,7 @@ def test_disconnecting_nodes():
     n2.connect_nic(n2_nic)
     net.add_node(n2)
 
-    net.connect(n1.nics[n1_nic.uuid], n2.nics[n2_nic.uuid], bandwidth=30)
+    net.connect(n1.network_interfaces[n1_nic.uuid], n2.network_interfaces[n2_nic.uuid], bandwidth=30)
     assert len(net.links) == 1
 
     link = list(net.links.values())[0]

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Callable, ClassVar, Dict, List, Optional, Union
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from primaite import getLogger
 
@@ -150,14 +150,12 @@ class SimComponent(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
     """Configure pydantic to allow arbitrary types and to let the instance have attributes not present in model."""
 
-    uuid: str
+    uuid: str = Field(default_factory=lambda: str(uuid4()))
     """The component UUID."""
 
     _original_state: Dict = {}
 
     def __init__(self, **kwargs):
-        if not kwargs.get("uuid"):
-            kwargs["uuid"] = str(uuid4())
         super().__init__(**kwargs)
         self._request_manager: RequestManager = self._init_request_manager()
         self._parent: Optional["SimComponent"] = None

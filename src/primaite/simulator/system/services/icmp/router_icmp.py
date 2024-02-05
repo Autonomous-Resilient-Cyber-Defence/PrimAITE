@@ -16,30 +16,30 @@
 #         super().__init__(sys_log, arp_cache)
 #         self.router = router
 #
-#     def process_icmp(self, frame: Frame, from_nic: NIC, is_reattempt: bool = False):
+#     def process_icmp(self, frame: Frame, from_network_interface: NIC, is_reattempt: bool = False):
 #         """
 #         Process incoming ICMP frames based on ICMP type.
 #
 #         :param frame: The incoming frame to process.
-#         :param from_nic: The network interface where the frame is coming from.
+#         :param from_network_interface: The network interface where the frame is coming from.
 #         :param is_reattempt: Flag to indicate if the process is a reattempt.
 #         """
 #         if frame.icmp.icmp_type == ICMPType.ECHO_REQUEST:
 #             # determine if request is for router interface or whether it needs to be routed
 #
-#             for nic in self.router.nics.values():
-#                 if nic.ip_address == frame.ip.dst_ip_address:
-#                     if nic.enabled:
+#             for network_interface in self.router.network_interfaces.values():
+#                 if network_interface.ip_address == frame.ip.dst_ip_address:
+#                     if network_interface.enabled:
 #                         # reply to the request
 #                         if not is_reattempt:
 #                             self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
 #                         target_mac_address = self.arp.get_arp_cache_mac_address(frame.ip.src_ip_address)
-#                         src_nic = self.arp.get_arp_cache_nic(frame.ip.src_ip_address)
+#                         src_nic = self.arp.get_arp_cache_network_interface(frame.ip.src_ip_address)
 #                         tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
 #
 #                         # Network Layer
 #                         ip_packet = IPPacket(
-#                             src_ip_address=nic.ip_address,
+#                             src_ip_address=network_interface.ip_address,
 #                             dst_ip_address=frame.ip.src_ip_address,
 #                             protocol=IPProtocol.ICMP,
 #                         )
@@ -67,12 +67,12 @@
 #                     return
 #
 #             # Route the frame
-#             self.router.process_frame(frame, from_nic)
+#             self.router.process_frame(frame, from_network_interface)
 #
 #         elif frame.icmp.icmp_type == ICMPType.ECHO_REPLY:
-#             for nic in self.router.nics.values():
-#                 if nic.ip_address == frame.ip.dst_ip_address:
-#                     if nic.enabled:
+#             for network_interface in self.router.network_interfaces.values():
+#                 if network_interface.ip_address == frame.ip.dst_ip_address:
+#                     if network_interface.enabled:
 #                         time = frame.transmission_duration()
 #                         time_str = f"{time}ms" if time > 0 else "<1ms"
 #                         self.sys_log.info(
@@ -87,4 +87,4 @@
 #
 #                     return
 #             # Route the frame
-#             self.router.process_frame(frame, from_nic)
+#             self.router.process_frame(frame, from_network_interface)

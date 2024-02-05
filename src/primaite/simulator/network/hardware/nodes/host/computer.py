@@ -1,11 +1,7 @@
-from primaite.simulator.network.hardware.base import NIC, Node
-from primaite.simulator.network.hardware.nodes.host import Host
-from primaite.simulator.system.applications.web_browser import WebBrowser
-from primaite.simulator.system.services.dns.dns_client import DNSClient
-from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 
 
-class Computer(Host):
+class Computer(HostNode):
     """
     A basic Computer class.
 

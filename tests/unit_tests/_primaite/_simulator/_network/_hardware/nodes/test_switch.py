@@ -1,7 +1,7 @@
 import pytest
 
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 
 
 @pytest.fixture(scope="function")

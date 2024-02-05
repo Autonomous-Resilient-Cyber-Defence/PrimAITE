@@ -5,9 +5,7 @@ import pytest
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.base import Link, Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.simulator.system.services.database.database_service import DatabaseService
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 
 
 def filter_keys_nested_item(data, keys):

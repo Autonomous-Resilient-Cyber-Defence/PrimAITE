@@ -3,7 +3,6 @@ from ipaddress import IPv4Address
 from typing import Dict, Any, Union, Optional, Tuple
 
 from primaite import getLogger
-from primaite.simulator.network.hardware.base import NIC
 from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
@@ -53,7 +52,7 @@ class ICMP(Service):
             return False
         if target_ip_address.is_loopback:
             self.sys_log.info("Pinging loopback address")
-            return any(nic.enabled for nic in self.nics.values())
+            return any(network_interface.enabled for network_interface in self.network_interfaces.values())
         self.sys_log.info(f"Pinging {target_ip_address}:", to_terminal=True)
         sequence, identifier = 0, None
         while sequence < pings:
@@ -88,9 +87,9 @@ class ICMP(Service):
         :param pings: The number of pings to send. Defaults to 4.
         :return: A tuple containing the next sequence number and the identifier.
         """
-        nic = self.software_manager.session_manager.resolve_outbound_nic(target_ip_address)
+        network_interface = self.software_manager.session_manager.resolve_outbound_network_interface(target_ip_address)
 
-        if not nic:
+        if not network_interface:
             self.sys_log.error(
                 "Cannot send ICMP echo request as there is no outbound NIC to use. Try configuring the default gateway."
             )
@@ -118,9 +117,11 @@ class ICMP(Service):
         """
         self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
 
-        nic = self.software_manager.session_manager.resolve_outbound_nic(frame.ip.src_ip_address)
+        network_interface = self.software_manager.session_manager.resolve_outbound_network_interface(
+            frame.ip.src_ip_address
+            )
 
-        if not nic:
+        if not network_interface:
             self.sys_log.error(
                 "Cannot send ICMP echo reply as there is no outbound NIC to use. Try configuring the default gateway."
             )

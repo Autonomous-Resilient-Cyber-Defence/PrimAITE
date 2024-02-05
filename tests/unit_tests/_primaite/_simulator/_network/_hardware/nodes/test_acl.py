@@ -1,6 +1,6 @@
 from ipaddress import IPv4Address
 
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 

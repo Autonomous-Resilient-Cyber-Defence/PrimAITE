@@ -643,7 +643,7 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
-      nics:
+      network_interfaces:
         2: # unfortunately this number is currently meaningless, they're just added in order and take up the next available slot
           ip_address: 192.168.10.110
           subnet_mask: 255.255.255.0

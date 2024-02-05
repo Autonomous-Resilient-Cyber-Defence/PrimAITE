@@ -167,7 +167,7 @@ class SoftwareManager:
         )
 
     def receive_payload_from_session_manager(
-        self, payload: Any, port: Port, protocol: IPProtocol, session_id: str, from_nic: "NIC", frame: Frame
+        self, payload: Any, port: Port, protocol: IPProtocol, session_id: str, from_network_interface: "NIC", frame: Frame
     ):
         """
         Receive a payload from the SessionManager and forward it to the corresponding service or application.
@@ -177,7 +177,7 @@ class SoftwareManager:
         """
         receiver: Optional[Union[Service, Application]] = self.port_protocol_mapping.get((port, protocol), None)
         if receiver:
-            receiver.receive(payload=payload, session_id=session_id, from_nic=from_nic, frame=frame)
+            receiver.receive(payload=payload, session_id=session_id, from_network_interface=from_network_interface, frame=frame)
         else:
             self.sys_log.error(f"No service or application found for port {port} and protocol {protocol}")
         pass

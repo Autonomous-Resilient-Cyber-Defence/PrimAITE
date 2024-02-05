@@ -1,19 +1,23 @@
 from __future__ import annotations
 
-import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Any
+from typing import List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
-from primaite.simulator.network.hardware.base import NIC, Node
+from primaite.simulator.network.hardware.base import IPWiredNetworkInterface
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
+from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
+from primaite.simulator.network.protocols.arp import ARPPacket
+from primaite.simulator.network.transmission.data_link_layer import Frame
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.sys_log import SysLog
+from primaite.simulator.system.services.arp.arp import ARP
+from primaite.simulator.system.services.icmp.icmp import ICMP
 
 
 class ACLAction(Enum):
@@ -197,14 +201,14 @@ class AccessControlList(SimComponent):
         return self._acl
 
     def add_rule(
-        self,
-        action: ACLAction,
-        protocol: Optional[IPProtocol] = None,
-        src_ip_address: Optional[Union[str, IPv4Address]] = None,
-        src_port: Optional[Port] = None,
-        dst_ip_address: Optional[Union[str, IPv4Address]] = None,
-        dst_port: Optional[Port] = None,
-        position: int = 0,
+            self,
+            action: ACLAction,
+            protocol: Optional[IPProtocol] = None,
+            src_ip_address: Optional[Union[str, IPv4Address]] = None,
+            src_port: Optional[Port] = None,
+            dst_ip_address: Optional[Union[str, IPv4Address]] = None,
+            dst_port: Optional[Port] = None,
+            position: int = 0,
     ) -> None:
         """
         Add a new ACL rule.
@@ -251,12 +255,12 @@ class AccessControlList(SimComponent):
             raise ValueError(f"Cannot remove ACL rule, position {position} is out of bounds.")
 
     def is_permitted(
-        self,
-        protocol: IPProtocol,
-        src_ip_address: Union[str, IPv4Address],
-        src_port: Optional[Port],
-        dst_ip_address: Union[str, IPv4Address],
-        dst_port: Optional[Port],
+            self,
+            protocol: IPProtocol,
+            src_ip_address: Union[str, IPv4Address],
+            src_port: Optional[Port],
+            dst_ip_address: Union[str, IPv4Address],
+            dst_port: Optional[Port],
     ) -> Tuple[bool, Optional[Union[str, ACLRule]]]:
         """
         Check if a packet with the given properties is permitted through the ACL.
@@ -278,23 +282,23 @@ class AccessControlList(SimComponent):
                 continue
 
             if (
-                (rule.src_ip_address == src_ip_address or rule.src_ip_address is None)
-                and (rule.dst_ip_address == dst_ip_address or rule.dst_ip_address is None)
-                and (rule.protocol == protocol or rule.protocol is None)
-                and (rule.src_port == src_port or rule.src_port is None)
-                and (rule.dst_port == dst_port or rule.dst_port is None)
+                    (rule.src_ip_address == src_ip_address or rule.src_ip_address is None)
+                    and (rule.dst_ip_address == dst_ip_address or rule.dst_ip_address is None)
+                    and (rule.protocol == protocol or rule.protocol is None)
+                    and (rule.src_port == src_port or rule.src_port is None)
+                    and (rule.dst_port == dst_port or rule.dst_port is None)
             ):
                 return rule.action == ACLAction.PERMIT, rule
 
         return self.implicit_action == ACLAction.PERMIT, f"Implicit {self.implicit_action.name}"
 
     def get_relevant_rules(
-        self,
-        protocol: IPProtocol,
-        src_ip_address: Union[str, IPv4Address],
-        src_port: Port,
-        dst_ip_address: Union[str, IPv4Address],
-        dst_port: Port,
+            self,
+            protocol: IPProtocol,
+            src_ip_address: Union[str, IPv4Address],
+            src_port: Port,
+            dst_ip_address: Union[str, IPv4Address],
+            dst_port: Port,
     ) -> List[ACLRule]:
         """
         Get the list of relevant rules for a packet with given properties.
@@ -316,11 +320,11 @@ class AccessControlList(SimComponent):
                 continue
 
             if (
-                (rule.src_ip_address == src_ip_address or rule.src_ip_address is None)
-                or (rule.dst_ip_address == dst_ip_address or rule.dst_ip_address is None)
-                or (rule.protocol == protocol or rule.protocol is None)
-                or (rule.src_port == src_port or rule.src_port is None)
-                or (rule.dst_port == dst_port or rule.dst_port is None)
+                    (rule.src_ip_address == src_ip_address or rule.src_ip_address is None)
+                    or (rule.dst_ip_address == dst_ip_address or rule.dst_ip_address is None)
+                    or (rule.protocol == protocol or rule.protocol is None)
+                    or (rule.src_port == src_port or rule.src_port is None)
+                    or (rule.dst_port == dst_port or rule.dst_port is None)
             ):
                 relevant_rules.append(rule)
 
@@ -437,11 +441,11 @@ class RouteTable(SimComponent):
         pass
 
     def add_route(
-        self,
-        address: Union[IPv4Address, str],
-        subnet_mask: Union[IPv4Address, str],
-        next_hop_ip_address: Union[IPv4Address, str],
-        metric: float = 0.0,
+            self,
+            address: Union[IPv4Address, str],
+            subnet_mask: Union[IPv4Address, str],
+            next_hop_ip_address: Union[IPv4Address, str],
+            metric: float = 0.0,
     ):
         """
         Add a route to the routing table.
@@ -528,7 +532,79 @@ class RouteTable(SimComponent):
             table.add_row([index, f"{route.address}/{network.prefixlen}", route.next_hop_ip_address, route.metric])
         print(table)
 
-class RouterNIC(NIC):
+
+class RouterARP(ARP):
+    """
+    Inherits from ARPCache and adds router-specific ARP packet processing.
+
+    :ivar SysLog sys_log: A system log for logging messages.
+    :ivar Router router: The router to which this ARP cache belongs.
+    """
+    router: Optional[Router] = None
+
+    def get_arp_cache_mac_address(self, ip_address: IPv4Address) -> Optional[str]:
+        arp_entry = self.arp.get(ip_address)
+
+        if arp_entry:
+            return arp_entry.mac_address
+        return None
+
+    def get_arp_cache_network_interface(self, ip_address: IPv4Address) -> Optional[RouterInterface]:
+
+        arp_entry = self.arp.get(ip_address)
+        if arp_entry:
+            return self.software_manager.node.network_interfaces[arp_entry.network_interface_uuid]
+        for network_interface in self.router.network_interfaces.values():
+            if ip_address in network_interface.ip_network:
+                return network_interface
+        return None
+
+    def _process_arp_request(self, arp_packet: ARPPacket, from_network_interface: RouterInterface):
+        super()._process_arp_request(arp_packet, from_network_interface)
+
+        # If the target IP matches one of the router's NICs
+        for network_interface in self.router.network_interfaces.values():
+            if network_interface.enabled and network_interface.ip_address == arp_packet.target_ip_address:
+                arp_reply = arp_packet.generate_reply(from_network_interface.mac_address)
+                self.send_arp_reply(arp_reply)
+                return
+
+    def _process_arp_reply(self, arp_packet: ARPPacket, from_network_interface: RouterInterface):
+        if arp_packet.target_ip_address == from_network_interface.ip_address:
+            super()._process_arp_reply(arp_packet, from_network_interface)
+
+    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
+        """
+        Processes received data, handling ARP packets.
+
+        :param payload: The payload received.
+        :param session_id: The session ID associated with the received data.
+        :param kwargs: Additional keyword arguments.
+        :return: True if the payload was processed successfully, otherwise False.
+        """
+        if not super().receive(payload, session_id, **kwargs):
+            return False
+
+        arp_packet: ARPPacket = payload
+        from_network_interface: RouterInterface = kwargs["from_network_interface"]
+
+        for network_interface in self.router.network_interfaces.values():
+            # ARP frame is for this Router
+            if network_interface.ip_address == arp_packet.target_ip_address:
+                if payload.request:
+                    self._process_arp_request(arp_packet=arp_packet, from_network_interface=from_network_interface)
+                else:
+                    self._process_arp_reply(arp_packet=arp_packet, from_network_interface=from_network_interface)
+                return True
+
+        # ARP frame is not for this router, pass back down to Router to continue routing
+        frame: Frame = kwargs["frame"]
+        self.router.process_frame(frame=frame, from_network_interface=from_network_interface)
+
+        return True
+
+
+class RouterNIC(IPWiredNetworkInterface):
     """
     A Router-specific Network Interface Card (NIC) that extends the standard NIC functionality.
 
@@ -561,7 +637,7 @@ class RouterNIC(NIC):
             self.pcap.capture_inbound(frame)
             # If this destination or is broadcast
             if frame.ethernet.dst_mac_addr == self.mac_address or frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
-                self._connected_node.receive_frame(frame=frame, from_nic=self)
+                self._connected_node.receive_frame(frame=frame, from_network_interface=self)
                 return True
         return False
 
@@ -569,21 +645,63 @@ class RouterNIC(NIC):
         return f"{self.mac_address}/{self.ip_address}"
 
 
-class Router(Node):
+class RouterInterface(IPWiredNetworkInterface):
+    """
+    Represents a Router Interface.
+
+    Router interfaces are used to connect routers to networks. They can route packets across different networks,
+    hence have IP addressing information.
+
+    Inherits from:
+    - WiredNetworkInterface: Provides properties and methods specific to wired connections.
+    - Layer3Interface: Provides Layer 3 properties like ip_address and subnet_mask.
+    """
+
+    def receive_frame(self, frame: Frame) -> bool:
+        """
+        Receives a network frame on the interface.
+
+        :param frame: The network frame being received.
+        :return: A boolean indicating whether the frame was successfully received.
+        """
+        if self.enabled:
+            frame.decrement_ttl()
+            if frame.ip and frame.ip.ttl < 1:
+                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
+                return False
+            frame.set_received_timestamp()
+            self.pcap.capture_inbound(frame)
+            # If this destination or is broadcast
+            if frame.ethernet.dst_mac_addr == self.mac_address or frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
+                self._connected_node.receive_frame(frame=frame, from_network_interface=self)
+                return True
+        return False
+
+    def __str__(self) -> str:
+        """
+        String representation of the NIC.
+
+        :return: A string combining the port number, MAC address and IP address of the NIC.
+        """
+        return f"Port {self.port_num}: {self.mac_address}/{self.ip_address}"
+
+
+class Router(NetworkNode):
     """
     A class to represent a network router node.
 
     :ivar str hostname: The name of the router node.
     :ivar int num_ports: The number of ports in the router.
-    :ivar dict kwargs: Optional keyword arguments for SysLog, ACL, RouteTable, RouterARPCache, RouterICMP.
+    :ivar dict kwargs: Optional keyword arguments for SysLog, ACL, RouteTable, RouterARP, RouterICMP.
     """
 
     num_ports: int
-    ethernet_ports: Dict[int, RouterNIC] = {}
+    network_interfaces: Dict[str, RouterInterface] = {}
+    "The Router Interfaces on the node."
+    network_interface: Dict[int, RouterInterface] = {}
+    "The Router Interfaceson the node by port id."
     acl: AccessControlList
     route_table: RouteTable
-    # arp: RouterARPCache
-    # icmp: RouterICMP
 
     def __init__(self, hostname: str, num_ports: int = 5, **kwargs):
         if not kwargs.get("sys_log"):
@@ -592,22 +710,27 @@ class Router(Node):
             kwargs["acl"] = AccessControlList(sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY)
         if not kwargs.get("route_table"):
             kwargs["route_table"] = RouteTable(sys_log=kwargs["sys_log"])
-        # if not kwargs.get("arp"):
-        #     kwargs["arp"] = RouterARPCache(sys_log=kwargs.get("sys_log"), router=self)
-        # if not kwargs.get("icmp"):
-        #     kwargs["icmp"] = RouterICMP(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"), router=self)
         super().__init__(hostname=hostname, num_ports=num_ports, **kwargs)
-        # TODO: Install RouterICMP
-        # TODO: Install RouterARP
         for i in range(1, self.num_ports + 1):
-            nic = RouterNIC(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
-            self.connect_nic(nic)
-            self.ethernet_ports[i] = nic
+            network_interface = RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
+            self.connect_nic(network_interface)
+            self.network_interface[i] = network_interface
 
-        self.arp.nics = self.nics
-        self.icmp.arp = self.arp
+        self._set_default_acl()
 
         self.set_original_state()
+
+
+    def _install_system_software(self):
+        """Install System Software - software that is usually provided with the OS."""
+        self.software_manager.install(ICMP)
+        self.software_manager.install(RouterARP)
+        arp: RouterARP = self.software_manager.arp  # noqa
+        arp.router = self
+
+    def _set_default_acl(self):
+        self.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
+        self.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
 
     def set_original_state(self):
         """Sets the original state."""
@@ -619,11 +742,11 @@ class Router(Node):
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        self.arp.clear()
+        self.software_manager.arp.clear()
         self.acl.reset_component_for_episode(episode)
         self.route_table.reset_component_for_episode(episode)
-        for i, nic in self.ethernet_ports.items():
-            nic.reset_component_for_episode(episode)
+        for i, network_interface in self.network_interface.items():
+            network_interface.reset_component_for_episode(episode)
             self.enable_port(i)
 
         super().reset_component_for_episode(episode)
@@ -633,15 +756,15 @@ class Router(Node):
         rm.add_request("acl", RequestType(func=self.acl._request_manager))
         return rm
 
-    def _get_port_of_nic(self, target_nic: NIC) -> Optional[int]:
+    def _get_port_of_nic(self, target_nic: RouterInterface) -> Optional[int]:
         """
         Retrieve the port number for a given NIC.
 
         :param target_nic: Target network interface.
         :return: The port number if NIC is found, otherwise None.
         """
-        for port, nic in self.ethernet_ports.items():
-            if nic == target_nic:
+        for port, network_interface in self.network_interface.items():
+            if network_interface == target_nic:
                 return port
 
     def describe_state(self) -> Dict:
@@ -655,83 +778,98 @@ class Router(Node):
         state["acl"] = self.acl.describe_state()
         return state
 
-    def process_frame(self, frame: Frame, from_nic: NIC, re_attempt: bool = False) -> None:
+    def process_frame(self, frame: Frame, from_network_interface: RouterInterface) -> None:
         """
         Process a Frame.
 
         :param frame: The frame to be routed.
-        :param from_nic: The source network interface.
-        :param re_attempt: Flag to indicate if the routing is a reattempt.
+        :param from_network_interface: The source network interface.
         """
-        # Check if src ip is on network of one of the NICs
-        nic = self.arp.get_arp_cache_nic(frame.ip.dst_ip_address)
-        target_mac = self.arp.get_arp_cache_mac_address(frame.ip.dst_ip_address)
+        # check if frame is addressed to this Router but has failed to be received by a service of application at the
+        # receive_frame stage
+        if frame.ip:
+            for network_interface in self.network_interfaces.values():
+                if network_interface.ip_address == frame.ip.dst_ip_address:
+                    self.sys_log.info(f"Dropping frame destined for this router on an port that isn't open.")
+                    return
 
-        if re_attempt and not nic:
+        network_interface: RouterInterface = self.software_manager.arp.get_arp_cache_network_interface(
+            frame.ip.dst_ip_address
+        )
+        target_mac = self.software_manager.arp.get_arp_cache_mac_address(frame.ip.dst_ip_address)
+        self.software_manager.arp.show()
+
+        if not network_interface:
             self.sys_log.info(f"Destination {frame.ip.dst_ip_address} is unreachable")
+            # TODO: Send something back to src, is it some sort of ICMP?
             return
 
-        if not nic:
-            self.arp.send_arp_request(
-                frame.ip.dst_ip_address, ignore_networks=[frame.ip.src_ip_address, from_nic.ip_address]
-            )
-            return self.process_frame(frame=frame, from_nic=from_nic, re_attempt=True)
-
-        if not nic.enabled:
-            self.sys_log.info(f"Frame dropped as NIC {nic} is not enabled")
+        if not network_interface.enabled:
+            self.sys_log.info(f"Frame dropped as NIC {network_interface} is not enabled")
+            # TODO: Send something back to src, is it some sort of ICMP?
             return
 
-        if frame.ip.dst_ip_address in nic.ip_network:
-            from_port = self._get_port_of_nic(from_nic)
-            to_port = self._get_port_of_nic(nic)
+        if frame.ip.dst_ip_address in network_interface.ip_network:
+            from_port = self._get_port_of_nic(from_network_interface)
+            to_port = self._get_port_of_nic(network_interface)
             self.sys_log.info(f"Forwarding frame to internally from port {from_port} to port {to_port}")
             frame.decrement_ttl()
             if frame.ip and frame.ip.ttl < 1:
                 self.sys_log.info("Frame discarded as TTL limit reached")
+                # TODO: Send something back to src, is it some sort of ICMP?
                 return
-            frame.ethernet.src_mac_addr = nic.mac_address
+            frame.ethernet.src_mac_addr = network_interface.mac_address
             frame.ethernet.dst_mac_addr = target_mac
-            nic.send_frame(frame)
+            network_interface.send_frame(frame)
             return
         else:
-            self._route_frame(frame, from_nic)
+            self.route_frame(frame, from_network_interface)
 
-    def _route_frame(self, frame: Frame, from_nic: NIC, re_attempt: bool = False) -> None:
+    def route_frame(self, frame: Frame, from_network_interface: RouterInterface) -> None:
         route = self.route_table.find_best_route(frame.ip.dst_ip_address)
         if route:
-            nic = self.arp.get_arp_cache_nic(route.next_hop_ip_address)
-            target_mac = self.arp.get_arp_cache_mac_address(route.next_hop_ip_address)
-            if re_attempt and not nic:
+            network_interface = self.software_managerarp.get_arp_cache_network_interface(route.next_hop_ip_address)
+            target_mac = self.software_manager.arp.get_arp_cache_mac_address(route.next_hop_ip_address)
+            if not network_interface:
                 self.sys_log.info(f"Destination {frame.ip.dst_ip_address} is unreachable")
+                # TODO: Send something back to src, is it some sort of ICMP?
                 return
 
-            if not nic:
-                self.arp.send_arp_request(frame.ip.dst_ip_address, ignore_networks=[frame.ip.src_ip_address])
-                return self.process_frame(frame=frame, from_nic=from_nic, re_attempt=True)
-
-            if not nic.enabled:
-                self.sys_log.info(f"Frame dropped as NIC {nic} is not enabled")
+            if not network_interface.enabled:
+                self.sys_log.info(f"Frame dropped as NIC {network_interface} is not enabled")
+                # TODO: Send something back to src, is it some sort of ICMP?
                 return
 
-            from_port = self._get_port_of_nic(from_nic)
-            to_port = self._get_port_of_nic(nic)
+            from_port = self._get_port_of_nic(from_network_interface)
+            to_port = self._get_port_of_nic(network_interface)
             self.sys_log.info(f"Routing frame to internally from port {from_port} to port {to_port}")
             frame.decrement_ttl()
             if frame.ip and frame.ip.ttl < 1:
                 self.sys_log.info("Frame discarded as TTL limit reached")
+                # TODO: Send something back to src, is it some sort of ICMP?
                 return
-            frame.ethernet.src_mac_addr = nic.mac_address
+            frame.ethernet.src_mac_addr = network_interface.mac_address
             frame.ethernet.dst_mac_addr = target_mac
-            nic.send_frame(frame)
+            network_interface.send_frame(frame)
 
-    def receive_frame(self, frame: Frame, from_nic: NIC):
+    def receive_frame(self, frame: Frame, from_network_interface: RouterInterface):
         """
-        Receive a frame from a NIC and processes it based on its protocol.
+        Receive a frame from a RouterInterface and processes it based on its protocol.
 
         :param frame: The incoming frame.
-        :param from_nic: The network interface where the frame is coming from.
+        :param from_network_interface: The network interface where the frame is coming from.
         """
-        process_frame = False
+
+        if self.operating_state != NodeOperatingState.ON:
+            return
+
+        if frame.ip and self.software_manager.arp:
+            self.software_manager.arp.add_arp_cache_entry(
+                ip_address=frame.ip.src_ip_address,
+                mac_address=frame.ethernet.src_mac_addr,
+                network_interface=from_network_interface
+            )
+
         protocol = frame.ip.protocol
         src_ip_address = frame.ip.src_ip_address
         dst_ip_address = frame.ip.dst_ip_address
@@ -754,21 +892,32 @@ class Router(Node):
         )
 
         if not permitted:
-            at_port = self._get_port_of_nic(from_nic)
+            at_port = self._get_port_of_nic(from_network_interface)
             self.sys_log.info(f"Frame blocked at port {at_port} by rule {rule}")
             return
-        self.arp.add_arp_cache_entry(src_ip_address, frame.ethernet.src_mac_addr, from_nic)
-        if frame.ip.protocol == IPProtocol.ICMP:
-            self.icmp.process_icmp(frame=frame, from_nic=from_nic)
+
+        self.software_manager.arp.add_arp_cache_entry(
+            ip_address=src_ip_address, mac_address=frame.ethernet.src_mac_addr,
+            network_interface=from_network_interface
+        )
+
+        # Check if the destination port is open on the Node
+        dst_port = None
+        if frame.tcp:
+            dst_port = frame.tcp.dst_port
+        elif frame.udp:
+            dst_port = frame.udp.dst_port
+
+        send_to_session_manager = False
+        if ((frame.icmp and dst_ip_address == from_network_interface.ip_address)
+                or (dst_port in self.software_manager.get_open_ports())):
+            send_to_session_manager = True
+
+        if send_to_session_manager:
+            # Port is open on this Router so pass Frame up to session manager first
+            self.session_manager.receive_frame(frame, from_network_interface)
         else:
-            if src_port == Port.ARP:
-                self.arp.process_arp_packet(from_nic=from_nic, frame=frame, route_table=self.route_table)
-                return
-            else:
-                # All other traffic
-                process_frame = True
-        if process_frame:
-            self.process_frame(frame, from_nic)
+            self.process_frame(frame, from_network_interface)
 
     def configure_port(self, port: int, ip_address: Union[IPv4Address, str], subnet_mask: Union[IPv4Address, str]):
         """
@@ -782,10 +931,12 @@ class Router(Node):
             ip_address = IPv4Address(ip_address)
         if not isinstance(subnet_mask, IPv4Address):
             subnet_mask = IPv4Address(subnet_mask)
-        nic = self.ethernet_ports[port]
-        nic.ip_address = ip_address
-        nic.subnet_mask = subnet_mask
-        self.sys_log.info(f"Configured port {port} with ip_address={ip_address}/{nic.ip_network.prefixlen}")
+        network_interface = self.network_interface[port]
+        network_interface.ip_address = ip_address
+        network_interface.subnet_mask = subnet_mask
+        self.sys_log.info(
+            f"Configured Network Interface {network_interface}"
+            )
         self.set_original_state()
 
     def enable_port(self, port: int):
@@ -794,9 +945,9 @@ class Router(Node):
 
         :param port: The port to enable.
         """
-        nic = self.ethernet_ports.get(port)
-        if nic:
-            nic.enable()
+        network_interface = self.network_interface.get(port)
+        if network_interface:
+            network_interface.enable()
 
     def disable_port(self, port: int):
         """
@@ -804,9 +955,9 @@ class Router(Node):
 
         :param port: The port to disable.
         """
-        nic = self.ethernet_ports.get(port)
-        if nic:
-            nic.disable()
+        network_interface = self.network_interface.get(port)
+        if network_interface:
+            network_interface.disable()
 
     def show(self, markdown: bool = False):
         """
@@ -820,14 +971,14 @@ class Router(Node):
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.hostname} Ethernet Interfaces"
-        for port, nic in self.ethernet_ports.items():
+        for port, network_interface in self.network_interface.items():
             table.add_row(
                 [
                     port,
-                    nic.mac_address,
-                    f"{nic.ip_address}/{nic.ip_network.prefixlen}",
-                    nic.speed,
-                    "Enabled" if nic.enabled else "Disabled",
+                    network_interface.mac_address,
+                    f"{network_interface.ip_address}/{network_interface.ip_network.prefixlen}",
+                    network_interface.speed,
+                    "Enabled" if network_interface.enabled else "Disabled",
                 ]
             )
         print(table)

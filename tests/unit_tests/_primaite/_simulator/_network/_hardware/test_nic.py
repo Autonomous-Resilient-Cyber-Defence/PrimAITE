@@ -29,21 +29,21 @@ def test_invalid_oui_mac_address():
 
 def test_nic_ip_address_type_conversion():
     """Tests NIC IP and gateway address is converted to IPv4Address is originally a string."""
-    nic = NIC(
+    network_interface = NIC(
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
     )
-    assert isinstance(nic.ip_address, IPv4Address)
+    assert isinstance(network_interface.ip_address, IPv4Address)
 
 
 def test_nic_deserialize():
     """Tests NIC serialization and deserialization."""
-    nic = NIC(
+    network_interface = NIC(
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
     )
 
-    nic_json = nic.model_dump_json()
+    nic_json = network_interface.model_dump_json()
     deserialized_nic = NIC.model_validate_json(nic_json)
     assert nic_json == deserialized_nic.model_dump_json()
 

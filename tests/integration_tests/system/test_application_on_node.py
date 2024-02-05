@@ -3,7 +3,7 @@ from typing import Tuple
 import pytest
 
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 
 

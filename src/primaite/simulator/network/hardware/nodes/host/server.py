@@ -1,7 +1,7 @@
-from primaite.simulator.network.hardware.nodes.host import Host
+from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 
 
-class Server(Host):
+class Server(HostNode):
     """
     A basic Server class.
 
@@ -28,4 +28,4 @@ class Server(Host):
     * Applications:
         * Web Browser
     """
-    pass
+

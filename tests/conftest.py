@@ -6,17 +6,15 @@ import pytest
 import yaml
 
 from primaite import getLogger
-from primaite.game.game import PrimaiteGame
 from primaite.session.session import PrimaiteSession
 
 # from primaite.environment.primaite_env import Primaite
 # from primaite.primaite_session import PrimaiteSession
 from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.networks import arcd_uc2_network
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -34,7 +32,7 @@ from primaite import PRIMAITE_PATHS
 
 # PrimAITE v3 stuff
 from primaite.simulator.file_system.file_system import FileSystem
-from primaite.simulator.network.hardware.base import Link, Node
+from primaite.simulator.network.hardware.base import Node
 
 
 class TestService(Service):
@@ -157,7 +155,7 @@ def client_server() -> Tuple[Computer, Server]:
     server.power_on()
 
     # Connect Computer and Server
-    network.connect(computer.ethernet_port[1], server.ethernet_port[1])
+    network.connect(computer.network_interface[1], server.network_interface[1])
 
     # Should be linked
     assert next(iter(network.links.values())).is_up
@@ -192,8 +190,8 @@ def client_switch_server() -> Tuple[Computer, Switch, Server]:
     switch = Switch(hostname="switch", start_up_duration=0)
     switch.power_on()
 
-    network.connect(endpoint_a=computer.ethernet_port[1], endpoint_b=switch.switch_ports[1])
-    network.connect(endpoint_a=server.ethernet_port[1], endpoint_b=switch.switch_ports[2])
+    network.connect(endpoint_a=computer.network_interface[1], endpoint_b=switch.switch_ports[1])
+    network.connect(endpoint_a=server.network_interface[1], endpoint_b=switch.switch_ports[2])
 
     assert all(link.is_up for link in network.links.values())
 
@@ -219,18 +217,33 @@ def example_network() -> Network:
     network = Network()
 
     # Router 1
-    router_1 = Router(hostname="router_1", num_ports=5, operating_state=NodeOperatingState.ON)
+    router_1 = Router(
+        hostname="router_1",
+        start_up_duration=0
+    )
+    router_1.power_on()
     router_1.configure_port(port=1, ip_address="192.168.1.1", subnet_mask="255.255.255.0")
     router_1.configure_port(port=2, ip_address="192.168.10.1", subnet_mask="255.255.255.0")
 
     # Switch 1
-    switch_1 = Switch(hostname="switch_1", num_ports=8, operating_state=NodeOperatingState.ON)
-    network.connect(endpoint_a=router_1.ethernet_ports[1], endpoint_b=switch_1.switch_ports[8])
+    switch_1 = Switch(
+        hostname="switch_1",
+        num_ports=8,
+        start_up_duration=0
+    )
+    switch_1.power_on()
+
+    network.connect(endpoint_a=router_1.network_interface[1], endpoint_b=switch_1.switch_ports[8])
     router_1.enable_port(1)
 
     # Switch 2
-    switch_2 = Switch(hostname="switch_2", num_ports=8, operating_state=NodeOperatingState.ON)
-    network.connect(endpoint_a=router_1.ethernet_ports[2], endpoint_b=switch_2.switch_ports[8])
+    switch_2 = Switch(
+        hostname="switch_2",
+        num_ports=8,
+        start_up_duration=0
+    )
+    switch_2.power_on()
+    network.connect(endpoint_a=router_1.network_interface[2], endpoint_b=switch_2.switch_ports[8])
     router_1.enable_port(2)
 
     # Client 1
@@ -239,9 +252,10 @@ def example_network() -> Network:
         ip_address="192.168.10.21",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0
     )
-    network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
+    client_1.power_on()
+    network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.switch_ports[1])
 
     # Client 2
     client_2 = Computer(
@@ -249,32 +263,37 @@ def example_network() -> Network:
         ip_address="192.168.10.22",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0
     )
-    network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
+    client_2.power_on()
+    network.connect(endpoint_b=client_2.network_interface[1], endpoint_a=switch_2.switch_ports[2])
 
-    # Domain Controller
+    # Server 1
     server_1 = Server(
         hostname="server_1",
         ip_address="192.168.1.10",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0
     )
+    server_1.power_on()
+    network.connect(endpoint_b=server_1.network_interface[1], endpoint_a=switch_1.switch_ports[1])
 
-    network.connect(endpoint_b=server_1.ethernet_port[1], endpoint_a=switch_1.switch_ports[1])
-
-    # Database Server
+    # DServer 2
     server_2 = Server(
         hostname="server_2",
         ip_address="192.168.1.14",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0
     )
-    network.connect(endpoint_b=server_2.ethernet_port[1], endpoint_a=switch_1.switch_ports[2])
+    server_2.power_on()
+    network.connect(endpoint_b=server_2.network_interface[1], endpoint_a=switch_1.switch_ports[2])
 
     router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
     router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+
+    assert all(link.is_up for link in network.links.values())
+
 
     return network

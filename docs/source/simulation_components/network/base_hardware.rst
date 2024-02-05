@@ -176,7 +176,7 @@ Network Interfaces
 
 A Node will typically have one or more NICs attached to it for network connectivity:
 
-- **nics** - A dictionary containing the NIC instances attached to the Node. NICs can be added/removed.
+- **network_interfaces** - A dictionary containing the NIC instances attached to the Node. NICs can be added/removed.
 
 -------------
 Configuration

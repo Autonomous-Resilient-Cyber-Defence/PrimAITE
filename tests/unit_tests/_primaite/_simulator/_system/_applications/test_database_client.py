@@ -1,11 +1,11 @@
 from ipaddress import IPv4Address
-from typing import Tuple, Union
+from typing import Tuple
 from uuid import uuid4
 
 import pytest
 
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient
 

@@ -1,9 +1,7 @@
-from typing import Tuple
-
 import pytest
 
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.protocols.http import HttpResponsePacket, HttpStatusCode
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port

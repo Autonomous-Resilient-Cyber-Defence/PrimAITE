@@ -3,7 +3,7 @@ from ipaddress import IPv4Address
 import pytest
 
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.red_applications.dos_bot import DoSAttackStage, DoSBot
