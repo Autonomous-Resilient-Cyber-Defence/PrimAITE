@@ -97,12 +97,48 @@ def web_client_web_server_database(example_network) -> Tuple[Computer, Server, S
     assert dns_client.check_domain_exists("arcd.com")
     assert db_client.connect()
 
-    return computer, web_server, db_server
+    return example_network, computer, web_server, db_server
 
 
 def test_web_client_requests_users(web_client_web_server_database):
-    computer, web_server, db_server = web_client_web_server_database
+    _, computer, _, _ = web_client_web_server_database
 
     web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
 
     assert web_browser.get_webpage()
+
+
+class TestWebBrowserHistory:
+    def test_populating_history(self, web_client_web_server_database):
+        network, computer, _, _ = web_client_web_server_database
+
+        web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+        assert web_browser.history == []
+        web_browser.get_webpage()
+        assert len(web_browser.history) == 1
+        web_browser.get_webpage()
+        assert len(web_browser.history) == 2
+        assert web_browser.history[-1].outcome == 200
+
+        router = network.get_node_by_hostname("router_1")
+        router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+        assert not web_browser.get_webpage()
+        assert len(web_browser.history) == 3
+        assert web_browser.history[-1].outcome == 404
+
+    def test_history_in_state(self, web_client_web_server_database):
+        network, computer, _, _ = web_client_web_server_database
+        web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+
+        state = computer.describe_state()
+        assert "history" in state["applications"]["WebBrowser"]
+        assert len(state["applications"]["WebBrowser"]["history"]) == 0
+
+        web_browser.get_webpage()
+        router = network.get_node_by_hostname("router_1")
+        router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+        web_browser.get_webpage()
+
+        state = computer.describe_state()
+        assert state["applications"]["WebBrowser"]["history"][0]["outcome"] == 200
+        assert state["applications"]["WebBrowser"]["history"][1]["outcome"] == 404

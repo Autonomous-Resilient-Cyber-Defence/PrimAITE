@@ -345,7 +345,7 @@ class PrimaiteGame:
             action_space = ActionManager.from_config(game, action_space_cfg)
 
             # CREATE REWARD FUNCTION
-            rew_function = RewardFunction.from_config(reward_function_cfg, game=game)
+            rew_function = RewardFunction.from_config(reward_function_cfg)
 
             # OTHER AGENT SETTINGS
             agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
