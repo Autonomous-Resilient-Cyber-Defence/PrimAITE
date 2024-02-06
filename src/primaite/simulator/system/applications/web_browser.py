@@ -1,5 +1,6 @@
+from enum import Enum
 from ipaddress import IPv4Address
-from typing import Dict, List, Literal, Optional, Union
+from typing import Dict, List, Optional
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict
@@ -135,11 +136,21 @@ class WebBrowser(Application):
                 f"{self.name}: Received HTTP {payload.request_method.name} "
                 f"Response {payload.request_url} - {self.latest_response.status_code.value}"
             )
-            self.history.append(WebBrowser.BrowserHistoryItem(url=url, outcome=self.latest_response.status_code))
+            self.history.append(
+                WebBrowser.BrowserHistoryItem(
+                    url=url,
+                    status=self.BrowserHistoryItem._HistoryItemStatus.LOADED,
+                    response_code=self.latest_response.status_code,
+                )
+            )
             return self.latest_response.status_code is HttpStatusCode.OK
         else:
             self.sys_log.error(f"Error sending Http Packet {str(payload)}")
-            self.history.append(WebBrowser.BrowserHistoryItem(url=url, outcome="SERVER_UNREACHABLE"))
+            self.history.append(
+                WebBrowser.BrowserHistoryItem(
+                    url=url, status=self.BrowserHistoryItem._HistoryItemStatus.SERVER_UNREACHABLE
+                )
+            )
             return False
 
     def send(
@@ -190,13 +201,21 @@ class WebBrowser(Application):
         url: str
         """The URL that was attempted to be fetched by the browser"""
 
-        outcome: Union[HttpStatusCode, Literal["PENDING", "SERVER_UNREACHABLE"]] = "PENDING"
+        class _HistoryItemStatus(Enum):
+            NOT_SENT = "NOT_SENT"
+            PENDING = "PENDING"
+            SERVER_UNREACHABLE = "SERVER_UNREACHABLE"
+            LOADED = "LOADED"
+
+        status: _HistoryItemStatus = _HistoryItemStatus.PENDING
+
+        response_code: Optional[HttpStatusCode] = None
         """HTTP response code that was received, or PENDING if a response was not yet received."""
 
         def state(self) -> Dict:
             """Return the contents of this dataclass as a dict for use with describe_state method."""
-            if isinstance(self.outcome, HttpStatusCode):
-                outcome = self.outcome.value
+            if self.status == self._HistoryItemStatus.LOADED:
+                outcome = self.response_code
             else:
-                outcome = self.outcome
+                outcome = self.status.value
             return {"url": self.url, "outcome": outcome}
