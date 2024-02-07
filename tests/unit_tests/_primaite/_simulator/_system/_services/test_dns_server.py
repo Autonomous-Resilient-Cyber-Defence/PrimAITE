@@ -2,13 +2,15 @@ from ipaddress import IPv4Address
 
 import pytest
 
+from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.dns.dns_server import DNSServer
+from primaite.simulator.system.services.dns.dns_client import DNSClient
 
 
 @pytest.fixture(scope="function")
@@ -51,14 +53,18 @@ def test_dns_server_receive(dns_server):
     # register the web server in the domain controller
     dns_server_service.dns_register(domain_name="real-domain.com", domain_ip_address=IPv4Address("192.168.1.12"))
 
-    assert (
-        dns_server_service.receive(payload=DNSPacket(dns_request=DNSRequest(domain_name_request="fake-domain.com")))
-        is False
-    )
+    client = Computer(hostname="client", ip_address="192.168.1.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    client.power_on()
+    client.dns_server = IPv4Address("192.168.1.10")
+    network = Network()
+    network.connect(dns_server.network_interface[1], client.network_interface[1])
+    dns_client: DNSClient = client.software_manager.software["DNSClient"]  # noqa
+    dns_client.check_domain_exists("fake-domain.com")
 
-    assert (
-        dns_server_service.receive(payload=DNSPacket(dns_request=DNSRequest(domain_name_request="real-domain.com")))
-        is True
-    )
+    assert dns_client.check_domain_exists("fake-domain.com") is False
+
+    assert dns_client.check_domain_exists("real-domain.com") is False
+
+
 
     dns_server_service.show()

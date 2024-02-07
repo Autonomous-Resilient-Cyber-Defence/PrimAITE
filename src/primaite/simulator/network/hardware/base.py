@@ -197,6 +197,12 @@ class WiredNetworkInterface(NetworkInterface, ABC):
             )
             return
 
+        if not self._connected_link:
+            self._connected_node.sys_log.info(
+                f"Interface {self} cannot be enabled as there is no Link connected."
+            )
+            return
+
         self.enabled = True
         self._connected_node.sys_log.info(f"Network Interface {self} enabled")
         self.pcap = PacketCapture(hostname=self._connected_node.hostname, interface_num=self.port_num)
@@ -351,6 +357,12 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
     Derived classes should define specific behaviors and properties of an IP-capable wired network interface,
     customizing it for their specific use cases.
     """
+    _connected_link: Optional[Link] = None
+    "The network link to which the network interface is connected."
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.ip_network.network_address == self.ip_address:
+            raise ValueError(f"{self.ip_address}/{self.subnet_mask} must not be a network address")
 
     def describe_state(self) -> Dict:
         """
@@ -375,7 +387,7 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
         except AttributeError:
             pass
 
-    @abstractmethod
+    # @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
         """
         Receives a network frame on the network interface.
@@ -819,6 +831,13 @@ class Node(SimComponent):
             table.add_row([port.value, port.name])
         print(table)
 
+    @property
+    def has_enabled_network_interface(self) -> bool:
+        for network_interface in self.network_interfaces.values():
+            if network_interface.enabled:
+                return True
+        return False
+
     def show_nic(self, markdown: bool = False):
         """Prints a table of the NICs on the Node."""
         table = PrettyTable(["Port", "Type", "MAC Address", "Address", "Speed", "Status"])
@@ -830,7 +849,7 @@ class Node(SimComponent):
             table.add_row(
                 [
                     port,
-                    network_interface.__name__,
+                    type(network_interface),
                     network_interface.mac_address,
                     f"{network_interface.ip_address}/{network_interface.ip_network.prefixlen}",
                     network_interface.speed,

@@ -2,8 +2,10 @@ import re
 from ipaddress import IPv4Address
 
 import pytest
+from pydantic import ValidationError
 
-from primaite.simulator.network.hardware.base import generate_mac_address, NIC
+from primaite.simulator.network.hardware.base import generate_mac_address
+from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 
 
 def test_mac_address_generation():
@@ -50,8 +52,5 @@ def test_nic_deserialize():
 
 def test_nic_ip_address_as_network_address_fails():
     """Tests NIC creation fails if ip address and subnet mask are a network address."""
-    with pytest.raises(ValueError):
-        NIC(
-            ip_address="192.168.0.0",
-            subnet_mask="255.255.255.0",
-        )
+    with pytest.raises(ValidationError):
+        NIC(ip_address="192.168.0.0", subnet_mask="255.255.255.0")

@@ -5,15 +5,16 @@ from typing import Any, Dict, Tuple, Union
 import pytest
 import yaml
 
+from primaite import PRIMAITE_PATHS
 from primaite import getLogger
 from primaite.session.session import PrimaiteSession
-
+from primaite.simulator.file_system.file_system import FileSystem
 # from primaite.environment.primaite_env import Primaite
 # from primaite.primaite_session import PrimaiteSession
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.networks import arcd_uc2_network
 from primaite.simulator.network.transmission.network_layer import IPProtocol
@@ -27,12 +28,6 @@ ACTION_SPACE_NODE_VALUES = 1
 ACTION_SPACE_NODE_ACTION_VALUES = 1
 
 _LOGGER = getLogger(__name__)
-
-from primaite import PRIMAITE_PATHS
-
-# PrimAITE v3 stuff
-from primaite.simulator.file_system.file_system import FileSystem
-from primaite.simulator.network.hardware.base import Node
 
 
 class TestService(Service):
@@ -95,7 +90,7 @@ def application_class():
 
 @pytest.fixture(scope="function")
 def file_system() -> FileSystem:
-    return Node(hostname="fs_node").file_system
+    return Computer(hostname="fs_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0").file_system
 
 
 # PrimAITE v2 stuff
@@ -190,8 +185,8 @@ def client_switch_server() -> Tuple[Computer, Switch, Server]:
     switch = Switch(hostname="switch", start_up_duration=0)
     switch.power_on()
 
-    network.connect(endpoint_a=computer.network_interface[1], endpoint_b=switch.switch_ports[1])
-    network.connect(endpoint_a=server.network_interface[1], endpoint_b=switch.switch_ports[2])
+    network.connect(endpoint_a=computer.network_interface[1], endpoint_b=switch.network_interface[1])
+    network.connect(endpoint_a=server.network_interface[1], endpoint_b=switch.network_interface[2])
 
     assert all(link.is_up for link in network.links.values())
 
@@ -233,7 +228,7 @@ def example_network() -> Network:
     )
     switch_1.power_on()
 
-    network.connect(endpoint_a=router_1.network_interface[1], endpoint_b=switch_1.switch_ports[8])
+    network.connect(endpoint_a=router_1.network_interface[1], endpoint_b=switch_1.network_interface[8])
     router_1.enable_port(1)
 
     # Switch 2
@@ -243,7 +238,7 @@ def example_network() -> Network:
         start_up_duration=0
     )
     switch_2.power_on()
-    network.connect(endpoint_a=router_1.network_interface[2], endpoint_b=switch_2.switch_ports[8])
+    network.connect(endpoint_a=router_1.network_interface[2], endpoint_b=switch_2.network_interface[8])
     router_1.enable_port(2)
 
     # Client 1
@@ -255,7 +250,7 @@ def example_network() -> Network:
         start_up_duration=0
     )
     client_1.power_on()
-    network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.switch_ports[1])
+    network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
 
     # Client 2
     client_2 = Computer(
@@ -266,7 +261,7 @@ def example_network() -> Network:
         start_up_duration=0
     )
     client_2.power_on()
-    network.connect(endpoint_b=client_2.network_interface[1], endpoint_a=switch_2.switch_ports[2])
+    network.connect(endpoint_b=client_2.network_interface[1], endpoint_a=switch_2.network_interface[2])
 
     # Server 1
     server_1 = Server(
@@ -277,7 +272,7 @@ def example_network() -> Network:
         start_up_duration=0
     )
     server_1.power_on()
-    network.connect(endpoint_b=server_1.network_interface[1], endpoint_a=switch_1.switch_ports[1])
+    network.connect(endpoint_b=server_1.network_interface[1], endpoint_a=switch_1.network_interface[1])
 
     # DServer 2
     server_2 = Server(
@@ -288,7 +283,7 @@ def example_network() -> Network:
         start_up_duration=0
     )
     server_2.power_on()
-    network.connect(endpoint_b=server_2.network_interface[1], endpoint_a=switch_1.switch_ports[2])
+    network.connect(endpoint_b=server_2.network_interface[1], endpoint_a=switch_1.network_interface[2])
 
     router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
     router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)

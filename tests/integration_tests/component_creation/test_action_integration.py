@@ -25,9 +25,9 @@ def test_passing_actions_down(monkeypatch) -> None:
     downloads_folder = pc1.file_system.create_folder("downloads")
     pc1.file_system.create_file("bermuda_triangle.png", folder_name="downloads")
 
-    sim.network.connect(pc1.network_interface[1], s1.switch_ports[1])
-    sim.network.connect(pc2.network_interface[1], s1.switch_ports[2])
-    sim.network.connect(s1.switch_ports[3], srv.network_interface[1])
+    sim.network.connect(pc1.network_interface[1], s1.network_interface[1])
+    sim.network.connect(pc2.network_interface[1], s1.network_interface[2])
+    sim.network.connect(s1.network_interface[3], srv.network_interface[1])
 
     # call this method to make sure no errors occur.
     sim._request_manager.get_request_types_recursively()

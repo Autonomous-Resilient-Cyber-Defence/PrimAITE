@@ -96,16 +96,18 @@ class Switch(NetworkNode):
 
     num_ports: int = 24
     "The number of ports on the switch."
-    switch_ports: Dict[int, SwitchPort] = {}
-    "The SwitchPorts on the switch."
+    network_interfaces: Dict[str, SwitchPort] = {}
+    "The SwitchPorts on the Switch."
+    network_interface: Dict[int, SwitchPort] = {}
+    "The SwitchPorts on the Switch by port id."
     mac_address_table: Dict[str, SwitchPort] = {}
     "A MAC address table mapping destination MAC addresses to corresponding SwitchPorts."
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if not self.switch_ports:
-            self.switch_ports = {i: SwitchPort() for i in range(1, self.num_ports + 1)}
-        for port_num, port in self.switch_ports.items():
+        if not self.network_interface:
+            self.network_interface = {i: SwitchPort() for i in range(1, self.num_ports + 1)}
+        for port_num, port in self.network_interface.items():
             port._connected_node = self
             port.port_num = port_num
             port.parent = self
@@ -122,7 +124,7 @@ class Switch(NetworkNode):
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.hostname} Switch Ports"
-        for port_num, port in self.switch_ports.items():
+        for port_num, port in self.network_interface.items():
             table.add_row([port_num, port.mac_address, port.speed, "Enabled" if port.enabled else "Disabled"])
         print(table)
 
@@ -133,7 +135,7 @@ class Switch(NetworkNode):
         :return: Current state of this object and child objects.
         """
         state = super().describe_state()
-        state["ports"] = {port_num: port.describe_state() for port_num, port in self.switch_ports.items()}
+        state["ports"] = {port_num: port.describe_state() for port_num, port in self.network_interface.items()}
         state["num_ports"] = self.num_ports  # redundant?
         state["mac_address_table"] = {mac: port.port_num for mac, port in self.mac_address_table.items()}
         return state
@@ -171,7 +173,7 @@ class Switch(NetworkNode):
             outgoing_port.send_frame(frame)
         else:
             # If the destination MAC is not in the table, flood to all ports except incoming
-            for port in self.switch_ports.values():
+            for port in self.network_interface.values():
                 if port.enabled and port != from_network_interface:
                     port.send_frame(frame)
 
@@ -183,7 +185,7 @@ class Switch(NetworkNode):
         :param port_number: The port number on the switch from where the link should be disconnected.
         :raise NetworkError: When an invalid port number is provided or the link does not match the connection.
         """
-        port = self.switch_ports.get(port_number)
+        port = self.network_interface.get(port_number)
         if port is None:
             msg = f"Invalid port number {port_number} on the switch"
             _LOGGER.error(msg)

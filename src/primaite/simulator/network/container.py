@@ -149,7 +149,8 @@ class Network(SimComponent):
             for nodes in nodes_type_map.values():
                 for node in nodes:
                     for i, port in node.network_interface.items():
-                        table.add_row([node.hostname, i, port.ip_address, port.subnet_mask, node.default_gateway])
+                        if hasattr(port, "ip_address"):
+                            table.add_row([node.hostname, i, port.ip_address, port.subnet_mask, node.default_gateway])
             print(table)
 
         if links:

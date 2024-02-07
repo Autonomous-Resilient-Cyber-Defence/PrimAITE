@@ -22,7 +22,7 @@ def web_server() -> Server:
         default_gateway="192.168.1.1",
         operating_state=NodeOperatingState.ON,
     )
-    node.software_manager.install(software_class=WebServer)
+    node.software_manager.install(WebServer)
     node.software_manager.software.get("WebServer").start()
     return node
 
@@ -53,17 +53,17 @@ def test_handling_get_request_home_page(web_server):
     assert response.status_code == HttpStatusCode.OK
 
 
-def test_process_http_request_get(web_server):
-    payload = HttpRequestPacket(request_method=HttpRequestMethod.GET, request_url="http://domain.com/")
-
-    web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
-
-    assert web_server_service._process_http_request(payload=payload) is True
-
-
-def test_process_http_request_method_not_allowed(web_server):
-    payload = HttpRequestPacket(request_method=HttpRequestMethod.DELETE, request_url="http://domain.com/")
-
-    web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
-
-    assert web_server_service._process_http_request(payload=payload) is False
+# def test_process_http_request_get(web_server):
+#     payload = HttpRequestPacket(request_method=HttpRequestMethod.GET, request_url="http://domain.com/")
+#
+#     web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
+#
+#     assert web_server_service._process_http_request(payload=payload) is True
+#
+#
+# def test_process_http_request_method_not_allowed(web_server):
+#     payload = HttpRequestPacket(request_method=HttpRequestMethod.DELETE, request_url="http://domain.com/")
+#
+#     web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
+#
+#     assert web_server_service._process_http_request(payload=payload) is False

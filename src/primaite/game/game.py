@@ -319,11 +319,11 @@ class PrimaiteGame:
             node_a = net.nodes[game.ref_map_nodes[link_cfg["endpoint_a_ref"]]]
             node_b = net.nodes[game.ref_map_nodes[link_cfg["endpoint_b_ref"]]]
             if isinstance(node_a, Switch):
-                endpoint_a = node_a.switch_ports[link_cfg["endpoint_a_port"]]
+                endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]
             else:
                 endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]
             if isinstance(node_b, Switch):
-                endpoint_b = node_b.switch_ports[link_cfg["endpoint_b_port"]]
+                endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
             else:
                 endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
             new_link = net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b)

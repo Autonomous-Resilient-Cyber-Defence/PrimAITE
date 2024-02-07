@@ -1,5 +1,6 @@
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 
@@ -30,32 +31,33 @@ def test_node_to_node_ping():
     switch_1 = Switch(hostname="switch_1", start_up_duration=0)
     switch_1.power_on()
 
-    network.connect(endpoint_a=client_1.network_interface[1], endpoint_b=switch_1.switch_ports[1])
-    network.connect(endpoint_a=server_1.network_interface[1], endpoint_b=switch_1.switch_ports[2])
+    network.connect(endpoint_a=client_1.network_interface[1], endpoint_b=switch_1.network_interface[1])
+    network.connect(endpoint_a=server_1.network_interface[1], endpoint_b=switch_1.network_interface[2])
 
     assert client_1.ping("192.168.1.11")
 
 
 def test_multi_nic():
     """Tests that Computers with multiple NICs can ping each other and the data go across the correct links."""
-    node_a = Computer(hostname="node_a", operating_state=ComputerOperatingState.ON)
-    nic_a = NIC(ip_address="192.168.0.10", subnet_mask="255.255.255.0")
-    node_a.connect_nic(nic_a)
+    network = Network()
 
-    node_b = Computer(hostname="node_b", operating_state=ComputerOperatingState.ON)
-    nic_b1 = NIC(ip_address="192.168.0.11", subnet_mask="255.255.255.0")
-    nic_b2 = NIC(ip_address="10.0.0.12", subnet_mask="255.0.0.0")
-    node_b.connect_nic(nic_b1)
-    node_b.connect_nic(nic_b2)
+    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a.power_on()
 
-    node_c = Computer(hostname="node_c", operating_state=ComputerOperatingState.ON)
-    nic_c = NIC(ip_address="10.0.0.13", subnet_mask="255.0.0.0")
-    node_c.connect_nic(nic_c)
+    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b.power_on()
+    node_b.connect_nic(NIC(ip_address="10.0.0.12", subnet_mask="255.0.0.0"))
 
-    Link(endpoint_a=nic_a, endpoint_b=nic_b1)
+    node_c = Computer(hostname="node_c", ip_address="10.0.0.13", subnet_mask="255.0.0.0", start_up_duration=0)
+    node_c.power_on()
 
-    Link(endpoint_a=nic_b2, endpoint_b=nic_c)
+    network.connect(node_a.network_interface[1], node_b.network_interface[1])
+    network.connect(node_b.network_interface[2], node_c.network_interface[1])
 
-    node_a.ping("192.168.0.11")
+    assert node_a.ping(node_b.network_interface[1].ip_address)
 
-    assert node_c.ping("10.0.0.12")
+    assert node_c.ping(node_b.network_interface[2].ip_address)
+
+    assert not node_a.ping(node_b.network_interface[2].ip_address)
+
+    assert not node_a.ping(node_c.network_interface[1].ip_address)

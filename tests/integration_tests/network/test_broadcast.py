@@ -111,9 +111,9 @@ def broadcast_network() -> Network:
     switch_1 = Switch(hostname="switch_1", num_ports=6, start_up_duration=0)
     switch_1.power_on()
 
-    network.connect(endpoint_a=client_1.network_interface[1], endpoint_b=switch_1.switch_ports[1])
-    network.connect(endpoint_a=client_2.network_interface[1], endpoint_b=switch_1.switch_ports[2])
-    network.connect(endpoint_a=server_1.network_interface[1], endpoint_b=switch_1.switch_ports[3])
+    network.connect(endpoint_a=client_1.network_interface[1], endpoint_b=switch_1.network_interface[1])
+    network.connect(endpoint_a=client_2.network_interface[1], endpoint_b=switch_1.network_interface[2])
+    network.connect(endpoint_a=server_1.network_interface[1], endpoint_b=switch_1.network_interface[3])
 
     return network
 

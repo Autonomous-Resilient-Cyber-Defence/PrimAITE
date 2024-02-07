@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, Any
 from typing import Optional
 
 from primaite import getLogger
-from primaite.simulator.network.hardware.base import IPWiredNetworkInterface
+from primaite.simulator.network.hardware.base import IPWiredNetworkInterface, Link
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.data_link_layer import Frame
@@ -45,7 +45,7 @@ class HostARP(ARP):
 
         :return: The NIC associated with the default gateway if it exists in the ARP cache, otherwise None.
         """
-        if self.software_manager.node.default_gateway:
+        if self.software_manager.node.default_gateway and self.software_manager.node.has_enabled_network_interface:
             return self.get_arp_cache_network_interface(self.software_manager.node.default_gateway)
 
     def _get_arp_cache_mac_address(
@@ -175,12 +175,14 @@ class NIC(IPWiredNetworkInterface):
       and disconnect from network links and to manage the enabled/disabled state of the interface.
     - Layer3Interface: Provides properties for Layer 3 network configuration, such as IP address and subnet mask.
     """
+    _connected_link: Optional[Link] = None
+    "The network link to which the network interface is connected."
     wake_on_lan: bool = False
     "Indicates if the NIC supports Wake-on-LAN functionality."
 
-    def __init__(self, **kwargs):
-
-        super().__init__(**kwargs)
+    def model_post_init(self, __context: Any) -> None:
+        if self.ip_network.network_address == self.ip_address:
+            raise ValueError(f"{self.ip_address}/{self.subnet_mask} must not be a network address")
 
     def describe_state(self) -> Dict:
         """
@@ -353,7 +355,6 @@ class HostNode(Node):
         if accept_frame:
             self.session_manager.receive_frame(frame, from_network_interface)
         else:
-            # denied as port closed
-            self.sys_log.info(f"Ignoring frame for port {frame.tcp.dst_port.value} from {frame.ip.src_ip_address}")
+            self.sys_log.info(f"Ignoring frame from {frame.ip.src_ip_address}")
             # TODO: do we need to do anything more here?
             pass

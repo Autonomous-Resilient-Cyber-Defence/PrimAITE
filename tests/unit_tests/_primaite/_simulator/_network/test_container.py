@@ -108,7 +108,7 @@ def test_removing_node_that_does_not_exist(network):
     """Node that does not exist on network should not affect existing nodes."""
     assert len(network.nodes) is 7
 
-    network.remove_node(Node(hostname="new_node"))
+    network.remove_node(Computer(hostname="new_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0"))
     assert len(network.nodes) is 7
 
 

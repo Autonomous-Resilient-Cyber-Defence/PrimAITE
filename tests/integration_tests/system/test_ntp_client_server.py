@@ -47,11 +47,11 @@ def test_ntp_client_server(create_ntp_network):
 
     assert ntp_server.operating_state == ServiceOperatingState.RUNNING
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
-    ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.0.2"))
+    ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.1.3"))
 
-    assert ntp_client.time is None
+    assert not ntp_client.time
     ntp_client.request_time()
-    assert ntp_client.time is not None
+    assert ntp_client.time
     first_time = ntp_client.time
     sleep(0.1)
     ntp_client.apply_timestep(1)  # Check time advances
@@ -68,7 +68,7 @@ def test_ntp_server_failure(create_ntp_network):
 
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
-    ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.0.2"))
+    ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.1.3"))
 
     # Turn off ntp server.
     ntp_server.stop()

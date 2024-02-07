@@ -555,6 +555,14 @@ class RouterARP(ARP):
             return arp_entry.mac_address
 
         if not is_reattempt:
+            if self.router.ip_is_in_router_interface_subnet(ip_address):
+                self.send_arp_request(ip_address)
+                return self._get_arp_cache_mac_address(
+                    ip_address=ip_address,
+                    is_reattempt=True,
+                    is_default_route_attempt=is_default_route_attempt
+                )
+
             route = self.router.route_table.find_best_route(ip_address)
             if route and route != self.router.route_table.default_route:
                 self.send_arp_request(route.next_hop_ip_address)
@@ -818,7 +826,7 @@ class Router(NetworkNode):
     network_interfaces: Dict[str, RouterInterface] = {}
     "The Router Interfaces on the node."
     network_interface: Dict[int, RouterInterface] = {}
-    "The Router Interfaceson the node by port id."
+    "The Router Interfaces on the node by port id."
     acl: AccessControlList
     route_table: RouteTable
 
@@ -879,6 +887,15 @@ class Router(NetworkNode):
     def ip_is_router_interface(self, ip_address: IPV4Address, enabled_only: bool = False) -> bool:
         for router_interface in self.network_interface.values():
             if router_interface.ip_address == ip_address:
+                if enabled_only:
+                    return router_interface.enabled
+                else:
+                    return True
+        return False
+
+    def ip_is_in_router_interface_subnet(self, ip_address: IPV4Address, enabled_only: bool = False) -> bool:
+        for router_interface in self.network_interface.values():
+            if ip_address in router_interface.ip_network:
                 if enabled_only:
                     return router_interface.enabled
                 else:
