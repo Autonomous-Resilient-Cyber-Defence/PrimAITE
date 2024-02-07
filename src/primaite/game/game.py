@@ -31,6 +31,23 @@ from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
 
+APPLICATION_TYPES_MAPPING = {
+    "WebBrowser": WebBrowser,
+    "DataManipulationBot": DataManipulationBot,
+}
+
+SERVICE_TYPES_MAPPING = {
+    "DNSClient": DNSClient,
+    "DNSServer": DNSServer,
+    "DatabaseClient": DatabaseClient,
+    "DatabaseService": DatabaseService,
+    "WebServer": WebServer,
+    "FTPClient": FTPClient,
+    "FTPServer": FTPServer,
+    "NTPClient": NTPClient,
+    "NTPServer": NTPServer,
+}
+
 
 class PrimaiteGameOptions(BaseModel):
     """
@@ -238,20 +255,9 @@ class PrimaiteGame:
                     new_service = None
                     service_ref = service_cfg["ref"]
                     service_type = service_cfg["type"]
-                    service_types_mapping = {
-                        "DNSClient": DNSClient,  # key is equal to the 'name' attr of the service class itself.
-                        "DNSServer": DNSServer,
-                        "DatabaseClient": DatabaseClient,
-                        "DatabaseService": DatabaseService,
-                        "WebServer": WebServer,
-                        "FTPClient": FTPClient,
-                        "FTPServer": FTPServer,
-                        "NTPClient": NTPClient,
-                        "NTPServer": NTPServer,
-                    }
-                    if service_type in service_types_mapping:
+                    if service_type in SERVICE_TYPES_MAPPING:
                         _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
-                        new_node.software_manager.install(service_types_mapping[service_type])
+                        new_node.software_manager.install(SERVICE_TYPES_MAPPING[service_type])
                         new_service = new_node.software_manager.software[service_type]
                         game.ref_map_services[service_ref] = new_service.uuid
                     else:
@@ -280,12 +286,9 @@ class PrimaiteGame:
                     new_application = None
                     application_ref = application_cfg["ref"]
                     application_type = application_cfg["type"]
-                    application_types_mapping = {
-                        "WebBrowser": WebBrowser,
-                        "DataManipulationBot": DataManipulationBot,
-                    }
-                    if application_type in application_types_mapping:
-                        new_node.software_manager.install(application_types_mapping[application_type])
+
+                    if application_type in APPLICATION_TYPES_MAPPING:
+                        new_node.software_manager.install(APPLICATION_TYPES_MAPPING[application_type])
                         new_application = new_node.software_manager.software[application_type]
                         game.ref_map_applications[application_ref] = new_application.uuid
                     else:

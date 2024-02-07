@@ -1,0 +1,114 @@
+training_config:
+  rl_framework: SB3
+  rl_algorithm: PPO
+  seed: 333
+  n_learn_episodes: 1
+  n_eval_episodes: 5
+  max_steps_per_episode: 128
+  deterministic_eval: false
+  n_agents: 1
+  agent_references:
+    - defender
+
+io_settings:
+  save_checkpoints: true
+  checkpoint_interval: 5
+  save_step_metadata: false
+  save_pcap_logs: true
+  save_sys_logs: true
+
+
+game:
+  max_episode_length: 256
+  ports:
+  - ARP
+  - DNS
+  - HTTP
+  - POSTGRES_SERVER
+  protocols:
+  - ICMP
+  - TCP
+  - UDP
+
+agents:
+  - ref: client_2_green_user
+    team: GREEN
+    type: GreenWebBrowsingAgent
+    observation_space:
+      type: UC2GreenObservation
+    action_space:
+      action_list:
+        - type: DONOTHING
+        - type: NODE_APPLICATION_EXECUTE
+      options:
+        nodes:
+        - node_name: client_2
+          applications:
+            - application_name: WebBrowser
+        max_folders_per_node: 1
+        max_files_per_folder: 1
+        max_services_per_node: 1
+        max_applications_per_node: 1
+
+    reward_function:
+      reward_components:
+        - type: DUMMY
+
+    agent_settings:
+      start_settings:
+        start_step: 5
+        frequency: 4
+        variance: 3
+
+simulation:
+  network:
+    nodes:
+
+    - ref: switch_1
+      type: switch
+      hostname: switch_1
+      num_ports: 8
+
+    - ref: client_1
+      type: computer
+      hostname: client_1
+      ip_address: 192.168.10.21
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+      dns_server: 192.168.1.10
+      applications:
+      - ref: client_1_web_browser
+        type: WebBrowser
+        options:
+          target_url: http://arcd.com/users/
+      - ref: data_manipulation_bot
+        type: DataManipulationBot
+        options:
+          port_scan_p_of_success: 0.8
+          data_manipulation_p_of_success: 0.8
+          payload: "DELETE"
+          server_ip: 192.168.1.14
+      services:
+      - ref: client_1_dns_client
+        type: DNSClient
+
+    - ref: client_2
+      type: computer
+      hostname: client_2
+      ip_address: 192.168.10.22
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+      dns_server: 192.168.1.10
+      # pre installed services and applications
+
+    links:
+    - ref: switch_1___client_1
+      endpoint_a_ref: switch_1
+      endpoint_a_port: 1
+      endpoint_b_ref: client_1
+      endpoint_b_port: 1
+    - ref: switch_1___client_2
+      endpoint_a_ref: switch_1
+      endpoint_a_port: 2
+      endpoint_b_ref: client_2
+      endpoint_b_port: 1
