@@ -5,7 +5,7 @@ import secrets
 from abc import abstractmethod, ABC
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Literal, Union
+from typing import Any, Union
 from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
@@ -370,10 +370,10 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
     def enable(self):
         super().enable()
         try:
+            pass
             self._connected_node.default_gateway_hello()
         except AttributeError:
             pass
-
 
     @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
@@ -384,7 +384,6 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
         :return: A boolean indicating whether the frame was successfully received.
         """
         pass
-
 
 
 class WirelessNetworkInterface(NetworkInterface, ABC):

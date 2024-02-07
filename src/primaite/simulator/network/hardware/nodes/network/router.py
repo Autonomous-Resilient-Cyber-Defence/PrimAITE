@@ -1,23 +1,27 @@
 from __future__ import annotations
 
+import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
 from typing import Dict, Any
 from typing import List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import ValidationError
 
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.hardware.base import IPWiredNetworkInterface
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
 from primaite.simulator.network.protocols.arp import ARPPacket
+from primaite.simulator.network.protocols.icmp import ICMPType, ICMPPacket
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.arp.arp import ARP
 from primaite.simulator.system.services.icmp.icmp import ICMP
+from primaite.utils.validators import IPV4Address
 
 
 class ACLAction(Enum):
@@ -542,64 +546,179 @@ class RouterARP(ARP):
     """
     router: Optional[Router] = None
 
-    def get_arp_cache_mac_address(self, ip_address: IPv4Address) -> Optional[str]:
+    def _get_arp_cache_mac_address(
+            self, ip_address: IPV4Address, is_reattempt: bool = False, is_default_route_attempt: bool = False
+    ) -> Optional[str]:
         arp_entry = self.arp.get(ip_address)
 
         if arp_entry:
             return arp_entry.mac_address
+
+        if not is_reattempt:
+            route = self.router.route_table.find_best_route(ip_address)
+            if route and route != self.router.route_table.default_route:
+                self.send_arp_request(route.next_hop_ip_address)
+                return self._get_arp_cache_mac_address(
+                    ip_address=route.next_hop_ip_address,
+                    is_reattempt=True,
+                    is_default_route_attempt=is_default_route_attempt
+                )
+        else:
+            if self.router.route_table.default_route:
+                if not is_default_route_attempt:
+                    self.send_arp_request(self.router.route_table.default_route.next_hop_ip_address)
+                    return self._get_arp_cache_mac_address(
+                        ip_address=self.router.route_table.default_route.next_hop_ip_address,
+                        is_reattempt=True,
+                        is_default_route_attempt=True
+                    )
         return None
 
-    def get_arp_cache_network_interface(self, ip_address: IPv4Address) -> Optional[RouterInterface]:
+    def get_arp_cache_mac_address(self, ip_address: IPv4Address) -> Optional[str]:
+        return self._get_arp_cache_mac_address(ip_address)
 
+    def _get_arp_cache_network_interface(
+            self, ip_address: IPV4Address, is_reattempt: bool = False, is_default_route_attempt: bool = False
+    ) -> Optional[RouterInterface]:
         arp_entry = self.arp.get(ip_address)
         if arp_entry:
             return self.software_manager.node.network_interfaces[arp_entry.network_interface_uuid]
+
         for network_interface in self.router.network_interfaces.values():
             if ip_address in network_interface.ip_network:
                 return network_interface
+
+        if not is_reattempt:
+            route = self.router.route_table.find_best_route(ip_address)
+            if route and route != self.router.route_table.default_route:
+                self.send_arp_request(route.next_hop_ip_address)
+                return self._get_arp_cache_network_interface(
+                    ip_address=route.next_hop_ip_address,
+                    is_reattempt=True,
+                    is_default_route_attempt=is_default_route_attempt
+                )
+        else:
+            if self.router.route_table.default_route:
+                if not is_default_route_attempt:
+                    self.send_arp_request(self.router.route_table.default_route.next_hop_ip_address)
+                    return self._get_arp_cache_network_interface(
+                        ip_address=self.router.route_table.default_route.next_hop_ip_address,
+                        is_reattempt=True,
+                        is_default_route_attempt=True
+                    )
         return None
+
+
+
+    def get_arp_cache_network_interface(self, ip_address: IPv4Address) -> Optional[RouterInterface]:
+
+      return self._get_arp_cache_network_interface(ip_address)
 
     def _process_arp_request(self, arp_packet: ARPPacket, from_network_interface: RouterInterface):
         super()._process_arp_request(arp_packet, from_network_interface)
 
         # If the target IP matches one of the router's NICs
-        for network_interface in self.router.network_interfaces.values():
-            if network_interface.enabled and network_interface.ip_address == arp_packet.target_ip_address:
-                arp_reply = arp_packet.generate_reply(from_network_interface.mac_address)
-                self.send_arp_reply(arp_reply)
-                return
+        if from_network_interface.enabled and from_network_interface.ip_address == arp_packet.target_ip_address:
+            arp_reply = arp_packet.generate_reply(from_network_interface.mac_address)
+            self.send_arp_reply(arp_reply)
+            return
 
     def _process_arp_reply(self, arp_packet: ARPPacket, from_network_interface: RouterInterface):
         if arp_packet.target_ip_address == from_network_interface.ip_address:
             super()._process_arp_reply(arp_packet, from_network_interface)
 
+
+class RouterICMP(ICMP):
+    """
+    The Router Internet Control Message Protocol (ICMP) service.
+
+    Extends the ICMP service to provide router-specific functionalities for processing ICMP packets. This class is
+    responsible for handling ICMP operations such as echo requests and replies in the context of a router.
+
+    Inherits from:
+        ICMP: Inherits core functionalities for handling ICMP operations, including the processing of echo requests
+              and replies.
+    """
+
+    router: Optional[Router] = None
+
+    def _process_icmp_echo_request(self, frame: Frame, from_network_interface):
+        """
+        Processes an ICMP echo request received by the service.
+
+        :param frame: The network frame containing the ICMP echo request.
+        """
+        self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
+
+        network_interface = self.software_manager.session_manager.resolve_outbound_network_interface(
+            frame.ip.src_ip_address
+        )
+
+        if not network_interface:
+            self.sys_log.error(
+                "Cannot send ICMP echo reply as there is no outbound Network Interface to use. Try configuring the default gateway."
+            )
+            return
+
+        icmp_packet = ICMPPacket(
+            icmp_type=ICMPType.ECHO_REPLY,
+            icmp_code=0,
+            identifier=frame.icmp.identifier,
+            sequence=frame.icmp.sequence + 1,
+        )
+        payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
+        self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip_address}")
+
+        self.software_manager.session_manager.receive_payload_from_software_manager(
+            payload=payload,
+            dst_ip_address=frame.ip.src_ip_address,
+            dst_port=self.port,
+            ip_protocol=self.protocol,
+            icmp_packet=icmp_packet
+        )
+
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
-        Processes received data, handling ARP packets.
+        Processes received data, specifically handling ICMP echo requests and replies.
 
-        :param payload: The payload received.
+        This method determines the appropriate action based on the packet type and the destination IP address's
+        association with the router interfaces.
+
+        Initially, it checks if the destination IP address of the ICMP packet corresponds to any router interface. If
+        the packet is not destined for an enabled interface but still matches a router interface, it is redirected
+        back to the router for further processing. This ensures proper handling of packets intended for the router
+        itself or needing to be routed to other destinations.
+
+        :param payload: The payload received, expected to be an ICMP packet.
         :param session_id: The session ID associated with the received data.
-        :param kwargs: Additional keyword arguments.
-        :return: True if the payload was processed successfully, otherwise False.
+        :param kwargs: Additional keyword arguments, including 'frame' (the received network frame) and
+            'from_network_interface' (the router interface that received the frame).
+        :return: True if the ICMP packet was processed successfully, False otherwise. False indicates either the packet
+            was not ICMP, the destination IP does not correspond to an enabled router interface (and no further action
+            was required), or the ICMP packet type is not handled by this method.
         """
-        if not super().receive(payload, session_id, **kwargs):
+        frame: Frame = kwargs["frame"]
+        from_network_interface = kwargs["from_network_interface"]
+
+        # Check for the presence of an ICMP payload in the frame.
+        if not frame.icmp:
             return False
 
-        arp_packet: ARPPacket = payload
-        from_network_interface: RouterInterface = kwargs["from_network_interface"]
+        # If the frame's destination IP address corresponds to any router interface, not just enabled ones.
+        if not self.router.ip_is_router_interface(frame.ip.dst_ip_address):
+            # If the frame is not for this router, pass it back down to the Router for potential further routing.
+            self.router.process_frame(frame=frame, from_network_interface=from_network_interface)
+            return True
 
-        for network_interface in self.router.network_interfaces.values():
-            # ARP frame is for this Router
-            if network_interface.ip_address == arp_packet.target_ip_address:
-                if payload.request:
-                    self._process_arp_request(arp_packet=arp_packet, from_network_interface=from_network_interface)
-                else:
-                    self._process_arp_reply(arp_packet=arp_packet, from_network_interface=from_network_interface)
-                return True
+        # Ensure the destination IP address corresponds to an enabled router interface.
+        if not self.router.ip_is_router_interface(frame.ip.dst_ip_address, enabled_only=True):
+            return False
 
-        # ARP frame is not for this router, pass back down to Router to continue routing
-        frame: Frame = kwargs["frame"]
-        self.router.process_frame(frame=frame, from_network_interface=from_network_interface)
+        # Process ICMP echo requests and replies.
+        if frame.icmp.icmp_type == ICMPType.ECHO_REQUEST:
+            self._process_icmp_echo_request(frame, from_network_interface)
+        elif frame.icmp.icmp_type == ICMPType.ECHO_REPLY:
+            self._process_icmp_echo_reply(frame)
 
         return True
 
@@ -720,10 +839,11 @@ class Router(NetworkNode):
 
         self.set_original_state()
 
-
     def _install_system_software(self):
         """Install System Software - software that is usually provided with the OS."""
-        self.software_manager.install(ICMP)
+        self.software_manager.install(RouterICMP)
+        icmp: RouterICMP = self.software_manager.icmp  # noqa
+        icmp.router = self
         self.software_manager.install(RouterARP)
         arp: RouterARP = self.software_manager.arp  # noqa
         arp.router = self
@@ -756,6 +876,15 @@ class Router(NetworkNode):
         rm.add_request("acl", RequestType(func=self.acl._request_manager))
         return rm
 
+    def ip_is_router_interface(self, ip_address: IPV4Address, enabled_only: bool = False) -> bool:
+        for router_interface in self.network_interface.values():
+            if router_interface.ip_address == ip_address:
+                if enabled_only:
+                    return router_interface.enabled
+                else:
+                    return True
+        return False
+
     def _get_port_of_nic(self, target_nic: RouterInterface) -> Optional[int]:
         """
         Retrieve the port number for a given NIC.
@@ -778,6 +907,61 @@ class Router(NetworkNode):
         state["acl"] = self.acl.describe_state()
         return state
 
+    def receive_frame(self, frame: Frame, from_network_interface: RouterInterface):
+        """
+        Receive a frame from a RouterInterface and processes it based on its protocol.
+
+        :param frame: The incoming frame.
+        :param from_network_interface: The network interface where the frame is coming from.
+        """
+
+        if self.operating_state != NodeOperatingState.ON:
+            return
+
+        protocol = frame.ip.protocol
+        src_ip_address = frame.ip.src_ip_address
+        dst_ip_address = frame.ip.dst_ip_address
+        src_port = None
+        dst_port = None
+        if frame.ip.protocol == IPProtocol.TCP:
+            src_port = frame.tcp.src_port
+            dst_port = frame.tcp.dst_port
+        elif frame.ip.protocol == IPProtocol.UDP:
+            src_port = frame.udp.src_port
+            dst_port = frame.udp.dst_port
+
+        # Check if it's permitted
+        permitted, rule = self.acl.is_permitted(
+            protocol=protocol,
+            src_ip_address=src_ip_address,
+            src_port=src_port,
+            dst_ip_address=dst_ip_address,
+            dst_port=dst_port,
+        )
+
+        if not permitted:
+            at_port = self._get_port_of_nic(from_network_interface)
+            self.sys_log.info(f"Frame blocked at port {at_port} by rule {rule}")
+            return
+
+        if frame.ip and self.software_manager.arp:
+            self.software_manager.arp.add_arp_cache_entry(
+                ip_address=frame.ip.src_ip_address,
+                mac_address=frame.ethernet.src_mac_addr,
+                network_interface=from_network_interface
+            )
+
+        send_to_session_manager = False
+        if ((frame.icmp and self.ip_is_router_interface(dst_ip_address))
+                or (dst_port in self.software_manager.get_open_ports())):
+            send_to_session_manager = True
+
+        if send_to_session_manager:
+            # Port is open on this Router so pass Frame up to session manager first
+            self.session_manager.receive_frame(frame, from_network_interface)
+        else:
+            self.process_frame(frame, from_network_interface)
+
     def process_frame(self, frame: Frame, from_network_interface: RouterInterface) -> None:
         """
         Process a Frame.
@@ -790,14 +974,18 @@ class Router(NetworkNode):
         if frame.ip:
             for network_interface in self.network_interfaces.values():
                 if network_interface.ip_address == frame.ip.dst_ip_address:
-                    self.sys_log.info(f"Dropping frame destined for this router on an port that isn't open.")
+                    self.sys_log.info(f"Dropping frame destined for this router on a port that isn't open.")
                     return
 
         network_interface: RouterInterface = self.software_manager.arp.get_arp_cache_network_interface(
             frame.ip.dst_ip_address
         )
         target_mac = self.software_manager.arp.get_arp_cache_mac_address(frame.ip.dst_ip_address)
-        self.software_manager.arp.show()
+
+        if not target_mac:
+            self.sys_log.info(f"Frame dropped as ARP cannot be resolved for {frame.ip.dst_ip_address}")
+            # TODO: Send something back to src, is it some sort of ICMP?
+            return
 
         if not network_interface:
             self.sys_log.info(f"Destination {frame.ip.dst_ip_address} is unreachable")
@@ -828,7 +1016,7 @@ class Router(NetworkNode):
     def route_frame(self, frame: Frame, from_network_interface: RouterInterface) -> None:
         route = self.route_table.find_best_route(frame.ip.dst_ip_address)
         if route:
-            network_interface = self.software_managerarp.get_arp_cache_network_interface(route.next_hop_ip_address)
+            network_interface = self.software_manager.arp.get_arp_cache_network_interface(route.next_hop_ip_address)
             target_mac = self.software_manager.arp.get_arp_cache_mac_address(route.next_hop_ip_address)
             if not network_interface:
                 self.sys_log.info(f"Destination {frame.ip.dst_ip_address} is unreachable")
@@ -852,73 +1040,6 @@ class Router(NetworkNode):
             frame.ethernet.dst_mac_addr = target_mac
             network_interface.send_frame(frame)
 
-    def receive_frame(self, frame: Frame, from_network_interface: RouterInterface):
-        """
-        Receive a frame from a RouterInterface and processes it based on its protocol.
-
-        :param frame: The incoming frame.
-        :param from_network_interface: The network interface where the frame is coming from.
-        """
-
-        if self.operating_state != NodeOperatingState.ON:
-            return
-
-        if frame.ip and self.software_manager.arp:
-            self.software_manager.arp.add_arp_cache_entry(
-                ip_address=frame.ip.src_ip_address,
-                mac_address=frame.ethernet.src_mac_addr,
-                network_interface=from_network_interface
-            )
-
-        protocol = frame.ip.protocol
-        src_ip_address = frame.ip.src_ip_address
-        dst_ip_address = frame.ip.dst_ip_address
-        src_port = None
-        dst_port = None
-        if frame.ip.protocol == IPProtocol.TCP:
-            src_port = frame.tcp.src_port
-            dst_port = frame.tcp.dst_port
-        elif frame.ip.protocol == IPProtocol.UDP:
-            src_port = frame.udp.src_port
-            dst_port = frame.udp.dst_port
-
-        # Check if it's permitted
-        permitted, rule = self.acl.is_permitted(
-            protocol=protocol,
-            src_ip_address=src_ip_address,
-            src_port=src_port,
-            dst_ip_address=dst_ip_address,
-            dst_port=dst_port,
-        )
-
-        if not permitted:
-            at_port = self._get_port_of_nic(from_network_interface)
-            self.sys_log.info(f"Frame blocked at port {at_port} by rule {rule}")
-            return
-
-        self.software_manager.arp.add_arp_cache_entry(
-            ip_address=src_ip_address, mac_address=frame.ethernet.src_mac_addr,
-            network_interface=from_network_interface
-        )
-
-        # Check if the destination port is open on the Node
-        dst_port = None
-        if frame.tcp:
-            dst_port = frame.tcp.dst_port
-        elif frame.udp:
-            dst_port = frame.udp.dst_port
-
-        send_to_session_manager = False
-        if ((frame.icmp and dst_ip_address == from_network_interface.ip_address)
-                or (dst_port in self.software_manager.get_open_ports())):
-            send_to_session_manager = True
-
-        if send_to_session_manager:
-            # Port is open on this Router so pass Frame up to session manager first
-            self.session_manager.receive_frame(frame, from_network_interface)
-        else:
-            self.process_frame(frame, from_network_interface)
-
     def configure_port(self, port: int, ip_address: Union[IPv4Address, str], subnet_mask: Union[IPv4Address, str]):
         """
         Configure the IP settings of a given port.
@@ -936,7 +1057,7 @@ class Router(NetworkNode):
         network_interface.subnet_mask = subnet_mask
         self.sys_log.info(
             f"Configured Network Interface {network_interface}"
-            )
+        )
         self.set_original_state()
 
     def enable_port(self, port: int):

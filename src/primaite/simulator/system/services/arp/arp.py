@@ -109,9 +109,24 @@ class ARP(Service):
 
         :param target_ip_address: The target IP address for which the MAC address is being requested.
         """
+        if target_ip_address in self.arp:
+            return
+
+        use_default_gateway = True
+        for network_interface in self.software_manager.node.network_interfaces.values():
+            if target_ip_address in network_interface.ip_network:
+                use_default_gateway = False
+                break
+
+        if use_default_gateway:
+            if self.software_manager.node.default_gateway:
+                target_ip_address = self.software_manager.node.default_gateway
+            else:
+                return
+
         outbound_network_interface = self.software_manager.session_manager.resolve_outbound_network_interface(
             target_ip_address
-            )
+        )
         if outbound_network_interface:
             self.sys_log.info(f"Sending ARP request from NIC {outbound_network_interface} for ip {target_ip_address}")
             arp_packet = ARPPacket(
@@ -124,7 +139,7 @@ class ARP(Service):
             )
         else:
             self.sys_log.error(
-                "Cannot send ARP request as there is no outbound NIC to use. Try configuring the default gateway."
+                "Cannot send ARP request as there is no outbound Network Interface to use. Try configuring the default gateway."
             )
 
     def send_arp_reply(self, arp_reply: ARPPacket):
@@ -151,12 +166,12 @@ class ARP(Service):
             )
         else:
             self.sys_log.error(
-                "Cannot send ARP reply as there is no outbound NIC to use. Try configuring the default gateway."
+                "Cannot send ARP reply as there is no outbound Network Interface to use. Try configuring the default gateway."
             )
 
 
     @abstractmethod
-    def _process_arp_request(self, arp_packet: ARPPacket, from_network_interface: NIC):
+    def _process_arp_request(self, arp_packet: ARPPacket, from_network_interface: NetworkInterface):
         """
         Processes an incoming ARP request.
 
@@ -168,7 +183,7 @@ class ARP(Service):
             f"{arp_packet.sender_mac_addr}/{arp_packet.sender_ip_address} "
         )
 
-    def _process_arp_reply(self, arp_packet: ARPPacket, from_network_interface: NIC):
+    def _process_arp_reply(self, arp_packet: ARPPacket, from_network_interface: NetworkInterface):
         """
         Processes an incoming ARP reply.
 
@@ -197,7 +212,7 @@ class ARP(Service):
         if not super().receive(payload, session_id, **kwargs):
             return False
 
-        from_network_interface = kwargs.get("from_network_interface")
+        from_network_interface = kwargs["from_network_interface"]
         if payload.request:
             self._process_arp_request(arp_packet=payload, from_network_interface=from_network_interface)
         else:

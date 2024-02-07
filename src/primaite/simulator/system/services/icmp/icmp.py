@@ -14,7 +14,7 @@ _LOGGER = getLogger(__name__)
 
 class ICMP(Service):
     """
-    The Internet Control Message Protocol (ICMP) services.
+    The Internet Control Message Protocol (ICMP) service.
 
     Enables the sending and receiving of ICMP messages such as echo requests and replies. This is typically used for
     network diagnostics, notably the ping command.
@@ -91,7 +91,7 @@ class ICMP(Service):
 
         if not network_interface:
             self.sys_log.error(
-                "Cannot send ICMP echo request as there is no outbound NIC to use. Try configuring the default gateway."
+                "Cannot send ICMP echo request as there is no outbound Network Interface to use. Try configuring the default gateway."
             )
             return pings, None
 
@@ -109,12 +109,14 @@ class ICMP(Service):
         )
         return sequence, icmp_packet.identifier
 
-    def _process_icmp_echo_request(self, frame: Frame):
+    def _process_icmp_echo_request(self, frame: Frame, from_network_interface):
         """
         Processes an ICMP echo request received by the service.
 
         :param frame: The network frame containing the ICMP echo request.
         """
+        if frame.ip.dst_ip_address != from_network_interface.ip_address:
+            return
         self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
 
         network_interface = self.software_manager.session_manager.resolve_outbound_network_interface(
@@ -123,7 +125,7 @@ class ICMP(Service):
 
         if not network_interface:
             self.sys_log.error(
-                "Cannot send ICMP echo reply as there is no outbound NIC to use. Try configuring the default gateway."
+                "Cannot send ICMP echo reply as there is no outbound Network Interface to use. Try configuring the default gateway."
             )
             return
 
@@ -173,12 +175,13 @@ class ICMP(Service):
         :return: True if the payload was processed successfully, otherwise False.
         """
         frame: Frame = kwargs["frame"]
+        from_network_interface = kwargs["from_network_interface"]
 
         if not frame.icmp:
             return False
 
         if frame.icmp.icmp_type == ICMPType.ECHO_REQUEST:
-            self._process_icmp_echo_request(frame)
+            self._process_icmp_echo_request(frame, from_network_interface)
         elif frame.icmp.icmp_type == ICMPType.ECHO_REPLY:
             self._process_icmp_echo_reply(frame)
         return True

@@ -147,20 +147,34 @@ class SessionManager:
         return self.software_manager.arp.get_default_gateway_network_interface()
 
     def resolve_outbound_transmission_details(
-            self, dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None, session_id: Optional[str] = None
-    ) -> Tuple[Optional['NetworkInterface'], Optional[str], IPv4Address, Optional[IPProtocol], bool]:
-        if not isinstance(dst_ip_address, (IPv4Address, IPv4Network)):
+            self,
+            dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
+            src_port: Optional[Port] = None,
+            dst_port: Optional[Port] = None,
+            protocol: Optional[IPProtocol] = None,
+            session_id: Optional[str] = None
+    ) -> Tuple[
+        Optional['NetworkInterface'],
+        Optional[str], IPv4Address,
+        Optional[Port],
+        Optional[Port],
+        Optional[IPProtocol],
+        bool
+    ]:
+        if dst_ip_address and not isinstance(dst_ip_address, (IPv4Address, IPv4Network)):
             dst_ip_address = IPv4Address(dst_ip_address)
         is_broadcast = False
         outbound_network_interface = None
         dst_mac_address = None
-        protocol = None
 
         # Use session details if session_id is provided
         if session_id:
             session = self.sessions_by_uuid[session_id]
+
             dst_ip_address = session.with_ip_address
             protocol = session.protocol
+            src_port = session.src_port
+            dst_port = session.dst_port
 
         # Determine if the payload is for broadcast or unicast
 
@@ -183,19 +197,20 @@ class SessionManager:
                     dst_mac_address = self.software_manager.arp.get_arp_cache_mac_address(dst_ip_address)
                     break
 
-            if dst_ip_address:
+            if dst_mac_address:
                 use_default_gateway = False
                 outbound_network_interface = self.software_manager.arp.get_arp_cache_network_interface(dst_ip_address)
 
             if use_default_gateway:
                 dst_mac_address = self.software_manager.arp.get_default_gateway_mac_address()
                 outbound_network_interface = self.software_manager.arp.get_default_gateway_network_interface()
-        return outbound_network_interface, dst_mac_address, dst_ip_address, protocol, is_broadcast
+        return outbound_network_interface, dst_mac_address, dst_ip_address, src_port, dst_port, protocol, is_broadcast
 
     def receive_payload_from_software_manager(
             self,
             payload: Any,
             dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
+            src_port: Optional[Port] = None,
             dst_port: Optional[Port] = None,
             session_id: Optional[str] = None,
             ip_protocol: IPProtocol = IPProtocol.TCP,
@@ -224,16 +239,26 @@ class SessionManager:
             is_broadcast = payload.request
             ip_protocol = IPProtocol.UDP
         else:
+
             vals = self.resolve_outbound_transmission_details(
-                dst_ip_address=dst_ip_address, session_id=session_id
+                dst_ip_address=dst_ip_address,
+                src_port=src_port,
+                dst_port=dst_port,
+                protocol=ip_protocol,
+                session_id=session_id
             )
-            outbound_network_interface, dst_mac_address, dst_ip_address, protocol, is_broadcast = vals
+            outbound_network_interface, dst_mac_address, dst_ip_address, src_port, dst_port, protocol, is_broadcast = vals
             if protocol:
                 ip_protocol = protocol
 
         # Check if outbound NIC and destination MAC address are resolved
         if not outbound_network_interface or not dst_mac_address:
             return False
+
+        if not (src_port or dst_port):
+            raise ValueError(
+                f"Failed to resolve src or dst port. Have you sent the port from the service or application?"
+            )
 
         tcp_header = None
         udp_header = None

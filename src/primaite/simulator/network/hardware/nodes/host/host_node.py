@@ -63,20 +63,22 @@ class HostARP(ARP):
 
         if arp_entry:
             return arp_entry.mac_address
+
+        if ip_address == self.software_manager.node.default_gateway:
+            is_reattempt = True
+        if not is_reattempt:
+            self.send_arp_request(ip_address)
+            return self._get_arp_cache_mac_address(
+                ip_address=ip_address, is_reattempt=True, is_default_gateway_attempt=is_default_gateway_attempt
+            )
         else:
-            if not is_reattempt:
-                self.send_arp_request(ip_address)
-                return self._get_arp_cache_mac_address(
-                    ip_address=ip_address, is_reattempt=True, is_default_gateway_attempt=is_default_gateway_attempt
-                )
-            else:
-                if self.software_manager.node.default_gateway:
-                    if not is_default_gateway_attempt:
-                        self.send_arp_request(self.software_manager.node.default_gateway)
-                        return self._get_arp_cache_mac_address(
-                            ip_address=self.software_manager.node.default_gateway, is_reattempt=True,
-                            is_default_gateway_attempt=True
-                        )
+            if self.software_manager.node.default_gateway:
+                if not is_default_gateway_attempt:
+                    self.send_arp_request(self.software_manager.node.default_gateway)
+                    return self._get_arp_cache_mac_address(
+                        ip_address=self.software_manager.node.default_gateway, is_reattempt=True,
+                        is_default_gateway_attempt=True
+                    )
         return None
 
     def get_arp_cache_mac_address(self, ip_address: IPV4Address) -> Optional[str]:
@@ -104,6 +106,8 @@ class HostARP(ARP):
         if arp_entry:
             return self.software_manager.node.network_interfaces[arp_entry.network_interface_uuid]
         else:
+            if ip_address == self.software_manager.node.default_gateway:
+                is_reattempt = True
             if not is_reattempt:
                 self.send_arp_request(ip_address)
                 return self._get_arp_cache_network_interface(
@@ -147,6 +151,7 @@ class HostARP(ARP):
             return
 
         # Matched ARP request
+        # TODO: try taking this out
         self.add_arp_cache_entry(
             ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr,
             network_interface=from_network_interface
