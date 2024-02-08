@@ -89,9 +89,25 @@ simulation:
           payload: "DELETE"
           server_ip: 192.168.1.14
       services:
-      - ref: client_1_dns_client
-        type: DNSClient
-
+      - ref: client_1_dns_server
+        type: DNSServer
+        options:
+          domain_mapping:
+            arcd.com: 192.168.1.12 # web server
+      - ref: client_1_database_client
+        type: DatabaseClient
+        options:
+          db_server_ip: 192.168.10.21
+      - ref: client_1_database_service
+        type: DatabaseService
+        options:
+          backup_server_ip: 192.168.10.21
+      - ref: client_1_web_service
+        type: WebServer
+      - ref: client_1_ftp_server
+        type: FTPServer
+      - ref: client_1_ntp_server
+        type: NTPServer
     - ref: client_2
       type: computer
       hostname: client_2

@@ -2,6 +2,7 @@ from primaite.simulator.network.hardware.base import NIC, Node
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 
 
 class Computer(Node):
@@ -48,6 +49,9 @@ class Computer(Node):
 
         # FTP
         self.software_manager.install(FTPClient)
+
+        # NTP
+        self.software_manager.install(NTPClient)
 
         # Web Browser
         self.software_manager.install(WebBrowser)

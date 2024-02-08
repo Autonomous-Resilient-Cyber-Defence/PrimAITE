@@ -12,6 +12,7 @@ from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from tests import TEST_ASSETS_ROOT
 
 BASIC_CONFIG = TEST_ASSETS_ROOT / "configs/basic_switched_network.yaml"
@@ -58,7 +59,7 @@ def test_node_software_install():
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
     client_2: Computer = game.simulation.network.get_node_by_hostname("client_2")
 
-    system_software = {DNSClient, FTPClient, WebBrowser}
+    system_software = {DNSClient, FTPClient, NTPClient, WebBrowser}
 
     # check that system software is installed on client 1
     for software in system_software:
@@ -73,5 +74,5 @@ def test_node_software_install():
         assert client_1.software_manager.software.get(applications) is not None
 
     # check that services have been installed on client 1
-    # for service in SERVICE_TYPES_MAPPING:
-    #     assert client_1.software_manager.software.get(service) is not None
+    for service in SERVICE_TYPES_MAPPING:
+        assert client_1.software_manager.software.get(service) is not None
