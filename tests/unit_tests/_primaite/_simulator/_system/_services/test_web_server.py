@@ -20,8 +20,9 @@ def web_server() -> Server:
         ip_address="192.168.1.10",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
+    node.power_on()
     node.software_manager.install(WebServer)
     node.software_manager.software.get("WebServer").start()
     return node

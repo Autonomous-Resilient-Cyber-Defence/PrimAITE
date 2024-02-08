@@ -90,7 +90,9 @@ def application_class():
 
 @pytest.fixture(scope="function")
 def file_system() -> FileSystem:
-    return Computer(hostname="fs_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0").file_system
+    computer = Computer(hostname="fs_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
+    computer.power_on()
+    return computer.file_system
 
 
 # PrimAITE v2 stuff

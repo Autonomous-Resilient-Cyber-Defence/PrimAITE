@@ -1056,18 +1056,17 @@ class Node(SimComponent):
         :param network_interface: The NIC to connect.
         :raise NetworkError: If the NIC is already connected.
         """
-        if network_interface.uuid not in self.network_interfaces:
+        if network_interface.uuid not in self.network_interface:
             self.network_interfaces[network_interface.uuid] = network_interface
-            self.network_interface[len(self.network_interfaces)] = network_interface
+            new_nic_num = len(self.network_interfaces)
+            self.network_interface[new_nic_num] = network_interface
             network_interface._connected_node = self
-            network_interface.port_num = len(self.network_interfaces)
+            network_interface._port_num_on_node = new_nic_num
             network_interface.parent = self
             self.sys_log.info(f"Connected Network Interface {network_interface}")
             if self.operating_state == NodeOperatingState.ON:
                 network_interface.enable()
-            self._nic_request_manager.add_request(
-                network_interface.uuid, RequestType(func=network_interface._request_manager)
-            )
+            self._nic_request_manager.add_request(new_nic_num, RequestType(func=network_interface._request_manager))
         else:
             msg = f"Cannot connect NIC {network_interface} as it is already connected"
             self.sys_log.logger.error(msg)
@@ -1083,17 +1082,20 @@ class Node(SimComponent):
         if isinstance(network_interface, str):
             network_interface = self.network_interfaces.get(network_interface)
         if network_interface or network_interface.uuid in self.network_interfaces:
-            for port, _nic in self.network_interface.items():
-                if network_interface == _nic:
+            network_interface_num = -1
+            for port, _network_interface in self.network_interface.items():
+                if network_interface == _network_interface:
                     self.network_interface.pop(port)
+                    network_interface_num = port
                     break
             self.network_interfaces.pop(network_interface.uuid)
             network_interface.parent = None
             network_interface.disable()
             self.sys_log.info(f"Disconnected Network Interface {network_interface}")
-            self._nic_request_manager.remove_request(network_interface.uuid)
+            if network_interface_num != -1:
+                self._nic_request_manager.remove_request(network_interface_num)
         else:
-            msg = f"Cannot disconnect NIC {network_interface} as it is not connected"
+            msg = f"Cannot disconnect Network Interface {network_interface} as it is not connected"
             self.sys_log.logger.error(msg)
             raise NetworkError(msg)
 
@@ -1142,12 +1144,14 @@ class Node(SimComponent):
         :type service: Service
         """
         if service in self:
-            _LOGGER.warning(f"Can't add service {service.uuid} to node {self.uuid}. It's already installed.")
+            _LOGGER.warning(f"Can't add service {service.name} to node {self.hostname}. It's already installed.")
             return
         self.services[service.uuid] = service
         service.parent = self
         service.install()  # Perform any additional setup, such as creating files for this service on the node.
-        self._service_request_manager.add_request(service.uuid, RequestType(func=service._request_manager))
+        self.sys_log.info(f"Installed service {service.name}")
+        _LOGGER.debug(f"Added service {service.name} to node {self.hostname}")
+        self._service_request_manager.add_request(service.name, RequestType(func=service._request_manager))
 
     def uninstall_service(self, service: Service) -> None:
         """
@@ -1157,14 +1161,14 @@ class Node(SimComponent):
         :type service: Service
         """
         if service not in self:
-            _LOGGER.warning(f"Can't remove service {service.uuid} from node {self.uuid}. It's not installed.")
+            _LOGGER.warning(f"Can't remove service {service.name} from node {self.hostname}. It's not installed.")
             return
         service.uninstall()  # Perform additional teardown, such as removing files or restarting the machine.
         self.services.pop(service.uuid)
         service.parent = None
         self.sys_log.info(f"Uninstalled service {service.name}")
-        _LOGGER.info(f"Removed service {service.uuid} from node {self.uuid}")
-        self._service_request_manager.remove_request(service.uuid)
+        _LOGGER.info(f"Removed service {service.name} from node {self.hostname}")
+        self._service_request_manager.remove_request(service.name)
 
     def install_application(self, application: Application) -> None:
         """
@@ -1174,11 +1178,15 @@ class Node(SimComponent):
         :type application: Application
         """
         if application in self:
-            _LOGGER.warning(f"Can't add application {application.uuid} to node {self.uuid}. It's already installed.")
+            _LOGGER.warning(
+                f"Can't add application {application.name} to node {self.hostname}. It's already installed."
+            )
             return
         self.applications[application.uuid] = application
         application.parent = self
-        self._application_request_manager.add_request(application.uuid, RequestType(func=application._request_manager))
+        self.sys_log.info(f"Installed application {application.name}")
+        _LOGGER.debug(f"Added application {application.name} to node {self.hostname}")
+        self._application_request_manager.add_request(application.name, RequestType(func=application._request_manager))
 
     def uninstall_application(self, application: Application) -> None:
         """
@@ -1188,13 +1196,15 @@ class Node(SimComponent):
         :type application: Application
         """
         if application not in self:
-            _LOGGER.warning(f"Can't remove application {application.uuid} from node {self.uuid}. It's not installed.")
+            _LOGGER.warning(
+                f"Can't remove application {application.name} from node {self.hostname}. It's not installed."
+            )
             return
         self.applications.pop(application.uuid)
         application.parent = None
         self.sys_log.info(f"Uninstalled application {application.name}")
-        _LOGGER.info(f"Removed application {application.uuid} from node {self.uuid}")
-        self._application_request_manager.remove_request(application.uuid)
+        _LOGGER.info(f"Removed application {application.name} from node {self.hostname}")
+        self._application_request_manager.remove_request(application.name)
 
     def _shut_down_actions(self):
         """Actions to perform when the node is shut down."""

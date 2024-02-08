@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Refactored actions and observations to be configurable via object name, instead of UUID.
 - Fixed a bug where ACL rules were not resetting on episode reset.
 - Fixed a bug where blue agent's ACL actions were being applied against the wrong IP addresses
 - Fixed a bug where deleted files and folders did not reset correctly on episode reset.

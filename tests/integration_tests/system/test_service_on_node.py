@@ -12,9 +12,8 @@ from primaite.simulator.system.services.service import Service, ServiceOperating
 def populated_node(
     service_class,
 ) -> Tuple[Server, Service]:
-    server = Server(
-        hostname="server", ip_address="192.168.0.1", subnet_mask="255.255.255.0", operating_state=NodeOperatingState.ON
-    )
+    server = Server(hostname="server", ip_address="192.168.0.1", subnet_mask="255.255.255.0", start_up_duration=0)
+    server.power_on()
     server.software_manager.install(service_class)
 
     service = server.software_manager.software.get("TestService")
@@ -30,8 +29,9 @@ def test_service_on_offline_node(service_class):
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
+    computer.power_on()
     computer.software_manager.install(service_class)
 
     service: Service = computer.software_manager.software.get("TestService")

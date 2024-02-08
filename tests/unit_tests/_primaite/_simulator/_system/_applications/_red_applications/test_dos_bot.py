@@ -12,12 +12,9 @@ from primaite.simulator.system.applications.red_applications.dos_bot import DoSA
 @pytest.fixture(scope="function")
 def dos_bot() -> DoSBot:
     computer = Computer(
-        hostname="compromised_pc",
-        ip_address="192.168.0.1",
-        subnet_mask="255.255.255.0",
-        operating_state=NodeOperatingState.ON,
+        hostname="compromised_pc", ip_address="192.168.0.1", subnet_mask="255.255.255.0", start_up_duration=0
     )
-
+    computer.power_on()
     computer.software_manager.install(DoSBot)
 
     dos_bot: DoSBot = computer.software_manager.software.get("DoSBot")

@@ -72,6 +72,7 @@ class WebBrowser(Application):
         """
         state = super().describe_state()
         state["last_response_status_code"] = self.latest_response.status_code if self.latest_response else None
+        return state
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""

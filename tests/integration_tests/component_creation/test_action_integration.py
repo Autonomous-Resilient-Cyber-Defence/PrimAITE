@@ -46,8 +46,6 @@ def test_passing_actions_down(monkeypatch) -> None:
     assert not action_invoked
 
     # call the patched method
-    sim.apply_request(
-        ["network", "node", pc1.uuid, "file_system", "folder", pc1.file_system.get_folder("downloads").uuid, "repair"]
-    )
+    sim.apply_request(["network", "node", pc1.hostname, "file_system", "folder", "downloads", "repair"])
 
     assert action_invoked

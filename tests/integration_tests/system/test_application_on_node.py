@@ -14,8 +14,9 @@ def populated_node(application_class) -> Tuple[Application, Computer]:
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
+    computer.power_on()
     computer.software_manager.install(application_class)
 
     app = computer.software_manager.software.get("TestApplication")
@@ -31,7 +32,7 @@ def test_application_on_offline_node(application_class):
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     computer.software_manager.install(application_class)
 

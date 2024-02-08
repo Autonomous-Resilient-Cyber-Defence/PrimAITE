@@ -31,7 +31,7 @@ def test_folder_scan_request(populated_file_system):
     assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
     assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
 
-    fs.apply_request(request=["folder", folder.uuid, "scan"])
+    fs.apply_request(request=["folder", folder.name, "scan"])
 
     folder.apply_timestep(timestep=0)
 
@@ -53,12 +53,12 @@ def test_folder_checkhash_request(populated_file_system):
     """Test that an agent can request a folder hash check."""
     fs, folder, file = populated_file_system
 
-    fs.apply_request(request=["folder", folder.uuid, "checkhash"])
+    fs.apply_request(request=["folder", folder.name, "checkhash"])
 
     assert folder.health_status == FileSystemItemHealthStatus.GOOD
     file.sim_size = 0
 
-    fs.apply_request(request=["folder", folder.uuid, "checkhash"])
+    fs.apply_request(request=["folder", folder.name, "checkhash"])
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
 
 
@@ -70,7 +70,7 @@ def test_folder_repair_request(populated_file_system):
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
 
-    fs.apply_request(request=["folder", folder.uuid, "repair"])
+    fs.apply_request(request=["folder", folder.name, "repair"])
     assert file.health_status == FileSystemItemHealthStatus.GOOD
     assert folder.health_status == FileSystemItemHealthStatus.GOOD
 
@@ -116,7 +116,7 @@ def test_folder_restore_request(populated_file_system):
     assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid, include_deleted=True).deleted is False
 
     # corrupt folder
-    fs.apply_request(request=["folder", folder.uuid, "corrupt"])
+    fs.apply_request(request=["folder", folder.name, "corrupt"])
     assert fs.get_folder(folder_name=folder.name).health_status == FileSystemItemHealthStatus.CORRUPT
     assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.CORRUPT
 
@@ -143,7 +143,7 @@ def test_folder_restore_request(populated_file_system):
 def test_folder_corrupt_request(populated_file_system):
     """Test that an agent can request a folder corruption."""
     fs, folder, file = populated_file_system
-    fs.apply_request(request=["folder", folder.uuid, "corrupt"])
+    fs.apply_request(request=["folder", folder.name, "corrupt"])
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
 
@@ -153,13 +153,13 @@ def test_deleted_folder_and_its_files_cannot_be_interacted_with(populated_file_s
     fs, folder, file = populated_file_system
     assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
 
-    fs.apply_request(request=["file", file.uuid, "corrupt"])
+    fs.apply_request(request=["file", file.name, "corrupt"])
     assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.CORRUPT
 
     fs.apply_request(request=["delete", "folder", folder.uuid])
     assert fs.get_file(folder_name=folder.name, file_name=file.name) is None
 
-    fs.apply_request(request=["file", file.uuid, "repair"])
+    fs.apply_request(request=["file", file.name, "repair"])
 
     deleted_folder = fs.deleted_folders.get(folder.uuid)
     deleted_file = deleted_folder.deleted_files.get(file.uuid)
