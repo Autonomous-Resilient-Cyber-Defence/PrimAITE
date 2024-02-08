@@ -1,11 +1,14 @@
 from typing import Dict
 
-from primaite.simulator.network.hardware.base import WirelessNetworkInterface
-from primaite.simulator.network.hardware.network_interface.layer_3_interface import Layer3Interface
+from primaite.simulator.network.hardware.base import (
+    IPWirelessNetworkInterface,
+    Layer3Interface,
+    WirelessNetworkInterface,
+)
 from primaite.simulator.network.transmission.data_link_layer import Frame
 
 
-class WirelessAccessPoint(WirelessNetworkInterface, Layer3Interface):
+class WirelessAccessPoint(IPWirelessNetworkInterface):
     """
     Represents a Wireless Access Point (AP) in a network.
 

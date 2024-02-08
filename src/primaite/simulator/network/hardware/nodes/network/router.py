@@ -810,47 +810,6 @@ class RouterICMP(ICMP):
         return True
 
 
-class RouterNIC(IPWiredNetworkInterface):
-    """
-    A Router-specific Network Interface Card (NIC) that extends the standard NIC functionality.
-
-    This class overrides the standard Node NIC's Layer 3 (L3) broadcast/unicast checks. It is designed
-    to handle network frames in a manner specific to routers, allowing them to efficiently process
-    and route network traffic.
-    """
-
-    def receive_frame(self, frame: Frame) -> bool:
-        """
-        Receive and process a network frame from the connected link, provided the NIC is enabled.
-
-        This method is tailored for router behavior. It decrements the frame's Time To Live (TTL), checks for TTL
-        expiration, and captures the frame using PCAP (Packet Capture). The frame is accepted if it is destined for
-        this NIC's MAC address or is a broadcast frame.
-
-        Key Differences from Standard NIC:
-        - Does not perform Layer 3 (IP-based) broadcast checks.
-        - Only checks for Layer 2 (Ethernet) destination MAC address and broadcast frames.
-
-        :param frame: The network frame being received. This should be an instance of the Frame class.
-        :return: Returns True if the frame is processed and passed to the connected node, False otherwise.
-        """
-        if self.enabled:
-            frame.decrement_ttl()
-            if frame.ip and frame.ip.ttl < 1:
-                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
-                return False
-            frame.set_received_timestamp()
-            self.pcap.capture_inbound(frame)
-            # If this destination or is broadcast
-            if frame.ethernet.dst_mac_addr == self.mac_address or frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
-                self._connected_node.receive_frame(frame=frame, from_network_interface=self)
-                return True
-        return False
-
-    def __str__(self) -> str:
-        return f"{self.mac_address}/{self.ip_address}"
-
-
 class RouterInterface(IPWiredNetworkInterface):
     """
     Represents a Router Interface.
