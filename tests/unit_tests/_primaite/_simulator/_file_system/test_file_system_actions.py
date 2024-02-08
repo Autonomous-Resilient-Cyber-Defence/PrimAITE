@@ -21,7 +21,7 @@ def test_file_delete_request(populated_file_system):
     fs, folder, file = populated_file_system
     assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
 
-    fs.apply_request(request=["delete", "file", folder.uuid, file.uuid])
+    fs.apply_request(request=["delete", "file", folder.name, file.name])
     assert fs.get_file(folder_name=folder.name, file_name=file.name) is None
 
     fs.show(full=True)
@@ -33,7 +33,7 @@ def test_folder_delete_request(populated_file_system):
     assert folder.get_file_by_id(file_uuid=file.uuid) is not None
     assert fs.get_folder_by_id(folder_uuid=folder.uuid) is not None
 
-    fs.apply_request(request=["delete", "folder", folder.uuid])
+    fs.apply_request(request=["delete", "folder", folder.name])
     assert fs.get_folder_by_id(folder_uuid=folder.uuid) is None
     assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid) is None
 

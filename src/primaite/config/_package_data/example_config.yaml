@@ -60,6 +60,31 @@ agents:
         frequency: 4
         variance: 3
 
+  - ref: client_1_green_user
+    team: GREEN
+    type: GreenWebBrowsingAgent
+    observation_space:
+      type: UC2GreenObservation
+    action_space:
+      action_list:
+        - type: DONOTHING
+        - type: NODE_APPLICATION_EXECUTE
+      options:
+        nodes:
+          - node_name: client_1
+            applications:
+              - application_name: WebBrowser
+        max_folders_per_node: 1
+        max_files_per_folder: 1
+        max_services_per_node: 1
+        max_applications_per_node: 1
+    reward_function:
+      reward_components:
+        - type: DUMMY
+
+
+
+
   - ref: client_1_data_manipulation_red_bot
     team: RED
     type: RedDatabaseCorruptingAgent
@@ -112,7 +137,7 @@ agents:
           - service_name: DNSServer
         - node_hostname: web_server
           services:
-          - service_name: web_server_web_service
+          - service_name: WebServer
         - node_hostname: database_server
           folders:
           - folder_name: database
@@ -241,25 +266,25 @@ agents:
             action: "NODE_FILE_SCAN"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
                 file_id: 0
           10:
             action: "NODE_FILE_CHECKHASH"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
                 file_id: 0
           11:
             action: "NODE_FILE_DELETE"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
                 file_id: 0
           12:
             action: "NODE_FILE_REPAIR"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
                 file_id: 0
           13:
             action: "NODE_SERVICE_PATCH"
@@ -270,22 +295,22 @@ agents:
             action: "NODE_FOLDER_SCAN"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
           15:
             action: "NODE_FOLDER_CHECKHASH"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
           16:
             action: "NODE_FOLDER_REPAIR"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
           17:
             action: "NODE_FOLDER_RESTORE"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
           18:
             action: "NODE_OS_SCAN"
             options:
@@ -302,7 +327,7 @@ agents:
             action: "NODE_RESET"
             options:
                 node_id: 5
-          22: # "ACL: ADDRULE - Block outgoing traffic from client 1" (not supported in Primaite)
+          22: # "ACL: ADDRULE - Block outgoing traffic from client 1"
             action: "NETWORK_ACL_ADDRULE"
             options:
                 position: 1
@@ -312,7 +337,7 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 1
-          23: # "ACL: ADDRULE - Block outgoing traffic from client 2" (not supported in Primaite)
+          23: # "ACL: ADDRULE - Block outgoing traffic from client 2"
             action: "NETWORK_ACL_ADDRULE"
             options:
                 position: 2
@@ -497,6 +522,8 @@ agents:
           - folder_name: database
             files:
             - file_name: database.db
+          services:
+          - service_name: DatabaseService
         - node_name: backup_server
         - node_name: security_suite
         - node_name: client_1
@@ -529,18 +556,19 @@ agents:
     reward_function:
       reward_components:
         - type: DATABASE_FILE_INTEGRITY
-          weight: 0.5
+          weight: 0.34
           options:
             node_hostname: database_server
             folder_name: database
             file_name: database.db
-
-
-        - type: WEB_SERVER_404_PENALTY
-          weight: 0.5
+        - type: WEBPAGE_UNAVAILABLE_PENALTY
+          weight: 0.33
           options:
-            node_hostname: web_server
-            service_name: WebServer
+            node_hostname: client_1
+        - type: WEBPAGE_UNAVAILABLE_PENALTY
+          weight: 0.33
+          options:
+            node_hostname: client_2
 
 
     agent_settings:
@@ -682,6 +710,10 @@ simulation:
           data_manipulation_p_of_success: 0.8
           payload: "DELETE"
           server_ip: 192.168.1.14
+      - ref: client_1_web_browser
+        type: WebBrowser
+        options:
+          target_url: http://arcd.com/users/
       services:
       - ref: client_1_dns_client
         type: DNSClient
