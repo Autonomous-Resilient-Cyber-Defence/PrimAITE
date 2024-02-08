@@ -1,3 +1,4 @@
+from ipaddress import IPv4Address
 from pathlib import Path
 from typing import Union
 
@@ -9,6 +10,8 @@ from primaite.game.agent.interface import ProxyAgent, RandomAgent
 from primaite.game.game import APPLICATION_TYPES_MAPPING, PrimaiteGame, SERVICE_TYPES_MAPPING
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
+from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
@@ -76,3 +79,41 @@ def test_node_software_install():
     # check that services have been installed on client 1
     for service in SERVICE_TYPES_MAPPING:
         assert client_1.software_manager.software.get(service) is not None
+
+
+def test_web_browser_install():
+    """Test that the web browser can be configured via config."""
+    game = load_config(BASIC_CONFIG)
+    client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
+
+    web_browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
+
+    assert web_browser.target_url == "http://arcd.com/users/"
+
+
+def test_data_manipulation_bot_install():
+    """Test that the data manipulation bot can be configured via config."""
+    game = load_config(BASIC_CONFIG)
+    client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
+
+    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
+
+    assert data_manipulation_bot.server_ip_address == IPv4Address("192.168.1.21")
+    assert data_manipulation_bot.payload == "DELETE"
+    assert data_manipulation_bot.data_manipulation_p_of_success == 0.8
+    assert data_manipulation_bot.port_scan_p_of_success == 0.8
+
+
+def test_dos_bot_install():
+    """Test that the denial of service bot can be configured via config."""
+    game = load_config(BASIC_CONFIG)
+    client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
+
+    dos_bot: DoSBot = client_1.software_manager.software.get("DoSBot")
+
+    assert dos_bot.target_ip_address == IPv4Address("192.168.10.21")
+    assert dos_bot.payload == "SPOOF DATA"
+    assert dos_bot.port_scan_p_of_success == 0.8
+    assert dos_bot.dos_intensity == 1.0  # default
+    assert dos_bot.max_sessions == 1000  # default
+    assert dos_bot.repeat is False  # default

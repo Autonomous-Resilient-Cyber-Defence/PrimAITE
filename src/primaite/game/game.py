@@ -16,6 +16,7 @@ from primaite.simulator.network.hardware.nodes.computer import Computer
 from primaite.simulator.network.hardware.nodes.router import Router
 from primaite.simulator.network.hardware.nodes.server import Server
 from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
@@ -310,7 +311,15 @@ class PrimaiteGame:
                     elif application_type == "DoSBot":
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
-                            new_application.target_ip_address = opt.get("target_ip_address")
+                            new_application.configure(
+                                target_ip_address=IPv4Address(opt.get("target_ip_address")),
+                                target_port=Port(opt.get("target_port", Port.POSTGRES_SERVER.value)),
+                                payload=opt.get("payload"),
+                                repeat=bool(opt.get("repeat")),
+                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
+                                dos_intensity=float(opt.get("dos_intensity", "1.0")),
+                                max_sessions=int(opt.get("max_sessions", "1000")),
+                            )
             if "nics" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["nics"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))

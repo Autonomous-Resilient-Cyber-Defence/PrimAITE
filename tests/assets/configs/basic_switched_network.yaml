@@ -87,11 +87,13 @@ simulation:
           port_scan_p_of_success: 0.8
           data_manipulation_p_of_success: 0.8
           payload: "DELETE"
-          server_ip: 192.168.1.14
+          server_ip: 192.168.1.21
       - ref: dos_bot
         type: DoSBot
         options:
           target_ip_address: 192.168.10.21
+          payload: SPOOF DATA
+          port_scan_p_of_success: 0.8
       services:
       - ref: client_1_dns_server
         type: DNSServer
