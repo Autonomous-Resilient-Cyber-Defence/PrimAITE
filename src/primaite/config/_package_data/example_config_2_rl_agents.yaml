@@ -54,7 +54,7 @@ agents:
         frequency: 4
         variance: 3
 
-  - ref: client_1_data_manipulation_red_bot
+  - ref: data_manipulation_attacker
     team: RED
     type: RedDatabaseCorruptingAgent
 
