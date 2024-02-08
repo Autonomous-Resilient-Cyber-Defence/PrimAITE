@@ -5,8 +5,8 @@ import pytest
 
 from primaite.simulator.network.hardware.base import Link
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.web_browser import WebBrowser
@@ -85,7 +85,8 @@ def web_client_web_server_database(example_network) -> Tuple[Computer, Server, S
     dns_server: DNSServer = web_server.software_manager.software.get("DNSServer")
     # register arcd.com to DNS
     dns_server.dns_register(
-        domain_name="arcd.com", domain_ip_address=web_server.network_interfaces[next(iter(web_server.network_interfaces))].ip_address
+        domain_name="arcd.com",
+        domain_ip_address=web_server.network_interfaces[next(iter(web_server.network_interfaces))].ip_address,
     )
 
     # Install DatabaseClient service on web server

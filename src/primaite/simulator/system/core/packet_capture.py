@@ -108,4 +108,3 @@ class PacketCapture:
         """
         msg = frame.model_dump_json()
         self.outbound_logger.log(level=60, msg=msg)  # Log at custom log level > CRITICAL
-

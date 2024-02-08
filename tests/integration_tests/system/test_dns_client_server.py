@@ -28,7 +28,8 @@ def dns_client_and_dns_server(client_server) -> Tuple[DNSClient, Computer, DNSSe
     dns_server.start()
     # register arcd.com as a domain
     dns_server.dns_register(
-        domain_name="arcd.com", domain_ip_address=IPv4Address(server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address)
+        domain_name="arcd.com",
+        domain_ip_address=IPv4Address(server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address),
     )
 
     return dns_client, computer, dns_server, server

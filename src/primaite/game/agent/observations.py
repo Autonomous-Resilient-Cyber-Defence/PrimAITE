@@ -494,7 +494,9 @@ class NodeObservation(AbstractObservation):
         obs["SERVICES"] = {i + 1: service.observe(state) for i, service in enumerate(self.services)}
         obs["FOLDERS"] = {i + 1: folder.observe(state) for i, folder in enumerate(self.folders)}
         obs["operating_status"] = node_state["operating_state"]
-        obs["NETWORK_INTERFACES"] = {i + 1: network_interface.observe(state) for i, network_interface in enumerate(self.network_interfaces)}
+        obs["NETWORK_INTERFACES"] = {
+            i + 1: network_interface.observe(state) for i, network_interface in enumerate(self.network_interfaces)
+        }
 
         if self.logon_status:
             obs["logon_status"] = 0
@@ -508,7 +510,9 @@ class NodeObservation(AbstractObservation):
             "SERVICES": spaces.Dict({i + 1: service.space for i, service in enumerate(self.services)}),
             "FOLDERS": spaces.Dict({i + 1: folder.space for i, folder in enumerate(self.folders)}),
             "operating_status": spaces.Discrete(5),
-            "NETWORK_INTERFACES": spaces.Dict({i + 1: network_interface.space for i, network_interface in enumerate(self.network_interfaces)}),
+            "NETWORK_INTERFACES": spaces.Dict(
+                {i + 1: network_interface.space for i, network_interface in enumerate(self.network_interfaces)}
+            ),
         }
         if self.logon_status:
             space_shape["logon_status"] = spaces.Discrete(3)

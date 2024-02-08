@@ -4,7 +4,6 @@ from typing import Any, Optional
 from pydantic import BaseModel
 
 from primaite import getLogger
-from primaite.simulator.network.protocols.arp import ARPPacket
 from primaite.simulator.network.protocols.icmp import ICMPPacket
 from primaite.simulator.network.protocols.packet import DataPacket
 from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol

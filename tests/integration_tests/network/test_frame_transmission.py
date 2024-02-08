@@ -5,7 +5,6 @@ from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 
 
-
 def test_node_to_node_ping():
     """Tests two Computers are able to ping each other."""
     network = Network()

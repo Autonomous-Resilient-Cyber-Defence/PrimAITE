@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
-from primaite.simulator.network.hardware.base import WiredNetworkInterface, NetworkInterface, Link
+from primaite.simulator.network.hardware.base import Link, WiredNetworkInterface
 from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
 from primaite.simulator.network.transmission.data_link_layer import Frame
 
@@ -27,6 +28,7 @@ class SwitchPort(WiredNetworkInterface):
     Switch ports typically do not have IP addresses assigned to them as they function at Layer 2, but managed switches
     can have management IP addresses for remote management and configuration purposes.
     """
+
     _connected_node: Optional[Switch] = None
     "The Switch to which the SwitchPort is connected."
 
@@ -39,7 +41,6 @@ class SwitchPort(WiredNetworkInterface):
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
-
 
         :return: Current state of this object and child objects.
         :rtype: Dict

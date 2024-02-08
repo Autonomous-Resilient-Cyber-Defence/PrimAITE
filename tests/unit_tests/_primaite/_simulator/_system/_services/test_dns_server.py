@@ -9,8 +9,8 @@ from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.simulator.system.services.dns.dns_server import DNSServer
 
 
 @pytest.fixture(scope="function")
@@ -64,7 +64,5 @@ def test_dns_server_receive(dns_server):
     assert dns_client.check_domain_exists("fake-domain.com") is False
 
     assert dns_client.check_domain_exists("real-domain.com") is False
-
-
 
     dns_server_service.show()

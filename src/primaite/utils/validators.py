@@ -1,9 +1,7 @@
 from ipaddress import IPv4Address
 from typing import Any, Final
 
-from pydantic import (
-    BeforeValidator,
-)
+from pydantic import BeforeValidator
 from typing_extensions import Annotated
 
 
@@ -30,7 +28,7 @@ def ipv4_validator(v: Any) -> IPv4Address:
 # with the IPv4Address type, ensuring that any usage of IPV4Address undergoes validation before assignment.
 IPV4Address: Final[Annotated] = Annotated[IPv4Address, BeforeValidator(ipv4_validator)]
 """
-IPv4Address with with pre-validation and auto-conversion from str using ipv4_validator.
+IPv4Address with with IPv4Address with with pre-validation and auto-conversion from str using ipv4_validator..
 
 This type is essentially an IPv4Address from the standard library's ipaddress module,
 but with added validation logic. If you use this custom type, the ipv4_validator function

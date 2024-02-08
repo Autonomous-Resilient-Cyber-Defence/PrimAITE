@@ -16,7 +16,7 @@ def web_browser() -> WebBrowser:
         ip_address="192.168.1.11",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        start_up_duration=0
+        start_up_duration=0,
     )
     computer.power_on()
     # Web Browser should be pre-installed in computer

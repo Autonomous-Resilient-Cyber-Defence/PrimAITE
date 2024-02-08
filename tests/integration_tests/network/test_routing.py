@@ -19,7 +19,7 @@ def pc_a_pc_b_router_1() -> Tuple[Computer, Computer, Router]:
         ip_address="192.168.0.10",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.0.1",
-        start_up_duration=0
+        start_up_duration=0,
     )
     pc_a.power_on()
 
@@ -28,7 +28,7 @@ def pc_a_pc_b_router_1() -> Tuple[Computer, Computer, Router]:
         ip_address="192.168.1.10",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        start_up_duration=0
+        start_up_duration=0,
     )
     pc_b.power_on()
 

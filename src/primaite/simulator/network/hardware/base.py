@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import re
 import secrets
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Union
-from typing import Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import Field, BaseModel
+from pydantic import BaseModel, Field
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
@@ -48,7 +47,7 @@ def generate_mac_address(oui: Optional[str] = None) -> str:
             _LOGGER.error(msg)
             raise ValueError(msg)
         oui_bytes = [int(chunk, 16) for chunk in oui.split(":")]
-        mac = oui_bytes + random_bytes[len(oui_bytes):]
+        mac = oui_bytes + random_bytes[len(oui_bytes) :]
     else:
         mac = random_bytes
 
@@ -198,9 +197,7 @@ class WiredNetworkInterface(NetworkInterface, ABC):
             return
 
         if not self._connected_link:
-            self._connected_node.sys_log.info(
-                f"Interface {self} cannot be enabled as there is no Link connected."
-            )
+            self._connected_node.sys_log.info(f"Interface {self} cannot be enabled as there is no Link connected.")
             return
 
         self.enabled = True
@@ -225,9 +222,9 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         """
         Connect this network interface to a specified link.
 
-        This method establishes a connection between the network interface and a network link if the network interface is not already
-        connected. If the network interface is already connected to a link, it logs an error and does not change the existing
-        connection.
+        This method establishes a connection between the network interface and a network link if the network interface
+        is not already connected. If the network interface is already connected to a link, it logs an error and does
+        not change the existing connection.
 
         :param link: The Link instance to connect to this network interface.
         """
@@ -246,8 +243,8 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         """
         Disconnect the network interface from its connected Link, if any.
 
-        This method removes the association between the network interface and its connected Link. It updates the connected Link's
-        endpoints to reflect the disconnection.
+        This method removes the association between the network interface and its connected Link. It updates the
+        connected Link's endpoints to reflect the disconnection.
         """
         if self._connected_link.endpoint_a == self:
             self._connected_link.endpoint_a = None
@@ -298,6 +295,7 @@ class Layer3Interface(BaseModel, ABC):
     :ivar IPv4Address subnet_mask: The subnet mask assigned to the interface. This mask helps in determining the
         network segment that the interface belongs to and is used in IP routing decisions.
     """
+
     ip_address: IPV4Address
     "The IP address assigned to the interface for communication on an IP-based network."
 
@@ -357,10 +355,23 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
     Derived classes should define specific behaviors and properties of an IP-capable wired network interface,
     customizing it for their specific use cases.
     """
+
     _connected_link: Optional[Link] = None
     "The network link to which the network interface is connected."
 
     def model_post_init(self, __context: Any) -> None:
+        """
+        Performs post-initialisation checks to ensure the model's IP configuration is valid.
+
+        This method is invoked after the initialisation of a network model object to validate its network settings,
+        particularly to ensure that the assigned IP address is not a network address. This validation is crucial for
+        maintaining the integrity of network simulations and avoiding configuration errors that could lead to
+        unrealistic or incorrect behavior.
+
+        :param __context: Contextual information or parameters passed to the method, used for further initializing or
+            validating the model post-creation.
+        :raises ValueError: If the IP address is the same as the network address, indicating an incorrect configuration.
+        """
         if self.ip_network.network_address == self.ip_address:
             raise ValueError(f"{self.ip_address}/{self.subnet_mask} must not be a network address")
 
@@ -380,6 +391,17 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
         return state
 
     def enable(self):
+        """
+        Enables this wired network interface and attempts to send a "hello" message to the default gateway.
+
+        This method activates the network interface, making it operational for network communications. After enabling,
+        it tries to initiate a default gateway "hello" process, typically to establish initial connectivity and resolve
+        the default gateway's MAC address. This step is crucial for ensuring the interface can successfully send data
+        to and receive data from the network.
+
+        The method safely handles cases where the connected node might not have a default gateway set or the
+        `default_gateway_hello` method is not defined, ignoring such errors to proceed without interruption.
+        """
         super().enable()
         try:
             pass
@@ -440,8 +462,8 @@ class IPWirelessNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
     As an abstract class, `IPWirelessNetworkInterface` does not implement specific methods but ensures that any derived
     class provides implementations for the functionalities of both `WirelessNetworkInterface` and `Layer3Interface`.
     This setup is ideal for representing network interfaces in devices that require wireless connections and are capable
-    of IP routing and addressing, such as wireless routers, access points, and wireless end-host devices like smartphones
-    and laptops.
+    of IP routing and addressing, such as wireless routers, access points, and wireless end-host devices like
+    smartphones and laptops.
 
     This class should be extended by concrete classes that define specific behaviors and properties of an IP-capable
     wireless network interface.
@@ -804,8 +826,10 @@ class Node(SimComponent):
             {
                 "hostname": self.hostname,
                 "operating_state": self.operating_state.value,
-                "NICs": {eth_num: network_interface.describe_state() for eth_num, network_interface in
-                         self.network_interface.items()},
+                "NICs": {
+                    eth_num: network_interface.describe_state()
+                    for eth_num, network_interface in self.network_interface.items()
+                },
                 "file_system": self.file_system.describe_state(),
                 "applications": {app.name: app.describe_state() for app in self.applications.values()},
                 "services": {svc.name: svc.describe_state() for svc in self.services.values()},
@@ -816,7 +840,7 @@ class Node(SimComponent):
         return state
 
     def show(self, markdown: bool = False):
-        "Show function that calls both show NIC and show open ports."
+        """Show function that calls both show NIC and show open ports."""
         self.show_nic(markdown)
         self.show_open_ports(markdown)
 
@@ -833,6 +857,14 @@ class Node(SimComponent):
 
     @property
     def has_enabled_network_interface(self) -> bool:
+        """
+        Checks if the node has at least one enabled network interface.
+
+        Iterates through all network interfaces associated with the node to determine if at least one is enabled. This
+        property is essential for determining the node's ability to communicate within the network.
+
+        :return: True if there is at least one enabled network interface; otherwise, False.
+        """
         for network_interface in self.network_interfaces.values():
             if network_interface.enabled:
                 return True
@@ -1014,7 +1046,7 @@ class Node(SimComponent):
         """
         if self.operating_state.ON:
             self.is_resetting = True
-            self.sys_log.info(f"Resetting")
+            self.sys_log.info("Resetting")
             self.power_off()
 
     def connect_nic(self, network_interface: NetworkInterface):
@@ -1097,7 +1129,7 @@ class Node(SimComponent):
                     self.software_manager.arp.add_arp_cache_entry(
                         ip_address=frame.ip.src_ip_address,
                         mac_address=frame.ethernet.src_mac_addr,
-                        network_interface=from_network_interface
+                        network_interface=from_network_interface,
                     )
         else:
             return

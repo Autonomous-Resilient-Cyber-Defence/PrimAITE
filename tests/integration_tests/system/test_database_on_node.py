@@ -16,21 +16,11 @@ from primaite.simulator.system.services.service import ServiceOperatingState
 @pytest.fixture(scope="function")
 def peer_to_peer() -> Tuple[Computer, Computer]:
     network = Network()
-    node_a = Computer(
-        hostname="node_a",
-        ip_address="192.168.0.10",
-        subnet_mask="255.255.255.0",
-        start_up_duration=0
-    )
+    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
     node_a.power_on()
     node_a.software_manager.get_open_ports()
 
-    node_b = Computer(
-        hostname="node_b",
-        ip_address="192.168.0.11",
-        subnet_mask="255.255.255.0",
-        start_up_duration=0
-    )
+    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 

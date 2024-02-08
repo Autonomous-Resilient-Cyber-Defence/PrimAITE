@@ -60,6 +60,12 @@ SessionManager.
   - **Custom Layer-3 Processing**: The `RouterNIC` class includes custom handling for network frames, bypassing standard Node NIC's Layer 3 broadcast/unicast checks. This allows for more efficient routing behavior in network scenarios where router-specific frame processing is required.
   - **Enhanced Frame Reception**: The `receive_frame` method in `RouterNIC` is tailored to handle frames based on Layer 2 (Ethernet) checks, focusing on MAC address-based routing and broadcast frame acceptance.
 - **Subnet-Wide Broadcasting for Services and Applications**: Implemented the ability for services and applications to conduct broadcasts across an entire IPv4 subnet within the network simulation framework.
+- Introduced the `NetworkInterface` abstract class to provide a common interface for all network interfaces. Subclasses are divided into two main categories: `WiredNetworkInterface` and `WirelessNetworkInterface`, each serving as an abstract base class (ABC) for more specific interface types. Under `WiredNetworkInterface`, the subclasses `NIC` and `SwitchPort` were added. For wireless interfaces, `WirelessNIC` and `WirelessAccessPoint` are the subclasses under `WirelessNetworkInterface`.
+- Added `Layer3Interface` as an abstract base class for networking functionalities at layer 3, including IP addressing and routing capabilities. This class is inherited by `NIC`, `WirelessNIC`, and `WirelessAccessPoint` to provide them with layer 3 capabilities, facilitating their role in both wired and wireless networking contexts with IP-based communication.
+- Created the `ARP` and `ICMP` service classes to handle Address Resolution Protocol operations and Internet Control Message Protocol messages, respectively, with `RouterARP` and `RouterICMP` for router-specific implementations.
+- Created `HostNode` as a subclass of `Node`, extending its functionality with host-specific services and applications. This class is designed to represent end-user devices like computers or servers that can initiate and respond to network communications.
+- Introduced a new `IPV4Address` type in the Pydantic model for enhanced validation and auto-conversion of IPv4 addresses from strings using an `ipv4_validator`.
+
 
 ### Changed
 - Integrated the RouteTable into the Routers frame processing.
@@ -67,12 +73,19 @@ SessionManager.
 - **NIC Functionality Update**: Updated the Network Interface Card (`NIC`) functionality to support Layer 3 (L3) broadcasts.
   - **Layer 3 Broadcast Handling**: Enhanced the existing `NIC` classes to correctly process and handle Layer 3 broadcasts. This update allows devices using standard NICs to effectively participate in network activities that involve L3 broadcasting.
   - **Improved Frame Reception Logic**: The `receive_frame` method of the `NIC` class has been updated to include additional checks and handling for L3 broadcasts, ensuring proper frame processing in a wider range of network scenarios.
+- Standardised the way network interfaces are accessed across all `Node` subclasses (`HostNode`, `Router`, `Switch`) by maintaining a comprehensive `network_interface` attribute. This attribute captures all network interfaces by their port number, streamlining the management and interaction with network interfaces across different types of nodes.
+- Refactored all tests to utilise new `Node` subclasses (`Computer`, `Server`, `Router`, `Switch`) instead of creating generic `Node` instances and manually adding network interfaces. This change aligns test setups more closely with the intended use cases and hierarchies within the network simulation framework.
+- Updated all tests to employ the `Network()` class for managing nodes and their connections, ensuring a consistent and structured approach to setting up network topologies in testing scenarios.
 
 
 ### Removed
 - Removed legacy simulation modules: `acl`, `common`, `environment`, `links`, `nodes`, `pol`
 - Removed legacy training modules
 - Removed tests for legacy code
+
+### Fixed
+- Addressed network transmission issues that previously allowed ARP requests to be incorrectly routed and repeated across different subnets. This fix ensures ARP requests are correctly managed and confined to their appropriate network segments.
+- Resolved problems in `Node` and its subclasses where the default gateway configuration was not properly utilized for communications across different subnets. This correction ensures that nodes effectively use their configured default gateways for outbound communications to other network segments, thereby enhancing the network's routing functionality and reliability.
 
 
 ## [2.0.0] - 2023-07-26

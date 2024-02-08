@@ -70,10 +70,6 @@ class NTPServer(Service):
         payload = payload.generate_reply(time)
         # send reply
         self.software_manager.session_manager.receive_payload_from_software_manager(
-            payload=payload,
-            src_port=self.port,
-            dst_port=self.port,
-            ip_protocol=self.protocol,
-            session_id=session_id
+            payload=payload, src_port=self.port, dst_port=self.port, ip_protocol=self.protocol, session_id=session_id
         )
         return True

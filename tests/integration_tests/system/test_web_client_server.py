@@ -37,7 +37,10 @@ def web_client_and_web_server(client_server) -> Tuple[WebBrowser, Computer, WebS
     server.software_manager.install(DNSServer)
     dns_server: DNSServer = server.software_manager.software.get("DNSServer")
     # register arcd.com to DNS
-    dns_server.dns_register(domain_name="arcd.com", domain_ip_address=server.network_interfaces[next(iter(server.network_interfaces))].ip_address)
+    dns_server.dns_register(
+        domain_name="arcd.com",
+        domain_ip_address=server.network_interfaces[next(iter(server.network_interfaces))].ip_address,
+    )
 
     return web_browser, computer, web_server_service, server
 

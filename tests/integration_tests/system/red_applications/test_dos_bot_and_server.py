@@ -5,8 +5,8 @@ import pytest
 
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient

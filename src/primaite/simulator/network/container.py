@@ -9,8 +9,8 @@ from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.hardware.base import Link, Node, WiredNetworkInterface
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.service import Service

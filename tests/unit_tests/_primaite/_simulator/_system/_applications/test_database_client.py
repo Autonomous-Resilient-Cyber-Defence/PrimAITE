@@ -16,21 +16,13 @@ from primaite.simulator.system.services.database.database_service import Databas
 def database_client_on_computer() -> Tuple[DatabaseClient, Computer]:
     network = Network()
 
-    db_server = Server(
-        hostname="db_server",
-        ip_address="192.168.0.1",
-        subnet_mask="255.255.255.0",
-        start_up_duration=0
-    )
+    db_server = Server(hostname="db_server", ip_address="192.168.0.1", subnet_mask="255.255.255.0", start_up_duration=0)
     db_server.power_on()
     db_server.software_manager.install(DatabaseService)
     db_server.software_manager.software["DatabaseService"].start()
 
     db_client = Computer(
-        hostname="db_client",
-        ip_address="192.168.0.2",
-        subnet_mask="255.255.255.0",
-        start_up_duration=0
+        hostname="db_client", ip_address="192.168.0.2", subnet_mask="255.255.255.0", start_up_duration=0
     )
     db_client.power_on()
     db_client.software_manager.install(DatabaseClient)
@@ -96,6 +88,7 @@ def test_disconnect(database_client_on_computer):
     database_client.disconnect()
 
     assert not database_client.connected
+
 
 def test_query_when_client_is_closed(database_client_on_computer):
     """Database client should return False when it is not running."""

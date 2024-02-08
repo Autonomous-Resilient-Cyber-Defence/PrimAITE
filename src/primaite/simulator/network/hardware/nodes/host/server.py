@@ -28,4 +28,3 @@ class Server(HostNode):
     * Applications:
         * Web Browser
     """
-

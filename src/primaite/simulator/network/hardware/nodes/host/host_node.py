@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from typing import Dict, Any
-from typing import Optional
+from ipaddress import IPv4Address
+from typing import Any, Dict, Optional
 
 from primaite import getLogger
-from primaite.simulator.network.hardware.base import IPWiredNetworkInterface, Link
-from primaite.simulator.network.hardware.base import Node
+from primaite.simulator.network.hardware.base import IPWiredNetworkInterface, Link, Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.system.applications.web_browser import WebBrowser
-from primaite.simulator.system.core.packet_capture import PacketCapture
 from primaite.simulator.system.services.arp.arp import ARP, ARPPacket
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
@@ -20,43 +18,45 @@ from primaite.utils.validators import IPV4Address
 _LOGGER = getLogger(__name__)
 
 
-# Lives here due to pydantic circular dependency issue :(
 class HostARP(ARP):
     """
     The Host ARP Service.
 
-    Extends the ARP service with functionalities specific to a host within the network. It provides mechanisms to
-    resolve and cache MAC addresses and NICs for given IP addresses, focusing on the host's perspective, including
-    handling the default gateway.
+    Extends the ARP service for host-specific functionalities within a network, focusing on resolving and caching
+    MAC addresses and network interfaces (NICs) based on IP addresses, especially concerning the default gateway.
+
+    This specialized ARP service for hosts facilitates efficient network communication by managing ARP entries
+    and handling ARP requests and replies with additional logic for default gateway processing.
     """
 
     def get_default_gateway_mac_address(self) -> Optional[str]:
         """
-        Retrieves the MAC address of the default gateway from the ARP cache.
+        Retrieves the MAC address of the default gateway as known from the ARP cache.
 
-        :return: The MAC address of the default gateway if it exists in the ARP cache, otherwise None.
+        :return: The MAC address of the default gateway if present in the ARP cache; otherwise, None.
         """
         if self.software_manager.node.default_gateway:
             return self.get_arp_cache_mac_address(self.software_manager.node.default_gateway)
 
     def get_default_gateway_network_interface(self) -> Optional[NIC]:
         """
-        Retrieves the NIC associated with the default gateway from the ARP cache.
+        Obtains the network interface card (NIC) associated with the default gateway from the ARP cache.
 
-        :return: The NIC associated with the default gateway if it exists in the ARP cache, otherwise None.
+        :return: The NIC associated with the default gateway if it exists in the ARP cache; otherwise, None.
         """
         if self.software_manager.node.default_gateway and self.software_manager.node.has_enabled_network_interface:
             return self.get_arp_cache_network_interface(self.software_manager.node.default_gateway)
 
     def _get_arp_cache_mac_address(
-            self, ip_address: IPV4Address, is_reattempt: bool = False, is_default_gateway_attempt: bool = False
+        self, ip_address: IPV4Address, is_reattempt: bool = False, is_default_gateway_attempt: bool = False
     ) -> Optional[str]:
         """
         Internal method to retrieve the MAC address associated with an IP address from the ARP cache.
 
         :param ip_address: The IP address whose MAC address is to be retrieved.
         :param is_reattempt: Indicates if this call is a reattempt after a failed initial attempt.
-        :param is_default_gateway_attempt: Indicates if this call is an attempt to get the default gateway's MAC address.
+        :param is_default_gateway_attempt: Indicates if this call is an attempt to get the default gateway's MAC
+            address.
         :return: The MAC address associated with the IP address if found, otherwise None.
         """
         arp_entry = self.arp.get(ip_address)
@@ -76,22 +76,23 @@ class HostARP(ARP):
                 if not is_default_gateway_attempt:
                     self.send_arp_request(self.software_manager.node.default_gateway)
                     return self._get_arp_cache_mac_address(
-                        ip_address=self.software_manager.node.default_gateway, is_reattempt=True,
-                        is_default_gateway_attempt=True
+                        ip_address=self.software_manager.node.default_gateway,
+                        is_reattempt=True,
+                        is_default_gateway_attempt=True,
                     )
         return None
 
-    def get_arp_cache_mac_address(self, ip_address: IPV4Address) -> Optional[str]:
+    def get_arp_cache_mac_address(self, ip_address: IPv4Address) -> Optional[str]:
         """
-         Retrieves the MAC address associated with an IP address from the ARP cache.
+        Retrieves the MAC address associated with a given IP address from the ARP cache.
 
-         :param ip_address: The IP address whose MAC address is to be retrieved.
-         :return: The MAC address associated with the IP address if found, otherwise None.
-         """
+        :param ip_address: The IP address for which the MAC address is sought.
+        :return: The MAC address if available in the ARP cache; otherwise, None.
+        """
         return self._get_arp_cache_mac_address(ip_address)
 
     def _get_arp_cache_network_interface(
-            self, ip_address: IPV4Address, is_reattempt: bool = False, is_default_gateway_attempt: bool = False
+        self, ip_address: IPV4Address, is_reattempt: bool = False, is_default_gateway_attempt: bool = False
     ) -> Optional[NIC]:
         """
         Internal method to retrieve the NIC associated with an IP address from the ARP cache.
@@ -118,17 +119,18 @@ class HostARP(ARP):
                     if not is_default_gateway_attempt:
                         self.send_arp_request(self.software_manager.node.default_gateway)
                         return self._get_arp_cache_network_interface(
-                            ip_address=self.software_manager.node.default_gateway, is_reattempt=True,
-                            is_default_gateway_attempt=True
+                            ip_address=self.software_manager.node.default_gateway,
+                            is_reattempt=True,
+                            is_default_gateway_attempt=True,
                         )
         return None
 
-    def get_arp_cache_network_interface(self, ip_address: IPV4Address) -> Optional[NIC]:
+    def get_arp_cache_network_interface(self, ip_address: IPv4Address) -> Optional[NIC]:
         """
-        Retrieves the NIC associated with an IP address from the ARP cache.
+        Retrieves the network interface card (NIC) associated with a given IP address from the ARP cache.
 
-        :param ip_address: The IP address whose NIC is to be retrieved.
-        :return: The NIC associated with the IP address if found, otherwise None.
+        :param ip_address: The IP address for which the associated NIC is sought.
+        :return: The NIC if available in the ARP cache; otherwise, None.
         """
         return self._get_arp_cache_network_interface(ip_address)
 
@@ -146,15 +148,17 @@ class HostARP(ARP):
         # Unmatched ARP Request
         if arp_packet.target_ip_address != from_network_interface.ip_address:
             self.sys_log.info(
-                f"Ignoring ARP request for {arp_packet.target_ip_address}. Current IP address is {from_network_interface.ip_address}"
+                f"Ignoring ARP request for {arp_packet.target_ip_address}. Current IP address is "
+                f"{from_network_interface.ip_address}"
             )
             return
 
         # Matched ARP request
         # TODO: try taking this out
         self.add_arp_cache_entry(
-            ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr,
-            network_interface=from_network_interface
+            ip_address=arp_packet.sender_ip_address,
+            mac_address=arp_packet.sender_mac_addr,
+            network_interface=from_network_interface,
         )
         arp_packet = arp_packet.generate_reply(from_network_interface.mac_address)
         self.send_arp_reply(arp_packet)
@@ -175,12 +179,25 @@ class NIC(IPWiredNetworkInterface):
       and disconnect from network links and to manage the enabled/disabled state of the interface.
     - Layer3Interface: Provides properties for Layer 3 network configuration, such as IP address and subnet mask.
     """
+
     _connected_link: Optional[Link] = None
     "The network link to which the network interface is connected."
     wake_on_lan: bool = False
     "Indicates if the NIC supports Wake-on-LAN functionality."
 
     def model_post_init(self, __context: Any) -> None:
+        """
+        Performs post-initialisation checks to ensure the model's IP configuration is valid.
+
+        This method is invoked after the initialisation of a network model object to validate its network settings,
+        particularly to ensure that the assigned IP address is not a network address. This validation is crucial for
+        maintaining the integrity of network simulations and avoiding configuration errors that could lead to
+        unrealistic or incorrect behavior.
+
+        :param __context: Contextual information or parameters passed to the method, used for further initializing or
+            validating the model post-creation.
+        :raises ValueError: If the IP address is the same as the network address, indicating an incorrect configuration.
+        """
         if self.ip_network.network_address == self.ip_address:
             raise ValueError(f"{self.ip_address}/{self.subnet_mask} must not be a network address")
 
@@ -255,21 +272,24 @@ class HostNode(Node):
     """
     Represents a host node in the network.
 
-    Extends the basic functionality of a Node with host-specific services and applications. A host node typically
-    represents an end-user device in the network, such as a Computer or a Server, and is capable of initiating and
-    responding to network communications.
+    An end-user device within the network, such as a computer or server, equipped with the capability to initiate and
+    respond to network communications.
 
-    Example:
+    A `HostNode` extends the base `Node` class by incorporating host-specific services and applications, thereby
+    simulating the functionalities typically expected from a networked end-user device.
+
+    **Example**::
+
         >>> pc_a = HostNode(
-            hostname="pc_a",
-            ip_address="192.168.1.10",
-            subnet_mask="255.255.255.0",
-            default_gateway="192.168.1.1"
-        )
+        ...     hostname="pc_a",
+        ...     ip_address="192.168.1.10",
+        ...     subnet_mask="255.255.255.0",
+        ...     default_gateway="192.168.1.1"
+        ... )
         >>> pc_a.power_on()
 
-    The host comes pre-installed with core functionalities and a suite of services and applications, making it ready
-    for various network operations and tasks. These include:
+    The host node comes pre-equipped with a range of core functionalities, services, and applications necessary
+    for engaging in various network operations and tasks.
 
     Core Functionality:
     -------------------
@@ -291,6 +311,7 @@ class HostNode(Node):
 
         * Web Browser: Provides web browsing capabilities.
     """
+
     network_interfaces: Dict[str, NIC] = {}
     "The Network Interfaces on the node."
     network_interface: Dict[int, NIC] = {}
@@ -301,7 +322,12 @@ class HostNode(Node):
         self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))
 
     def _install_system_software(self):
-        """Install System Software - software that is usually provided with the OS."""
+        """
+        Installs the system software and network services typically found on an operating system.
+
+        This method equips the host with essential network services and applications, preparing it for various
+        network-related tasks and operations.
+        """
         # ARP Service
         self.software_manager.install(HostARP)
 
@@ -323,6 +349,12 @@ class HostNode(Node):
         super()._install_system_software()
 
     def default_gateway_hello(self):
+        """
+        Sends a hello message to the default gateway to establish connectivity and resolve the gateway's MAC address.
+
+        This method is invoked to ensure the host node can communicate with its default gateway, primarily to confirm
+        network connectivity and populate the ARP cache with the gateway's MAC address.
+        """
         if self.operating_state == NodeOperatingState.ON and self.default_gateway:
             self.software_manager.arp.get_default_gateway_mac_address()
 

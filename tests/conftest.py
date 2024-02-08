@@ -5,10 +5,10 @@ from typing import Any, Dict, Tuple, Union
 import pytest
 import yaml
 
-from primaite import PRIMAITE_PATHS
-from primaite import getLogger
+from primaite import getLogger, PRIMAITE_PATHS
 from primaite.session.session import PrimaiteSession
 from primaite.simulator.file_system.file_system import FileSystem
+
 # from primaite.environment.primaite_env import Primaite
 # from primaite.primaite_session import PrimaiteSession
 from primaite.simulator.network.container import Network
@@ -212,31 +212,20 @@ def example_network() -> Network:
     network = Network()
 
     # Router 1
-    router_1 = Router(
-        hostname="router_1",
-        start_up_duration=0
-    )
+    router_1 = Router(hostname="router_1", start_up_duration=0)
     router_1.power_on()
     router_1.configure_port(port=1, ip_address="192.168.1.1", subnet_mask="255.255.255.0")
     router_1.configure_port(port=2, ip_address="192.168.10.1", subnet_mask="255.255.255.0")
 
     # Switch 1
-    switch_1 = Switch(
-        hostname="switch_1",
-        num_ports=8,
-        start_up_duration=0
-    )
+    switch_1 = Switch(hostname="switch_1", num_ports=8, start_up_duration=0)
     switch_1.power_on()
 
     network.connect(endpoint_a=router_1.network_interface[1], endpoint_b=switch_1.network_interface[8])
     router_1.enable_port(1)
 
     # Switch 2
-    switch_2 = Switch(
-        hostname="switch_2",
-        num_ports=8,
-        start_up_duration=0
-    )
+    switch_2 = Switch(hostname="switch_2", num_ports=8, start_up_duration=0)
     switch_2.power_on()
     network.connect(endpoint_a=router_1.network_interface[2], endpoint_b=switch_2.network_interface[8])
     router_1.enable_port(2)
@@ -247,7 +236,7 @@ def example_network() -> Network:
         ip_address="192.168.10.21",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
-        start_up_duration=0
+        start_up_duration=0,
     )
     client_1.power_on()
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
@@ -258,7 +247,7 @@ def example_network() -> Network:
         ip_address="192.168.10.22",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
-        start_up_duration=0
+        start_up_duration=0,
     )
     client_2.power_on()
     network.connect(endpoint_b=client_2.network_interface[1], endpoint_a=switch_2.network_interface[2])
@@ -269,7 +258,7 @@ def example_network() -> Network:
         ip_address="192.168.1.10",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        start_up_duration=0
+        start_up_duration=0,
     )
     server_1.power_on()
     network.connect(endpoint_b=server_1.network_interface[1], endpoint_a=switch_1.network_interface[1])
@@ -280,7 +269,7 @@ def example_network() -> Network:
         ip_address="192.168.1.14",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        start_up_duration=0
+        start_up_duration=0,
     )
     server_2.power_on()
     network.connect(endpoint_b=server_2.network_interface[1], endpoint_a=switch_1.network_interface[2])
@@ -289,6 +278,5 @@ def example_network() -> Network:
     router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
 
     assert all(link.is_up for link in network.links.values())
-
 
     return network

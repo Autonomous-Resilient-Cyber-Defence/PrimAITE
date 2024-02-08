@@ -3,25 +3,22 @@ from __future__ import annotations
 import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
-from typing import Dict, Any
-from typing import List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import ValidationError
 
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.hardware.base import IPWiredNetworkInterface
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
 from primaite.simulator.network.protocols.arp import ARPPacket
-from primaite.simulator.network.protocols.icmp import ICMPType, ICMPPacket
+from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.arp.arp import ARP
 from primaite.simulator.system.services.icmp.icmp import ICMP
-from primaite.utils.validators import IPV4Address
 
 
 class ACLAction(Enum):
@@ -205,14 +202,14 @@ class AccessControlList(SimComponent):
         return self._acl
 
     def add_rule(
-            self,
-            action: ACLAction,
-            protocol: Optional[IPProtocol] = None,
-            src_ip_address: Optional[Union[str, IPv4Address]] = None,
-            src_port: Optional[Port] = None,
-            dst_ip_address: Optional[Union[str, IPv4Address]] = None,
-            dst_port: Optional[Port] = None,
-            position: int = 0,
+        self,
+        action: ACLAction,
+        protocol: Optional[IPProtocol] = None,
+        src_ip_address: Optional[Union[str, IPv4Address]] = None,
+        src_port: Optional[Port] = None,
+        dst_ip_address: Optional[Union[str, IPv4Address]] = None,
+        dst_port: Optional[Port] = None,
+        position: int = 0,
     ) -> None:
         """
         Add a new ACL rule.
@@ -259,12 +256,12 @@ class AccessControlList(SimComponent):
             raise ValueError(f"Cannot remove ACL rule, position {position} is out of bounds.")
 
     def is_permitted(
-            self,
-            protocol: IPProtocol,
-            src_ip_address: Union[str, IPv4Address],
-            src_port: Optional[Port],
-            dst_ip_address: Union[str, IPv4Address],
-            dst_port: Optional[Port],
+        self,
+        protocol: IPProtocol,
+        src_ip_address: Union[str, IPv4Address],
+        src_port: Optional[Port],
+        dst_ip_address: Union[str, IPv4Address],
+        dst_port: Optional[Port],
     ) -> Tuple[bool, Optional[Union[str, ACLRule]]]:
         """
         Check if a packet with the given properties is permitted through the ACL.
@@ -286,23 +283,23 @@ class AccessControlList(SimComponent):
                 continue
 
             if (
-                    (rule.src_ip_address == src_ip_address or rule.src_ip_address is None)
-                    and (rule.dst_ip_address == dst_ip_address or rule.dst_ip_address is None)
-                    and (rule.protocol == protocol or rule.protocol is None)
-                    and (rule.src_port == src_port or rule.src_port is None)
-                    and (rule.dst_port == dst_port or rule.dst_port is None)
+                (rule.src_ip_address == src_ip_address or rule.src_ip_address is None)
+                and (rule.dst_ip_address == dst_ip_address or rule.dst_ip_address is None)
+                and (rule.protocol == protocol or rule.protocol is None)
+                and (rule.src_port == src_port or rule.src_port is None)
+                and (rule.dst_port == dst_port or rule.dst_port is None)
             ):
                 return rule.action == ACLAction.PERMIT, rule
 
         return self.implicit_action == ACLAction.PERMIT, f"Implicit {self.implicit_action.name}"
 
     def get_relevant_rules(
-            self,
-            protocol: IPProtocol,
-            src_ip_address: Union[str, IPv4Address],
-            src_port: Port,
-            dst_ip_address: Union[str, IPv4Address],
-            dst_port: Port,
+        self,
+        protocol: IPProtocol,
+        src_ip_address: Union[str, IPv4Address],
+        src_port: Port,
+        dst_ip_address: Union[str, IPv4Address],
+        dst_port: Port,
     ) -> List[ACLRule]:
         """
         Get the list of relevant rules for a packet with given properties.
@@ -324,11 +321,11 @@ class AccessControlList(SimComponent):
                 continue
 
             if (
-                    (rule.src_ip_address == src_ip_address or rule.src_ip_address is None)
-                    or (rule.dst_ip_address == dst_ip_address or rule.dst_ip_address is None)
-                    or (rule.protocol == protocol or rule.protocol is None)
-                    or (rule.src_port == src_port or rule.src_port is None)
-                    or (rule.dst_port == dst_port or rule.dst_port is None)
+                (rule.src_ip_address == src_ip_address or rule.src_ip_address is None)
+                or (rule.dst_ip_address == dst_ip_address or rule.dst_ip_address is None)
+                or (rule.protocol == protocol or rule.protocol is None)
+                or (rule.src_port == src_port or rule.src_port is None)
+                or (rule.dst_port == dst_port or rule.dst_port is None)
             ):
                 relevant_rules.append(rule)
 
@@ -445,11 +442,11 @@ class RouteTable(SimComponent):
         pass
 
     def add_route(
-            self,
-            address: Union[IPv4Address, str],
-            subnet_mask: Union[IPv4Address, str],
-            next_hop_ip_address: Union[IPv4Address, str],
-            metric: float = 0.0,
+        self,
+        address: Union[IPv4Address, str],
+        subnet_mask: Union[IPv4Address, str],
+        next_hop_ip_address: Union[IPv4Address, str],
+        metric: float = 0.0,
     ):
         """
         Add a route to the routing table.
@@ -539,16 +536,34 @@ class RouteTable(SimComponent):
 
 class RouterARP(ARP):
     """
-    Inherits from ARPCache and adds router-specific ARP packet processing.
+    Extends ARP functionality with router-specific ARP packet processing capabilities.
 
-    :ivar SysLog sys_log: A system log for logging messages.
-    :ivar Router router: The router to which this ARP cache belongs.
+    This class is designed to manage ARP requests and replies within a router, handling both the resolution of MAC
+    addresses for IP addresses within the router's networks and the forwarding of ARP requests to other networks
+    based on routing information.
     """
+
     router: Optional[Router] = None
 
     def _get_arp_cache_mac_address(
-            self, ip_address: IPV4Address, is_reattempt: bool = False, is_default_route_attempt: bool = False
+        self, ip_address: IPv4Address, is_reattempt: bool = False, is_default_route_attempt: bool = False
     ) -> Optional[str]:
+        """
+        Attempts to retrieve the MAC address associated with the given IP address from the ARP cache.
+
+        If the address is not in the cache, an ARP request may be sent, and the method may reattempt the lookup.
+
+        :param ip_address: The IP address for which to find the corresponding MAC address.
+        :type ip_address: IPv4Address
+        :param is_reattempt: Indicates whether this call is a reattempt after a failed initial attempt to find the MAC
+            address.
+        :type is_reattempt: bool
+        :param is_default_route_attempt: Indicates whether the attempt is being made to resolve the MAC address for the
+            default route.
+        :type is_default_route_attempt: bool
+        :return: The MAC address associated with the given IP address, if found; otherwise, None.
+        :rtype: Optional[str]
+        """
         arp_entry = self.arp.get(ip_address)
 
         if arp_entry:
@@ -558,9 +573,7 @@ class RouterARP(ARP):
             if self.router.ip_is_in_router_interface_subnet(ip_address):
                 self.send_arp_request(ip_address)
                 return self._get_arp_cache_mac_address(
-                    ip_address=ip_address,
-                    is_reattempt=True,
-                    is_default_route_attempt=is_default_route_attempt
+                    ip_address=ip_address, is_reattempt=True, is_default_route_attempt=is_default_route_attempt
                 )
 
             route = self.router.route_table.find_best_route(ip_address)
@@ -569,7 +582,7 @@ class RouterARP(ARP):
                 return self._get_arp_cache_mac_address(
                     ip_address=route.next_hop_ip_address,
                     is_reattempt=True,
-                    is_default_route_attempt=is_default_route_attempt
+                    is_default_route_attempt=is_default_route_attempt,
                 )
         else:
             if self.router.route_table.default_route:
@@ -578,16 +591,40 @@ class RouterARP(ARP):
                     return self._get_arp_cache_mac_address(
                         ip_address=self.router.route_table.default_route.next_hop_ip_address,
                         is_reattempt=True,
-                        is_default_route_attempt=True
+                        is_default_route_attempt=True,
                     )
         return None
 
     def get_arp_cache_mac_address(self, ip_address: IPv4Address) -> Optional[str]:
+        """
+        Public interface to retrieve the MAC address associated with the given IP address from the ARP cache.
+
+        :param ip_address: The IP address for which to find the corresponding MAC address.
+        :type ip_address: IPv4Address
+        :return: The MAC address associated with the given IP address, if found; otherwise, None.
+        :rtype: Optional[str]
+        """
         return self._get_arp_cache_mac_address(ip_address)
 
     def _get_arp_cache_network_interface(
-            self, ip_address: IPV4Address, is_reattempt: bool = False, is_default_route_attempt: bool = False
+        self, ip_address: IPv4Address, is_reattempt: bool = False, is_default_route_attempt: bool = False
     ) -> Optional[RouterInterface]:
+        """
+        Attempts to retrieve the router interface associated with the given IP address.
+
+        If the address is not directly associated with a router interface, it may send an ARP request based on
+        routing information.
+
+        :param ip_address: The IP address for which to find the corresponding router interface.
+        :type ip_address: IPv4Address
+        :param is_reattempt: Indicates whether this call is a reattempt after a failed initial attempt.
+        :type is_reattempt: bool
+        :param is_default_route_attempt: Indicates whether the attempt is being made for the default route's next-hop
+            IP address.
+        :type is_default_route_attempt: bool
+        :return: The router interface associated with the given IP address, if applicable; otherwise, None.
+        :rtype: Optional[RouterInterface]
+        """
         arp_entry = self.arp.get(ip_address)
         if arp_entry:
             return self.software_manager.node.network_interfaces[arp_entry.network_interface_uuid]
@@ -603,7 +640,7 @@ class RouterARP(ARP):
                 return self._get_arp_cache_network_interface(
                     ip_address=route.next_hop_ip_address,
                     is_reattempt=True,
-                    is_default_route_attempt=is_default_route_attempt
+                    is_default_route_attempt=is_default_route_attempt,
                 )
         else:
             if self.router.route_table.default_route:
@@ -612,17 +649,32 @@ class RouterARP(ARP):
                     return self._get_arp_cache_network_interface(
                         ip_address=self.router.route_table.default_route.next_hop_ip_address,
                         is_reattempt=True,
-                        is_default_route_attempt=True
+                        is_default_route_attempt=True,
                     )
         return None
 
-
-
     def get_arp_cache_network_interface(self, ip_address: IPv4Address) -> Optional[RouterInterface]:
+        """
+        Public interface to retrieve the router interface associated with the given IP address.
 
-      return self._get_arp_cache_network_interface(ip_address)
+        :param ip_address: The IP address for which to find the corresponding router interface.
+        :type ip_address: IPv4Address
+        :return: The router interface associated with the given IP address, if found; otherwise, None.
+        :rtype: Optional[RouterInterface]
+        """
+        return self._get_arp_cache_network_interface(ip_address)
 
     def _process_arp_request(self, arp_packet: ARPPacket, from_network_interface: RouterInterface):
+        """
+        Processes an ARP request packet received on a router interface.
+
+        If the target IP address matches the interface's IP address, generates and sends an ARP reply.
+
+        :param arp_packet: The received ARP request packet.
+        :type arp_packet: ARPPacket
+        :param from_network_interface: The router interface on which the ARP request was received.
+        :type from_network_interface: RouterInterface
+        """
         super()._process_arp_request(arp_packet, from_network_interface)
 
         # If the target IP matches one of the router's NICs
@@ -632,6 +684,14 @@ class RouterARP(ARP):
             return
 
     def _process_arp_reply(self, arp_packet: ARPPacket, from_network_interface: RouterInterface):
+        """
+        Processes an ARP reply packet received on a router interface. Updates the ARP cache with the new information.
+
+        :param arp_packet: The received ARP reply packet.
+        :type arp_packet: ARPPacket
+        :param from_network_interface: The router interface on which the ARP reply was received.
+        :type from_network_interface: RouterInterface
+        """
         if arp_packet.target_ip_address == from_network_interface.ip_address:
             super()._process_arp_reply(arp_packet, from_network_interface)
 
@@ -650,7 +710,7 @@ class RouterICMP(ICMP):
 
     router: Optional[Router] = None
 
-    def _process_icmp_echo_request(self, frame: Frame, from_network_interface):
+    def _process_icmp_echo_request(self, frame: Frame, from_network_interface: RouterInterface):
         """
         Processes an ICMP echo request received by the service.
 
@@ -664,7 +724,8 @@ class RouterICMP(ICMP):
 
         if not network_interface:
             self.sys_log.error(
-                "Cannot send ICMP echo reply as there is no outbound Network Interface to use. Try configuring the default gateway."
+                "Cannot send ICMP echo reply as there is no outbound Network Interface to use. Try configuring the "
+                "default gateway."
             )
             return
 
@@ -682,7 +743,7 @@ class RouterICMP(ICMP):
             dst_ip_address=frame.ip.src_ip_address,
             dst_port=self.port,
             ip_protocol=self.protocol,
-            icmp_packet=icmp_packet
+            icmp_packet=icmp_packet,
         )
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
@@ -815,11 +876,19 @@ class RouterInterface(IPWiredNetworkInterface):
 
 class Router(NetworkNode):
     """
-    A class to represent a network router node.
+    Represents a network router, managing routing and forwarding of IP packets across network interfaces.
 
-    :ivar str hostname: The name of the router node.
-    :ivar int num_ports: The number of ports in the router.
-    :ivar dict kwargs: Optional keyword arguments for SysLog, ACL, RouteTable, RouterARP, RouterICMP.
+    A router operates at the network layer and is responsible for receiving, processing, and forwarding data packets
+    between computer networks. It examines the destination IP address of incoming packets and determines the best way
+    to route them towards their destination.
+
+    The router integrates various network services and protocols to facilitate IP routing, including ARP (Address
+    Resolution Protocol) and ICMP (Internet Control Message Protocol) for handling network diagnostics and errors.
+
+    :ivar str hostname: The name of the router, used for identification and logging.
+    :ivar int num_ports: The number of physical or logical ports on the router.
+    :ivar dict kwargs: Optional keyword arguments for initializing components like SysLog, ACL (Access Control List),
+        RouteTable, RouterARP, and RouterICMP services.
     """
 
     num_ports: int
@@ -848,7 +917,13 @@ class Router(NetworkNode):
         self.set_original_state()
 
     def _install_system_software(self):
-        """Install System Software - software that is usually provided with the OS."""
+        """
+        Installs essential system software and network services on the router.
+
+        This includes initializing and setting up RouterICMP for handling ICMP packets and RouterARP for address
+        resolution within the network. These services are crucial for the router's operation, enabling it to manage
+        network traffic efficiently.
+        """
         self.software_manager.install(RouterICMP)
         icmp: RouterICMP = self.software_manager.icmp  # noqa
         icmp.router = self
@@ -857,11 +932,22 @@ class Router(NetworkNode):
         arp.router = self
 
     def _set_default_acl(self):
+        """
+        Sets default access control rules for the router.
+
+        Initializes the router's ACL (Access Control List) with default rules, permitting essential protocols like ARP
+        and ICMP, which are necessary for basic network operations and diagnostics.
+        """
         self.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
         self.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
 
     def set_original_state(self):
-        """Sets the original state."""
+        """
+        Sets or resets the router to its original configuration state.
+
+        This method is called to initialize the router's state or to revert it to a known good configuration during
+        network simulations or after configuration changes.
+        """
         self.acl.set_original_state()
         self.route_table.set_original_state()
         super().set_original_state()
@@ -869,7 +955,14 @@ class Router(NetworkNode):
         self._original_state.update(self.model_dump(include=vals_to_include))
 
     def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
+        """
+        Resets the router's components for a new network simulation episode.
+
+        Clears ARP cache, resets ACL and route table to their original states, and re-enables all network interfaces.
+        This ensures that the router starts from a clean state for each simulation episode.
+
+        :param episode: The episode number for which the router is being reset.
+        """
         self.software_manager.arp.clear()
         self.acl.reset_component_for_episode(episode)
         self.route_table.reset_component_for_episode(episode)
@@ -884,7 +977,14 @@ class Router(NetworkNode):
         rm.add_request("acl", RequestType(func=self.acl._request_manager))
         return rm
 
-    def ip_is_router_interface(self, ip_address: IPV4Address, enabled_only: bool = False) -> bool:
+    def ip_is_router_interface(self, ip_address: IPv4Address, enabled_only: bool = False) -> bool:
+        """
+        Checks if a given IP address belongs to any of the router's interfaces.
+
+        :param ip_address: The IP address to check.
+        :param enabled_only: If True, only considers enabled network interfaces.
+        :return: True if the IP address is assigned to one of the router's interfaces; False otherwise.
+        """
         for router_interface in self.network_interface.values():
             if router_interface.ip_address == ip_address:
                 if enabled_only:
@@ -893,7 +993,14 @@ class Router(NetworkNode):
                     return True
         return False
 
-    def ip_is_in_router_interface_subnet(self, ip_address: IPV4Address, enabled_only: bool = False) -> bool:
+    def ip_is_in_router_interface_subnet(self, ip_address: IPv4Address, enabled_only: bool = False) -> bool:
+        """
+        Determines if a given IP address falls within the subnet of any router interface.
+
+        :param ip_address: The IP address to check.
+        :param enabled_only: If True, only considers enabled network interfaces.
+        :return: True if the IP address is within the subnet of any router's interface; False otherwise.
+        """
         for router_interface in self.network_interface.values():
             if ip_address in router_interface.ip_network:
                 if enabled_only:
@@ -904,10 +1011,10 @@ class Router(NetworkNode):
 
     def _get_port_of_nic(self, target_nic: RouterInterface) -> Optional[int]:
         """
-        Retrieve the port number for a given NIC.
+        Retrieves the port number associated with a given network interface controller (NIC).
 
-        :param target_nic: Target network interface.
-        :return: The port number if NIC is found, otherwise None.
+        :param target_nic: The NIC whose port number is being queried.
+        :return: The port number if the NIC is found; otherwise, None.
         """
         for port, network_interface in self.network_interface.items():
             if network_interface == target_nic:
@@ -926,12 +1033,14 @@ class Router(NetworkNode):
 
     def receive_frame(self, frame: Frame, from_network_interface: RouterInterface):
         """
-        Receive a frame from a RouterInterface and processes it based on its protocol.
+        Processes an incoming frame received on one of the router's interfaces.
 
-        :param frame: The incoming frame.
-        :param from_network_interface: The network interface where the frame is coming from.
+        Examines the frame's destination and protocol, applies ACL rules, and either forwards or drops the frame based
+        on routing decisions and ACL permissions.
+
+        :param frame: The incoming frame to be processed.
+        :param from_network_interface: The router interface on which the frame was received.
         """
-
         if self.operating_state != NodeOperatingState.ON:
             return
 
@@ -965,12 +1074,13 @@ class Router(NetworkNode):
             self.software_manager.arp.add_arp_cache_entry(
                 ip_address=frame.ip.src_ip_address,
                 mac_address=frame.ethernet.src_mac_addr,
-                network_interface=from_network_interface
+                network_interface=from_network_interface,
             )
 
         send_to_session_manager = False
-        if ((frame.icmp and self.ip_is_router_interface(dst_ip_address))
-                or (dst_port in self.software_manager.get_open_ports())):
+        if (frame.icmp and self.ip_is_router_interface(dst_ip_address)) or (
+            dst_port in self.software_manager.get_open_ports()
+        ):
             send_to_session_manager = True
 
         if send_to_session_manager:
@@ -981,17 +1091,20 @@ class Router(NetworkNode):
 
     def process_frame(self, frame: Frame, from_network_interface: RouterInterface) -> None:
         """
-        Process a Frame.
+        Routes or forwards a frame based on the router's routing table and interface configurations.
 
-        :param frame: The frame to be routed.
-        :param from_network_interface: The source network interface.
+        This method is called if a frame is not directly addressed to the router or does not match any open service
+        ports. It determines the next hop for the frame and forwards it accordingly.
+
+        :param frame: The frame to be routed or forwarded.
+        :param from_network_interface: The network interface from which the frame originated.
         """
         # check if frame is addressed to this Router but has failed to be received by a service of application at the
         # receive_frame stage
         if frame.ip:
             for network_interface in self.network_interfaces.values():
                 if network_interface.ip_address == frame.ip.dst_ip_address:
-                    self.sys_log.info(f"Dropping frame destined for this router on a port that isn't open.")
+                    self.sys_log.info("Dropping frame destined for this router on a port that isn't open.")
                     return
 
         network_interface: RouterInterface = self.software_manager.arp.get_arp_cache_network_interface(
@@ -1031,6 +1144,15 @@ class Router(NetworkNode):
             self.route_frame(frame, from_network_interface)
 
     def route_frame(self, frame: Frame, from_network_interface: RouterInterface) -> None:
+        """
+        Determines the best route for a frame and forwards it towards its destination.
+
+        Uses the router's routing table to find the best route for the frame's destination IP address and forwards the
+        frame through the appropriate interface.
+
+        :param frame: The frame to be routed.
+        :param from_network_interface: The source network interface.
+        """
         route = self.route_table.find_best_route(frame.ip.dst_ip_address)
         if route:
             network_interface = self.software_manager.arp.get_arp_cache_network_interface(route.next_hop_ip_address)
@@ -1059,11 +1181,11 @@ class Router(NetworkNode):
 
     def configure_port(self, port: int, ip_address: Union[IPv4Address, str], subnet_mask: Union[IPv4Address, str]):
         """
-        Configure the IP settings of a given port.
+        Configures the IP settings for a specified router port.
 
-        :param port: The port to configure.
-        :param ip_address: The IP address to set.
-        :param subnet_mask: The subnet mask to set.
+        :param port: The port number to configure.
+        :param ip_address: The IP address to assign to the port.
+        :param subnet_mask: The subnet mask for the port.
         """
         if not isinstance(ip_address, IPv4Address):
             ip_address = IPv4Address(ip_address)
@@ -1072,16 +1194,14 @@ class Router(NetworkNode):
         network_interface = self.network_interface[port]
         network_interface.ip_address = ip_address
         network_interface.subnet_mask = subnet_mask
-        self.sys_log.info(
-            f"Configured Network Interface {network_interface}"
-        )
+        self.sys_log.info(f"Configured Network Interface {network_interface}")
         self.set_original_state()
 
     def enable_port(self, port: int):
         """
-        Enable a given port on the router.
+        Enables a specified port on the router.
 
-        :param port: The port to enable.
+        :param port: The port number to enable.
         """
         network_interface = self.network_interface.get(port)
         if network_interface:
@@ -1089,9 +1209,9 @@ class Router(NetworkNode):
 
     def disable_port(self, port: int):
         """
-        Disable a given port on the router.
+        Disables a specified port on the router.
 
-        :param port: The port to disable.
+        :param port: The port number to disable.
         """
         network_interface = self.network_interface.get(port)
         if network_interface:

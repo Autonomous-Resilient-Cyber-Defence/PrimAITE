@@ -102,7 +102,7 @@ class SessionManager:
 
     @staticmethod
     def _get_session_key(
-            frame: Frame, inbound_frame: bool = True
+        frame: Frame, inbound_frame: bool = True
     ) -> Tuple[IPProtocol, IPv4Address, Optional[Port], Optional[Port]]:
         """
         Extracts the session key from the given frame.
@@ -140,27 +140,76 @@ class SessionManager:
             dst_port = None
         return protocol, with_ip_address, src_port, dst_port
 
-    def resolve_outbound_network_interface(self, dst_ip_address: IPv4Address) -> Optional['NetworkInterface']:
+    def resolve_outbound_network_interface(self, dst_ip_address: IPv4Address) -> Optional["NetworkInterface"]:
+        """
+        Resolves the appropriate outbound network interface for a given destination IP address.
+
+        This method determines the most suitable network interface for sending a packet to the specified
+        destination IP address. It considers only enabled network interfaces and checks if the destination
+        IP address falls within the subnet of each interface. If no suitable local network interface is found,
+        the method defaults to using the network interface associated with the default gateway.
+
+        The search process prioritises local network interfaces based on the IP network to which they belong.
+        If the destination IP address does not match any local subnet, the method assumes that the destination
+        is outside the local network and hence, routes the packet through the default gateway's network interface.
+
+        :param dst_ip_address: The destination IP address for which the outbound interface is to be resolved.
+        :type dst_ip_address: IPv4Address
+        :return: The network interface through which the packet should be sent to reach the destination IP address,
+            or the default gateway's network interface if the destination is not within any local subnet.
+        :rtype: Optional["NetworkInterface"]
+        """
         for network_interface in self.node.network_interfaces.values():
             if dst_ip_address in network_interface.ip_network and network_interface.enabled:
                 return network_interface
         return self.software_manager.arp.get_default_gateway_network_interface()
 
     def resolve_outbound_transmission_details(
-            self,
-            dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
-            src_port: Optional[Port] = None,
-            dst_port: Optional[Port] = None,
-            protocol: Optional[IPProtocol] = None,
-            session_id: Optional[str] = None
+        self,
+        dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
+        src_port: Optional[Port] = None,
+        dst_port: Optional[Port] = None,
+        protocol: Optional[IPProtocol] = None,
+        session_id: Optional[str] = None,
     ) -> Tuple[
-        Optional['NetworkInterface'],
-        Optional[str], IPv4Address,
+        Optional["NetworkInterface"],
+        Optional[str],
+        IPv4Address,
         Optional[Port],
         Optional[Port],
         Optional[IPProtocol],
-        bool
+        bool,
     ]:
+        """
+        Resolves the necessary details for outbound transmission based on the provided parameters.
+
+        This method determines whether the payload should be broadcast or unicast based on the destination IP address
+        and resolves the outbound network interface and destination MAC address accordingly.
+
+        The method first checks if `session_id` is provided and uses the session details if available. For broadcast
+        transmissions, it finds a suitable network interface and uses a broadcast MAC address. For unicast
+        transmissions, it attempts to resolve the destination MAC address using ARP and finds the appropriate
+        outbound network interface. If the destination IP address is outside the local network and no specific MAC
+        address is resolved, it uses the default gateway for the transmission.
+
+        :param dst_ip_address: The destination IP address or network. If an IPv4Network is provided, the method
+            treats the transmission as a broadcast to that network. Optional.
+        :type dst_ip_address: Optional[Union[IPv4Address, IPv4Network]]
+        :param src_port: The source port number for the transmission. Optional.
+        :type src_port: Optional[Port]
+        :param dst_port: The destination port number for the transmission. Optional.
+        :type dst_port: Optional[Port]
+        :param protocol: The IP protocol to be used for the transmission. Optional.
+        :type protocol: Optional[IPProtocol]
+        :param session_id: The session ID associated with the transmission. If provided, the session details override
+            other parameters. Optional.
+        :type session_id: Optional[str]
+        :return: A tuple containing the resolved outbound network interface, destination MAC address, destination IP
+            address, source port, destination port, protocol, and a boolean indicating whether the transmission is a
+            broadcast.
+        :rtype: Tuple[Optional["NetworkInterface"], Optional[str], IPv4Address, Optional[Port], Optional[Port],
+            Optional[IPProtocol], bool]
+        """
         if dst_ip_address and not isinstance(dst_ip_address, (IPv4Address, IPv4Network)):
             dst_ip_address = IPv4Address(dst_ip_address)
         is_broadcast = False
@@ -207,14 +256,14 @@ class SessionManager:
         return outbound_network_interface, dst_mac_address, dst_ip_address, src_port, dst_port, protocol, is_broadcast
 
     def receive_payload_from_software_manager(
-            self,
-            payload: Any,
-            dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
-            src_port: Optional[Port] = None,
-            dst_port: Optional[Port] = None,
-            session_id: Optional[str] = None,
-            ip_protocol: IPProtocol = IPProtocol.TCP,
-            icmp_packet: Optional[ICMPPacket] = None
+        self,
+        payload: Any,
+        dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
+        src_port: Optional[Port] = None,
+        dst_port: Optional[Port] = None,
+        session_id: Optional[str] = None,
+        ip_protocol: IPProtocol = IPProtocol.TCP,
+        icmp_packet: Optional[ICMPPacket] = None,
     ) -> Union[Any, None]:
         """
         Receive a payload from the SoftwareManager and send it to the appropriate NIC for transmission.
@@ -239,15 +288,22 @@ class SessionManager:
             is_broadcast = payload.request
             ip_protocol = IPProtocol.UDP
         else:
-
             vals = self.resolve_outbound_transmission_details(
                 dst_ip_address=dst_ip_address,
                 src_port=src_port,
                 dst_port=dst_port,
                 protocol=ip_protocol,
-                session_id=session_id
+                session_id=session_id,
             )
-            outbound_network_interface, dst_mac_address, dst_ip_address, src_port, dst_port, protocol, is_broadcast = vals
+            (
+                outbound_network_interface,
+                dst_mac_address,
+                dst_ip_address,
+                src_port,
+                dst_port,
+                protocol,
+                is_broadcast,
+            ) = vals
             if protocol:
                 ip_protocol = protocol
 
@@ -257,7 +313,7 @@ class SessionManager:
 
         if not (src_port or dst_port):
             raise ValueError(
-                f"Failed to resolve src or dst port. Have you sent the port from the service or application?"
+                "Failed to resolve src or dst port. Have you sent the port from the service or application?"
             )
 
         tcp_header = None
@@ -283,7 +339,11 @@ class SessionManager:
         # Construct the frame for transmission
         frame = Frame(
             ethernet=EthernetHeader(src_mac_addr=outbound_network_interface.mac_address, dst_mac_addr=dst_mac_address),
-            ip=IPPacket(src_ip_address=outbound_network_interface.ip_address, dst_ip_address=dst_ip_address, protocol=ip_protocol),
+            ip=IPPacket(
+                src_ip_address=outbound_network_interface.ip_address,
+                dst_ip_address=dst_ip_address,
+                protocol=ip_protocol,
+            ),
             tcp=tcp_header,
             udp=udp_header,
             icmp=icmp_packet,
@@ -304,7 +364,7 @@ class SessionManager:
         # Send the frame through the NIC
         return outbound_network_interface.send_frame(frame)
 
-    def receive_frame(self, frame: Frame, from_network_interface: 'NetworkInterface'):
+    def receive_frame(self, frame: Frame, from_network_interface: "NetworkInterface"):
         """
         Receive a Frame.
 
@@ -334,7 +394,7 @@ class SessionManager:
             protocol=frame.ip.protocol,
             session_id=session.uuid,
             from_network_interface=from_network_interface,
-            frame=frame
+            frame=frame,
         )
 
     def show(self, markdown: bool = False):

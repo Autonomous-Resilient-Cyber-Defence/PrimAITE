@@ -20,6 +20,7 @@ class ARP(Service):
     Manages ARP for resolving network layer addresses into link layer addresses. It maintains an ARP cache,
     sends ARP requests and replies, and processes incoming ARP packets.
     """
+
     arp: Dict[IPV4Address, ARPEntry] = {}
 
     def __init__(self, **kwargs):
@@ -29,6 +30,14 @@ class ARP(Service):
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        :return: Current state of this object and child objects.
+        """
+        state = super().describe_state()
+        state.update({str(ip): arp_entry.mac_address for ip, arp_entry in self.arp.items()})
+
         return super().describe_state()
 
     def show(self, markdown: bool = False):
@@ -57,11 +66,7 @@ class ARP(Service):
         self.arp.clear()
 
     def add_arp_cache_entry(
-            self,
-            ip_address: IPV4Address,
-            mac_address: str,
-            network_interface: NetworkInterface,
-            override: bool = False
+        self, ip_address: IPV4Address, mac_address: str, network_interface: NetworkInterface, override: bool = False
     ):
         """
         Add an ARP entry to the cache.
@@ -139,7 +144,8 @@ class ARP(Service):
             )
         else:
             self.sys_log.error(
-                "Cannot send ARP request as there is no outbound Network Interface to use. Try configuring the default gateway."
+                "Cannot send ARP request as there is no outbound Network Interface to use. Try configuring the default "
+                "gateway."
             )
 
     def send_arp_reply(self, arp_reply: ARPPacket):
@@ -147,12 +153,10 @@ class ARP(Service):
         Sends an ARP reply in response to an ARP request.
 
         :param arp_reply: The ARP packet containing the reply.
-        :param from_network_interface: The NIC from which the ARP reply is sent.
         """
-
         outbound_network_interface = self.software_manager.session_manager.resolve_outbound_network_interface(
             arp_reply.target_ip_address
-            )
+        )
         if outbound_network_interface:
             self.sys_log.info(
                 f"Sending ARP reply from {arp_reply.sender_mac_addr}/{arp_reply.sender_ip_address} "
@@ -162,13 +166,13 @@ class ARP(Service):
                 payload=arp_reply,
                 dst_ip_address=arp_reply.target_ip_address,
                 dst_port=self.port,
-                ip_protocol=self.protocol
+                ip_protocol=self.protocol,
             )
         else:
             self.sys_log.error(
-                "Cannot send ARP reply as there is no outbound Network Interface to use. Try configuring the default gateway."
+                "Cannot send ARP reply as there is no outbound Network Interface to use. Try configuring the default "
+                "gateway."
             )
-
 
     @abstractmethod
     def _process_arp_request(self, arp_packet: ARPPacket, from_network_interface: NetworkInterface):
@@ -197,7 +201,7 @@ class ARP(Service):
         self.add_arp_cache_entry(
             ip_address=arp_packet.sender_ip_address,
             mac_address=arp_packet.sender_mac_addr,
-            network_interface=from_network_interface
+            network_interface=from_network_interface,
         )
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:

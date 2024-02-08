@@ -97,7 +97,6 @@ def test_disconnecting_nodes():
     net.connect(n1.network_interface[1], n2.network_interface[1])
     assert len(net.links) == 1
 
-
     link = list(net.links.values())[0]
     net.remove_link(link)
     assert link not in net

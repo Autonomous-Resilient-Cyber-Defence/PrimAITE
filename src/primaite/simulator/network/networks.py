@@ -1,11 +1,10 @@
 from ipaddress import IPv4Address
 
 from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
-from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -56,7 +55,7 @@ def client_server_routed() -> Network:
         ip_address="192.168.2.2",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.2.1",
-        start_up_duration=0
+        start_up_duration=0,
     )
     client_1.power_on()
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
@@ -67,7 +66,7 @@ def client_server_routed() -> Network:
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        start_up_duration=0
+        start_up_duration=0,
     )
     server_1.power_on()
     network.connect(endpoint_b=server_1.network_interface[1], endpoint_a=switch_1.network_interface[1])
@@ -143,7 +142,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
         dns_server=IPv4Address("192.168.1.10"),
-        start_up_duration=0
+        start_up_duration=0,
     )
     client_1.power_on()
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
@@ -163,7 +162,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
         dns_server=IPv4Address("192.168.1.10"),
-        start_up_duration=0
+        start_up_duration=0,
     )
     client_2.power_on()
     web_browser = client_2.software_manager.software.get("WebBrowser")
@@ -176,7 +175,7 @@ def arcd_uc2_network() -> Network:
         ip_address="192.168.1.10",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        start_up_duration=0
+        start_up_duration=0,
     )
     domain_controller.power_on()
     domain_controller.software_manager.install(DNSServer)
@@ -190,7 +189,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
-        start_up_duration=0
+        start_up_duration=0,
     )
     database_server.power_on()
     network.connect(endpoint_b=database_server.network_interface[1], endpoint_a=switch_1.network_interface[3])
@@ -264,7 +263,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
-        start_up_duration=0
+        start_up_duration=0,
     )
     web_server.power_on()
     web_server.software_manager.install(DatabaseClient)
@@ -288,7 +287,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
-        start_up_duration=0
+        start_up_duration=0,
     )
     backup_server.power_on()
     backup_server.software_manager.install(FTPServer)
@@ -301,7 +300,7 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
-        start_up_duration=0
+        start_up_duration=0,
     )
     security_suite.power_on()
     network.connect(endpoint_b=security_suite.network_interface[1], endpoint_a=switch_1.network_interface[7])

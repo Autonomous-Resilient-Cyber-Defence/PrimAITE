@@ -28,5 +28,5 @@ class Computer(HostNode):
     * Applications:
         * Web Browser
     """
-    pass
 
+    pass

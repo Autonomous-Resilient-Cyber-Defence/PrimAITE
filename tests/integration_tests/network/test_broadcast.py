@@ -37,12 +37,7 @@ class BroadcastService(Service):
 
     def broadcast(self, ip_network: IPv4Network):
         # Send a broadcast payload to an entire IP network
-        super().send(
-            payload="broadcast",
-            dest_ip_address=ip_network,
-            dest_port=Port.HTTP,
-            ip_protocol=self.protocol
-        )
+        super().send(payload="broadcast", dest_ip_address=ip_network, dest_port=Port.HTTP, ip_protocol=self.protocol)
 
 
 class BroadcastClient(Application):

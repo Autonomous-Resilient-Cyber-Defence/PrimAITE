@@ -1,8 +1,9 @@
 import secrets
 from ipaddress import IPv4Address
-from typing import Dict, Any, Union, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 
 from primaite import getLogger
+from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
@@ -19,6 +20,7 @@ class ICMP(Service):
     Enables the sending and receiving of ICMP messages such as echo requests and replies. This is typically used for
     network diagnostics, notably the ping command.
     """
+
     request_replies: Dict = {}
 
     def __init__(self, **kwargs):
@@ -28,7 +30,12 @@ class ICMP(Service):
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:
-        pass
+        """
+        Produce a dictionary describing the current state of this object.
+
+        :return: Current state of this object and child objects.
+        """
+        return super().describe_state()
 
     def clear(self):
         """
@@ -56,9 +63,7 @@ class ICMP(Service):
         self.sys_log.info(f"Pinging {target_ip_address}:", to_terminal=True)
         sequence, identifier = 0, None
         while sequence < pings:
-            sequence, identifier = self._send_icmp_echo_request(
-                target_ip_address, sequence, identifier, pings
-            )
+            sequence, identifier = self._send_icmp_echo_request(target_ip_address, sequence, identifier, pings)
         request_replies = self.software_manager.icmp.request_replies.get(identifier)
         passed = request_replies == pings
         if request_replies:
@@ -76,7 +81,7 @@ class ICMP(Service):
         return passed
 
     def _send_icmp_echo_request(
-            self, target_ip_address: IPv4Address, sequence: int = 0, identifier: Optional[int] = None, pings: int = 4
+        self, target_ip_address: IPv4Address, sequence: int = 0, identifier: Optional[int] = None, pings: int = 4
     ) -> Tuple[int, Union[int, None]]:
         """
         Sends an ICMP echo request to a specified target IP address.
@@ -91,7 +96,8 @@ class ICMP(Service):
 
         if not network_interface:
             self.sys_log.error(
-                "Cannot send ICMP echo request as there is no outbound Network Interface to use. Try configuring the default gateway."
+                "Cannot send ICMP echo request as there is no outbound Network Interface to use. Try configuring the "
+                "default gateway."
             )
             return pings, None
 
@@ -105,11 +111,11 @@ class ICMP(Service):
             dst_ip_address=target_ip_address,
             dst_port=self.port,
             ip_protocol=self.protocol,
-            icmp_packet=icmp_packet
+            icmp_packet=icmp_packet,
         )
         return sequence, icmp_packet.identifier
 
-    def _process_icmp_echo_request(self, frame: Frame, from_network_interface):
+    def _process_icmp_echo_request(self, frame: Frame, from_network_interface: NetworkInterface):
         """
         Processes an ICMP echo request received by the service.
 
@@ -121,11 +127,12 @@ class ICMP(Service):
 
         network_interface = self.software_manager.session_manager.resolve_outbound_network_interface(
             frame.ip.src_ip_address
-            )
+        )
 
         if not network_interface:
             self.sys_log.error(
-                "Cannot send ICMP echo reply as there is no outbound Network Interface to use. Try configuring the default gateway."
+                "Cannot send ICMP echo reply as there is no outbound Network Interface to use. Try configuring the "
+                "default gateway."
             )
             return
 
@@ -143,7 +150,7 @@ class ICMP(Service):
             dst_ip_address=frame.ip.src_ip_address,
             dst_port=self.port,
             ip_protocol=self.protocol,
-            icmp_packet=icmp_packet
+            icmp_packet=icmp_packet,
         )
 
     def _process_icmp_echo_reply(self, frame: Frame):
@@ -159,7 +166,7 @@ class ICMP(Service):
             f"bytes={len(frame.payload)}, "
             f"time={time_str}, "
             f"TTL={frame.ip.ttl}",
-            to_terminal=True
+            to_terminal=True,
         )
         if not self.request_replies.get(frame.icmp.identifier):
             self.request_replies[frame.icmp.identifier] = 0
