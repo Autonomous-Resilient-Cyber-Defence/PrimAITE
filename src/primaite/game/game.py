@@ -346,7 +346,7 @@ class PrimaiteGame:
             action_space = ActionManager.from_config(game, action_space_cfg)
 
             # CREATE REWARD FUNCTION
-            rew_function = RewardFunction.from_config(reward_function_cfg, game=game)
+            reward_function = RewardFunction.from_config(reward_function_cfg)
 
             # OTHER AGENT SETTINGS
             agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
@@ -358,7 +358,7 @@ class PrimaiteGame:
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,
-                    reward_function=rew_function,
+                    reward_function=reward_function,
                     agent_settings=agent_settings,
                 )
                 game.agents.append(new_agent)
@@ -367,7 +367,7 @@ class PrimaiteGame:
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,
-                    reward_function=rew_function,
+                    reward_function=reward_function,
                     agent_settings=agent_settings,
                 )
                 game.agents.append(new_agent)
@@ -377,7 +377,7 @@ class PrimaiteGame:
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,
-                    reward_function=rew_function,
+                    reward_function=reward_function,
                     agent_settings=agent_settings,
                 )
                 game.agents.append(new_agent)

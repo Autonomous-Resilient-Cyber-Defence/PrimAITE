@@ -193,19 +193,19 @@ class Folder(FileSystemItemABC):
 
             if self.restore_countdown == 0:
                 # repair all files
-                for file_id in self.files:
-                    self.restore_file(file_uuid=file_id)
+                for file_id, file in self.files.items():
+                    self.restore_file(file_name=file.name)
 
                 deleted_files = self.deleted_files.copy()
-                for file_id in deleted_files:
-                    self.restore_file(file_uuid=file_id)
+                for file_id, file in deleted_files.items():
+                    self.restore_file(file_name=file.name)
 
                 if self.deleted:
                     self.deleted = False
                 elif self.health_status in [FileSystemItemHealthStatus.CORRUPT, FileSystemItemHealthStatus.RESTORING]:
                     self.health_status = FileSystemItemHealthStatus.GOOD
 
-    def get_file(self, file_name: str) -> Optional[File]:
+    def get_file(self, file_name: str, include_deleted: Optional[bool] = False) -> Optional[File]:
         """
         Get a file by its name.
 
@@ -218,6 +218,10 @@ class Folder(FileSystemItemABC):
         for file in self.files.values():
             if file.name == file_name:
                 return file
+        if include_deleted:
+            for file in self.deleted_files.values():
+                if file.name == file_name:
+                    return file
         return None
 
     def get_file_by_id(self, file_uuid: str, include_deleted: Optional[bool] = False) -> File:
@@ -297,23 +301,23 @@ class Folder(FileSystemItemABC):
 
         self.files = {}
 
-    def restore_file(self, file_uuid: str):
+    def restore_file(self, file_name: str):
         """
         Restores a file.
 
-        :param file_uuid: The id of the file to restore
+        :param file_name: The name of the file to restore
         """
         # if the file was not deleted, run a repair
-        file = self.get_file_by_id(file_uuid=file_uuid, include_deleted=True)
+        file = self.get_file(file_name=file_name, include_deleted=True)
         if not file:
-            self.sys_log.error(f"Unable to restore file with uuid {file_uuid}. File does not exist.")
+            self.sys_log.error(f"Unable to restore file {file_name}. File does not exist.")
             return
 
         file.restore()
         self.files[file.uuid] = file
 
         if file.deleted:
-            self.deleted_files.pop(file_uuid)
+            self.deleted_files.pop(file.uuid)
 
     def quarantine(self):
         """Quarantines the File System Folder."""

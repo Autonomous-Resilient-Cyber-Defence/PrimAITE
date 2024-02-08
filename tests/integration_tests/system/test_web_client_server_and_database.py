@@ -3,6 +3,7 @@ from typing import Tuple
 
 import pytest
 
+from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.base import Link
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
@@ -17,7 +18,7 @@ from primaite.simulator.system.services.web_server.web_server import WebServer
 
 
 @pytest.fixture(scope="function")
-def web_client_web_server_database(example_network) -> Tuple[Computer, Server, Server]:
+def web_client_web_server_database(example_network) -> Tuple[Network, Computer, Server, Server]:
     # add rules to network router
     router_1: Router = example_network.get_node_by_hostname("router_1")
     router_1.acl.add_rule(
@@ -97,12 +98,52 @@ def web_client_web_server_database(example_network) -> Tuple[Computer, Server, S
     assert dns_client.check_domain_exists("arcd.com")
     assert db_client.connect()
 
-    return computer, web_server, db_server
+    return example_network, computer, web_server, db_server
 
 
 def test_web_client_requests_users(web_client_web_server_database):
-    computer, web_server, db_server = web_client_web_server_database
+    _, computer, _, _ = web_client_web_server_database
 
     web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
 
     assert web_browser.get_webpage()
+
+
+class TestWebBrowserHistory:
+    def test_populating_history(self, web_client_web_server_database):
+        network, computer, _, _ = web_client_web_server_database
+
+        web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+        assert web_browser.history == []
+        web_browser.get_webpage()
+        assert len(web_browser.history) == 1
+        web_browser.get_webpage()
+        assert len(web_browser.history) == 2
+        assert web_browser.history[-1].status == WebBrowser.BrowserHistoryItem._HistoryItemStatus.LOADED
+        assert web_browser.history[-1].response_code == 200
+
+        router = network.get_node_by_hostname("router_1")
+        router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+        assert not web_browser.get_webpage()
+        assert len(web_browser.history) == 3
+        # with current NIC behaviour, even if you block communication, you won't get SERVER_UNREACHABLE because
+        # application.send always returns true, even if communication fails. we should change what is returned from NICs
+        assert web_browser.history[-1].status == WebBrowser.BrowserHistoryItem._HistoryItemStatus.LOADED
+        assert web_browser.history[-1].response_code == 404
+
+    def test_history_in_state(self, web_client_web_server_database):
+        network, computer, _, _ = web_client_web_server_database
+        web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+
+        state = computer.describe_state()
+        assert "history" in state["applications"]["WebBrowser"]
+        assert len(state["applications"]["WebBrowser"]["history"]) == 0
+
+        web_browser.get_webpage()
+        router = network.get_node_by_hostname("router_1")
+        router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+        web_browser.get_webpage()
+
+        state = computer.describe_state()
+        assert state["applications"]["WebBrowser"]["history"][0]["outcome"] == 200
+        assert state["applications"]["WebBrowser"]["history"][1]["outcome"] == 404

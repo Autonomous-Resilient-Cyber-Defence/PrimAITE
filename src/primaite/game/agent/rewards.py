@@ -26,15 +26,12 @@ the structure:
 ```
 """
 from abc import abstractmethod
-from typing import Dict, List, Tuple, Type, TYPE_CHECKING
+from typing import Dict, List, Tuple, Type
 
 from primaite import getLogger
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 
 _LOGGER = getLogger(__name__)
-
-if TYPE_CHECKING:
-    from primaite.game.game import PrimaiteGame
 
 
 class AbstractReward:
@@ -47,13 +44,11 @@ class AbstractReward:
 
     @classmethod
     @abstractmethod
-    def from_config(cls, config: dict, game: "PrimaiteGame") -> "AbstractReward":
+    def from_config(cls, config: dict) -> "AbstractReward":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor
         :type config: dict
-        :param game: Reference to the PrimAITE Game object
-        :type game: PrimaiteGame
         :return: The reward component.
         :rtype: AbstractReward
         """
@@ -68,13 +63,13 @@ class DummyReward(AbstractReward):
         return 0.0
 
     @classmethod
-    def from_config(cls, config: dict, game: "PrimaiteGame") -> "DummyReward":
+    def from_config(cls, config: dict) -> "DummyReward":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor. Should be empty.
         :type config: dict
-        :param game: Reference to the PrimAITE Game object
-        :type game: PrimaiteGame
+        :return: The reward component.
+        :rtype: DummyReward
         """
         return cls()
 
@@ -126,13 +121,11 @@ class DatabaseFileIntegrity(AbstractReward):
             return 0
 
     @classmethod
-    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "DatabaseFileIntegrity":
+    def from_config(cls, config: Dict) -> "DatabaseFileIntegrity":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor
         :type config: Dict
-        :param game: Reference to the PrimAITE Game object
-        :type game: PrimaiteGame
         :return: The reward component.
         :rtype: DatabaseFileIntegrity
         """
@@ -179,13 +172,11 @@ class WebServer404Penalty(AbstractReward):
             return 0.0
 
     @classmethod
-    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "WebServer404Penalty":
+    def from_config(cls, config: Dict) -> "WebServer404Penalty":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor
         :type config: Dict
-        :param game: Reference to the PrimAITE Game object
-        :type game: PrimaiteGame
         :return: The reward component.
         :rtype: WebServer404Penalty
         """
@@ -202,6 +193,55 @@ class WebServer404Penalty(AbstractReward):
         return cls(node_hostname=node_hostname, service_name=service_name)
 
 
+class WebpageUnavailablePenalty(AbstractReward):
+    """Penalises the agent when the web browser fails to fetch a webpage."""
+
+    def __init__(self, node_hostname: str) -> None:
+        """
+        Initialise the reward component.
+
+        :param node_hostname: Hostname of the node which has the web browser.
+        :type node_hostname: str
+        """
+        self._node = node_hostname
+        self.location_in_state = ["network", "nodes", node_hostname, "applications", "WebBrowser"]
+
+    def calculate(self, state: Dict) -> float:
+        """
+        Calculate the reward based on current simulation state.
+
+        :param state: The current state of the simulation.
+        :type state: Dict
+        """
+        web_browser_state = access_from_nested_dict(state, self.location_in_state)
+        if web_browser_state is NOT_PRESENT_IN_STATE or "history" not in web_browser_state:
+            _LOGGER.info(
+                "Web browser reward could not be calculated because the web browser history on node",
+                f"{self._node} was not reported in the simulation state. Returning 0.0",
+            )
+            return 0.0  # 0 if the web browser cannot be found
+        if not web_browser_state["history"]:
+            return 0.0  # 0 if no requests have been attempted yet
+        outcome = web_browser_state["history"][-1]["outcome"]
+        if outcome == "PENDING":
+            return 0.0  # 0 if a request was attempted but not yet resolved
+        elif outcome == 200:
+            return 1.0  # 1 for successful request
+        else:  # includes failure codes and SERVER_UNREACHABLE
+            return -1.0  # -1 for failure
+
+    @classmethod
+    def from_config(cls, config: dict) -> AbstractReward:
+        """
+        Build the reward component object from config.
+
+        :param config: Configuration dictionary.
+        :type config: Dict
+        """
+        node_hostname = config.get("node_hostname")
+        return cls(node_hostname=node_hostname)
+
+
 class RewardFunction:
     """Manages the reward function for the agent."""
 
@@ -209,6 +249,7 @@ class RewardFunction:
         "DUMMY": DummyReward,
         "DATABASE_FILE_INTEGRITY": DatabaseFileIntegrity,
         "WEB_SERVER_404_PENALTY": WebServer404Penalty,
+        "WEBPAGE_UNAVAILABLE_PENALTY": WebpageUnavailablePenalty,
     }
 
     def __init__(self):
@@ -243,13 +284,11 @@ class RewardFunction:
         return self.current_reward
 
     @classmethod
-    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "RewardFunction":
+    def from_config(cls, config: Dict) -> "RewardFunction":
         """Create a reward function from a config dictionary.
 
         :param config: dict of options for the reward manager's constructor
         :type config: Dict
-        :param game: Reference to the PrimAITE Game object
-        :type game: PrimaiteGame
         :return: The reward manager.
         :rtype: RewardFunction
         """
@@ -259,6 +298,6 @@ class RewardFunction:
             rew_type = rew_component_cfg["type"]
             weight = rew_component_cfg.get("weight", 1.0)
             rew_class = cls.__rew_class_identifiers[rew_type]
-            rew_instance = rew_class.from_config(config=rew_component_cfg.get("options", {}), game=game)
+            rew_instance = rew_class.from_config(config=rew_component_cfg.get("options", {}))
             new.register_component(component=rew_instance, weight=weight)
         return new

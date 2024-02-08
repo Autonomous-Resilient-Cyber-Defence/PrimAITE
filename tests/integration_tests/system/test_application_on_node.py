@@ -15,6 +15,7 @@ def populated_node(application_class) -> Tuple[Application, Computer]:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         start_up_duration=0,
+        shut_down_duration=0,
     )
     computer.power_on()
     computer.software_manager.install(application_class)
@@ -33,15 +34,13 @@ def test_application_on_offline_node(application_class):
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         start_up_duration=0,
+        shut_down_duration=0,
     )
     computer.software_manager.install(application_class)
 
     app: Application = computer.software_manager.software.get("TestApplication")
 
     computer.power_off()
-
-    for i in range(computer.shut_down_duration + 1):
-        computer.apply_timestep(timestep=i)
 
     assert computer.operating_state is NodeOperatingState.OFF
     assert app.operating_state is ApplicationOperatingState.CLOSED
@@ -59,9 +58,6 @@ def test_server_turns_off_application(populated_node):
 
     computer.power_off()
 
-    for i in range(computer.shut_down_duration + 1):
-        computer.apply_timestep(timestep=i)
-
     assert computer.operating_state is NodeOperatingState.OFF
     assert app.operating_state is ApplicationOperatingState.CLOSED
 
@@ -74,9 +70,6 @@ def test_application_cannot_be_turned_on_when_computer_is_off(populated_node):
     assert app.operating_state is ApplicationOperatingState.RUNNING
 
     computer.power_off()
-
-    for i in range(computer.shut_down_duration + 1):
-        computer.apply_timestep(timestep=i)
 
     assert computer.operating_state is NodeOperatingState.OFF
     assert app.operating_state is ApplicationOperatingState.CLOSED
@@ -96,28 +89,20 @@ def test_computer_runs_applications(populated_node):
 
     computer.power_off()
 
-    for i in range(computer.shut_down_duration + 1):
-        computer.apply_timestep(timestep=i)
-
     assert computer.operating_state is NodeOperatingState.OFF
     assert app.operating_state is ApplicationOperatingState.CLOSED
 
     computer.power_on()
-
-    for i in range(computer.start_up_duration + 1):
-        computer.apply_timestep(timestep=i)
 
     assert computer.operating_state is NodeOperatingState.ON
     assert app.operating_state is ApplicationOperatingState.RUNNING
 
     computer.power_off()
-    for i in range(computer.start_up_duration + 1):
-        computer.apply_timestep(timestep=i)
+
     assert computer.operating_state is NodeOperatingState.OFF
     assert app.operating_state is ApplicationOperatingState.CLOSED
 
     computer.power_on()
-    for i in range(computer.start_up_duration + 1):
-        computer.apply_timestep(timestep=i)
+
     assert computer.operating_state is NodeOperatingState.ON
     assert app.operating_state is ApplicationOperatingState.RUNNING

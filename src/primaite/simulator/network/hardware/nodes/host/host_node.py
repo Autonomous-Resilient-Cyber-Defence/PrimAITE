@@ -153,13 +153,6 @@ class HostARP(ARP):
             )
             return
 
-        # Matched ARP request
-        # TODO: try taking this out
-        self.add_arp_cache_entry(
-            ip_address=arp_packet.sender_ip_address,
-            mac_address=arp_packet.sender_mac_addr,
-            network_interface=from_network_interface,
-        )
         arp_packet = arp_packet.generate_reply(from_network_interface.mac_address)
         self.send_arp_reply(arp_packet)
 
