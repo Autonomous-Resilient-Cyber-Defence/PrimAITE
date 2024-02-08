@@ -82,7 +82,7 @@ def test_folder_restore_request(populated_file_system):
     assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid) is not None
 
     # delete folder
-    fs.apply_request(request=["delete", "folder", folder.uuid])
+    fs.apply_request(request=["delete", "folder", folder.name])
     assert fs.get_folder(folder_name=folder.name) is None
     assert fs.get_folder_by_id(folder_uuid=folder.uuid, include_deleted=True).deleted is True
 
@@ -90,7 +90,7 @@ def test_folder_restore_request(populated_file_system):
     assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid, include_deleted=True).deleted is True
 
     # restore folder
-    fs.apply_request(request=["restore", "folder", folder.uuid])
+    fs.apply_request(request=["restore", "folder", folder.name])
     fs.apply_timestep(timestep=0)
     assert fs.get_folder(folder_name=folder.name) is not None
     assert (
@@ -121,7 +121,7 @@ def test_folder_restore_request(populated_file_system):
     assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.CORRUPT
 
     # restore folder
-    fs.apply_request(request=["restore", "folder", folder.uuid])
+    fs.apply_request(request=["restore", "folder", folder.name])
     fs.apply_timestep(timestep=0)
     assert fs.get_folder(folder_name=folder.name).health_status == FileSystemItemHealthStatus.RESTORING
     assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.CORRUPT
@@ -156,7 +156,7 @@ def test_deleted_folder_and_its_files_cannot_be_interacted_with(populated_file_s
     fs.apply_request(request=["file", file.name, "corrupt"])
     assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.CORRUPT
 
-    fs.apply_request(request=["delete", "folder", folder.uuid])
+    fs.apply_request(request=["delete", "folder", folder.name])
     assert fs.get_file(folder_name=folder.name, file_name=file.name) is None
 
     fs.apply_request(request=["file", file.name, "repair"])

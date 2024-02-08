@@ -61,18 +61,18 @@ def test_file_restore_request(populated_file_system):
     fs, folder, file = populated_file_system
     assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid) is not None
 
-    fs.apply_request(request=["delete", "file", folder.uuid, file.uuid])
+    fs.apply_request(request=["delete", "file", folder.name, file.name])
     assert fs.get_file(folder_name=folder.name, file_name=file.name) is None
     assert fs.get_file_by_id(folder_uuid=folder.uuid, file_uuid=file.uuid, include_deleted=True).deleted is True
 
-    fs.apply_request(request=["restore", "file", folder.uuid, file.uuid])
+    fs.apply_request(request=["restore", "file", folder.name, file.name])
     assert fs.get_file(folder_name=folder.name, file_name=file.name) is not None
     assert fs.get_file(folder_name=folder.name, file_name=file.name).deleted is False
 
     fs.apply_request(request=["file", file.name, "corrupt"])
     assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.CORRUPT
 
-    fs.apply_request(request=["restore", "file", folder.uuid, file.uuid])
+    fs.apply_request(request=["restore", "file", folder.name, file.name])
     assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.GOOD
 
 
@@ -95,7 +95,7 @@ def test_deleted_file_cannot_be_interacted_with(populated_file_system):
         == FileSystemItemHealthStatus.GOOD
     )
 
-    fs.apply_request(request=["delete", "file", folder.uuid, file.uuid])
+    fs.apply_request(request=["delete", "file", folder.name, file.name])
     assert fs.get_file(folder_name=folder.name, file_name=file.name) is None
 
     fs.apply_request(request=["file", file.name, "repair"])

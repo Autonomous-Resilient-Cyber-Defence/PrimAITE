@@ -1,6 +1,9 @@
+from enum import Enum
 from ipaddress import IPv4Address
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from urllib.parse import urlparse
+
+from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType
@@ -32,6 +35,9 @@ class WebBrowser(Application):
 
     latest_response: Optional[HttpResponsePacket] = None
     """Keeps track of the latest HTTP response."""
+
+    history: List["BrowserHistoryItem"] = []
+    """Keep a log of visited websites and information about the visit, such as response code."""
 
     def __init__(self, **kwargs):
         kwargs["name"] = "WebBrowser"
@@ -71,7 +77,7 @@ class WebBrowser(Application):
         :return: A dictionary capturing the current state of the WebBrowser and its child objects.
         """
         state = super().describe_state()
-        state["last_response_status_code"] = self.latest_response.status_code if self.latest_response else None
+        state["history"] = [hist_item.state() for hist_item in self.history]
         return state
 
     def reset_component_for_episode(self, episode: int):
@@ -119,7 +125,8 @@ class WebBrowser(Application):
         # create HTTPRequest payload
         payload = HttpRequestPacket(request_method=HttpRequestMethod.GET, request_url=url)
 
-        # send request
+        # send request - As part of the self.send call, a response will be received and stored in the
+        # self.latest_response variable
         if self.send(
             payload=payload,
             dest_ip_address=self.domain_name_ip_address,
@@ -129,9 +136,21 @@ class WebBrowser(Application):
                 f"{self.name}: Received HTTP {payload.request_method.name} "
                 f"Response {payload.request_url} - {self.latest_response.status_code.value}"
             )
+            self.history.append(
+                WebBrowser.BrowserHistoryItem(
+                    url=url,
+                    status=self.BrowserHistoryItem._HistoryItemStatus.LOADED,
+                    response_code=self.latest_response.status_code,
+                )
+            )
             return self.latest_response.status_code is HttpStatusCode.OK
         else:
             self.sys_log.error(f"Error sending Http Packet {str(payload)}")
+            self.history.append(
+                WebBrowser.BrowserHistoryItem(
+                    url=url, status=self.BrowserHistoryItem._HistoryItemStatus.SERVER_UNREACHABLE
+                )
+            )
             return False
 
     def send(
@@ -172,3 +191,31 @@ class WebBrowser(Application):
         self.sys_log.info(f"{self.name}: Received HTTP {payload.status_code.value}")
         self.latest_response = payload
         return True
+
+    class BrowserHistoryItem(BaseModel):
+        """Simple representation of browser history, used for tracking success of web requests to calculate rewards."""
+
+        model_config = ConfigDict(extra="forbid")
+        """Error if incorrect specification."""
+
+        url: str
+        """The URL that was attempted to be fetched by the browser"""
+
+        class _HistoryItemStatus(Enum):
+            NOT_SENT = "NOT_SENT"
+            PENDING = "PENDING"
+            SERVER_UNREACHABLE = "SERVER_UNREACHABLE"
+            LOADED = "LOADED"
+
+        status: _HistoryItemStatus = _HistoryItemStatus.PENDING
+
+        response_code: Optional[HttpStatusCode] = None
+        """HTTP response code that was received, or PENDING if a response was not yet received."""
+
+        def state(self) -> Dict:
+            """Return the contents of this dataclass as a dict for use with describe_state method."""
+            if self.status == self._HistoryItemStatus.LOADED:
+                outcome = self.response_code
+            else:
+                outcome = self.status.value
+            return {"url": self.url, "outcome": outcome}

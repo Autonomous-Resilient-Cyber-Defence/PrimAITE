@@ -203,6 +203,10 @@ class DatabaseService(Service):
         """
         self.sys_log.info(f"{self.name}: Running {query}")
 
+        if not self.db_file:
+            self.sys_log.info(f"{self.name}: Failed to run {query} because the database file is missing.")
+            return {"status_code": 404, "data": False}
+
         if query == "SELECT":
             if self.db_file.health_status == FileSystemItemHealthStatus.GOOD:
                 return {

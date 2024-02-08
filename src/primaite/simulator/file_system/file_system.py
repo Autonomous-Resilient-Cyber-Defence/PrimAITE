@@ -94,12 +94,12 @@ class FileSystem(SimComponent):
         self._restore_manager.add_request(
             name="file",
             request_type=RequestType(
-                func=lambda request, context: self.restore_file(folder_uuid=request[0], file_uuid=request[1])
+                func=lambda request, context: self.restore_file(folder_name=request[0], file_name=request[1])
             ),
         )
         self._restore_manager.add_request(
             name="folder",
-            request_type=RequestType(func=lambda request, context: self.restore_folder(folder_uuid=request[0])),
+            request_type=RequestType(func=lambda request, context: self.restore_folder(folder_name=request[0])),
         )
         rm.add_request(
             name="restore",
@@ -209,7 +209,7 @@ class FileSystem(SimComponent):
         folder = self.get_folder_by_id(folder_uuid=folder_uuid)
         self.delete_folder(folder_name=folder.name)
 
-    def get_folder(self, folder_name: str) -> Optional[Folder]:
+    def get_folder(self, folder_name: str, include_deleted: bool = False) -> Optional[Folder]:
         """
         Get a folder by its name if it exists.
 
@@ -219,9 +219,13 @@ class FileSystem(SimComponent):
         for folder in self.folders.values():
             if folder.name == folder_name:
                 return folder
+        if include_deleted:
+            for folder in self.deleted_folders.values():
+                if folder.name == folder_name:
+                    return folder
         return None
 
-    def get_folder_by_id(self, folder_uuid: str, include_deleted: bool = False) -> Optional[Folder]:
+    def get_folder_by_id(self, folder_uuid: str, include_deleted: Optional[bool] = False) -> Optional[Folder]:
         """
         Get a folder by its uuid if it exists.
 
@@ -283,7 +287,7 @@ class FileSystem(SimComponent):
         self._file_request_manager.add_request(name=file.name, request_type=RequestType(func=file._request_manager))
         return file
 
-    def get_file(self, folder_name: str, file_name: str) -> Optional[File]:
+    def get_file(self, folder_name: str, file_name: str, include_deleted: Optional[bool] = False) -> Optional[File]:
         """
         Retrieve a file by its name from a specific folder.
 
@@ -291,9 +295,9 @@ class FileSystem(SimComponent):
         :param file_name: The name of the file to be retrieved, including its extension.
         :return: An instance of File if it exists, otherwise `None`.
         """
-        folder = self.get_folder(folder_name)
+        folder = self.get_folder(folder_name, include_deleted=include_deleted)
         if folder:
-            return folder.get_file(file_name)
+            return folder.get_file(file_name, include_deleted=include_deleted)
         self.sys_log.info(f"File not found /{folder_name}/{file_name}")
 
     def get_file_by_id(
@@ -455,46 +459,44 @@ class FileSystem(SimComponent):
         for folder_id in self.folders:
             self.folders[folder_id].reveal_to_red(instant_scan=instant_scan)
 
-    def restore_folder(self, folder_uuid: str):
+    def restore_folder(self, folder_name: str):
         """
         Restore a folder.
 
         Checks the current folder's status and applies the correct fix for the folder.
 
-        :param: folder_uuid: id of the folder to restore
+        :param: folder_name: name of the folder to restore
         :type: folder_uuid: str
         """
-        folder = self.get_folder_by_id(folder_uuid=folder_uuid, include_deleted=True)
+        folder = self.get_folder(folder_name=folder_name, include_deleted=True)
 
         if folder is None:
-            self.sys_log.error(f"Unable to restore folder with uuid {folder_uuid}. Folder does not exist.")
+            self.sys_log.error(f"Unable to restore folder {folder_name}. Folder is not in deleted folder list.")
             return
 
+        self.deleted_folders.pop(folder.uuid, None)
         folder.restore()
         self.folders[folder.uuid] = folder
 
-        if folder.deleted:
-            self.deleted_folders.pop(folder.uuid)
-
-    def restore_file(self, folder_uuid: str, file_uuid: str):
+    def restore_file(self, folder_name: str, file_name: str):
         """
         Restore a file.
 
         Checks the current file's status and applies the correct fix for the file.
 
-        :param: folder_uuid: id of the folder where the file is stored
-        :type: folder_uuid: str
+        :param: folder_name: name of the folder where the file is stored
+        :type: folder_name: str
 
-        :param: file_uuid: id of the file to restore
-        :type: file_uuid: str
+        :param: file_name: name of the file to restore
+        :type: file_name: str
         """
-        folder = self.get_folder_by_id(folder_uuid=folder_uuid, include_deleted=True)
+        folder = self.get_folder(folder_name=folder_name)
 
         if folder:
-            file = folder.get_file_by_id(file_uuid=file_uuid, include_deleted=True)
+            file = folder.get_file(file_name=file_name, include_deleted=True)
 
             if file is None:
-                self.sys_log.error(f"Unable to restore file with uuid {file_uuid}. File does not exist.")
+                self.sys_log.error(f"Unable to restore file {file_name}. File does not exist.")
                 return
 
-            folder.restore_file(file_uuid=file_uuid)
+            folder.restore_file(file_name=file_name)
