@@ -88,6 +88,10 @@ simulation:
           data_manipulation_p_of_success: 0.8
           payload: "DELETE"
           server_ip: 192.168.1.14
+      - ref: dos_bot
+        type: DoSBot
+        options:
+          target_ip_address: 192.168.10.21
       services:
       - ref: client_1_dns_server
         type: DNSServer
@@ -96,6 +100,10 @@ simulation:
             arcd.com: 192.168.1.12 # web server
       - ref: client_1_database_client
         type: DatabaseClient
+        options:
+          db_server_ip: 192.168.10.21
+      - ref: client_1_dosbot
+        type: DoSBot
         options:
           db_server_ip: 192.168.10.21
       - ref: client_1_database_service

@@ -19,6 +19,7 @@ from primaite.simulator.network.hardware.nodes.switch import Switch
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
+from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_client import DNSClient
@@ -31,10 +32,7 @@ from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
 
-APPLICATION_TYPES_MAPPING = {
-    "WebBrowser": WebBrowser,
-    "DataManipulationBot": DataManipulationBot,
-}
+APPLICATION_TYPES_MAPPING = {"WebBrowser": WebBrowser, "DataManipulationBot": DataManipulationBot, "DoSBot": DoSBot}
 
 SERVICE_TYPES_MAPPING = {
     "DNSClient": DNSClient,
@@ -308,6 +306,11 @@ class PrimaiteGame:
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
                             new_application.target_url = opt.get("target_url")
+
+                    elif application_type == "DoSBot":
+                        if "options" in application_cfg:
+                            opt = application_cfg["options"]
+                            new_application.target_ip_address = opt.get("target_ip_address")
             if "nics" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["nics"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
