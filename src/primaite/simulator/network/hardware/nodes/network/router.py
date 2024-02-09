@@ -6,6 +6,7 @@ from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import validate_call
 
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.hardware.base import IPWiredNetworkInterface
@@ -19,6 +20,43 @@ from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.arp.arp import ARP
 from primaite.simulator.system.services.icmp.icmp import ICMP
+from primaite.utils.validators import IPV4Address
+
+
+@validate_call()
+def ip_matches_masked_range(ip_to_check: IPV4Address, base_ip: IPV4Address, wildcard_mask: IPV4Address) -> bool:
+    """
+    Determine if a given IP address matches a range defined by a base IP address and a wildcard mask.
+
+    The wildcard mask specifies which bits in the IP address should be ignored (1) and which bits must match (0).
+
+    The function applies the wildcard mask to both the base IP and the IP address to check by first negating the
+    wildcard mask and then performing a bitwise AND operation. This process effectively masks out the bits indicated
+    by the wildcard mask. If the resulting masked IP addresses are equal, it means the IP address to check falls within
+    the range defined by the base IP and wildcard mask.
+
+    :param IPv4Address ip_to_check: The IP address to be checked.
+    :param IPv4Address base_ip: The base IP address defining the start of the range.
+    :param IPv4Address wildcard_mask: The wildcard mask specifying which bits to ignore.
+    :return: A boolean value indicating whether the IP address matches the masked range.
+    :rtype: bool
+
+    Example usage:
+    >>> ip_matches_masked_range(ip_to_check="192.168.10.10", base_ip="192.168.1.1", wildcard_mask="0.0.255.255")
+    False
+    """
+    # Convert the IP addresses from IPv4Address objects to integer representations for bitwise operations
+    base_ip_int = int(base_ip)
+    ip_to_check_int = int(ip_to_check)
+    wildcard_int = int(wildcard_mask)
+
+    # Negate the wildcard mask and apply it to both the base IP and the IP to check using bitwise AND
+    # This step masks out the bits to be ignored according to the wildcard mask
+    masked_base_ip = base_ip_int & ~wildcard_int
+    masked_ip_to_check = ip_to_check_int & ~wildcard_int
+
+    # Compare the masked IP addresses to determine if they match within the masked range
+    return masked_base_ip == masked_ip_to_check
 
 
 class ACLAction(Enum):
@@ -30,22 +68,62 @@ class ACLAction(Enum):
 
 class ACLRule(SimComponent):
     """
-    Represents an Access Control List (ACL) rule.
+    Represents an Access Control List (ACL) rule within a network device.
 
-    :ivar ACLAction action: Action to be performed (Permit/Deny). Default is DENY.
-    :ivar Optional[IPProtocol] protocol: Network protocol. Default is None.
-    :ivar Optional[IPv4Address] src_ip_address: Source IP address. Default is None.
-    :ivar Optional[Port] src_port: Source port number. Default is None.
-    :ivar Optional[IPv4Address] dst_ip_address: Destination IP address. Default is None.
-    :ivar Optional[Port] dst_port: Destination port number. Default is None.
+    Enables fine-grained control over network traffic based on specified criteria such as IP addresses, protocols,
+    and ports. ACL rules can be configured to permit or deny traffic, providing a powerful mechanism for enforcing
+    security policies and traffic flow.
+
+    ACL rules support specifying exact match conditions, ranges of IP addresses using wildcard masks, and
+    protocol types. This flexibility allows for complex traffic filtering scenarios, from blocking or allowing
+    specific types of traffic to entire subnets.
+
+    **Usage:**
+
+    - **Dedicated IP Addresses**: To match traffic from or to a specific IP address, set the `src_ip_address`
+      and/or `dst_ip_address` without a wildcard mask. This is useful for rules that apply to individual hosts.
+
+    - **IP Ranges with Wildcard Masks**: For rules that apply to a range of IP addresses, use the `src_wildcard_mask`
+      and/or `dst_wildcard_mask` in conjunction with the base IP address. Wildcard masks are a way to specify which
+      bits of the IP address should be matched exactly and which bits can vary. For example, a wildcard mask of
+      `0.0.0.255` applied to a base address of `192.168.1.0` allows for any address from `192.168.1.0` to
+      `192.168.1.255`.
+
+    - **Allowing All IP Traffic**: To mimic the Cisco ACL rule that permits all IP traffic from a specific range,
+      you may use wildcard masks with the rule action set to `PERMIT`. If your implementation includes an `ALL`
+      option in the `IPProtocol` enum, use it to allow all protocols; otherwise, consider the rule without a
+      specified protocol to apply to all IP traffic.
+
+
+    The combination of these attributes allows for the creation of granular rules to control traffic flow
+    effectively, enhancing network security and management.
+
+
+    :ivar ACLAction action: Specifies whether to `PERMIT` or `DENY` the traffic that matches the rule conditions.
+        The default action is `DENY`.
+    :ivar Optional[IPProtocol] protocol: The network protocol (e.g., TCP, UDP, ICMP) to match. If `None`, the rule
+        applies to all protocols.
+    :ivar Optional[IPv4Address] src_ip_address: The source IP address to match. If combined with `src_wildcard_mask`,
+        it specifies the start of an IP range.
+    :ivar Optional[IPv4Address] src_wildcard_mask: The wildcard mask for the source IP address, defining the range
+        of addresses to match.
+    :ivar Optional[IPv4Address] dst_ip_address: The destination IP address to match. If combined with
+        `dst_wildcard_mask`, it specifies the start of an IP range.
+    :ivar Optional[IPv4Address] dst_wildcard_mask: The wildcard mask for the destination IP address, defining the
+        range of addresses to match.
+    :ivar Optional[Port] src_port: The source port number to match. Relevant for TCP/UDP protocols.
+    :ivar Optional[Port] dst_port: The destination port number to match. Relevant for TCP/UDP protocols.
     """
 
     action: ACLAction = ACLAction.DENY
     protocol: Optional[IPProtocol] = None
-    src_ip_address: Optional[IPv4Address] = None
+    src_ip_address: Optional[IPV4Address] = None
+    src_wildcard_mask: Optional[IPV4Address] = None
+    dst_ip_address: Optional[IPV4Address] = None
+    dst_wildcard_mask: Optional[IPV4Address] = None
     src_port: Optional[Port] = None
-    dst_ip_address: Optional[IPv4Address] = None
     dst_port: Optional[Port] = None
+    hit_count: int = 0
 
     def __str__(self) -> str:
         rule_strings = []
@@ -76,24 +154,132 @@ class ACLRule(SimComponent):
         state["src_port"] = self.src_port.name if self.src_port else None
         state["dst_ip_address"] = str(self.dst_ip_address) if self.dst_ip_address else None
         state["dst_port"] = self.dst_port.name if self.dst_port else None
+        state["hit_count"] = self.hit_count
         return state
+
+    def permit_frame_check(self, frame: Frame) -> bool:
+        """
+        Evaluates whether a given network frame should be permitted or denied based on this ACL rule.
+
+        This method checks the frame against the ACL rule's criteria, including protocol, source and destination IP
+        addresses (with support for wildcard masking), and source and destination ports. The method assumes that an
+        unspecified (None) criterion implies a match for any value in that category. For IP addresses, wildcard masking
+        can be used to specify ranges of addresses that match the rule.
+
+        The method follows these steps to determine if a frame is permitted:
+
+        1. Check if the frame's protocol matches the ACL rule's protocol.
+        2. For source and destination IP addresses:
+            1. If a wildcard mask is defined, check if the frame's IP address is within the range specified by the base
+               IP address and the wildcard mask.
+            2. If no wildcard mask is defined, directly compare the frame's IP address to the one specified in the rule.
+        3. Check if the frame's source and destination ports match those specified in the rule.
+        4. The frame is permitted if it matches all specified criteria and the rule's action is PERMIT. Conversely, it
+           is not permitted if any criterion does not match or if the rule's action is DENY.
+
+        :param frame (Frame): The network frame to be evaluated.
+        :return: True if the frame is permitted by this ACL rule, False otherwise.
+        """
+        protocol_matches = self.protocol == frame.ip.protocol if self.protocol else True
+
+        src_ip_matches = self.src_ip_address is None  # Assume match if no specific src IP is defined
+        if self.src_ip_address:
+            if self.src_wildcard_mask:
+                # If a src wildcard mask is provided, use it to check the range
+                src_ip_matches = ip_matches_masked_range(
+                    ip_to_check=frame.ip.src_ip_address,
+                    base_ip=self.src_ip_address,
+                    wildcard_mask=self.src_wildcard_mask,
+                )
+            else:
+                # Direct comparison if no wildcard mask is defined
+                src_ip_matches = frame.ip.src_ip_address == self.src_ip_address
+
+        dst_ip_matches = self.dst_ip_address is None  # Assume match if no specific dst IP is defined
+        if self.dst_ip_address:
+            if self.dst_wildcard_mask:
+                # If a dst wildcard mask is provided, use it to check the range
+                dst_ip_matches = ip_matches_masked_range(
+                    ip_to_check=frame.ip.dst_ip_address,
+                    base_ip=self.dst_ip_address,
+                    wildcard_mask=self.dst_wildcard_mask,
+                )
+            else:
+                # Direct comparison if no wildcard mask is defined
+                dst_ip_matches = frame.ip.dst_ip_address == self.dst_ip_address
+
+        src_port = None
+        dst_port = None
+        if frame.tcp:
+            src_port = frame.tcp.src_port
+            dst_port = frame.tcp.dst_port
+        elif frame.udp:
+            src_port = frame.udp.src_port
+            dst_port = frame.udp.dst_port
+
+        src_port_matches = self.src_port == src_port if self.src_port else True
+        dst_port_matches = self.dst_port == dst_port if self.dst_port else True
+
+        # The frame is permitted if all conditions are met
+        if protocol_matches and src_ip_matches and dst_ip_matches and src_port_matches and dst_port_matches:
+            return self.action == ACLAction.PERMIT
+        else:
+            # If any condition is not met, the decision depends on the rule action
+            return False
 
 
 class AccessControlList(SimComponent):
     """
     Manages a list of ACLRules to filter network traffic.
 
-    :ivar SysLog sys_log: System logging instance.
-    :ivar ACLAction implicit_action: Default action for rules.
-    :ivar ACLRule implicit_rule: Implicit ACL rule, created based on implicit_action.
-    :ivar int max_acl_rules: Maximum number of ACL rules that can be added. Default is 25.
-    :ivar List[Optional[ACLRule]] _acl: A list containing the ACL rules.
+    Manages a list of ACLRule instances to filter network traffic based on predefined criteria. This class
+    provides functionalities to add, remove, and evaluate ACL rules, thereby controlling the flow of traffic
+    through a network device.
+
+    ACL rules can specify conditions based on source and destination IP addresses, IP protocols (TCP, UDP, ICMP),
+    and port numbers. Rules can be configured to permit or deny traffic that matches these conditions, offering
+    granular control over network security policies.
+
+    Usage:
+    - **Dedicated IP Addresses**: Directly specify the source and/or destination IP addresses in an ACL rule to
+      match traffic to or from specific hosts.
+    - **IP Ranges with Wildcard Masks**: Use wildcard masks along with base IP addresses to define ranges of IP
+      addresses that an ACL rule applies to. This is useful for specifying subnets or ranges of IP addresses.
+    - **Allowing All IP Traffic**: To mimic a Cisco-style ACL rule that allows all IP traffic from a specified
+      range, use the wildcard mask in conjunction with a permit action. If your system supports an `ALL` option
+      for the IP protocol, this can be used to allow all types of IP traffic; otherwise, the absence of a
+      specified protocol can be interpreted to mean all protocols.
+
+    Methods include functionalities to add and remove rules, reset to default configurations, and evaluate
+    whether specific frames are permitted or denied based on the current set of rules. The class also provides
+    utility functions to describe the current state and display the rules in a human-readable format.
+
+    Example:
+        >>> # To add a rule that permits all TCP traffic from the subnet 192.168.1.0/24 to 192.168.2.0/24:
+        >>> acl = AccessControlList()
+        >>> acl.add_rule(
+        ...    action=ACLAction.PERMIT,
+        ...    protocol=IPProtocol.TCP,
+        ...    src_ip_address="192.168.1.0",
+        ...    src_wildcard_mask="0.0.0.255",
+        ...    dst_ip_address="192.168.2.0",
+        ...    dst_wildcard_mask="0.0.0.255"
+        ...)
+
+    This example demonstrates adding a rule with specific source and destination IP ranges, using wildcard masks
+    to allow a broad range of traffic while maintaining control over the flow of data for security and
+    management purposes.
+
+    :ivar ACLAction implicit_action: The default action (permit or deny) applied when no other rule matches.
+        Typically set to deny to follow the principle of least privilege.
+    :ivar int max_acl_rules: The maximum number of ACL rules that can be added to the list. Defaults to 25.
     """
 
     sys_log: SysLog
     implicit_action: ACLAction
     implicit_rule: ACLRule
     max_acl_rules: int = 25
+    name: str
     _acl: List[Optional[ACLRule]] = [None] * 24
     _default_config: Dict[int, dict] = {}
     """Config dict describing how the ACL list should look at episode start"""
@@ -210,13 +396,16 @@ class AccessControlList(SimComponent):
         """
         return len([rule for rule in self._acl if rule is not None])
 
+    @validate_call()
     def add_rule(
         self,
-        action: ACLAction,
+        action: ACLAction = ACLAction.DENY,
         protocol: Optional[IPProtocol] = None,
-        src_ip_address: Optional[Union[str, IPv4Address]] = None,
+        src_ip_address: Optional[IPV4Address] = None,
+        src_wildcard_mask: Optional[IPV4Address] = None,
+        dst_ip_address: Optional[IPV4Address] = None,
+        dst_wildcard_mask: Optional[IPV4Address] = None,
         src_port: Optional[Port] = None,
-        dst_ip_address: Optional[Union[str, IPv4Address]] = None,
         dst_port: Optional[Port] = None,
         position: int = 0,
     ) -> None:
@@ -224,25 +413,25 @@ class AccessControlList(SimComponent):
         Add a new ACL rule.
 
         :param ACLAction action: Action to be performed (Permit/Deny).
-        :param Optional[IPProtocol] protocol: Network protocol.
-        :param Optional[Union[str, IPv4Address]] src_ip_address: Source IP address.
-        :param Optional[Port] src_port: Source port number.
-        :param Optional[Union[str, IPv4Address]] dst_ip_address: Destination IP address.
-        :param Optional[Port] dst_port: Destination port number.
-        :param int position: Position in the ACL list to insert the rule.
+        :param protocol: Network protocol. Optional, default is None.
+        :param src_ip_address: Source IP address. Optional, default is None.
+        :param src_wildcard_mask: Source IP wildcard mask. Optional, default is None.
+        :param src_port: Source port number. Optional, default is None.
+        :param dst_ip_address: Destination IP address. Optional, default is None.
+        :param dst_wildcard_mask: Destination IP wildcard mask. Optional, default is None.
+        :param dst_port: Destination port number. Optional, default is None.
+        :param int position: Position in the ACL list to insert the rule. Optional, default is 1.
         :raises ValueError: When the position is out of bounds.
         """
-        if isinstance(src_ip_address, str):
-            src_ip_address = IPv4Address(src_ip_address)
-        if isinstance(dst_ip_address, str):
-            dst_ip_address = IPv4Address(dst_ip_address)
         if 0 <= position < self.max_acl_rules:
             if self._acl[position]:
                 self.sys_log.info(f"Overwriting ACL rule at position {position}")
             self._acl[position] = ACLRule(
                 action=action,
                 src_ip_address=src_ip_address,
+                src_wildcard_mask=src_wildcard_mask,
                 dst_ip_address=dst_ip_address,
+                dst_wildcard_mask=dst_wildcard_mask,
                 protocol=protocol,
                 src_port=src_port,
                 dst_port=dst_port,
@@ -264,43 +453,25 @@ class AccessControlList(SimComponent):
         else:
             raise ValueError(f"Cannot remove ACL rule, position {position} is out of bounds.")
 
-    def is_permitted(
-        self,
-        protocol: IPProtocol,
-        src_ip_address: Union[str, IPv4Address],
-        src_port: Optional[Port],
-        dst_ip_address: Union[str, IPv4Address],
-        dst_port: Optional[Port],
-    ) -> Tuple[bool, Optional[Union[str, ACLRule]]]:
-        """
-        Check if a packet with the given properties is permitted through the ACL.
-
-        :param protocol: The protocol of the packet.
-        :param src_ip_address: Source IP address of the packet. Accepts string and IPv4Address.
-        :param src_port: Source port of the packet. Optional.
-        :param dst_ip_address: Destination IP address of the packet. Accepts string and IPv4Address.
-        :param dst_port: Destination port of the packet. Optional.
-        :return: A tuple with a boolean indicating if the packet is permitted and an optional rule or implicit action
-            string.
-        """
-        if not isinstance(src_ip_address, IPv4Address):
-            src_ip_address = IPv4Address(src_ip_address)
-        if not isinstance(dst_ip_address, IPv4Address):
-            dst_ip_address = IPv4Address(dst_ip_address)
-        for rule in self._acl:
-            if not rule:
+    def is_permitted(self, frame: Frame) -> Tuple[bool, ACLRule]:
+        """Check if a packet with the given properties is permitted through the ACL."""
+        permitted = False
+        rule: ACLRule = None
+        for _rule in self._acl:
+            if not _rule:
                 continue
 
-            if (
-                (rule.src_ip_address == src_ip_address or rule.src_ip_address is None)
-                and (rule.dst_ip_address == dst_ip_address or rule.dst_ip_address is None)
-                and (rule.protocol == protocol or rule.protocol is None)
-                and (rule.src_port == src_port or rule.src_port is None)
-                and (rule.dst_port == dst_port or rule.dst_port is None)
-            ):
-                return rule.action == ACLAction.PERMIT, rule
+            if _rule.permit_frame_check(frame):
+                permitted = True
+                rule = _rule
+                break
+        if not rule:
+            permitted = self.implicit_action == ACLAction.PERMIT
+            rule = self.implicit_rule
 
-        return self.implicit_action == ACLAction.PERMIT, f"Implicit {self.implicit_action.name}"
+        rule.hit_count += 1
+
+        return permitted, rule
 
     def get_relevant_rules(
         self,
@@ -346,11 +517,25 @@ class AccessControlList(SimComponent):
 
         :param markdown: Whether to display the table in Markdown format. Defaults to False.
         """
-        table = PrettyTable(["Index", "Action", "Protocol", "Src IP", "Src Port", "Dst IP", "Dst Port"])
+        table = PrettyTable(
+            [
+                "Index",
+                "Action",
+                "Protocol",
+                "Src IP",
+                "Src Wildcard",
+                "Src Port",
+                "Dst IP",
+                "Dst Wildcard",
+                "Dst Port",
+                "Hit Count",
+            ]
+        )
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.sys_log.hostname} Access Control List"
+
+        table.title = f"{self.name} Access Control List"
         for index, rule in enumerate(self.acl + [self.implicit_rule]):
             if rule:
                 table.add_row(
@@ -359,21 +544,15 @@ class AccessControlList(SimComponent):
                         rule.action.name if rule.action else "ANY",
                         rule.protocol.name if rule.protocol else "ANY",
                         rule.src_ip_address if rule.src_ip_address else "ANY",
+                        rule.src_wildcard_mask if rule.src_wildcard_mask else "ANY",
                         f"{rule.src_port.value} ({rule.src_port.name})" if rule.src_port else "ANY",
                         rule.dst_ip_address if rule.dst_ip_address else "ANY",
+                        rule.dst_wildcard_mask if rule.dst_wildcard_mask else "ANY",
                         f"{rule.dst_port.value} ({rule.dst_port.name})" if rule.dst_port else "ANY",
+                        rule.hit_count,
                     ]
                 )
         print(table)
-
-    @property
-    def num_rules(self) -> int:
-        """
-        Get the number of rules in the ACL.
-
-        :return: The number of rules in the ACL.
-        """
-        return len([rule for rule in self._acl if rule is not None])
 
 
 class RouteEntry(SimComponent):
@@ -880,7 +1059,7 @@ class Router(NetworkNode):
         if not kwargs.get("sys_log"):
             kwargs["sys_log"] = SysLog(hostname)
         if not kwargs.get("acl"):
-            kwargs["acl"] = AccessControlList(sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY)
+            kwargs["acl"] = AccessControlList(sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=hostname)
         if not kwargs.get("route_table"):
             kwargs["route_table"] = RouteTable(sys_log=kwargs["sys_log"])
         super().__init__(hostname=hostname, num_ports=num_ports, **kwargs)
@@ -1008,6 +1187,36 @@ class Router(NetworkNode):
         state["acl"] = self.acl.describe_state()
         return state
 
+    def check_send_frame_to_session_manager(self, frame: Frame) -> bool:
+        """
+        Determines whether a given network frame should be forwarded to the session manager.
+
+        his function evaluates whether the destination IP address of the frame corresponds to one of the router's
+        interface IP addresses. If so, it then checks if the frame is an ICMP packet or if the destination port matches
+        any of the ports that the router's software manager identifies as open. If either condition is met, the frame
+        is considered for further processing by the session manager, implying potential application-level handling or
+        response generation.
+
+        :param frame: The network frame to be evaluated.
+
+        :return: A boolean value indicating whether the frame should be sent to the session manager. ``True`` if the
+            frame's destination IP matches the router's interface and is directed to an open port or is an ICMP packet,
+            otherwise, ``False``.
+        """
+        dst_ip_address = frame.ip.dst_ip_address
+        dst_port = None
+        if frame.ip.protocol == IPProtocol.TCP:
+            dst_port = frame.tcp.dst_port
+        elif frame.ip.protocol == IPProtocol.UDP:
+            dst_port = frame.udp.dst_port
+
+        if self.ip_is_router_interface(dst_ip_address) and (
+            frame.icmp or dst_port in self.software_manager.get_open_ports()
+        ):
+            return True
+
+        return False
+
     def receive_frame(self, frame: Frame, from_network_interface: RouterInterface):
         """
         Processes an incoming frame received on one of the router's interfaces.
@@ -1021,26 +1230,8 @@ class Router(NetworkNode):
         if self.operating_state != NodeOperatingState.ON:
             return
 
-        protocol = frame.ip.protocol
-        src_ip_address = frame.ip.src_ip_address
-        dst_ip_address = frame.ip.dst_ip_address
-        src_port = None
-        dst_port = None
-        if frame.ip.protocol == IPProtocol.TCP:
-            src_port = frame.tcp.src_port
-            dst_port = frame.tcp.dst_port
-        elif frame.ip.protocol == IPProtocol.UDP:
-            src_port = frame.udp.src_port
-            dst_port = frame.udp.dst_port
-
         # Check if it's permitted
-        permitted, rule = self.acl.is_permitted(
-            protocol=protocol,
-            src_ip_address=src_ip_address,
-            src_port=src_port,
-            dst_ip_address=dst_ip_address,
-            dst_port=dst_port,
-        )
+        permitted, rule = self.acl.is_permitted(frame)
 
         if not permitted:
             at_port = self._get_port_of_nic(from_network_interface)
@@ -1054,13 +1245,7 @@ class Router(NetworkNode):
                 network_interface=from_network_interface,
             )
 
-        send_to_session_manager = False
-        if (frame.icmp and self.ip_is_router_interface(dst_ip_address)) or (
-            dst_port in self.software_manager.get_open_ports()
-        ):
-            send_to_session_manager = True
-
-        if send_to_session_manager:
+        if self.check_send_frame_to_session_manager(frame):
             # Port is open on this Router so pass Frame up to session manager first
             self.session_manager.receive_frame(frame, from_network_interface)
         else:
@@ -1196,7 +1381,7 @@ class Router(NetworkNode):
 
     def show(self, markdown: bool = False):
         """
-        Prints the state of the Ethernet interfaces on the Router.
+        Prints the state of the network interfaces on the Router.
 
         :param markdown: Flag to indicate if the output should be in markdown format.
         """
@@ -1205,7 +1390,7 @@ class Router(NetworkNode):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.hostname} Ethernet Interfaces"
+        table.title = f"{self.hostname} Network Interfaces"
         for port, network_interface in self.network_interface.items():
             table.add_row(
                 [
