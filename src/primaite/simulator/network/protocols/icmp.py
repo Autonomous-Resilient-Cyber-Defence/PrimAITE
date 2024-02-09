@@ -21,9 +21,9 @@ class ICMPType(Enum):
     "Redirect."
     ECHO_REQUEST = 8
     "Echo Request (ping)."
-    ROUTER_ADVERTISEMENT = 10
+    ROUTER_ADVERTISEMENT = 9
     "Router Advertisement."
-    ROUTER_SOLICITATION = 11
+    ROUTER_SOLICITATION = 10
     "Router discovery/selection/solicitation."
     TIME_EXCEEDED = 11
     "Time Exceeded."
