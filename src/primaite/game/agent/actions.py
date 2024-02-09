@@ -550,7 +550,7 @@ class NetworkNICAbstractAction(AbstractAction):
         nic_num = self.manager.get_nic_num_by_idx(node_idx=node_id, nic_idx=nic_id)
         if node_name is None or nic_num is None:
             return ["do_nothing"]
-        return ["network", "node", node_name, "nic", nic_num, self.verb]
+        return ["network", "node", node_name, "network_interface", nic_num, self.verb]
 
 
 class NetworkNICEnableAction(NetworkNICAbstractAction):
@@ -723,8 +723,8 @@ class ActionManager:
                 node_obj = self.game.simulation.network.get_node_by_hostname(node_name)
                 if node_obj is None:
                     continue
-                nics = node_obj.nics
-                for nic_uuid, nic_obj in nics.items():
+                network_interfaces = node_obj.network_interfaces
+                for nic_uuid, nic_obj in network_interfaces.items():
                     self.ip_address_list.append(nic_obj.ip_address)
 
         # action_args are settings which are applied to the action space as a whole.
@@ -964,7 +964,7 @@ class ActionManager:
             node_name = entry["node_name"]
             nic_num = entry["nic_num"]
             node_obj = game.simulation.network.get_node_by_hostname(node_name)
-            ip_address = node_obj.ethernet_port[nic_num].ip_address
+            ip_address = node_obj.network_interface[nic_num].ip_address
             ip_address_list.append(ip_address)
 
         obj = cls(

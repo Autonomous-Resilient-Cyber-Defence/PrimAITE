@@ -1,9 +1,7 @@
-import pytest
-
 from primaite.simulator.core import RequestType
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.services.database.database_service import DatabaseService
 
@@ -27,9 +25,9 @@ def test_passing_actions_down(monkeypatch) -> None:
     downloads_folder = pc1.file_system.create_folder("downloads")
     pc1.file_system.create_file("bermuda_triangle.png", folder_name="downloads")
 
-    sim.network.connect(pc1.ethernet_port[1], s1.switch_ports[1])
-    sim.network.connect(pc2.ethernet_port[1], s1.switch_ports[2])
-    sim.network.connect(s1.switch_ports[3], srv.ethernet_port[1])
+    sim.network.connect(pc1.network_interface[1], s1.network_interface[1])
+    sim.network.connect(pc2.network_interface[1], s1.network_interface[2])
+    sim.network.connect(s1.network_interface[3], srv.network_interface[1])
 
     # call this method to make sure no errors occur.
     sim._request_manager.get_request_types_recursively()

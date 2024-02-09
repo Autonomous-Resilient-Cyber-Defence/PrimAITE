@@ -66,9 +66,9 @@ we'll use the following Network that has a client, server, two switches, and a r
 
 .. code-block:: python
 
-    network.connect(endpoint_a=router_1.ethernet_ports[1], endpoint_b=switch_1.switch_ports[6])
+    network.connect(endpoint_a=router_1.network_interfaces[1], endpoint_b=switch_1.network_interface[6])
     router_1.enable_port(1)
-    network.connect(endpoint_a=router_1.ethernet_ports[2], endpoint_b=switch_2.switch_ports[6])
+    network.connect(endpoint_a=router_1.network_interfaces[2], endpoint_b=switch_2.network_interface[6])
     router_1.enable_port(2)
 
 6. Create the Client and Server nodes.
@@ -94,8 +94,8 @@ we'll use the following Network that has a client, server, two switches, and a r
 
 .. code-block:: python
 
-    network.connect(endpoint_a=switch_2.switch_ports[1], endpoint_b=client_1.ethernet_port[1])
-    network.connect(endpoint_a=switch_1.switch_ports[1], endpoint_b=server_1.ethernet_port[1])
+    network.connect(endpoint_a=switch_2.network_interface[1], endpoint_b=client_1.network_interface[1])
+    network.connect(endpoint_a=switch_1.network_interface[1], endpoint_b=server_1.network_interface[1])
 
 8. Add ACL rules on the Router to allow ARP and ICMP traffic.
 

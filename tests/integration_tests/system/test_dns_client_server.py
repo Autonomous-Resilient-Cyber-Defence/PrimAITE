@@ -4,8 +4,8 @@ from typing import Tuple
 import pytest
 
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.service import ServiceOperatingState
@@ -20,7 +20,7 @@ def dns_client_and_dns_server(client_server) -> Tuple[DNSClient, Computer, DNSSe
     dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
     dns_client.start()
     # set server as DNS Server
-    dns_client.dns_server = IPv4Address(server.nics.get(next(iter(server.nics))).ip_address)
+    dns_client.dns_server = IPv4Address(server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address)
 
     # Install DNS Server on server
     server.software_manager.install(DNSServer)
@@ -28,7 +28,8 @@ def dns_client_and_dns_server(client_server) -> Tuple[DNSClient, Computer, DNSSe
     dns_server.start()
     # register arcd.com as a domain
     dns_server.dns_register(
-        domain_name="arcd.com", domain_ip_address=IPv4Address(server.nics.get(next(iter(server.nics))).ip_address)
+        domain_name="arcd.com",
+        domain_ip_address=IPv4Address(server.network_interface[1].ip_address),
     )
 
     return dns_client, computer, dns_server, server

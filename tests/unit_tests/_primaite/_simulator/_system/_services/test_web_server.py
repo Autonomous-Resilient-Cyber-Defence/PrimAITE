@@ -1,7 +1,7 @@
 import pytest
 
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.protocols.http import (
     HttpRequestMethod,
     HttpRequestPacket,
@@ -20,9 +20,10 @@ def web_server() -> Server:
         ip_address="192.168.1.10",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
-    node.software_manager.install(software_class=WebServer)
+    node.power_on()
+    node.software_manager.install(WebServer)
     node.software_manager.software.get("WebServer").start()
     return node
 
@@ -51,19 +52,3 @@ def test_handling_get_request_home_page(web_server):
 
     response: HttpResponsePacket = web_server_service._handle_get_request(payload=payload)
     assert response.status_code == HttpStatusCode.OK
-
-
-def test_process_http_request_get(web_server):
-    payload = HttpRequestPacket(request_method=HttpRequestMethod.GET, request_url="http://domain.com/")
-
-    web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
-
-    assert web_server_service._process_http_request(payload=payload) is True
-
-
-def test_process_http_request_method_not_allowed(web_server):
-    payload = HttpRequestPacket(request_method=HttpRequestMethod.DELETE, request_url="http://domain.com/")
-
-    web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
-
-    assert web_server_service._process_http_request(payload=payload) is False

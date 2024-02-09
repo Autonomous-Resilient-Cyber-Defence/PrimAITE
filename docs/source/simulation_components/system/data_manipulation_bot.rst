@@ -52,7 +52,7 @@ Example
         default_gateway="192.168.10.1"
         operating_state=NodeOperatingState.ON # initialise the computer in an ON state
     )
-    network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
+    network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
     client_1.software_manager.install(DataManipulationBot)
     data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
     data_manipulation_bot.configure(server_ip_address=IPv4Address("192.168.1.14"), payload="DELETE")

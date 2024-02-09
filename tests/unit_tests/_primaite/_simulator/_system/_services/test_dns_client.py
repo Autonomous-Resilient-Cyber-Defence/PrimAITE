@@ -2,9 +2,8 @@ from ipaddress import IPv4Address
 
 import pytest
 
-from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSReply, DNSRequest
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -13,7 +12,7 @@ from primaite.simulator.system.services.service import ServiceOperatingState
 
 
 @pytest.fixture(scope="function")
-def dns_client() -> Node:
+def dns_client() -> Computer:
     node = Computer(
         hostname="dns_client",
         ip_address="192.168.1.11",

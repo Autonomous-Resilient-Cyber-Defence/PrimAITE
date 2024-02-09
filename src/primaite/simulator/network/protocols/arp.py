@@ -13,11 +13,12 @@ class ARPEntry(BaseModel):
     Represents an entry in the ARP cache.
 
     :param mac_address: The MAC address associated with the IP address.
-    :param nic: The NIC through which the NIC with the IP address is reachable.
+    :param network_interface_uuid: The UIId of the Network Interface through which the NIC with the IP address is
+    reachable.
     """
 
     mac_address: str
-    nic_uuid: str
+    network_interface_uuid: str
 
 
 class ARPPacket(DataPacket):

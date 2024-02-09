@@ -11,11 +11,12 @@ from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAge
 from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.session.io import SessionIO, SessionIOSettings
-from primaite.simulator.network.hardware.base import NIC, NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import Router
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.base import NodeOperatingState
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.host_node import NIC
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import Router
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
@@ -305,8 +306,8 @@ class PrimaiteGame:
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
                             new_application.target_url = opt.get("target_url")
-            if "nics" in node_cfg:
-                for nic_num, nic_cfg in node_cfg["nics"].items():
+            if "network_interfaces" in node_cfg:
+                for nic_num, nic_cfg in node_cfg["network_interfaces"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
 
             net.add_node(new_node)
@@ -318,13 +319,13 @@ class PrimaiteGame:
             node_a = net.nodes[game.ref_map_nodes[link_cfg["endpoint_a_ref"]]]
             node_b = net.nodes[game.ref_map_nodes[link_cfg["endpoint_b_ref"]]]
             if isinstance(node_a, Switch):
-                endpoint_a = node_a.switch_ports[link_cfg["endpoint_a_port"]]
+                endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]
             else:
-                endpoint_a = node_a.ethernet_port[link_cfg["endpoint_a_port"]]
+                endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]
             if isinstance(node_b, Switch):
-                endpoint_b = node_b.switch_ports[link_cfg["endpoint_b_port"]]
+                endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
             else:
-                endpoint_b = node_b.ethernet_port[link_cfg["endpoint_b_port"]]
+                endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
             new_link = net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b)
             game.ref_map_links[link_cfg["ref"]] = new_link.uuid
 

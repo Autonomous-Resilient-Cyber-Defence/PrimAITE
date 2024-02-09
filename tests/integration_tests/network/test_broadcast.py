@@ -4,9 +4,9 @@ from typing import Any, Dict, List, Tuple
 import pytest
 
 from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
@@ -37,11 +37,7 @@ class BroadcastService(Service):
 
     def broadcast(self, ip_network: IPv4Network):
         # Send a broadcast payload to an entire IP network
-        super().send(
-            payload="broadcast",
-            dest_ip_address=ip_network,
-            dest_port=Port.HTTP,
-        )
+        super().send(payload="broadcast", dest_ip_address=ip_network, dest_port=Port.HTTP, ip_protocol=self.protocol)
 
 
 class BroadcastClient(Application):
@@ -110,9 +106,9 @@ def broadcast_network() -> Network:
     switch_1 = Switch(hostname="switch_1", num_ports=6, start_up_duration=0)
     switch_1.power_on()
 
-    network.connect(endpoint_a=client_1.ethernet_port[1], endpoint_b=switch_1.switch_ports[1])
-    network.connect(endpoint_a=client_2.ethernet_port[1], endpoint_b=switch_1.switch_ports[2])
-    network.connect(endpoint_a=server_1.ethernet_port[1], endpoint_b=switch_1.switch_ports[3])
+    network.connect(endpoint_a=client_1.network_interface[1], endpoint_b=switch_1.network_interface[1])
+    network.connect(endpoint_a=client_2.network_interface[1], endpoint_b=switch_1.network_interface[2])
+    network.connect(endpoint_a=server_1.network_interface[1], endpoint_b=switch_1.network_interface[3])
 
     return network
 

@@ -2,9 +2,9 @@ from ipaddress import IPv4Address
 from typing import Optional
 
 from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 
@@ -109,9 +109,9 @@ def create_office_lan(
     switch.power_on()
     network.add_node(switch)
     if num_of_switches > 1:
-        network.connect(core_switch.switch_ports[core_switch_port], switch.switch_ports[24])
+        network.connect(core_switch.network_interface[core_switch_port], switch.network_interface[24])
     else:
-        network.connect(router.ethernet_ports[1], switch.switch_ports[24])
+        network.connect(router.network_interface[1], switch.network_interface[24])
 
     # Add PCs to the LAN and connect them to switches
     for i in range(1, num_pcs + 1):
@@ -125,9 +125,9 @@ def create_office_lan(
             # Connect the new switch to the router or core switch
             if num_of_switches > 1:
                 core_switch_port += 1
-                network.connect(core_switch.switch_ports[core_switch_port], switch.switch_ports[24])
+                network.connect(core_switch.network_interface[core_switch_port], switch.network_interface[24])
             else:
-                network.connect(router.ethernet_ports[1], switch.switch_ports[24])
+                network.connect(router.network_interface[1], switch.network_interface[24])
 
         # Create and add a PC to the network
         pc = Computer(
@@ -142,7 +142,7 @@ def create_office_lan(
 
         # Connect the PC to the switch
         switch_port += 1
-        network.connect(switch.switch_ports[switch_port], pc.ethernet_port[1])
-        switch.switch_ports[switch_port].enable()
+        network.connect(switch.network_interface[switch_port], pc.network_interface[1])
+        switch.network_interface[switch_port].enable()
 
     return network
