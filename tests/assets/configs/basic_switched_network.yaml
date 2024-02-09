@@ -81,6 +81,10 @@ simulation:
         type: WebBrowser
         options:
           target_url: http://arcd.com/users/
+      - ref: client_1_database_client
+        type: DatabaseClient
+        options:
+          db_server_ip: 192.168.1.10
       - ref: data_manipulation_bot
         type: DataManipulationBot
         options:
@@ -95,27 +99,25 @@ simulation:
           payload: SPOOF DATA
           port_scan_p_of_success: 0.8
       services:
+      - ref: client_1_dns_client
+        type: DNSClient
+        options:
+          dns_server: 192.168.1.10
       - ref: client_1_dns_server
         type: DNSServer
         options:
           domain_mapping:
-            arcd.com: 192.168.1.12 # web server
-      - ref: client_1_database_client
-        type: DatabaseClient
-        options:
-          db_server_ip: 192.168.10.21
-      - ref: client_1_dosbot
-        type: DoSBot
-        options:
-          db_server_ip: 192.168.10.21
+            arcd.com: 192.168.1.10
       - ref: client_1_database_service
         type: DatabaseService
         options:
-          backup_server_ip: 192.168.10.21
+          backup_server_ip: 192.168.1.10
       - ref: client_1_web_service
         type: WebServer
       - ref: client_1_ftp_server
         type: FTPServer
+      - ref: client_1_ntp_client
+        type: NTPClient
       - ref: client_1_ntp_server
         type: NTPServer
     - ref: client_2

@@ -33,12 +33,16 @@ from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
 
-APPLICATION_TYPES_MAPPING = {"WebBrowser": WebBrowser, "DataManipulationBot": DataManipulationBot, "DoSBot": DoSBot}
+APPLICATION_TYPES_MAPPING = {
+    "WebBrowser": WebBrowser,
+    "DatabaseClient": DatabaseClient,
+    "DataManipulationBot": DataManipulationBot,
+    "DoSBot": DoSBot,
+}
 
 SERVICE_TYPES_MAPPING = {
     "DNSClient": DNSClient,
     "DNSServer": DNSServer,
-    "DatabaseClient": DatabaseClient,
     "DatabaseService": DatabaseService,
     "WebServer": WebServer,
     "FTPClient": FTPClient,
@@ -262,22 +266,21 @@ class PrimaiteGame:
                     else:
                         _LOGGER.warning(f"service type not found {service_type}")
                     # service-dependent options
-                    if service_type == "DatabaseClient":
+                    if service_type == "DNSClient":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
-                            if "db_server_ip" in opt:
-                                new_service.configure(server_ip_address=IPv4Address(opt["db_server_ip"]))
+                            if "dns_server" in opt:
+                                new_service.dns_server = IPv4Address(opt["dns_server"])
                     if service_type == "DNSServer":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
                             if "domain_mapping" in opt:
                                 for domain, ip in opt["domain_mapping"].items():
-                                    new_service.dns_register(domain, ip)
+                                    new_service.dns_register(domain, IPv4Address(ip))
                     if service_type == "DatabaseService":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
-                            if "backup_server_ip" in opt:
-                                new_service.configure_backup(backup_server=IPv4Address(opt["backup_server_ip"]))
+                            new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
                         new_service.start()
 
             if "applications" in node_cfg:
@@ -302,6 +305,13 @@ class PrimaiteGame:
                                 payload=opt.get("payload"),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
+                            )
+                    elif application_type == "DatabaseClient":
+                        if "options" in application_cfg:
+                            opt = application_cfg["options"]
+                            new_application.configure(
+                                server_ip_address=IPv4Address(opt.get("db_server_ip")),
+                                server_password=opt.get("server_password"),
                             )
                     elif application_type == "WebBrowser":
                         if "options" in application_cfg:
