@@ -509,9 +509,9 @@ class Link(SimComponent):
     :param bandwidth: The bandwidth of the Link in Mbps (default is 100 Mbps).
     """
 
-    endpoint_a: Union[WiredNetworkInterface]
+    endpoint_a: WiredNetworkInterface
     "The first WiredNetworkInterface connected to the Link."
-    endpoint_b: Union[WiredNetworkInterface]
+    endpoint_b: WiredNetworkInterface
     "The second WiredNetworkInterface connected to the Link."
     bandwidth: float = 100.0
     "The bandwidth of the Link in Mbps (default is 100 Mbps)."
@@ -596,7 +596,7 @@ class Link(SimComponent):
             return True
         return False
 
-    def transmit_frame(self, sender_nic: Union[WiredNetworkInterface], frame: Frame) -> bool:
+    def transmit_frame(self, sender_nic: WiredNetworkInterface, frame: Frame) -> bool:
         """
         Send a network frame from one NIC or SwitchPort to another connected NIC or SwitchPort.
 

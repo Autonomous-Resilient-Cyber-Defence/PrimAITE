@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -272,9 +272,7 @@ class Network(SimComponent):
         self._node_request_manager.remove_request(name=node.hostname)
         _LOGGER.info(f"Removed node {node.hostname} from network {self.uuid}")
 
-    def connect(
-        self, endpoint_a: Union[WiredNetworkInterface], endpoint_b: Union[WiredNetworkInterface], **kwargs
-    ) -> Optional[Link]:
+    def connect(self, endpoint_a: WiredNetworkInterface, endpoint_b: WiredNetworkInterface, **kwargs) -> Optional[Link]:
         """
         Connect two endpoints on the network by creating a link between their NICs/SwitchPorts.
 
