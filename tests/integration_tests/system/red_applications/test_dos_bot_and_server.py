@@ -24,7 +24,7 @@ def dos_bot_and_db_server(client_server) -> Tuple[DoSBot, Computer, DatabaseServ
 
     dos_bot: DoSBot = computer.software_manager.software.get("DoSBot")
     dos_bot.configure(
-        target_ip_address=IPv4Address(server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address),
+        target_ip_address=IPv4Address(server.network_interface[1].ip_address),
         target_port=Port.POSTGRES_SERVER,
     )
 
@@ -54,7 +54,7 @@ def dos_bot_db_server_green_client(example_network) -> Network:
 
     dos_bot: DoSBot = client_1.software_manager.software.get("DoSBot")
     dos_bot.configure(
-        target_ip_address=IPv4Address(server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address),
+        target_ip_address=IPv4Address(server.network_interface[1].ip_address),
         target_port=Port.POSTGRES_SERVER,
     )
 
