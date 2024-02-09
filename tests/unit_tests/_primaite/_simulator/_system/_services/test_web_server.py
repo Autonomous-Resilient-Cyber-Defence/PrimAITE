@@ -52,19 +52,3 @@ def test_handling_get_request_home_page(web_server):
 
     response: HttpResponsePacket = web_server_service._handle_get_request(payload=payload)
     assert response.status_code == HttpStatusCode.OK
-
-
-# def test_process_http_request_get(web_server):
-#     payload = HttpRequestPacket(request_method=HttpRequestMethod.GET, request_url="http://domain.com/")
-#
-#     web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
-#
-#     assert web_server_service._process_http_request(payload=payload) is True
-#
-#
-# def test_process_http_request_method_not_allowed(web_server):
-#     payload = HttpRequestPacket(request_method=HttpRequestMethod.DELETE, request_url="http://domain.com/")
-#
-#     web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
-#
-#     assert web_server_service._process_http_request(payload=payload) is False

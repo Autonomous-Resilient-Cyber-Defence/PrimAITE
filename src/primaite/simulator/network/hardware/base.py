@@ -725,10 +725,6 @@ class Node(SimComponent):
         self._install_system_software()
         self.set_original_state()
 
-    # def model_post_init(self, __context: Any) -> None:
-    #     self._install_system_software()
-    #     self.set_original_state()
-
     def set_original_state(self):
         """Sets the original state."""
         for software in self.software_manager.software.values():

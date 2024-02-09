@@ -102,7 +102,7 @@ class PacketCapture:
 
     def capture_outbound(self, frame):  # noqa - I'll have a circular import and cant use if TYPE_CHECKING ;(
         """
-        Capture an inbound Frame and log it.
+        Capture an outbound Frame and log it.
 
         :param frame: The PCAP frame to capture.
         """
