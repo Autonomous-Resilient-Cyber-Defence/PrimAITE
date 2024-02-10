@@ -77,6 +77,10 @@ SessionManager.
     - Interface configuration to establish connectivity and define network parameters for external, internal, and DMZ interfaces.
     - Protocol and service management to oversee traffic and enforce security policies.
     - Dynamic traffic processing and filtering to ensure network security and integrity.
+- `AirSpace` class to simulate wireless communications, managing wireless interfaces and facilitating the transmission of frames within specified frequencies.
+- `AirSpaceFrequency` enum for defining standard wireless frequencies, including 2.4 GHz and 5 GHz bands, to support realistic wireless network simulations.
+- `WirelessRouter` class, extending the `Router` class, to incorporate wireless networking capabilities alongside traditional wired connections. This class allows the configuration of wireless access points with specific IP settings and operating frequencies.
+
 
 ### Changed
 - Integrated the RouteTable into the Routers frame processing.
