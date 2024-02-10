@@ -123,7 +123,7 @@ class ACLRule(SimComponent):
     dst_wildcard_mask: Optional[IPV4Address] = None
     src_port: Optional[Port] = None
     dst_port: Optional[Port] = None
-    hit_count: int = 0
+    match_count: int = 0
 
     def __str__(self) -> str:
         rule_strings = []
@@ -154,10 +154,10 @@ class ACLRule(SimComponent):
         state["src_port"] = self.src_port.name if self.src_port else None
         state["dst_ip_address"] = str(self.dst_ip_address) if self.dst_ip_address else None
         state["dst_port"] = self.dst_port.name if self.dst_port else None
-        state["hit_count"] = self.hit_count
+        state["match_count"] = self.match_count
         return state
 
-    def permit_frame_check(self, frame: Frame) -> bool:
+    def permit_frame_check(self, frame: Frame) -> Tuple[bool, bool]:
         """
         Evaluates whether a given network frame should be permitted or denied based on this ACL rule.
 
@@ -177,9 +177,13 @@ class ACLRule(SimComponent):
         4. The frame is permitted if it matches all specified criteria and the rule's action is PERMIT. Conversely, it
            is not permitted if any criterion does not match or if the rule's action is DENY.
 
-        :param frame (Frame): The network frame to be evaluated.
-        :return: True if the frame is permitted by this ACL rule, False otherwise.
+        :param frame: The network frame to be evaluated.
+        :return: A tuple containing two boolean values: The first indicates if the frame is permitted by this rule (
+            True if permitted, otherwise False). The second indicates if the frame matches the rule's criteria (True
+            if it matches, otherwise False).
         """
+        permitted = False
+        frame_matches_rule = False
         protocol_matches = self.protocol == frame.ip.protocol if self.protocol else True
 
         src_ip_matches = self.src_ip_address is None  # Assume match if no specific src IP is defined
@@ -222,10 +226,10 @@ class ACLRule(SimComponent):
 
         # The frame is permitted if all conditions are met
         if protocol_matches and src_ip_matches and dst_ip_matches and src_port_matches and dst_port_matches:
-            return self.action == ACLAction.PERMIT
-        else:
-            # If any condition is not met, the decision depends on the rule action
-            return False
+            frame_matches_rule = True
+            permitted = self.action == ACLAction.PERMIT
+
+        return permitted, frame_matches_rule
 
 
 class AccessControlList(SimComponent):
@@ -336,6 +340,7 @@ class AccessControlList(SimComponent):
             )
 
     def _init_request_manager(self) -> RequestManager:
+        # TODO: Add src and dst wildcard masks as positional args in this request.
         rm = super()._init_request_manager()
 
         # When the request reaches this action, it should now contain solely positional args for the 'add_rule' action.
@@ -351,13 +356,13 @@ class AccessControlList(SimComponent):
             "add_rule",
             RequestType(
                 func=lambda request, context: self.add_rule(
-                    ACLAction[request[0]],
-                    None if request[1] == "ALL" else IPProtocol[request[1]],
-                    None if request[2] == "ALL" else IPv4Address(request[2]),
-                    None if request[3] == "ALL" else Port[request[3]],
-                    None if request[4] == "ALL" else IPv4Address(request[4]),
-                    None if request[5] == "ALL" else Port[request[5]],
-                    int(request[6]),
+                    action=ACLAction[request[0]],
+                    protocol=None if request[1] == "ALL" else IPProtocol[request[1]],
+                    src_ip_address=None if request[2] == "ALL" else IPv4Address(request[2]),
+                    src_port=None if request[3] == "ALL" else Port[request[3]],
+                    dst_ip_address=None if request[4] == "ALL" else IPv4Address(request[4]),
+                    dst_port=None if request[5] == "ALL" else Port[request[5]],
+                    position=int(request[6]),
                 )
             ),
         )
@@ -410,18 +415,47 @@ class AccessControlList(SimComponent):
         position: int = 0,
     ) -> None:
         """
-        Add a new ACL rule.
+        Adds a new ACL rule to control network traffic based on specified criteria.
 
-        :param ACLAction action: Action to be performed (Permit/Deny).
-        :param protocol: Network protocol. Optional, default is None.
-        :param src_ip_address: Source IP address. Optional, default is None.
-        :param src_wildcard_mask: Source IP wildcard mask. Optional, default is None.
-        :param src_port: Source port number. Optional, default is None.
-        :param dst_ip_address: Destination IP address. Optional, default is None.
-        :param dst_wildcard_mask: Destination IP wildcard mask. Optional, default is None.
-        :param dst_port: Destination port number. Optional, default is None.
-        :param int position: Position in the ACL list to insert the rule. Optional, default is 1.
-        :raises ValueError: When the position is out of bounds.
+        This method allows defining rules that specify whether to permit or deny traffic with particular
+        characteristics, including source and destination IP addresses, ports, and protocols. Wildcard masks can be
+        used to specify a range of IP addresses, allowing for broader rule application. If specifying a dedicated IP
+        address without needing a range, the wildcard mask can be omitted.
+
+        Example:
+            >>> # To block all traffic except SSH from a specific IP range to a server:
+            >>> router = Router("router")
+            >>> router.add_rule(
+            ...    action=ACLAction.DENY,
+            ...    protocol=IPProtocol.TCP,
+            ...    src_ip_address="192.168.1.0",
+            ...    src_wildcard_mask="0.0.0.255",
+            ...    dst_ip_address="10.10.10.5",
+            ...    dst_port=Port.SSH,
+            ...    position=5
+            ... )
+            >>> # This permits SSH traffic from the 192.168.1.0/24 subnet to the 10.10.10.5 server.
+            >>>
+            >>> # Then if we want to allow a specific IP address from this subnet to SSH into the server
+            >>> router.add_rule(
+            ...    action=ACLAction.PERMIT,
+            ...    protocol=IPProtocol.TCP,
+            ...    src_ip_address="192.168.1.25",
+            ...    dst_ip_address="10.10.10.5",
+            ...    dst_port=Port.SSH,
+            ...    position=4
+            ... )
+
+        :param action: The action to take (Permit/Deny) when the rule matches traffic.
+        :param protocol: The network protocol (TCP/UDP/ICMP) to match. If None, matches any protocol.
+        :param src_ip_address: The source IP address to match. If None, matches any source IP.
+        :param src_wildcard_mask: Specifies a wildcard mask for the source IP. Use for IP ranges.
+        :param dst_ip_address: The destination IP address to match. If None, matches any destination IP.
+        :param dst_wildcard_mask: Specifies a wildcard mask for the destination IP. Use for IP ranges.
+        :param src_port: The source port to match. If None, matches any source port.
+        :param dst_port: The destination port to match. If None, matches any destination port.
+        :param int position: The position in the ACL list to insert this rule. Defaults is position 0 right at the top.
+        :raises ValueError: If the position is out of bounds.
         """
         if 0 <= position < self.max_acl_rules:
             if self._acl[position]:
@@ -461,15 +495,15 @@ class AccessControlList(SimComponent):
             if not _rule:
                 continue
 
-            if _rule.permit_frame_check(frame):
-                permitted = True
+            permitted, rule_match = _rule.permit_frame_check(frame)
+            if rule_match:
                 rule = _rule
                 break
         if not rule:
             permitted = self.implicit_action == ACLAction.PERMIT
             rule = self.implicit_rule
 
-        rule.hit_count += 1
+        rule.match_count += 1
 
         return permitted, rule
 
@@ -528,7 +562,7 @@ class AccessControlList(SimComponent):
                 "Dst IP",
                 "Dst Wildcard",
                 "Dst Port",
-                "Hit Count",
+                "Matched",
             ]
         )
         if markdown:
@@ -549,7 +583,7 @@ class AccessControlList(SimComponent):
                         rule.dst_ip_address if rule.dst_ip_address else "ANY",
                         rule.dst_wildcard_mask if rule.dst_wildcard_mask else "ANY",
                         f"{rule.dst_port.value} ({rule.dst_port.name})" if rule.dst_port else "ANY",
-                        rule.hit_count,
+                        rule.match_count,
                     ]
                 )
         print(table)

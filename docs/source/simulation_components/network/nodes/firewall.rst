@@ -356,7 +356,7 @@ This function showcases each rule in an ACL, outlining its:
 - **Src IP and Dst IP**: Source and destination IP addresses.
 - **Src Wildcard and Dst** Wildcard: Wildcard masks for source and destination IP ranges.
 - **Src Port and Dst Port**: Source and destination ports.
-- **Hit Count**: The number of times the rule has been matched by traffic.
+- **Matched**: The number of times the rule has been matched by traffic.
 
 Example Output:
 
@@ -365,7 +365,7 @@ Example Output:
     +---------------------------------------------------------------------------------------------------------------+
     |                               firewall_1 - External Inbound Access Control List                               |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
-    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Hit Count |
+    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Matched   |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
     | 22    | PERMIT | ANY      | ANY    | ANY          | 219 (ARP) | ANY    | ANY          | 219 (ARP) | 1         |
     | 23    | PERMIT | ICMP     | ANY    | ANY          | ANY       | ANY    | ANY          | ANY       | 0         |
@@ -375,7 +375,7 @@ Example Output:
     +---------------------------------------------------------------------------------------------------------------+
     |                               firewall_1 - External Outbound Access Control List                              |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
-    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Hit Count |
+    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Matched   |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
     | 22    | PERMIT | ANY      | ANY    | ANY          | 219 (ARP) | ANY    | ANY          | 219 (ARP) | 0         |
     | 23    | PERMIT | ICMP     | ANY    | ANY          | ANY       | ANY    | ANY          | ANY       | 0         |
@@ -385,7 +385,7 @@ Example Output:
     +---------------------------------------------------------------------------------------------------------------+
     |                               firewall_1 - Internal Inbound Access Control List                               |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
-    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Hit Count |
+    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Matched   |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
     | 1     | PERMIT | ANY      | ANY    | ANY          | 123 (NTP) | ANY    | ANY          | 123 (NTP) | 1         |
     | 22    | PERMIT | ANY      | ANY    | ANY          | 219 (ARP) | ANY    | ANY          | 219 (ARP) | 0         |
@@ -396,7 +396,7 @@ Example Output:
     +---------------------------------------------------------------------------------------------------------------+
     |                               firewall_1 - Internal Outbound Access Control List                              |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
-    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Hit Count |
+    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Matched   |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
     | 1     | PERMIT | ANY      | ANY    | ANY          | 123 (NTP) | ANY    | ANY          | 123 (NTP) | 1         |
     | 22    | PERMIT | ANY      | ANY    | ANY          | 219 (ARP) | ANY    | ANY          | 219 (ARP) | 1         |
@@ -407,7 +407,7 @@ Example Output:
     +---------------------------------------------------------------------------------------------------------------+
     |                                  firewall_1 - DMZ Inbound Access Control List                                 |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
-    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Hit Count |
+    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Matched   |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
     | 1     | PERMIT | ANY      | ANY    | ANY          | 123 (NTP) | ANY    | ANY          | 123 (NTP) | 1         |
     | 22    | PERMIT | ANY      | ANY    | ANY          | 219 (ARP) | ANY    | ANY          | 219 (ARP) | 0         |
@@ -418,7 +418,7 @@ Example Output:
     +---------------------------------------------------------------------------------------------------------------+
     |                                 firewall_1 - DMZ Outbound Access Control List                                 |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
-    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Hit Count |
+    | Index | Action | Protocol | Src IP | Src Wildcard | Src Port  | Dst IP | Dst Wildcard | Dst Port  | Matched   |
     +-------+--------+----------+--------+--------------+-----------+--------+--------------+-----------+-----------+
     | 1     | PERMIT | ANY      | ANY    | ANY          | 123 (NTP) | ANY    | ANY          | 123 (NTP) | 1         |
     | 22    | PERMIT | ANY      | ANY    | ANY          | 219 (ARP) | ANY    | ANY          | 219 (ARP) | 1         |
