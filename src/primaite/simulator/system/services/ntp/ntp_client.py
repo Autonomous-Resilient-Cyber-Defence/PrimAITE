@@ -132,7 +132,6 @@ class NTPClient(Service):
         super().apply_timestep(timestep)
         if self.operating_state == ServiceOperatingState.RUNNING:
             # request time from server
-            if self.ntp_server is not None:
-                self.request_time()
+            self.request_time()
         else:
             self.sys_log.debug(f"{self.name} ntp client not running")
