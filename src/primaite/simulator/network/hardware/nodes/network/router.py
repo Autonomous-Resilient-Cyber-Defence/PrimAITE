@@ -103,11 +103,11 @@ class ACLRule(SimComponent):
         The default action is `DENY`.
     :ivar Optional[IPProtocol] protocol: The network protocol (e.g., TCP, UDP, ICMP) to match. If `None`, the rule
         applies to all protocols.
-    :ivar Optional[IPv4Address] src_ip_address: The source IP address to match. If combined with `src_wildcard_mask`,
+    :ivar Optional[IPV4Address] src_ip_address: The source IP address to match. If combined with `src_wildcard_mask`,
         it specifies the start of an IP range.
-    :ivar Optional[IPv4Address] src_wildcard_mask: The wildcard mask for the source IP address, defining the range
+    :ivar Optional[IPV4Address] src_wildcard_mask: The wildcard mask for the source IP address, defining the range
         of addresses to match.
-    :ivar Optional[IPv4Address] dst_ip_address: The destination IP address to match. If combined with
+    :ivar Optional[IPV4Address] dst_ip_address: The destination IP address to match. If combined with
         `dst_wildcard_mask`, it specifies the start of an IP range.
     :ivar Optional[IPv4Address] dst_wildcard_mask: The wildcard mask for the destination IP address, defining the
         range of addresses to match.
@@ -1225,7 +1225,7 @@ class Router(NetworkNode):
         """
         Determines whether a given network frame should be forwarded to the session manager.
 
-        his function evaluates whether the destination IP address of the frame corresponds to one of the router's
+        This function evaluates whether the destination IP address of the frame corresponds to one of the router's
         interface IP addresses. If so, it then checks if the frame is an ICMP packet or if the destination port matches
         any of the ports that the router's software manager identifies as open. If either condition is met, the frame
         is considered for further processing by the session manager, implying potential application-level handling or

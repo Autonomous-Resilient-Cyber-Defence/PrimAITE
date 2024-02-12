@@ -118,15 +118,9 @@ class WirelessRouter(Router):
     def __init__(self, hostname: str, **kwargs):
         super().__init__(hostname=hostname, num_ports=0, **kwargs)
 
-        wap = WirelessAccessPoint(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
-        wap.port_num = 1
-        self.connect_nic(wap)
-        self.network_interface[1] = wap
+        self.connect_nic(WirelessAccessPoint(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0"))
 
-        router_interface = RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
-        router_interface.port_num = 2
-        self.connect_nic(router_interface)
-        self.network_interface[2] = router_interface
+        self.connect_nic(RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0"))
 
         self.set_original_state()
 
