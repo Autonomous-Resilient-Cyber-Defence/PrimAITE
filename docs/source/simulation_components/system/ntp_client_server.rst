@@ -22,7 +22,7 @@ Key capabilities
 Usage
 ^^^^^
 - Install on a Node via the ``SoftwareManager`` to start the database service.
-- Service runs on TCP port 123 by default.
+- Service runs on UDP port 123 by default.
 
 Implementation
 ^^^^^^^^^^^^^^
