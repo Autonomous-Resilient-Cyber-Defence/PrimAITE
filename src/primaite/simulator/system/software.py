@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Union
 from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
@@ -242,6 +243,8 @@ class IOSoftware(Software):
     "Indicates if the software uses UDP protocol for communication. Default is True."
     port: Port
     "The port to which the software is connected."
+    protocol: IPProtocol
+    "The IP Protocol the Software operates on."
     _connections: Dict[str, Dict] = {}
     "Active connections."
 
@@ -353,6 +356,7 @@ class IOSoftware(Software):
         session_id: Optional[str] = None,
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
         dest_port: Optional[Port] = None,
+        ip_protocol: IPProtocol = IPProtocol.TCP,
         **kwargs,
     ) -> bool:
         """
@@ -372,7 +376,11 @@ class IOSoftware(Software):
             return False
 
         return self.software_manager.send_payload_to_session_manager(
-            payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id
+            payload=payload,
+            dest_ip_address=dest_ip_address,
+            dest_port=dest_port,
+            ip_protocol=ip_protocol,
+            session_id=session_id,
         )
 
     @abstractmethod

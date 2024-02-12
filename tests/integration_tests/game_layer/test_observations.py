@@ -1,7 +1,7 @@
 from gymnasium import spaces
 
 from primaite.game.agent.observations import FileObservation
-from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.sim_container import Simulation
 
 

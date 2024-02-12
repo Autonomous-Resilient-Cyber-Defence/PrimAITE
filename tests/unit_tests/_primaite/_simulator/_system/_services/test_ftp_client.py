@@ -5,7 +5,7 @@ import pytest
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -20,8 +20,9 @@ def ftp_client() -> Node:
         ip_address="192.168.1.11",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
+    node.power_on()
     return node
 
 

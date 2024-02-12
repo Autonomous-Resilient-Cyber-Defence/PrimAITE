@@ -1,5 +1,5 @@
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.services.database.database_service import DatabaseService
