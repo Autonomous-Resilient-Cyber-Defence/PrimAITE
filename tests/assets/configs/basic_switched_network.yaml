@@ -85,6 +85,7 @@ simulation:
         type: DatabaseClient
         options:
           db_server_ip: 192.168.1.10
+          server_password: arcd
       - ref: data_manipulation_bot
         type: DataManipulationBot
         options:
@@ -92,6 +93,7 @@ simulation:
           data_manipulation_p_of_success: 0.8
           payload: "DELETE"
           server_ip: 192.168.1.21
+          server_password: arcd
       - ref: dos_bot
         type: DoSBot
         options:
@@ -116,8 +118,12 @@ simulation:
         type: WebServer
       - ref: client_1_ftp_server
         type: FTPServer
+        options:
+          server_password: arcd
       - ref: client_1_ntp_client
         type: NTPClient
+        options:
+          ntp_server_ip: 192.168.1.10
       - ref: client_1_ntp_server
         type: NTPServer
     - ref: client_2

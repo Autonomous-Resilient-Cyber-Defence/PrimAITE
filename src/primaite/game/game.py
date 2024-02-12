@@ -283,7 +283,16 @@ class PrimaiteGame:
                             opt = service_cfg["options"]
                             new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
                         new_service.start()
-
+                    if service_type == "FTPServer":
+                        if "options" in service_cfg:
+                            opt = service_cfg["options"]
+                            new_service.server_password = opt.get("server_password")
+                        new_service.start()
+                    if service_type == "NTPClient":
+                        if "options" in service_cfg:
+                            opt = service_cfg["options"]
+                            new_service.ntp_server = IPv4Address(opt.get("ntp_server_ip"))
+                        new_service.start()
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
                     new_application = None

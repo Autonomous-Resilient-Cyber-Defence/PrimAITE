@@ -9,7 +9,7 @@ from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.interface import ProxyAgent, RandomAgent
 from primaite.game.game import APPLICATION_TYPES_MAPPING, PrimaiteGame, SERVICE_TYPES_MAPPING
 from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.nodes.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
@@ -109,6 +109,7 @@ def test_database_client_install():
     database_client: DatabaseClient = client_1.software_manager.software.get("DatabaseClient")
 
     assert database_client.server_ip_address == IPv4Address("192.168.1.10")
+    assert database_client.server_password == "arcd"
 
 
 def test_data_manipulation_bot_install():
@@ -122,6 +123,7 @@ def test_data_manipulation_bot_install():
     assert data_manipulation_bot.payload == "DELETE"
     assert data_manipulation_bot.data_manipulation_p_of_success == 0.8
     assert data_manipulation_bot.port_scan_p_of_success == 0.8
+    assert data_manipulation_bot.server_password == "arcd"
 
 
 def test_dos_bot_install():
@@ -147,6 +149,16 @@ def test_dns_client_install():
     dns_client: DNSClient = client_1.software_manager.software.get("DNSClient")
 
     assert dns_client.dns_server == IPv4Address("192.168.1.10")
+
+
+def test_dns_server_install():
+    """Test that the DNS Client service can be configured via config."""
+    game = load_config(BASIC_CONFIG)
+    client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
+
+    dns_server: DNSServer = client_1.software_manager.software.get("DNSServer")
+
+    assert dns_server.dns_lookup("arcd.com") == IPv4Address("192.168.1.10")
 
 
 def test_database_service_install():
@@ -186,6 +198,7 @@ def test_ftp_server_install():
 
     ftp_server_service: FTPServer = client_1.software_manager.software.get("FTPServer")
     assert ftp_server_service is not None
+    assert ftp_server_service.server_password == "arcd"
 
 
 def test_ntp_client_install():
@@ -195,6 +208,7 @@ def test_ntp_client_install():
 
     ntp_client_service: NTPClient = client_1.software_manager.software.get("NTPClient")
     assert ntp_client_service is not None
+    assert ntp_client_service.ntp_server == IPv4Address("192.168.1.10")
 
 
 def test_ntp_server_install():
