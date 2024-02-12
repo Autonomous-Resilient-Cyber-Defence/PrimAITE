@@ -35,9 +35,9 @@ def ip_matches_masked_range(ip_to_check: IPV4Address, base_ip: IPV4Address, wild
     by the wildcard mask. If the resulting masked IP addresses are equal, it means the IP address to check falls within
     the range defined by the base IP and wildcard mask.
 
-    :param IPv4Address ip_to_check: The IP address to be checked.
-    :param IPv4Address base_ip: The base IP address defining the start of the range.
-    :param IPv4Address wildcard_mask: The wildcard mask specifying which bits to ignore.
+    :param IPV4Address ip_to_check: The IP address to be checked.
+    :param IPV4Address base_ip: The base IP address defining the start of the range.
+    :param IPV4Address wildcard_mask: The wildcard mask specifying which bits to ignore.
     :return: A boolean value indicating whether the IP address matches the masked range.
     :rtype: bool
 

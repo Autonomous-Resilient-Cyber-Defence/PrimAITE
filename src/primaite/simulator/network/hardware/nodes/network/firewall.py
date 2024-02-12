@@ -122,6 +122,8 @@ class Firewall(Router):
             "internal_outbound_acl",
             "dmz_inbound_acl",
             "dmz_outbound_acl",
+            "external_inbound_acl",
+            "external_outbound_acl",
         }
         self._original_state.update(self.model_dump(include=vals_to_include))
 
@@ -142,6 +144,8 @@ class Firewall(Router):
                 "internal_outbound_acl": self.internal_outbound_acl.describe_state(),
                 "dmz_inbound_acl": self.dmz_inbound_acl.describe_state(),
                 "dmz_outbound_acl": self.dmz_outbound_acl.describe_state(),
+                "external_inbound_acl": self.external_inbound_acl.describe_state(),
+                "external_outbound_acl": self.external_outbound_acl.describe_state(),
             }
         )
 
@@ -263,12 +267,11 @@ class Firewall(Router):
         if not permitted:
             self.sys_log.info(f"Frame blocked at interface {from_network_interface} by rule {rule}")
             return
-        else:
-            self.software_manager.arp.add_arp_cache_entry(
-                ip_address=frame.ip.src_ip_address,
-                mac_address=frame.ethernet.src_mac_addr,
-                network_interface=from_network_interface,
-            )
+        self.software_manager.arp.add_arp_cache_entry(
+            ip_address=frame.ip.src_ip_address,
+            mac_address=frame.ethernet.src_mac_addr,
+            network_interface=from_network_interface,
+        )
 
         if self.check_send_frame_to_session_manager(frame):
             # Port is open on this Router so pass Frame up to session manager first
@@ -332,12 +335,11 @@ class Firewall(Router):
         if not permitted:
             self.sys_log.info(f"Frame blocked at interface {from_network_interface} by rule {rule}")
             return
-        else:
-            self.software_manager.arp.add_arp_cache_entry(
-                ip_address=frame.ip.src_ip_address,
-                mac_address=frame.ethernet.src_mac_addr,
-                network_interface=from_network_interface,
-            )
+        self.software_manager.arp.add_arp_cache_entry(
+            ip_address=frame.ip.src_ip_address,
+            mac_address=frame.ethernet.src_mac_addr,
+            network_interface=from_network_interface,
+        )
 
         if self.check_send_frame_to_session_manager(frame):
             # Port is open on this Router so pass Frame up to session manager first
@@ -387,12 +389,11 @@ class Firewall(Router):
         if not permitted:
             self.sys_log.info(f"Frame blocked at interface {from_network_interface} by rule {rule}")
             return
-        else:
-            self.software_manager.arp.add_arp_cache_entry(
-                ip_address=frame.ip.src_ip_address,
-                mac_address=frame.ethernet.src_mac_addr,
-                network_interface=from_network_interface,
-            )
+        self.software_manager.arp.add_arp_cache_entry(
+            ip_address=frame.ip.src_ip_address,
+            mac_address=frame.ethernet.src_mac_addr,
+            network_interface=from_network_interface,
+        )
 
         if self.check_send_frame_to_session_manager(frame):
             # Port is open on this Router so pass Frame up to session manager first
