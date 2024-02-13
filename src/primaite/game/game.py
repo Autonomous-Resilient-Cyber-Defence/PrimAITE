@@ -266,6 +266,10 @@ class PrimaiteGame:
                         game.ref_map_services[service_ref] = new_service.uuid
                     else:
                         _LOGGER.warning(f"service type not found {service_type}")
+
+                    # start the service
+                    new_service.start()
+
                     # service-dependent options
                     if service_type == "DNSClient":
                         if "options" in service_cfg:
@@ -282,17 +286,14 @@ class PrimaiteGame:
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
                             new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
-                        new_service.start()
                     if service_type == "FTPServer":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
                             new_service.server_password = opt.get("server_password")
-                        new_service.start()
                     if service_type == "NTPClient":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
                             new_service.ntp_server = IPv4Address(opt.get("ntp_server_ip"))
-                        new_service.start()
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
                     new_application = None
@@ -305,6 +306,9 @@ class PrimaiteGame:
                         game.ref_map_applications[application_ref] = new_application.uuid
                     else:
                         _LOGGER.warning(f"application type not found {application_type}")
+
+                    # run the application
+                    new_application.run()
 
                     if application_type == "DataManipulationBot":
                         if "options" in application_cfg:
@@ -327,7 +331,6 @@ class PrimaiteGame:
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
                             new_application.target_url = opt.get("target_url")
-
                     elif application_type == "DoSBot":
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
@@ -343,6 +346,9 @@ class PrimaiteGame:
             if "network_interfaces" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
+
+            new_node.start_up_duration = int(node_cfg.get("start_up_duration", 3))
+            new_node.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
 
             net.add_node(new_node)
             new_node.power_on()

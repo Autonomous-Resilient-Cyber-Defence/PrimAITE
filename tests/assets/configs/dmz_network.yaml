@@ -9,26 +9,26 @@
 #   .      --------------      --------------      --------------              .
 #   .      |  client_1  |------|  switch_1  |------|  router_1  |              .
 #   .      --------------      --------------      --------------              .
-#   .        (Computer)                                   |                    .
-#   ......................................................|.....................
-#                                                         |
-#                                                         |
-#   ......................................................|.....................
-#   .                                                     |                    .
-#   .  DMZ Network                                        |                    .
-#   .                                                     |                    .
-#   .      --------------      --------------      --------------              .
-#   .      |  client_2  |------|  switch_2  |------|  router_2  |              .
-#   .      --------------      --------------      --------------              .
-#   .        (Computer)                                   |                    .
-#   ......................................................|.....................
-#                                                         |
-#    External Network                                     |
-#                                                         |
-#                                                         |
-#                      -----------------------      --------------      ---------------------
-#                      |  external_computer  |------|  switch_3  |------|  external_server  |
-#                      -----------------------      --------------      ---------------------
+#   .        (Computer)                                     |                  .
+#   ........................................................|.....................
+#                                                           |
+#                                                           |
+#   ........................................................|.....................
+#   .                                                       |                  .
+#   .  DMZ Network                                          |                  .
+#   .                                                       |                  .
+#   .      ----------------      --------------      --------------            .
+#   .      |  dmz_server  |------|  switch_2  |------|  router_2  |            .
+#   .      ----------------      --------------      --------------            .
+#   .        (Computer)                                     |                  .
+#   ........................................................|...................
+#                                                           |
+#    External Network                                       |
+#                                                           |
+#                                                           |
+#                        -----------------------      --------------      ---------------------
+#                        |  external_computer  |------|  switch_3  |------|  external_server  |
+#                        -----------------------      --------------      ---------------------
 #
 training_config:
   rl_framework: SB3
@@ -63,7 +63,7 @@ game:
     - UDP
 
 agents:
-  - ref: client_2_green_user
+  - ref: client_1_green_user
     team: GREEN
     type: GreenWebBrowsingAgent
     observation_space:
@@ -74,7 +74,7 @@ agents:
         - type: NODE_APPLICATION_EXECUTE
       options:
         nodes:
-          - node_name: client_2
+          - node_name: client_1
             applications:
               - application_name: WebBrowser
         max_folders_per_node: 1
@@ -102,17 +102,23 @@ simulation:
         ip_address: 192.168.0.10
         subnet_mask: 255.255.255.0
         default_gateway: 192.168.0.1
-        dns_server: 192.168.20.10
+        dns_server: 192.168.20.11
+        start_up_duration: 0
+        shut_down_duration: 0
 
       - ref: switch_1
         type: switch
         hostname: switch_1
         num_ports: 8
+        start_up_duration: 0
+        shut_down_duration: 0
 
       - ref: router_1
         type: router
         hostname: router_1
         num_ports: 5
+        start_up_duration: 0
+        shut_down_duration: 0
         ports:
           1:
             ip_address: 192.168.0.1
@@ -128,24 +134,43 @@ simulation:
           23:
             action: PERMIT
             protocol: ICMP
+        routes:
+          - address: 192.168.10.10
+            subnet_mask: 255.255.255.0
+            next_hop_ip_address: 192.168.11.1
+            metric: 0
+          - address: 192.168.20.10
+            subnet_mask: 255.255.255.0
+            next_hop_ip_address: 192.168.11.1
+            metric: 0
+          - address: 192.168.20.11
+            subnet_mask: 255.255.255.0
+            next_hop_ip_address: 192.168.11.1
+            metric: 0
 
-      - ref: client_2
-        type: computer
-        hostname: client_2
+      - ref: dmz_server
+        type: server
+        hostname: dmz_server
         ip_address: 192.168.10.10
         subnet_mask: 255.255.255.0
         default_gateway: 192.168.10.1
-        dns_server: 192.168.20.10
+        dns_server: 192.168.20.11
+        start_up_duration: 0
+        shut_down_duration: 0
 
       - ref: switch_2
         type: switch
         hostname: switch_2
         num_ports: 8
+        start_up_duration: 0
+        shut_down_duration: 0
 
       - ref: router_2
         type: router
         hostname: router_2
         num_ports: 5
+        start_up_duration: 0
+        shut_down_duration: 0
         ports:
           1:
             ip_address: 192.168.10.1
@@ -164,11 +189,18 @@ simulation:
           23:
             action: PERMIT
             protocol: ICMP
+        routes:
+          - address: 192.168.0.10
+            subnet_mask: 255.255.255.0
+            next_hop_ip_address: 192.168.1.1
+            metric: 0
 
       - ref: switch_3
         type: switch
         hostname: switch_3
         num_ports: 8
+        start_up_duration: 0
+        shut_down_duration: 0
 
       - ref: external_computer
         type: computer
@@ -176,14 +208,18 @@ simulation:
         ip_address: 192.168.20.10
         subnet_mask: 255.255.255.0
         default_gateway: 192.168.20.1
-        dns_server: 192.168.20.10
+        dns_server: 192.168.20.11
+        start_up_duration: 0
+        shut_down_duration: 0
 
       - ref: external_server
         type: server
         hostname: external_server
-        ip_address: 192.168.20.10
+        ip_address: 192.168.20.11
         subnet_mask: 255.255.255.0
         default_gateway: 192.168.20.1
+        start_up_duration: 0
+        shut_down_duration: 0
         services:
           - ref: domain_controller_dns_server
             type: DNSServer
@@ -208,8 +244,8 @@ simulation:
         endpoint_a_port: 1
         endpoint_b_ref: switch_2
         endpoint_b_port: 8
-      - ref: client_2___switch_2
-        endpoint_a_ref: client_2
+      - ref: dmz_server___switch_2
+        endpoint_a_ref: dmz_server
         endpoint_a_port: 1
         endpoint_b_ref: switch_2
         endpoint_b_port: 1

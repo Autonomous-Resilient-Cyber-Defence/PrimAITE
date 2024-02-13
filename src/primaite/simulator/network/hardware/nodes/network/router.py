@@ -1276,4 +1276,12 @@ class Router(NetworkNode):
         if "acl" in cfg:
             new.acl._default_config = cfg["acl"]  # save the config to allow resetting
             new.acl._reset_rules_to_default()  # read the config and apply rules
+        if "routes" in cfg:
+            for route in cfg.get("routes"):
+                new.route_table.add_route(
+                    address=IPv4Address(route.get("address")),
+                    subnet_mask=IPv4Address(route.get("subnet_mask")),
+                    next_hop_ip_address=IPv4Address(route.get("subnet_mask")),
+                    metric=float(route.get("metric")),
+                )
         return new
