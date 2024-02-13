@@ -16,7 +16,7 @@ class NTPServer(Service):
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPServer"
         kwargs["port"] = Port.NTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["protocol"] = IPProtocol.UDP
         super().__init__(**kwargs)
         self.start()
 
