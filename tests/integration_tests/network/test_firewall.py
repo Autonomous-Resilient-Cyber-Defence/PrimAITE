@@ -18,7 +18,7 @@ def dmz_external_internal_network() -> Network:
     Fixture for setting up a simulated network with a firewall, external node, internal node, and DMZ node. This
     configuration is designed to test firewall rules and their impact on traffic between these network segments.
 
-        --------------         --------------         --------------
+    --------------         --------------         --------------
     |  external  |---------|  firewall  |---------|  internal  |
     --------------         --------------         --------------
                                   |

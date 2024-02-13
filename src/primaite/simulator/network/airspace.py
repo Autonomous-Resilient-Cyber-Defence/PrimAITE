@@ -292,7 +292,6 @@ class IPWirelessNetworkInterface(WirelessNetworkInterface, Layer3Interface, ABC)
         """
         super().enable()
         try:
-            pass
             self._connected_node.default_gateway_hello()
         except AttributeError:
             pass
