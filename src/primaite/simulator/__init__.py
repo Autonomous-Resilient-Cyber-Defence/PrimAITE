@@ -12,8 +12,8 @@ class _SimOutput:
         self._path: Path = (
             _PRIMAITE_ROOT.parent.parent / "simulation_output" / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         )
-        self.save_pcap_logs: bool = False
-        self.save_sys_logs: bool = False
+        self.save_pcap_logs: bool = True
+        self.save_sys_logs: bool = True
 
     @property
     def path(self) -> Path:
