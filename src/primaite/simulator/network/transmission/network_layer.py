@@ -1,9 +1,9 @@
 from enum import Enum
-from ipaddress import IPv4Address
 
 from pydantic import BaseModel
 
 from primaite import getLogger
+from primaite.utils.validators import IPV4Address
 
 _LOGGER = getLogger(__name__)
 
@@ -73,9 +73,9 @@ class IPPacket(BaseModel):
     ... )
     """
 
-    src_ip_address: IPv4Address
+    src_ip_address: IPV4Address
     "Source IP address."
-    dst_ip_address: IPv4Address
+    dst_ip_address: IPV4Address
     "Destination IP address."
     protocol: IPProtocol = IPProtocol.TCP
     "IPProtocol."
