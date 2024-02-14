@@ -101,6 +101,7 @@ def test_database_client_query(uc2_network):
     db_client.connect()
 
     assert db_client.query("SELECT")
+    assert db_client.query("INSERT")
 
 
 def test_create_database_backup(uc2_network):
@@ -150,7 +151,7 @@ def test_database_client_cannot_query_offline_database_server(uc2_network):
     assert len(db_client.connections)
 
     assert db_client.query("SELECT") is True
-
+    assert db_client.query("INSERT") is True
     db_server.power_off()
 
     for i in range(db_server.shut_down_duration + 1):
@@ -160,3 +161,4 @@ def test_database_client_cannot_query_offline_database_server(uc2_network):
     assert db_service.operating_state is ServiceOperatingState.STOPPED
 
     assert db_client.query("SELECT") is False
+    assert db_client.query("INSERT") is False

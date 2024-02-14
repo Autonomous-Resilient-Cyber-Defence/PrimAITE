@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a bug where the red agent acted to early
 - Fixed the order of service health state
 - Fixed an issue where starting a node didn't start the services on it
+- Added support for SQL INSERT command.
 
 
 
