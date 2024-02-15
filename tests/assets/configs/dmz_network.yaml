@@ -218,17 +218,11 @@ simulation:
               action: PERMIT
               src_port: ARP
               dst_port: ARP
-            23:
-              action: PERMIT
-              protocol: ICMP
           external_outbound_acl:
             22:
               action: PERMIT
               src_port: ARP
               dst_port: ARP
-            23:
-              action: PERMIT
-              protocol: ICMP
         routes:
           - address: 192.168.0.10 # route to client_1
             subnet_mask: 255.255.255.0

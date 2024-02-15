@@ -3,7 +3,9 @@ import pytest
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.network.hardware.nodes.network.router import Router
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 from tests.integration_tests.configuration_file_parsing import DMZ_NETWORK, load_config
 
 
@@ -49,6 +51,15 @@ def test_router_routes_are_correctly_added(dmz_config):
     assert external_computer.ping(external_server.network_interface[1].ip_address)
 
 
-def test_router_acl_rules_correctly_added():
+def test_router_acl_rules_correctly_added(dmz_config):
     """Test that makes sure that the router ACLs have been configured onto the router node via configuration file."""
-    pass
+    router_1: Router = dmz_config.get_node_by_hostname("router_1")
+
+    # ICMP and ARP should be allowed
+    assert router_1.acl.num_rules == 2
+    assert router_1.acl.acl[22].action == ACLAction.PERMIT
+    assert router_1.acl.acl[22].src_port == Port.ARP
+    assert router_1.acl.acl[22].dst_port == Port.ARP
+    assert router_1.acl.acl[23].action == ACLAction.PERMIT
+    assert router_1.acl.acl[23].protocol == IPProtocol.ICMP
+    assert router_1.acl.implicit_action == ACLAction.DENY
