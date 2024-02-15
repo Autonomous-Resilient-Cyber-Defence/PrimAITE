@@ -15,6 +15,7 @@ from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -252,6 +253,8 @@ class PrimaiteGame:
                 )
             elif n_type == "router":
                 new_node = Router.from_config(node_cfg)
+            elif n_type == "firewall":
+                new_node = Firewall.from_config(node_cfg)
             else:
                 _LOGGER.warning(f"invalid node type {n_type} in config")
             if "services" in node_cfg:
@@ -264,11 +267,11 @@ class PrimaiteGame:
                         new_node.software_manager.install(SERVICE_TYPES_MAPPING[service_type])
                         new_service = new_node.software_manager.software[service_type]
                         game.ref_map_services[service_ref] = new_service.uuid
+
+                        # start the service
+                        new_service.start()
                     else:
                         _LOGGER.warning(f"service type not found {service_type}")
-
-                    # start the service
-                    new_service.start()
 
                     # service-dependent options
                     if service_type == "DNSClient":

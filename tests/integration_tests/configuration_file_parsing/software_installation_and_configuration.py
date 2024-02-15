@@ -1,14 +1,6 @@
 from ipaddress import IPv4Address
-from pathlib import Path
-from typing import Union
 
-import yaml
-
-from primaite.config.load import example_config_path
-from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
-from primaite.game.agent.interface import ProxyAgent, RandomAgent
-from primaite.game.game import APPLICATION_TYPES_MAPPING, PrimaiteGame, SERVICE_TYPES_MAPPING
-from primaite.simulator.network.container import Network
+from primaite.game.game import APPLICATION_TYPES_MAPPING, SERVICE_TYPES_MAPPING
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
@@ -22,47 +14,7 @@ from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.simulator.system.services.ntp.ntp_server import NTPServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
-from tests import TEST_ASSETS_ROOT
-
-BASIC_CONFIG = TEST_ASSETS_ROOT / "configs/basic_switched_network.yaml"
-
-
-def load_config(config_path: Union[str, Path]) -> PrimaiteGame:
-    """Returns a PrimaiteGame object which loads the contents of a given yaml path."""
-    with open(config_path, "r") as f:
-        cfg = yaml.safe_load(f)
-
-    return PrimaiteGame.from_config(cfg)
-
-
-def test_example_config():
-    """Test that the example config can be parsed properly."""
-    game = load_config(example_config_path())
-
-    assert len(game.agents) == 4  # red, blue and 2 green agents
-
-    # green agent 1
-    assert game.agents[0].agent_name == "client_2_green_user"
-    assert isinstance(game.agents[0], RandomAgent)
-
-    # green agent 2
-    assert game.agents[1].agent_name == "client_1_green_user"
-    assert isinstance(game.agents[1], RandomAgent)
-
-    # red agent
-    assert game.agents[2].agent_name == "client_1_data_manipulation_red_bot"
-    assert isinstance(game.agents[2], DataManipulationAgent)
-
-    # blue agent
-    assert game.agents[3].agent_name == "defender"
-    assert isinstance(game.agents[3], ProxyAgent)
-
-    network: Network = game.simulation.network
-
-    assert len(network.nodes) == 10  # 10 nodes in example network
-    assert len(network.routers) == 1  # 1 router in network
-    assert len(network.switches) == 2  # 2 switches in network
-    assert len(network.servers) == 5  # 5 servers in network
+from tests.integration_tests.configuration_file_parsing import BASIC_CONFIG, load_config
 
 
 def test_node_software_install():

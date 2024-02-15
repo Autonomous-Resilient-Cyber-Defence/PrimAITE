@@ -6,19 +6,19 @@
 #   .                                                                          .
 #   .  Internal Network                                                        .
 #   .                                                                          .
-#   .      --------------      --------------      --------------              .
-#   .      |  client_1  |------|  switch_1  |------|  router_1  |              .
-#   .      --------------      --------------      --------------              .
+#   .      --------------      --------------        --------------            .
+#   .      |  client_1  |------|  switch_1  |--------|  router_1  |            .
+#   .      --------------      --------------        --------------            .
 #   .        (Computer)                                     |                  .
-#   ........................................................|.....................
+#   ........................................................|...................
 #                                                           |
 #                                                           |
-#   ........................................................|.....................
+#   ........................................................|...................
 #   .                                                       |                  .
 #   .  DMZ Network                                          |                  .
 #   .                                                       |                  .
 #   .      ----------------      --------------      --------------            .
-#   .      |  dmz_server  |------|  switch_2  |------|  router_2  |            .
+#   .      |  dmz_server  |------|  switch_2  |------|  firewall  |            .
 #   .      ----------------      --------------      --------------            .
 #   .        (Computer)                                     |                  .
 #   ........................................................|...................
@@ -135,17 +135,17 @@ simulation:
             action: PERMIT
             protocol: ICMP
         routes:
-          - address: 192.168.10.10
+          - address: 192.168.10.10 # route to dmz_server
             subnet_mask: 255.255.255.0
-            next_hop_ip_address: 192.168.11.1
+            next_hop_ip_address: 192.168.1.2
             metric: 0
-          - address: 192.168.20.10
+          - address: 192.168.20.10 # route to external_computer
             subnet_mask: 255.255.255.0
-            next_hop_ip_address: 192.168.11.1
+            next_hop_ip_address: 192.168.1.2
             metric: 0
-          - address: 192.168.20.11
+          - address: 192.168.20.11 # route to external_server
             subnet_mask: 255.255.255.0
-            next_hop_ip_address: 192.168.11.1
+            next_hop_ip_address: 192.168.1.2
             metric: 0
 
       - ref: dmz_server
@@ -165,32 +165,72 @@ simulation:
         start_up_duration: 0
         shut_down_duration: 0
 
-      - ref: router_2
-        type: router
-        hostname: router_2
-        num_ports: 5
+      - ref: firewall
+        type: firewall
+        hostname: firewall
         start_up_duration: 0
         shut_down_duration: 0
         ports:
-          1:
-            ip_address: 192.168.10.1
-            subnet_mask: 255.255.255.0
-          2:
-            ip_address: 192.168.11.1
-            subnet_mask: 255.255.255.0
-          3:
+          external_port: # port 1
             ip_address: 192.168.20.1
             subnet_mask: 255.255.255.0
+          internal_port: # port 2
+            ip_address: 192.168.1.2
+            subnet_mask: 255.255.255.0
+          dmz_port: # port 3
+            ip_address: 192.168.10.1
+            subnet_mask: 255.255.255.0
         acl:
-          22:
-            action: PERMIT
-            src_port: ARP
-            dst_port: ARP
-          23:
-            action: PERMIT
-            protocol: ICMP
+          internal_inbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          internal_outbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          dmz_inbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          dmz_outbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          external_inbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          external_outbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            23:
+              action: PERMIT
+              protocol: ICMP
         routes:
-          - address: 192.168.0.10
+          - address: 192.168.0.10 # route to client_1
             subnet_mask: 255.255.255.0
             next_hop_ip_address: 192.168.1.1
             metric: 0
@@ -234,14 +274,14 @@ simulation:
         endpoint_a_port: 1
         endpoint_b_ref: switch_1
         endpoint_b_port: 8
-      - ref: router_1___router_2
-        endpoint_a_ref: router_1
-        endpoint_a_port: 2
-        endpoint_b_ref: router_2
+      - ref: router_1___firewall
+        endpoint_a_ref: firewall
+        endpoint_a_port: 2 # internal firewall port
+        endpoint_b_ref: router_1
         endpoint_b_port: 2
-      - ref: router_2___switch_2
-        endpoint_a_ref: router_2
-        endpoint_a_port: 1
+      - ref: firewall___switch_2
+        endpoint_a_ref: firewall
+        endpoint_a_port: 3 # dmz firewall port
         endpoint_b_ref: switch_2
         endpoint_b_port: 8
       - ref: dmz_server___switch_2
@@ -249,9 +289,9 @@ simulation:
         endpoint_a_port: 1
         endpoint_b_ref: switch_2
         endpoint_b_port: 1
-      - ref: router_2___switch_3
-        endpoint_a_ref: router_2
-        endpoint_a_port: 3
+      - ref: firewall___switch_3
+        endpoint_a_ref: firewall
+        endpoint_a_port: 1 # external firewall port
         endpoint_b_ref: switch_3
         endpoint_b_port: 8
       - ref: external_computer___switch_3

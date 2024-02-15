@@ -1500,7 +1500,7 @@ class Router(NetworkNode):
                 new.route_table.add_route(
                     address=IPv4Address(route.get("address")),
                     subnet_mask=IPv4Address(route.get("subnet_mask")),
-                    next_hop_ip_address=IPv4Address(route.get("subnet_mask")),
+                    next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
                     metric=float(route.get("metric")),
                 )
         return new
