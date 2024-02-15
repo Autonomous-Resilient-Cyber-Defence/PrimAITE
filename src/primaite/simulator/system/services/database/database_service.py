@@ -189,7 +189,7 @@ class DatabaseService(Service):
         }
 
     def _process_sql(
-        self, query: Literal["SELECT", "DELETE"], query_id: str, connection_id: Optional[str] = None
+        self, query: Literal["SELECT", "DELETE", "INSERT"], query_id: str, connection_id: Optional[str] = None
     ) -> Dict[str, Union[int, List[Any]]]:
         """
         Executes the given SQL query and returns the result.
@@ -197,6 +197,7 @@ class DatabaseService(Service):
         Possible queries:
         - SELECT : returns the data
         - DELETE : deletes the data
+        - INSERT : inserts the data
 
         :param query: The SQL query to be executed.
         :return: Dictionary containing status code and data fetched.
@@ -220,9 +221,27 @@ class DatabaseService(Service):
                 return {"status_code": 404, "data": False}
         elif query == "DELETE":
             self.db_file.health_status = FileSystemItemHealthStatus.COMPROMISED
-            return {"status_code": 200, "type": "sql", "data": False, "uuid": query_id, "connection_id": connection_id}
+            return {
+                "status_code": 200,
+                "type": "sql",
+                "data": False,
+                "uuid": query_id,
+                "connection_id": connection_id,
+            }
+        elif query == "INSERT":
+            if self.health_state_actual == SoftwareHealthState.GOOD:
+                return {
+                    "status_code": 200,
+                    "type": "sql",
+                    "data": False,
+                    "uuid": query_id,
+                    "connection_id": connection_id,
+                }
+            else:
+                return {"status_code": 404, "data": False}
         else:
             # Invalid query
+            self.sys_log.info(f"{self.name}: Invalid {query}")
             return {"status_code": 500, "data": False}
 
     def describe_state(self) -> Dict:
