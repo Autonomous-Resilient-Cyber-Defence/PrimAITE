@@ -50,4 +50,5 @@ Services, Processes and Applications:
    data_manipulation_bot
    dns_client_server
    ftp_client_server
+   ntp_client_server
    web_browser_and_web_server_service

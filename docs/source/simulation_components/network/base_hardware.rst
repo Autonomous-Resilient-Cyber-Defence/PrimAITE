@@ -41,6 +41,65 @@ Node Attributes
 - **session_manager**: Manages user sessions within the node.
 - **software_manager**: Controls the installation and management of software and services on the node.
 
+.. _Node Start up and Shut down:
+
+Node Start up and Shut down
+---------------------------
+Nodes are powered on and off over multiple timesteps. By default, the node ``start_up_duration`` and ``shut_down_duration`` is 3 timesteps.
+
+Example code where a node is turned on:
+
+.. code-block:: python
+
+    from primaite.simulator.network.hardware.base import Node
+    from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+
+    node = Node(hostname="pc_a")
+
+    assert node.operating_state is NodeOperatingState.OFF # By default, node is instantiated in an OFF state
+
+    node.power_on() # power on the node
+
+    assert node.operating_state is NodeOperatingState.BOOTING # node is booting up
+
+    for i in range(node.start_up_duration + 1):
+        # apply timestep until the node start up duration
+        node.apply_timestep(timestep=i)
+
+    assert node.operating_state is NodeOperatingState.ON # node is in ON state
+
+
+If the node needs to be instantiated in an on state:
+
+
+.. code-block:: python
+
+    from primaite.simulator.network.hardware.base import Node
+    from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+
+    node = Node(hostname="pc_a", operating_state=NodeOperatingState.ON)
+
+    assert node.operating_state is NodeOperatingState.ON  # node is in ON state
+
+Setting ``start_up_duration`` and/or ``shut_down_duration`` to ``0`` will allow for the ``power_on`` and ``power_off`` methods to be completed instantly without applying timesteps:
+
+.. code-block:: python
+
+    from primaite.simulator.network.hardware.base import Node
+    from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+
+    node = Node(hostname="pc_a", start_up_duration=0, shut_down_duration=0)
+
+    assert node.operating_state is NodeOperatingState.OFF  # node is in OFF state
+
+    node.power_on()
+
+    assert node.operating_state is NodeOperatingState.ON  # node is in ON state
+
+    node.power_off()
+
+    assert node.operating_state is NodeOperatingState.OFF  # node is in OFF state
+
 Node Behaviours/Functions
 -------------------------
 
