@@ -195,6 +195,7 @@ class DatabaseClient(Application):
         if connection_id is None:
             if self.connections:
                 connection_id = list(self.connections.keys())[-1]
+                # TODO: if the most recent connection dies, it should be automatically cleared.
             else:
                 connection_id = str(uuid4())
 
