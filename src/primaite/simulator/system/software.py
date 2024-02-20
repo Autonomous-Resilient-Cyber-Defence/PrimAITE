@@ -96,19 +96,6 @@ class Software(SimComponent):
     _patching_countdown: Optional[int] = None
     "Current number of ticks left to patch the software."
 
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {
-            "name",
-            "health_state_actual",
-            "health_state_visible",
-            "criticality",
-            "patching_count",
-            "scanning_count",
-            "revealed_to_red",
-        }
-        self._original_state = self.model_dump(include=vals_to_include)
-
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
         rm.add_request(
@@ -244,12 +231,6 @@ class IOSoftware(Software):
     "The port to which the software is connected."
     _connections: Dict[str, Dict] = {}
     "Active connections."
-
-    def set_original_state(self):
-        """Sets the original state."""
-        super().set_original_state()
-        vals_to_include = {"installing_count", "max_sessions", "tcp", "udp", "port"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
 
     @abstractmethod
     def describe_state(self) -> Dict:

@@ -73,15 +73,6 @@ class File(FileSystemItemABC):
 
         self.sys_log.info(f"Created file /{self.path} (id: {self.uuid})")
 
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting File ({self.path}) original state on node {self.sys_log.hostname}")
-        super().set_original_state()
-        vals_to_include = {"folder_id", "folder_name", "file_type", "sim_size", "real", "sim_path", "sim_root"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         _LOGGER.debug(f"Resetting File ({self.path}) state on node {self.sys_log.hostname}")

@@ -123,13 +123,6 @@ class NIC(SimComponent):
             _LOGGER.error(msg)
             raise ValueError(msg)
 
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {"ip_address", "subnet_mask", "mac_address", "speed", "mtu", "wake_on_lan", "enabled"}
-        self._original_state = self.model_dump(include=vals_to_include)
-
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         super().reset_component_for_episode(episode)
@@ -349,14 +342,6 @@ class SwitchPort(SimComponent):
             kwargs["mac_address"] = generate_mac_address()
         super().__init__(**kwargs)
 
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {"port_num", "mac_address", "speed", "mtu", "enabled"}
-        self._original_state = self.model_dump(include=vals_to_include)
-        super().set_original_state()
-
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -505,14 +490,6 @@ class Link(SimComponent):
         self.endpoint_a.connect_link(self)
         self.endpoint_b.connect_link(self)
         self.endpoint_up()
-
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {"bandwidth", "current_load"}
-        self._original_state = self.model_dump(include=vals_to_include)
-        super().set_original_state()
 
     def describe_state(self) -> Dict:
         """
@@ -1033,33 +1010,6 @@ class Node(SimComponent):
         self.arp.nics = self.nics
         self.session_manager.software_manager = self.software_manager
         self._install_system_software()
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        for software in self.software_manager.software.values():
-            software.set_original_state()
-
-        self.file_system.set_original_state()
-
-        for nic in self.nics.values():
-            nic.set_original_state()
-
-        vals_to_include = {
-            "hostname",
-            "default_gateway",
-            "operating_state",
-            "revealed_to_red",
-            "start_up_duration",
-            "start_up_countdown",
-            "shut_down_duration",
-            "shut_down_countdown",
-            "is_resetting",
-            "node_scan_duration",
-            "node_scan_countdown",
-            "red_scan_countdown",
-        }
-        self._original_state = self.model_dump(include=vals_to_include)
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""

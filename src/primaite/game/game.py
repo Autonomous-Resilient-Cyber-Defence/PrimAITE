@@ -386,6 +386,4 @@ class PrimaiteGame:
             else:
                 _LOGGER.warning(f"agent type {agent_type} not found")
 
-        game.simulation.set_original_state()
-
         return game

@@ -22,7 +22,6 @@ def dos_bot() -> DoSBot:
 
     dos_bot: DoSBot = computer.software_manager.software.get("DoSBot")
     dos_bot.configure(target_ip_address=IPv4Address("192.168.0.1"))
-    dos_bot.set_original_state()
     return dos_bot
 
 
@@ -51,7 +50,6 @@ def test_dos_bot_reset(dos_bot):
     dos_bot.configure(
         target_ip_address=IPv4Address("192.168.1.1"), target_port=Port.HTTP, payload="payload", repeat=True
     )
-    dos_bot.set_original_state()
     dos_bot.reset_component_for_episode(episode=1)
     # should reset to the configured value
     assert dos_bot.target_ip_address == IPv4Address("192.168.1.1")

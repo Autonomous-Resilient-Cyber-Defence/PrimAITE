@@ -85,11 +85,6 @@ class FileSystemItemABC(SimComponent):
     deleted: bool = False
     "If true, the FileSystemItem was deleted."
 
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_keep = {"name", "health_status", "visible_health_status", "previous_hash", "revealed_to_red", "deleted"}
-        self._original_state = self.model_dump(include=vals_to_keep)
-
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.

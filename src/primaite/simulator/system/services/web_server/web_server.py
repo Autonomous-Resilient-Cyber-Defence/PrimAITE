@@ -23,13 +23,6 @@ class WebServer(Service):
 
     last_response_status_code: Optional[HttpStatusCode] = None
 
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting WebServer original state on node {self.software_manager.node.hostname}")
-        super().set_original_state()
-        vals_to_include = {"last_response_status_code"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         _LOGGER.debug(f"Resetting WebServer state on node {self.software_manager.node.hostname}")

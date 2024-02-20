@@ -28,13 +28,6 @@ class DNSServer(Service):
         super().__init__(**kwargs)
         self.start()
 
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting DNSServer original state on node {self.software_manager.node.hostname}")
-        super().set_original_state()
-        vals_to_include = {"dns_table"}
-        self._original_state["dns_table_orig"] = self.model_dump(include=vals_to_include)["dns_table"]
-
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         self.dns_table.clear()

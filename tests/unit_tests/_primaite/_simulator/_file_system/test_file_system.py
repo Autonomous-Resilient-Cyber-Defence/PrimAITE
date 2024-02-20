@@ -189,7 +189,6 @@ def test_reset_file_system(file_system):
     # file and folder that existed originally
     file_system.create_file(file_name="test_file.zip")
     file_system.create_folder(folder_name="test_folder")
-    file_system.set_original_state()
 
     # create a new file
     file_system.create_file(file_name="new_file.txt")

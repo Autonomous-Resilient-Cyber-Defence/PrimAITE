@@ -33,7 +33,6 @@ def network(example_network) -> Network:
     assert len(example_network.computers) is 2
     assert len(example_network.servers) is 2
 
-    example_network.set_original_state()
     example_network.show()
 
     return example_network

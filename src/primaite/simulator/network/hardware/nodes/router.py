@@ -53,11 +53,6 @@ class ACLRule(SimComponent):
                 rule_strings.append(f"{key}={value}")
         return ", ".join(rule_strings)
 
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_keep = {"action", "protocol", "src_ip_address", "src_port", "dst_ip_address", "dst_port"}
-        self._original_state = self.model_dump(include=vals_to_keep, exclude_none=True)
-
     def describe_state(self) -> Dict:
         """
         Describes the current state of the ACLRule.
@@ -101,28 +96,6 @@ class AccessControlList(SimComponent):
 
         super().__init__(**kwargs)
         self._acl = [None] * (self.max_acl_rules - 1)
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        self.implicit_rule.set_original_state()
-        vals_to_keep = {"implicit_action", "max_acl_rules", "acl"}
-        self._original_state = self.model_dump(include=vals_to_keep, exclude_none=True)
-
-        for i, rule in enumerate(self._acl):
-            if not rule:
-                continue
-            self._default_config[i] = {"action": rule.action.name}
-            if rule.src_ip_address:
-                self._default_config[i]["src_ip"] = str(rule.src_ip_address)
-            if rule.dst_ip_address:
-                self._default_config[i]["dst_ip"] = str(rule.dst_ip_address)
-            if rule.src_port:
-                self._default_config[i]["src_port"] = rule.src_port.name
-            if rule.dst_port:
-                self._default_config[i]["dst_port"] = rule.dst_port.name
-            if rule.protocol:
-                self._default_config[i]["protocol"] = rule.protocol.name
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
@@ -389,11 +362,6 @@ class RouteEntry(SimComponent):
     metric: float = 0.0
     "The cost metric for this route. Default is 0.0."
 
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {"address", "subnet_mask", "next_hop_ip_address", "metric"}
-        self._original_values = self.model_dump(include=vals_to_include)
-
     def describe_state(self) -> Dict:
         """
         Describes the current state of the RouteEntry.
@@ -425,11 +393,6 @@ class RouteTable(SimComponent):
     routes: List[RouteEntry] = []
     default_route: Optional[RouteEntry] = None
     sys_log: SysLog
-
-    def set_original_state(self):
-        """Sets the original state."""
-        super().set_original_state()
-        self._original_state["routes_orig"] = self.routes
 
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
@@ -808,16 +771,6 @@ class Router(Node):
         self.arp.nics = self.nics
         self.icmp.arp = self.arp
 
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        self.acl.set_original_state()
-        self.route_table.set_original_state()
-        super().set_original_state()
-        vals_to_include = {"num_ports"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         self.arp.clear()
@@ -987,7 +940,6 @@ class Router(Node):
         nic.ip_address = ip_address
         nic.subnet_mask = subnet_mask
         self.sys_log.info(f"Configured port {port} with ip_address={ip_address}/{nic.ip_network.prefixlen}")
-        self.set_original_state()
 
     def enable_port(self, port: int):
         """

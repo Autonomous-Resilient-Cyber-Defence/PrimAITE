@@ -49,23 +49,6 @@ class Folder(FileSystemItemABC):
 
         self.sys_log.info(f"Created file /{self.name} (id: {self.uuid})")
 
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting Folder ({self.name}) original state on node {self.sys_log.hostname}")
-        for file in self.files.values():
-            file.set_original_state()
-        super().set_original_state()
-        vals_to_include = {
-            "scan_duration",
-            "scan_countdown",
-            "red_scan_duration",
-            "red_scan_countdown",
-            "restore_duration",
-            "restore_countdown",
-        }
-        self._original_state.update(self.model_dump(include=vals_to_include))
-        self._original_state["original_file_uuids"] = list(self.files.keys())
-
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         _LOGGER.debug(f"Resetting Folder ({self.name}) state on node {self.sys_log.hostname}")

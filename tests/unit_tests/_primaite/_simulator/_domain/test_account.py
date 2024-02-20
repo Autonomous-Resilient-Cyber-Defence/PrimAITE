@@ -7,7 +7,6 @@ from primaite.simulator.domain.account import Account, AccountType
 @pytest.fixture(scope="function")
 def account() -> Account:
     acct = Account(username="Jake", password="totally_hashed_password", account_type=AccountType.USER)
-    acct.set_original_state()
     return acct
 
 
@@ -39,7 +38,6 @@ def test_original_state(account):
     account.log_on()
     account.log_off()
     account.disable()
-    account.set_original_state()
 
     account.log_on()
     state = account.describe_state()

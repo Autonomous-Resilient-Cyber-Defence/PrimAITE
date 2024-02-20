@@ -27,13 +27,6 @@ class FTPServer(FTPServiceABC):
         super().__init__(**kwargs)
         self.start()
 
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting FTPServer original state on node {self.software_manager.node.hostname}")
-        super().set_original_state()
-        vals_to_include = {"server_password"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
     def reset_component_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         _LOGGER.debug(f"Resetting FTPServer state on node {self.software_manager.node.hostname}")
