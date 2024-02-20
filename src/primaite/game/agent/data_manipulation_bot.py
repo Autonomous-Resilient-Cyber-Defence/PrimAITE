@@ -1,21 +1,20 @@
 import random
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 from gymnasium.core import ObsType
 
 from primaite.game.agent.interface import AbstractScriptedAgent
-from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
 
 
 class DataManipulationAgent(AbstractScriptedAgent):
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
 
-    data_manipulation_bots: List["DataManipulationBot"] = []
     next_execution_timestep: int = 0
+    starting_node_idx: int = 0
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._set_next_execution_timestep(self.agent_settings.start_settings.start_step)
+        self.reset_agent_for_episode()
 
     def _set_next_execution_timestep(self, timestep: int) -> None:
         """Set the next execution timestep with a configured random variance.
@@ -44,9 +43,16 @@ class DataManipulationAgent(AbstractScriptedAgent):
 
         self._set_next_execution_timestep(current_timestep + self.agent_settings.start_settings.frequency)
 
-        return "NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}
+        return "NODE_APPLICATION_EXECUTE", {"node_id": self.starting_node_idx, "application_id": 0}
 
     def reset_agent_for_episode(self) -> None:
         """Set the next execution timestep when the episode resets."""
         super().reset_agent_for_episode()
+        self._select_start_node()
         self._set_next_execution_timestep(self.agent_settings.start_settings.start_step)
+
+    def _select_start_node(self) -> None:
+        """Set the starting starting node of the agent to be a random node from this agent's action manager."""
+        # we are assuming that every node in the node manager has a data manipulation application at idx 0
+        num_nodes = len(self.action_manager.node_names)
+        self.starting_node_idx = random.randint(0, num_nodes - 1)

@@ -548,6 +548,11 @@ class Link(SimComponent):
     def __str__(self) -> str:
         return f"{self.endpoint_a}<-->{self.endpoint_b}"
 
+    def apply_timestep(self, timestep: int) -> None:
+        """Apply a timestep to the simulation."""
+        super().apply_timestep(timestep)
+        self.current_load = 0.0
+
 
 class Node(SimComponent):
     """

@@ -196,7 +196,11 @@ class DatabaseClient(Application):
             return False
 
         if connection_id is None:
-            connection_id = str(uuid4())
+            if self.connections:
+                connection_id = list(self.connections.keys())[-1]
+                # TODO: if the most recent connection dies, it should be automatically cleared.
+            else:
+                connection_id = str(uuid4())
 
         if not self.connections.get(connection_id):
             if not self.connect(connection_id=connection_id):

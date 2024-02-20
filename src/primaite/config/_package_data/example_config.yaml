@@ -85,7 +85,7 @@ agents:
 
 
 
-  - ref: client_1_data_manipulation_red_bot
+  - ref: data_manipulation_attacker
     team: RED
     type: RedDatabaseCorruptingAgent
 
@@ -104,6 +104,9 @@ agents:
       options:
         nodes:
         - node_name: client_1
+          applications:
+            - application_name: DataManipulationBot
+        - node_name: client_2
           applications:
             - application_name: DataManipulationBot
         max_folders_per_node: 1
@@ -730,6 +733,13 @@ simulation:
         type: WebBrowser
         options:
           target_url: http://arcd.com/users/
+      - ref: data_manipulation_bot
+        type: DataManipulationBot
+        options:
+          port_scan_p_of_success: 0.8
+          data_manipulation_p_of_success: 0.8
+          payload: "DELETE"
+          server_ip: 192.168.1.14
       services:
       - ref: client_2_dns_client
         type: DNSClient
