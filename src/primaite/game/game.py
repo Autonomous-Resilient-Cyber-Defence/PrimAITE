@@ -67,9 +67,6 @@ class PrimaiteGame:
         self.step_counter: int = 0
         """Current timestep within the episode."""
 
-        self.episode_counter: int = 0
-        """Current episode number."""
-
         self.options: PrimaiteGameOptions
         """Special options that apply for the entire game."""
 
@@ -163,7 +160,7 @@ class PrimaiteGame:
             return True
         return False
 
-    def reset(self) -> None:
+    def reset(self) -> None:  # TODO: deprecated - remove me
         """Reset the game, this will reset the simulation."""
         self.episode_counter += 1
         self.step_counter = 0
