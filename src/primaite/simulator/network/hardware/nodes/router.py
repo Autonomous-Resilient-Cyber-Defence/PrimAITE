@@ -84,9 +84,7 @@ class AccessControlList(SimComponent):
     implicit_action: ACLAction
     implicit_rule: ACLRule
     max_acl_rules: int = 25
-    _acl: List[Optional[ACLRule]] = [None] * 24
-    _default_config: Dict[int, dict] = {}
-    """Config dict describing how the ACL list should look at episode start"""
+    _acl: List[Optional[ACLRule]] = [None] * 24  # TODO: this ignores the max_acl_rules and assumes it's default
 
     def __init__(self, **kwargs) -> None:
         if not kwargs.get("implicit_action"):
@@ -96,26 +94,6 @@ class AccessControlList(SimComponent):
 
         super().__init__(**kwargs)
         self._acl = [None] * (self.max_acl_rules - 1)
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        self.implicit_rule.reset_component_for_episode(episode)
-        super().reset_component_for_episode(episode)
-        self._reset_rules_to_default()
-
-    def _reset_rules_to_default(self) -> None:
-        """Clear all ACL rules and set them to the default rules config."""
-        self._acl = [None] * (self.max_acl_rules - 1)
-        for r_num, r_cfg in self._default_config.items():
-            self.add_rule(
-                action=ACLAction[r_cfg["action"]],
-                src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
-                src_ip_address=r_cfg.get("src_ip"),
-                dst_ip_address=r_cfg.get("dst_ip"),
-                position=r_num,
-            )
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
@@ -393,12 +371,6 @@ class RouteTable(SimComponent):
     routes: List[RouteEntry] = []
     default_route: Optional[RouteEntry] = None
     sys_log: SysLog
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        self.routes.clear()
-        self.routes = self._original_state["routes_orig"]
-        super().reset_component_for_episode(episode)
 
     def describe_state(self) -> Dict:
         """
@@ -1040,7 +1012,18 @@ class Router(Node):
                     ip_address=port_cfg["ip_address"],
                     subnet_mask=port_cfg["subnet_mask"],
                 )
+
+        # Add the router's default ACL rules from the config.
         if "acl" in cfg:
-            new.acl._default_config = cfg["acl"]  # save the config to allow resetting
-            new.acl._reset_rules_to_default()  # read the config and apply rules
+            for r_num, r_cfg in cfg["acl"].items():
+                new.add_rule(
+                    action=ACLAction[r_cfg["action"]],
+                    src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                    dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                    protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                    src_ip_address=r_cfg.get("src_ip"),
+                    dst_ip_address=r_cfg.get("dst_ip"),
+                    position=r_num,
+                )
+
         return new

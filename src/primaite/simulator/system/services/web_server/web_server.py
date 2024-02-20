@@ -23,11 +23,6 @@ class WebServer(Service):
 
     last_response_status_code: Optional[HttpStatusCode] = None
 
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug(f"Resetting WebServer state on node {self.software_manager.node.hostname}")
-        super().reset_component_for_episode(episode)
-
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.

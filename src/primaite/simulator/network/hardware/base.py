@@ -1015,15 +1015,6 @@ class Node(SimComponent):
         """Reset the original state of the SimComponent."""
         super().reset_component_for_episode(episode)
 
-        # Reset ARP Cache
-        self.arp.clear()
-
-        # Reset ICMP
-        self.icmp.clear()
-
-        # Reset Session Manager
-        self.session_manager.clear()
-
         # Reset File System
         self.file_system.reset_component_for_episode(episode)
 

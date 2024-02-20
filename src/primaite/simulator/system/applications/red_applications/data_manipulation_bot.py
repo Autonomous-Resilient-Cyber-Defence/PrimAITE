@@ -49,11 +49,6 @@ class DataManipulationBot(DatabaseClient):
         super().__init__(**kwargs)
         self.name = "DataManipulationBot"
 
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug(f"Resetting DataManipulationBot state on node {self.software_manager.node.hostname}")
-        super().reset_component_for_episode(episode)
-
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 

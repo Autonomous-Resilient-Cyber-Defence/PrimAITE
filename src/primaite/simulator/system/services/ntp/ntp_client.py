@@ -1,6 +1,6 @@
 from datetime import datetime
 from ipaddress import IPv4Address
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.ntp import NTPPacket
@@ -49,21 +49,12 @@ class NTPClient(Service):
         state = super().describe_state()
         return state
 
-    def reset_component_for_episode(self, episode: int):
-        """
-        Resets the Service component for a new episode.
-
-        This method ensures the Service is ready for a new episode, including resetting any
-        stateful properties or statistics, and clearing any message queues.
-        """
-        pass
-
     def send(
         self,
         payload: NTPPacket,
         session_id: Optional[str] = None,
         dest_ip_address: IPv4Address = None,
-        dest_port: [Port] = Port.NTP,
+        dest_port: List[Port] = Port.NTP,
         **kwargs,
     ) -> bool:
         """Requests NTP data from NTP server.

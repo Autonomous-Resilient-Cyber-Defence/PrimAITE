@@ -34,16 +34,6 @@ class NTPServer(Service):
         state = super().describe_state()
         return state
 
-    def reset_component_for_episode(self, episode: int):
-        """
-        Resets the Service component for a new episode.
-
-        This method ensures the Service is ready for a new episode, including
-        resetting any stateful properties or statistics, and clearing any message
-        queues.
-        """
-        pass
-
     def receive(
         self,
         payload: NTPPacket,

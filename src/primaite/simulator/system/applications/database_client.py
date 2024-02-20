@@ -31,12 +31,6 @@ class DatabaseClient(Application):
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
 
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug(f"Resetting DataBaseClient state on node {self.software_manager.node.hostname}")
-        super().reset_component_for_episode(episode)
-        self._query_success_tracker.clear()
-
     def describe_state(self) -> Dict:
         """
         Describes the current state of the ACLRule.

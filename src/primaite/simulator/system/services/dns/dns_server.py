@@ -28,13 +28,6 @@ class DNSServer(Service):
         super().__init__(**kwargs)
         self.start()
 
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        self.dns_table.clear()
-        for key, value in self._original_state["dns_table_orig"].items():
-            self.dns_table[key] = value
-        super().reset_component_for_episode(episode)
-
     def describe_state(self) -> Dict:
         """
         Describes the current state of the software.

@@ -73,11 +73,6 @@ class File(FileSystemItemABC):
 
         self.sys_log.info(f"Created file /{self.path} (id: {self.uuid})")
 
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug(f"Resetting File ({self.path}) state on node {self.sys_log.hostname}")
-        super().reset_component_for_episode(episode)
-
     @property
     def path(self) -> str:
         """
