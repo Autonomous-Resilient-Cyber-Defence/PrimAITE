@@ -41,6 +41,7 @@ APPLICATION_TYPES_MAPPING = {
     "DataManipulationBot": DataManipulationBot,
     "DoSBot": DoSBot,
 }
+"""List of available applications that can be installed on nodes in the PrimAITE Simulation."""
 
 SERVICE_TYPES_MAPPING = {
     "DNSClient": DNSClient,
@@ -52,6 +53,7 @@ SERVICE_TYPES_MAPPING = {
     "NTPClient": NTPClient,
     "NTPServer": NTPServer,
 }
+"""List of available services that can be installed on nodes in the PrimAITE Simulation."""
 
 
 class PrimaiteGameOptions(BaseModel):

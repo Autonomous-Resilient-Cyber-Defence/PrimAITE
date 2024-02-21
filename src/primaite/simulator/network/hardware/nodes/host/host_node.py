@@ -261,6 +261,17 @@ class NIC(IPWiredNetworkInterface):
         return f"Port {self.port_num}: {self.mac_address}/{self.ip_address}"
 
 
+SYSTEM_SOFTWARE = {
+    "HostARP": HostARP,
+    "ICMP": ICMP,
+    "DNSClient": DNSClient,
+    "FTPClient": FTPClient,
+    "NTPClient": NTPClient,
+    "WebBrowser": WebBrowser,
+}
+"""List of system software that is automatically installed on nodes."""
+
+
 class HostNode(Node):
     """
     Represents a host node in the network.
@@ -321,23 +332,8 @@ class HostNode(Node):
         This method equips the host with essential network services and applications, preparing it for various
         network-related tasks and operations.
         """
-        # ARP Service
-        self.software_manager.install(HostARP)
-
-        # ICMP Service
-        self.software_manager.install(ICMP)
-
-        # DNS Client
-        self.software_manager.install(DNSClient)
-
-        # FTP Client
-        self.software_manager.install(FTPClient)
-
-        # NTP Client
-        self.software_manager.install(NTPClient)
-
-        # Web Browser
-        self.software_manager.install(WebBrowser)
+        for _, software_class in SYSTEM_SOFTWARE.items():
+            self.software_manager.install(software_class)
 
         super()._install_system_software()
 
