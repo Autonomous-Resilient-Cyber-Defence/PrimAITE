@@ -231,24 +231,24 @@ class PrimaiteGame:
                 new_node = Computer(
                     hostname=node_cfg["hostname"],
                     ip_address=node_cfg["ip_address"],
-                    subnet_mask=node_cfg["subnet_mask"],
+                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
                     default_gateway=node_cfg["default_gateway"],
-                    dns_server=node_cfg["dns_server"],
+                    dns_server=node_cfg.get("dns_server", None),
                     operating_state=NodeOperatingState.ON,
                 )
             elif n_type == "server":
                 new_node = Server(
                     hostname=node_cfg["hostname"],
                     ip_address=node_cfg["ip_address"],
-                    subnet_mask=node_cfg["subnet_mask"],
+                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
                     default_gateway=node_cfg["default_gateway"],
-                    dns_server=node_cfg.get("dns_server"),
+                    dns_server=node_cfg.get("dns_server", None),
                     operating_state=NodeOperatingState.ON,
                 )
             elif n_type == "switch":
                 new_node = Switch(
                     hostname=node_cfg["hostname"],
-                    num_ports=node_cfg.get("num_ports"),
+                    num_ports=int(node_cfg.get("num_ports", "8")),
                     operating_state=NodeOperatingState.ON,
                 )
             elif n_type == "router":

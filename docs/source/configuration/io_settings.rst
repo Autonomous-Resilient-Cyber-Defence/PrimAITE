@@ -7,20 +7,83 @@
 ===============
 This section configures how PrimAITE saves data during simulation and training.
 
-**save_final_model**: Only used if training with PrimaiteSession, if true, the policy will be saved after the final training iteration.
+``io_settings`` hierarchy
+-------------------------
 
-**save_checkpoints**: Only used if training with PrimaiteSession, if true, the policy will be saved periodically during training.
+.. code-block:: yaml
 
-**checkpoint_interval**: Only used if training with PrimaiteSession and if ``save_checkpoints`` is true. Defines how often to save the policy during training.
+    io_settings:
+        save_final_model: True
+        save_checkpoints: False
+        checkpoint_interval: 10
+        # save_logs: True
+        # save_transactions: False
+        # save_tensorboard_logs: False
+        save_step_metadata: False
+        save_pcap_logs: False
+        save_sys_logs: False
 
-**save_logs**: *currently unused*.
+``save_final_model``
+--------------------
 
-**save_transactions**: *currently unused*.
+Optional. Default value is ``True``.
 
-**save_tensorboard_logs**: *currently unused*.
+Only used if training with PrimaiteSession.
+If ``True``, the policy will be saved after the final training iteration.
 
-**save_step_metadata**: Whether to save the RL agents' action, environment state, and other data at every single step.
 
-**save_pcap_logs**: Whether to save pcap files of all network traffic during the simulation.
+``save_checkpoints``
+--------------------
 
-**save_sys_logs**: Whether to save system logs from all nodes during the simulation.
+Optional. Default value is ``False``.
+
+Only used if training with PrimaiteSession.
+If ``True``, the policy will be saved periodically during training.
+
+
+``checkpoint_interval``
+-----------------------
+
+Optional. Default value is ``10``.
+
+Only used if training with PrimaiteSession and if ``save_checkpoints`` is ``True``.
+Defines how often to save the policy during training.
+
+
+``save_logs``
+-------------
+
+*currently unused*.
+
+``save_transactions``
+---------------------
+
+*currently unused*.
+
+``save_tensorboard_logs``
+-------------------------
+
+*currently unused*.
+
+``save_step_metadata``
+----------------------
+
+Optional. Default value is ``False``.
+
+If ``True``, The RL agent(s) actions, environment states and other data will be saved at every single step.
+
+
+``save_pcap_logs``
+------------------
+
+Optional. Default value is ``False``.
+
+If ``True``, then the pcap files which contain all network traffic during the simulation will be saved.
+
+
+``save_sys_logs``
+-----------------
+
+Optional. Default value is ``False``.
+
+If ``True``, then the log files which contain all node actions during the simulation will be saved.

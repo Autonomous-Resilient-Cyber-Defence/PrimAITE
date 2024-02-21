@@ -9,11 +9,18 @@ _LOGGER = getLogger(__name__)
 
 
 class IPProtocol(Enum):
-    """Enum representing transport layer protocols in IP header."""
+    """
+    Enum representing transport layer protocols in IP header.
+
+    .. _List of IPProtocols:
+    """
 
     TCP = "tcp"
+    """Transmission Control Protocol."""
     UDP = "udp"
+    """User Datagram Protocol."""
     ICMP = "icmp"
+    """Internet Control Message Protocol."""
 
 
 class Precedence(Enum):

@@ -506,22 +506,24 @@ class Firewall(Router):
             # configure internal port
             new.configure_internal_port(
                 ip_address=IPV4Address(internal_port.get("ip_address")),
-                subnet_mask=IPV4Address(internal_port.get("subnet_mask")),
+                subnet_mask=IPV4Address(internal_port.get("subnet_mask", "255.255.255.0")),
             )
 
             # configure external port
             new.configure_external_port(
                 ip_address=IPV4Address(external_port.get("ip_address")),
-                subnet_mask=IPV4Address(external_port.get("subnet_mask")),
+                subnet_mask=IPV4Address(external_port.get("subnet_mask", "255.255.255.0")),
             )
 
             # configure dmz port
             new.configure_dmz_port(
-                ip_address=IPV4Address(dmz_port.get("ip_address")), subnet_mask=IPV4Address(dmz_port.get("subnet_mask"))
+                ip_address=IPV4Address(dmz_port.get("ip_address")),
+                subnet_mask=IPV4Address(dmz_port.get("subnet_mask", "255.255.255.0")),
             )
         if "acl" in cfg:
             # acl rules for internal_inbound_acl
             if cfg["acl"]["internal_inbound_acl"]:
+                new.internal_inbound_acl.max_acl_rules
                 new.internal_inbound_acl._default_config = cfg["acl"]["internal_inbound_acl"]
                 new.internal_inbound_acl._reset_rules_to_default()
 
@@ -553,8 +555,8 @@ class Firewall(Router):
             for route in cfg.get("routes"):
                 new.route_table.add_route(
                     address=IPv4Address(route.get("address")),
-                    subnet_mask=IPv4Address(route.get("subnet_mask")),
+                    subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),
                     next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
-                    metric=float(route.get("metric")),
+                    metric=float(route.get("metric", 0)),
                 )
         return new

@@ -1482,7 +1482,7 @@ class Router(NetworkNode):
         """
         new = Router(
             hostname=cfg["hostname"],
-            num_ports=cfg.get("num_ports"),
+            num_ports=int(cfg.get("num_ports", "5")),
             operating_state=NodeOperatingState.ON,
         )
         if "ports" in cfg:
@@ -1490,7 +1490,7 @@ class Router(NetworkNode):
                 new.configure_port(
                     port=port_num,
                     ip_address=port_cfg["ip_address"],
-                    subnet_mask=port_cfg["subnet_mask"],
+                    subnet_mask=IPv4Address(port_cfg.get("subnet_mask", "255.255.255.0")),
                 )
         if "acl" in cfg:
             new.acl._default_config = cfg["acl"]  # save the config to allow resetting
@@ -1499,8 +1499,8 @@ class Router(NetworkNode):
             for route in cfg.get("routes"):
                 new.route_table.add_route(
                     address=IPv4Address(route.get("address")),
-                    subnet_mask=IPv4Address(route.get("subnet_mask")),
+                    subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),
                     next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
-                    metric=float(route.get("metric")),
+                    metric=float(route.get("metric", 0)),
                 )
         return new
