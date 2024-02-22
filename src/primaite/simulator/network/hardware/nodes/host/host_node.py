@@ -248,6 +248,7 @@ class NIC(IPWiredNetworkInterface):
                     accept_frame = True
 
             if accept_frame:
+                super().receive_frame(frame)
                 self._connected_node.receive_frame(frame=frame, from_network_interface=self)
                 return True
         return False
