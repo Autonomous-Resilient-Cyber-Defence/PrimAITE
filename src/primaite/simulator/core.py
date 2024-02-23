@@ -160,8 +160,12 @@ class SimComponent(BaseModel):
         self._request_manager: RequestManager = self._init_request_manager()
         self._parent: Optional["SimComponent"] = None
 
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
+    def setup_for_episode(self, episode: int):
+        """
+        Perform any additional setup on this component that can't happen during __init__.
+
+        For instance, some components may require for the entire network to exist before some configuration can be set.
+        """
         pass
 
     def _init_request_manager(self) -> RequestManager:

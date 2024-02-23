@@ -743,16 +743,16 @@ class Router(Node):
         self.arp.nics = self.nics
         self.icmp.arp = self.arp
 
-    def reset_component_for_episode(self, episode: int):
+    def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         self.arp.clear()
-        self.acl.reset_component_for_episode(episode)
-        self.route_table.reset_component_for_episode(episode)
+        self.acl.setup_for_episode(episode)
+        self.route_table.setup_for_episode(episode)
         for i, nic in self.ethernet_ports.items():
-            nic.reset_component_for_episode(episode)
+            nic.setup_for_episode(episode)
             self.enable_port(i)
 
-        super().reset_component_for_episode(episode)
+        super().setup_for_episode(episode)
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()

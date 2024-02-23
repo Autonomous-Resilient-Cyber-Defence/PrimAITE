@@ -123,9 +123,9 @@ class NIC(SimComponent):
             _LOGGER.error(msg)
             raise ValueError(msg)
 
-    def reset_component_for_episode(self, episode: int):
+    def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        super().reset_component_for_episode(episode)
+        super().setup_for_episode(episode)
         if episode and self.pcap:
             self.pcap.current_episode = episode
             self.pcap.setup_logger()
@@ -1011,19 +1011,19 @@ class Node(SimComponent):
         self.session_manager.software_manager = self.software_manager
         self._install_system_software()
 
-    def reset_component_for_episode(self, episode: int):
+    def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        super().reset_component_for_episode(episode)
+        super().setup_for_episode(episode)
 
         # Reset File System
-        self.file_system.reset_component_for_episode(episode)
+        self.file_system.setup_for_episode(episode)
 
         # Reset all Nics
         for nic in self.nics.values():
-            nic.reset_component_for_episode(episode)
+            nic.setup_for_episode(episode)
 
         for software in self.software_manager.software.values():
-            software.reset_component_for_episode(episode)
+            software.setup_for_episode(episode)
 
         if episode and self.sys_log:
             self.sys_log.current_episode = episode

@@ -160,16 +160,6 @@ class PrimaiteGame:
             return True
         return False
 
-    def reset(self) -> None:  # TODO: deprecated - remove me
-        """Reset the game, this will reset the simulation."""
-        self.episode_counter += 1
-        self.step_counter = 0
-        _LOGGER.debug(f"Resetting primaite game, episode = {self.episode_counter}")
-        self.simulation.reset_component_for_episode(episode=self.episode_counter)
-        for agent in self.agents:
-            agent.reward_function.total_reward = 0.0
-            agent.reset_agent_for_episode()
-
     def close(self) -> None:
         """Close the game, this will close the simulation."""
         return NotImplemented
