@@ -2,16 +2,17 @@
 
     © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 
+.. _WebBrowser:
 
 WebBrowser
-==========
+##########
 
-The ``WebBrowser`` provides a client interface for connecting to the ``WebServer``.
+The ``WebBrowser`` provides a client interface for connecting to the :ref:`WebServer`.
 
 Key features
-^^^^^^^^^^^^
+============
 
-- Connects to the ``WebServer`` via the ``SoftwareManager``.
+- Connects to the :ref:`WebServer` via the ``SoftwareManager``.
 - Simulates HTTP requests and HTTP packet transfer across a network
 - Allows the emulation of HTTP requests between client and server:
     - Automatically uses ``DNSClient`` to resolve domain names
@@ -19,66 +20,92 @@ Key features
 - Leverages the Service base class for install/uninstall, status tracking, etc.
 
 Usage
-^^^^^
+=====
 
 - Install on a Node via the ``SoftwareManager`` to start the ``WebBrowser``.
 - Service runs on HTTP port 80 by default. (TODO: HTTPS)
 - Execute sending an HTTP GET request with ``get_webpage``
 
 Implementation
-^^^^^^^^^^^^^^
+==============
 
 - Leverages ``SoftwareManager`` for sending payloads over the network.
 - Provides easy interface for making HTTP requests between an HTTP client and server.
 - Extends base Service class.
 
 
-Example Usage
--------------
+Examples
+========
 
-Dependencies
-^^^^^^^^^^^^
+Python
+""""""
+
+The ``WebBrowser`` utilises :ref:`DNSClient` and :ref:`DNSServer` to resolve a URL.
+
+The :ref:`DNSClient` must be configured to use the :ref:`DNSServer`. The :ref:`DNSServer` should be configured to have the ``WebBrowser`` ``target_url`` within its ``domain_mapping``.
 
 .. code-block:: python
 
-    from primaite.simulator.network.container import Network
-    from primaite.simulator.network.hardware.nodes.computer import Computer
-    from primaite.simulator.network.hardware.nodes.server import Server
+    from primaite.simulator.network.hardware.nodes.host.computer import Computer
     from primaite.simulator.system.applications.web_browser import WebBrowser
-    from primaite.simulator.system.services.web_server.web_server_service import WebServer
 
-Example peer to peer network
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    # Create Computer
+    computer = Computer(
+        hostname="computer",
+        ip_address="192.168.1.2",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        start_up_duration=0,
+    )
+    computer.power_on()
 
-.. code-block:: python
+    # Install WebBrowser on computer
+    computer.software_manager.install(WebBrowser)
+    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+    web_browser.run()
 
-    net = Network()
+    # configure the WebBrowser
+    web_browser.target_url = "arcd.com"
 
-    pc1 = Computer(hostname="pc1", ip_address="192.168.1.50", subnet_mask="255.255.255.0")
-    srv = Server(hostname="srv", ip_address="192.168.1.10", subnet_mask="255.255.255.0")
-    pc1.power_on()
-    srv.power_on()
-    net.connect(pc1.network_interface[1], srv.network_interface[1])
+    # once DNS server is configured with the correct domain mapping
+    # this should work
+    web_browser.get_webpage()
 
-Install the Web Server
-^^^^^^^^^^^^^^^^^^^^^^
+Via Configuration
+"""""""""""""""""
 
-.. code-block:: python
+.. code-block:: yaml
 
-    # web browser is automatically installed in computer nodes
-    # IRL this is usually included with an OS
-    client: WebBrowser = pc1.software_manager.software['WebBrowser']
+    simulation:
+        network:
+            nodes:
+                - ref: example_computer
+                hostname: example_computer
+                type: computer
+                ...
+                applications:
+                    - ref: web_browser
+                    type: WebBrowser
+                    options:
+                        target_url: http://arcd.com/
 
-    # install web server
-    srv.software_manager.install(WebServer)
-    webserv: WebServer = srv.software_manager.software['WebServer']
+Configuration
+=============
 
-Open the web page
-^^^^^^^^^^^^^^^^^
+.. include:: ../common/common_configuration.rst
 
-Using a domain name to connect to a website requires setting up DNS Servers. For this example, it is possible to use the IP address directly
+.. |SOFTWARE_NAME| replace:: WebBrowser
+.. |SOFTWARE_NAME_BACKTICK| replace:: ``WebBrowser``
 
-.. code-block:: python
+``target_url``
+""""""""""""""
 
-    # check that the get request succeeded
-    print(client.get_webpage("http://192.168.1.10")) # should be True
+The URL that the ``WebBrowser`` will request when ``get_webpage`` is called without parameters.
+
+The URL can be in any format so long as the domain is within it e.g.
+
+The domain ``arcd.com`` can be matched by
+
+- http://arcd.com/
+- http://arcd.com/users/
+- arcd.com

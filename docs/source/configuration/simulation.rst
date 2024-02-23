@@ -29,12 +29,9 @@ To see the configuration for these nodes, refer to the following:
 
 .. toctree::
     :maxdepth: 1
+    :glob:
 
-    simulation/nodes/computer.rst
-    simulation/nodes/firewall.rst
-    simulation/nodes/router.rst
-    simulation/nodes/server.rst
-    simulation/nodes/switch.rst
+    simulation/nodes/*
 
 ``links``
 ---------

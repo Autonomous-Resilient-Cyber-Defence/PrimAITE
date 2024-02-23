@@ -30,11 +30,11 @@ we'll use the following Network that has a client, server, two switches, and a r
 .. code-block:: python
 
     from primaite.simulator.network.container import Network
-    from primaite.simulator.network.hardware.base import NIC
-    from primaite.simulator.network.hardware.nodes.computer import Computer
-    from primaite.simulator.network.hardware.nodes.router import Router, ACLAction
-    from primaite.simulator.network.hardware.nodes.server import Server
-    from primaite.simulator.network.hardware.nodes.switch import Switch
+    from primaite.simulator.network.hardware.base import NetworkInterface
+    from primaite.simulator.network.hardware.nodes.host.computer import Computer
+    from primaite.simulator.network.hardware.nodes.network.router import Router, ACLAction
+    from primaite.simulator.network.hardware.nodes.host.server import Server
+    from primaite.simulator.network.hardware.nodes.network.switch import Switch
     from primaite.simulator.network.transmission.network_layer import IPProtocol
     from primaite.simulator.network.transmission.transport_layer import Port
 

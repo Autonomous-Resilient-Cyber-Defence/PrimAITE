@@ -296,6 +296,7 @@ class PrimaiteGame:
                     if service_type == "DatabaseService":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
+                            new_service.password = opt.get("backup_server_ip", None)
                             new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
                     if service_type == "FTPServer":
                         if "options" in service_cfg:
@@ -327,7 +328,7 @@ class PrimaiteGame:
                             new_application.configure(
                                 server_ip_address=IPv4Address(opt.get("server_ip")),
                                 server_password=opt.get("server_password"),
-                                payload=opt.get("payload"),
+                                payload=opt.get("payload", "DELETE"),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
                             )

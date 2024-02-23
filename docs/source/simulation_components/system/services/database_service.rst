@@ -2,13 +2,15 @@
 
     © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 
+.. _DatabaseService:
+
 DatabaseService
-===============
+###############
 
 The ``DatabaseService`` provides a SQL database server simulation by extending the base Service class.
 
 Key capabilities
-^^^^^^^^^^^^^^^^
+================
 
 - Creates a database file in the ``Node`` 's ``FileSystem`` upon creation.
 - Handles connecting clients by maintaining a dictionary of connections mapped to session IDs.
@@ -18,16 +20,90 @@ Key capabilities
 - Leverages the Service base class for install/uninstall, status tracking, etc.
 
 Usage
-^^^^^
+=====
 - Install on a Node via the ``SoftwareManager`` to start the database service.
 - Clients connect, execute queries, and disconnect.
 - Service runs on TCP port 5432 by default.
 
 Implementation
-^^^^^^^^^^^^^^
+==============
 
 - Creates the database file within the node's file system.
 - Manages client connections in a dictionary by session ID.
 - Processes SQL queries.
 - Returns results and status codes in a standard dictionary format.
 - Extends Service class for integration with ``SoftwareManager``.
+
+Examples
+========
+
+Python
+""""""
+
+.. code-block:: python
+
+    from ipaddress import IPv4Address
+
+    from primaite.simulator.network.hardware.nodes.host.server import Server
+    from primaite.simulator.system.services.database.database_service import DatabaseService
+
+    # Create Server
+    server = Server(
+        hostname="server",
+        ip_address="192.168.2.2",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        start_up_duration=0,
+    )
+    server.power_on()
+
+    # Install DatabaseService on server
+    server.software_manager.install(DatabaseService)
+    db_service: DatabaseService = server.software_manager.software.get("DatabaseService")
+    db_service.start()
+
+    # configure DatabaseService
+    db_service.configure_backup(IPv4Address("192.168.0.10"))
+
+
+Via Configuration
+"""""""""""""""""
+
+.. code-block:: yaml
+
+    simulation:
+        network:
+            nodes:
+                - ref: example_server
+                hostname: example_server
+                type: server
+                ...
+                services:
+                    - ref: database_service
+                    type: DatabaseService
+                    options:
+                        backup_server_ip: 192.168.0.10
+
+Configuration
+=============
+
+.. include:: ../common/common_configuration.rst
+
+.. |SOFTWARE_NAME| replace:: DatabaseService
+.. |SOFTWARE_NAME_BACKTICK| replace:: ``DatabaseService``
+
+``backup_server_ip``
+""""""""""""""""""""
+
+Optional. Default value is ``None``.
+
+The IP Address of the backup server that the ``DatabaseService`` will use to create backups of the database.
+
+This must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.255``.
+
+``password``
+""""""""""""
+
+Optional. Default value is ``None``.
+
+The password that needs to be provided by connecting clients in order to create a successful connection.

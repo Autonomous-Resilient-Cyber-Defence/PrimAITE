@@ -23,6 +23,7 @@ class DatabaseService(Service):
     """
 
     password: Optional[str] = None
+    """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
 
     backup_server_ip: IPv4Address = None
     """IP address of the backup server."""
@@ -193,6 +194,8 @@ class DatabaseService(Service):
     ) -> Dict[str, Union[int, List[Any]]]:
         """
         Executes the given SQL query and returns the result.
+
+        .. _Database Payload List:
 
         Possible queries:
         - SELECT : returns the data

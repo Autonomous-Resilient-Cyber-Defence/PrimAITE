@@ -11,9 +11,6 @@ The application may not be configured as needed, in which case, see the relevant
 
 The list of applications that are considered system software are:
 
-.. toctree::
-    :maxdepth: 1
-
-    applications/web_browser.rst
+- ``WebBrowser``
 
 More info :py:mod:`primaite.simulator.network.hardware.nodes.host.host_node.SYSTEM_SOFTWARE`

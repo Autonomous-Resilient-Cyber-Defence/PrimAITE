@@ -1,11 +1,11 @@
 .. toctree::
     :maxdepth: 1
+    :glob:
 
-    applications/data_manipulation_bot.rst
-    applications/database_client.rst
-    applications/dos_bot.rst
-    applications/web_browser.rst
+    applications/*
 
 More info :py:mod:`primaite.game.game.APPLICATION_TYPES_MAPPING`
 
 .. include:: list_of_system_applications.rst
+
+.. |SOFTWARE_TYPE| replace:: application

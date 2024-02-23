@@ -11,11 +11,8 @@ The service may not be configured as needed, in which case, see the relevant ser
 
 The list of services that are considered system software are:
 
-.. toctree::
-    :maxdepth: 1
-
-    services/dns_client.rst
-    services/ftp_client.rst
-    services/ntp_client.rst
+- ``DNSClient``
+- ``FTPClient``
+- ``NTPClient``
 
 More info :py:mod:`primaite.simulator.network.hardware.nodes.host.host_node.SYSTEM_SOFTWARE`
