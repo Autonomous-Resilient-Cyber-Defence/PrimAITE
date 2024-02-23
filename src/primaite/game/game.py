@@ -1,6 +1,6 @@
 """PrimAITE game - Encapsulates the simulation and agents."""
 from ipaddress import IPv4Address
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from pydantic import BaseModel, ConfigDict
 
@@ -155,8 +155,14 @@ class PrimaiteGame:
             agent.update_reward(state)
             agent.reward_function.total_reward += agent.reward_function.current_reward
 
-    def apply_agent_actions(self) -> None:
-        """Apply all actions to simulation as requests."""
+    def apply_agent_actions(self) -> Dict[str, Tuple[str, Dict]]:
+        """
+        Apply all actions to simulation as requests.
+
+        :return: A recap of each agent's actions, in CAOS format.
+        :rtype: Dict[str, Tuple[str, Dict]]
+
+        """
         agent_actions = {}
         for agent in self.agents:
             obs = agent.observation_manager.current_observation
