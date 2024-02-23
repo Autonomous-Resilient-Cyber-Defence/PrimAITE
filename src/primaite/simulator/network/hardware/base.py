@@ -98,6 +98,7 @@ class NetworkInterface(SimComponent, ABC):
     "A PacketCapture instance for capturing and analysing packets passing through this interface."
 
     nmne: Dict = Field(default_factory=lambda: {})
+    "A dict containing details of the number of malicious network events captured."
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
@@ -122,7 +123,6 @@ class NetworkInterface(SimComponent, ABC):
                 "enabled": self.enabled,
             }
         )
-        state.update({"nmne": self.nmne})
         return state
 
     def reset_component_for_episode(self, episode: int):
@@ -134,22 +134,28 @@ class NetworkInterface(SimComponent, ABC):
             self.pcap.setup_logger()
         self.enable()
 
-    # @abstractmethod
+    @abstractmethod
     def enable(self):
         """Enable the interface."""
         pass
 
-    # @abstractmethod
+    @abstractmethod
     def disable(self):
         """Disable the interface."""
         pass
 
-    def _capture_nmne(self, frame: Frame, inbound: bool = True):
+    def _capture_nmne(self, frame: Frame, inbound: bool = True) -> None:
         """
         Processes and captures network frame data based on predefined global NMNE settings.
 
         This method updates the NMNE structure with counts of malicious network events based on the frame content and
         direction. The structure is dynamically adjusted according to the enabled capture settings.
+
+        .. note::
+            While there is a lot of logic in this code that defines a multi-level hierarchical NMNE structure,
+            most of it is unused for now as a result of all `CAPTURE_BY_<>` variables in
+            ``primaite.simulator.network.nmne`` being hardcoded and set as final. Once they're 'released' and made
+            configurable, this function will be updated to properly explain the dynamic data structure.
 
         :param frame: The network frame to process, containing IP, TCP/UDP, and payload information.
         :param inbound: Boolean indicating if the frame direction is inbound. Defaults to True.
@@ -214,7 +220,7 @@ class NetworkInterface(SimComponent, ABC):
                 # Increment a generic counter if keyword capturing is not enabled
                 keyword_level["*"] = keyword_level.get("*", 0) + 1
 
-    # @abstractmethod
+    @abstractmethod
     def send_frame(self, frame: Frame) -> bool:
         """
         Attempts to send a network frame through the interface.
@@ -224,7 +230,7 @@ class NetworkInterface(SimComponent, ABC):
         """
         self._capture_nmne(frame, inbound=False)
 
-    # @abstractmethod
+    @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
         """
         Receives a network frame on the interface.

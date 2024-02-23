@@ -352,8 +352,6 @@ class NicObservation(AbstractObservation):
         """The default NIC observation dict."""
         data = {"nic_status": 0}
 
-        if CAPTURE_NMNE:
-            data.update({"nmne": {"inbound": 0, "outbound": 0}})
         return data
 
     def __init__(self, where: Optional[Tuple[str]] = None) -> None:
@@ -407,7 +405,7 @@ class NicObservation(AbstractObservation):
             return self.default_observation
         else:
             obs_dict = {"nic_status": 1 if nic_state["enabled"] else 2, "nmne": {}}
-            if CAPTURE_NMNE:
+            if CAPTURE_NMNE and nic_state.get("nmne"):
                 direction_dict = nic_state["nmne"].get("direction", {})
                 inbound_keywords = direction_dict.get("inbound", {}).get("keywords", {})
                 inbound_count = inbound_keywords.get("*", 0)
