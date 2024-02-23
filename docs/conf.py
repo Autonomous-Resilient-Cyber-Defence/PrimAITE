@@ -27,6 +27,11 @@ with open("../src/primaite/VERSION", "r") as file:
 # The full version, including alpha/beta/rc tags
 release = version
 
+# set global variables
+rst_prolog = f"""
+.. |VERSION| replace::  {release}
+"""
+
 html_title = f"{project} v{release} docs"
 
 # -- General configuration ---------------------------------------------------

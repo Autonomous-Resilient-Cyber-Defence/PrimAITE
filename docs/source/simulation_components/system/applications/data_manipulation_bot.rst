@@ -16,6 +16,7 @@ The bot is intended to simulate a malicious actor carrying out attacks like:
 - Dropping tables
 - Deleting records
 - Modifying data
+
 on a database server by abusing an application's trusted database connectivity.
 
 The bot performs attacks in the following stages to simulate the real pattern of an attack:

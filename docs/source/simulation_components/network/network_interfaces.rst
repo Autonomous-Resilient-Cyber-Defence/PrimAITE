@@ -13,6 +13,8 @@ facilitates modular development, enhances maintainability, and supports scalabil
 allowing for focused enhancements within each layer.
 
 .. image:: primaite_network_interface_model.png
+    :width: 500
+    :align: center
 
 Layer Descriptions
 ==================

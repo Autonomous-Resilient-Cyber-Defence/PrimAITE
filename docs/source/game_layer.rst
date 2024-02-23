@@ -18,7 +18,7 @@ Game layer
 The game layer is responsible for managing agents and getting them to interface with the simulator correctly. It consists of several components:
 
 PrimAITE Session
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 ``PrimaiteSession`` is the main entry point into Primaite and it allows the simultaneous coordination of a simulation and agents that interact with it. ``PrimaiteSession`` keeps track of multiple agents of different types.
 

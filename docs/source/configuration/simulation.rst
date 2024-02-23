@@ -49,6 +49,8 @@ In order to recreate the network below, we will need to create 2 links:
 - a link from computer_2 to the switch
 
 .. image:: ../../_static/switched_p2p_network.png
+    :width: 500
+    :align: center
 
 this results in:
 

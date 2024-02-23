@@ -5,33 +5,21 @@
 ``services``
 ------------
 
-List of available services that can be installed on a |NODE|:
+List of available services that can be installed on a |NODE| can be found in :ref:`List of Services <List of Services>`
 
-.. toctree::
-    :maxdepth: 1
+services in configuration
+"""""""""""""""""""""""""
 
-    ../software/services/database_service.rst
-    ../software/services/dns_client.rst
-    ../software/services/dns_server.rst
-    ../software/services/ftp_client.rst
-    ../software/services/ftp_server.rst
-    ../software/services/ntp_client.rst
-    ../software/services/ntp_server.rst
-    ../software/services/web_server.rst
+Services takes a list of services as shown in the example below.
 
-More info :py:mod:`primaite.game.game.SERVICE_TYPES_MAPPING`
+.. code-block:: yaml
 
-.. include:: ../software/common/system_software.rst
-
-
-.. toctree::
-    :maxdepth: 1
-
-    ../software/services/dns_client.rst
-    ../software/services/ftp_client.rst
-    ../software/services/ntp_client.rst
-
-More info :py:mod:`primaite.simulator.network.hardware.nodes.host.host_node.SYSTEM_SOFTWARE`
-
-.. |SOFTWARE_TYPE| replace:: service
-.. |SOFTWARE_TYPES| replace:: services
+    - ref: client_1
+    hostname: client_1
+    type: computer
+    ...
+    applications:
+        - ref: example_service
+        type: example_service_type
+        options:
+            # this section is different for each service

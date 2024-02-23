@@ -5,27 +5,21 @@
 ``applications``
 ----------------
 
-List of available applications that can be installed on a |NODE|:
+List of available applications that can be installed on a |NODE| can be found in :ref:`List of Applications <List of Applications>`
 
-.. toctree::
-    :maxdepth: 1
+application in configuration
+""""""""""""""""""""""""""""
 
-    ../software/applications/data_manipulation_bot.rst
-    ../software/applications/database_client.rst
-    ../software/applications/dos_bot.rst
-    ../software/applications/web_browser.rst
+Applications takes a list of applications as shown in the example below.
 
-More info :py:mod:`primaite.game.game.APPLICATION_TYPES_MAPPING`
+.. code-block:: yaml
 
-.. include:: ../software/common/system_software.rst
-
-
-.. toctree::
-    :maxdepth: 1
-
-    ../software/applications/web_browser.rst
-
-More info :py:mod:`primaite.simulator.network.hardware.nodes.host.host_node.SYSTEM_SOFTWARE`
-
-.. |SOFTWARE_TYPE| replace:: application
-.. |SOFTWARE_TYPES| replace:: applications
+    - ref: client_1
+    hostname: client_1
+    type: computer
+    ...
+    applications:
+        - ref: example_application
+        type: example_application_type
+        options:
+            # this section is different for each application

@@ -106,8 +106,12 @@ There are 6 ACLs that can be defined for a firewall
 - ``external_outbound_acl`` for traffic going towards the external network
 
 .. image:: ../../../../_static/firewall_acl.png
+    :width: 500
+    :align: center
 
 By default, ``external_inbound_acl`` and ``external_outbound_acl`` will permit any traffic through.
+
+``internal_inbound_acl``, ``internal_outbound_acl``, ``dmz_inbound_acl`` and ``dmz_outbound_acl`` will deny any traffic by default, so must be configured to allow defined ``src_port`` and ``dst_port`` or ``protocol``.
 
 See :py:mod:`primaite.simulator.network.hardware.nodes.network.router.AccessControlList`
 
