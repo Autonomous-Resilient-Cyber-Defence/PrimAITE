@@ -185,6 +185,10 @@ class PrimaiteGame:
         """Close the game, this will close the simulation."""
         return NotImplemented
 
+    def setup_for_episode(self, episode: int) -> None:
+        """Perform any final configuration of components to make them ready for the game to start."""
+        self.simulation.setup_for_episode(episode=episode)
+
     @classmethod
     def from_config(cls, cfg: Dict) -> "PrimaiteGame":
         """Create a PrimaiteGame object from a config dictionary.
@@ -258,7 +262,9 @@ class PrimaiteGame:
                         new_service = new_node.software_manager.software[service_type]
                         game.ref_map_services[service_ref] = new_service.uuid
                     else:
-                        _LOGGER.warning(f"service type not found {service_type}")
+                        msg = f"Configuration contains an invalid service type: {service_type}"
+                        _LOGGER.error(msg)
+                        raise ValueError(msg)
                     # service-dependent options
                     if service_type == "DNSClient":
                         if "options" in service_cfg:
@@ -297,7 +303,9 @@ class PrimaiteGame:
                         new_application = new_node.software_manager.software[application_type]
                         game.ref_map_applications[application_ref] = new_application.uuid
                     else:
-                        _LOGGER.warning(f"application type not found {application_type}")
+                        msg = f"Configuration contains an invalid application type: {application_type}"
+                        _LOGGER.error(msg)
+                        raise ValueError(msg)
 
                     if application_type == "DataManipulationBot":
                         if "options" in application_cfg:

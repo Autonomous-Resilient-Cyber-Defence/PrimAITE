@@ -1078,7 +1078,7 @@ class Router(NetworkNode):
         for i, _ in self.network_interface.items():
             self.enable_port(i)
 
-        super().setup_for_episode(episode)
+        super().setup_for_episode(episode=episode)
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()

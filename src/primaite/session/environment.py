@@ -74,6 +74,7 @@ class PrimaiteGymEnv(gymnasium.Env):
             f"avg. reward: {self.game.rl_agents[0].reward_function.total_reward}"
         )
         self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=self.game_config)
+        self.game.setup_for_episode(episode=self.episode_counter)
         self.agent = self.game.rl_agents[0]
         self.episode_counter += 1
         state = self.game.get_sim_state()
@@ -97,12 +98,12 @@ class PrimaiteGymEnv(gymnasium.Env):
 
     def _get_obs(self) -> ObsType:
         """Return the current observation."""
-        if not self.agent.flatten_obs:
-            return self.agent.observation_manager.current_observation
-        else:
+        if self.agent.flatten_obs:
             unflat_space = self.agent.observation_manager.space
             unflat_obs = self.agent.observation_manager.current_observation
             return gymnasium.spaces.flatten(unflat_space, unflat_obs)
+        else:
+            return self.agent.observation_manager.current_observation
 
 
 class PrimaiteRayEnv(gymnasium.Env):

@@ -3,7 +3,7 @@ from abc import abstractmethod
 from datetime import datetime
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, TYPE_CHECKING, Union
 
 from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
@@ -12,6 +12,9 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
+
+if TYPE_CHECKING:
+    from primaite.simulator.system.core.software_manager import SoftwareManager
 
 
 class SoftwareType(Enum):
@@ -84,7 +87,7 @@ class Software(SimComponent):
     "The count of times the software has been scanned, defaults to 0."
     revealed_to_red: bool = False
     "Indicates if the software has been revealed to red agent, defaults is False."
-    software_manager: Any = None
+    software_manager: "SoftwareManager" = None
     "An instance of Software Manager that is used by the parent node."
     sys_log: SysLog = None
     "An instance of SysLog that is used by the parent node."

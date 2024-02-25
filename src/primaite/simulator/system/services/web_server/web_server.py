@@ -118,7 +118,7 @@ class WebServer(Service):
                     self.set_health_state(SoftwareHealthState.COMPROMISED)
 
             return response
-        except Exception:
+        except Exception:  # TODO: refactor this. Likely to cause silent bugs.
             # something went wrong on the server
             response.status_code = HttpStatusCode.INTERNAL_SERVER_ERROR
             return response

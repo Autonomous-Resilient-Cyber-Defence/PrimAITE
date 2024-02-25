@@ -90,7 +90,7 @@ class NetworkInterface(SimComponent, ABC):
 
     def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        super().setup_for_episode(episode)
+        super().setup_for_episode(episode=episode)
         if episode and self.pcap:
             self.pcap.current_episode = episode
             self.pcap.setup_logger()
@@ -643,17 +643,17 @@ class Node(SimComponent):
 
     def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        super().setup_for_episode(episode)
+        super().setup_for_episode(episode=episode)
 
         # Reset File System
-        self.file_system.setup_for_episode(episode)
+        self.file_system.setup_for_episode(episode=episode)
 
         # Reset all Nics
         for network_interface in self.network_interfaces.values():
-            network_interface.setup_for_episode(episode)
+            network_interface.setup_for_episode(episode=episode)
 
         for software in self.software_manager.software.values():
-            software.setup_for_episode(episode)
+            software.setup_for_episode(episode=episode)
 
         if episode and self.sys_log:
             self.sys_log.current_episode = episode
