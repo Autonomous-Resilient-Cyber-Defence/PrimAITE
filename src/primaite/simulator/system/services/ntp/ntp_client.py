@@ -1,6 +1,6 @@
 from datetime import datetime
 from ipaddress import IPv4Address
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.ntp import NTPPacket
@@ -54,7 +54,7 @@ class NTPClient(Service):
         payload: NTPPacket,
         session_id: Optional[str] = None,
         dest_ip_address: IPv4Address = None,
-        dest_port: List[Port] = Port.NTP,
+        dest_port: Port = Port.NTP,
         **kwargs,
     ) -> bool:
         """Requests NTP data from NTP server.
