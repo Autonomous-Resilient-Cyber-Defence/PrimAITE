@@ -1016,7 +1016,7 @@ class Router(Node):
         # Add the router's default ACL rules from the config.
         if "acl" in cfg:
             for r_num, r_cfg in cfg["acl"].items():
-                new.add_rule(
+                new.acl.add_rule(
                     action=ACLAction[r_cfg["action"]],
                     src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
                     dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
