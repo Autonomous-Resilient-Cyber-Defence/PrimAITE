@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import re
 import secrets
+from abc import ABC, abstractmethod
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Union
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import BaseModel, Field
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
@@ -15,10 +17,7 @@ from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
-from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import ICMPPacket, ICMPType, IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader
+from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.packet_capture import PacketCapture
 from primaite.simulator.system.core.session_manager import SessionManager
@@ -26,6 +25,7 @@ from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.processes.process import Process
 from primaite.simulator.system.services.service import Service
+from primaite.utils.validators import IPV4Address
 
 _LOGGER = getLogger(__name__)
 
@@ -33,14 +33,6 @@ _LOGGER = getLogger(__name__)
 def generate_mac_address(oui: Optional[str] = None) -> str:
     """
     Generate a random MAC Address.
-
-    :Example:
-
-    >>> generate_mac_address()
-    'ef:7e:97:c8:a8:ce'
-
-    >>> generate_mac_address(oui='aa:bb:cc')
-    'aa:bb:cc:42:ba:41'
 
     :param oui: The Organizationally Unique Identifier (OUI) portion of the MAC address. It should be a string with
         the first 3 bytes (24 bits) in the format "XX:XX:XX".
@@ -62,66 +54,39 @@ def generate_mac_address(oui: Optional[str] = None) -> str:
     return ":".join(f"{b:02x}" for b in mac)
 
 
-class NIC(SimComponent):
+class NetworkInterface(SimComponent, ABC):
     """
-    Models a Network Interface Card (NIC) in a computer or network device.
+    A generic Network Interface in a Node on a Network.
 
-    :param ip_address: The IPv4 address assigned to the NIC.
-    :param subnet_mask: The subnet mask assigned to the NIC.
-    :param gateway: The default gateway IP address for forwarding network traffic to other networks.
-    :param mac_address: The MAC address of the NIC. Defaults to a randomly set MAC address.
-    :param speed: The speed of the NIC in Mbps (default is 100 Mbps).
-    :param mtu: The Maximum Transmission Unit (MTU) of the NIC in Bytes, representing the largest data packet size it
-        can handle without fragmentation (default is 1500 B).
-    :param wake_on_lan: Indicates if the NIC supports Wake-on-LAN functionality.
-    :param dns_servers: List of IP addresses of DNS servers used for name resolution.
+    This is a base class for specific types of network interfaces, providing common attributes and methods required
+    for network communication. It defines the fundamental properties that all network interfaces share, such as
+    MAC address, speed, MTU (maximum transmission unit), and the ability to enable or disable the interface.
+
+    :ivar str mac_address: The MAC address of the network interface. Default to a randomly generated MAC address.
+    :ivar int speed: The speed of the interface in Mbps. Default is 100 Mbps.
+    :ivar int mtu: The Maximum Transmission Unit (MTU) of the interface in Bytes. Default is 1500 B.
     """
 
-    ip_address: IPv4Address
-    "The IP address assigned to the NIC for communication on an IP-based network."
-    subnet_mask: IPv4Address
-    "The subnet mask assigned to the NIC."
-    mac_address: str
-    "The MAC address of the NIC. Defaults to a randomly set MAC address. Randomly generated upon creation."
+    mac_address: str = Field(default_factory=generate_mac_address)
+    "The MAC address of the interface."
+
     speed: int = 100
-    "The speed of the NIC in Mbps. Default is 100 Mbps."
+    "The speed of the interface in Mbps. Default is 100 Mbps."
+
     mtu: int = 1500
-    "The Maximum Transmission Unit (MTU) of the NIC in Bytes. Default is 1500 B"
-    wake_on_lan: bool = False
-    "Indicates if the NIC supports Wake-on-LAN functionality."
-    _connected_node: Optional[Node] = None
-    "The Node to which the NIC is connected."
-    _port_num_on_node: Optional[int] = None
-    "Which port number is assigned on this NIC"
-    _connected_link: Optional[Link] = None
-    "The Link to which the NIC is connected."
+    "The Maximum Transmission Unit (MTU) of the interface in Bytes. Default is 1500 B"
+
     enabled: bool = False
-    "Indicates whether the NIC is enabled."
+    "Indicates whether the interface is enabled."
+
+    _connected_node: Optional[Node] = None
+    "The Node to which the interface is connected."
+
+    port_num: Optional[int] = None
+    "The port number assigned to this interface on the connected node."
+
     pcap: Optional[PacketCapture] = None
-
-    def __init__(self, **kwargs):
-        """
-        NIC constructor.
-
-        Performs some type conversion the calls ``super().__init__()``. Then performs some checking on the ip_address
-        and gateway just to check that it's all been configured correctly.
-
-        :raises ValueError: When the ip_address and gateway are the same. And when the ip_address/subnet mask are a
-            network address.
-        """
-        if not isinstance(kwargs["ip_address"], IPv4Address):
-            kwargs["ip_address"] = IPv4Address(kwargs["ip_address"])
-        if "mac_address" not in kwargs:
-            kwargs["mac_address"] = generate_mac_address()
-        super().__init__(**kwargs)
-
-        if self.ip_network.network_address == self.ip_address:
-            msg = (
-                f"Failed to set IP address {self.ip_address} and subnet mask {self.subnet_mask} as it is a "
-                f"network address {self.ip_network.network_address}"
-            )
-            _LOGGER.error(msg)
-            raise ValueError(msg)
+    "A PacketCapture instance for capturing and analysing packets passing through this interface."
 
     def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
@@ -131,29 +96,6 @@ class NIC(SimComponent):
             self.pcap.setup_logger()
         self.enable()
 
-    def describe_state(self) -> Dict:
-        """
-        Produce a dictionary describing the current state of this object.
-
-        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
-
-        :return: Current state of this object and child objects.
-        :rtype: Dict
-        """
-        state = super().describe_state()
-        state.update(
-            {
-                "ip_address": str(self.ip_address),
-                "subnet_mask": str(self.subnet_mask),
-                "mac_address": self.mac_address,
-                "speed": self.speed,
-                "mtu": self.mtu,
-                "wake_on_lan": self.wake_on_lan,
-                "enabled": self.enabled,
-            }
-        )
-        return state
-
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 
@@ -162,194 +104,11 @@ class NIC(SimComponent):
 
         return rm
 
-    @property
-    def ip_network(self) -> IPv4Network:
-        """
-        Return the IPv4Network of the NIC.
-
-        :return: The IPv4Network from the ip_address/subnet mask.
-        """
-        return IPv4Network(f"{self.ip_address}/{self.subnet_mask}", strict=False)
-
-    def enable(self):
-        """Attempt to enable the NIC."""
-        if self.enabled:
-            return
-        if not self._connected_node:
-            _LOGGER.debug(f"NIC {self} cannot be enabled as it is not connected to a Node")
-            return
-        if self._connected_node.operating_state != NodeOperatingState.ON:
-            self._connected_node.sys_log.error(f"NIC {self} cannot be enabled as the endpoint is not turned on")
-            return
-        if not self._connected_link:
-            _LOGGER.debug(f"NIC {self} cannot be enabled as it is not connected to a Link")
-            return
-
-        self.enabled = True
-        self._connected_node.sys_log.info(f"NIC {self} enabled")
-        self.pcap = PacketCapture(hostname=self._connected_node.hostname, ip_address=self.ip_address)
-        if self._connected_link:
-            self._connected_link.endpoint_up()
-
-    def disable(self):
-        """Disable the NIC."""
-        if not self.enabled:
-            return
-
-        self.enabled = False
-        if self._connected_node:
-            self._connected_node.sys_log.info(f"NIC {self} disabled")
-        else:
-            _LOGGER.debug(f"NIC {self} disabled")
-        if self._connected_link:
-            self._connected_link.endpoint_down()
-
-    def connect_link(self, link: Link):
-        """
-        Connect the NIC to a link.
-
-        :param link: The link to which the NIC is connected.
-        :type link: :class:`~primaite.simulator.network.transmission.physical_layer.Link`
-        """
-        if self._connected_link:
-            _LOGGER.error(f"Cannot connect Link to NIC ({self.mac_address}) as it already has a connection")
-            return
-
-        if self._connected_link == link:
-            _LOGGER.error(f"Cannot connect Link to NIC ({self.mac_address}) as it is already connected")
-            return
-
-        # TODO: Inform the Node that a link has been connected
-        self._connected_link = link
-        self.enable()
-        _LOGGER.debug(f"NIC {self} connected to Link {link}")
-
-    def disconnect_link(self):
-        """Disconnect the NIC from the connected Link."""
-        if self._connected_link.endpoint_a == self:
-            self._connected_link.endpoint_a = None
-        if self._connected_link.endpoint_b == self:
-            self._connected_link.endpoint_b = None
-        self._connected_link = None
-
-    def add_dns_server(self, ip_address: IPv4Address):
-        """
-        Add a DNS server IP address.
-
-        :param ip_address: The IP address of the DNS server to be added.
-        :type ip_address: ipaddress.IPv4Address
-        """
-        pass
-
-    def remove_dns_server(self, ip_address: IPv4Address):
-        """
-        Remove a DNS server IP Address.
-
-        :param ip_address: The IP address of the DNS server to be removed.
-        :type ip_address: ipaddress.IPv4Address
-        """
-        pass
-
-    def send_frame(self, frame: Frame) -> bool:
-        """
-        Send a network frame from the NIC to the connected link.
-
-        :param frame: The network frame to be sent.
-        :type frame: :class:`~primaite.simulator.network.osi_layers.Frame`
-        """
-        if self.enabled:
-            frame.set_sent_timestamp()
-            self.pcap.capture(frame)
-            self._connected_link.transmit_frame(sender_nic=self, frame=frame)
-            return True
-        # Cannot send Frame as the NIC is not enabled
-        return False
-
-    def receive_frame(self, frame: Frame) -> bool:
-        """
-        Receive a network frame from the connected link, processing it if the NIC is enabled.
-
-        This method decrements the Time To Live (TTL) of the frame, captures it using PCAP (Packet Capture), and checks
-        if the frame is either a broadcast or destined for this NIC. If the frame is acceptable, it is passed to the
-        connected node. The method also handles the discarding of frames with TTL expired and logs this event.
-
-        The frame's reception is based on various conditions:
-        - If the NIC is disabled, the frame is not processed.
-        - If the TTL of the frame reaches zero after decrement, it is discarded and logged.
-        - If the frame is a broadcast or its destination MAC/IP address matches this NIC's, it is accepted.
-        - All other frames are dropped and logged or printed to the console.
-
-        :param frame: The network frame being received. This should be an instance of the Frame class.
-        :return: Returns True if the frame is processed and passed to the node, False otherwise.
-        """
-        if self.enabled:
-            frame.decrement_ttl()
-            if frame.ip and frame.ip.ttl < 1:
-                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
-                return False
-            frame.set_received_timestamp()
-            self.pcap.capture(frame)
-            # If this destination or is broadcast
-            accept_frame = False
-
-            # Check if it's a broadcast:
-            if frame.ethernet.dst_mac_addr == "ff:ff:ff:ff:ff:ff":
-                if frame.ip.dst_ip_address in {self.ip_address, self.ip_network.broadcast_address}:
-                    accept_frame = True
-            else:
-                if frame.ethernet.dst_mac_addr == self.mac_address:
-                    accept_frame = True
-
-            if accept_frame:
-                self._connected_node.receive_frame(frame=frame, from_nic=self)
-                return True
-        return False
-
-    def __str__(self) -> str:
-        return f"{self.mac_address}/{self.ip_address}"
-
-
-class SwitchPort(SimComponent):
-    """
-    Models a switch port in a network switch device.
-
-    :param mac_address: The MAC address of the SwitchPort. Defaults to a randomly set MAC address.
-    :param speed: The speed of the SwitchPort in Mbps (default is 100 Mbps).
-    :param mtu: The Maximum Transmission Unit (MTU) of the SwitchPort in Bytes, representing the largest data packet
-        size it can handle without fragmentation (default is 1500 B).
-    """
-
-    port_num: int = 1
-    mac_address: str
-    "The MAC address of the SwitchPort. Defaults to a randomly set MAC address."
-    speed: int = 100
-    "The speed of the SwitchPort in Mbps. Default is 100 Mbps."
-    mtu: int = 1500
-    "The Maximum Transmission Unit (MTU) of the SwitchPort in Bytes. Default is 1500 B"
-    _connected_node: Optional[Node] = None
-    "The Node to which the SwitchPort is connected."
-    _port_num_on_node: Optional[int] = None
-    "The port num on the connected node."
-    _connected_link: Optional[Link] = None
-    "The Link to which the SwitchPort is connected."
-    enabled: bool = False
-    "Indicates whether the SwitchPort is enabled."
-    pcap: Optional[PacketCapture] = None
-
-    def __init__(self, **kwargs):
-        """The SwitchPort constructor."""
-        if "mac_address" not in kwargs:
-            kwargs["mac_address"] = generate_mac_address()
-        super().__init__(**kwargs)
-
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
 
-        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
-
         :return: Current state of this object and child objects.
-        :rtype: Dict
         """
         state = super().describe_state()
         state.update(
@@ -362,58 +121,131 @@ class SwitchPort(SimComponent):
         )
         return state
 
+    @abstractmethod
     def enable(self):
-        """Attempt to enable the SwitchPort."""
+        """Enable the interface."""
+        pass
+
+    @abstractmethod
+    def disable(self):
+        """Disable the interface."""
+        pass
+
+    @abstractmethod
+    def send_frame(self, frame: Frame) -> bool:
+        """
+        Attempts to send a network frame through the interface.
+
+        :param frame: The network frame to be sent.
+        :return: A boolean indicating whether the frame was successfully sent.
+        """
+        pass
+
+    @abstractmethod
+    def receive_frame(self, frame: Frame) -> bool:
+        """
+        Receives a network frame on the interface.
+
+        :param frame: The network frame being received.
+        :return: A boolean indicating whether the frame was successfully received.
+        """
+        pass
+
+    def __str__(self) -> str:
+        """
+        String representation of the NIC.
+
+        :return: A string combining the port number and the mac address
+        """
+        return f"Port {self.port_num}: {self.mac_address}"
+
+
+class WiredNetworkInterface(NetworkInterface, ABC):
+    """
+    Represents a wired network interface in a network device.
+
+    This abstract base class serves as a foundational blueprint for wired network interfaces, offering core
+    functionalities and enforcing the implementation of key operational methods such as enabling and disabling the
+    interface. It encapsulates common attributes and behaviors intrinsic to wired interfaces, including the
+    management of physical or logical connections to network links and the provision of methods for connecting to and
+    disconnecting from these links.
+
+    Inherits from:
+    - NetworkInterface: Provides basic network interface properties and methods.
+
+
+    Subclasses of this class are expected to provide concrete implementations for the abstract methods defined here,
+    tailoring the functionality to the specific requirements of the wired interface types they represent.
+    """
+
+    _connected_link: Optional[Link] = None
+    "The network link to which the network interface is connected."
+
+    def enable(self):
+        """Attempt to enable the network interface."""
         if self.enabled:
             return
 
         if not self._connected_node:
-            _LOGGER.error(f"SwitchPort {self} cannot be enabled as it is not connected to a Node")
+            _LOGGER.error(f"Interface {self} cannot be enabled as it is not connected to a Node")
             return
 
         if self._connected_node.operating_state != NodeOperatingState.ON:
-            self._connected_node.sys_log.info(f"SwitchPort {self} cannot be enabled as the endpoint is not turned on")
+            self._connected_node.sys_log.info(
+                f"Interface {self} cannot be enabled as the connected Node is not powered on"
+            )
+            return
+
+        if not self._connected_link:
+            self._connected_node.sys_log.info(f"Interface {self} cannot be enabled as there is no Link connected.")
             return
 
         self.enabled = True
-        self._connected_node.sys_log.info(f"SwitchPort {self} enabled")
-        self.pcap = PacketCapture(hostname=self._connected_node.hostname, switch_port_number=self.port_num)
+        self._connected_node.sys_log.info(f"Network Interface {self} enabled")
+        self.pcap = PacketCapture(hostname=self._connected_node.hostname, interface_num=self.port_num)
         if self._connected_link:
             self._connected_link.endpoint_up()
 
     def disable(self):
-        """Disable the SwitchPort."""
+        """Disable the network interface."""
         if not self.enabled:
             return
         self.enabled = False
         if self._connected_node:
-            self._connected_node.sys_log.info(f"SwitchPort {self} disabled")
+            self._connected_node.sys_log.info(f"Network Interface {self} disabled")
         else:
-            _LOGGER.debug(f"SwitchPort {self} disabled")
+            _LOGGER.debug(f"Interface {self} disabled")
         if self._connected_link:
             self._connected_link.endpoint_down()
 
     def connect_link(self, link: Link):
         """
-        Connect the SwitchPort to a link.
+        Connect this network interface to a specified link.
 
-        :param link: The link to which the SwitchPort is connected.
+        This method establishes a connection between the network interface and a network link if the network interface
+        is not already connected. If the network interface is already connected to a link, it logs an error and does
+        not change the existing connection.
+
+        :param link: The Link instance to connect to this network interface.
         """
         if self._connected_link:
-            _LOGGER.error(f"Cannot connect link to SwitchPort {self.mac_address} as it already has a connection")
+            _LOGGER.error(f"Cannot connect Link to network interface {self} as it already has a connection")
             return
 
         if self._connected_link == link:
-            _LOGGER.error(f"Cannot connect Link to SwitchPort {self.mac_address} as it is already connected")
+            _LOGGER.error(f"Cannot connect Link to network interface {self} as it is already connected")
             return
 
-        # TODO: Inform the Switch that a link has been connected
         self._connected_link = link
-        _LOGGER.debug(f"SwitchPort {self} connected to Link {link}")
         self.enable()
 
     def disconnect_link(self):
-        """Disconnect the SwitchPort from the connected Link."""
+        """
+        Disconnect the network interface from its connected Link, if any.
+
+        This method removes the association between the network interface and its connected Link. It updates the
+        connected Link's endpoints to reflect the disconnection.
+        """
         if self._connected_link.endpoint_a == self:
             self._connected_link.endpoint_a = None
         if self._connected_link.endpoint_b == self:
@@ -422,38 +254,170 @@ class SwitchPort(SimComponent):
 
     def send_frame(self, frame: Frame) -> bool:
         """
-        Send a network frame from the SwitchPort to the connected link.
+        Attempt to send a network frame through the connected Link.
+
+        This method sends a frame if the NIC is enabled and connected to a link. It captures the frame using PCAP
+        (if available) and transmits it through the connected link. Returns True if the frame is successfully sent,
+        False otherwise (e.g., if the Network Interface is disabled).
 
         :param frame: The network frame to be sent.
+        :return: True if the frame is sent, False if the Network Interface is disabled or not connected to a link.
         """
         if self.enabled:
-            self.pcap.capture(frame)
+            frame.set_sent_timestamp()
+            self.pcap.capture_outbound(frame)
             self._connected_link.transmit_frame(sender_nic=self, frame=frame)
             return True
-        # Cannot send Frame as the SwitchPort is not enabled
+        # Cannot send Frame as the NIC is not enabled
         return False
 
+    @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
         """
-        Receive a network frame from the connected link if the SwitchPort is enabled.
-
-        The Frame is passed to the Node.
+        Receives a network frame on the network interface.
 
         :param frame: The network frame being received.
+        :return: A boolean indicating whether the frame was successfully received.
         """
-        if self.enabled:
-            frame.decrement_ttl()
-            if frame.ip and frame.ip.ttl < 1:
-                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
-                return False
-            self.pcap.capture(frame)
-            connected_node: Node = self._connected_node
-            connected_node.forward_frame(frame=frame, incoming_port=self)
-            return True
-        return False
+        pass
 
-    def __str__(self) -> str:
-        return f"{self.mac_address}"
+
+class Layer3Interface(BaseModel, ABC):
+    """
+    Represents a Layer 3 (Network Layer) interface in a network device.
+
+    This class serves as a base for network interfaces that operate at Layer 3 of the OSI model, providing IP
+    connectivity and subnetting capabilities. It's not meant to be instantiated directly but to be subclassed by
+    specific types of network interfaces that require IP addressing capabilities.
+
+    :ivar IPV4Address ip_address: The IP address assigned to the interface. This address enables the interface to
+        participate in IP-based networking, allowing it to send and receive IP packets.
+    :ivar IPv4Address subnet_mask: The subnet mask assigned to the interface. This mask helps in determining the
+        network segment that the interface belongs to and is used in IP routing decisions.
+    """
+
+    ip_address: IPV4Address
+    "The IP address assigned to the interface for communication on an IP-based network."
+
+    subnet_mask: IPV4Address
+    "The subnet mask assigned to the interface, defining the network portion and the host portion of the IP address."
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        :return: Current state of this object and child objects.
+        """
+        state = {
+            "ip_address": str(self.ip_address),
+            "subnet_mask": str(self.subnet_mask),
+        }
+
+        return state
+
+    @property
+    def ip_network(self) -> IPv4Network:
+        """
+        Calculate and return the IPv4Network derived from the NIC's IP address and subnet mask.
+
+        This property constructs an IPv4Network object which represents the whole network that the NIC's IP address
+        belongs to, based on its subnet mask. It's useful for determining the network range and broadcast address.
+
+        :return: An IPv4Network instance representing the network of this NIC.
+        """
+        return IPv4Network(f"{self.ip_address}/{self.subnet_mask}", strict=False)
+
+
+class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
+    """
+    Represents an IP wired network interface.
+
+    This interface operates at both the data link layer (Layer 2) and the network layer (Layer 3) of the OSI model,
+    specifically tailored for IP-based communication. This abstract class serves as a template for creating specific
+    wired network interfaces that support Internet Protocol (IP) functionalities.
+
+    As this class is an amalgamation of its parent classes without additional attributes or methods, it is recommended
+    to refer to the documentation of `WiredNetworkInterface` and `Layer3Interface` for detailed information on the
+    supported operations and functionalities.
+
+    The class inherits from:
+    - `WiredNetworkInterface`: Provides the functionalities and characteristics of a wired connection, such as
+        physical link establishment and data transmission over a cable.
+    - `Layer3Interface`: Enables network layer capabilities, including IP address assignment, routing, and
+        potentially, Layer 3 protocols like IPsec.
+
+    As an abstract class, `IPWiredNetworkInterface` does not implement specific methods but mandates that any derived
+    class provides implementations for the functionalities of both `WiredNetworkInterface` and `Layer3Interface`.
+    This structure is ideal for representing network interfaces in devices that require wired connections and are
+    capable of IP routing and addressing, such as routers, switches, as well as end-host devices like computers and
+    servers.
+
+    Derived classes should define specific behaviors and properties of an IP-capable wired network interface,
+    customizing it for their specific use cases.
+    """
+
+    _connected_link: Optional[Link] = None
+    "The network link to which the network interface is connected."
+
+    def model_post_init(self, __context: Any) -> None:
+        """
+        Performs post-initialisation checks to ensure the model's IP configuration is valid.
+
+        This method is invoked after the initialisation of a network model object to validate its network settings,
+        particularly to ensure that the assigned IP address is not a network address. This validation is crucial for
+        maintaining the integrity of network simulations and avoiding configuration errors that could lead to
+        unrealistic or incorrect behavior.
+
+        :param __context: Contextual information or parameters passed to the method, used for further initializing or
+            validating the model post-creation.
+        :raises ValueError: If the IP address is the same as the network address, indicating an incorrect configuration.
+        """
+        if self.ip_network.network_address == self.ip_address:
+            raise ValueError(f"{self.ip_address}/{self.subnet_mask} must not be a network address")
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        # Get the state from the WiredNetworkInterface
+        state = WiredNetworkInterface.describe_state(self)
+
+        # Update the state with information from Layer3Interface
+        state.update(Layer3Interface.describe_state(self))
+
+        return state
+
+    def enable(self):
+        """
+        Enables this wired network interface and attempts to send a "hello" message to the default gateway.
+
+        This method activates the network interface, making it operational for network communications. After enabling,
+        it tries to initiate a default gateway "hello" process, typically to establish initial connectivity and resolve
+        the default gateway's MAC address. This step is crucial for ensuring the interface can successfully send data
+        to and receive data from the network.
+
+        The method safely handles cases where the connected node might not have a default gateway set or the
+        `default_gateway_hello` method is not defined, ignoring such errors to proceed without interruption.
+        """
+        super().enable()
+        try:
+            pass
+            self._connected_node.default_gateway_hello()
+        except AttributeError:
+            pass
+
+    # @abstractmethod
+    def receive_frame(self, frame: Frame) -> bool:
+        """
+        Receives a network frame on the network interface.
+
+        :param frame: The network frame being received.
+        :return: A boolean indicating whether the frame was successfully received.
+        """
+        pass
 
 
 class Link(SimComponent):
@@ -465,10 +429,10 @@ class Link(SimComponent):
     :param bandwidth: The bandwidth of the Link in Mbps (default is 100 Mbps).
     """
 
-    endpoint_a: Union[NIC, SwitchPort]
-    "The first NIC or SwitchPort connected to the Link."
-    endpoint_b: Union[NIC, SwitchPort]
-    "The second NIC or SwitchPort connected to the Link."
+    endpoint_a: WiredNetworkInterface
+    "The first WiredNetworkInterface connected to the Link."
+    endpoint_b: WiredNetworkInterface
+    "The second WiredNetworkInterface connected to the Link."
     bandwidth: float = 100.0
     "The bandwidth of the Link in Mbps (default is 100 Mbps)."
     current_load: float = 0.0
@@ -544,7 +508,7 @@ class Link(SimComponent):
             return True
         return False
 
-    def transmit_frame(self, sender_nic: Union[NIC, SwitchPort], frame: Frame) -> bool:
+    def transmit_frame(self, sender_nic: WiredNetworkInterface, frame: Frame) -> bool:
         """
         Send a network frame from one NIC or SwitchPort to another connected NIC or SwitchPort.
 
@@ -582,331 +546,6 @@ class Link(SimComponent):
         self.current_load = 0.0
 
 
-class ARPCache:
-    """
-    The ARPCache (Address Resolution Protocol) class.
-
-    Responsible for maintaining a mapping between IP addresses and MAC addresses (ARP cache) for the network. It
-    provides methods for looking up, adding, and removing entries, and for processing ARPPackets.
-    """
-
-    def __init__(self, sys_log: "SysLog"):
-        """
-        Initialize an ARP (Address Resolution Protocol) cache.
-
-        :param sys_log: The nodes sys log.
-        """
-        self.sys_log: "SysLog" = sys_log
-        self.arp: Dict[IPv4Address, ARPEntry] = {}
-        self.nics: Dict[str, "NIC"] = {}
-
-    def show(self, markdown: bool = False):
-        """Prints a table of ARC Cache."""
-        table = PrettyTable(["IP Address", "MAC Address", "Via"])
-        if markdown:
-            table.set_style(MARKDOWN)
-        table.align = "l"
-        table.title = f"{self.sys_log.hostname} ARP Cache"
-        for ip, arp in self.arp.items():
-            table.add_row(
-                [
-                    str(ip),
-                    arp.mac_address,
-                    self.nics[arp.nic_uuid].mac_address,
-                ]
-            )
-        print(table)
-
-    def clear(self):
-        """Clears the arp cache."""
-        self.arp.clear()
-
-    def add_arp_cache_entry(self, ip_address: IPv4Address, mac_address: str, nic: NIC, override: bool = False):
-        """
-        Add an ARP entry to the cache.
-
-        If an entry for the given IP address already exists, the entry is only updated if the `override` parameter is
-        set to True.
-
-        :param ip_address: The IP address to be added to the cache.
-        :param mac_address: The MAC address associated with the IP address.
-        :param nic: The NIC through which the NIC with the IP address is reachable.
-        :param override: If True, an existing entry for the IP address will be overridden. Default is False.
-        """
-        for _nic in self.nics.values():
-            if _nic.ip_address == ip_address:
-                return
-        if override or not self.arp.get(ip_address):
-            self.sys_log.info(f"Adding ARP cache entry for {mac_address}/{ip_address} via NIC {nic}")
-            arp_entry = ARPEntry(mac_address=mac_address, nic_uuid=nic.uuid)
-
-            self.arp[ip_address] = arp_entry
-
-    def _remove_arp_cache_entry(self, ip_address: IPv4Address):
-        """
-        Remove an ARP entry from the cache.
-
-        :param ip_address: The IP address to be removed from the cache.
-        """
-        if ip_address in self.arp:
-            del self.arp[ip_address]
-
-    def get_arp_cache_mac_address(self, ip_address: IPv4Address) -> Optional[str]:
-        """
-        Get the MAC address associated with an IP address.
-
-        :param ip_address: The IP address to look up in the cache.
-        :return: The MAC address associated with the IP address, or None if not found.
-        """
-        arp_entry = self.arp.get(ip_address)
-        if arp_entry:
-            return arp_entry.mac_address
-
-    def get_arp_cache_nic(self, ip_address: IPv4Address) -> Optional[NIC]:
-        """
-        Get the NIC associated with an IP address.
-
-        :param ip_address: The IP address to look up in the cache.
-        :return: The NIC associated with the IP address, or None if not found.
-        """
-        arp_entry = self.arp.get(ip_address)
-
-        if arp_entry:
-            return self.nics[arp_entry.nic_uuid]
-
-    def clear_arp_cache(self):
-        """Clear the entire ARP cache, removing all stored entries."""
-        self.arp.clear()
-
-    def send_arp_request(
-        self, target_ip_address: Union[IPv4Address, str], ignore_networks: Optional[List[IPv4Address]] = None
-    ):
-        """
-        Perform a standard ARP request for a given target IP address.
-
-        Broadcasts the request through all enabled NICs to determine the MAC address corresponding to the target IP
-        address. This method can be configured to ignore specific networks when sending out ARP requests,
-        which is useful in environments where certain addresses should not be queried.
-
-        :param target_ip_address: The target IP address to send an ARP request for.
-        :param ignore_networks: An optional list of IPv4 addresses representing networks to be excluded from the ARP
-            request broadcast. Each address in this list indicates a network which will not be queried during the ARP
-            request process. This is particularly useful in complex network environments where traffic should be
-            minimized or controlled to specific subnets. It is mainly used by the router to prevent ARP requests being
-            sent back to their source.
-        """
-        for nic in self.nics.values():
-            use_nic = True
-            if ignore_networks:
-                for ipv4 in ignore_networks:
-                    if ipv4 in nic.ip_network:
-                        use_nic = False
-            if nic.enabled and use_nic:
-                self.sys_log.info(f"Sending ARP request from NIC {nic} for ip {target_ip_address}")
-                tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
-
-                # Network Layer
-                ip_packet = IPPacket(
-                    src_ip_address=nic.ip_address,
-                    dst_ip_address=target_ip_address,
-                )
-                # Data Link Layer
-                ethernet_header = EthernetHeader(src_mac_addr=nic.mac_address, dst_mac_addr="ff:ff:ff:ff:ff:ff")
-                arp_packet = ARPPacket(
-                    sender_ip_address=nic.ip_address,
-                    sender_mac_addr=nic.mac_address,
-                    target_ip_address=target_ip_address,
-                )
-                frame = Frame(ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, arp=arp_packet)
-                nic.send_frame(frame)
-
-    def send_arp_reply(self, arp_reply: ARPPacket, from_nic: NIC):
-        """
-        Send an ARP reply back through the NIC it came from.
-
-        :param arp_reply: The ARP reply to send.
-        :param from_nic: The NIC to send the ARP reply from.
-        """
-        self.sys_log.info(
-            f"Sending ARP reply from {arp_reply.sender_mac_addr}/{arp_reply.sender_ip_address} "
-            f"to {arp_reply.target_ip_address}/{arp_reply.target_mac_addr} "
-        )
-        tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
-
-        ip_packet = IPPacket(
-            src_ip_address=arp_reply.sender_ip_address,
-            dst_ip_address=arp_reply.target_ip_address,
-        )
-
-        ethernet_header = EthernetHeader(src_mac_addr=arp_reply.sender_mac_addr, dst_mac_addr=arp_reply.target_mac_addr)
-
-        frame = Frame(ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, arp=arp_reply)
-        from_nic.send_frame(frame)
-
-    def process_arp_packet(self, from_nic: NIC, arp_packet: ARPPacket):
-        """
-        Process a received ARP packet, handling both ARP requests and responses.
-
-        If an ARP request is received for the local IP, a response is sent back.
-        If an ARP response is received, the ARP cache is updated with the new entry.
-
-        :param from_nic: The NIC that received the ARP packet.
-        :param arp_packet: The ARP packet to be processed.
-        """
-        # ARP Reply
-        if not arp_packet.request:
-            self.sys_log.info(
-                f"Received ARP response for {arp_packet.sender_ip_address} "
-                f"from {arp_packet.sender_mac_addr} via NIC {from_nic}"
-            )
-            self.add_arp_cache_entry(
-                ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic
-            )
-            return
-
-        # ARP Request
-        self.sys_log.info(
-            f"Received ARP request for {arp_packet.target_ip_address} from "
-            f"{arp_packet.sender_mac_addr}/{arp_packet.sender_ip_address} "
-        )
-
-        # Unmatched ARP Request
-        if arp_packet.target_ip_address != from_nic.ip_address:
-            self.sys_log.info(
-                f"Ignoring ARP request for {arp_packet.target_ip_address}. Current IP address is {from_nic.ip_address}"
-            )
-            return
-
-        # Matched ARP request
-        self.add_arp_cache_entry(
-            ip_address=arp_packet.sender_ip_address, mac_address=arp_packet.sender_mac_addr, nic=from_nic
-        )
-        arp_packet = arp_packet.generate_reply(from_nic.mac_address)
-        self.send_arp_reply(arp_packet, from_nic)
-
-    def __contains__(self, item: Any) -> bool:
-        return item in self.arp
-
-
-class ICMP:
-    """
-    The ICMP (Internet Control Message Protocol) class.
-
-    Provides functionalities for managing and handling ICMP packets, including echo requests and replies.
-    """
-
-    def __init__(self, sys_log: SysLog, arp_cache: ARPCache):
-        """
-        Initialize the ICMP (Internet Control Message Protocol) service.
-
-        :param sys_log: The system log to store system messages and information.
-        :param arp_cache: The ARP cache for resolving IP to MAC address mappings.
-        """
-        self.sys_log: SysLog = sys_log
-        self.arp: ARPCache = arp_cache
-        self.request_replies = {}
-
-    def clear(self):
-        """Clears the ICMP request replies tracker."""
-        self.request_replies.clear()
-
-    def process_icmp(self, frame: Frame, from_nic: NIC, is_reattempt: bool = False):
-        """
-        Process an ICMP packet, including handling echo requests and replies.
-
-        :param frame: The Frame containing the ICMP packet to process.
-        """
-        if frame.icmp.icmp_type == ICMPType.ECHO_REQUEST:
-            if not is_reattempt:
-                self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
-            target_mac_address = self.arp.get_arp_cache_mac_address(frame.ip.src_ip_address)
-
-            src_nic = self.arp.get_arp_cache_nic(frame.ip.src_ip_address)
-            if not src_nic:
-                self.arp.send_arp_request(frame.ip.src_ip_address)
-                self.process_icmp(frame=frame, from_nic=from_nic, is_reattempt=True)
-                return
-
-            # Network Layer
-            ip_packet = IPPacket(
-                src_ip_address=src_nic.ip_address, dst_ip_address=frame.ip.src_ip_address, protocol=IPProtocol.ICMP
-            )
-            # Data Link Layer
-            ethernet_header = EthernetHeader(src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address)
-            icmp_reply_packet = ICMPPacket(
-                icmp_type=ICMPType.ECHO_REPLY,
-                icmp_code=0,
-                identifier=frame.icmp.identifier,
-                sequence=frame.icmp.sequence + 1,
-            )
-            payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
-            frame = Frame(ethernet=ethernet_header, ip=ip_packet, icmp=icmp_reply_packet, payload=payload)
-            self.sys_log.info(f"Sending echo reply to {frame.ip.dst_ip_address}")
-
-            src_nic.send_frame(frame)
-        elif frame.icmp.icmp_type == ICMPType.ECHO_REPLY:
-            time = frame.transmission_duration()
-            time_str = f"{time}ms" if time > 0 else "<1ms"
-            self.sys_log.info(
-                f"Reply from {frame.ip.src_ip_address}: "
-                f"bytes={len(frame.payload)}, "
-                f"time={time_str}, "
-                f"TTL={frame.ip.ttl}"
-            )
-            if not self.request_replies.get(frame.icmp.identifier):
-                self.request_replies[frame.icmp.identifier] = 0
-            self.request_replies[frame.icmp.identifier] += 1
-
-    def ping(
-        self, target_ip_address: IPv4Address, sequence: int = 0, identifier: Optional[int] = None, pings: int = 4
-    ) -> Tuple[int, Union[int, None]]:
-        """
-        Send an ICMP echo request (ping) to a target IP address and manage the sequence and identifier.
-
-        :param target_ip_address: The target IP address to send the ping.
-        :param sequence: The sequence number of the echo request. Defaults to 0.
-        :param identifier: An optional identifier for the ICMP packet. If None, a default will be used.
-        :return: A tuple containing the next sequence number and the identifier, or (0, None) if the target IP address
-            was not found in the ARP cache.
-        """
-        nic = self.arp.get_arp_cache_nic(target_ip_address)
-        # TODO: Eventually this ARP request needs to be done elsewhere. It's not the responsibility of the
-        # ping function to handle ARP lookups
-
-        # Already tried once and cannot get ARP entry, stop trying
-        if sequence == -1:
-            if not nic:
-                return 4, None
-            else:
-                sequence = 0
-
-        # No existing ARP entry
-        if not nic:
-            self.sys_log.info(f"No entry in ARP cache for {target_ip_address}")
-            self.arp.send_arp_request(target_ip_address)
-            return -1, None
-
-        # ARP entry exists
-        sequence += 1
-        target_mac_address = self.arp.get_arp_cache_mac_address(target_ip_address)
-        src_nic = self.arp.get_arp_cache_nic(target_ip_address)
-        tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
-
-        # Network Layer
-        ip_packet = IPPacket(
-            src_ip_address=nic.ip_address,
-            dst_ip_address=target_ip_address,
-            protocol=IPProtocol.ICMP,
-        )
-        # Data Link Layer
-        ethernet_header = EthernetHeader(src_mac_addr=src_nic.mac_address, dst_mac_addr=target_mac_address)
-        icmp_packet = ICMPPacket(identifier=identifier, sequence=sequence)
-        payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
-        frame = Frame(ethernet=ethernet_header, ip=ip_packet, tcp=tcp_header, icmp=icmp_packet, payload=payload)
-        nic.send_frame(frame)
-        return sequence, icmp_packet.identifier
-
-
 class Node(SimComponent):
     """
     A basic Node class that represents a node on the network.
@@ -920,14 +559,14 @@ class Node(SimComponent):
 
     hostname: str
     "The node hostname on the network."
-    default_gateway: Optional[IPv4Address] = None
+    default_gateway: Optional[IPV4Address] = None
     "The default gateway IP address for forwarding network traffic to other networks."
     operating_state: NodeOperatingState = NodeOperatingState.OFF
     "The hardware state of the node."
-    nics: Dict[str, NIC] = {}
-    "The NICs on the node."
-    ethernet_port: Dict[int, NIC] = {}
-    "The NICs on the node by port id."
+    network_interfaces: Dict[str, NetworkInterface] = {}
+    "The Network Interfaces on the node."
+    network_interface: Dict[int, NetworkInterface] = {}
+    "The Network Interfaces on the node by port id."
     dns_server: Optional[IPv4Address] = None
     "List of IP addresses of DNS servers used for name resolution."
 
@@ -944,8 +583,6 @@ class Node(SimComponent):
     root: Path
     "Root directory for simulation output."
     sys_log: SysLog
-    arp: ARPCache
-    icmp: ICMP
     session_manager: SessionManager
     software_manager: SoftwareManager
 
@@ -983,17 +620,10 @@ class Node(SimComponent):
         This method initializes the ARP cache, ICMP handler, session manager, and software manager if they are not
         provided.
         """
-        if kwargs.get("default_gateway"):
-            if not isinstance(kwargs["default_gateway"], IPv4Address):
-                kwargs["default_gateway"] = IPv4Address(kwargs["default_gateway"])
         if not kwargs.get("sys_log"):
             kwargs["sys_log"] = SysLog(kwargs["hostname"])
-        if not kwargs.get("arp"):
-            kwargs["arp"] = ARPCache(sys_log=kwargs.get("sys_log"))
-        if not kwargs.get("icmp"):
-            kwargs["icmp"] = ICMP(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"))
         if not kwargs.get("session_manager"):
-            kwargs["session_manager"] = SessionManager(sys_log=kwargs.get("sys_log"), arp_cache=kwargs.get("arp"))
+            kwargs["session_manager"] = SessionManager(sys_log=kwargs.get("sys_log"))
         if not kwargs.get("root"):
             kwargs["root"] = SIM_OUTPUT.path / kwargs["hostname"]
         if not kwargs.get("file_system"):
@@ -1007,7 +637,7 @@ class Node(SimComponent):
                 dns_server=kwargs.get("dns_server"),
             )
         super().__init__(**kwargs)
-        self.arp.nics = self.nics
+        self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
         self._install_system_software()
 
@@ -1019,8 +649,8 @@ class Node(SimComponent):
         self.file_system.setup_for_episode(episode)
 
         # Reset all Nics
-        for nic in self.nics.values():
-            nic.setup_for_episode(episode)
+        for network_interface in self.network_interfaces.values():
+            network_interface.setup_for_episode(episode)
 
         for software in self.software_manager.software.values():
             software.setup_for_episode(episode)
@@ -1037,7 +667,7 @@ class Node(SimComponent):
         self._service_request_manager = RequestManager()
         rm.add_request("service", RequestType(func=self._service_request_manager))
         self._nic_request_manager = RequestManager()
-        rm.add_request("nic", RequestType(func=self._nic_request_manager))
+        rm.add_request("network_interface", RequestType(func=self._nic_request_manager))
 
         rm.add_request("file_system", RequestType(func=self.file_system._request_manager))
 
@@ -1079,8 +709,10 @@ class Node(SimComponent):
             {
                 "hostname": self.hostname,
                 "operating_state": self.operating_state.value,
-                "NICs": {eth_num: nic.describe_state() for eth_num, nic in self.ethernet_port.items()},
-                # "switch_ports": {uuid, sp for uuid, sp in self.switch_ports.items()},
+                "NICs": {
+                    eth_num: network_interface.describe_state()
+                    for eth_num, network_interface in self.network_interface.items()
+                },
                 "file_system": self.file_system.describe_state(),
                 "applications": {app.name: app.describe_state() for app in self.applications.values()},
                 "services": {svc.name: svc.describe_state() for svc in self.services.values()},
@@ -1090,14 +722,12 @@ class Node(SimComponent):
         )
         return state
 
-    def show(self, markdown: bool = False, component: Literal["NIC", "OPEN_PORTS"] = "NIC"):
-        """A multi-use .show function that accepts either NIC or OPEN_PORTS."""
-        if component == "NIC":
-            self._show_nic(markdown)
-        elif component == "OPEN_PORTS":
-            self._show_open_ports(markdown)
+    def show(self, markdown: bool = False):
+        """Show function that calls both show NIC and show open ports."""
+        self.show_nic(markdown)
+        self.show_open_ports(markdown)
 
-    def _show_open_ports(self, markdown: bool = False):
+    def show_open_ports(self, markdown: bool = False):
         """Prints a table of the open ports on the Node."""
         table = PrettyTable(["Port", "Name"])
         if markdown:
@@ -1108,21 +738,37 @@ class Node(SimComponent):
             table.add_row([port.value, port.name])
         print(table)
 
-    def _show_nic(self, markdown: bool = False):
+    @property
+    def has_enabled_network_interface(self) -> bool:
+        """
+        Checks if the node has at least one enabled network interface.
+
+        Iterates through all network interfaces associated with the node to determine if at least one is enabled. This
+        property is essential for determining the node's ability to communicate within the network.
+
+        :return: True if there is at least one enabled network interface; otherwise, False.
+        """
+        for network_interface in self.network_interfaces.values():
+            if network_interface.enabled:
+                return True
+        return False
+
+    def show_nic(self, markdown: bool = False):
         """Prints a table of the NICs on the Node."""
-        table = PrettyTable(["Port", "MAC Address", "Address", "Speed", "Status"])
+        table = PrettyTable(["Port", "Type", "MAC Address", "Address", "Speed", "Status"])
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.hostname} Network Interface Cards"
-        for port, nic in self.ethernet_port.items():
+        for port, network_interface in self.network_interface.items():
             table.add_row(
                 [
                     port,
-                    nic.mac_address,
-                    f"{nic.ip_address}/{nic.ip_network.prefixlen}",
-                    nic.speed,
-                    "Enabled" if nic.enabled else "Disabled",
+                    type(network_interface),
+                    network_interface.mac_address,
+                    f"{network_interface.ip_address}/{network_interface.ip_network.prefixlen}",
+                    network_interface.speed,
+                    "Enabled" if network_interface.enabled else "Disabled",
                 ]
             )
         print(table)
@@ -1147,9 +793,8 @@ class Node(SimComponent):
             if self.operating_state == NodeOperatingState.BOOTING:
                 self.operating_state = NodeOperatingState.ON
                 self.sys_log.info(f"{self.hostname}: Turned on")
-                for nic in self.nics.values():
-                    if nic._connected_link:
-                        nic.enable()
+                for network_interface in self.network_interfaces.values():
+                    network_interface.enable()
 
                 self._start_up_actions()
 
@@ -1258,23 +903,22 @@ class Node(SimComponent):
         if self.start_up_duration <= 0:
             self.operating_state = NodeOperatingState.ON
             self._start_up_actions()
-            self.sys_log.info("Turned on")
-            for nic in self.nics.values():
-                if nic._connected_link:
-                    nic.enable()
+            self.sys_log.info("Power on")
+            for network_interface in self.network_interfaces.values():
+                network_interface.enable()
 
     def power_off(self):
         """Power off the Node, disabling its NICs if it is in the ON state."""
         if self.operating_state == NodeOperatingState.ON:
-            for nic in self.nics.values():
-                nic.disable()
+            for network_interface in self.network_interfaces.values():
+                network_interface.disable()
             self.operating_state = NodeOperatingState.SHUTTING_DOWN
             self.shut_down_countdown = self.shut_down_duration
 
         if self.shut_down_duration <= 0:
             self._shut_down_actions()
             self.operating_state = NodeOperatingState.OFF
-            self.sys_log.info("Turned off")
+            self.sys_log.info("Power off")
 
     def reset(self):
         """
@@ -1283,63 +927,59 @@ class Node(SimComponent):
         Powers off the node and sets is_resetting to True.
         Applying more timesteps will eventually turn the node back on.
         """
-        if not self.operating_state.ON:
-            self.sys_log.error(f"Cannot reset {self.hostname} - node is not turned on.")
-        else:
+        if self.operating_state.ON:
             self.is_resetting = True
-            self.sys_log.info(f"Resetting {self.hostname}...")
+            self.sys_log.info("Resetting")
             self.power_off()
 
-    def connect_nic(self, nic: NIC):
+    def connect_nic(self, network_interface: NetworkInterface):
         """
-        Connect a NIC (Network Interface Card) to the node.
+        Connect a Network Interface to the node.
 
-        :param nic: The NIC to connect.
+        :param network_interface: The NIC to connect.
         :raise NetworkError: If the NIC is already connected.
         """
-        if nic.uuid not in self.nics:
-            self.nics[nic.uuid] = nic
-            new_nic_num = len(self.nics)
-            self.ethernet_port[new_nic_num] = nic
-            nic._connected_node = self
-            nic._port_num_on_node = new_nic_num
-            nic.parent = self
-            self.sys_log.info(f"Connected NIC {nic}")
+        if network_interface.uuid not in self.network_interface:
+            self.network_interfaces[network_interface.uuid] = network_interface
+            new_nic_num = len(self.network_interfaces)
+            self.network_interface[new_nic_num] = network_interface
+            network_interface._connected_node = self
+            network_interface._port_num_on_node = new_nic_num
+            network_interface.parent = self
+            self.sys_log.info(f"Connected Network Interface {network_interface}")
             if self.operating_state == NodeOperatingState.ON:
-                nic.enable()
-            self._nic_request_manager.add_request(new_nic_num, RequestType(func=nic._request_manager))
+                network_interface.enable()
+            self._nic_request_manager.add_request(new_nic_num, RequestType(func=network_interface._request_manager))
         else:
-            msg = f"Cannot connect NIC {nic} as it is already connected"
+            msg = f"Cannot connect NIC {network_interface} as it is already connected"
             self.sys_log.logger.error(msg)
-            _LOGGER.error(msg)
             raise NetworkError(msg)
 
-    def disconnect_nic(self, nic: Union[NIC, str]):
+    def disconnect_nic(self, network_interface: Union[NetworkInterface, str]):
         """
         Disconnect a NIC (Network Interface Card) from the node.
 
-        :param nic: The NIC to Disconnect, or its UUID.
+        :param network_interface: The NIC to Disconnect, or its UUID.
         :raise NetworkError: If the NIC is not connected.
         """
-        if isinstance(nic, str):
-            nic = self.nics.get(nic)
-        if nic or nic.uuid in self.nics:
-            nic_num = -1
-            for port, _nic in self.ethernet_port.items():
-                if nic == _nic:
-                    self.ethernet_port.pop(port)
-                    nic_num = port
+        if isinstance(network_interface, str):
+            network_interface = self.network_interfaces.get(network_interface)
+        if network_interface or network_interface.uuid in self.network_interfaces:
+            network_interface_num = -1
+            for port, _network_interface in self.network_interface.items():
+                if network_interface == _network_interface:
+                    self.network_interface.pop(port)
+                    network_interface_num = port
                     break
-            self.nics.pop(nic.uuid)
-            nic.parent = None
-            nic.disable()
-            self.sys_log.info(f"Disconnected NIC {nic}")
-            if nic_num != -1:
-                self._nic_request_manager.remove_request(nic_num)
+            self.network_interfaces.pop(network_interface.uuid)
+            network_interface.parent = None
+            network_interface.disable()
+            self.sys_log.info(f"Disconnected Network Interface {network_interface}")
+            if network_interface_num != -1:
+                self._nic_request_manager.remove_request(network_interface_num)
         else:
-            msg = f"Cannot disconnect NIC {nic} as it is not connected"
+            msg = f"Cannot disconnect Network Interface {network_interface} as it is not connected"
             self.sys_log.logger.error(msg)
-            _LOGGER.error(msg)
             raise NetworkError(msg)
 
     def ping(self, target_ip_address: Union[IPv4Address, str], pings: int = 4) -> bool:
@@ -1350,73 +990,34 @@ class Node(SimComponent):
         :param pings: The number of pings to attempt, default is 4.
         :return: True if the ping is successful, otherwise False.
         """
-        if self.operating_state == NodeOperatingState.ON:
-            if not isinstance(target_ip_address, IPv4Address):
-                target_ip_address = IPv4Address(target_ip_address)
-            if target_ip_address.is_loopback:
-                self.sys_log.info("Pinging loopback address")
-                return any(nic.enabled for nic in self.nics.values())
-            if self.operating_state == NodeOperatingState.ON:
-                self.sys_log.info(f"Pinging {target_ip_address}:")
-                sequence, identifier = 0, None
-                while sequence < pings:
-                    sequence, identifier = self.icmp.ping(target_ip_address, sequence, identifier, pings)
-                request_replies = self.icmp.request_replies.get(identifier)
-                passed = request_replies == pings
-                if request_replies:
-                    self.icmp.request_replies.pop(identifier)
-                else:
-                    request_replies = 0
-                self.sys_log.info(
-                    f"Ping statistics for {target_ip_address}: "
-                    f"Packets: Sent = {pings}, "
-                    f"Received = {request_replies}, "
-                    f"Lost = {pings - request_replies} ({(pings - request_replies) / pings * 100}% loss)"
-                )
-                return passed
+        if not isinstance(target_ip_address, IPv4Address):
+            target_ip_address = IPv4Address(target_ip_address)
+        if self.software_manager.icmp:
+            return self.software_manager.icmp.ping(target_ip_address, pings)
         return False
 
-    def send_frame(self, frame: Frame):
-        """
-        Send a Frame from the Node to the connected NIC.
-
-        :param frame: The Frame to be sent.
-        """
-        if self.operating_state == NodeOperatingState.ON:
-            nic: NIC = self._get_arp_cache_nic(frame.ip.dst_ip_address)
-        nic.send_frame(frame)
-
-    def receive_frame(self, frame: Frame, from_nic: NIC):
+    @abstractmethod
+    def receive_frame(self, frame: Frame, from_network_interface: NetworkInterface):
         """
         Receive a Frame from the connected NIC and process it.
 
-        Depending on the protocol, the frame is passed to the appropriate handler such as ARP or ICMP, or up to the
-        SessionManager if no code manager exists.
+        This is an abstract implementation of receive_frame with some very basic functionality (ARP population). All
+        Node subclasses should have their own implementation of receive_frame that first calls super().receive_frame(
+        ) before implementing its own internal receive_frame logic.
 
         :param frame: The Frame being received.
-        :param from_nic: The NIC that received the frame.
+        :param from_network_interface: The Network Interface that received the frame.
         """
         if self.operating_state == NodeOperatingState.ON:
             if frame.ip:
-                if frame.ip.src_ip_address in self.arp:
-                    self.arp.add_arp_cache_entry(
-                        ip_address=frame.ip.src_ip_address, mac_address=frame.ethernet.src_mac_addr, nic=from_nic
+                if self.software_manager.arp:
+                    self.software_manager.arp.add_arp_cache_entry(
+                        ip_address=frame.ip.src_ip_address,
+                        mac_address=frame.ethernet.src_mac_addr,
+                        network_interface=from_network_interface,
                     )
-            if frame.ip.protocol == IPProtocol.ICMP:
-                self.icmp.process_icmp(frame=frame, from_nic=from_nic)
-                return
-            # Check if the destination port is open on the Node
-            if frame.tcp.dst_port in self.software_manager.get_open_ports():
-                # accept thr frame as the port is open
-                if frame.tcp.src_port == Port.ARP:
-                    self.arp.process_arp_packet(from_nic=from_nic, arp_packet=frame.arp)
-                else:
-                    self.session_manager.receive_frame(frame)
-            else:
-                # denied as port closed
-                self.sys_log.info(f"Ignoring frame for port {frame.tcp.dst_port.value} from {frame.ip.src_ip_address}")
-                # TODO: do we need to do anything more here?
-                pass
+        else:
+            return
 
     def install_service(self, service: Service) -> None:
         """

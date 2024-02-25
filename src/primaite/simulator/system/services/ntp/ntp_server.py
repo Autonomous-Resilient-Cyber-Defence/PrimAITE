@@ -16,7 +16,7 @@ class NTPServer(Service):
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPServer"
         kwargs["port"] = Port.NTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["protocol"] = IPProtocol.UDP
         super().__init__(**kwargs)
         self.start()
 
@@ -59,5 +59,7 @@ class NTPServer(Service):
         time = datetime.now()
         payload = payload.generate_reply(time)
         # send reply
-        self.send(payload, session_id)
+        self.software_manager.session_manager.receive_payload_from_software_manager(
+            payload=payload, src_port=self.port, dst_port=self.port, ip_protocol=self.protocol, session_id=session_id
+        )
         return True

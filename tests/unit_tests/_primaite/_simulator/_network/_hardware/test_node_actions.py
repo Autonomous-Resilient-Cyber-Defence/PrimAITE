@@ -4,12 +4,13 @@ from primaite.simulator.file_system.file import File
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.file_system.folder import Folder
 from primaite.simulator.network.hardware.base import Node, NodeOperatingState
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.system.software import SoftwareHealthState
 
 
 @pytest.fixture
 def node() -> Node:
-    return Node(hostname="test")
+    return Computer(hostname="test", ip_address="192.168.1.2", subnet_mask="255.255.255.0")
 
 
 def test_node_startup(node):

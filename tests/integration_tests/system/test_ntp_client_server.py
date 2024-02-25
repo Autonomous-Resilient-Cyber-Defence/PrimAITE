@@ -4,10 +4,8 @@ from typing import Tuple
 
 import pytest
 
-from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.protocols.ntp import NTPPacket
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.simulator.system.services.ntp.ntp_server import NTPServer
 from primaite.simulator.system.services.service import ServiceOperatingState
@@ -49,11 +47,11 @@ def test_ntp_client_server(create_ntp_network):
 
     assert ntp_server.operating_state == ServiceOperatingState.RUNNING
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
-    ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.0.2"))
+    ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.1.3"))
 
-    assert ntp_client.time is None
+    assert not ntp_client.time
     ntp_client.request_time()
-    assert ntp_client.time is not None
+    assert ntp_client.time
     first_time = ntp_client.time
     sleep(0.1)
     ntp_client.apply_timestep(1)  # Check time advances
@@ -70,7 +68,7 @@ def test_ntp_server_failure(create_ntp_network):
 
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
-    ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.0.2"))
+    ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.1.3"))
 
     # Turn off ntp server.
     ntp_server.stop()

@@ -1,12 +1,13 @@
 import pytest
 
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 
 
 @pytest.fixture(scope="function")
 def switch() -> Switch:
-    switch: Switch = Switch(hostname="switch_1", num_ports=8, operating_state=NodeOperatingState.ON)
+    switch: Switch = Switch(hostname="switch_1", num_ports=8, start_up_duration=0)
+    switch.power_on()
     switch.show()
     return switch
 

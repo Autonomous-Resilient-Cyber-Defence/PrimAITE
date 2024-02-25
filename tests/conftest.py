@@ -5,22 +5,19 @@ from typing import Any, Dict, Tuple, Union
 import pytest
 import yaml
 
-from primaite import getLogger
+from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent
 from primaite.game.agent.observations import ICSObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.game import PrimaiteGame
 from primaite.session.session import PrimaiteSession
-
-# from primaite.environment.primaite_env import Primaite
-# from primaite.primaite_session import PrimaiteSession
+from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.networks import arcd_uc2_network
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -38,12 +35,6 @@ ACTION_SPACE_NODE_VALUES = 1
 ACTION_SPACE_NODE_ACTION_VALUES = 1
 
 _LOGGER = getLogger(__name__)
-
-from primaite import PRIMAITE_PATHS
-
-# PrimAITE v3 stuff
-from primaite.simulator.file_system.file_system import FileSystem
-from primaite.simulator.network.hardware.base import Link, Node
 
 
 class TestService(Service):
@@ -106,7 +97,9 @@ def application_class():
 
 @pytest.fixture(scope="function")
 def file_system() -> FileSystem:
-    return Node(hostname="fs_node").file_system
+    computer = Computer(hostname="fs_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
+    computer.power_on()
+    return computer.file_system
 
 
 # PrimAITE v2 stuff
@@ -143,29 +136,70 @@ def temp_primaite_session(request, monkeypatch) -> TempPrimaiteSession:
 
 @pytest.fixture(scope="function")
 def client_server() -> Tuple[Computer, Server]:
+    network = Network()
+
     # Create Computer
-    computer: Computer = Computer(
-        hostname="test_computer",
-        ip_address="192.168.0.1",
+    computer = Computer(
+        hostname="computer",
+        ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
+    computer.power_on()
 
     # Create Server
     server = Server(
-        hostname="server", ip_address="192.168.0.2", subnet_mask="255.255.255.0", operating_state=NodeOperatingState.ON
+        hostname="server",
+        ip_address="192.168.1.3",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        start_up_duration=0,
     )
+    server.power_on()
 
     # Connect Computer and Server
-    computer_nic = computer.nics[next(iter(computer.nics))]
-    server_nic = server.nics[next(iter(server.nics))]
-    link = Link(endpoint_a=computer_nic, endpoint_b=server_nic)
+    network.connect(computer.network_interface[1], server.network_interface[1])
 
     # Should be linked
-    assert link.is_up
+    assert next(iter(network.links.values())).is_up
 
     return computer, server
+
+
+@pytest.fixture(scope="function")
+def client_switch_server() -> Tuple[Computer, Switch, Server]:
+    network = Network()
+
+    # Create Computer
+    computer = Computer(
+        hostname="computer",
+        ip_address="192.168.1.2",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        start_up_duration=0,
+    )
+    computer.power_on()
+
+    # Create Server
+    server = Server(
+        hostname="server",
+        ip_address="192.168.1.3",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.1.1",
+        start_up_duration=0,
+    )
+    server.power_on()
+
+    switch = Switch(hostname="switch", start_up_duration=0)
+    switch.power_on()
+
+    network.connect(endpoint_a=computer.network_interface[1], endpoint_b=switch.network_interface[1])
+    network.connect(endpoint_a=server.network_interface[1], endpoint_b=switch.network_interface[2])
+
+    assert all(link.is_up for link in network.links.values())
+
+    return computer, switch, server
 
 
 @pytest.fixture(scope="function")
@@ -187,18 +221,22 @@ def example_network() -> Network:
     network = Network()
 
     # Router 1
-    router_1 = Router(hostname="router_1", num_ports=5, operating_state=NodeOperatingState.ON)
+    router_1 = Router(hostname="router_1", start_up_duration=0)
+    router_1.power_on()
     router_1.configure_port(port=1, ip_address="192.168.1.1", subnet_mask="255.255.255.0")
     router_1.configure_port(port=2, ip_address="192.168.10.1", subnet_mask="255.255.255.0")
 
     # Switch 1
-    switch_1 = Switch(hostname="switch_1", num_ports=8, operating_state=NodeOperatingState.ON)
-    network.connect(endpoint_a=router_1.ethernet_ports[1], endpoint_b=switch_1.switch_ports[8])
+    switch_1 = Switch(hostname="switch_1", num_ports=8, start_up_duration=0)
+    switch_1.power_on()
+
+    network.connect(endpoint_a=router_1.network_interface[1], endpoint_b=switch_1.network_interface[8])
     router_1.enable_port(1)
 
     # Switch 2
-    switch_2 = Switch(hostname="switch_2", num_ports=8, operating_state=NodeOperatingState.ON)
-    network.connect(endpoint_a=router_1.ethernet_ports[2], endpoint_b=switch_2.switch_ports[8])
+    switch_2 = Switch(hostname="switch_2", num_ports=8, start_up_duration=0)
+    switch_2.power_on()
+    network.connect(endpoint_a=router_1.network_interface[2], endpoint_b=switch_2.network_interface[8])
     router_1.enable_port(2)
 
     # Client 1
@@ -207,9 +245,10 @@ def example_network() -> Network:
         ip_address="192.168.10.21",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
-    network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
+    client_1.power_on()
+    network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
 
     # Client 2
     client_2 = Computer(
@@ -217,33 +256,37 @@ def example_network() -> Network:
         ip_address="192.168.10.22",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
-    network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
+    client_2.power_on()
+    network.connect(endpoint_b=client_2.network_interface[1], endpoint_a=switch_2.network_interface[2])
 
-    # Domain Controller
+    # Server 1
     server_1 = Server(
         hostname="server_1",
         ip_address="192.168.1.10",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
+    server_1.power_on()
+    network.connect(endpoint_b=server_1.network_interface[1], endpoint_a=switch_1.network_interface[1])
 
-    network.connect(endpoint_b=server_1.ethernet_port[1], endpoint_a=switch_1.switch_ports[1])
-
-    # Database Server
+    # DServer 2
     server_2 = Server(
         hostname="server_2",
         ip_address="192.168.1.14",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
-    network.connect(endpoint_b=server_2.ethernet_port[1], endpoint_a=switch_1.switch_ports[2])
+    server_2.power_on()
+    network.connect(endpoint_b=server_2.network_interface[1], endpoint_a=switch_1.network_interface[2])
 
     router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
     router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+
+    assert all(link.is_up for link in network.links.values())
 
     return network
 
@@ -283,19 +326,19 @@ def install_stuff_to_sim(sim: Simulation):
 
     # 1: Set up network hardware
     # 1.1: Configure the router
-    router = Router(hostname="router", num_ports=3, operating_state=NodeOperatingState.ON)
+    router = Router(hostname="router", num_ports=3, start_up_duration=0)
     router.power_on()
     router.configure_port(port=1, ip_address="10.0.1.1", subnet_mask="255.255.255.0")
     router.configure_port(port=2, ip_address="10.0.2.1", subnet_mask="255.255.255.0")
 
     # 1.2: Create and connect switches
-    switch_1 = Switch(hostname="switch_1", num_ports=6, operating_state=NodeOperatingState.ON)
+    switch_1 = Switch(hostname="switch_1", num_ports=6, start_up_duration=0)
     switch_1.power_on()
-    network.connect(endpoint_a=router.ethernet_ports[1], endpoint_b=switch_1.switch_ports[6])
+    network.connect(endpoint_a=router.network_interface[1], endpoint_b=switch_1.network_interface[6])
     router.enable_port(1)
-    switch_2 = Switch(hostname="switch_2", num_ports=6, operating_state=NodeOperatingState.ON)
+    switch_2 = Switch(hostname="switch_2", num_ports=6, start_up_duration=0)
     switch_2.power_on()
-    network.connect(endpoint_a=router.ethernet_ports[2], endpoint_b=switch_2.switch_ports[6])
+    network.connect(endpoint_a=router.network_interface[2], endpoint_b=switch_2.network_interface[6])
     router.enable_port(2)
 
     # 1.3: Create and connect computer
@@ -304,12 +347,12 @@ def install_stuff_to_sim(sim: Simulation):
         ip_address="10.0.1.2",
         subnet_mask="255.255.255.0",
         default_gateway="10.0.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     client_1.power_on()
     network.connect(
-        endpoint_a=client_1.ethernet_port[1],
-        endpoint_b=switch_1.switch_ports[1],
+        endpoint_a=client_1.network_interface[1],
+        endpoint_b=switch_1.network_interface[1],
     )
 
     # 1.4: Create and connect servers
@@ -318,20 +361,20 @@ def install_stuff_to_sim(sim: Simulation):
         ip_address="10.0.2.2",
         subnet_mask="255.255.255.0",
         default_gateway="10.0.2.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     server_1.power_on()
-    network.connect(endpoint_a=server_1.ethernet_port[1], endpoint_b=switch_2.switch_ports[1])
+    network.connect(endpoint_a=server_1.network_interface[1], endpoint_b=switch_2.network_interface[1])
 
     server_2 = Server(
         hostname="server_2",
         ip_address="10.0.2.3",
         subnet_mask="255.255.255.0",
         default_gateway="10.0.2.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     server_2.power_on()
-    network.connect(endpoint_a=server_2.ethernet_port[1], endpoint_b=switch_2.switch_ports[2])
+    network.connect(endpoint_a=server_2.network_interface[1], endpoint_b=switch_2.network_interface[2])
 
     # 2: Configure base ACL
     router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
@@ -342,12 +385,12 @@ def install_stuff_to_sim(sim: Simulation):
     # 3: Install server software
     server_1.software_manager.install(DNSServer)
     dns_service: DNSServer = server_1.software_manager.software.get("DNSServer")  # noqa
-    dns_service.dns_register("www.example.com", server_2.ip_address)
+    dns_service.dns_register("www.example.com", server_2.network_interface[1].ip_address)
     server_2.software_manager.install(WebServer)
 
     # 3.1: Ensure that the dns clients are configured correctly
-    client_1.software_manager.software.get("DNSClient").dns_server = server_1.ethernet_port[1].ip_address
-    server_2.software_manager.software.get("DNSClient").dns_server = server_1.ethernet_port[1].ip_address
+    client_1.software_manager.software.get("DNSClient").dns_server = server_1.network_interface[1].ip_address
+    server_2.software_manager.software.get("DNSClient").dns_server = server_1.network_interface[1].ip_address
 
     # 4: Check that client came pre-installed with web browser and dns client
     assert isinstance(client_1.software_manager.software.get("WebBrowser"), WebBrowser)
@@ -379,16 +422,16 @@ def install_stuff_to_sim(sim: Simulation):
     c: Computer = [node for node in sim.network.nodes.values() if node.hostname == "client_1"][0]
     assert c.software_manager.software.get("WebBrowser") is not None
     assert c.software_manager.software.get("DNSClient") is not None
-    assert str(c.ethernet_port[1].ip_address) == "10.0.1.2"
+    assert str(c.network_interface[1].ip_address) == "10.0.1.2"
 
     # 5.3: Assert that server_1 is correctly configured
     s1: Server = [node for node in sim.network.nodes.values() if node.hostname == "server_1"][0]
-    assert str(s1.ethernet_port[1].ip_address) == "10.0.2.2"
+    assert str(s1.network_interface[1].ip_address) == "10.0.2.2"
     assert s1.software_manager.software.get("DNSServer") is not None
 
     # 5.4: Assert that server_2 is correctly configured
     s2: Server = [node for node in sim.network.nodes.values() if node.hostname == "server_2"][0]
-    assert str(s2.ethernet_port[1].ip_address) == "10.0.2.3"
+    assert str(s2.network_interface[1].ip_address) == "10.0.2.3"
     assert s2.software_manager.software.get("WebServer") is not None
 
     # 6: Return the simulation

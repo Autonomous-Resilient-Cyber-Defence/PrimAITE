@@ -3,8 +3,10 @@ from typing import Tuple
 
 import pytest
 
-from primaite.simulator.network.hardware.base import Link, NIC, Node, NodeOperatingState
-from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.container import Network
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
@@ -12,17 +14,15 @@ from primaite.simulator.system.services.service import ServiceOperatingState
 
 
 @pytest.fixture(scope="function")
-def peer_to_peer() -> Tuple[Node, Node]:
-    node_a = Node(hostname="node_a", operating_state=NodeOperatingState.ON)
-    nic_a = NIC(ip_address="192.168.0.10", subnet_mask="255.255.255.0", operating_state=NodeOperatingState.ON)
-    node_a.connect_nic(nic_a)
+def peer_to_peer() -> Tuple[Computer, Computer]:
+    network = Network()
+    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a.power_on()
     node_a.software_manager.get_open_ports()
 
-    node_b = Node(hostname="node_b", operating_state=NodeOperatingState.ON)
-    nic_b = NIC(ip_address="192.168.0.11", subnet_mask="255.255.255.0")
-    node_b.connect_nic(nic_b)
-
-    Link(endpoint_a=nic_a, endpoint_b=nic_b)
+    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b.power_on()
+    network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
     assert node_a.ping("192.168.0.11")
 
@@ -37,26 +37,11 @@ def peer_to_peer() -> Tuple[Node, Node]:
 
 
 @pytest.fixture(scope="function")
-def peer_to_peer_secure_db() -> Tuple[Node, Node]:
-    node_a = Node(hostname="node_a", operating_state=NodeOperatingState.ON)
-    nic_a = NIC(ip_address="192.168.0.10", subnet_mask="255.255.255.0", operating_state=NodeOperatingState.ON)
-    node_a.connect_nic(nic_a)
-    node_a.software_manager.get_open_ports()
+def peer_to_peer_secure_db(peer_to_peer) -> Tuple[Computer, Computer]:
+    node_a, node_b = peer_to_peer
 
-    node_b = Node(hostname="node_b", operating_state=NodeOperatingState.ON)
-    nic_b = NIC(ip_address="192.168.0.11", subnet_mask="255.255.255.0")
-    node_b.connect_nic(nic_b)
-
-    Link(endpoint_a=nic_a, endpoint_b=nic_b)
-
-    assert node_a.ping("192.168.0.11")
-
-    node_a.software_manager.install(DatabaseClient)
-    node_a.software_manager.software["DatabaseClient"].configure(server_ip_address=IPv4Address("192.168.0.11"))
-    node_a.software_manager.software["DatabaseClient"].run()
-
-    node_b.software_manager.install(DatabaseService)
     database_service: DatabaseService = node_b.software_manager.software["DatabaseService"]  # noqa
+    database_service.stop()
     database_service.password = "12345"
     database_service.start()
     return node_a, node_b
@@ -116,6 +101,7 @@ def test_database_client_query(uc2_network):
     db_client.connect()
 
     assert db_client.query("SELECT")
+    assert db_client.query("INSERT")
 
 
 def test_create_database_backup(uc2_network):
@@ -165,7 +151,7 @@ def test_database_client_cannot_query_offline_database_server(uc2_network):
     assert len(db_client.connections)
 
     assert db_client.query("SELECT") is True
-
+    assert db_client.query("INSERT") is True
     db_server.power_off()
 
     for i in range(db_server.shut_down_duration + 1):
@@ -175,3 +161,4 @@ def test_database_client_cannot_query_offline_database_server(uc2_network):
     assert db_service.operating_state is ServiceOperatingState.STOPPED
 
     assert db_client.query("SELECT") is False
+    assert db_client.query("INSERT") is False

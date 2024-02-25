@@ -11,14 +11,17 @@ from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAge
 from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.session.io import SessionIO, SessionIOSettings
-from primaite.simulator.network.hardware.base import NIC, NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import Router
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.base import NodeOperatingState
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.host_node import NIC
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import Router
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
+from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_client import DNSClient
@@ -30,6 +33,24 @@ from primaite.simulator.system.services.ntp.ntp_server import NTPServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
+
+APPLICATION_TYPES_MAPPING = {
+    "WebBrowser": WebBrowser,
+    "DatabaseClient": DatabaseClient,
+    "DataManipulationBot": DataManipulationBot,
+    "DoSBot": DoSBot,
+}
+
+SERVICE_TYPES_MAPPING = {
+    "DNSClient": DNSClient,
+    "DNSServer": DNSServer,
+    "DatabaseService": DatabaseService,
+    "WebServer": WebServer,
+    "FTPClient": FTPClient,
+    "FTPServer": FTPServer,
+    "NTPClient": NTPClient,
+    "NTPServer": NTPServer,
+}
 
 
 class PrimaiteGameOptions(BaseModel):
@@ -231,54 +252,48 @@ class PrimaiteGame:
                     new_service = None
                     service_ref = service_cfg["ref"]
                     service_type = service_cfg["type"]
-                    service_types_mapping = {
-                        "DNSClient": DNSClient,  # key is equal to the 'name' attr of the service class itself.
-                        "DNSServer": DNSServer,
-                        "DatabaseClient": DatabaseClient,
-                        "DatabaseService": DatabaseService,
-                        "WebServer": WebServer,
-                        "FTPClient": FTPClient,
-                        "FTPServer": FTPServer,
-                        "NTPClient": NTPClient,
-                        "NTPServer": NTPServer,
-                    }
-                    if service_type in service_types_mapping:
+                    if service_type in SERVICE_TYPES_MAPPING:
                         _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
-                        new_node.software_manager.install(service_types_mapping[service_type])
+                        new_node.software_manager.install(SERVICE_TYPES_MAPPING[service_type])
                         new_service = new_node.software_manager.software[service_type]
                         game.ref_map_services[service_ref] = new_service.uuid
                     else:
                         _LOGGER.warning(f"service type not found {service_type}")
                     # service-dependent options
-                    if service_type == "DatabaseClient":
+                    if service_type == "DNSClient":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
-                            if "db_server_ip" in opt:
-                                new_service.configure(server_ip_address=IPv4Address(opt["db_server_ip"]))
+                            if "dns_server" in opt:
+                                new_service.dns_server = IPv4Address(opt["dns_server"])
                     if service_type == "DNSServer":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
                             if "domain_mapping" in opt:
                                 for domain, ip in opt["domain_mapping"].items():
-                                    new_service.dns_register(domain, ip)
+                                    new_service.dns_register(domain, IPv4Address(ip))
                     if service_type == "DatabaseService":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
-                            if "backup_server_ip" in opt:
-                                new_service.configure_backup(backup_server=IPv4Address(opt["backup_server_ip"]))
+                            new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
                         new_service.start()
-
+                    if service_type == "FTPServer":
+                        if "options" in service_cfg:
+                            opt = service_cfg["options"]
+                            new_service.server_password = opt.get("server_password")
+                        new_service.start()
+                    if service_type == "NTPClient":
+                        if "options" in service_cfg:
+                            opt = service_cfg["options"]
+                            new_service.ntp_server = IPv4Address(opt.get("ntp_server_ip"))
+                        new_service.start()
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
                     new_application = None
                     application_ref = application_cfg["ref"]
                     application_type = application_cfg["type"]
-                    application_types_mapping = {
-                        "WebBrowser": WebBrowser,
-                        "DataManipulationBot": DataManipulationBot,
-                    }
-                    if application_type in application_types_mapping:
-                        new_node.software_manager.install(application_types_mapping[application_type])
+
+                    if application_type in APPLICATION_TYPES_MAPPING:
+                        new_node.software_manager.install(APPLICATION_TYPES_MAPPING[application_type])
                         new_application = new_node.software_manager.software[application_type]
                         game.ref_map_applications[application_ref] = new_application.uuid
                     else:
@@ -294,12 +309,32 @@ class PrimaiteGame:
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
                             )
+                    elif application_type == "DatabaseClient":
+                        if "options" in application_cfg:
+                            opt = application_cfg["options"]
+                            new_application.configure(
+                                server_ip_address=IPv4Address(opt.get("db_server_ip")),
+                                server_password=opt.get("server_password"),
+                            )
                     elif application_type == "WebBrowser":
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
                             new_application.target_url = opt.get("target_url")
-            if "nics" in node_cfg:
-                for nic_num, nic_cfg in node_cfg["nics"].items():
+
+                    elif application_type == "DoSBot":
+                        if "options" in application_cfg:
+                            opt = application_cfg["options"]
+                            new_application.configure(
+                                target_ip_address=IPv4Address(opt.get("target_ip_address")),
+                                target_port=Port(opt.get("target_port", Port.POSTGRES_SERVER.value)),
+                                payload=opt.get("payload"),
+                                repeat=bool(opt.get("repeat")),
+                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
+                                dos_intensity=float(opt.get("dos_intensity", "1.0")),
+                                max_sessions=int(opt.get("max_sessions", "1000")),
+                            )
+            if "network_interfaces" in node_cfg:
+                for nic_num, nic_cfg in node_cfg["network_interfaces"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
 
             net.add_node(new_node)
@@ -311,13 +346,13 @@ class PrimaiteGame:
             node_a = net.nodes[game.ref_map_nodes[link_cfg["endpoint_a_ref"]]]
             node_b = net.nodes[game.ref_map_nodes[link_cfg["endpoint_b_ref"]]]
             if isinstance(node_a, Switch):
-                endpoint_a = node_a.switch_ports[link_cfg["endpoint_a_port"]]
+                endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]
             else:
-                endpoint_a = node_a.ethernet_port[link_cfg["endpoint_a_port"]]
+                endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]
             if isinstance(node_b, Switch):
-                endpoint_b = node_b.switch_ports[link_cfg["endpoint_b_port"]]
+                endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
             else:
-                endpoint_b = node_b.ethernet_port[link_cfg["endpoint_b_port"]]
+                endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
             new_link = net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b)
             game.ref_map_links[link_cfg["ref"]] = new_link.uuid
 

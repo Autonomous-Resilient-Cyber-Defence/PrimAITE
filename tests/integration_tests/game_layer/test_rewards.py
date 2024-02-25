@@ -1,5 +1,5 @@
-from primaite.game.agent.rewards import RewardFunction, WebpageUnavailablePenalty
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
+from primaite.game.agent.rewards import WebpageUnavailablePenalty
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from tests.conftest import ControlledAgent

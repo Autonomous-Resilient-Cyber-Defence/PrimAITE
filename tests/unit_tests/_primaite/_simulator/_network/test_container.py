@@ -5,9 +5,7 @@ import pytest
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.base import Link, Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.simulator.system.services.database.database_service import DatabaseService
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 
 
 def filter_keys_nested_item(data, keys):
@@ -109,7 +107,7 @@ def test_removing_node_that_does_not_exist(network):
     """Node that does not exist on network should not affect existing nodes."""
     assert len(network.nodes) is 7
 
-    network.remove_node(Node(hostname="new_node"))
+    network.remove_node(Computer(hostname="new_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0"))
     assert len(network.nodes) is 7
 
 

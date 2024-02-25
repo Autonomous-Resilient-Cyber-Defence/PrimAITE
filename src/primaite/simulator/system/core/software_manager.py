@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.file_system.file_system import FileSystem
+from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
@@ -14,7 +15,9 @@ from primaite.simulator.system.software import IOSoftware
 if TYPE_CHECKING:
     from primaite.simulator.system.core.session_manager import SessionManager
     from primaite.simulator.system.core.sys_log import SysLog
-    from primaite.simulator.network.hardware.base import Node
+    from primaite.simulator.network.hardware.base import Node, NIC
+    from primaite.simulator.system.services.arp.arp import ARP
+    from primaite.simulator.system.services.icmp.icmp import ICMP
 
 from typing import Type, TypeVar
 
@@ -22,7 +25,14 @@ IOSoftwareClass = TypeVar("IOSoftwareClass", bound=IOSoftware)
 
 
 class SoftwareManager:
-    """A class that manages all running Services and Applications on a Node and facilitates their communication."""
+    """
+    Manages all running services and applications on a network node and facilitates their communication.
+
+    This class is responsible for installing, uninstalling, and managing the operational state of various network
+    services and applications. It acts as a bridge between the node's session manager and its software components,
+    ensuring that incoming and outgoing network payloads are correctly routed to and from the appropriate services
+    or applications.
+    """
 
     def __init__(
         self,
@@ -46,17 +56,26 @@ class SoftwareManager:
         self.file_system: FileSystem = file_system
         self.dns_server: Optional[IPv4Address] = dns_server
 
+    @property
+    def arp(self) -> "ARP":
+        """Provides access to the ARP service instance, if installed."""
+        return self.software.get("ARP")  # noqa
+
+    @property
+    def icmp(self) -> "ICMP":
+        """Provides access to the ICMP service instance, if installed."""
+        return self.software.get("ICMP")  # noqa
+
     def get_open_ports(self) -> List[Port]:
         """
         Get a list of open ports.
 
         :return: A list of all open ports on the Node.
         """
-        open_ports = [Port.ARP]
+        open_ports = []
         for software in self.port_protocol_mapping.values():
             if software.operating_state in {ApplicationOperatingState.RUNNING, ServiceOperatingState.RUNNING}:
                 open_ports.append(software.port)
-        open_ports.sort(key=lambda port: port.value)
         return open_ports
 
     def install(self, software_class: Type[IOSoftwareClass]):
@@ -132,6 +151,7 @@ class SoftwareManager:
         payload: Any,
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
         dest_port: Optional[Port] = None,
+        ip_protocol: IPProtocol = IPProtocol.TCP,
         session_id: Optional[str] = None,
     ) -> bool:
         """
@@ -151,10 +171,19 @@ class SoftwareManager:
             payload=payload,
             dst_ip_address=dest_ip_address,
             dst_port=dest_port,
+            ip_protocol=ip_protocol,
             session_id=session_id,
         )
 
-    def receive_payload_from_session_manager(self, payload: Any, port: Port, protocol: IPProtocol, session_id: str):
+    def receive_payload_from_session_manager(
+        self,
+        payload: Any,
+        port: Port,
+        protocol: IPProtocol,
+        session_id: str,
+        from_network_interface: "NIC",
+        frame: Frame,
+    ):
         """
         Receive a payload from the SessionManager and forward it to the corresponding service or application.
 
@@ -163,7 +192,9 @@ class SoftwareManager:
         """
         receiver: Optional[Union[Service, Application]] = self.port_protocol_mapping.get((port, protocol), None)
         if receiver:
-            receiver.receive(payload=payload, session_id=session_id)
+            receiver.receive(
+                payload=payload, session_id=session_id, from_network_interface=from_network_interface, frame=frame
+            )
         else:
             self.sys_log.error(f"No service or application found for port {port} and protocol {protocol}")
         pass
@@ -174,7 +205,7 @@ class SoftwareManager:
 
         :param markdown: If True, outputs the table in markdown format. Default is False.
         """
-        table = PrettyTable(["Name", "Type", "Operating State", "Health State", "Port"])
+        table = PrettyTable(["Name", "Type", "Operating State", "Health State", "Port", "Protocol"])
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
@@ -187,7 +218,8 @@ class SoftwareManager:
                     software_type,
                     software.operating_state.name,
                     software.health_state_actual.name,
-                    software.port.value,
+                    software.port.value if software.port != Port.NONE else None,
+                    software.protocol.value,
                 ]
             )
         print(table)

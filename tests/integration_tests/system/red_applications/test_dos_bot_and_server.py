@@ -4,9 +4,9 @@ from typing import Tuple
 import pytest
 
 from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
-from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -24,7 +24,7 @@ def dos_bot_and_db_server(client_server) -> Tuple[DoSBot, Computer, DatabaseServ
 
     dos_bot: DoSBot = computer.software_manager.software.get("DoSBot")
     dos_bot.configure(
-        target_ip_address=IPv4Address(server.nics.get(next(iter(server.nics))).ip_address),
+        target_ip_address=IPv4Address(server.network_interface[1].ip_address),
         target_port=Port.POSTGRES_SERVER,
     )
 
@@ -54,7 +54,7 @@ def dos_bot_db_server_green_client(example_network) -> Network:
 
     dos_bot: DoSBot = client_1.software_manager.software.get("DoSBot")
     dos_bot.configure(
-        target_ip_address=IPv4Address(server.nics.get(next(iter(server.nics))).ip_address),
+        target_ip_address=IPv4Address(server.network_interface[1].ip_address),
         target_port=Port.POSTGRES_SERVER,
     )
 

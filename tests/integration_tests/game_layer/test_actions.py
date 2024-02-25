@@ -21,10 +21,10 @@ from primaite.game.agent.rewards import RewardFunction
 from primaite.game.game import PrimaiteGame
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
@@ -227,7 +227,7 @@ def test_network_nic_disable_integration(game_and_agent: Tuple[PrimaiteGame, Pro
     game.step()
 
     # 3: Check that the NIC is disabled, and that client 1 cannot access example.com
-    assert client_1.ethernet_port[1].enabled == False
+    assert client_1.network_interface[1].enabled == False
     assert not browser.get_webpage()
     assert not client_1.ping("10.0.2.2")
     assert not client_1.ping("10.0.2.3")
@@ -243,7 +243,7 @@ def test_network_nic_enable_integration(game_and_agent: Tuple[PrimaiteGame, Prox
 
     # 1: Disable client_1 nic
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
-    client_1.ethernet_port[1].disable()
+    client_1.network_interface[1].disable()
     assert not client_1.ping("10.0.2.2")
 
     # 2: Use action to enable nic
@@ -258,7 +258,7 @@ def test_network_nic_enable_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     game.step()
 
     # 3: Check that the NIC is enabled, and that client 1 can ping again
-    assert client_1.ethernet_port[1].enabled == True
+    assert client_1.network_interface[1].enabled == True
     assert client_1.ping("10.0.2.3")
 
 

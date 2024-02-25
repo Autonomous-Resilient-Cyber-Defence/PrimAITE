@@ -23,6 +23,7 @@ class DatabaseClient(Application):
 
     server_ip_address: Optional[IPv4Address] = None
     server_password: Optional[str] = None
+    connected: bool = False
     _query_success_tracker: Dict[str, bool] = {}
 
     def __init__(self, **kwargs):
@@ -59,9 +60,10 @@ class DatabaseClient(Application):
         if not connection_id:
             connection_id = str(uuid4())
 
-        return self._connect(
+        self.connected = self._connect(
             server_ip_address=self.server_ip_address, password=self.server_password, connection_id=connection_id
         )
+        return self.connected
 
     def _connect(
         self,
@@ -133,6 +135,7 @@ class DatabaseClient(Application):
         self.sys_log.info(
             f"{self.name}: DatabaseClient disconnected connection {connection_id} from {self.server_ip_address}"
         )
+        self.connected = False
 
     def _query(self, sql: str, query_id: str, connection_id: str, is_reattempt: bool = False) -> bool:
         """

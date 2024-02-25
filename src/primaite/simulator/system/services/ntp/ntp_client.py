@@ -21,7 +21,7 @@ class NTPClient(Service):
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPClient"
         kwargs["port"] = Port.NTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["protocol"] = IPProtocol.UDP
         super().__init__(**kwargs)
         self.start()
 
@@ -99,9 +99,14 @@ class NTPClient(Service):
 
     def request_time(self) -> None:
         """Send request to ntp_server."""
-        ntp_server_packet = NTPPacket()
-
-        self.send(payload=ntp_server_packet, dest_ip_address=self.ntp_server)
+        if self.ntp_server:
+            self.software_manager.session_manager.receive_payload_from_software_manager(
+                payload=NTPPacket(),
+                dst_ip_address=self.ntp_server,
+                src_port=self.port,
+                dst_port=self.port,
+                ip_protocol=self.protocol,
+            )
 
     def apply_timestep(self, timestep: int) -> None:
         """

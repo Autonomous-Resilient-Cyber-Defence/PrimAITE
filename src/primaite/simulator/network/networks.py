@@ -1,11 +1,11 @@
 from ipaddress import IPv4Address
 
 from primaite.simulator.network.container import Network
-from primaite.simulator.network.hardware.base import NIC, NodeOperatingState
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.router import ACLAction, Router
-from primaite.simulator.network.hardware.nodes.server import Server
-from primaite.simulator.network.hardware.nodes.switch import Switch
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.host_node import NIC
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -40,13 +40,13 @@ def client_server_routed() -> Network:
     # Switch 1
     switch_1 = Switch(hostname="switch_1", num_ports=6)
     switch_1.power_on()
-    network.connect(endpoint_a=router_1.ethernet_ports[1], endpoint_b=switch_1.switch_ports[6])
+    network.connect(endpoint_a=router_1.network_interface[1], endpoint_b=switch_1.network_interface[6])
     router_1.enable_port(1)
 
     # Switch 2
     switch_2 = Switch(hostname="switch_2", num_ports=6)
     switch_2.power_on()
-    network.connect(endpoint_a=router_1.ethernet_ports[2], endpoint_b=switch_2.switch_ports[6])
+    network.connect(endpoint_a=router_1.network_interface[2], endpoint_b=switch_2.network_interface[6])
     router_1.enable_port(2)
 
     # Client 1
@@ -55,10 +55,10 @@ def client_server_routed() -> Network:
         ip_address="192.168.2.2",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.2.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     client_1.power_on()
-    network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
+    network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
 
     # Server 1
     server_1 = Server(
@@ -66,10 +66,10 @@ def client_server_routed() -> Network:
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     server_1.power_on()
-    network.connect(endpoint_b=server_1.ethernet_port[1], endpoint_a=switch_1.switch_ports[1])
+    network.connect(endpoint_b=server_1.network_interface[1], endpoint_a=switch_1.network_interface[1])
 
     router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
 
@@ -118,21 +118,21 @@ def arcd_uc2_network() -> Network:
     network = Network()
 
     # Router 1
-    router_1 = Router(hostname="router_1", num_ports=5, operating_state=NodeOperatingState.ON)
+    router_1 = Router(hostname="router_1", num_ports=5, start_up_duration=0)
     router_1.power_on()
     router_1.configure_port(port=1, ip_address="192.168.1.1", subnet_mask="255.255.255.0")
     router_1.configure_port(port=2, ip_address="192.168.10.1", subnet_mask="255.255.255.0")
 
     # Switch 1
-    switch_1 = Switch(hostname="switch_1", num_ports=8, operating_state=NodeOperatingState.ON)
+    switch_1 = Switch(hostname="switch_1", num_ports=8, start_up_duration=0)
     switch_1.power_on()
-    network.connect(endpoint_a=router_1.ethernet_ports[1], endpoint_b=switch_1.switch_ports[8])
+    network.connect(endpoint_a=router_1.network_interface[1], endpoint_b=switch_1.network_interface[8])
     router_1.enable_port(1)
 
     # Switch 2
-    switch_2 = Switch(hostname="switch_2", num_ports=8, operating_state=NodeOperatingState.ON)
+    switch_2 = Switch(hostname="switch_2", num_ports=8, start_up_duration=0)
     switch_2.power_on()
-    network.connect(endpoint_a=router_1.ethernet_ports[2], endpoint_b=switch_2.switch_ports[8])
+    network.connect(endpoint_a=router_1.network_interface[2], endpoint_b=switch_2.network_interface[8])
     router_1.enable_port(2)
 
     # Client 1
@@ -142,10 +142,10 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
         dns_server=IPv4Address("192.168.1.10"),
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     client_1.power_on()
-    network.connect(endpoint_b=client_1.ethernet_port[1], endpoint_a=switch_2.switch_ports[1])
+    network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
     client_1.software_manager.install(DataManipulationBot)
     db_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
     db_manipulation_bot.configure(
@@ -162,12 +162,12 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.10.1",
         dns_server=IPv4Address("192.168.1.10"),
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     client_2.power_on()
     web_browser = client_2.software_manager.software.get("WebBrowser")
     web_browser.target_url = "http://arcd.com/users/"
-    network.connect(endpoint_b=client_2.ethernet_port[1], endpoint_a=switch_2.switch_ports[2])
+    network.connect(endpoint_b=client_2.network_interface[1], endpoint_a=switch_2.network_interface[2])
 
     # Domain Controller
     domain_controller = Server(
@@ -175,12 +175,12 @@ def arcd_uc2_network() -> Network:
         ip_address="192.168.1.10",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     domain_controller.power_on()
     domain_controller.software_manager.install(DNSServer)
 
-    network.connect(endpoint_b=domain_controller.ethernet_port[1], endpoint_a=switch_1.switch_ports[1])
+    network.connect(endpoint_b=domain_controller.network_interface[1], endpoint_a=switch_1.network_interface[1])
 
     # Database Server
     database_server = Server(
@@ -189,10 +189,10 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     database_server.power_on()
-    network.connect(endpoint_b=database_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[3])
+    network.connect(endpoint_b=database_server.network_interface[1], endpoint_a=switch_1.network_interface[3])
 
     ddl = """
     CREATE TABLE IF NOT EXISTS user (
@@ -263,14 +263,14 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     web_server.power_on()
     web_server.software_manager.install(DatabaseClient)
 
     database_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
     database_client.configure(server_ip_address=IPv4Address("192.168.1.14"))
-    network.connect(endpoint_b=web_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[2])
+    network.connect(endpoint_b=web_server.network_interface[1], endpoint_a=switch_1.network_interface[2])
     database_client.run()
     database_client.connect()
 
@@ -278,7 +278,7 @@ def arcd_uc2_network() -> Network:
 
     # register the web_server to a domain
     dns_server_service: DNSServer = domain_controller.software_manager.software.get("DNSServer")  # noqa
-    dns_server_service.dns_register("arcd.com", web_server.ip_address)
+    dns_server_service.dns_register("arcd.com", web_server.network_interface[1].ip_address)
 
     # Backup Server
     backup_server = Server(
@@ -287,11 +287,11 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     backup_server.power_on()
     backup_server.software_manager.install(FTPServer)
-    network.connect(endpoint_b=backup_server.ethernet_port[1], endpoint_a=switch_1.switch_ports[4])
+    network.connect(endpoint_b=backup_server.network_interface[1], endpoint_a=switch_1.network_interface[4])
 
     # Security Suite
     security_suite = Server(
@@ -300,12 +300,12 @@ def arcd_uc2_network() -> Network:
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         dns_server=IPv4Address("192.168.1.10"),
-        operating_state=NodeOperatingState.ON,
+        start_up_duration=0,
     )
     security_suite.power_on()
-    network.connect(endpoint_b=security_suite.ethernet_port[1], endpoint_a=switch_1.switch_ports[7])
+    network.connect(endpoint_b=security_suite.network_interface[1], endpoint_a=switch_1.network_interface[7])
     security_suite.connect_nic(NIC(ip_address="192.168.10.110", subnet_mask="255.255.255.0"))
-    network.connect(endpoint_b=security_suite.ethernet_port[2], endpoint_a=switch_2.switch_ports[7])
+    network.connect(endpoint_b=security_suite.network_interface[2], endpoint_a=switch_2.network_interface[7])
 
     router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
 

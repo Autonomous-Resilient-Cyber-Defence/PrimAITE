@@ -84,7 +84,7 @@ Example peer to peer network
     srv = Server(hostname="srv", ip_address="192.168.1.10", subnet_mask="255.255.255.0")
     pc1.power_on()
     srv.power_on()
-    net.connect(pc1.ethernet_port[1], srv.ethernet_port[1])
+    net.connect(pc1.network_interface[1], srv.network_interface[1])
 
 Install the Web Server
 ^^^^^^^^^^^^^^^^^^^^^^

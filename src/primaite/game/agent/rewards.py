@@ -68,6 +68,8 @@ class DummyReward(AbstractReward):
 
         :param config: dict of options for the reward component's constructor. Should be empty.
         :type config: dict
+        :return: The reward component.
+        :rtype: DummyReward
         """
         return cls()
 
@@ -230,7 +232,12 @@ class WebpageUnavailablePenalty(AbstractReward):
 
     @classmethod
     def from_config(cls, config: dict) -> AbstractReward:
-        """Build the reward component object from config."""
+        """
+        Build the reward component object from config.
+
+        :param config: Configuration dictionary.
+        :type config: Dict
+        """
         node_hostname = config.get("node_hostname")
         return cls(node_hostname=node_hostname)
 

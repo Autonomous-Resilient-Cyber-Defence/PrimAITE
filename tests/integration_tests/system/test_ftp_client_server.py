@@ -1,10 +1,9 @@
-from ipaddress import IPv4Address
 from typing import Tuple
 
 import pytest
 
-from primaite.simulator.network.hardware.nodes.computer import Computer
-from primaite.simulator.network.hardware.nodes.server import Server
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.service import ServiceOperatingState
@@ -44,7 +43,7 @@ def test_ftp_client_store_file_in_server(ftp_client_and_ftp_server):
         src_file_name="test_file.txt",
         dest_folder_name="client_1_backup",
         dest_file_name="test_file.txt",
-        dest_ip_address=server.nics.get(next(iter(server.nics))).ip_address,
+        dest_ip_address=server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address,
     )
 
     assert ftp_server.file_system.get_file(folder_name="client_1_backup", file_name="test_file.txt")
@@ -67,7 +66,7 @@ def test_ftp_client_retrieve_file_from_server(ftp_client_and_ftp_server):
         src_file_name="test_file.txt",
         dest_folder_name="downloads",
         dest_file_name="test_file.txt",
-        dest_ip_address=server.nics.get(next(iter(server.nics))).ip_address,
+        dest_ip_address=server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address,
     )
 
     # client should have retrieved the file
@@ -98,7 +97,7 @@ def test_ftp_client_tries_to_connect_to_offline_server(ftp_client_and_ftp_server
             src_file_name="test_file.txt",
             dest_folder_name="downloads",
             dest_file_name="test_file.txt",
-            dest_ip_address=server.nics.get(next(iter(server.nics))).ip_address,
+            dest_ip_address=server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address,
         )
         is False
     )

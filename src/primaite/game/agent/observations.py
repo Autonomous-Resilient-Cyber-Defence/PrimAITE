@@ -406,7 +406,7 @@ class NodeObservation(AbstractObservation):
         where: Optional[Tuple[str]] = None,
         services: List[ServiceObservation] = [],
         folders: List[FolderObservation] = [],
-        nics: List[NicObservation] = [],
+        network_interfaces: List[NicObservation] = [],
         logon_status: bool = False,
         num_services_per_node: int = 2,
         num_folders_per_node: int = 2,
@@ -429,9 +429,9 @@ class NodeObservation(AbstractObservation):
         :type folders: Dict[int,str], optional
         :param max_folders: Max number of folders in this node's obs space, defaults to 2
         :type max_folders: int, optional
-        :param nics: Mapping between position in observation space and NIC idx, defaults to {}
-        :type nics: Dict[int,str], optional
-        :param max_nics: Max number of NICS in this node's obs space, defaults to 5
+        :param network_interfaces: Mapping between position in observation space and NIC idx, defaults to {}
+        :type network_interfaces: Dict[int,str], optional
+        :param max_nics: Max number of network interfaces in this node's obs space, defaults to 5
         :type max_nics: int, optional
         """
         super().__init__()
@@ -456,11 +456,11 @@ class NodeObservation(AbstractObservation):
             msg = f"Too many folders in Node observation for node. Truncating service {truncated_folder.where[-1]}"
             _LOGGER.warning(msg)
 
-        self.nics: List[NicObservation] = nics
-        while len(self.nics) < num_nics_per_node:
-            self.nics.append(NicObservation())
-        while len(self.nics) > num_nics_per_node:
-            truncated_nic = self.nics.pop()
+        self.network_interfaces: List[NicObservation] = network_interfaces
+        while len(self.network_interfaces) < num_nics_per_node:
+            self.network_interfaces.append(NicObservation())
+        while len(self.network_interfaces) > num_nics_per_node:
+            truncated_nic = self.network_interfaces.pop()
             msg = f"Too many NICs in Node observation for node. Truncating service {truncated_nic.where[-1]}"
             _LOGGER.warning(msg)
 
@@ -469,7 +469,7 @@ class NodeObservation(AbstractObservation):
         self.default_observation: Dict = {
             "SERVICES": {i + 1: s.default_observation for i, s in enumerate(self.services)},
             "FOLDERS": {i + 1: f.default_observation for i, f in enumerate(self.folders)},
-            "NICS": {i + 1: n.default_observation for i, n in enumerate(self.nics)},
+            "NETWORK_INTERFACES": {i + 1: n.default_observation for i, n in enumerate(self.network_interfaces)},
             "operating_status": 0,
         }
         if self.logon_status:
@@ -494,7 +494,9 @@ class NodeObservation(AbstractObservation):
         obs["SERVICES"] = {i + 1: service.observe(state) for i, service in enumerate(self.services)}
         obs["FOLDERS"] = {i + 1: folder.observe(state) for i, folder in enumerate(self.folders)}
         obs["operating_status"] = node_state["operating_state"]
-        obs["NICS"] = {i + 1: nic.observe(state) for i, nic in enumerate(self.nics)}
+        obs["NETWORK_INTERFACES"] = {
+            i + 1: network_interface.observe(state) for i, network_interface in enumerate(self.network_interfaces)
+        }
 
         if self.logon_status:
             obs["logon_status"] = 0
@@ -508,7 +510,9 @@ class NodeObservation(AbstractObservation):
             "SERVICES": spaces.Dict({i + 1: service.space for i, service in enumerate(self.services)}),
             "FOLDERS": spaces.Dict({i + 1: folder.space for i, folder in enumerate(self.folders)}),
             "operating_status": spaces.Discrete(5),
-            "NICS": spaces.Dict({i + 1: nic.space for i, nic in enumerate(self.nics)}),
+            "NETWORK_INTERFACES": spaces.Dict(
+                {i + 1: network_interface.space for i, network_interface in enumerate(self.network_interfaces)}
+            ),
         }
         if self.logon_status:
             space_shape["logon_status"] = spaces.Discrete(3)
@@ -564,13 +568,13 @@ class NodeObservation(AbstractObservation):
         ]
         # create some configs for the NIC observation in the format {"nic_num":1}, {"nic_num":2}, {"nic_num":3}, etc.
         nic_configs = [{"nic_num": i for i in range(num_nics_per_node)}]
-        nics = [NicObservation.from_config(config=c, game=game, parent_where=where) for c in nic_configs]
+        network_interfaces = [NicObservation.from_config(config=c, game=game, parent_where=where) for c in nic_configs]
         logon_status = config.get("logon_status", False)
         return cls(
             where=where,
             services=services,
             folders=folders,
-            nics=nics,
+            network_interfaces=network_interfaces,
             logon_status=logon_status,
             num_services_per_node=num_services_per_node,
             num_folders_per_node=num_folders_per_node,
@@ -728,7 +732,7 @@ class AclObservation(AbstractObservation):
             node_ref = ip_map_config["node_hostname"]
             nic_num = ip_map_config["nic_num"]
             node_obj = game.simulation.network.nodes[game.ref_map_nodes[node_ref]]
-            nic_obj = node_obj.ethernet_port[nic_num]
+            nic_obj = node_obj.network_interface[nic_num]
             node_ip_to_idx[nic_obj.ip_address] = ip_idx + 2
 
         router_hostname = config["router_hostname"]
