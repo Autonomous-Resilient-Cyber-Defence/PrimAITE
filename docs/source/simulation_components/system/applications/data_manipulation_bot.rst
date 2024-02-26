@@ -178,7 +178,7 @@ Optional. Default value is ``DELETE``.
 
 The payload that the ``DataManipulationBot`` will send to the :ref:`DatabaseService`.
 
-See :ref:`Database Payload List`
+.. include:: ../common/db_payload_list.rst
 
 ``port_scan_p_of_success``
 """"""""""""""""""""""""""

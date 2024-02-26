@@ -123,6 +123,8 @@ Optional. Default value is ``None``.
 
 The payload that the ``DoSBot`` sends as part of its attack.
 
+.. include:: ../common/db_payload_list.rst
+
 ``repeat``
 """"""""""
 
@@ -155,4 +157,4 @@ Optional. Default value is ``1000``.
 
 The maximum number of sessions the ``DoSBot`` is able to make.
 
-This must be an integer value above equal to or greater than ``0``.
+This must be an integer value equal to or greater than ``0``.

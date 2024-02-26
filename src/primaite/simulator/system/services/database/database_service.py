@@ -195,8 +195,6 @@ class DatabaseService(Service):
         """
         Executes the given SQL query and returns the result.
 
-        .. _Database Payload List:
-
         Possible queries:
         - SELECT : returns the data
         - DELETE : deletes the data
