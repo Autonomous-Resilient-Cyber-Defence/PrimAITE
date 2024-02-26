@@ -1039,6 +1039,8 @@ class Router(NetworkNode):
             self.connect_nic(network_interface)
             self.network_interface[i] = network_interface
 
+        self._set_default_acl()
+
     def _install_system_software(self):
         """
         Installs essential system software and network services on the router.
