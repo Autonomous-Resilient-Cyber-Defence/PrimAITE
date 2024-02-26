@@ -1,8 +1,9 @@
 from ipaddress import IPv4Address
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from primaite import getLogger
+from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
@@ -25,6 +26,8 @@ class DatabaseClient(Application):
     server_password: Optional[str] = None
     connected: bool = False
     _query_success_tracker: Dict[str, bool] = {}
+    _connections_status: List[bool] = []
+    """Keep track of connections that were established or verified during this step. Used for rewards."""
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseClient"
@@ -32,6 +35,20 @@ class DatabaseClient(Application):
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
         self.set_original_state()
+
+    def _init_request_manager(self) -> RequestManager:
+        rm = super()._init_request_manager()
+        rm.add_request("execute", RequestType(func=lambda request, context: self.execute()))
+        return rm
+
+    def execute(self) -> bool:
+        """Execution definition for db client: perform a select query."""
+        if self.connections:
+            can_connect = self.connect(connection_id=list(self.connections.keys())[-1])
+        else:
+            can_connect = self.connect()
+        self._connections_status.append(can_connect)
+        return can_connect
 
     def set_original_state(self):
         """Sets the original state."""
@@ -52,8 +69,11 @@ class DatabaseClient(Application):
 
         :return: A dictionary representing the current state.
         """
-        pass
-        return super().describe_state()
+        state = super().describe_state()
+        # list of connections that were established or verified during this step.
+        state["connections_status"] = [c for c in self._connections_status]
+        self._connections_status.clear()
+        return state
 
     def configure(self, server_ip_address: IPv4Address, server_password: Optional[str] = None):
         """
@@ -73,6 +93,10 @@ class DatabaseClient(Application):
 
         if not connection_id:
             connection_id = str(uuid4())
+
+        # if we are reusing a connection_id, remove it from self.connections so that its new status can be populated
+        # warning: janky
+        self._connections.pop(connection_id, None)
 
         self.connected = self._connect(
             server_ip_address=self.server_ip_address, password=self.server_password, connection_id=connection_id

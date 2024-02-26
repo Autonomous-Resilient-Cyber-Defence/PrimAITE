@@ -242,6 +242,46 @@ class WebpageUnavailablePenalty(AbstractReward):
         return cls(node_hostname=node_hostname)
 
 
+class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
+    """Penalises the agent when the green db clients fail to connect to the database."""
+
+    def __init__(self, node_hostname: str) -> None:
+        """
+        Initialise the reward component.
+
+        :param node_hostname: Hostname of the node where the database client sits.
+        :type node_hostname: str
+        """
+        self._node = node_hostname
+        self.location_in_state = ["network", "nodes", node_hostname, "applications", "DatabaseClient"]
+
+    def calculate(self, state: Dict) -> float:
+        """
+        Calculate the reward based on current simulation state.
+
+        :param state: The current state of the simulation.
+        :type state: Dict
+        """
+        db_state = access_from_nested_dict(state, self.location_in_state)
+        if db_state is NOT_PRESENT_IN_STATE or "connections_status" not in db_state:
+            _LOGGER.debug(f"Can't calculate reward for {self.__class__.__name__}")
+        connections_status = db_state["connections_status"]
+        if False in connections_status:
+            return -1.0
+        return 0
+
+    @classmethod
+    def from_config(cls, config: Dict) -> AbstractReward:
+        """
+        Build the reward component object from config.
+
+        :param config: Configuration dictionary.
+        :type config: Dict
+        """
+        node_hostname = config.get("node_hostname")
+        return cls(node_hostname=node_hostname)
+
+
 class RewardFunction:
     """Manages the reward function for the agent."""
 
@@ -250,6 +290,7 @@ class RewardFunction:
         "DATABASE_FILE_INTEGRITY": DatabaseFileIntegrity,
         "WEB_SERVER_404_PENALTY": WebServer404Penalty,
         "WEBPAGE_UNAVAILABLE_PENALTY": WebpageUnavailablePenalty,
+        "GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY": GreenAdminDatabaseUnreachablePenalty,
     }
 
     def __init__(self):
