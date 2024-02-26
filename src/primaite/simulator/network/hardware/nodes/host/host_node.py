@@ -213,11 +213,6 @@ class NIC(IPWiredNetworkInterface):
 
         return state
 
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {"ip_address", "subnet_mask", "mac_address", "speed", "mtu", "wake_on_lan", "enabled"}
-        self._original_state = self.model_dump(include=vals_to_include)
-
     def receive_frame(self, frame: Frame) -> bool:
         """
         Attempt to receive and process a network frame from the connected Link.

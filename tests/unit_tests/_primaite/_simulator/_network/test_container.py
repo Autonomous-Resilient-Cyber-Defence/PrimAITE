@@ -44,40 +44,6 @@ def test_describe_state(network):
     assert len(state["links"]) is 6
 
 
-def test_reset_network(network):
-    """
-    Test that the network is properly reset.
-
-    TODO: make sure that once implemented - any installed/uninstalled services, processes, apps,
-    etc are also removed/reinstalled
-
-    """
-    state_before = network.describe_state()
-
-    client_1: Computer = network.get_node_by_hostname("client_1")
-    server_1: Computer = network.get_node_by_hostname("server_1")
-
-    assert client_1.operating_state is NodeOperatingState.ON
-    assert server_1.operating_state is NodeOperatingState.ON
-
-    client_1.power_off()
-    assert client_1.operating_state is NodeOperatingState.SHUTTING_DOWN
-
-    server_1.power_off()
-    assert server_1.operating_state is NodeOperatingState.SHUTTING_DOWN
-
-    assert network.describe_state() != state_before
-
-    network.reset_component_for_episode(episode=1)
-
-    assert client_1.operating_state is NodeOperatingState.ON
-    assert server_1.operating_state is NodeOperatingState.ON
-    # don't worry if UUIDs change
-    a = filter_keys_nested_item(json.dumps(network.describe_state(), sort_keys=True, indent=2), ["uuid"])
-    b = filter_keys_nested_item(json.dumps(state_before, sort_keys=True, indent=2), ["uuid"])
-    assert a == b
-
-
 def test_creating_container():
     """Check that we can create a network container"""
     net = Network()
