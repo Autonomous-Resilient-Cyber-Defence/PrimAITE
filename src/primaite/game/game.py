@@ -79,11 +79,11 @@ class PrimaiteGame:
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
 
-        self.agents: List[AbstractAgent] = []
-        """List of agents."""
+        self.agents: Dict[str, AbstractAgent] = {}
+        """Mapping from agent name to agent object."""
 
-        self.rl_agents: List[ProxyAgent] = []
-        """Subset of agent list including only the reinforcement learning agents."""
+        self.rl_agents: Dict[str, ProxyAgent] = {}
+        """Subset of agents which are intended for reinforcement learning."""
 
         self.step_counter: int = 0
         """Current timestep within the episode."""
@@ -144,7 +144,7 @@ class PrimaiteGame:
 
     def update_agents(self, state: Dict) -> None:
         """Update agents' observations and rewards based on the current state."""
-        for agent in self.agents:
+        for name, agent in self.agents.items():
             agent.update_observation(state)
             agent.update_reward(state)
             agent.reward_function.total_reward += agent.reward_function.current_reward
@@ -158,7 +158,7 @@ class PrimaiteGame:
 
         """
         agent_actions = {}
-        for agent in self.agents:
+        for name, agent in self.agents.items():
             obs = agent.observation_manager.current_observation
             rew = agent.reward_function.current_reward
             action_choice, options = agent.get_action(obs, rew)
@@ -396,7 +396,6 @@ class PrimaiteGame:
                     reward_function=reward_function,
                     agent_settings=agent_settings,
                 )
-                game.agents.append(new_agent)
             elif agent_type == "ProxyAgent":
                 new_agent = ProxyAgent(
                     agent_name=agent_cfg["ref"],
@@ -405,8 +404,7 @@ class PrimaiteGame:
                     reward_function=reward_function,
                     agent_settings=agent_settings,
                 )
-                game.agents.append(new_agent)
-                game.rl_agents.append(new_agent)
+                game.rl_agents[agent_cfg["ref"]] = new_agent
             elif agent_type == "RedDatabaseCorruptingAgent":
                 new_agent = DataManipulationAgent(
                     agent_name=agent_cfg["ref"],
@@ -415,8 +413,8 @@ class PrimaiteGame:
                     reward_function=reward_function,
                     agent_settings=agent_settings,
                 )
-                game.agents.append(new_agent)
             else:
                 _LOGGER.warning(f"agent type {agent_type} not found")
+            game.agents[agent_cfg["ref"]] = new_agent
 
         return game

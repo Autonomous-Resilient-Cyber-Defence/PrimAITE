@@ -510,6 +510,6 @@ def game_and_agent():
         reward_function=reward_function,
     )
 
-    game.agents.append(test_agent)
+    game.agents["test_agent"] = test_agent
 
     return (game, test_agent)
