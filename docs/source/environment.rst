@@ -7,4 +7,4 @@ RL environments are the objects that directly interface with RL libraries such a
 * Ray Single agent API - For training a single Ray RLLib agent
 * Ray MARL API - For training multi-agent systems with Ray RLLib. ``PrimaiteRayMARLEnv`` adheres to the `Official Ray documentation <https://docs.ray.io/en/latest/rllib/package_ref/env/multi_agent_env.html>`_.
 
-There is a Jupyter notebook which demonstrates integration with each of these three environments. They are located in ``~/primaite/<VERSION>/notebooks/example_notebooks``.
+There are Jupyter notebooks which demonstrate integration with each of these three environments. They are located in ``~/primaite/<VERSION>/notebooks/example_notebooks``.
