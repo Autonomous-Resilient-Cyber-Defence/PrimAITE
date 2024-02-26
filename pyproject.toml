@@ -67,7 +67,7 @@ dev = [
     "pytest-cov==4.0.0",
     "pytest-flake8==1.1.1",
     "setuptools==66",
-    "Sphinx==7.2.6",
+    "Sphinx==7.1.2",
     "sphinx-copybutton==0.5.2",
     "wheel==0.38.4"
 ]
