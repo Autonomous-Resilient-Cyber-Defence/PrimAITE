@@ -4,6 +4,11 @@
 
 .. _run a primaite session:
 
+.. admonition:: Deprecated
+   :class: deprecated
+
+   PrimAITE Session is being deprecated in favour of Jupyter Notebooks. The ``session`` command will be removed in future releases, but example notebooks will be provided to demonstrate the same functionality.
+
 Run a PrimAITE Session
 ======================
 
