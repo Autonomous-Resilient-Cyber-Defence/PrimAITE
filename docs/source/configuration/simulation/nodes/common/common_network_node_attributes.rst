@@ -23,7 +23,7 @@ e.g.
 ``address``
 """""""""""
 
-The target IP address for the route. If the packet destination IP address matches this, the router will route the packet according to the ``next_hop_ip_address``.
+The target IP address for the route. If the packet destination IP address matches this, the |NODE| will route the packet according to the ``next_hop_ip_address``.
 
 This must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.255``.
 

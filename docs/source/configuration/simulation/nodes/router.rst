@@ -16,15 +16,17 @@ example router
 
 .. code-block:: yaml
 
-    nodes:
-        - ref: router_1
-        hostname: router_1
-        type: router
-        num_ports: 5
-        ports:
-            ...
-        acl:
-            ...
+    simulation:
+        network:
+            nodes:
+                - ref: router_1
+                hostname: router_1
+                type: router
+                num_ports: 5
+                ports:
+                    ...
+                acl:
+                    ...
 
 .. include:: common/common_node_attributes.rst
 
