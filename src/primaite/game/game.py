@@ -10,6 +10,7 @@ from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent, RandomAgent
 from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
+from primaite.game.agent.scripted_agents import GreenUC2Agent
 from primaite.session.io import SessionIO, SessionIOSettings
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -392,9 +393,9 @@ class PrimaiteGame:
             agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
 
             # CREATE AGENT
-            if agent_type == "GreenWebBrowsingAgent":
+            if agent_type == "GreenUC2Agent":
                 # TODO: implement non-random agents and fix this parsing
-                new_agent = RandomAgent(
+                new_agent = GreenUC2Agent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,
