@@ -1,6 +1,7 @@
 import pytest
 
 from primaite.simulator.network.container import Network
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
@@ -19,7 +20,10 @@ def test_router_is_in_configuration(dmz_config):
     """Test that the router exists in the configuration file."""
     network: Network = dmz_config
 
-    assert network.get_node_by_hostname("router_1")
+    router_1: Router = network.get_node_by_hostname("router_1")
+
+    assert router_1
+    assert router_1.operating_state == NodeOperatingState.ON
 
 
 def test_router_routes_are_correctly_added(dmz_config):

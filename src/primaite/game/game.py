@@ -359,12 +359,17 @@ class PrimaiteGame:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
 
-            new_node.start_up_duration = int(node_cfg.get("start_up_duration", 3))
-            new_node.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
+            # temporarily set to 0 so all nodes are initially on
+            new_node.start_up_duration = 0
+            new_node.shut_down_duration = 0
 
             net.add_node(new_node)
             new_node.power_on()
             game.ref_map_nodes[node_ref] = new_node.uuid
+
+            # set start up and shut down duration
+            new_node.start_up_duration = int(node_cfg.get("start_up_duration", 3))
+            new_node.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
 
         # 2. create links between nodes
         for link_cfg in links_cfg:

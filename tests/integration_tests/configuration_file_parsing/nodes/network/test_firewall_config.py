@@ -1,6 +1,7 @@
 import pytest
 
 from primaite.simulator.network.container import Network
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
@@ -20,7 +21,10 @@ def test_firewall_is_in_configuration(dmz_config):
     """Test that the firewall exists in the configuration file."""
     network: Network = dmz_config
 
-    assert network.get_node_by_hostname("firewall")
+    firewall: Firewall = network.get_node_by_hostname("firewall")
+
+    assert firewall
+    assert firewall.operating_state == NodeOperatingState.ON
 
 
 def test_firewall_routes_are_correctly_added(dmz_config):
@@ -38,6 +42,11 @@ def test_firewall_routes_are_correctly_added(dmz_config):
     assert dmz_server.ping(client_1.network_interface[1].ip_address)
     assert external_computer.ping(client_1.network_interface[1].ip_address)
     assert external_server.ping(client_1.network_interface[1].ip_address)
+
+    # client_1 should be able to ping other nodes
+    assert client_1.ping(dmz_server.network_interface[1].ip_address)
+    assert client_1.ping(external_computer.network_interface[1].ip_address)
+    assert client_1.ping(external_server.network_interface[1].ip_address)
 
 
 def test_firewall_acl_rules_correctly_added(dmz_config):
