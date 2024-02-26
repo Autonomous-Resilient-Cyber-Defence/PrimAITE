@@ -82,12 +82,19 @@ SessionManager.
 - `AirSpace` class to simulate wireless communications, managing wireless interfaces and facilitating the transmission of frames within specified frequencies.
 - `AirSpaceFrequency` enum for defining standard wireless frequencies, including 2.4 GHz and 5 GHz bands, to support realistic wireless network simulations.
 - `WirelessRouter` class, extending the `Router` class, to incorporate wireless networking capabilities alongside traditional wired connections. This class allows the configuration of wireless access points with specific IP settings and operating frequencies.
-- Configuration examples in documentation:
-    - Examples include how to set up PrimAITE session
-    - Examples include how to create nodes and install software
-- Ability to add Firewall node via config
-- Ability to add Router routes via config
-- Ability to add Router/Firewall ACL Rules via config
+- Documentation Updates:
+    - Examples include how to set up PrimAITE session via config
+    - Examples include how to create nodes and install software via config
+    - Examples include how to set up PrimAITE session via Python
+    - Examples include how to create nodes and install software via Python
+    - Added missing ``DoSBot`` documentation page
+    - Added diagrams where needed to make understanding some things easier
+    - Templated parts of the documentation to prevent unnecessary repetition and for easier maintaining of documentation
+    - Separated documentation pages of some items i.e. client and server software were on the same pages - which may make things confusing
+    - Configuration section at the bottom of the software pages specifying the configuration options available (and which ones are optional)
+- Ability to add ``Firewall`` node via config
+- Ability to add ``Router`` routes via config
+- Ability to add ``Router``/``Firewall`` ``ACLRule`` via config
 
 
 ### Changed
