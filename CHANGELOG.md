@@ -82,6 +82,12 @@ SessionManager.
 - `AirSpace` class to simulate wireless communications, managing wireless interfaces and facilitating the transmission of frames within specified frequencies.
 - `AirSpaceFrequency` enum for defining standard wireless frequencies, including 2.4 GHz and 5 GHz bands, to support realistic wireless network simulations.
 - `WirelessRouter` class, extending the `Router` class, to incorporate wireless networking capabilities alongside traditional wired connections. This class allows the configuration of wireless access points with specific IP settings and operating frequencies.
+- Configuration examples in documentation:
+    - Examples include how to set up PrimAITE session
+    - Examples include how to create nodes and install software
+- Ability to add Firewall node via config
+- Ability to add Router routes via config
+- Ability to add Router/Firewall ACL Rules via config
 
 
 ### Changed
