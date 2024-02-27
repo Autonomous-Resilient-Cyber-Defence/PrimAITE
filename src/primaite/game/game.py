@@ -7,10 +7,10 @@ from pydantic import BaseModel, ConfigDict
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
-from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent, RandomAgent
+from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
 from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
-from primaite.game.agent.scripted_agents import GreenUC2Agent
+from primaite.game.agent.scripted_agents import ProbabilisticAgent
 from primaite.session.io import SessionIO, SessionIOSettings
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -165,7 +165,7 @@ class PrimaiteGame:
         for agent in self.agents:
             obs = agent.observation_manager.current_observation
             rew = agent.reward_function.current_reward
-            action_choice, options = agent.get_action(obs, rew)
+            action_choice, options = agent.get_action(obs, rew, timestep=self.step_counter)
             agent_actions[agent.agent_name] = (action_choice, options)
             request = agent.format_request(action_choice, options)
             self.simulation.apply_request(request)
@@ -393,14 +393,15 @@ class PrimaiteGame:
             agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
 
             # CREATE AGENT
-            if agent_type == "GreenUC2Agent":
+            if agent_type == "probabilistic_agent":
                 # TODO: implement non-random agents and fix this parsing
-                new_agent = GreenUC2Agent(
+                settings = agent_cfg.get("agent_settings")
+                new_agent = ProbabilisticAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=reward_function,
-                    agent_settings=agent_settings,
+                    settings=settings,
                 )
                 game.agents.append(new_agent)
             elif agent_type == "ProxyAgent":

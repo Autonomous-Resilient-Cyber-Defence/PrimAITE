@@ -607,7 +607,6 @@ class ActionManager:
 
     def __init__(
         self,
-        game: "PrimaiteGame",  # reference to game for information lookup
         actions: List[Dict],  # stores list of actions available to agent
         nodes: List[Dict],  # extra configuration for each node
         max_folders_per_node: int = 2,  # allows calculating shape
@@ -618,7 +617,7 @@ class ActionManager:
         max_acl_rules: int = 10,  # allows calculating shape
         protocols: List[str] = ["TCP", "UDP", "ICMP"],  # allow mapping index to protocol
         ports: List[str] = ["HTTP", "DNS", "ARP", "FTP", "NTP"],  # allow mapping index to port
-        ip_address_list: Optional[List[str]] = None,  # to allow us to map an index to an ip address.
+        ip_address_list: List[str] = [],  # to allow us to map an index to an ip address.
         act_map: Optional[Dict[int, Dict]] = None,  # allows restricting set of possible actions
     ) -> None:
         """Init method for ActionManager.
@@ -649,7 +648,6 @@ class ActionManager:
         :param act_map: Action map which maps integers to actions. Used for restricting the set of possible actions.
         :type act_map: Optional[Dict[int, Dict]]
         """
-        self.game: "PrimaiteGame" = game
         self.node_names: List[str] = [n["node_name"] for n in nodes]
         """List of node names in this action space. The list order is the mapping between node index and node name."""
         self.application_names: List[List[str]] = []
@@ -707,25 +705,7 @@ class ActionManager:
         self.protocols: List[str] = protocols
         self.ports: List[str] = ports
 
-        self.ip_address_list: List[str]
-
-        # If the user has provided a list of IP addresses, use that. Otherwise, generate a list of IP addresses from
-        # the nodes in the simulation.
-        # TODO: refactor. Options:
-        # 1: This should be pulled out into it's own function for clarity
-        # 2: The simulation itself should be able to provide a list of IP addresses with its API, rather than having to
-        #    go through the nodes here.
-        if ip_address_list is not None:
-            self.ip_address_list = ip_address_list
-        else:
-            self.ip_address_list = []
-            for node_name in self.node_names:
-                node_obj = self.game.simulation.network.get_node_by_hostname(node_name)
-                if node_obj is None:
-                    continue
-                network_interfaces = node_obj.network_interfaces
-                for nic_uuid, nic_obj in network_interfaces.items():
-                    self.ip_address_list.append(nic_obj.ip_address)
+        self.ip_address_list: List[str] = ip_address_list
 
         # action_args are settings which are applied to the action space as a whole.
         global_action_args = {
@@ -958,6 +938,12 @@ class ActionManager:
         :return: The constructed ActionManager.
         :rtype: ActionManager
         """
+        # If the user has provided a list of IP addresses, use that. Otherwise, generate a list of IP addresses from
+        # the nodes in the simulation.
+        # TODO: refactor. Options:
+        # 1: This should be pulled out into it's own function for clarity
+        # 2: The simulation itself should be able to provide a list of IP addresses with its API, rather than having to
+        #    go through the nodes here.
         ip_address_order = cfg["options"].pop("ip_address_order", {})
         ip_address_list = []
         for entry in ip_address_order:
@@ -967,13 +953,22 @@ class ActionManager:
             ip_address = node_obj.network_interface[nic_num].ip_address
             ip_address_list.append(ip_address)
 
+        if not ip_address_list:
+            node_names = [n["node_name"] for n in cfg.get("nodes", {})]
+            for node_name in node_names:
+                node_obj = game.simulation.network.get_node_by_hostname(node_name)
+                if node_obj is None:
+                    continue
+                network_interfaces = node_obj.network_interfaces
+                for nic_uuid, nic_obj in network_interfaces.items():
+                    ip_address_list.append(nic_obj.ip_address)
+
         obj = cls(
-            game=game,
             actions=cfg["action_list"],
             **cfg["options"],
             protocols=game.options.protocols,
             ports=game.options.ports,
-            ip_address_list=ip_address_list or None,
+            ip_address_list=ip_address_list,
             act_map=cfg.get("action_map"),
         )
 

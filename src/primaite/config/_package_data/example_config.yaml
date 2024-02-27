@@ -33,7 +33,12 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: GreenUC2Agent
+    type: probabilistic_agent
+    agent_settings:
+      action_probabilities:
+        0: 0.3
+        1: 0.6
+        2: 0.1
     observation_space:
       type: UC2GreenObservation
     action_space:
@@ -69,15 +74,14 @@ agents:
       reward_components:
         - type: DUMMY
 
+  - ref: client_1_green_user
+    team: GREEN
+    type: probabilistic_agent
     agent_settings:
       action_probabilities:
         0: 0.3
         1: 0.6
         2: 0.1
-
-  - ref: client_1_green_user
-    team: GREEN
-    type: GreenUC2Agent
     observation_space:
       type: UC2GreenObservation
     action_space:
@@ -113,11 +117,6 @@ agents:
       reward_components:
         - type: DUMMY
 
-    agent_settings:
-      action_probabilities:
-        0: 0.3
-        1: 0.6
-        2: 0.1
 
 
 

@@ -11,30 +11,39 @@ from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 
 
-class GreenUC2Agent(AbstractScriptedAgent):
-    """Scripted agent which attempts to send web requests to a target node."""
+class ProbabilisticAgent(AbstractScriptedAgent):
+    """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
-    class GreenUC2AgentSettings(pydantic.BaseModel):
+    class Settings(pydantic.BaseModel):
+        """Config schema for Probabilistic agent settings."""
+
         model_config = pydantic.ConfigDict(extra="forbid")
+        """Strict validation."""
         action_probabilities: Dict[int, float]
         """Probability to perform each action in the action map. The sum of probabilities should sum to 1."""
         random_seed: Optional[int] = None
+        """Random seed. If set, each episode the agent will choose the same random sequence of actions."""
+        # TODO: give the option to still set a random seed, but have it vary each episode in a predictable way
+        #       for example if the user sets seed 123, have it be 123 + episode_num, so that each ep it's the next seed.
 
         @pydantic.field_validator("action_probabilities", mode="after")
         @classmethod
         def probabilities_sum_to_one(cls, v: Dict[int, float]) -> Dict[int, float]:
+            """Make sure the probabilities sum to 1."""
             if not abs(sum(v.values()) - 1) < 1e-6:
-                raise ValueError(f"Green action probabilities must sum to 1")
+                raise ValueError("Green action probabilities must sum to 1")
             return v
 
         @pydantic.field_validator("action_probabilities", mode="after")
         @classmethod
         def action_map_covered_correctly(cls, v: Dict[int, float]) -> Dict[int, float]:
+            """Ensure that the keys of the probability dictionary cover all integers from 0 to N."""
             if not all((i in v) for i in range(len(v))):
                 raise ValueError(
                     "Green action probabilities must be defined as a mapping where the keys are consecutive integers "
                     "from 0 to N."
                 )
+            return v
 
     def __init__(
         self,
@@ -52,23 +61,27 @@ class GreenUC2Agent(AbstractScriptedAgent):
         # If seed not specified, set it to None so that numpy chooses a random one.
         settings.setdefault("random_seed")
 
-        self.settings = GreenUC2Agent.GreenUC2AgentSettings(settings)
+        self.settings = ProbabilisticAgent.Settings(**settings)
 
         self.rng = np.random.default_rng(self.settings.random_seed)
 
         # convert probabilities from
-        self.probabilities = np.array[self.settings.action_probabilities.values()]
+        self.probabilities = np.asarray(list(self.settings.action_probabilities.values()))
 
         super().__init__(agent_name, action_space, observation_space, reward_function)
 
-    def get_action(self, obs: ObsType, reward: float = 0) -> Tuple[str, Dict]:
+    def get_action(self, obs: ObsType, reward: float = 0.0, timestep: Optional[int] = None) -> Tuple[str, Dict]:
+        """
+        Choose a random action from the action space.
+
+        The probability of each action is given by the corresponding index in ``self.probabilities``.
+
+        :param obs: Current observation of the simulation
+        :type obs: ObsType
+        :param reward: Reward for the last step, not used for scripted agents, defaults to 0
+        :type reward: float, optional
+        :return: Action to be taken in CAOS format.
+        :rtype: Tuple[str, Dict]
+        """
         choice = self.rng.choice(len(self.action_manager.action_map), p=self.probabilities)
         return self.action_manager.get_action(choice)
-
-    raise NotImplementedError
-
-
-class RedDatabaseCorruptingAgent(AbstractScriptedAgent):
-    """Scripted agent which attempts to corrupt the database of the target node."""
-
-    raise NotImplementedError

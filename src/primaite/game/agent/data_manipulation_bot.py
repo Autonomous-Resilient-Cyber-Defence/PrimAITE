@@ -1,5 +1,5 @@
 import random
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from gymnasium.core import ObsType
 
@@ -26,7 +26,7 @@ class DataManipulationAgent(AbstractScriptedAgent):
         )
         self.next_execution_timestep = timestep + random_timestep_increment
 
-    def get_action(self, obs: ObsType, reward: float = None) -> Tuple[str, Dict]:
+    def get_action(self, obs: ObsType, reward: float = 0.0, timestep: Optional[int] = None) -> Tuple[str, Dict]:
         """Randomly sample an action from the action space.
 
         :param obs: _description_
@@ -36,12 +36,10 @@ class DataManipulationAgent(AbstractScriptedAgent):
         :return: _description_
         :rtype: Tuple[str, Dict]
         """
-        current_timestep = self.action_manager.game.step_counter
-
-        if current_timestep < self.next_execution_timestep:
+        if timestep < self.next_execution_timestep:
             return "DONOTHING", {"dummy": 0}
 
-        self._set_next_execution_timestep(current_timestep + self.agent_settings.start_settings.frequency)
+        self._set_next_execution_timestep(timestep + self.agent_settings.start_settings.frequency)
 
         return "NODE_APPLICATION_EXECUTE", {"node_id": self.starting_node_idx, "application_id": 0}
 
