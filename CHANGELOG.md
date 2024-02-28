@@ -95,7 +95,8 @@ SessionManager.
 - Ability to add ``Firewall`` node via config
 - Ability to add ``Router`` routes via config
 - Ability to add ``Router``/``Firewall`` ``ACLRule`` via config
-
+- NMNE capturing capabilities to `NetworkInterface` class for detecting and logging Malicious Network Events.
+- New `nmne_config` settings in the simulation configuration to enable NMNE capturing and specify keywords such as "DELETE".
 
 ### Changed
 - Integrated the RouteTable into the Routers frame processing.
@@ -107,7 +108,8 @@ SessionManager.
 - Refactored all tests to utilise new `Node` subclasses (`Computer`, `Server`, `Router`, `Switch`) instead of creating generic `Node` instances and manually adding network interfaces. This change aligns test setups more closely with the intended use cases and hierarchies within the network simulation framework.
 - Updated all tests to employ the `Network()` class for managing nodes and their connections, ensuring a consistent and structured approach to setting up network topologies in testing scenarios.
 - **ACLRule Wildcard Masking**: Updated the `ACLRule` class to support IP ranges using wildcard masking. This enhancement allows for more flexible and granular control over traffic filtering, enabling the specification of broader or more specific IP address ranges in ACL rules.
-
+- Updated `NetworkInterface` documentation to reflect the new NMNE capturing features and how to use them.
+- Integration of NMNE capturing functionality within the `NicObservation` class.
 
 ### Removed
 - Removed legacy simulation modules: `acl`, `common`, `environment`, `links`, `nodes`, `pol`
