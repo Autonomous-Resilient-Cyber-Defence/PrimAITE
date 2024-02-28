@@ -20,6 +20,7 @@ Key features
     - RETR: retrieves a file from the FTP server
     - QUIT: disconnect from server
 - Leverages the Service base class for install/uninstall, status tracking, etc.
+- :ref:`FTPClient` and ``FTPServer`` utilise port 21 (FTP) throughout all file transfer / request
 
 Usage
 =====
@@ -52,7 +53,7 @@ Python
         hostname="server",
         ip_address="192.168.2.2",
         subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1Ó",
+        default_gateway="192.168.1.10",
         start_up_duration=0,
     )
     server.power_on()

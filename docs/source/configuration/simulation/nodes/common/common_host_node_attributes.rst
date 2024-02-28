@@ -24,7 +24,7 @@ The IP address that the |NODE| will use as the default gateway. Typically, this 
 
 Optional. Default value is ``None``
 
-The IP address of the node which holds an instance of the DNS server. Some applications may use a domain name e.g. the WebBrowser (TODO: WebBrowser page)
+The IP address of the node which holds an instance of the :ref:`DNSServer`. Some applications may use a domain name e.g. the :ref:`WebBrowser`
 
 .. include:: ../software/applications.rst
 

@@ -17,12 +17,13 @@ Key capabilities
     - STOR: stores a file from client to server
     - RETR: retrieves a file from the FTP server
 - Leverages the Service base class for install/uninstall, status tracking, etc.
+- :ref:`FTPClient` and ``FTPServer`` utilise port 21 (FTP) throughout all file transfer / request
 
 Usage
 =====
 
 - Install on a Node via the ``SoftwareManager`` to start the FTP server service.
-- Service runs on FTP (command) port 21 by default. (TODO: look at in depth implementation of FTP PORT command)
+- Service runs on FTP (command) port 21 by default
 
 Implementation
 ==============

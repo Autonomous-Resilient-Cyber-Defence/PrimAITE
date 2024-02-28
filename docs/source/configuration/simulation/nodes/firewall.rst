@@ -7,7 +7,7 @@
 ``firewall``
 ============
 
-A basic representation of a network router within the simulation.
+A basic representation of a network firewall within the simulation.
 
 The firewall is similar to how :ref:`Router <router_configuration>` works, with the difference being how firewall has specific ACL rules for inbound and outbound traffic as well as firewall being limited to 3 ports.
 
@@ -133,6 +133,10 @@ example:
         ...
         acl:
             internal_inbound_acl:
+                21: # position 21 on ACL list
+                    action: PERMIT  # allow packets that
+                    src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
+                    dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
                 22: # position 22 on ACL list
                     action: PERMIT  # allow packets that
                     src_port: ARP   # are emitted from the ARP port
@@ -155,6 +159,10 @@ example:
         ...
         acl:
             internal_outbound_acl:
+                21: # position 21 on ACL list
+                    action: PERMIT  # allow packets that
+                    src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
+                    dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
                 22: # position 22 on ACL list
                     action: PERMIT  # allow packets that
                     src_port: ARP   # are emitted from the ARP port
@@ -178,6 +186,18 @@ example:
         ...
         acl:
             dmz_inbound_acl:
+                19: # position 19 on ACL list
+                    action: PERMIT  # allow packets that
+                    src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
+                    dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
+                20: # position 20 on ACL list
+                    action: PERMIT  # allow packets that
+                    src_port: HTTP   # are emitted from the HTTP port
+                    dst_port: HTTP   # are going towards an HTTP port
+                21: # position 21 on ACL list
+                    action: PERMIT  # allow packets that
+                    src_port: HTTPS   # are emitted from the HTTPS port
+                    dst_port: HTTPS   # are going towards an HTTPS port
                 22: # position 22 on ACL list
                     action: PERMIT  # allow packets that
                     src_port: ARP   # are emitted from the ARP port
@@ -200,6 +220,18 @@ example:
         ...
         acl:
             dmz_outbound_acl:
+                19: # position 19 on ACL list
+                    action: PERMIT  # allow packets that
+                    src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
+                    dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
+                20: # position 20 on ACL list
+                    action: PERMIT  # allow packets that
+                    src_port: HTTP   # are emitted from the HTTP port
+                    dst_port: HTTP   # are going towards an HTTP port
+                21: # position 21 on ACL list
+                    action: PERMIT  # allow packets that
+                    src_port: HTTPS   # are emitted from the HTTPS port
+                    dst_port: HTTPS   # are going towards an HTTPS port
                 22: # position 22 on ACL list
                     action: PERMIT  # allow packets that
                     src_port: ARP   # are emitted from the ARP port
@@ -226,6 +258,10 @@ example:
         ...
         acl:
             external_inbound_acl:
+                21: # position 19 on ACL list
+                    action: DENY  # deny packets that
+                    src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
+                    dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
                 22: # position 22 on ACL list
                     action: PERMIT  # allow packets that
                     src_port: ARP   # are emitted from the ARP port

@@ -12,7 +12,7 @@ The ``DatabaseService`` provides a SQL database server simulation by extending t
 Key capabilities
 ================
 
-- Creates a database file in the ``Node`` 's ``FileSystem`` upon creation.
+- Creates a database file in the ``FileSystem`` of the ``Node`` (which the ``DatabaseService`` is installed on) upon creation.
 - Handles connecting clients by maintaining a dictionary of connections mapped to session IDs.
 - Authenticates connections using a configurable password.
 - Simulates ``SELECT``, ``DELETE`` and ``INSERT`` SQL queries.

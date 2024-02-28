@@ -99,7 +99,7 @@ If not using the data manipulation bot manually, it needs to be used with a data
             type: UC2RedObservation
             options:
               nodes:
-                - node_ref: client_1
+                - node_name: client_1
                   observations:
                   - logon_status
                   - operating_status
@@ -116,7 +116,7 @@ If not using the data manipulation bot manually, it needs to be used with a data
               - type: NODE_APPLICATION_EXECUTE
             options:
               nodes:
-              - node_ref: client_1
+              - node_name: client_1
                 applications:
                   - application_ref: data_manipulation_bot
               max_folders_per_node: 1

@@ -1480,27 +1480,27 @@ class Router(NetworkNode):
         :return: Configured router.
         :rtype: Router
         """
-        new = Router(
+        router = Router(
             hostname=cfg["hostname"],
             num_ports=int(cfg.get("num_ports", "5")),
             operating_state=NodeOperatingState.ON,
         )
         if "ports" in cfg:
             for port_num, port_cfg in cfg["ports"].items():
-                new.configure_port(
+                router.configure_port(
                     port=port_num,
                     ip_address=port_cfg["ip_address"],
                     subnet_mask=IPv4Address(port_cfg.get("subnet_mask", "255.255.255.0")),
                 )
         if "acl" in cfg:
-            new.acl._default_config = cfg["acl"]  # save the config to allow resetting
-            new.acl._reset_rules_to_default()  # read the config and apply rules
+            router.acl._default_config = cfg["acl"]  # save the config to allow resetting
+            router.acl._reset_rules_to_default()  # read the config and apply rules
         if "routes" in cfg:
             for route in cfg.get("routes"):
-                new.route_table.add_route(
+                router.route_table.add_route(
                     address=IPv4Address(route.get("address")),
                     subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),
                     next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
                     metric=float(route.get("metric", 0)),
                 )
-        return new
+        return router

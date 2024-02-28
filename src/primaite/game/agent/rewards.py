@@ -13,7 +13,7 @@ the structure:
             - type: DATABASE_FILE_INTEGRITY
             weight: 0.5
             options:
-                node_ref: database_server
+                node_name: database_server
                 folder_name: database
                 file_name: database.db
 
@@ -21,7 +21,7 @@ the structure:
             - type: WEB_SERVER_404_PENALTY
             weight: 0.5
             options:
-                node_ref: web_server
+                node_name: web_server
                 service_ref: web_server_database_client
 ```
 """
@@ -184,7 +184,7 @@ class WebServer404Penalty(AbstractReward):
         service_name = config.get("service_name")
         if not (node_hostname and service_name):
             msg = (
-                f"{cls.__name__} could not be initialised from config because node_ref and service_ref were not "
+                f"{cls.__name__} could not be initialised from config because node_name and service_ref were not "
                 "found in reward config."
             )
             _LOGGER.warning(msg)
