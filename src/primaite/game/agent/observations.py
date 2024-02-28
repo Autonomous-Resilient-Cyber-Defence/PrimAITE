@@ -8,6 +8,7 @@ from gymnasium.core import ObsType
 
 from primaite import getLogger
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+from primaite.simulator.network.nmne import CAPTURE_NMNE
 
 _LOGGER = getLogger(__name__)
 
@@ -346,7 +347,14 @@ class FolderObservation(AbstractObservation):
 class NicObservation(AbstractObservation):
     """Observation of a Network Interface Card (NIC) in the network."""
 
-    default_observation: spaces.Space = {"nic_status": 0}
+    @property
+    def default_observation(self) -> Dict:
+        """The default NIC observation dict."""
+        data = {"nic_status": 0}
+        if CAPTURE_NMNE:
+            data.update({"nmne": {"inbound": 0, "outbound": 0}})
+
+        return data
 
     def __init__(self, where: Optional[Tuple[str]] = None) -> None:
         """Initialise NIC observation.
@@ -360,6 +368,29 @@ class NicObservation(AbstractObservation):
         super().__init__()
         self.where: Optional[Tuple[str]] = where
 
+    def _categorise_mne_count(self, nmne_count: int) -> int:
+        """
+        Categorise the number of Malicious Network Events (NMNEs) into discrete bins.
+
+        This helps in classifying the severity or volume of MNEs into manageable levels for the agent.
+
+        Bins are defined as follows:
+        - 0: No MNEs detected (0 events).
+        - 1: Low number of MNEs (1-5 events).
+        - 2: Moderate number of MNEs (6-10 events).
+        - 3: High number of MNEs (more than 10 events).
+
+        :param nmne_count: Number of MNEs detected.
+        :return: Bin number corresponding to the number of MNEs. Returns 0, 1, 2, or 3 based on the detected MNE count.
+        """
+        if nmne_count > 10:
+            return 3
+        elif nmne_count > 5:
+            return 2
+        elif nmne_count > 0:
+            return 1
+        return 0
+
     def observe(self, state: Dict) -> Dict:
         """Generate observation based on the current state of the simulation.
 
@@ -371,15 +402,31 @@ class NicObservation(AbstractObservation):
         if self.where is None:
             return self.default_observation
         nic_state = access_from_nested_dict(state, self.where)
+
         if nic_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
         else:
-            return {"nic_status": 1 if nic_state["enabled"] else 2}
+            obs_dict = {"nic_status": 1 if nic_state["enabled"] else 2}
+            if CAPTURE_NMNE:
+                obs_dict.update({"nmne": {}})
+                direction_dict = nic_state["nmne"].get("direction", {})
+                inbound_keywords = direction_dict.get("inbound", {}).get("keywords", {})
+                inbound_count = inbound_keywords.get("*", 0)
+                outbound_keywords = direction_dict.get("outbound", {}).get("keywords", {})
+                outbound_count = outbound_keywords.get("*", 0)
+                obs_dict["nmne"]["inbound"] = self._categorise_mne_count(inbound_count)
+                obs_dict["nmne"]["outbound"] = self._categorise_mne_count(outbound_count)
+            return obs_dict
 
     @property
     def space(self) -> spaces.Space:
         """Gymnasium space object describing the observation space shape."""
-        return spaces.Dict({"nic_status": spaces.Discrete(3)})
+        return spaces.Dict(
+            {
+                "nic_status": spaces.Discrete(3),
+                "nmne": spaces.Dict({"inbound": spaces.Discrete(6), "outbound": spaces.Discrete(6)}),
+            }
+        )
 
     @classmethod
     def from_config(cls, config: Dict, game: "PrimaiteGame", parent_where: Optional[List[str]]) -> "NicObservation":

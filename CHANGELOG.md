@@ -82,7 +82,8 @@ SessionManager.
 - `AirSpace` class to simulate wireless communications, managing wireless interfaces and facilitating the transmission of frames within specified frequencies.
 - `AirSpaceFrequency` enum for defining standard wireless frequencies, including 2.4 GHz and 5 GHz bands, to support realistic wireless network simulations.
 - `WirelessRouter` class, extending the `Router` class, to incorporate wireless networking capabilities alongside traditional wired connections. This class allows the configuration of wireless access points with specific IP settings and operating frequencies.
-
+- NMNE capturing capabilities to `NetworkInterface` class for detecting and logging Malicious Network Events.
+- New `nmne_config` settings in the simulation configuration to enable NMNE capturing and specify keywords such as "DELETE".
 
 ### Changed
 - Integrated the RouteTable into the Routers frame processing.
@@ -94,7 +95,8 @@ SessionManager.
 - Refactored all tests to utilise new `Node` subclasses (`Computer`, `Server`, `Router`, `Switch`) instead of creating generic `Node` instances and manually adding network interfaces. This change aligns test setups more closely with the intended use cases and hierarchies within the network simulation framework.
 - Updated all tests to employ the `Network()` class for managing nodes and their connections, ensuring a consistent and structured approach to setting up network topologies in testing scenarios.
 - **ACLRule Wildcard Masking**: Updated the `ACLRule` class to support IP ranges using wildcard masking. This enhancement allows for more flexible and granular control over traffic filtering, enabling the specification of broader or more specific IP address ranges in ACL rules.
-
+- Updated `NetworkInterface` documentation to reflect the new NMNE capturing features and how to use them.
+- Integration of NMNE capturing functionality within the `NicObservation` class.
 
 ### Removed
 - Removed legacy simulation modules: `acl`, `common`, `environment`, `links`, `nodes`, `pol`

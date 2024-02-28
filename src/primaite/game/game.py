@@ -17,6 +17,7 @@ from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
+from primaite.simulator.network.nmne import set_nmne_config
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -425,5 +426,8 @@ class PrimaiteGame:
                 _LOGGER.warning(f"agent type {agent_type} not found")
 
         game.simulation.set_original_state()
+
+        # Set the NMNE capture config
+        set_nmne_config(cfg["simulation"]["network"].get("nmne_config", {}))
 
         return game

@@ -205,11 +205,7 @@ class NIC(IPWiredNetworkInterface):
         state = super().describe_state()
 
         # Update the state with NIC-specific information
-        state.update(
-            {
-                "wake_on_lan": self.wake_on_lan,
-            }
-        )
+        state.update({"wake_on_lan": self.wake_on_lan})
 
         return state
 
@@ -248,6 +244,7 @@ class NIC(IPWiredNetworkInterface):
                     accept_frame = True
 
             if accept_frame:
+                super().receive_frame(frame)
                 self._connected_node.receive_frame(frame=frame, from_network_interface=self)
                 return True
         return False
