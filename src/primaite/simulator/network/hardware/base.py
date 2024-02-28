@@ -123,6 +123,8 @@ class NetworkInterface(SimComponent, ABC):
                 "enabled": self.enabled,
             }
         )
+        if CAPTURE_NMNE:
+            state.update({"nmne": self.nmne})
         return state
 
     def reset_component_for_episode(self, episode: int):

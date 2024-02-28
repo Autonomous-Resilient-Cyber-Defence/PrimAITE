@@ -205,7 +205,7 @@ class NIC(IPWiredNetworkInterface):
         state = super().describe_state()
 
         # Update the state with NIC-specific information
-        state.update({"wake_on_lan": self.wake_on_lan, "nmne": self.nmne})
+        state.update({"wake_on_lan": self.wake_on_lan})
 
         return state
 
