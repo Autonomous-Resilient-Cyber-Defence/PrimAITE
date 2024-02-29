@@ -185,38 +185,6 @@ def test_get_file(file_system):
     file_system.show(full=True)
 
 
-def test_reset_file_system(file_system):
-    # file and folder that existed originally
-    file_system.create_file(file_name="test_file.zip")
-    file_system.create_folder(folder_name="test_folder")
-    file_system.set_original_state()
-
-    # create a new file
-    file_system.create_file(file_name="new_file.txt")
-
-    # create a new folder
-    file_system.create_folder(folder_name="new_folder")
-
-    # delete the file that existed originally
-    file_system.delete_file(folder_name="root", file_name="test_file.zip")
-    assert file_system.get_file(folder_name="root", file_name="test_file.zip") is None
-
-    # delete the folder that existed originally
-    file_system.delete_folder(folder_name="test_folder")
-    assert file_system.get_folder(folder_name="test_folder") is None
-
-    # reset
-    file_system.reset_component_for_episode(episode=1)
-
-    # deleted original file and folder should be back
-    assert file_system.get_file(folder_name="root", file_name="test_file.zip")
-    assert file_system.get_folder(folder_name="test_folder")
-
-    # new file and folder should be removed
-    assert file_system.get_file(folder_name="root", file_name="new_file.txt") is None
-    assert file_system.get_folder(folder_name="new_folder") is None
-
-
 @pytest.mark.skip(reason="Skipping until we tackle serialisation")
 def test_serialisation(file_system):
     """Test to check that the object serialisation works correctly."""

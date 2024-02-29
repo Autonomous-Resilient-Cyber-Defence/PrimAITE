@@ -45,19 +45,12 @@ class Network(SimComponent):
 
         self._nx_graph = MultiGraph()
 
-    def set_original_state(self):
-        """Sets the original state."""
-        for node in self.nodes.values():
-            node.set_original_state()
-        for link in self.links.values():
-            link.set_original_state()
-
-    def reset_component_for_episode(self, episode: int):
+    def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         for node in self.nodes.values():
-            node.reset_component_for_episode(episode)
+            node.setup_for_episode(episode=episode)
         for link in self.links.values():
-            link.reset_component_for_episode(episode)
+            link.setup_for_episode(episode=episode)
 
         for node in self.nodes.values():
             node.power_on()
@@ -179,7 +172,7 @@ class Network(SimComponent):
     def clear_links(self):
         """Clear all the links in the network by resetting their component state for the episode."""
         for link in self.links.values():
-            link.reset_component_for_episode()
+            link.setup_for_episode(episode=0)  # TODO: shouldn't be using this method here.
 
     def draw(self, seed: int = 123):
         """

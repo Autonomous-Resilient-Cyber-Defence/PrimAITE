@@ -42,20 +42,20 @@ def test_example_config():
     assert len(game.agents) == 4  # red, blue and 2 green agents
 
     # green agent 1
-    assert game.agents[0].agent_name == "client_2_green_user"
-    assert isinstance(game.agents[0], RandomAgent)
+    assert "client_2_green_user" in game.agents
+    assert isinstance(game.agents["client_2_green_user"], RandomAgent)
 
     # green agent 2
-    assert game.agents[1].agent_name == "client_1_green_user"
-    assert isinstance(game.agents[1], RandomAgent)
+    assert "client_1_green_user" in game.agents
+    assert isinstance(game.agents["client_1_green_user"], RandomAgent)
 
     # red agent
-    assert game.agents[2].agent_name == "client_1_data_manipulation_red_bot"
-    assert isinstance(game.agents[2], DataManipulationAgent)
+    assert "client_1_data_manipulation_red_bot" in game.agents
+    assert isinstance(game.agents["client_1_data_manipulation_red_bot"], DataManipulationAgent)
 
     # blue agent
-    assert game.agents[3].agent_name == "defender"
-    assert isinstance(game.agents[3], ProxyAgent)
+    assert "defender" in game.agents
+    assert isinstance(game.agents["defender"], ProxyAgent)
 
     network: Network = game.simulation.network
 

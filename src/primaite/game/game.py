@@ -18,6 +18,7 @@ from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
+from primaite.simulator.network.nmne import set_nmne_config
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -80,17 +81,14 @@ class PrimaiteGame:
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
 
-        self.agents: List[AbstractAgent] = []
-        """List of agents."""
+        self.agents: Dict[str, AbstractAgent] = {}
+        """Mapping from agent name to agent object."""
 
-        self.rl_agents: List[ProxyAgent] = []
-        """Subset of agent list including only the reinforcement learning agents."""
+        self.rl_agents: Dict[str, ProxyAgent] = {}
+        """Subset of agents which are intended for reinforcement learning."""
 
         self.step_counter: int = 0
         """Current timestep within the episode."""
-
-        self.episode_counter: int = 0
-        """Current episode number."""
 
         self.options: PrimaiteGameOptions
         """Special options that apply for the entire game."""
@@ -137,7 +135,7 @@ class PrimaiteGame:
         self.update_agents(sim_state)
 
         # Apply all actions to simulation as requests
-        agent_actions = self.apply_agent_actions()  # noqa
+        self.apply_agent_actions()
 
         # Advance timestep
         self.advance_timestep()
@@ -148,7 +146,7 @@ class PrimaiteGame:
 
     def update_agents(self, state: Dict) -> None:
         """Update agents' observations and rewards based on the current state."""
-        for agent in self.agents:
+        for _, agent in self.agents.items():
             agent.update_observation(state)
             agent.update_reward(state)
             agent.reward_function.total_reward += agent.reward_function.current_reward
@@ -162,7 +160,7 @@ class PrimaiteGame:
 
         """
         agent_actions = {}
-        for agent in self.agents:
+        for _, agent in self.agents.items():
             obs = agent.observation_manager.current_observation
             rew = agent.reward_function.current_reward
             action_choice, options = agent.get_action(obs, rew, timestep=self.step_counter)
@@ -185,19 +183,13 @@ class PrimaiteGame:
             return True
         return False
 
-    def reset(self) -> None:
-        """Reset the game, this will reset the simulation."""
-        self.episode_counter += 1
-        self.step_counter = 0
-        _LOGGER.debug(f"Resetting primaite game, episode = {self.episode_counter}")
-        self.simulation.reset_component_for_episode(episode=self.episode_counter)
-        for agent in self.agents:
-            agent.reward_function.total_reward = 0.0
-            agent.reset_agent_for_episode()
-
     def close(self) -> None:
         """Close the game, this will close the simulation."""
         return NotImplemented
+
+    def setup_for_episode(self, episode: int) -> None:
+        """Perform any final configuration of components to make them ready for the game to start."""
+        self.simulation.setup_for_episode(episode=episode)
 
     @classmethod
     def from_config(cls, cfg: Dict) -> "PrimaiteGame":
@@ -272,7 +264,9 @@ class PrimaiteGame:
                         new_service = new_node.software_manager.software[service_type]
                         game.ref_map_services[service_ref] = new_service.uuid
                     else:
-                        _LOGGER.warning(f"service type not found {service_type}")
+                        msg = f"Configuration contains an invalid service type: {service_type}"
+                        _LOGGER.error(msg)
+                        raise ValueError(msg)
                     # service-dependent options
                     if service_type == "DNSClient":
                         if "options" in service_cfg:
@@ -311,7 +305,9 @@ class PrimaiteGame:
                         new_application = new_node.software_manager.software[application_type]
                         game.ref_map_applications[application_ref] = new_application.uuid
                     else:
-                        _LOGGER.warning(f"application type not found {application_type}")
+                        msg = f"Configuration contains an invalid application type: {application_type}"
+                        _LOGGER.error(msg)
+                        raise ValueError(msg)
 
                     if application_type == "DataManipulationBot":
                         if "options" in application_cfg:
@@ -403,7 +399,6 @@ class PrimaiteGame:
                     reward_function=reward_function,
                     settings=settings,
                 )
-                game.agents.append(new_agent)
             elif agent_type == "ProxyAgent":
                 new_agent = ProxyAgent(
                     agent_name=agent_cfg["ref"],
@@ -412,8 +407,7 @@ class PrimaiteGame:
                     reward_function=reward_function,
                     agent_settings=agent_settings,
                 )
-                game.agents.append(new_agent)
-                game.rl_agents.append(new_agent)
+                game.rl_agents[agent_cfg["ref"]] = new_agent
             elif agent_type == "RedDatabaseCorruptingAgent":
                 new_agent = DataManipulationAgent(
                     agent_name=agent_cfg["ref"],
@@ -422,10 +416,13 @@ class PrimaiteGame:
                     reward_function=reward_function,
                     agent_settings=agent_settings,
                 )
-                game.agents.append(new_agent)
             else:
-                _LOGGER.warning(f"agent type {agent_type} not found")
+                msg(f"Configuration error: {agent_type} is not a valid agent type.")
+                _LOGGER.error(msg)
+                raise ValueError(msg)
+            game.agents[agent_cfg["ref"]] = new_agent
 
-        game.simulation.set_original_state()
+        # Set the NMNE capture config
+        set_nmne_config(cfg["simulation"]["network"].get("nmne_config", {}))
 
         return game

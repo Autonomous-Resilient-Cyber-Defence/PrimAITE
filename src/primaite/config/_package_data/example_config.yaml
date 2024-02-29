@@ -14,7 +14,7 @@ io_settings:
   save_checkpoints: true
   checkpoint_interval: 5
   save_step_metadata: false
-  save_pcap_logs: true
+  save_pcap_logs: false
   save_sys_logs: true
 
 
@@ -627,6 +627,10 @@ agents:
 
 simulation:
   network:
+    nmne_config:
+      capture_nmne: true
+      nmne_capture_keywords:
+        - DELETE
     nodes:
 
     - ref: router_1
@@ -696,12 +700,13 @@ simulation:
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
+      - ref: web_server_web_service
+        type: WebServer
+      applications:
       - ref: web_server_database_client
         type: DatabaseClient
         options:
           db_server_ip: 192.168.1.14
-      - ref: web_server_web_service
-        type: WebServer
 
 
     - ref: database_server

@@ -40,25 +40,6 @@ class DatabaseService(Service):
         super().__init__(**kwargs)
         self._create_db_file()
 
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting DatabaseService original state on node {self.software_manager.node.hostname}")
-        super().set_original_state()
-        vals_to_include = {
-            "password",
-            "connections",
-            "backup_server_ip",
-            "latest_backup_directory",
-            "latest_backup_file_name",
-        }
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug("Resetting DatabaseService original state on node {self.software_manager.node.hostname}")
-        self.clear_connections()
-        super().reset_component_for_episode(episode)
-
     def configure_backup(self, backup_server: IPv4Address):
         """
         Set up the database backup.

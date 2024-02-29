@@ -24,12 +24,6 @@ class Process(Software):
     operating_state: ProcessOperatingState
     "The current operating state of the Process."
 
-    def set_original_state(self):
-        """Sets the original state."""
-        super().set_original_state()
-        vals_to_include = {"operating_state"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
     @abstractmethod
     def describe_state(self) -> Dict:
         """

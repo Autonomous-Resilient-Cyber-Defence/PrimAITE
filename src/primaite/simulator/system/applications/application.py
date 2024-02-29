@@ -38,12 +38,6 @@ class Application(IOSoftware):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def set_original_state(self):
-        """Sets the original state."""
-        super().set_original_state()
-        vals_to_include = {"operating_state", "execution_control_status", "num_executions", "groups"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
     @abstractmethod
     def describe_state(self) -> Dict:
         """

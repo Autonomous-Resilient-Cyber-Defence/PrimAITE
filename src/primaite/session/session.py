@@ -101,11 +101,11 @@ class PrimaiteSession:
 
         # CREATE ENVIRONMENT
         if sess.training_options.rl_framework == "RLLIB_single_agent":
-            sess.env = PrimaiteRayEnv(env_config={"cfg": cfg})
+            sess.env = PrimaiteRayEnv(env_config=cfg)
         elif sess.training_options.rl_framework == "RLLIB_multi_agent":
-            sess.env = PrimaiteRayMARLEnv(env_config={"cfg": cfg})
+            sess.env = PrimaiteRayMARLEnv(env_config=cfg)
         elif sess.training_options.rl_framework == "SB3":
-            sess.env = PrimaiteGymEnv(game=game)
+            sess.env = PrimaiteGymEnv(game_config=cfg)
 
         sess.policy = PolicyABC.from_config(sess.training_options, session=sess)
         if agent_load_path:

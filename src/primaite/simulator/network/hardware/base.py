@@ -17,6 +17,15 @@ from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+from primaite.simulator.network.nmne import (
+    CAPTURE_BY_DIRECTION,
+    CAPTURE_BY_IP_ADDRESS,
+    CAPTURE_BY_KEYWORD,
+    CAPTURE_BY_PORT,
+    CAPTURE_BY_PROTOCOL,
+    CAPTURE_NMNE,
+    NMNE_CAPTURE_KEYWORDS,
+)
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.packet_capture import PacketCapture
@@ -88,6 +97,18 @@ class NetworkInterface(SimComponent, ABC):
     pcap: Optional[PacketCapture] = None
     "A PacketCapture instance for capturing and analysing packets passing through this interface."
 
+    nmne: Dict = Field(default_factory=lambda: {})
+    "A dict containing details of the number of malicious network events captured."
+
+    def setup_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        super().setup_for_episode(episode=episode)
+        self.nmne = {}
+        if episode and self.pcap:
+            self.pcap.current_episode = episode
+            self.pcap.setup_logger()
+        self.enable()
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 
@@ -111,15 +132,9 @@ class NetworkInterface(SimComponent, ABC):
                 "enabled": self.enabled,
             }
         )
+        if CAPTURE_NMNE:
+            state.update({"nmne": self.nmne})
         return state
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        super().reset_component_for_episode(episode)
-        if episode and self.pcap:
-            self.pcap.current_episode = episode
-            self.pcap.setup_logger()
-        self.enable()
 
     @abstractmethod
     def enable(self):
@@ -131,6 +146,82 @@ class NetworkInterface(SimComponent, ABC):
         """Disable the interface."""
         pass
 
+    def _capture_nmne(self, frame: Frame, inbound: bool = True) -> None:
+        """
+        Processes and captures network frame data based on predefined global NMNE settings.
+
+        This method updates the NMNE structure with counts of malicious network events based on the frame content and
+        direction. The structure is dynamically adjusted according to the enabled capture settings.
+
+        .. note::
+            While there is a lot of logic in this code that defines a multi-level hierarchical NMNE structure,
+            most of it is unused for now as a result of all `CAPTURE_BY_<>` variables in
+            ``primaite.simulator.network.nmne`` being hardcoded and set as final. Once they're 'released' and made
+            configurable, this function will be updated to properly explain the dynamic data structure.
+
+        :param frame: The network frame to process, containing IP, TCP/UDP, and payload information.
+        :param inbound: Boolean indicating if the frame direction is inbound. Defaults to True.
+        """
+        # Exit function if NMNE capturing is disabled
+        if not CAPTURE_NMNE:
+            return
+
+        # Initialise basic frame data variables
+        direction = "inbound" if inbound else "outbound"  # Direction of the traffic
+        ip_address = str(frame.ip.src_ip_address if inbound else frame.ip.dst_ip_address)  # Source or destination IP
+        protocol = frame.ip.protocol.name  # Network protocol used in the frame
+
+        # Initialise port variable; will be determined based on protocol type
+        port = None
+
+        # Determine the source or destination port based on the protocol (TCP/UDP)
+        if frame.tcp:
+            port = frame.tcp.src_port.value if inbound else frame.tcp.dst_port.value
+        elif frame.udp:
+            port = frame.udp.src_port.value if inbound else frame.udp.dst_port.value
+
+        # Convert frame payload to string for keyword checking
+        frame_str = str(frame.payload)
+
+        # Proceed only if any NMNE keyword is present in the frame payload
+        if any(keyword in frame_str for keyword in NMNE_CAPTURE_KEYWORDS):
+            # Start with the root of the NMNE capture structure
+            current_level = self.nmne
+
+            # Update NMNE structure based on enabled settings
+            if CAPTURE_BY_DIRECTION:
+                # Set or get the dictionary for the current direction
+                current_level = current_level.setdefault("direction", {})
+                current_level = current_level.setdefault(direction, {})
+
+            if CAPTURE_BY_IP_ADDRESS:
+                # Set or get the dictionary for the current IP address
+                current_level = current_level.setdefault("ip_address", {})
+                current_level = current_level.setdefault(ip_address, {})
+
+            if CAPTURE_BY_PROTOCOL:
+                # Set or get the dictionary for the current protocol
+                current_level = current_level.setdefault("protocol", {})
+                current_level = current_level.setdefault(protocol, {})
+
+            if CAPTURE_BY_PORT:
+                # Set or get the dictionary for the current port
+                current_level = current_level.setdefault("port", {})
+                current_level = current_level.setdefault(port, {})
+
+            # Ensure 'KEYWORD' level is present in the structure
+            keyword_level = current_level.setdefault("keywords", {})
+
+            # Increment the count for detected keywords in the payload
+            if CAPTURE_BY_KEYWORD:
+                for keyword in NMNE_CAPTURE_KEYWORDS:
+                    if keyword in frame_str:
+                        # Update the count for each keyword found
+                        keyword_level[keyword] = keyword_level.get(keyword, 0) + 1
+            else:
+                # Increment a generic counter if keyword capturing is not enabled
+                keyword_level["*"] = keyword_level.get("*", 0) + 1
+
     @abstractmethod
     def send_frame(self, frame: Frame) -> bool:
         """
@@ -139,7 +230,7 @@ class NetworkInterface(SimComponent, ABC):
         :param frame: The network frame to be sent.
         :return: A boolean indicating whether the frame was successfully sent.
         """
-        pass
+        self._capture_nmne(frame, inbound=False)
 
     @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
@@ -149,7 +240,7 @@ class NetworkInterface(SimComponent, ABC):
         :param frame: The network frame being received.
         :return: A boolean indicating whether the frame was successfully received.
         """
-        pass
+        self._capture_nmne(frame, inbound=True)
 
     def __str__(self) -> str:
         """
@@ -263,6 +354,7 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         :param frame: The network frame to be sent.
         :return: True if the frame is sent, False if the Network Interface is disabled or not connected to a link.
         """
+        super().send_frame(frame)
         if self.enabled:
             frame.set_sent_timestamp()
             self.pcap.capture_outbound(frame)
@@ -279,7 +371,7 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         :param frame: The network frame being received.
         :return: A boolean indicating whether the frame was successfully received.
         """
-        pass
+        return super().receive_frame(frame)
 
 
 class Layer3Interface(BaseModel, ABC):
@@ -409,7 +501,7 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
         except AttributeError:
             pass
 
-    # @abstractmethod
+    @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
         """
         Receives a network frame on the network interface.
@@ -417,7 +509,7 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
         :param frame: The network frame being received.
         :return: A boolean indicating whether the frame was successfully received.
         """
-        pass
+        return super().receive_frame(frame)
 
 
 class Link(SimComponent):
@@ -454,14 +546,6 @@ class Link(SimComponent):
         self.endpoint_a.connect_link(self)
         self.endpoint_b.connect_link(self)
         self.endpoint_up()
-
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {"bandwidth", "current_load"}
-        self._original_state = self.model_dump(include=vals_to_include)
-        super().set_original_state()
 
     def describe_state(self) -> Dict:
         """
@@ -648,50 +732,20 @@ class Node(SimComponent):
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
         self._install_system_software()
-        self.set_original_state()
 
-    def set_original_state(self):
-        """Sets the original state."""
-        for software in self.software_manager.software.values():
-            software.set_original_state()
-
-        self.file_system.set_original_state()
-
-        for network_interface in self.network_interfaces.values():
-            network_interface.set_original_state()
-
-        vals_to_include = {
-            "hostname",
-            "default_gateway",
-            "operating_state",
-            "revealed_to_red",
-            "start_up_duration",
-            "start_up_countdown",
-            "shut_down_duration",
-            "shut_down_countdown",
-            "is_resetting",
-            "node_scan_duration",
-            "node_scan_countdown",
-            "red_scan_countdown",
-        }
-        self._original_state = self.model_dump(include=vals_to_include)
-
-    def reset_component_for_episode(self, episode: int):
+    def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        super().reset_component_for_episode(episode)
-
-        # Reset Session Manager
-        self.session_manager.clear()
+        super().setup_for_episode(episode=episode)
 
         # Reset File System
-        self.file_system.reset_component_for_episode(episode)
+        self.file_system.setup_for_episode(episode=episode)
 
         # Reset all Nics
         for network_interface in self.network_interfaces.values():
-            network_interface.reset_component_for_episode(episode)
+            network_interface.setup_for_episode(episode=episode)
 
         for software in self.software_manager.software.values():
-            software.reset_component_for_episode(episode)
+            software.setup_for_episode(episode=episode)
 
         if episode and self.sys_log:
             self.sys_log.current_episode = episode
