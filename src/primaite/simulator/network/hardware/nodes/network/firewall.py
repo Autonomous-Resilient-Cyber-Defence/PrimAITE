@@ -89,7 +89,17 @@ class Firewall(Router):
         if not kwargs.get("sys_log"):
             kwargs["sys_log"] = SysLog(hostname)
 
-        super().__init__(hostname=hostname, num_ports=3, **kwargs)
+        super().__init__(hostname=hostname, num_ports=0, **kwargs)
+
+        self.connect_nic(
+            RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", port_name="external")
+        )
+        self.connect_nic(
+            RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", port_name="internal")
+        )
+        self.connect_nic(
+            RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", port_name="dmz")
+        )
 
         # Initialise ACLs for internal and dmz interfaces with a default DENY policy
         self.internal_inbound_acl = AccessControlList(

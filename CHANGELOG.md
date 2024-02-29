@@ -120,7 +120,7 @@ SessionManager.
 ### Fixed
 - Addressed network transmission issues that previously allowed ARP requests to be incorrectly routed and repeated across different subnets. This fix ensures ARP requests are correctly managed and confined to their appropriate network segments.
 - Resolved problems in `Node` and its subclasses where the default gateway configuration was not properly utilized for communications across different subnets. This correction ensures that nodes effectively use their configured default gateways for outbound communications to other network segments, thereby enhancing the network's routing functionality and reliability.
-
+- Network Interface Port name/num being set properly for sys log and PCAP output.
 
 ## [2.0.0] - 2023-07-26
 
