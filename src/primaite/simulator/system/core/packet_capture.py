@@ -51,7 +51,6 @@ class PacketCapture:
 
         self.setup_logger(outbound=False)
         self.setup_logger(outbound=True)
-        print(port_name)
 
     def setup_logger(self, outbound: bool = False):
         """Set up the logger configuration."""
