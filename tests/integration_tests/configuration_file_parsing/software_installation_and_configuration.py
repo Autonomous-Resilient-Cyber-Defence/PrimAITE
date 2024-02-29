@@ -14,7 +14,47 @@ from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.simulator.system.services.ntp.ntp_server import NTPServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
-from tests.integration_tests.configuration_file_parsing import BASIC_CONFIG, load_config
+from tests import TEST_ASSETS_ROOT
+
+BASIC_CONFIG = TEST_ASSETS_ROOT / "configs/basic_switched_network.yaml"
+
+
+def load_config(config_path: Union[str, Path]) -> PrimaiteGame:
+    """Returns a PrimaiteGame object which loads the contents of a given yaml path."""
+    with open(config_path, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    return PrimaiteGame.from_config(cfg)
+
+
+def test_example_config():
+    """Test that the example config can be parsed properly."""
+    game = load_config(example_config_path())
+
+    assert len(game.agents) == 4  # red, blue and 2 green agents
+
+    # green agent 1
+    assert "client_2_green_user" in game.agents
+    assert isinstance(game.agents["client_2_green_user"], RandomAgent)
+
+    # green agent 2
+    assert "client_1_green_user" in game.agents
+    assert isinstance(game.agents["client_1_green_user"], RandomAgent)
+
+    # red agent
+    assert "client_1_data_manipulation_red_bot" in game.agents
+    assert isinstance(game.agents["client_1_data_manipulation_red_bot"], DataManipulationAgent)
+
+    # blue agent
+    assert "defender" in game.agents
+    assert isinstance(game.agents["defender"], ProxyAgent)
+
+    network: Network = game.simulation.network
+
+    assert len(network.nodes) == 10  # 10 nodes in example network
+    assert len(network.routers) == 1  # 1 router in network
+    assert len(network.switches) == 2  # 2 switches in network
+    assert len(network.servers) == 5  # 5 servers in network
 
 
 def test_node_software_install():

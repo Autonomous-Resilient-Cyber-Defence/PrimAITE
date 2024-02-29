@@ -111,24 +111,6 @@ class Firewall(Router):
             sys_log=kwargs["sys_log"], implicit_action=ACLAction.PERMIT, name=f"{hostname} - External Outbound"
         )
 
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Set the original state for the Firewall."""
-        super().set_original_state()
-        vals_to_include = {
-            "internal_port",
-            "external_port",
-            "dmz_port",
-            "internal_inbound_acl",
-            "internal_outbound_acl",
-            "dmz_inbound_acl",
-            "dmz_outbound_acl",
-            "external_inbound_acl",
-            "external_outbound_acl",
-        }
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
     def describe_state(self) -> Dict:
         """
         Describes the current state of the Firewall.

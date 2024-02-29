@@ -57,27 +57,6 @@ class DoSBot(DatabaseClient, Application):
         self.name = "DoSBot"
         self.max_sessions = 1000  # override normal max sessions
 
-    def set_original_state(self):
-        """Set the original state of the Denial of Service Bot."""
-        _LOGGER.debug(f"Setting {self.name} original state on node {self.software_manager.node.hostname}")
-        super().set_original_state()
-        vals_to_include = {
-            "target_ip_address",
-            "target_port",
-            "payload",
-            "repeat",
-            "attack_stage",
-            "max_sessions",
-            "port_scan_p_of_success",
-            "dos_intensity",
-        }
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug(f"Resetting {self.name} state on node {self.software_manager.node.hostname}")
-        super().reset_component_for_episode(episode)
-
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 

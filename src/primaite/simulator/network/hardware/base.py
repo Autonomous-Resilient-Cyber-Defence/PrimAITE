@@ -100,6 +100,15 @@ class NetworkInterface(SimComponent, ABC):
     nmne: Dict = Field(default_factory=lambda: {})
     "A dict containing details of the number of malicious network events captured."
 
+    def setup_for_episode(self, episode: int):
+        """Reset the original state of the SimComponent."""
+        super().setup_for_episode(episode=episode)
+        self.nmne = {}
+        if episode and self.pcap:
+            self.pcap.current_episode = episode
+            self.pcap.setup_logger()
+        self.enable()
+
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
 
@@ -126,15 +135,6 @@ class NetworkInterface(SimComponent, ABC):
         if CAPTURE_NMNE:
             state.update({"nmne": self.nmne})
         return state
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        super().reset_component_for_episode(episode)
-        self.nmne = {}
-        if episode and self.pcap:
-            self.pcap.current_episode = episode
-            self.pcap.setup_logger()
-        self.enable()
 
     @abstractmethod
     def enable(self):
@@ -547,14 +547,6 @@ class Link(SimComponent):
         self.endpoint_b.connect_link(self)
         self.endpoint_up()
 
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {"bandwidth", "current_load"}
-        self._original_state = self.model_dump(include=vals_to_include)
-        super().set_original_state()
-
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -740,50 +732,20 @@ class Node(SimComponent):
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
         self._install_system_software()
-        self.set_original_state()
 
-    def set_original_state(self):
-        """Sets the original state."""
-        for software in self.software_manager.software.values():
-            software.set_original_state()
-
-        self.file_system.set_original_state()
-
-        for network_interface in self.network_interfaces.values():
-            network_interface.set_original_state()
-
-        vals_to_include = {
-            "hostname",
-            "default_gateway",
-            "operating_state",
-            "revealed_to_red",
-            "start_up_duration",
-            "start_up_countdown",
-            "shut_down_duration",
-            "shut_down_countdown",
-            "is_resetting",
-            "node_scan_duration",
-            "node_scan_countdown",
-            "red_scan_countdown",
-        }
-        self._original_state = self.model_dump(include=vals_to_include)
-
-    def reset_component_for_episode(self, episode: int):
+    def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        super().reset_component_for_episode(episode)
-
-        # Reset Session Manager
-        self.session_manager.clear()
+        super().setup_for_episode(episode=episode)
 
         # Reset File System
-        self.file_system.reset_component_for_episode(episode)
+        self.file_system.setup_for_episode(episode=episode)
 
         # Reset all Nics
         for network_interface in self.network_interfaces.values():
-            network_interface.reset_component_for_episode(episode)
+            network_interface.setup_for_episode(episode=episode)
 
         for software in self.software_manager.software.values():
-            software.reset_component_for_episode(episode)
+            software.setup_for_episode(episode=episode)
 
         if episode and self.sys_log:
             self.sys_log.current_episode = episode

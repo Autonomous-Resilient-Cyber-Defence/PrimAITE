@@ -21,13 +21,9 @@ class Simulation(SimComponent):
 
         super().__init__(**kwargs)
 
-    def set_original_state(self):
-        """Sets the original state."""
-        self.network.set_original_state()
-
-    def reset_component_for_episode(self, episode: int):
+    def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
-        self.network.reset_component_for_episode(episode)
+        self.network.setup_for_episode(episode=episode)
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()

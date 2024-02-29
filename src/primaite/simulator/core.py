@@ -153,22 +153,18 @@ class SimComponent(BaseModel):
     uuid: str = Field(default_factory=lambda: str(uuid4()))
     """The component UUID."""
 
-    _original_state: Dict = {}
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._request_manager: RequestManager = self._init_request_manager()
         self._parent: Optional["SimComponent"] = None
 
-    # @abstractmethod
-    def set_original_state(self):
-        """Sets the original state."""
-        pass
+    def setup_for_episode(self, episode: int):
+        """
+        Perform any additional setup on this component that can't happen during __init__.
 
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        for key, value in self._original_state.items():
-            self.__setattr__(key, value)
+        For instance, some components may require for the entire network to exist before some configuration can be set.
+        """
+        pass
 
     def _init_request_manager(self) -> RequestManager:
         """

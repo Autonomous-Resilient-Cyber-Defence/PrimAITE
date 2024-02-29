@@ -47,20 +47,7 @@ class WebBrowser(Application):
             kwargs["port"] = Port.HTTP
 
         super().__init__(**kwargs)
-        self.set_original_state()
         self.run()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting WebBrowser original state on node {self.software_manager.node.hostname}")
-        super().set_original_state()
-        vals_to_include = {"target_url", "domain_name_ip_address", "latest_response"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug(f"Resetting WebBrowser state on node {self.software_manager.node.hostname}")
-        super().reset_component_for_episode(episode)
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
@@ -79,9 +66,6 @@ class WebBrowser(Application):
         state = super().describe_state()
         state["history"] = [hist_item.state() for hist_item in self.history]
         return state
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
 
     def get_webpage(self, url: Optional[str] = None) -> bool:
         """

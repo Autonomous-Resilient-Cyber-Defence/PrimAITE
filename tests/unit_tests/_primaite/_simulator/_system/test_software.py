@@ -2,12 +2,14 @@ from typing import Dict
 
 import pytest
 
+from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.sys_log import SysLog
-from primaite.simulator.system.software import Software, SoftwareHealthState
+from primaite.simulator.system.services.service import Service
+from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 
-class TestSoftware(Software):
+class TestSoftware(Service):
     def describe_state(self) -> Dict:
         pass
 
@@ -15,7 +17,11 @@ class TestSoftware(Software):
 @pytest.fixture(scope="function")
 def software(file_system):
     return TestSoftware(
-        name="TestSoftware", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="test_service")
+        name="TestSoftware",
+        port=Port.ARP,
+        file_system=file_system,
+        sys_log=SysLog(hostname="test_service"),
+        protocol=IPProtocol.TCP,
     )
 
 
