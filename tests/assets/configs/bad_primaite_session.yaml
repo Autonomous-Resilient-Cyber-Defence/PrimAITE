@@ -589,15 +589,16 @@ simulation:
       hostname: web_server
       ip_address: 192.168.1.12
       subnet_mask: 255.255.255.0
-      default_gateway: 192.168.1.10
+      default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
+      - ref: web_server_web_service
+        type: WebServer
+      applications:
       - ref: web_server_database_client
         type: DatabaseClient
         options:
           db_server_ip: 192.168.1.14
-      - ref: web_server_web_service
-        type: WebServer
 
 
     - ref: database_server

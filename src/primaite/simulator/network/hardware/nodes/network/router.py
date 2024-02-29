@@ -136,11 +136,6 @@ class ACLRule(SimComponent):
                 rule_strings.append(f"{key}={value}")
         return ", ".join(rule_strings)
 
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_keep = {"action", "protocol", "src_ip_address", "src_port", "dst_ip_address", "dst_port"}
-        self._original_state = self.model_dump(include=vals_to_keep, exclude_none=True)
-
     def describe_state(self) -> Dict:
         """
         Describes the current state of the ACLRule.
@@ -296,48 +291,6 @@ class AccessControlList(SimComponent):
 
         super().__init__(**kwargs)
         self._acl = [None] * (self.max_acl_rules - 1)
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        self.implicit_rule.set_original_state()
-        vals_to_keep = {"implicit_action", "max_acl_rules", "acl"}
-        self._original_state = self.model_dump(include=vals_to_keep, exclude_none=True)
-
-        for i, rule in enumerate(self._acl):
-            if not rule:
-                continue
-            self._default_config[i] = {"action": rule.action.name}
-            if rule.src_ip_address:
-                self._default_config[i]["src_ip"] = str(rule.src_ip_address)
-            if rule.dst_ip_address:
-                self._default_config[i]["dst_ip"] = str(rule.dst_ip_address)
-            if rule.src_port:
-                self._default_config[i]["src_port"] = rule.src_port.name
-            if rule.dst_port:
-                self._default_config[i]["dst_port"] = rule.dst_port.name
-            if rule.protocol:
-                self._default_config[i]["protocol"] = rule.protocol.name
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        self.implicit_rule.reset_component_for_episode(episode)
-        super().reset_component_for_episode(episode)
-        self._reset_rules_to_default()
-
-    def _reset_rules_to_default(self) -> None:
-        """Clear all ACL rules and set them to the default rules config."""
-        self._acl = [None] * (self.max_acl_rules - 1)
-        for r_num, r_cfg in self._default_config.items():
-            self.add_rule(
-                action=ACLAction[r_cfg["action"]],
-                src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
-                src_ip_address=r_cfg.get("src_ip"),
-                dst_ip_address=r_cfg.get("dst_ip"),
-                position=r_num,
-            )
 
     def _init_request_manager(self) -> RequestManager:
         # TODO: Add src and dst wildcard masks as positional args in this request.
@@ -616,11 +569,6 @@ class RouteEntry(SimComponent):
     metric: float = 0.0
     "The cost metric for this route. Default is 0.0."
 
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {"address", "subnet_mask", "next_hop_ip_address", "metric"}
-        self._original_values = self.model_dump(include=vals_to_include)
-
     def describe_state(self) -> Dict:
         """
         Describes the current state of the RouteEntry.
@@ -652,17 +600,6 @@ class RouteTable(SimComponent):
     routes: List[RouteEntry] = []
     default_route: Optional[RouteEntry] = None
     sys_log: SysLog
-
-    def set_original_state(self):
-        """Sets the original state."""
-        super().set_original_state()
-        self._original_state["routes_orig"] = self.routes
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        self.routes.clear()
-        self.routes = self._original_state["routes_orig"]
-        super().reset_component_for_episode(episode)
 
     def describe_state(self) -> Dict:
         """
@@ -1104,8 +1041,6 @@ class Router(NetworkNode):
 
         self._set_default_acl()
 
-        self.set_original_state()
-
     def _install_system_software(self):
         """
         Installs essential system software and network services on the router.
@@ -1131,20 +1066,7 @@ class Router(NetworkNode):
         self.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
         self.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
 
-    def set_original_state(self):
-        """
-        Sets or resets the router to its original configuration state.
-
-        This method is called to initialize the router's state or to revert it to a known good configuration during
-        network simulations or after configuration changes.
-        """
-        self.acl.set_original_state()
-        self.route_table.set_original_state()
-        super().set_original_state()
-        vals_to_include = {"num_ports"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
-    def reset_component_for_episode(self, episode: int):
+    def setup_for_episode(self, episode: int):
         """
         Resets the router's components for a new network simulation episode.
 
@@ -1154,13 +1076,10 @@ class Router(NetworkNode):
         :param episode: The episode number for which the router is being reset.
         """
         self.software_manager.arp.clear()
-        self.acl.reset_component_for_episode(episode)
-        self.route_table.reset_component_for_episode(episode)
-        for i, network_interface in self.network_interface.items():
-            network_interface.reset_component_for_episode(episode)
+        for i, _ in self.network_interface.items():
             self.enable_port(i)
 
-        super().reset_component_for_episode(episode)
+        super().setup_for_episode(episode=episode)
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
@@ -1391,7 +1310,6 @@ class Router(NetworkNode):
         network_interface.ip_address = ip_address
         network_interface.subnet_mask = subnet_mask
         self.sys_log.info(f"Configured Network Interface {network_interface}")
-        self.set_original_state()
 
     def enable_port(self, port: int):
         """
@@ -1493,6 +1411,14 @@ class Router(NetworkNode):
                     subnet_mask=port_cfg["subnet_mask"],
                 )
         if "acl" in cfg:
-            new.acl._default_config = cfg["acl"]  # save the config to allow resetting
-            new.acl._reset_rules_to_default()  # read the config and apply rules
+            for r_num, r_cfg in cfg["acl"].items():
+                new.acl.add_rule(
+                    action=ACLAction[r_cfg["action"]],
+                    src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                    dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                    protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                    src_ip_address=r_cfg.get("src_ip"),
+                    dst_ip_address=r_cfg.get("dst_ip"),
+                    position=r_num,
+                )
         return new

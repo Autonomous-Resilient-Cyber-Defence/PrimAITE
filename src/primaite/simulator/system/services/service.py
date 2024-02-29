@@ -78,12 +78,6 @@ class Service(IOSoftware):
         """
         return super().receive(payload=payload, session_id=session_id, **kwargs)
 
-    def set_original_state(self):
-        """Sets the original state."""
-        super().set_original_state()
-        vals_to_include = {"operating_state", "restart_duration", "restart_countdown"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
         rm.add_request("scan", RequestType(func=lambda request, context: self.scan()))
