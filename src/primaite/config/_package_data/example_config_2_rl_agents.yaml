@@ -1039,6 +1039,10 @@ agents:
 
 simulation:
   network:
+    nmne_config:
+      capture_nmne: true
+      nmne_capture_keywords:
+        - DELETE
     nodes:
 
     - ref: router_1
