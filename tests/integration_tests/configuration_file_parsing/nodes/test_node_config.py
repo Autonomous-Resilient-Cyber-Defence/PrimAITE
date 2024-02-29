@@ -1,6 +1,8 @@
 from primaite.config.load import example_config_path
 from primaite.simulator.network.container import Network
-from tests.integration_tests.configuration_file_parsing import DMZ_NETWORK, load_config
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from tests.integration_tests.configuration_file_parsing import BASIC_CONFIG, DMZ_NETWORK, load_config
 
 
 def test_example_config():
@@ -24,3 +26,19 @@ def test_dmz_config():
     assert len(network.routers) == 2  # 2 routers in network
     assert len(network.switches) == 3  # 3 switches in network
     assert len(network.servers) == 2  # 2 servers in network
+
+
+def test_basic_config():
+    """Test that the basic_switched_network config can be parsed properly."""
+    game = load_config(BASIC_CONFIG)
+    network: Network = game.simulation.network
+    assert len(network.nodes) == 4  # 4 nodes in network
+
+    client_1: Computer = network.get_node_by_hostname("client_1")
+    assert client_1.operating_state == NodeOperatingState.ON
+    client_2: Computer = network.get_node_by_hostname("client_2")
+    assert client_2.operating_state == NodeOperatingState.ON
+
+    # client 3 should not be online
+    client_3: Computer = network.get_node_by_hostname("client_3")
+    assert client_3.operating_state == NodeOperatingState.OFF

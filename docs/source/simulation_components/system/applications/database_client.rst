@@ -24,12 +24,6 @@ Usage
 - Retrieve results in a dictionary.
 - Disconnect when finished.
 
-To create database backups:
-
-- Configure the backup server on the :ref:`DatabaseService` by providing the Backup server ``IPv4Address`` with ``configure_backup``
-- Create a backup using ``backup_database``. This fails if the backup server is not configured.
-- Restore a backup using ``restore_backup``. By default, this uses the database created via ``backup_database``.
-
 Implementation
 ==============
 

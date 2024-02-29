@@ -141,6 +141,17 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       # pre installed services and applications
+    - ref: client_3
+      type: computer
+      hostname: client_3
+      ip_address: 192.168.10.23
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+      dns_server: 192.168.1.10
+      start_up_duration: 0
+      shut_down_duration: 0
+      operating_state: "OFF"
+      # pre installed services and applications
 
     links:
     - ref: switch_1___client_1

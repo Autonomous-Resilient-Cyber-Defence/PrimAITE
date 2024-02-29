@@ -12,34 +12,22 @@ complex, specialized hardware components inherit from and build upon.
 
 The key elements defined in ``base.py`` are:
 
-NetworkInterface
-================
+``NetworkInterface``
+====================
 
 - Abstract base class for network interfaces like NICs. Defines common attributes like MAC address, speed, MTU.
 - Requires subclasses to implement ``enable()``, ``disable()``, ``send_frame()`` and ``receive_frame()``.
 - Provides basic state description and request handling capabilities.
 
-Node
-====
+``Node``
+========
 The Node class stands as a central component in ``base.py``, acting as the superclass for all network nodes within a
 PrimAITE simulation.
-
-
 
 Node Attributes
 ---------------
 
-
-- **hostname**: The network hostname of the node.
-- **operating_state**: Indicates the current hardware state of the node.
-- **network_interfaces**: Maps interface names to NetworkInterface objects on the node.
-- **network_interface**:  Maps port IDs to ``NetworkInterface`` objects on the node.
-- **dns_server**: Specifies DNS servers for domain name resolution.
-- **start_up_duration**: The time it takes for the node to become fully operational after being powered on.
-- **shut_down_duration**: The time required for the node to properly shut down.
-- **sys_log**: A system log for recording events related to the node.
-- **session_manager**: Manages user sessions within the node.
-- **software_manager**: Controls the installation and management of software and services on the node.
+See :ref:`Node Attributes`
 
 .. _Node Start up and Shut down:
 

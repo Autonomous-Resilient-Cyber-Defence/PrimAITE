@@ -1,7 +1,7 @@
 # flake8: noqa
 """Core of the PrimAITE Simulator."""
-from abc import ABC, abstractmethod
-from typing import Callable, ClassVar, Dict, List, Optional, Union
+from abc import abstractmethod
+from typing import Callable, Dict, List, Optional, Union
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field

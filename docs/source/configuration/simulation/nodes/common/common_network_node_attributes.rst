@@ -2,6 +2,8 @@
 
     © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 
+.. _common_network_node_attributes:
+
 ``routes``
 ----------
 

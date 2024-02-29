@@ -10,7 +10,7 @@ Software
 Base Software
 -------------
 
-All software which inherits ``IOSoftware`` installed on a node will not work unless the node has been turned on.
+Software which inherits ``IOSoftware`` installed on a node will not work unless the node has been turned on.
 
 See :ref:`Node Start up and Shut down`
 

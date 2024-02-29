@@ -234,7 +234,9 @@ class PrimaiteGame:
                     subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
                     default_gateway=node_cfg["default_gateway"],
                     dns_server=node_cfg.get("dns_server", None),
-                    operating_state=NodeOperatingState.ON,
+                    operating_state=NodeOperatingState.ON
+                    if not (p := node_cfg.get("operating_state"))
+                    else NodeOperatingState[p.upper()],
                 )
             elif n_type == "server":
                 new_node = Server(
@@ -243,13 +245,17 @@ class PrimaiteGame:
                     subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
                     default_gateway=node_cfg["default_gateway"],
                     dns_server=node_cfg.get("dns_server", None),
-                    operating_state=NodeOperatingState.ON,
+                    operating_state=NodeOperatingState.ON
+                    if not (p := node_cfg.get("operating_state"))
+                    else NodeOperatingState[p.upper()],
                 )
             elif n_type == "switch":
                 new_node = Switch(
                     hostname=node_cfg["hostname"],
                     num_ports=int(node_cfg.get("num_ports", "8")),
-                    operating_state=NodeOperatingState.ON,
+                    operating_state=NodeOperatingState.ON
+                    if not (p := node_cfg.get("operating_state"))
+                    else NodeOperatingState[p.upper()],
                 )
             elif n_type == "router":
                 new_node = Router.from_config(node_cfg)
@@ -359,7 +365,9 @@ class PrimaiteGame:
             new_node.shut_down_duration = 0
 
             net.add_node(new_node)
-            new_node.power_on()
+            # run through the power on step if the node is to be turned on at the start
+            if new_node.operating_state == NodeOperatingState.ON:
+                new_node.power_on()
             game.ref_map_nodes[node_ref] = new_node.uuid
 
             # set start up and shut down duration

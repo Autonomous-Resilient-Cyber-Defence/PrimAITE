@@ -12,6 +12,8 @@ from primaite.simulator.network.hardware.nodes.network.router import (
     RouterInterface,
 )
 from primaite.simulator.network.transmission.data_link_layer import Frame
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.utils.validators import IPV4Address
 
@@ -479,7 +481,12 @@ class Firewall(Router):
     @classmethod
     def from_config(cls, cfg: dict) -> "Firewall":
         """Create a firewall based on a config dict."""
-        firewall = Firewall(hostname=cfg["hostname"], operating_state=NodeOperatingState.ON)
+        firewall = Firewall(
+            hostname=cfg["hostname"],
+            operating_state=NodeOperatingState.ON
+            if not (p := cfg.get("operating_state"))
+            else NodeOperatingState[p.upper()],
+        )
         if "ports" in cfg:
             internal_port = cfg["ports"]["internal_port"]
             external_port = cfg["ports"]["external_port"]
@@ -505,34 +512,82 @@ class Firewall(Router):
         if "acl" in cfg:
             # acl rules for internal_inbound_acl
             if cfg["acl"]["internal_inbound_acl"]:
-                firewall.internal_inbound_acl.max_acl_rules
-                firewall.internal_inbound_acl._default_config = cfg["acl"]["internal_inbound_acl"]
-                firewall.internal_inbound_acl._reset_rules_to_default()
+                for r_num, r_cfg in cfg["acl"]["internal_inbound_acl"].items():
+                    firewall.internal_inbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
 
             # acl rules for internal_outbound_acl
             if cfg["acl"]["internal_outbound_acl"]:
-                firewall.internal_outbound_acl._default_config = cfg["acl"]["internal_outbound_acl"]
-                firewall.internal_outbound_acl._reset_rules_to_default()
+                for r_num, r_cfg in cfg["acl"]["internal_outbound_acl"].items():
+                    firewall.internal_outbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
 
             # acl rules for dmz_inbound_acl
             if cfg["acl"]["dmz_inbound_acl"]:
-                firewall.dmz_inbound_acl._default_config = cfg["acl"]["dmz_inbound_acl"]
-                firewall.dmz_inbound_acl._reset_rules_to_default()
+                for r_num, r_cfg in cfg["acl"]["dmz_inbound_acl"].items():
+                    firewall.dmz_inbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
 
             # acl rules for dmz_outbound_acl
             if cfg["acl"]["dmz_outbound_acl"]:
-                firewall.dmz_outbound_acl._default_config = cfg["acl"]["dmz_outbound_acl"]
-                firewall.dmz_outbound_acl._reset_rules_to_default()
+                for r_num, r_cfg in cfg["acl"]["dmz_outbound_acl"].items():
+                    firewall.dmz_outbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
 
             # acl rules for external_inbound_acl
             if cfg["acl"]["external_inbound_acl"]:
-                firewall.external_inbound_acl._default_config = cfg["acl"]["external_inbound_acl"]
-                firewall.external_inbound_acl._reset_rules_to_default()
+                for r_num, r_cfg in cfg["acl"]["external_inbound_acl"].items():
+                    firewall.external_inbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
 
             # acl rules for external_outbound_acl
             if cfg["acl"]["external_outbound_acl"]:
-                firewall.external_outbound_acl._default_config = cfg["acl"]["external_outbound_acl"]
-                firewall.external_outbound_acl._reset_rules_to_default()
+                for r_num, r_cfg in cfg["acl"]["external_outbound_acl"].items():
+                    firewall.external_outbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
+
         if "routes" in cfg:
             for route in cfg.get("routes"):
                 firewall.route_table.add_route(

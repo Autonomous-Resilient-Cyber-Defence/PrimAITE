@@ -13,4 +13,4 @@ The list of applications that are considered system software are:
 
 - ``WebBrowser``
 
-More info :py:mod:`primaite.simulator.network.hardware.nodes.host.host_node.SYSTEM_SOFTWARE`
+More info :py:mod:`primaite.simulator.network.hardware.nodes.host.host_node.HostNode.SYSTEM_SOFTWARE`

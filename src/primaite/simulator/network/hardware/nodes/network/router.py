@@ -1401,7 +1401,9 @@ class Router(NetworkNode):
         router = Router(
             hostname=cfg["hostname"],
             num_ports=int(cfg.get("num_ports", "5")),
-            operating_state=NodeOperatingState.ON,
+            operating_state=NodeOperatingState.ON
+            if not (p := cfg.get("operating_state"))
+            else NodeOperatingState[p.upper()],
         )
         if "ports" in cfg:
             for port_num, port_cfg in cfg["ports"].items():

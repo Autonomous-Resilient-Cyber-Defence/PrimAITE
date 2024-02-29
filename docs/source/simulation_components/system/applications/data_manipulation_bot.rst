@@ -79,7 +79,7 @@ Python
     data_manipulation_bot.configure(server_ip_address=IPv4Address("192.168.1.14"), payload="DELETE")
     data_manipulation_bot.run()
 
-This would connect to the database service at 192.168.1.14, authenticate, and execute the SQL statement to drop the 'users' table.
+This would connect to the database service at 192.168.1.14, authenticate, and execute the SQL statement to delete database contents.
 
 Example with ``DataManipulationAgent``
 """"""""""""""""""""""""""""""""""""""
