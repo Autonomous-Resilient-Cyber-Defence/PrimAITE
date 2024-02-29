@@ -250,7 +250,7 @@ class NIC(IPWiredNetworkInterface):
 
         :return: A string combining the port number, MAC address and IP address of the NIC.
         """
-        return f"Port {self.port_num}: {self.mac_address}/{self.ip_address}"
+        return f"Port {self.port_name if self.port_name else self.port_num}: {self.mac_address}/{self.ip_address}"
 
 
 class HostNode(Node):
