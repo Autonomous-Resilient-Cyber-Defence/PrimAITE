@@ -26,7 +26,7 @@ Usage
 =====
 
 - Install on a Node via the ``SoftwareManager`` to start the FTP client service.
-- Service runs on FTP (command) port 21 by default. (TODO: look at in depth implementation of FTP PORT command)
+- Service runs on FTP (command) port 21 by default
 - Execute sending a file to the FTP server with ``send_file``
 - Execute retrieving a file from the FTP server with ``request_file``
 

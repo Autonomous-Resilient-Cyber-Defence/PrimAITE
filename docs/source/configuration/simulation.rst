@@ -73,7 +73,7 @@ The human readable name for the link. Not used in code, however is useful for a 
 ``endpoint_a_ref``
 ^^^^^^^^^^^^^^^^^^
 
-The name of the node which must be connected.
+The ``hostname`` of the node which must be connected.
 
 ``endpoint_a_port``
 ^^^^^^^^^^^^^^^^^^^
@@ -84,7 +84,7 @@ This accepts an integer value e.g. if port 1 is to be connected, the configurati
 ``endpoint_b_ref``
 ^^^^^^^^^^^^^^^^^^
 
-The name of the node which must be connected.
+The ``hostname`` of the node which must be connected.
 
 ``endpoint_b_port``
 ^^^^^^^^^^^^^^^^^^^
