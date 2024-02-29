@@ -13,7 +13,7 @@ the structure:
             - type: DATABASE_FILE_INTEGRITY
             weight: 0.5
             options:
-                node_ref: database_server
+                node_name: database_server
                 folder_name: database
                 file_name: database.db
 
@@ -21,7 +21,7 @@ the structure:
             - type: WEB_SERVER_404_PENALTY
             weight: 0.5
             options:
-                node_ref: web_server
+                node_name: web_server
                 service_ref: web_server_database_client
 ```
 """
@@ -184,7 +184,7 @@ class WebServer404Penalty(AbstractReward):
         service_name = config.get("service_name")
         if not (node_hostname and service_name):
             msg = (
-                f"{cls.__name__} could not be initialised from config because node_ref and service_ref were not "
+                f"{cls.__name__} could not be initialised from config because node_name and service_ref were not "
                 "found in reward config."
             )
             _LOGGER.warning(msg)
@@ -245,12 +245,13 @@ class WebpageUnavailablePenalty(AbstractReward):
 class RewardFunction:
     """Manages the reward function for the agent."""
 
-    __rew_class_identifiers: Dict[str, Type[AbstractReward]] = {
+    rew_class_identifiers: Dict[str, Type[AbstractReward]] = {
         "DUMMY": DummyReward,
         "DATABASE_FILE_INTEGRITY": DatabaseFileIntegrity,
         "WEB_SERVER_404_PENALTY": WebServer404Penalty,
         "WEBPAGE_UNAVAILABLE_PENALTY": WebpageUnavailablePenalty,
     }
+    """List of reward class identifiers."""
 
     def __init__(self):
         """Initialise the reward function object."""
@@ -297,7 +298,7 @@ class RewardFunction:
         for rew_component_cfg in config["reward_components"]:
             rew_type = rew_component_cfg["type"]
             weight = rew_component_cfg.get("weight", 1.0)
-            rew_class = cls.__rew_class_identifiers[rew_type]
+            rew_class = cls.rew_class_identifiers[rew_type]
             rew_instance = rew_class.from_config(config=rew_component_cfg.get("options", {}))
             new.register_component(component=rew_instance, weight=weight)
         return new

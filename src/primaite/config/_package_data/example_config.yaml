@@ -590,8 +590,8 @@ simulation:
     nodes:
 
     - ref: router_1
-      type: router
       hostname: router_1
+      type: router
       num_ports: 5
       ports:
         1:
@@ -626,18 +626,18 @@ simulation:
           protocol: ICMP
 
     - ref: switch_1
-      type: switch
       hostname: switch_1
+      type: switch
       num_ports: 8
 
     - ref: switch_2
-      type: switch
       hostname: switch_2
+      type: switch
       num_ports: 8
 
     - ref: domain_controller
-      type: server
       hostname: domain_controller
+      type: server
       ip_address: 192.168.1.10
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
@@ -649,8 +649,8 @@ simulation:
             arcd.com: 192.168.1.12 # web server
 
     - ref: web_server
-      type: server
       hostname: web_server
+      type: server
       ip_address: 192.168.1.12
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
@@ -666,8 +666,8 @@ simulation:
 
 
     - ref: database_server
-      type: server
       hostname: database_server
+      type: server
       ip_address: 192.168.1.14
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
@@ -681,8 +681,8 @@ simulation:
         type: FTPClient
 
     - ref: backup_server
-      type: server
       hostname: backup_server
+      type: server
       ip_address: 192.168.1.16
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
@@ -692,8 +692,8 @@ simulation:
         type: FTPServer
 
     - ref: security_suite
-      type: server
       hostname: security_suite
+      type: server
       ip_address: 192.168.1.110
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
@@ -704,8 +704,8 @@ simulation:
           subnet_mask: 255.255.255.0
 
     - ref: client_1
-      type: computer
       hostname: client_1
+      type: computer
       ip_address: 192.168.10.21
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
@@ -727,8 +727,8 @@ simulation:
         type: DNSClient
 
     - ref: client_2
-      type: computer
       hostname: client_2
+      type: computer
       ip_address: 192.168.10.22
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1

@@ -10,7 +10,7 @@ Software
 Base Software
 -------------
 
-All software which inherits ``IOSoftware`` installed on a node will not work unless the node has been turned on.
+Software which inherits ``IOSoftware`` installed on a node will not work unless the node has been turned on.
 
 See :ref:`Node Start up and Shut down`
 
@@ -39,15 +39,27 @@ See :ref:`Node Start up and Shut down`
     assert node.operating_state is NodeOperatingState.ON
     assert web_server.operating_state is ServiceOperatingState.RUNNING # service turned back on when node is powered on
 
+.. _List of Applications:
 
-Services, Processes and Applications:
-#####################################
+Applications
+############
 
-.. toctree::
-   :maxdepth: 2
+These are a list of applications that are currently available in PrimAITE:
 
-   database_client_server
-   data_manipulation_bot
-   dns_client_server
-   ftp_client_server
-   web_browser_and_web_server_service
+.. include:: list_of_applications.rst
+
+.. _List of Services:
+
+Services
+########
+
+These are a list of services that are currently available in PrimAITE:
+
+.. include:: list_of_services.rst
+
+.. _List of Processes:
+
+Processes
+#########
+
+`To be implemented`

@@ -5,7 +5,11 @@ from pydantic import BaseModel
 
 
 class Port(Enum):
-    """Enumeration of common known TCP/UDP ports used by protocols for operation of network applications."""
+    """
+    Enumeration of common known TCP/UDP ports used by protocols for operation of network applications.
+
+    .. _List of Ports:
+    """
 
     NONE = 0
     "Place holder for a non-port."

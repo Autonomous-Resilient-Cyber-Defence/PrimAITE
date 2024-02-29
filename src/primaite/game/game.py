@@ -15,6 +15,7 @@ from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.nmne import set_nmne_config
@@ -41,6 +42,7 @@ APPLICATION_TYPES_MAPPING = {
     "DataManipulationBot": DataManipulationBot,
     "DoSBot": DoSBot,
 }
+"""List of available applications that can be installed on nodes in the PrimAITE Simulation."""
 
 SERVICE_TYPES_MAPPING = {
     "DNSClient": DNSClient,
@@ -52,6 +54,7 @@ SERVICE_TYPES_MAPPING = {
     "NTPClient": NTPClient,
     "NTPServer": NTPServer,
 }
+"""List of available services that can be installed on nodes in the PrimAITE Simulation."""
 
 
 class PrimaiteGameOptions(BaseModel):
@@ -228,28 +231,36 @@ class PrimaiteGame:
                 new_node = Computer(
                     hostname=node_cfg["hostname"],
                     ip_address=node_cfg["ip_address"],
-                    subnet_mask=node_cfg["subnet_mask"],
+                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
                     default_gateway=node_cfg["default_gateway"],
-                    dns_server=node_cfg["dns_server"],
-                    operating_state=NodeOperatingState.ON,
+                    dns_server=node_cfg.get("dns_server", None),
+                    operating_state=NodeOperatingState.ON
+                    if not (p := node_cfg.get("operating_state"))
+                    else NodeOperatingState[p.upper()],
                 )
             elif n_type == "server":
                 new_node = Server(
                     hostname=node_cfg["hostname"],
                     ip_address=node_cfg["ip_address"],
-                    subnet_mask=node_cfg["subnet_mask"],
+                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
                     default_gateway=node_cfg["default_gateway"],
-                    dns_server=node_cfg.get("dns_server"),
-                    operating_state=NodeOperatingState.ON,
+                    dns_server=node_cfg.get("dns_server", None),
+                    operating_state=NodeOperatingState.ON
+                    if not (p := node_cfg.get("operating_state"))
+                    else NodeOperatingState[p.upper()],
                 )
             elif n_type == "switch":
                 new_node = Switch(
                     hostname=node_cfg["hostname"],
-                    num_ports=node_cfg.get("num_ports"),
-                    operating_state=NodeOperatingState.ON,
+                    num_ports=int(node_cfg.get("num_ports", "8")),
+                    operating_state=NodeOperatingState.ON
+                    if not (p := node_cfg.get("operating_state"))
+                    else NodeOperatingState[p.upper()],
                 )
             elif n_type == "router":
                 new_node = Router.from_config(node_cfg)
+            elif n_type == "firewall":
+                new_node = Firewall.from_config(node_cfg)
             else:
                 _LOGGER.warning(f"invalid node type {n_type} in config")
             if "services" in node_cfg:
@@ -262,6 +273,9 @@ class PrimaiteGame:
                         new_node.software_manager.install(SERVICE_TYPES_MAPPING[service_type])
                         new_service = new_node.software_manager.software[service_type]
                         game.ref_map_services[service_ref] = new_service.uuid
+
+                        # start the service
+                        new_service.start()
                     else:
                         msg = f"Configuration contains an invalid service type: {service_type}"
                         _LOGGER.error(msg)
@@ -281,18 +295,16 @@ class PrimaiteGame:
                     if service_type == "DatabaseService":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
+                            new_service.password = opt.get("backup_server_ip", None)
                             new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
-                        new_service.start()
                     if service_type == "FTPServer":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
                             new_service.server_password = opt.get("server_password")
-                        new_service.start()
                     if service_type == "NTPClient":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
                             new_service.ntp_server = IPv4Address(opt.get("ntp_server_ip"))
-                        new_service.start()
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
                     new_application = None
@@ -308,13 +320,16 @@ class PrimaiteGame:
                         _LOGGER.error(msg)
                         raise ValueError(msg)
 
+                    # run the application
+                    new_application.run()
+
                     if application_type == "DataManipulationBot":
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
                             new_application.configure(
                                 server_ip_address=IPv4Address(opt.get("server_ip")),
                                 server_password=opt.get("server_password"),
-                                payload=opt.get("payload"),
+                                payload=opt.get("payload", "DELETE"),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
                             )
@@ -329,7 +344,6 @@ class PrimaiteGame:
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
                             new_application.target_url = opt.get("target_url")
-
                     elif application_type == "DoSBot":
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
@@ -346,9 +360,19 @@ class PrimaiteGame:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
 
+            # temporarily set to 0 so all nodes are initially on
+            new_node.start_up_duration = 0
+            new_node.shut_down_duration = 0
+
             net.add_node(new_node)
-            new_node.power_on()
+            # run through the power on step if the node is to be turned on at the start
+            if new_node.operating_state == NodeOperatingState.ON:
+                new_node.power_on()
             game.ref_map_nodes[node_ref] = new_node.uuid
+
+            # set start up and shut down duration
+            new_node.start_up_duration = int(node_cfg.get("start_up_duration", 3))
+            new_node.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
 
         # 2. create links between nodes
         for link_cfg in links_cfg:

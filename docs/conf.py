@@ -15,7 +15,6 @@ import furo  # noqa
 
 sys.path.insert(0, os.path.abspath("../"))
 
-
 # -- Project information -----------------------------------------------------
 year = datetime.datetime.now().year
 project = "PrimAITE"
@@ -27,6 +26,11 @@ with open("../src/primaite/VERSION", "r") as file:
     version = file.readline()
 # The full version, including alpha/beta/rc tags
 release = version
+
+# set global variables
+rst_prolog = f"""
+.. |VERSION| replace::  {release}
+"""
 
 html_title = f"{project} v{release} docs"
 
@@ -45,13 +49,17 @@ extensions = [
     "sphinx_copybutton",  # Adds a copy button to code blocks
 ]
 
-
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-
+exclude_patterns = [
+    "_build",
+    "Thumbs.db",
+    ".DS_Store",
+]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "furo"
 html_static_path = ["_static"]
+html_theme_options = {"globaltoc_collapse": True, "globaltoc_maxdepth": 2}
+html_copy_source = False

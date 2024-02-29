@@ -22,9 +22,9 @@ Contents
    simulation_components/network/nodes/host_node
    simulation_components/network/nodes/network_node
    simulation_components/network/nodes/router
+   simulation_components/network/nodes/switch
    simulation_components/network/nodes/wireless_router
    simulation_components/network/nodes/firewall
-   simulation_components/network/switch
    simulation_components/network/network
    simulation_components/system/internal_frame_processing
    simulation_components/system/sys_log

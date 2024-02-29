@@ -36,7 +36,7 @@ Technical Detail
 This system was achieved by implementing two classes, :py:class:`primaite.simulator.core.RequestType`, and :py:class:`primaite.simulator.core.RequestManager`.
 
 ``RequestType``
-------
+---------------
 
 The ``RequestType`` object stores a reference to a method that executes the request, for example a node could have a request type that stores a reference to ``self.turn_on()``. Technically, this can be any callable that accepts `request, context` as it's parameters. In practice, this is often defined using ``lambda`` functions within a component's ``self._init_request_manager()`` method. Optionally, the ``RequestType`` object can also hold a validator that will permit/deny the request depending on context.
 
@@ -60,7 +60,7 @@ A simple example without chaining can be seen in the :py:class:`primaite.simulat
 *ellipses (``...``) used to omit code impertinent to this explanation*
 
 Chaining RequestManagers
------------------------
+------------------------
 
 A request function needs to be a callable that accepts ``request, context`` as parameters. Since the request manager resolves requests by invoking it with ``request, context`` as parameter, it is possible to use a ``RequestManager`` as a ``RequestType``.
 

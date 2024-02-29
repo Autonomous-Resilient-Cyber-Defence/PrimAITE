@@ -12,14 +12,15 @@ and a domain controller for managing software and users.
 
 Each node of the simulation 'tree' has responsibility for creating, deleting, and updating its direct descendants. Also,
 when a component's ``describe_state()`` method is called, it will include the state of its descendants. The
-``apply_request()`` method can be used to act on a component or one of its descendatnts. The diagram below shows the
+``apply_request()`` method can be used to act on a component or one of its descendants. The diagram below shows the
 relationship between components.
 
-.. image:: _static/component_relationship.png
+.. image:: ../../_static/component_relationship.png
     :width: 500
-    :alt: The top level simulation object owns a NetworkContainer and a DomainController. The DomainController has a
-    list of accounts. The network container has links and nodes. Nodes can own switchports, NICs, FileSystem,
-    Application, Service, and Process.
+    :align: center
+    :alt: ::    The top level simulation object owns a NetworkContainer and a DomainController. The DomainController has a
+                list of accounts. The network container has links and nodes. Nodes can own switchports, NICs, FileSystem,
+                Application, Service, and Process.
 
 
 Actions

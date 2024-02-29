@@ -27,7 +27,7 @@ in the transmission and routing of data within the simulated environment.
 **Key Features:**
 
 - **Frame Processing:** Central to the class is the ability to receive and process network frames, facilitating the
-simulation of data flow through network devices.
+   simulation of data flow through network devices.
 
 - **Abstract Methods:** Includes abstract methods such as ``receive_frame``, which subclasses must implement to specify
    how devices handle incoming traffic.

@@ -23,6 +23,7 @@ class DatabaseService(Service):
     """
 
     password: Optional[str] = None
+    """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
 
     backup_server_ip: IPv4Address = None
     """IP address of the backup server."""

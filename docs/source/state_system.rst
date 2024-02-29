@@ -3,7 +3,7 @@
     © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 
 Simulation State
-==============
+================
 
 ``SimComponent`` objects in the simulation have a method called ``describe_state`` which return a dictionary of the state of the component. This is used to report pertinent data that could impact an agent's actions or rewards. For instance, the name and health status of a node is reported, which can be used by a reward function to punish corrupted or compromised nodes and reward healthy nodes. Each ``SimComponent`` object reports not only its own attributes in the state but also those of its child components. I.e. a computer node will report the state of its ``FileSystem`` and the ``FileSystem`` will report the state of its files and folders. This happens by recursively calling the childrens' own ``describe_state`` methods.
 

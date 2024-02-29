@@ -1398,21 +1398,23 @@ class Router(NetworkNode):
         :return: Configured router.
         :rtype: Router
         """
-        new = Router(
+        router = Router(
             hostname=cfg["hostname"],
-            num_ports=cfg.get("num_ports"),
-            operating_state=NodeOperatingState.ON,
+            num_ports=int(cfg.get("num_ports", "5")),
+            operating_state=NodeOperatingState.ON
+            if not (p := cfg.get("operating_state"))
+            else NodeOperatingState[p.upper()],
         )
         if "ports" in cfg:
             for port_num, port_cfg in cfg["ports"].items():
-                new.configure_port(
+                router.configure_port(
                     port=port_num,
                     ip_address=port_cfg["ip_address"],
-                    subnet_mask=port_cfg["subnet_mask"],
+                    subnet_mask=IPv4Address(port_cfg.get("subnet_mask", "255.255.255.0")),
                 )
         if "acl" in cfg:
             for r_num, r_cfg in cfg["acl"].items():
-                new.acl.add_rule(
+                router.acl.add_rule(
                     action=ACLAction[r_cfg["action"]],
                     src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
                     dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
@@ -1421,4 +1423,12 @@ class Router(NetworkNode):
                     dst_ip_address=r_cfg.get("dst_ip"),
                     position=r_num,
                 )
-        return new
+        if "routes" in cfg:
+            for route in cfg.get("routes"):
+                router.route_table.add_route(
+                    address=IPv4Address(route.get("address")),
+                    subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),
+                    next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
+                    metric=float(route.get("metric", 0)),
+                )
+        return router
