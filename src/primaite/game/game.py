@@ -133,7 +133,7 @@ class PrimaiteGame:
         self.update_agents(sim_state)
 
         # Apply all actions to simulation as requests
-        agent_actions = self.apply_agent_actions()  # noqa
+        self.apply_agent_actions()
 
         # Advance timestep
         self.advance_timestep()
@@ -144,7 +144,7 @@ class PrimaiteGame:
 
     def update_agents(self, state: Dict) -> None:
         """Update agents' observations and rewards based on the current state."""
-        for name, agent in self.agents.items():
+        for _, agent in self.agents.items():
             agent.update_observation(state)
             agent.update_reward(state)
             agent.reward_function.total_reward += agent.reward_function.current_reward
@@ -158,7 +158,7 @@ class PrimaiteGame:
 
         """
         agent_actions = {}
-        for name, agent in self.agents.items():
+        for _, agent in self.agents.items():
             obs = agent.observation_manager.current_observation
             rew = agent.reward_function.current_reward
             action_choice, options = agent.get_action(obs, rew)
@@ -414,7 +414,9 @@ class PrimaiteGame:
                     agent_settings=agent_settings,
                 )
             else:
-                _LOGGER.warning(f"agent type {agent_type} not found")
+                msg(f"Configuration error: {agent_type} is not a valid agent type.")
+                _LOGGER.error(msg)
+                raise ValueError(msg)
             game.agents[agent_cfg["ref"]] = new_agent
 
         return game

@@ -118,7 +118,7 @@ class WebServer(Service):
                     self.set_health_state(SoftwareHealthState.COMPROMISED)
 
             return response
-        except Exception:  # TODO: refactor this. Likely to cause silent bugs.
+        except Exception:  # TODO: refactor this. Likely to cause silent bugs. (ADO ticket #2345 )
             # something went wrong on the server
             response.status_code = HttpStatusCode.INTERNAL_SERVER_ERROR
             return response

@@ -1076,7 +1076,6 @@ class Router(NetworkNode):
         :param episode: The episode number for which the router is being reset.
         """
         self.software_manager.arp.clear()
-        # self.acl.reset_component_for_episode(episode)
         for i, _ in self.network_interface.items():
             self.enable_port(i)
 

@@ -14,7 +14,7 @@ io_settings:
   save_checkpoints: true
   checkpoint_interval: 5
   save_step_metadata: false
-  save_pcap_logs: true
+  save_pcap_logs: false
   save_sys_logs: true
 
 
