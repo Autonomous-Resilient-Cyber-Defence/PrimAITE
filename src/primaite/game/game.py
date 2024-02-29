@@ -417,7 +417,7 @@ class PrimaiteGame:
                     agent_settings=agent_settings,
                 )
             else:
-                msg(f"Configuration error: {agent_type} is not a valid agent type.")
+                msg = f"Configuration error: {agent_type} is not a valid agent type."
                 _LOGGER.error(msg)
                 raise ValueError(msg)
             game.agents[agent_cfg["ref"]] = new_agent
