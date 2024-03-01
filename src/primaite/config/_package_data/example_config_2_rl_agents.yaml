@@ -64,7 +64,7 @@ agents:
 
   - ref: client_1_green_user
     team: GREEN
-    type: GreenWebBrowsingAgent
+    type: probabilistic_agent
     observation_space:
       type: UC2GreenObservation
     action_space:
