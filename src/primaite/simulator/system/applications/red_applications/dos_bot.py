@@ -28,7 +28,7 @@ class DoSAttackStage(IntEnum):
     "Attack is completed."
 
 
-class DoSBot(DatabaseClient, Application):
+class DoSBot(DatabaseClient):
     """A bot that simulates a Denial of Service attack."""
 
     target_ip_address: Optional[IPv4Address] = None

@@ -221,6 +221,18 @@ class DatabaseService(Service):
                 }
             else:
                 return {"status_code": 404, "data": False}
+        elif query == "SELECT * FROM pg_stat_activity":
+            # Check if the connection is active.
+            if self.health_state_actual == SoftwareHealthState.GOOD:
+                return {
+                    "status_code": 200,
+                    "type": "sql",
+                    "data": False,
+                    "uuid": query_id,
+                    "connection_id": connection_id,
+                }
+            else:
+                return {"status_code": 401, "data": False}
         else:
             # Invalid query
             self.sys_log.info(f"{self.name}: Invalid {query}")

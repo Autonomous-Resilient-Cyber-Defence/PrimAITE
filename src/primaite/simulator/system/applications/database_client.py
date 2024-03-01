@@ -43,9 +43,9 @@ class DatabaseClient(Application):
     def execute(self) -> bool:
         """Execution definition for db client: perform a select query."""
         if self.connections:
-            can_connect = self.connect(connection_id=list(self.connections.keys())[-1])
+            can_connect = self.check_connection(connection_id=list(self.connections.keys())[-1])
         else:
-            can_connect = self.connect()
+            can_connect = self.check_connection(connection_id=str(uuid4()))
         self._last_connection_successful = can_connect
         return can_connect
 
@@ -79,13 +79,15 @@ class DatabaseClient(Application):
         if not connection_id:
             connection_id = str(uuid4())
 
-        # if we are reusing a connection_id, remove it from self.connections so that its new status can be populated
-        # warning: janky
-        self._connections.pop(connection_id, None)
-
         self.connected = self._connect(
             server_ip_address=self.server_ip_address, password=self.server_password, connection_id=connection_id
         )
+        return self.connected
+
+    def check_connection(self, connection_id:str) -> bool:
+        if not self._can_perform_action():
+            return False
+        print(self.query("SELECT * FROM pg_stat_activity", connection_id=connection_id))
         return self.connected
 
     def _connect(
