@@ -572,7 +572,7 @@ class NetworkNICDisableAction(NetworkNICAbstractAction):
 class ActionManager:
     """Class which manages the action space for an agent."""
 
-    _act_class_identifiers: Dict[str, type] = {
+    act_class_identifiers: Dict[str, type] = {
         "DONOTHING": DoNothingAction,
         "NODE_SERVICE_SCAN": NodeServiceScanAction,
         "NODE_SERVICE_STOP": NodeServiceStopAction,
@@ -733,7 +733,7 @@ class ActionManager:
             # and `options` is an optional dict of options to pass to the init method of the action class
             act_type = act_spec.get("type")
             act_options = act_spec.get("options", {})
-            self.actions[act_type] = self._act_class_identifiers[act_type](self, **global_action_args, **act_options)
+            self.actions[act_type] = self.act_class_identifiers[act_type](self, **global_action_args, **act_options)
 
         self.action_map: Dict[int, Tuple[str, Dict]] = {}
         """

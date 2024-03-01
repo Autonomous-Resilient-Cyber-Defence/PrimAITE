@@ -94,6 +94,9 @@ class NetworkInterface(SimComponent, ABC):
     port_num: Optional[int] = None
     "The port number assigned to this interface on the connected node."
 
+    port_name: Optional[str] = None
+    "The port name assigned to this interface on the connected node."
+
     pcap: Optional[PacketCapture] = None
     "A PacketCapture instance for capturing and analysing packets passing through this interface."
 
@@ -248,7 +251,7 @@ class NetworkInterface(SimComponent, ABC):
 
         :return: A string combining the port number and the mac address
         """
-        return f"Port {self.port_num}: {self.mac_address}"
+        return f"Port {self.port_name if self.port_name else self.port_num}: {self.mac_address}"
 
 
 class WiredNetworkInterface(NetworkInterface, ABC):
@@ -293,7 +296,9 @@ class WiredNetworkInterface(NetworkInterface, ABC):
 
         self.enabled = True
         self._connected_node.sys_log.info(f"Network Interface {self} enabled")
-        self.pcap = PacketCapture(hostname=self._connected_node.hostname, interface_num=self.port_num)
+        self.pcap = PacketCapture(
+            hostname=self._connected_node.hostname, port_num=self.port_num, port_name=self.port_name
+        )
         if self._connected_link:
             self._connected_link.endpoint_up()
 
@@ -1024,7 +1029,7 @@ class Node(SimComponent):
             self.sys_log.info("Resetting")
             self.power_off()
 
-    def connect_nic(self, network_interface: NetworkInterface):
+    def connect_nic(self, network_interface: NetworkInterface, port_name: Optional[str] = None):
         """
         Connect a Network Interface to the node.
 
@@ -1036,7 +1041,9 @@ class Node(SimComponent):
             new_nic_num = len(self.network_interfaces)
             self.network_interface[new_nic_num] = network_interface
             network_interface._connected_node = self
-            network_interface._port_num_on_node = new_nic_num
+            network_interface.port_num = new_nic_num
+            if port_name:
+                network_interface.port_name = port_name
             network_interface.parent = self
             self.sys_log.info(f"Connected Network Interface {network_interface}")
             if self.operating_state == NodeOperatingState.ON:

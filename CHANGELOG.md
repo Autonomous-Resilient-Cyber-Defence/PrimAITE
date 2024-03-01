@@ -83,6 +83,19 @@ SessionManager.
 - `AirSpace` class to simulate wireless communications, managing wireless interfaces and facilitating the transmission of frames within specified frequencies.
 - `AirSpaceFrequency` enum for defining standard wireless frequencies, including 2.4 GHz and 5 GHz bands, to support realistic wireless network simulations.
 - `WirelessRouter` class, extending the `Router` class, to incorporate wireless networking capabilities alongside traditional wired connections. This class allows the configuration of wireless access points with specific IP settings and operating frequencies.
+- Documentation Updates:
+    - Examples include how to set up PrimAITE session via config
+    - Examples include how to create nodes and install software via config
+    - Examples include how to set up PrimAITE session via Python
+    - Examples include how to create nodes and install software via Python
+    - Added missing ``DoSBot`` documentation page
+    - Added diagrams where needed to make understanding some things easier
+    - Templated parts of the documentation to prevent unnecessary repetition and for easier maintaining of documentation
+    - Separated documentation pages of some items i.e. client and server software were on the same pages - which may make things confusing
+    - Configuration section at the bottom of the software pages specifying the configuration options available (and which ones are optional)
+- Ability to add ``Firewall`` node via config
+- Ability to add ``Router`` routes via config
+- Ability to add ``Router``/``Firewall`` ``ACLRule`` via config
 - NMNE capturing capabilities to `NetworkInterface` class for detecting and logging Malicious Network Events.
 - New `nmne_config` settings in the simulation configuration to enable NMNE capturing and specify keywords such as "DELETE".
 
@@ -107,7 +120,7 @@ SessionManager.
 ### Fixed
 - Addressed network transmission issues that previously allowed ARP requests to be incorrectly routed and repeated across different subnets. This fix ensures ARP requests are correctly managed and confined to their appropriate network segments.
 - Resolved problems in `Node` and its subclasses where the default gateway configuration was not properly utilized for communications across different subnets. This correction ensures that nodes effectively use their configured default gateways for outbound communications to other network segments, thereby enhancing the network's routing functionality and reliability.
-
+- Network Interface Port name/num being set properly for sys log and PCAP output.
 
 ## [2.0.0] - 2023-07-26
 

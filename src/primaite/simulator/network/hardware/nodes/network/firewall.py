@@ -1,8 +1,10 @@
+from ipaddress import IPv4Address
 from typing import Dict, Final, Optional, Union
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import validate_call
 
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import (
     AccessControlList,
     ACLAction,
@@ -10,6 +12,8 @@ from primaite.simulator.network.hardware.nodes.network.router import (
     RouterInterface,
 )
 from primaite.simulator.network.transmission.data_link_layer import Frame
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.utils.validators import IPV4Address
 
@@ -85,7 +89,17 @@ class Firewall(Router):
         if not kwargs.get("sys_log"):
             kwargs["sys_log"] = SysLog(hostname)
 
-        super().__init__(hostname=hostname, num_ports=3, **kwargs)
+        super().__init__(hostname=hostname, num_ports=0, **kwargs)
+
+        self.connect_nic(
+            RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", port_name="external")
+        )
+        self.connect_nic(
+            RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", port_name="internal")
+        )
+        self.connect_nic(
+            RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", port_name="dmz")
+        )
 
         # Initialise ACLs for internal and dmz interfaces with a default DENY policy
         self.internal_inbound_acl = AccessControlList(
@@ -473,3 +487,123 @@ class Firewall(Router):
         """
         self.configure_port(DMZ_PORT_ID, ip_address, subnet_mask)
         self.dmz_port.enable()
+
+    @classmethod
+    def from_config(cls, cfg: dict) -> "Firewall":
+        """Create a firewall based on a config dict."""
+        firewall = Firewall(
+            hostname=cfg["hostname"],
+            operating_state=NodeOperatingState.ON
+            if not (p := cfg.get("operating_state"))
+            else NodeOperatingState[p.upper()],
+        )
+        if "ports" in cfg:
+            internal_port = cfg["ports"]["internal_port"]
+            external_port = cfg["ports"]["external_port"]
+            dmz_port = cfg["ports"]["dmz_port"]
+
+            # configure internal port
+            firewall.configure_internal_port(
+                ip_address=IPV4Address(internal_port.get("ip_address")),
+                subnet_mask=IPV4Address(internal_port.get("subnet_mask", "255.255.255.0")),
+            )
+
+            # configure external port
+            firewall.configure_external_port(
+                ip_address=IPV4Address(external_port.get("ip_address")),
+                subnet_mask=IPV4Address(external_port.get("subnet_mask", "255.255.255.0")),
+            )
+
+            # configure dmz port
+            firewall.configure_dmz_port(
+                ip_address=IPV4Address(dmz_port.get("ip_address")),
+                subnet_mask=IPV4Address(dmz_port.get("subnet_mask", "255.255.255.0")),
+            )
+        if "acl" in cfg:
+            # acl rules for internal_inbound_acl
+            if cfg["acl"]["internal_inbound_acl"]:
+                for r_num, r_cfg in cfg["acl"]["internal_inbound_acl"].items():
+                    firewall.internal_inbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
+
+            # acl rules for internal_outbound_acl
+            if cfg["acl"]["internal_outbound_acl"]:
+                for r_num, r_cfg in cfg["acl"]["internal_outbound_acl"].items():
+                    firewall.internal_outbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
+
+            # acl rules for dmz_inbound_acl
+            if cfg["acl"]["dmz_inbound_acl"]:
+                for r_num, r_cfg in cfg["acl"]["dmz_inbound_acl"].items():
+                    firewall.dmz_inbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
+
+            # acl rules for dmz_outbound_acl
+            if cfg["acl"]["dmz_outbound_acl"]:
+                for r_num, r_cfg in cfg["acl"]["dmz_outbound_acl"].items():
+                    firewall.dmz_outbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
+
+            # acl rules for external_inbound_acl
+            if cfg["acl"]["external_inbound_acl"]:
+                for r_num, r_cfg in cfg["acl"]["external_inbound_acl"].items():
+                    firewall.external_inbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
+
+            # acl rules for external_outbound_acl
+            if cfg["acl"]["external_outbound_acl"]:
+                for r_num, r_cfg in cfg["acl"]["external_outbound_acl"].items():
+                    firewall.external_outbound_acl.add_rule(
+                        action=ACLAction[r_cfg["action"]],
+                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_ip_address=r_cfg.get("src_ip"),
+                        dst_ip_address=r_cfg.get("dst_ip"),
+                        position=r_num,
+                    )
+
+        if "routes" in cfg:
+            for route in cfg.get("routes"):
+                firewall.route_table.add_route(
+                    address=IPv4Address(route.get("address")),
+                    subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),
+                    next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
+                    metric=float(route.get("metric", 0)),
+                )
+        return firewall

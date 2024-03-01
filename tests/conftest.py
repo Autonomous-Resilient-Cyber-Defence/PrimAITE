@@ -1,9 +1,11 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, Union
 
 import pytest
 import yaml
+from _pytest.monkeypatch import MonkeyPatch
 
 from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.agent.actions import ActionManager
@@ -12,6 +14,7 @@ from primaite.game.agent.observations import ICSObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.game import PrimaiteGame
 from primaite.session.session import PrimaiteSession
+from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -29,12 +32,28 @@ from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.web_server.web_server import WebServer
+from tests import TEST_ASSETS_ROOT
 from tests.mock_and_patch.get_session_path_mock import temp_user_sessions_path
 
 ACTION_SPACE_NODE_VALUES = 1
 ACTION_SPACE_NODE_ACTION_VALUES = 1
 
 _LOGGER = getLogger(__name__)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def set_syslog_output_to_true():
+    """Will be run before each test."""
+    monkeypatch = MonkeyPatch()
+    monkeypatch.setattr(
+        SIM_OUTPUT,
+        "path",
+        Path(TEST_ASSETS_ROOT.parent.parent / "simulation_output" / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")),
+    )
+    monkeypatch.setattr(SIM_OUTPUT, "save_pcap_logs", True)
+    monkeypatch.setattr(SIM_OUTPUT, "save_sys_logs", True)
+
+    yield
 
 
 class TestService(Service):

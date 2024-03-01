@@ -18,7 +18,7 @@ Game layer
 The game layer is responsible for managing agents and getting them to interface with the simulator correctly. It consists of several components:
 
 PrimAITE Session
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 
 .. admonition:: Deprecated
    :class: deprecated

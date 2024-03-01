@@ -16,6 +16,8 @@ ARP, ICMP, or the Web Client. This pathway exemplifies the structured processing
 each frame reaches its intended target within the simulated environment.
 
 .. image:: node_session_software_model_example.png
+    :width: 500
+    :align: center
 
 Session Manager
 ---------------

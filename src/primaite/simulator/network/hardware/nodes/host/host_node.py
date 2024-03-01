@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ipaddress import IPv4Address
-from typing import Any, Dict, Optional
+from typing import Any, ClassVar, Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.hardware.base import IPWiredNetworkInterface, Link, Node
@@ -250,7 +250,7 @@ class NIC(IPWiredNetworkInterface):
 
         :return: A string combining the port number, MAC address and IP address of the NIC.
         """
-        return f"Port {self.port_num}: {self.mac_address}/{self.ip_address}"
+        return f"Port {self.port_name if self.port_name else self.port_num}: {self.mac_address}/{self.ip_address}"
 
 
 class HostNode(Node):
@@ -297,6 +297,16 @@ class HostNode(Node):
         * Web Browser: Provides web browsing capabilities.
     """
 
+    SYSTEM_SOFTWARE: ClassVar[Dict] = {
+        "HostARP": HostARP,
+        "ICMP": ICMP,
+        "DNSClient": DNSClient,
+        "FTPClient": FTPClient,
+        "NTPClient": NTPClient,
+        "WebBrowser": WebBrowser,
+    }
+    """List of system software that is automatically installed on nodes."""
+
     network_interfaces: Dict[str, NIC] = {}
     "The Network Interfaces on the node."
     network_interface: Dict[int, NIC] = {}
@@ -313,23 +323,8 @@ class HostNode(Node):
         This method equips the host with essential network services and applications, preparing it for various
         network-related tasks and operations.
         """
-        # ARP Service
-        self.software_manager.install(HostARP)
-
-        # ICMP Service
-        self.software_manager.install(ICMP)
-
-        # DNS Client
-        self.software_manager.install(DNSClient)
-
-        # FTP Client
-        self.software_manager.install(FTPClient)
-
-        # NTP Client
-        self.software_manager.install(NTPClient)
-
-        # Web Browser
-        self.software_manager.install(WebBrowser)
+        for _, software_class in self.SYSTEM_SOFTWARE.items():
+            self.software_manager.install(software_class)
 
         super()._install_system_software()
 
