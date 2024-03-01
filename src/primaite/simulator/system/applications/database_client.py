@@ -1,5 +1,5 @@
 from ipaddress import IPv4Address
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from uuid import uuid4
 
 from primaite import getLogger
@@ -26,7 +26,7 @@ class DatabaseClient(Application):
     server_password: Optional[str] = None
     connected: bool = False
     _query_success_tracker: Dict[str, bool] = {}
-    _connections_status: List[bool] = []
+    _last_connection_successful: Optional[bool] = None
     """Keep track of connections that were established or verified during this step. Used for rewards."""
 
     def __init__(self, **kwargs):
@@ -46,7 +46,7 @@ class DatabaseClient(Application):
             can_connect = self.connect(connection_id=list(self.connections.keys())[-1])
         else:
             can_connect = self.connect()
-        self._connections_status.append(can_connect)
+        self._last_connection_successful = can_connect
         return can_connect
 
     def describe_state(self) -> Dict:
@@ -57,8 +57,7 @@ class DatabaseClient(Application):
         """
         state = super().describe_state()
         # list of connections that were established or verified during this step.
-        state["connections_status"] = [c for c in self._connections_status]
-        self._connections_status.clear()
+        state["last_connection_successful"] = self._last_connection_successful
         return state
 
     def configure(self, server_ip_address: IPv4Address, server_password: Optional[str] = None):
