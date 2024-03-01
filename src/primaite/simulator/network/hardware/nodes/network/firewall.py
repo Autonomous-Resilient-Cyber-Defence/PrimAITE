@@ -500,7 +500,7 @@ class Firewall(Router):
         if "ports" in cfg:
             internal_port = cfg["ports"]["internal_port"]
             external_port = cfg["ports"]["external_port"]
-            dmz_port = cfg["ports"]["dmz_port"]
+            dmz_port = cfg["ports"].get("dmz_port")
 
             # configure internal port
             firewall.configure_internal_port(
@@ -514,11 +514,12 @@ class Firewall(Router):
                 subnet_mask=IPV4Address(external_port.get("subnet_mask", "255.255.255.0")),
             )
 
-            # configure dmz port
-            firewall.configure_dmz_port(
-                ip_address=IPV4Address(dmz_port.get("ip_address")),
-                subnet_mask=IPV4Address(dmz_port.get("subnet_mask", "255.255.255.0")),
-            )
+            # configure dmz port if not none
+            if dmz_port is not None:
+                firewall.configure_dmz_port(
+                    ip_address=IPV4Address(dmz_port.get("ip_address")),
+                    subnet_mask=IPV4Address(dmz_port.get("subnet_mask", "255.255.255.0")),
+                )
         if "acl" in cfg:
             # acl rules for internal_inbound_acl
             if cfg["acl"]["internal_inbound_acl"]:
@@ -573,7 +574,7 @@ class Firewall(Router):
                     )
 
             # acl rules for external_inbound_acl
-            if cfg["acl"]["external_inbound_acl"]:
+            if cfg["acl"].get("external_inbound_acl"):
                 for r_num, r_cfg in cfg["acl"]["external_inbound_acl"].items():
                     firewall.external_inbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
@@ -586,7 +587,7 @@ class Firewall(Router):
                     )
 
             # acl rules for external_outbound_acl
-            if cfg["acl"]["external_outbound_acl"]:
+            if cfg["acl"].get("external_outbound_acl"):
                 for r_num, r_cfg in cfg["acl"]["external_outbound_acl"].items():
                     firewall.external_outbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
