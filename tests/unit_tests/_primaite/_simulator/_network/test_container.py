@@ -26,10 +26,10 @@ def filter_keys_nested_item(data, keys):
 
 @pytest.fixture(scope="function")
 def network(example_network) -> Network:
-    assert len(example_network.routers) is 1
-    assert len(example_network.switches) is 2
-    assert len(example_network.computers) is 2
-    assert len(example_network.servers) is 2
+    assert len(example_network.router_nodes) is 1
+    assert len(example_network.switch_nodes) is 2
+    assert len(example_network.computer_nodes) is 2
+    assert len(example_network.server_nodes) is 2
 
     example_network.show()
 
