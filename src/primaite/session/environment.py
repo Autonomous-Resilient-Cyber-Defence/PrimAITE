@@ -1,3 +1,4 @@
+import copy
 import json
 from typing import Any, Dict, Optional, SupportsFloat, Tuple
 
@@ -23,7 +24,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         super().__init__()
         self.game_config: Dict = game_config
         """PrimaiteGame definition. This can be changed between episodes to enable curriculum learning."""
-        self.game: PrimaiteGame = PrimaiteGame.from_config(self.game_config)
+        self.game: PrimaiteGame = PrimaiteGame.from_config(copy.deepcopy(self.game_config))
         """Current game."""
         self._agent_name = next(iter(self.game.rl_agents))
         """Name of the RL agent. Since there should only be one RL agent we can just pull the first and only key."""
@@ -78,7 +79,7 @@ class PrimaiteGymEnv(gymnasium.Env):
             f"Resetting environment, episode {self.episode_counter}, "
             f"avg. reward: {self.agent.reward_function.total_reward}"
         )
-        self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=self.game_config)
+        self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=copy.deepcopy(self.game_config))
         self.game.setup_for_episode(episode=self.episode_counter)
         self.episode_counter += 1
         state = self.game.get_sim_state()

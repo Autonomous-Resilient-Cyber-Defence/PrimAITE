@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional
 from uuid import uuid4
 
 from primaite import getLogger
+from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
@@ -25,6 +26,8 @@ class DatabaseClient(Application):
     server_password: Optional[str] = None
     connected: bool = False
     _query_success_tracker: Dict[str, bool] = {}
+    _last_connection_successful: Optional[bool] = None
+    """Keep track of connections that were established or verified during this step. Used for rewards."""
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseClient"
@@ -32,14 +35,30 @@ class DatabaseClient(Application):
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
 
+    def _init_request_manager(self) -> RequestManager:
+        rm = super()._init_request_manager()
+        rm.add_request("execute", RequestType(func=lambda request, context: self.execute()))
+        return rm
+
+    def execute(self) -> bool:
+        """Execution definition for db client: perform a select query."""
+        if self.connections:
+            can_connect = self.check_connection(connection_id=list(self.connections.keys())[-1])
+        else:
+            can_connect = self.check_connection(connection_id=str(uuid4()))
+        self._last_connection_successful = can_connect
+        return can_connect
+
     def describe_state(self) -> Dict:
         """
         Describes the current state of the ACLRule.
 
         :return: A dictionary representing the current state.
         """
-        pass
-        return super().describe_state()
+        state = super().describe_state()
+        # list of connections that were established or verified during this step.
+        state["last_connection_successful"] = self._last_connection_successful
+        return state
 
     def configure(self, server_ip_address: IPv4Address, server_password: Optional[str] = None):
         """
@@ -64,6 +83,18 @@ class DatabaseClient(Application):
             server_ip_address=self.server_ip_address, password=self.server_password, connection_id=connection_id
         )
         return self.connected
+
+    def check_connection(self, connection_id: str) -> bool:
+        """Check whether the connection can be successfully re-established.
+
+        :param connection_id: connection ID to check
+        :type connection_id: str
+        :return: Whether the connection was successfully re-established.
+        :rtype: bool
+        """
+        if not self._can_perform_action():
+            return False
+        return self.query("SELECT * FROM pg_stat_activity", connection_id=connection_id)
 
     def _connect(
         self,

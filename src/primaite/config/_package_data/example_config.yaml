@@ -33,7 +33,12 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: GreenWebBrowsingAgent
+    type: probabilistic_agent
+    agent_settings:
+      action_probabilities:
+        0: 0.3
+        1: 0.6
+        2: 0.1
     observation_space:
       type: UC2GreenObservation
     action_space:
@@ -45,24 +50,38 @@ agents:
         - node_name: client_2
           applications:
             - application_name: WebBrowser
+            - application_name: DatabaseClient
         max_folders_per_node: 1
         max_files_per_folder: 1
         max_services_per_node: 1
-        max_applications_per_node: 1
+        max_applications_per_node: 2
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
+        1:
+          action: NODE_APPLICATION_EXECUTE
+          options:
+            node_id: 0
+            application_id: 0
+        2:
+          action: NODE_APPLICATION_EXECUTE
+          options:
+            node_id: 0
+            application_id: 1
 
     reward_function:
       reward_components:
         - type: DUMMY
 
-    agent_settings:
-      start_settings:
-        start_step: 5
-        frequency: 4
-        variance: 3
-
   - ref: client_1_green_user
     team: GREEN
-    type: GreenWebBrowsingAgent
+    type: probabilistic_agent
+    agent_settings:
+      action_probabilities:
+        0: 0.3
+        1: 0.6
+        2: 0.1
     observation_space:
       type: UC2GreenObservation
     action_space:
@@ -74,13 +93,30 @@ agents:
           - node_name: client_1
             applications:
               - application_name: WebBrowser
+              - application_name: DatabaseClient
         max_folders_per_node: 1
         max_files_per_folder: 1
         max_services_per_node: 1
-        max_applications_per_node: 1
+        max_applications_per_node: 2
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
+        1:
+          action: NODE_APPLICATION_EXECUTE
+          options:
+            node_id: 0
+            application_id: 0
+        2:
+          action: NODE_APPLICATION_EXECUTE
+          options:
+            node_id: 0
+            application_id: 1
+
     reward_function:
       reward_components:
         - type: DUMMY
+
 
 
 
@@ -670,6 +706,14 @@ agents:
           weight: 0.33
           options:
             node_hostname: client_2
+        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
+          weight: 0.1
+          options:
+            node_hostname: client_1
+        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
+          weight: 0.1
+          options:
+            node_hostname: client_2
 
 
     agent_settings:
@@ -820,6 +864,10 @@ simulation:
         type: WebBrowser
         options:
           target_url: http://arcd.com/users/
+      - ref: client_1_database_client
+        type: DatabaseClient
+        options:
+          db_server_ip: 192.168.1.14
       services:
       - ref: client_1_dns_client
         type: DNSClient
@@ -843,6 +891,10 @@ simulation:
           data_manipulation_p_of_success: 0.8
           payload: "DELETE"
           server_ip: 192.168.1.14
+      - ref: client_2_database_client
+        type: DatabaseClient
+        options:
+          db_server_ip: 192.168.1.14
       services:
       - ref: client_2_dns_client
         type: DNSClient

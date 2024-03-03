@@ -112,7 +112,7 @@ class AbstractAgent(ABC):
         return self.reward_function.update(state)
 
     @abstractmethod
-    def get_action(self, obs: ObsType, reward: float = 0.0) -> Tuple[str, Dict]:
+    def get_action(self, obs: ObsType, reward: float = 0.0, timestep: Optional[int] = None) -> Tuple[str, Dict]:
         """
         Return an action to be taken in the environment.
 
@@ -122,6 +122,8 @@ class AbstractAgent(ABC):
         :type obs: ObsType
         :param reward: Reward from the previous action, defaults to None TODO: should this parameter even be accepted?
         :type reward: float, optional
+        :param timestep: The current timestep in the simulation, used for non-RL agents. Optional
+        :type timestep: int
         :return: Action to be taken in the environment.
         :rtype: Tuple[str, Dict]
         """
@@ -144,13 +146,13 @@ class AbstractAgent(ABC):
 class AbstractScriptedAgent(AbstractAgent):
     """Base class for actors which generate their own behaviour."""
 
-    ...
+    pass
 
 
 class RandomAgent(AbstractScriptedAgent):
     """Agent that ignores its observation and acts completely at random."""
 
-    def get_action(self, obs: ObsType, reward: float = 0.0) -> Tuple[str, Dict]:
+    def get_action(self, obs: ObsType, reward: float = 0.0, timestep: Optional[int] = None) -> Tuple[str, Dict]:
         """Randomly sample an action from the action space.
 
         :param obs: _description_
@@ -183,7 +185,7 @@ class ProxyAgent(AbstractAgent):
         self.most_recent_action: ActType
         self.flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False
 
-    def get_action(self, obs: ObsType, reward: float = 0.0) -> Tuple[str, Dict]:
+    def get_action(self, obs: ObsType, reward: float = 0.0, timestep: Optional[int] = None) -> Tuple[str, Dict]:
         """
         Return the agent's most recent action, formatted in CAOS format.
 
