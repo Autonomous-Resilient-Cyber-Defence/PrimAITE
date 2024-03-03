@@ -45,7 +45,7 @@ In a simulation, the bot can be controlled by using ``DataManipulationAgent`` wh
 Implementation
 ==============
 
-The bot extends :ref:`DatabaseClient` and leverages its connectivity.
+The bot connects to a :ref:`DatabaseClient` and leverages its connectivity. The host running ``DataManipulationBot`` must also have a :ref:`DatabaseClient` installed on it.
 
 - Uses the Application base class for lifecycle management.
 - Credentials, target IP and other options set via ``configure``.
@@ -65,6 +65,7 @@ Python
     from primaite.simulator.network.hardware.nodes.host.computer import Computer
     from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
     from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
+    from primaite.simulator.system.applications.database_client import DatabaseClient
 
     client_1 = Computer(
         hostname="client_1",
@@ -74,6 +75,7 @@ Python
         operating_state=NodeOperatingState.ON # initialise the computer in an ON state
     )
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
+    client_1.software_manager.install(DatabaseClient)
     client_1.software_manager.install(DataManipulationBot)
     data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
     data_manipulation_bot.configure(server_ip_address=IPv4Address("192.168.1.14"), payload="DELETE")
@@ -148,6 +150,10 @@ If not using the data manipulation bot manually, it needs to be used with a data
               data_manipulation_p_of_success: 0.1
               payload: "DELETE"
               server_ip: 192.168.1.14
+          - ref: web_server_database_client
+            type: DatabaseClient
+            options:
+              db_server_ip: 192.168.1.14
 
 Configuration
 =============
