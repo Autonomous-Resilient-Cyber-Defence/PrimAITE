@@ -1,3 +1,5 @@
+from ipaddress import IPv4Address
+
 import pytest
 
 from primaite.simulator.network.container import Network
@@ -8,12 +10,18 @@ from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from tests.integration_tests.configuration_file_parsing import DMZ_NETWORK, load_config
+from tests.integration_tests.configuration_file_parsing import BASIC_FIREWALL, DMZ_NETWORK, load_config
 
 
 @pytest.fixture(scope="function")
 def dmz_config() -> Network:
     game = load_config(DMZ_NETWORK)
+    return game.simulation.network
+
+
+@pytest.fixture(scope="function")
+def basic_firewall_config() -> Network:
+    game = load_config(BASIC_FIREWALL)
     return game.simulation.network
 
 
@@ -109,3 +117,19 @@ def test_firewall_acl_rules_correctly_added(dmz_config):
     # external_outbound should have implicit action PERMIT
     # ICMP does not have a provided ACL Rule but implicit action should allow anything
     assert firewall.external_outbound_acl.implicit_action == ACLAction.PERMIT
+
+
+def test_firewall_with_no_dmz_port(basic_firewall_config):
+    """
+    Test to check that:
+     - the DMZ port can be ignored i.e. is optional.
+     - the external_outbound_acl and external_inbound_acl are optional
+    """
+    network: Network = basic_firewall_config
+
+    firewall: Firewall = network.get_node_by_hostname("firewall")
+
+    assert firewall.dmz_port.ip_address == IPv4Address("127.0.0.1")
+
+    assert firewall.external_outbound_acl.num_rules == 0
+    assert firewall.external_inbound_acl.num_rules == 0

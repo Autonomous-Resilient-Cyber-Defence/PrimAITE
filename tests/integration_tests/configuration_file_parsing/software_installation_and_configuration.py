@@ -60,9 +60,9 @@ def test_example_config():
     network: Network = game.simulation.network
 
     assert len(network.nodes) == 10  # 10 nodes in example network
-    assert len(network.routers) == 1  # 1 router in network
-    assert len(network.switches) == 2  # 2 switches in network
-    assert len(network.servers) == 5  # 5 servers in network
+    assert len(network.router_nodes) == 1  # 1 router in network
+    assert len(network.switch_nodes) == 2  # 2 switches in network
+    assert len(network.server_nodes) == 5  # 5 servers in network
 
 
 def test_node_software_install():

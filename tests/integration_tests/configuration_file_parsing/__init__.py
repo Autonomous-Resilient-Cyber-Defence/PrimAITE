@@ -10,6 +10,8 @@ BASIC_CONFIG = TEST_ASSETS_ROOT / "configs/basic_switched_network.yaml"
 
 DMZ_NETWORK = TEST_ASSETS_ROOT / "configs/dmz_network.yaml"
 
+BASIC_FIREWALL = TEST_ASSETS_ROOT / "configs/basic_firewall.yaml"
+
 
 def load_config(config_path: Union[str, Path]) -> PrimaiteGame:
     """Returns a PrimaiteGame object which loads the contents of a given yaml path."""

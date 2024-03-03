@@ -223,8 +223,12 @@ class PrimaiteGame:
         sim = game.simulation
         net = sim.network
 
-        nodes_cfg = cfg["simulation"]["network"]["nodes"]
-        links_cfg = cfg["simulation"]["network"]["links"]
+        simulation_config = cfg.get("simulation", {})
+        network_config = simulation_config.get("network", {})
+
+        nodes_cfg = network_config.get("nodes", [])
+        links_cfg = network_config.get("links", [])
+
         for node_cfg in nodes_cfg:
             node_ref = node_cfg["ref"]
             n_type = node_cfg["type"]
@@ -391,7 +395,7 @@ class PrimaiteGame:
             game.ref_map_links[link_cfg["ref"]] = new_link.uuid
 
         # 3. create agents
-        agents_cfg = cfg["agents"]
+        agents_cfg = cfg.get("agents", [])
 
         for agent_cfg in agents_cfg:
             agent_ref = agent_cfg["ref"]  # noqa: F841
@@ -447,6 +451,6 @@ class PrimaiteGame:
             game.agents[agent_cfg["ref"]] = new_agent
 
         # Set the NMNE capture config
-        set_nmne_config(cfg["simulation"]["network"].get("nmne_config", {}))
+        set_nmne_config(network_config.get("nmne_config", {}))
 
         return game

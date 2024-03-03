@@ -11,9 +11,9 @@ def test_example_config():
     network: Network = game.simulation.network
 
     assert len(network.nodes) == 10  # 10 nodes in example network
-    assert len(network.routers) == 1  # 1 router in network
-    assert len(network.switches) == 2  # 2 switches in network
-    assert len(network.servers) == 5  # 5 servers in network
+    assert len(network.router_nodes) == 1  # 1 router in network
+    assert len(network.switch_nodes) == 2  # 2 switches in network
+    assert len(network.server_nodes) == 5  # 5 servers in network
 
 
 def test_dmz_config():
@@ -23,9 +23,10 @@ def test_dmz_config():
     network: Network = game.simulation.network
 
     assert len(network.nodes) == 9  # 9 nodes in network
-    assert len(network.routers) == 2  # 2 routers in network
-    assert len(network.switches) == 3  # 3 switches in network
-    assert len(network.servers) == 2  # 2 servers in network
+    assert len(network.router_nodes) == 1  # 1 router in network
+    assert len(network.firewall_nodes) == 1  # 1 firewall in network
+    assert len(network.switch_nodes) == 3  # 3 switches in network
+    assert len(network.server_nodes) == 2  # 2 servers in network
 
 
 def test_basic_config():

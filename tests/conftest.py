@@ -422,7 +422,7 @@ def install_stuff_to_sim(sim: Simulation):
     assert len(sim.network.nodes) == 6
     assert len(sim.network.links) == 5
     # 5.1: Assert the router is correctly configured
-    r = sim.network.routers[0]
+    r = sim.network.router_nodes[0]
     for i, acl_rule in enumerate(r.acl.acl):
         if i == 1:
             assert acl_rule.src_port == acl_rule.dst_port == Port.DNS
