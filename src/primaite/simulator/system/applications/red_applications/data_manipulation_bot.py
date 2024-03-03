@@ -149,6 +149,10 @@ class DataManipulationBot(Application):
 
         :param p_of_success: Probability of successfully performing data manipulation, by default 0.1.
         """
+        if self._host_db_client is None:
+            self.attack_stage = DataManipulationAttackStage.FAILED
+            return
+
         self._host_db_client.server_ip_address = self.server_ip_address
         self._host_db_client.server_password = self.server_password
         if self.attack_stage == DataManipulationAttackStage.PORT_SCAN:

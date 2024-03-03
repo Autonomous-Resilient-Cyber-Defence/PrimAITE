@@ -146,6 +146,9 @@ def arcd_uc2_network() -> Network:
     )
     client_1.power_on()
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
+    db_client_1 = client_1.software_manager.install(DatabaseClient)
+    db_client_1 = client_1.software_manager.software.get("DatabaseClient")
+    db_client_1.run()
     client_1.software_manager.install(DataManipulationBot)
     db_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
     db_manipulation_bot.configure(
@@ -165,6 +168,9 @@ def arcd_uc2_network() -> Network:
         start_up_duration=0,
     )
     client_2.power_on()
+    client_2.software_manager.install(DatabaseClient)
+    db_client_2 = client_2.software_manager.software.get("DatabaseClient")
+    db_client_2.run()
     web_browser = client_2.software_manager.software.get("WebBrowser")
     web_browser.target_url = "http://arcd.com/users/"
     network.connect(endpoint_b=client_2.network_interface[1], endpoint_a=switch_2.network_interface[2])
@@ -194,67 +200,10 @@ def arcd_uc2_network() -> Network:
     database_server.power_on()
     network.connect(endpoint_b=database_server.network_interface[1], endpoint_a=switch_1.network_interface[3])
 
-    ddl = """
-    CREATE TABLE IF NOT EXISTS user (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(50) NOT NULL,
-    email VARCHAR(50) NOT NULL,
-    age INT,
-    city VARCHAR(50),
-    occupation VARCHAR(50)
-    );"""
-
-    user_insert_statements = [
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('John Doe', 'johndoe@example.com', 32, 'New York', 'Engineer');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Jane Smith', 'janesmith@example.com', 27, 'Los Angeles', 'Designer');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Bob Johnson', 'bobjohnson@example.com', 45, 'Chicago', 'Manager');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Alice Lee', 'alicelee@example.com', 22, 'San Francisco', 'Student');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('David Kim', 'davidkim@example.com', 38, 'Houston', 'Consultant');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Emily Chen', 'emilychen@example.com', 29, 'Seattle', 'Software Developer');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Frank Wang', 'frankwang@example.com', 55, 'New York', 'Entrepreneur');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Grace Park', 'gracepark@example.com', 31, 'Los Angeles', 'Marketing Specialist');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Henry Wu', 'henrywu@example.com', 40, 'Chicago', 'Accountant');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Isabella Kim', 'isabellakim@example.com', 26, 'San Francisco', 'Graphic Designer');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Jake Lee', 'jakelee@example.com', 33, 'Houston', 'Sales Manager');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Kelly Chen', 'kellychen@example.com', 28, 'Seattle', 'Web Developer');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Lucas Liu', 'lucasliu@example.com', 42, 'New York', 'Lawyer');",
-        # noqa
-        "INSERT INTO user (name, email, age, city, occupation) "
-        "VALUES ('Maggie Wang', 'maggiewang@example.com', 30, 'Los Angeles', 'Data Analyst');",
-        # noqa
-    ]
     database_server.software_manager.install(DatabaseService)
     database_service: DatabaseService = database_server.software_manager.software.get("DatabaseService")  # noqa
     database_service.start()
     database_service.configure_backup(backup_server=IPv4Address("192.168.1.16"))
-    database_service._process_sql(ddl, None, None)  # noqa
-    for insert_statement in user_insert_statements:
-        database_service._process_sql(insert_statement, None, None)  # noqa
 
     # Web Server
     web_server = Server(
