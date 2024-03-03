@@ -15,6 +15,8 @@ class IPProtocol(Enum):
     .. _List of IPProtocols:
     """
 
+    NONE = "none"
+    """Placeholder for a non-port."""
     TCP = "tcp"
     """Transmission Control Protocol."""
     UDP = "udp"

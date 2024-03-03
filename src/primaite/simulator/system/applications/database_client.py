@@ -84,7 +84,14 @@ class DatabaseClient(Application):
         )
         return self.connected
 
-    def check_connection(self, connection_id:str) -> bool:
+    def check_connection(self, connection_id: str) -> bool:
+        """Check whether the connection can be successfully re-established.
+
+        :param connection_id: connection ID to check
+        :type connection_id: str
+        :return: Whether the connection was successfully re-established.
+        :rtype: bool
+        """
         if not self._can_perform_action():
             return False
         print(self.query("SELECT * FROM pg_stat_activity", connection_id=connection_id))

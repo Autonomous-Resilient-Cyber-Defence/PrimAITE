@@ -409,9 +409,6 @@ class PrimaiteGame:
             # CREATE REWARD FUNCTION
             reward_function = RewardFunction.from_config(reward_function_cfg)
 
-            # OTHER AGENT SETTINGS
-            agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-
             # CREATE AGENT
             if agent_type == "probabilistic_agent":
                 # TODO: implement non-random agents and fix this parsing
@@ -424,6 +421,7 @@ class PrimaiteGame:
                     settings=settings,
                 )
             elif agent_type == "ProxyAgent":
+                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
                 new_agent = ProxyAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
@@ -433,6 +431,8 @@ class PrimaiteGame:
                 )
                 game.rl_agents[agent_cfg["ref"]] = new_agent
             elif agent_type == "RedDatabaseCorruptingAgent":
+                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
+
                 new_agent = DataManipulationAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,

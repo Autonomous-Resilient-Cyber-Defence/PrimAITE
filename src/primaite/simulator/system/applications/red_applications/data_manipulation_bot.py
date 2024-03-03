@@ -1,10 +1,13 @@
 from enum import IntEnum
 from ipaddress import IPv4Address
-from typing import Optional
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.simulator.core import RequestManager, RequestType
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient
 
 _LOGGER = getLogger(__name__)
@@ -32,12 +35,12 @@ class DataManipulationAttackStage(IntEnum):
     "Signifies that the attack has failed."
 
 
-class DataManipulationBot(DatabaseClient):
+class DataManipulationBot(Application):
     """A bot that simulates a script which performs a SQL injection attack."""
 
-    server_ip_address: Optional[IPv4Address] = None
+    # server_ip_address: Optional[IPv4Address] = None
     payload: Optional[str] = None
-    server_password: Optional[str] = None
+    # server_password: Optional[str] = None
     port_scan_p_of_success: float = 0.1
     data_manipulation_p_of_success: float = 0.1
 
@@ -46,8 +49,31 @@ class DataManipulationBot(DatabaseClient):
     "Whether to repeat attacking once finished."
 
     def __init__(self, **kwargs):
+        kwargs["name"] = "DataManipulationBot"
+        kwargs["port"] = Port.NONE
+        kwargs["protocol"] = IPProtocol.NONE
+
         super().__init__(**kwargs)
-        self.name = "DataManipulationBot"
+
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
+
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        return state
+
+    @property
+    def _host_db_client(self) -> DatabaseClient:
+        """Return the database client that is installed on the same machine as the DataManipulationBot."""
+        db_client = self.software_manager.software.get("DatabaseClient")
+        if db_client is None:
+            _LOGGER.info(f"{self.__class__.__name__} cannot find a database client on its host.")
+        return db_client
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
@@ -76,8 +102,8 @@ class DataManipulationBot(DatabaseClient):
         :param repeat: Whether to repeat attacking once finished.
         """
         self.server_ip_address = server_ip_address
-        self.payload = payload
         self.server_password = server_password
+        self.payload = payload
         self.port_scan_p_of_success = port_scan_p_of_success
         self.data_manipulation_p_of_success = data_manipulation_p_of_success
         self.repeat = repeat
@@ -123,15 +149,17 @@ class DataManipulationBot(DatabaseClient):
 
         :param p_of_success: Probability of successfully performing data manipulation, by default 0.1.
         """
+        self._host_db_client.server_ip_address = self.server_ip_address
+        self._host_db_client.server_password = self.server_password
         if self.attack_stage == DataManipulationAttackStage.PORT_SCAN:
             # perform the actual data manipulation attack
             if simulate_trial(p_of_success):
                 self.sys_log.info(f"{self.name}: Performing data manipulation")
                 # perform the attack
-                if not len(self.connections):
-                    self.connect()
-                if len(self.connections):
-                    self.query(self.payload)
+                if not len(self._host_db_client.connections):
+                    self._host_db_client.connect()
+                if len(self._host_db_client.connections):
+                    self._host_db_client.query(self.payload)
                     self.sys_log.info(f"{self.name} payload delivered: {self.payload}")
                     attack_successful = True
                     if attack_successful:
