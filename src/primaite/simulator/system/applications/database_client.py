@@ -94,8 +94,7 @@ class DatabaseClient(Application):
         """
         if not self._can_perform_action():
             return False
-        print(self.query("SELECT * FROM pg_stat_activity", connection_id=connection_id))
-        return self.connected
+        return self.query("SELECT * FROM pg_stat_activity", connection_id=connection_id)
 
     def _connect(
         self,
