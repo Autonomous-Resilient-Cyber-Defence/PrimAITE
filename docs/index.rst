@@ -109,6 +109,7 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    source/game_layer
    source/config
    source/environment
+   source/customising_scenarios
 
 .. toctree::
    :caption: Developer information:
