@@ -328,7 +328,7 @@ class ControlledAgent(AbstractAgent):
         )
         self.most_recent_action: Tuple[str, Dict]
 
-    def get_action(self, obs: None, reward: float = 0.0, timestep: Optional[int] = None) -> Tuple[str, Dict]:
+    def get_action(self, obs: None, timestep: int = 0) -> Tuple[str, Dict]:
         """Return the agent's most recent action, formatted in CAOS format."""
         return self.most_recent_action
 

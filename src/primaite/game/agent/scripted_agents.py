@@ -70,17 +70,17 @@ class ProbabilisticAgent(AbstractScriptedAgent):
 
         super().__init__(agent_name, action_space, observation_space, reward_function)
 
-    def get_action(self, obs: ObsType, reward: float = 0.0, timestep: Optional[int] = None) -> Tuple[str, Dict]:
+    def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
-        Choose a random action from the action space.
+        Sample the action space randomly.
 
         The probability of each action is given by the corresponding index in ``self.probabilities``.
 
-        :param obs: Current observation of the simulation
+        :param obs: Current observation for this agent, not used in ProbabilisticAgent
         :type obs: ObsType
-        :param reward: Reward for the last step, not used for scripted agents, defaults to 0
-        :type reward: float, optional
-        :return: Action to be taken in CAOS format.
+        :param timestep: The current simulation timestep, not used in ProbabilisticAgent
+        :type timestep: int
+        :return: Action formatted in CAOS format
         :rtype: Tuple[str, Dict]
         """
         choice = self.rng.choice(len(self.action_manager.action_map), p=self.probabilities)

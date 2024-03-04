@@ -16,7 +16,7 @@ class IPProtocol(Enum):
     """
 
     NONE = "none"
-    """Placeholder for a non-port."""
+    """Placeholder for a non-protocol."""
     TCP = "tcp"
     """Transmission Control Protocol."""
     UDP = "udp"

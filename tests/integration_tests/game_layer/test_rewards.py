@@ -41,6 +41,7 @@ def test_WebpageUnavailablePenalty(game_and_agent):
 
 
 def test_uc2_rewards(game_and_agent):
+    """Test that the reward component correctly applies a penalty when the selected client cannot reach the database."""
     game, agent = game_and_agent
     agent: ControlledAgent
 

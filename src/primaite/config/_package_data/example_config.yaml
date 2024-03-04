@@ -33,7 +33,7 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: probabilistic_agent
+    type: ProbabilisticAgent
     agent_settings:
       action_probabilities:
         0: 0.3
@@ -76,7 +76,7 @@ agents:
 
   - ref: client_1_green_user
     team: GREEN
-    type: probabilistic_agent
+    type: ProbabilisticAgent
     agent_settings:
       action_probabilities:
         0: 0.3
