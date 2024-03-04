@@ -1,53 +1,50 @@
+import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from primaite import PRIMAITE_PATHS
+from primaite import getLogger, PRIMAITE_PATHS
 from primaite.simulator import SIM_OUTPUT
 
-
-class SessionIOSettings(BaseModel):
-    """Schema for session IO settings."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    save_final_model: bool = True
-    """Whether to save the final model right at the end of training."""
-    save_checkpoints: bool = False
-    """Whether to save a checkpoint model every `checkpoint_interval` episodes"""
-    checkpoint_interval: int = 10
-    """How often to save a checkpoint model (if save_checkpoints is True)."""
-    save_logs: bool = True
-    """Whether to save logs"""
-    save_transactions: bool = True
-    """Whether to save transactions, If true, the session path will have a transactions folder."""
-    save_tensorboard_logs: bool = False
-    """Whether to save tensorboard logs. If true, the session path will have a tensorboard_logs folder."""
-    save_step_metadata: bool = False
-    """Whether to save the RL agents' action, environment state, and other data at every single step."""
-    save_pcap_logs: bool = False
-    """Whether to save PCAP logs."""
-    save_sys_logs: bool = False
-    """Whether to save system logs."""
+_LOGGER = getLogger(__name__)
 
 
-class SessionIO:
+class PrimaiteIO:
     """
     Class for managing session IO.
 
     Currently it's handling path generation, but could expand to handle loading, transaction, tensorboard, and so on.
     """
 
-    def __init__(self, settings: SessionIOSettings = SessionIOSettings()) -> None:
-        self.settings: SessionIOSettings = settings
+    class Settings(BaseModel):
+        """Config schema for PrimaiteIO object."""
+
+        model_config = ConfigDict(extra="forbid")
+
+        save_logs: bool = True
+        """Whether to save logs"""
+        save_agent_actions: bool = True
+        """Whether to save a log of all agents' actions every step."""
+        save_transactions: bool = True
+        """Whether to save transactions, If true, the session path will have a transactions folder."""
+        save_step_metadata: bool = False
+        """Whether to save the RL agents' action, environment state, and other data at every single step."""
+        save_pcap_logs: bool = False
+        """Whether to save PCAP logs."""
+        save_sys_logs: bool = False
+        """Whether to save system logs."""
+
+    def __init__(self, settings: Optional[Settings] = None) -> None:
+        self.settings = settings or PrimaiteIO.Settings()
         self.session_path: Path = self.generate_session_path()
         # set global SIM_OUTPUT path
         SIM_OUTPUT.path = self.session_path / "simulation_output"
         SIM_OUTPUT.save_pcap_logs = self.settings.save_pcap_logs
         SIM_OUTPUT.save_sys_logs = self.settings.save_sys_logs
 
+        self.agent_action_log: List[Dict] = []
         # warning TODO: must be careful not to re-initialise sessionIO because it will create a new path each time it's
         # possible refactor needed
 
@@ -68,3 +65,56 @@ class SessionIO:
     def generate_checkpoint_save_path(self, agent_name: str, episode: int) -> Path:
         """Return the path where the checkpoint model will be saved (excluding filename extension)."""
         return self.session_path / "checkpoints" / f"{agent_name}_checkpoint_{episode}.pt"
+
+    def generate_agent_actions_save_path(self, episode: int) -> Path:
+        """Return the path where agent actions will be saved."""
+        return self.session_path / "agent_actions" / f"episode_{episode}.json"
+
+    def store_agent_actions(self, agent_actions: Dict, episode: int, timestep: int) -> None:
+        """Cache agent actions for a particular step.
+
+        :param agent_actions: Dictionary describing actions for any agents that acted in this timestep. The expected
+            format contains agent identifiers as keys. The keys should map to a tuple of [CAOS action, parameters]
+            CAOS action is a string representing one the CAOS actions.
+            parameters is a dict of parameter names and values for that particular CAOS action.
+            For example:
+                {
+                    'green1' : ('NODE_APPLICATION_EXECUTE', {'node_id':1, 'application_id':0}),
+                    'defender': ('DO_NOTHING', {})
+                }
+        :type agent_actions: Dict
+        :param timestep: Simulation timestep when these actions occurred.
+        :type timestep: int
+        """
+        self.agent_action_log.append(
+            [
+                {
+                    "episode": episode,
+                    "timestep": timestep,
+                    "agent_actions": {k: {"action": v[0], "parameters": v[1]} for k, v in agent_actions.items()},
+                }
+            ]
+        )
+
+    def write_agent_actions(self, episode: int) -> None:
+        """Take the contents of the agent action log and write it to a file.
+
+        :param episode: Episode number
+        :type episode: int
+        """
+        path = self.generate_agent_actions_save_path(episode=episode)
+        path.parent.mkdir(exist_ok=True, parents=True)
+        path.touch()
+        _LOGGER.info(f"Saving agent action log to {path}")
+        with open(path, "w") as file:
+            json.dump(self.agent_action_log, fp=file, indent=1)
+
+    def clear_agent_actions(self) -> None:
+        """Reset the agent action log back to an empty dictionary."""
+        self.agent_action_log = []
+
+    @classmethod
+    def from_config(cls, config: Dict) -> "PrimaiteIO":
+        """Create an instance of PrimaiteIO based on a configuration dict."""
+        new = cls()
+        return new

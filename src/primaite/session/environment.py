@@ -8,6 +8,7 @@ from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
+from primaite.session.io import PrimaiteIO
 from primaite.simulator import SIM_OUTPUT
 
 
@@ -32,6 +33,9 @@ class PrimaiteGymEnv(gymnasium.Env):
         self.episode_counter: int = 0
         """Current episode number."""
 
+        self.io = PrimaiteIO.from_config(game_config.get("io_settings", {}))
+        """Handles IO for the environment. This produces sys logs, agent logs, etc."""
+
     @property
     def agent(self) -> ProxyAgent:
         """Grab a fresh reference to the agent object because it will be reinstantiated each episode."""
@@ -55,6 +59,10 @@ class PrimaiteGymEnv(gymnasium.Env):
         info = {"agent_actions": agent_actions}  # tell us what all the agents did for convenience.
         if self.game.save_step_metadata:
             self._write_step_metadata_json(action, state, reward)
+        if self.io.settings.save_agent_actions:
+            self.io.store_agent_actions(
+                agent_actions=agent_actions, episode=self.episode_counter, timestep=self.game.step_counter
+            )
         return next_obs, reward, terminated, truncated, info
 
     def _write_step_metadata_json(self, action: int, state: Dict, reward: int):
@@ -79,6 +87,9 @@ class PrimaiteGymEnv(gymnasium.Env):
             f"Resetting environment, episode {self.episode_counter}, "
             f"avg. reward: {self.agent.reward_function.total_reward}"
         )
+        if self.io.settings.save_agent_actions:
+            self.io.write_agent_actions(episode=self.episode_counter)
+            self.io.clear_agent_actions()
         self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=copy.deepcopy(self.game_config))
         self.game.setup_for_episode(episode=self.episode_counter)
         self.episode_counter += 1
@@ -146,7 +157,7 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         """
         self.game_config: Dict = env_config
         """PrimaiteGame definition. This can be changed between episodes to enable curriculum learning."""
-        self.game: PrimaiteGame = PrimaiteGame.from_config(self.game_config)
+        self.game: PrimaiteGame = PrimaiteGame.from_config(copy.deepcopy(self.game_config))
         """Reference to the primaite game"""
         self._agent_ids = list(self.game.rl_agents.keys())
         """Agent ids. This is a list of strings of agent names."""
@@ -164,6 +175,10 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         self.action_space = gymnasium.spaces.Dict(
             {name: agent.action_manager.space for name, agent in self.agents.items()}
         )
+
+        self.io = PrimaiteIO.from_config(env_config.get("io_settings"))
+        """Handles IO for the environment. This produces sys logs, agent logs, etc."""
+
         super().__init__()
 
     @property
@@ -173,7 +188,10 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
 
     def reset(self, *, seed: int = None, options: dict = None) -> Tuple[ObsType, Dict]:
         """Reset the environment."""
-        self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=self.game_config)
+        if self.io.settings.save_agent_actions:
+            self.io.write_agent_actions(episode=self.episode_counter)
+            self.io.clear_agent_actions()
+        self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=copy.deepcopy(self.game_config))
         self.game.setup_for_episode(episode=self.episode_counter)
         self.episode_counter += 1
         state = self.game.get_sim_state()
@@ -196,7 +214,7 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         # 1. Perform actions
         for agent_name, action in actions.items():
             self.agents[agent_name].store_action(action)
-        self.game.apply_agent_actions()
+        agent_actions = self.game.apply_agent_actions()
 
         # 2. Advance timestep
         self.game.advance_timestep()
@@ -215,6 +233,10 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         truncateds["__all__"] = self.game.calculate_truncated()
         if self.game.save_step_metadata:
             self._write_step_metadata_json(actions, state, rewards)
+        if self.io.settings.save_agent_actions:
+            self.io.store_agent_actions(
+                agent_actions=agent_actions, episode=self.episode_counter, timestep=self.game.step_counter
+            )
         return next_obs, rewards, terminateds, truncateds, infos
 
     def _write_step_metadata_json(self, actions: Dict, state: Dict, rewards: Dict):
