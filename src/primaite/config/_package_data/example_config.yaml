@@ -275,99 +275,196 @@ agents:
           3:
             action: "NODE_SERVICE_START"
             options:
-                node_id: 1
-                service_id: 0
+              node_id: 1
+              service_id: 0
           4:
             action: "NODE_SERVICE_PAUSE"
             options:
-                node_id: 1
-                service_id: 0
+              node_id: 1
+              service_id: 0
           5:
             action: "NODE_SERVICE_RESUME"
             options:
-                node_id: 1
-                service_id: 0
+              node_id: 1
+              service_id: 0
           6:
             action: "NODE_SERVICE_RESTART"
             options:
-                node_id: 1
-                service_id: 0
+              node_id: 1
+              service_id: 0
           7:
             action: "NODE_SERVICE_DISABLE"
             options:
-                node_id: 1
-                service_id: 0
+              node_id: 1
+              service_id: 0
           8:
             action: "NODE_SERVICE_ENABLE"
             options:
-                node_id: 1
-                service_id: 0
+              node_id: 1
+              service_id: 0
           9: # check database.db file
             action: "NODE_FILE_SCAN"
             options:
-                node_id: 2
-                folder_id: 0
-                file_id: 0
+              node_id: 2
+              folder_id: 0
+              file_id: 0
           10:
             action: "NODE_FILE_CHECKHASH"
             options:
-                node_id: 2
-                folder_id: 0
-                file_id: 0
+              node_id: 2
+              folder_id: 0
+              file_id: 0
           11:
             action: "NODE_FILE_DELETE"
             options:
-                node_id: 2
-                folder_id: 0
-                file_id: 0
+              node_id: 2
+              folder_id: 0
+              file_id: 0
           12:
             action: "NODE_FILE_REPAIR"
             options:
-                node_id: 2
-                folder_id: 0
-                file_id: 0
+              node_id: 2
+              folder_id: 0
+              file_id: 0
           13:
             action: "NODE_SERVICE_PATCH"
             options:
-                node_id: 2
-                service_id: 0
+              node_id: 2
+              service_id: 0
           14:
             action: "NODE_FOLDER_SCAN"
             options:
-                node_id: 2
-                folder_id: 0
+              node_id: 2
+              folder_id: 0
           15:
             action: "NODE_FOLDER_CHECKHASH"
             options:
-                node_id: 2
-                folder_id: 0
+              node_id: 2
+              folder_id: 0
           16:
             action: "NODE_FOLDER_REPAIR"
             options:
-                node_id: 2
-                folder_id: 0
+              node_id: 2
+              folder_id: 0
           17:
             action: "NODE_FOLDER_RESTORE"
             options:
-                node_id: 2
-                folder_id: 0
+              node_id: 2
+              folder_id: 0
           18:
             action: "NODE_OS_SCAN"
             options:
-                node_id: 2
-          19: # shutdown client 1
+              node_id: 0
+          19:
             action: "NODE_SHUTDOWN"
             options:
-                node_id: 5
+              node_id: 0
           20:
-            action: "NODE_STARTUP"
+            action: NODE_STARTUP
             options:
-                node_id: 5
+              node_id: 0
           21:
-            action: "NODE_RESET"
+            action: NODE_RESET
             options:
-                node_id: 5
-          22: # "ACL: ADDRULE - Block outgoing traffic from client 1"
+              node_id: 0
+          22:
+            action: "NODE_OS_SCAN"
+            options:
+              node_id: 1
+          23:
+            action: "NODE_SHUTDOWN"
+            options:
+              node_id: 1
+          24:
+            action: NODE_STARTUP
+            options:
+              node_id: 1
+          25:
+            action: NODE_RESET
+            options:
+              node_id: 1
+          26: # old action num: 18
+            action: "NODE_OS_SCAN"
+            options:
+                node_id: 2
+          27:
+            action: "NODE_SHUTDOWN"
+            options:
+              node_id: 2
+          28:
+            action: NODE_STARTUP
+            options:
+              node_id: 2
+          29:
+            action: NODE_RESET
+            options:
+              node_id: 2
+          30:
+            action: "NODE_OS_SCAN"
+            options:
+              node_id: 3
+          31:
+            action: "NODE_SHUTDOWN"
+            options:
+              node_id: 3
+          32:
+            action: NODE_STARTUP
+            options:
+              node_id: 3
+          33:
+            action: NODE_RESET
+            options:
+              node_id: 3
+          34:
+            action: "NODE_OS_SCAN"
+            options:
+              node_id: 4
+          35:
+            action: "NODE_SHUTDOWN"
+            options:
+              node_id: 4
+          36:
+            action: NODE_STARTUP
+            options:
+              node_id: 4
+          37:
+            action: NODE_RESET
+            options:
+              node_id: 4
+          38:
+            action: "NODE_OS_SCAN"
+            options:
+              node_id: 5
+          39: # old action num: 19 # shutdown client 1
+            action: "NODE_SHUTDOWN"
+            options:
+              node_id: 5
+          40: # old action num: 20
+            action: NODE_STARTUP
+            options:
+              node_id: 5
+          41: # old action num: 21
+            action: NODE_RESET
+            options:
+              node_id: 5
+          42:
+            action: "NODE_OS_SCAN"
+            options:
+              node_id: 6
+          43:
+            action: "NODE_SHUTDOWN"
+            options:
+              node_id: 6
+          44:
+            action: NODE_STARTUP
+            options:
+              node_id: 6
+          45:
+            action: NODE_RESET
+            options:
+              node_id: 6
+
+          46: # old action num: 22 # "ACL: ADDRULE - Block outgoing traffic from client 1"
             action: "NETWORK_ACL_ADDRULE"
             options:
                 position: 1
@@ -377,7 +474,7 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 1
-          23: # "ACL: ADDRULE - Block outgoing traffic from client 2"
+          47: # old action num: 23 # "ACL: ADDRULE - Block outgoing traffic from client 2"
             action: "NETWORK_ACL_ADDRULE"
             options:
                 position: 2
@@ -387,7 +484,7 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 1
-          24: # block tcp traffic from client 1 to web app
+          48: # old action num: 24 # block tcp traffic from client 1 to web app
             action: "NETWORK_ACL_ADDRULE"
             options:
                 position: 3
@@ -397,7 +494,7 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
-          25: # block tcp traffic from client 2 to web app
+          49: # old action num: 25 # block tcp traffic from client 2 to web app
             action: "NETWORK_ACL_ADDRULE"
             options:
                 position: 4
@@ -407,7 +504,7 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
-          26:
+          50: # old action num: 26
             action: "NETWORK_ACL_ADDRULE"
             options:
                 position: 5
@@ -417,7 +514,7 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
-          27:
+          51: # old action num: 27
             action: "NETWORK_ACL_ADDRULE"
             options:
                 position: 6
@@ -427,126 +524,127 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
-          28:
+          52: # old action num: 28
             action: "NETWORK_ACL_REMOVERULE"
             options:
                 position: 0
-          29:
+          53: # old action num: 29
             action: "NETWORK_ACL_REMOVERULE"
             options:
                 position: 1
-          30:
+          54: # old action num: 30
             action: "NETWORK_ACL_REMOVERULE"
             options:
                 position: 2
-          31:
+          55: # old action num: 31
             action: "NETWORK_ACL_REMOVERULE"
             options:
                 position: 3
-          32:
+          56: # old action num: 32
             action: "NETWORK_ACL_REMOVERULE"
             options:
                 position: 4
-          33:
+          57: # old action num: 33
             action: "NETWORK_ACL_REMOVERULE"
             options:
                 position: 5
-          34:
+          58: # old action num: 34
             action: "NETWORK_ACL_REMOVERULE"
             options:
                 position: 6
-          35:
+          59: # old action num: 35
             action: "NETWORK_ACL_REMOVERULE"
             options:
                 position: 7
-          36:
+          60: # old action num: 36
             action: "NETWORK_ACL_REMOVERULE"
             options:
                 position: 8
-          37:
+          61: # old action num: 37
             action: "NETWORK_ACL_REMOVERULE"
             options:
                 position: 9
-          38:
+          62: # old action num: 38
             action: "NETWORK_NIC_DISABLE"
             options:
                 node_id: 0
                 nic_id: 0
-          39:
+          63: # old action num: 39
             action: "NETWORK_NIC_ENABLE"
             options:
                 node_id: 0
                 nic_id: 0
-          40:
+          64: # old action num: 40
             action: "NETWORK_NIC_DISABLE"
             options:
                 node_id: 1
                 nic_id: 0
-          41:
+          65: # old action num: 41
             action: "NETWORK_NIC_ENABLE"
             options:
                 node_id: 1
                 nic_id: 0
-          42:
+          66: # old action num: 42
             action: "NETWORK_NIC_DISABLE"
             options:
                 node_id: 2
                 nic_id: 0
-          43:
+          67: # old action num: 43
             action: "NETWORK_NIC_ENABLE"
             options:
                 node_id: 2
                 nic_id: 0
-          44:
+          68: # old action num: 44
             action: "NETWORK_NIC_DISABLE"
             options:
                 node_id: 3
                 nic_id: 0
-          45:
+          69: # old action num: 45
             action: "NETWORK_NIC_ENABLE"
             options:
                 node_id: 3
                 nic_id: 0
-          46:
+          70: # old action num: 46
             action: "NETWORK_NIC_DISABLE"
             options:
                 node_id: 4
                 nic_id: 0
-          47:
+          71: # old action num: 47
             action: "NETWORK_NIC_ENABLE"
             options:
                 node_id: 4
                 nic_id: 0
-          48:
+          72: # old action num: 48
             action: "NETWORK_NIC_DISABLE"
             options:
                 node_id: 4
                 nic_id: 1
-          49:
+          73: # old action num: 49
             action: "NETWORK_NIC_ENABLE"
             options:
                 node_id: 4
                 nic_id: 1
-          50:
+          74: # old action num: 50
             action: "NETWORK_NIC_DISABLE"
             options:
                 node_id: 5
                 nic_id: 0
-          51:
+          75: # old action num: 51
             action: "NETWORK_NIC_ENABLE"
             options:
                 node_id: 5
                 nic_id: 0
-          52:
+          76: # old action num: 52
             action: "NETWORK_NIC_DISABLE"
             options:
                 node_id: 6
                 nic_id: 0
-          53:
+          77: # old action num: 53
             action: "NETWORK_NIC_ENABLE"
             options:
                 node_id: 6
                 nic_id: 0
+
 
 
       options:
