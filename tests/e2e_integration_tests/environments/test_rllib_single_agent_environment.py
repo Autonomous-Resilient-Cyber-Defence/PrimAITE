@@ -6,7 +6,7 @@ import ray
 import yaml
 from ray.rllib.algorithms import ppo
 
-from primaite.config.load import example_config_path
+from primaite.config.load import data_manipulation_config_path
 from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteRayEnv
 
@@ -14,7 +14,7 @@ from primaite.session.environment import PrimaiteRayEnv
 @pytest.mark.skip(reason="Slow, reenable later")
 def test_rllib_single_agent_compatibility():
     """Test that the PrimaiteRayEnv class can be used with a single agent RLLIB system."""
-    with open(example_config_path(), "r") as f:
+    with open(data_manipulation_config_path(), "r") as f:
         cfg = yaml.safe_load(f)
 
     game = PrimaiteGame.from_config(cfg)

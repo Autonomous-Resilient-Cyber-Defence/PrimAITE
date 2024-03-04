@@ -30,7 +30,7 @@ def load(file_path: Union[str, Path]) -> Dict:
     return config
 
 
-def example_config_path() -> Path:
+def data_manipulation_config_path() -> Path:
     """
     Get the path to the example config.
 

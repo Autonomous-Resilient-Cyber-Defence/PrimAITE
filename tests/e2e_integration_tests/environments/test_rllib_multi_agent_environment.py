@@ -4,7 +4,7 @@ import yaml
 from ray import air, tune
 from ray.rllib.algorithms.ppo import PPOConfig
 
-from primaite.config.load import example_config_path
+from primaite.config.load import data_manipulation_config_path
 from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteRayMARLEnv
 
@@ -13,7 +13,7 @@ from primaite.session.environment import PrimaiteRayMARLEnv
 def test_rllib_multi_agent_compatibility():
     """Test that the PrimaiteRayEnv class can be used with a multi agent RLLIB system."""
 
-    with open(example_config_path(), "r") as f:
+    with open(data_manipulation_config_path(), "r") as f:
         cfg = yaml.safe_load(f)
 
     game = PrimaiteGame.from_config(cfg)
