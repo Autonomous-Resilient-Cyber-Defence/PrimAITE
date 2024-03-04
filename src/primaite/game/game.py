@@ -414,7 +414,7 @@ class PrimaiteGame:
             reward_function = RewardFunction.from_config(reward_function_cfg)
 
             # CREATE AGENT
-            if agent_type == "probabilistic_agent":
+            if agent_type == "ProbabilisticAgent":
                 # TODO: implement non-random agents and fix this parsing
                 settings = agent_cfg.get("agent_settings")
                 new_agent = ProbabilisticAgent(

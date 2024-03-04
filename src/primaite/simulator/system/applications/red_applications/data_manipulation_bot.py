@@ -38,9 +38,7 @@ class DataManipulationAttackStage(IntEnum):
 class DataManipulationBot(Application):
     """A bot that simulates a script which performs a SQL injection attack."""
 
-    # server_ip_address: Optional[IPv4Address] = None
     payload: Optional[str] = None
-    # server_password: Optional[str] = None
     port_scan_p_of_success: float = 0.1
     data_manipulation_p_of_success: float = 0.1
 

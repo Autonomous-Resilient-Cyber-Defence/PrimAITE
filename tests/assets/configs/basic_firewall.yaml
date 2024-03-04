@@ -40,7 +40,7 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: probabilistic_agent
+    type: ProbabilisticAgent
     observation_space:
       type: UC2GreenObservation
     action_space:
