@@ -165,8 +165,7 @@ class PrimaiteGame:
         agent_actions = {}
         for _, agent in self.agents.items():
             obs = agent.observation_manager.current_observation
-            rew = agent.reward_function.current_reward
-            action_choice, options = agent.get_action(obs, rew, timestep=self.step_counter)
+            action_choice, options = agent.get_action(obs, timestep=self.step_counter)
             agent_actions[agent.agent_name] = (action_choice, options)
             request = agent.format_request(action_choice, options)
             self.simulation.apply_request(request)

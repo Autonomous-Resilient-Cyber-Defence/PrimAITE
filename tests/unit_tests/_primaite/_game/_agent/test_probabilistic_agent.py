@@ -69,7 +69,7 @@ def test_probabilistic_agent():
     node_application_execute_count = 0
     node_file_delete_count = 0
     for _ in range(N_TRIALS):
-        a = pa.get_action(0, timestep=0)
+        a = pa.get_action(0)
         if a == ("DONOTHING", {}):
             do_nothing_count += 1
         elif a == ("NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}):

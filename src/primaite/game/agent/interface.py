@@ -112,7 +112,7 @@ class AbstractAgent(ABC):
         return self.reward_function.update(state)
 
     @abstractmethod
-    def get_action(self, obs: ObsType, reward: float = 0.0, timestep: Optional[int] = None) -> Tuple[str, Dict]:
+    def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
         Return an action to be taken in the environment.
 
@@ -152,14 +152,14 @@ class AbstractScriptedAgent(AbstractAgent):
 class RandomAgent(AbstractScriptedAgent):
     """Agent that ignores its observation and acts completely at random."""
 
-    def get_action(self, obs: ObsType, reward: float = 0.0, timestep: Optional[int] = None) -> Tuple[str, Dict]:
-        """Randomly sample an action from the action space.
+    def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
+        """Sample the action space randomly.
 
-        :param obs: _description_
+        :param obs: Current observation for this agent, not used in RandomAgent
         :type obs: ObsType
-        :param reward: _description_, defaults to None
-        :type reward: float, optional
-        :return: _description_
+        :param timestep: The current simulation timestep, not used in RandomAgent
+        :type timestep: int
+        :return: Action formatted in CAOS format
         :rtype: Tuple[str, Dict]
         """
         return self.action_manager.get_action(self.action_manager.space.sample())
@@ -185,14 +185,14 @@ class ProxyAgent(AbstractAgent):
         self.most_recent_action: ActType
         self.flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False
 
-    def get_action(self, obs: ObsType, reward: float = 0.0, timestep: Optional[int] = None) -> Tuple[str, Dict]:
+    def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
         Return the agent's most recent action, formatted in CAOS format.
 
         :param obs: Observation for the agent. Not used by ProxyAgents, but required by the interface.
         :type obs: ObsType
-        :param reward: Reward value for the agent. Not used by ProxyAgents, defaults to None.
-        :type reward: float, optional
+        :param timestep: Current simulation timestep. Not used by ProxyAgents, bur required for the interface.
+        :type timestep: int
         :return: Action to be taken in CAOS format.
         :rtype: Tuple[str, Dict]
         """

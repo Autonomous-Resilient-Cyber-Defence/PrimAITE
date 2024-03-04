@@ -270,7 +270,7 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
             return -1.0
         elif last_connection_successful is True:
             return 1.0
-        return 0
+        return 0.0
 
     @classmethod
     def from_config(cls, config: Dict) -> AbstractReward:
