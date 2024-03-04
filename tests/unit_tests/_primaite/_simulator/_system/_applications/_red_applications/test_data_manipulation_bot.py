@@ -26,8 +26,8 @@ def test_create_dm_bot(dm_client):
     data_manipulation_bot: DataManipulationBot = dm_client.software_manager.software.get("DataManipulationBot")
 
     assert data_manipulation_bot.name == "DataManipulationBot"
-    assert data_manipulation_bot.port == Port.POSTGRES_SERVER
-    assert data_manipulation_bot.protocol == IPProtocol.TCP
+    assert data_manipulation_bot.port == Port.NONE
+    assert data_manipulation_bot.protocol == IPProtocol.NONE
     assert data_manipulation_bot.payload == "DELETE"
 
 
@@ -70,4 +70,13 @@ def test_dm_bot_perform_data_manipulation_success(dm_bot):
     dm_bot._perform_data_manipulation(p_of_success=1.0)
 
     assert dm_bot.attack_stage in (DataManipulationAttackStage.SUCCEEDED, DataManipulationAttackStage.FAILED)
-    assert len(dm_bot.connections)
+    assert len(dm_bot._host_db_client.connections)
+
+
+def test_dm_bot_fails_without_db_client(dm_client):
+    dm_client.software_manager.uninstall("DatabaseClient")
+    dm_bot = dm_client.software_manager.software.get("DataManipulationBot")
+    assert dm_bot._host_db_client is None
+    dm_bot.attack_stage = DataManipulationAttackStage.PORT_SCAN
+    dm_bot._perform_data_manipulation(p_of_success=1.0)
+    assert dm_bot.attack_stage is DataManipulationAttackStage.FAILED

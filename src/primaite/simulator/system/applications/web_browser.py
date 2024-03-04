@@ -199,7 +199,7 @@ class WebBrowser(Application):
         def state(self) -> Dict:
             """Return the contents of this dataclass as a dict for use with describe_state method."""
             if self.status == self._HistoryItemStatus.LOADED:
-                outcome = self.response_code
+                outcome = self.response_code.value
             else:
                 outcome = self.status.value
             return {"url": self.url, "outcome": outcome}

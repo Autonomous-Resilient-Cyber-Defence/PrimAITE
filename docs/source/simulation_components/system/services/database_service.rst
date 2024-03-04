@@ -25,6 +25,13 @@ Usage
 - Clients connect, execute queries, and disconnect.
 - Service runs on TCP port 5432 by default.
 
+**Supported queries:**
+
+* ``SELECT``: As long as the database file is in a ``GOOD`` health state, the db service will respond with a 200 status code.
+* ``DELETE``: This query represents an attack, it will cause the database file to enter a ``COMPROMISED`` state, and return a status code 200.
+* ``INSERT``: If the database service is in a healthy state, this will return a 200 status, if it's not in a healthy state it will return 404.
+* ``SELECT * FROM pg_stat_activity``: This query represents something an admin would send to check the status of the database. If the database service is in a healthy state, it returns a 200 status code, otherwise a 401 status code.
+
 Implementation
 ==============
 

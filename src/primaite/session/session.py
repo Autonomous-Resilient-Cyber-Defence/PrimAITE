@@ -4,7 +4,6 @@ from typing import Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict
 
-from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteGymEnv, PrimaiteRayEnv, PrimaiteRayMARLEnv
 from primaite.session.io import SessionIO, SessionIOSettings
 
@@ -40,7 +39,7 @@ class SessionMode(Enum):
 class PrimaiteSession:
     """The main entrypoint for PrimAITE sessions, this manages a simulation, policy training, and environments."""
 
-    def __init__(self, game: PrimaiteGame):
+    def __init__(self, game_cfg: Dict):
         """Initialise PrimaiteSession object."""
         self.training_options: TrainingOptions
         """Options specific to agent training."""
@@ -57,7 +56,7 @@ class PrimaiteSession:
         self.io_manager: Optional["SessionIO"] = None
         """IO manager for the session."""
 
-        self.game: PrimaiteGame = game
+        self.game_cfg: Dict = game_cfg
         """Primaite Game object for managing main simulation loop and agents."""
 
     def start_session(self) -> None:
@@ -93,9 +92,7 @@ class PrimaiteSession:
         io_settings = cfg.get("io_settings", {})
         io_manager = SessionIO(SessionIOSettings(**io_settings))
 
-        game = PrimaiteGame.from_config(cfg)
-
-        sess = cls(game=game)
+        sess = cls(game_cfg=cfg)
         sess.io_manager = io_manager
         sess.training_options = TrainingOptions(**cfg["training_config"])
 

@@ -19,7 +19,7 @@ Agents can be scripted (deterministic and stochastic), or controlled by a reinfo
             ...
         - ref: green_agent_example
             team: GREEN
-            type: GreenWebBrowsingAgent
+            type: ProbabilisticAgent
             observation_space:
                 type: UC2GreenObservation
             action_space:
@@ -57,11 +57,11 @@ Specifies if the agent is malicious (``RED``), benign (``GREEN``), or defensive 
 
 ``type``
 --------
-Specifies which class should be used for the agent. ``ProxyAgent`` is used for agents that receive instructions from an RL algorithm. Scripted agents like ``RedDatabaseCorruptingAgent`` and ``GreenWebBrowsingAgent`` generate their own behaviour.
+Specifies which class should be used for the agent. ``ProxyAgent`` is used for agents that receive instructions from an RL algorithm. Scripted agents like ``RedDatabaseCorruptingAgent`` and ``ProbabilisticAgent`` generate their own behaviour.
 
 Available agent types:
 
-- ``GreenWebBrowsingAgent``
+- ``ProbabilisticAgent``
 - ``ProxyAgent``
 - ``RedDatabaseCorruptingAgent``
 

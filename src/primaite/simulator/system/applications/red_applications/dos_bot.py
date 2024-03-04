@@ -6,7 +6,6 @@ from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient
 
 _LOGGER = getLogger(__name__)
@@ -28,7 +27,7 @@ class DoSAttackStage(IntEnum):
     "Attack is completed."
 
 
-class DoSBot(DatabaseClient, Application):
+class DoSBot(DatabaseClient):
     """A bot that simulates a Denial of Service attack."""
 
     target_ip_address: Optional[IPv4Address] = None

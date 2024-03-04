@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import pytest
 import yaml
@@ -328,7 +328,7 @@ class ControlledAgent(AbstractAgent):
         )
         self.most_recent_action: Tuple[str, Dict]
 
-    def get_action(self, obs: None, reward: float = 0.0) -> Tuple[str, Dict]:
+    def get_action(self, obs: None, timestep: int = 0) -> Tuple[str, Dict]:
         """Return the agent's most recent action, formatted in CAOS format."""
         return self.most_recent_action
 
@@ -497,7 +497,6 @@ def game_and_agent():
     ]
 
     action_space = ActionManager(
-        game=game,
         actions=actions,  # ALL POSSIBLE ACTIONS
         nodes=[
             {

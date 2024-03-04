@@ -26,22 +26,20 @@ class DataManipulationAgent(AbstractScriptedAgent):
         )
         self.next_execution_timestep = timestep + random_timestep_increment
 
-    def get_action(self, obs: ObsType, reward: float = None) -> Tuple[str, Dict]:
-        """Randomly sample an action from the action space.
+    def get_action(self, obs: ObsType, timestep: int) -> Tuple[str, Dict]:
+        """Waits until a specific timestep, then attempts to execute its data manipulation application.
 
-        :param obs: _description_
+        :param obs: Current observation for this agent, not used in DataManipulationAgent
         :type obs: ObsType
-        :param reward: _description_, defaults to None
-        :type reward: float, optional
-        :return: _description_
+        :param timestep: The current simulation timestep, used for scheduling actions
+        :type timestep: int
+        :return: Action formatted in CAOS format
         :rtype: Tuple[str, Dict]
         """
-        current_timestep = self.action_manager.game.step_counter
-
-        if current_timestep < self.next_execution_timestep:
+        if timestep < self.next_execution_timestep:
             return "DONOTHING", {"dummy": 0}
 
-        self._set_next_execution_timestep(current_timestep + self.agent_settings.start_settings.frequency)
+        self._set_next_execution_timestep(timestep + self.agent_settings.start_settings.frequency)
 
         return "NODE_APPLICATION_EXECUTE", {"node_id": self.starting_node_idx, "application_id": 0}
 

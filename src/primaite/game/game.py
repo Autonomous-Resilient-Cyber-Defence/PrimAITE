@@ -7,9 +7,10 @@ from pydantic import BaseModel, ConfigDict
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
-from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent, RandomAgent
+from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
 from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
+from primaite.game.agent.scripted_agents import ProbabilisticAgent
 from primaite.session.io import SessionIO, SessionIOSettings
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -164,8 +165,7 @@ class PrimaiteGame:
         agent_actions = {}
         for _, agent in self.agents.items():
             obs = agent.observation_manager.current_observation
-            rew = agent.reward_function.current_reward
-            action_choice, options = agent.get_action(obs, rew)
+            action_choice, options = agent.get_action(obs, timestep=self.step_counter)
             agent_actions[agent.agent_name] = (action_choice, options)
             request = agent.format_request(action_choice, options)
             self.simulation.apply_request(request)
@@ -299,7 +299,7 @@ class PrimaiteGame:
                     if service_type == "DatabaseService":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
-                            new_service.password = opt.get("backup_server_ip", None)
+                            new_service.password = opt.get("db_password", None)
                             new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
                     if service_type == "FTPServer":
                         if "options" in service_cfg:
@@ -412,20 +412,19 @@ class PrimaiteGame:
             # CREATE REWARD FUNCTION
             reward_function = RewardFunction.from_config(reward_function_cfg)
 
-            # OTHER AGENT SETTINGS
-            agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-
             # CREATE AGENT
-            if agent_type == "GreenWebBrowsingAgent":
+            if agent_type == "ProbabilisticAgent":
                 # TODO: implement non-random agents and fix this parsing
-                new_agent = RandomAgent(
+                settings = agent_cfg.get("agent_settings")
+                new_agent = ProbabilisticAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=reward_function,
-                    agent_settings=agent_settings,
+                    settings=settings,
                 )
             elif agent_type == "ProxyAgent":
+                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
                 new_agent = ProxyAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
@@ -435,6 +434,8 @@ class PrimaiteGame:
                 )
                 game.rl_agents[agent_cfg["ref"]] = new_agent
             elif agent_type == "RedDatabaseCorruptingAgent":
+                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
+
                 new_agent = DataManipulationAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
