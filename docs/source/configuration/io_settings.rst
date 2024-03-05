@@ -57,6 +57,7 @@ Defines how often to save the policy during training.
 
 
 ``save_agent_actions``
+----------------------
 
 Optional. Default value is ``True``.
 
