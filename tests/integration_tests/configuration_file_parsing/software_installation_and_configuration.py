@@ -4,7 +4,7 @@ from typing import Union
 
 import yaml
 
-from primaite.config.load import example_config_path
+from primaite.config.load import data_manipulation_config_path
 from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.interface import ProxyAgent, RandomAgent
 from primaite.game.game import APPLICATION_TYPES_MAPPING, PrimaiteGame, SERVICE_TYPES_MAPPING
@@ -37,7 +37,7 @@ def load_config(config_path: Union[str, Path]) -> PrimaiteGame:
 
 def test_example_config():
     """Test that the example config can be parsed properly."""
-    game = load_config(example_config_path())
+    game = load_config(data_manipulation_config_path())
 
     assert len(game.agents) == 4  # red, blue and 2 green agents
 

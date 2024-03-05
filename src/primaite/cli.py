@@ -127,10 +127,10 @@ def session(
     :param config: The path to the config file. Optional, if None, the example config will be used.
     :type config: Optional[str]
     """
-    from primaite.config.load import example_config_path
+    from primaite.config.load import data_manipulation_config_path
     from primaite.main import run
 
     if not config:
-        config = example_config_path()
+        config = data_manipulation_config_path()
     print(config)
     run(config_path=config, agent_load_path=agent_load_file)

@@ -6,9 +6,12 @@ import gymnasium
 from gymnasium.core import ActType, ObsType
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
+from primaite import getLogger
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
 from primaite.simulator import SIM_OUTPUT
+
+_LOGGER = getLogger(__name__)
 
 
 class PrimaiteGymEnv(gymnasium.Env):
@@ -75,7 +78,7 @@ class PrimaiteGymEnv(gymnasium.Env):
 
     def reset(self, seed: Optional[int] = None) -> Tuple[ObsType, Dict[str, Any]]:
         """Reset the environment."""
-        print(
+        _LOGGER.info(
             f"Resetting environment, episode {self.episode_counter}, "
             f"avg. reward: {self.agent.reward_function.total_reward}"
         )

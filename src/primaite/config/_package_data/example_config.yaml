@@ -134,9 +134,6 @@ agents:
       action_list:
         - type: DONOTHING
         - type: NODE_APPLICATION_EXECUTE
-        - type: NODE_FILE_DELETE
-        - type: NODE_FILE_CORRUPT
-        - type: NODE_OS_SCAN
       options:
         nodes:
         - node_name: client_1

@@ -1,4 +1,4 @@
-from primaite.config.load import example_config_path
+from primaite.config.load import data_manipulation_config_path
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -7,7 +7,7 @@ from tests.integration_tests.configuration_file_parsing import BASIC_CONFIG, DMZ
 
 def test_example_config():
     """Test that the example config can be parsed properly."""
-    game = load_config(example_config_path())
+    game = load_config(data_manipulation_config_path())
     network: Network = game.simulation.network
 
     assert len(network.nodes) == 10  # 10 nodes in example network
