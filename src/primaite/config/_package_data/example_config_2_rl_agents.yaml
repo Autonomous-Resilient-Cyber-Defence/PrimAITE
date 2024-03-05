@@ -15,6 +15,7 @@ training_config:
 io_settings:
   save_checkpoints: true
   checkpoint_interval: 5
+  save_agent_actions: true
   save_step_metadata: false
   save_pcap_logs: false
   save_sys_logs: true
@@ -35,7 +36,7 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type:  ProbabilisticAgent
+    type: ProbabilisticAgent
     agent_settings:
       action_probabilities:
         0: 0.3
@@ -1279,7 +1280,6 @@ agents:
 
     agent_settings:
       flatten_obs: true
-
 
 
 

@@ -11,7 +11,6 @@ from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAge
 from primaite.game.agent.observations import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.agent.scripted_agents import ProbabilisticAgent
-from primaite.session.io import SessionIO, SessionIOSettings
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
@@ -210,10 +209,6 @@ class PrimaiteGame:
         :return: A PrimaiteGame object.
         :rtype: PrimaiteGame
         """
-        io_settings = cfg.get("io_settings", {})
-        _ = SessionIO(SessionIOSettings(**io_settings))
-        # Instantiating this ensures that the game saves to the correct output dir even without being part of a session
-
         game = cls()
         game.options = PrimaiteGameOptions(**cfg["game"])
         game.save_step_metadata = cfg.get("io_settings", {}).get("save_step_metadata") or False
@@ -415,7 +410,7 @@ class PrimaiteGame:
             # CREATE AGENT
             if agent_type == "ProbabilisticAgent":
                 # TODO: implement non-random agents and fix this parsing
-                settings = agent_cfg.get("agent_settings")
+                settings = agent_cfg.get("agent_settings", {})
                 new_agent = ProbabilisticAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
