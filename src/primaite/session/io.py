@@ -15,7 +15,7 @@ class PrimaiteIO:
     """
     Class for managing session IO.
 
-    Currently it's handling path generation, but could expand to handle loading, transaction, tensorboard, and so on.
+    Currently it's handling path generation, but could expand to handle loading, transaction, and so on.
     """
 
     class Settings(BaseModel):
@@ -27,8 +27,6 @@ class PrimaiteIO:
         """Whether to save logs"""
         save_agent_actions: bool = True
         """Whether to save a log of all agents' actions every step."""
-        save_transactions: bool = True
-        """Whether to save transactions, If true, the session path will have a transactions folder."""
         save_step_metadata: bool = False
         """Whether to save the RL agents' action, environment state, and other data at every single step."""
         save_pcap_logs: bool = False
@@ -37,6 +35,12 @@ class PrimaiteIO:
         """Whether to save system logs."""
 
     def __init__(self, settings: Optional[Settings] = None) -> None:
+        """
+        Init the PrimaiteIO object.
+
+        Note: Instantiating this object creates a new directory for outputs, and sets the global SIM_OUTPUT variable.
+        It is intended that this object is instantiated when a new environment is created.
+        """
         self.settings = settings or PrimaiteIO.Settings()
         self.session_path: Path = self.generate_session_path()
         # set global SIM_OUTPUT path
@@ -45,8 +49,6 @@ class PrimaiteIO:
         SIM_OUTPUT.save_sys_logs = self.settings.save_sys_logs
 
         self.agent_action_log: List[Dict] = []
-        # warning TODO: must be careful not to re-initialise sessionIO because it will create a new path each time it's
-        # possible refactor needed
 
     def generate_session_path(self, timestamp: Optional[datetime] = None) -> Path:
         """Create a folder for the session and return the path to it."""

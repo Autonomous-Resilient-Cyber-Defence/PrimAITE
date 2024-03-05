@@ -18,7 +18,6 @@ This section configures how PrimAITE saves data during simulation and training.
         checkpoint_interval: 10
         # save_logs: True
         # save_transactions: False
-        # save_tensorboard_logs: False
         save_agent_actions: True
         save_step_metadata: False
         save_pcap_logs: False
@@ -56,21 +55,12 @@ Defines how often to save the policy during training.
 
 *currently unused*.
 
-``save_transactions``
----------------------
-
-*currently unused*.
-
-``save_tensorboard_logs``
--------------------------
-
-*currently unused*.
 
 ``save_agent_actions``
 
 Optional. Default value is ``True``.
 
-If ``True``, this will create a JSON file each episode detailing every agent's action each step in that episode, formatted according to the CAOS format. This includes scripted, RL, and red agents.
+If ``True``, this will create a JSON file each episode detailing every agent's action in each step of that episode, formatted according to the CAOS format. This includes scripted, RL, and red agents.
 
 ``save_step_metadata``
 ----------------------

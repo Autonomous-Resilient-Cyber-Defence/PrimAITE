@@ -61,7 +61,7 @@ class PrimaiteSession:
         """Primaite Game object for managing main simulation loop and agents."""
 
         self.save_checkpoints: bool = False
-        """Whether to save chcekpoints."""
+        """Whether to save checkpoints."""
 
         self.checkpoint_interval: int = 10
         """If save_checkpoints is true, checkpoints will be saved every checkpoint_interval episodes."""
