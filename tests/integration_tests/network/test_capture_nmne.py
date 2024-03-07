@@ -94,6 +94,7 @@ def test_describe_state_nmne(uc2_network):
     # Assert that initially, there are no captured MNEs on both web and database servers
     web_server_nic_state = web_server_nic.describe_state()
     db_server_nic_state = db_server_nic.describe_state()
+    uc2_network.apply_timestep(timestep=0)
     assert web_server_nic_state["nmne"] == {}
     assert db_server_nic_state["nmne"] == {}
 
@@ -103,6 +104,7 @@ def test_describe_state_nmne(uc2_network):
     # Check that it does not trigger an MNE capture.
     web_server_nic_state = web_server_nic.describe_state()
     db_server_nic_state = db_server_nic.describe_state()
+    uc2_network.apply_timestep(timestep=0)
     assert web_server_nic_state["nmne"] == {}
     assert db_server_nic_state["nmne"] == {}
 
@@ -112,6 +114,7 @@ def test_describe_state_nmne(uc2_network):
     # Check that the web server's outbound interface and the database server's inbound interface register the MNE
     web_server_nic_state = web_server_nic.describe_state()
     db_server_nic_state = db_server_nic.describe_state()
+    uc2_network.apply_timestep(timestep=0)
     assert web_server_nic_state["nmne"] == {"direction": {"outbound": {"keywords": {"*": 1}}}}
     assert db_server_nic_state["nmne"] == {"direction": {"inbound": {"keywords": {"*": 1}}}}
 
@@ -121,6 +124,7 @@ def test_describe_state_nmne(uc2_network):
     # Check that no additional MNEs are captured
     web_server_nic_state = web_server_nic.describe_state()
     db_server_nic_state = db_server_nic.describe_state()
+    uc2_network.apply_timestep(timestep=0)
     assert web_server_nic_state["nmne"] == {}
     assert db_server_nic_state["nmne"] == {}
 
@@ -130,6 +134,7 @@ def test_describe_state_nmne(uc2_network):
     # Check that the web server and database server interfaces register an additional MNE
     web_server_nic_state = web_server_nic.describe_state()
     db_server_nic_state = db_server_nic.describe_state()
+    uc2_network.apply_timestep(timestep=0)
     assert web_server_nic_state["nmne"] == {"direction": {"outbound": {"keywords": {"*": 1}}}}
     assert db_server_nic_state["nmne"] == {"direction": {"inbound": {"keywords": {"*": 1}}}}
 
@@ -190,3 +195,4 @@ def test_capture_nmne_observations(uc2_network):
         # Assert that the observed NMNEs match the expected values for both NICs
         assert web_nic_obs["outbound"] == expected_nmne
         assert db_nic_obs["inbound"] == expected_nmne
+        uc2_network.apply_timestep(timestep=0)
