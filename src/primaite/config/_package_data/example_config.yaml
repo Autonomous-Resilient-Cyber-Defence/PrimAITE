@@ -691,25 +691,25 @@ agents:
     reward_function:
       reward_components:
         - type: DATABASE_FILE_INTEGRITY
-          weight: 0.34
+          weight: 0.40
           options:
             node_hostname: database_server
             folder_name: database
             file_name: database.db
         - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.33
+          weight: 0.25
           options:
             node_hostname: client_1
         - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.33
+          weight: 0.25
           options:
             node_hostname: client_2
         - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.1
+          weight: 0.05
           options:
             node_hostname: client_1
         - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.1
+          weight: 0.05
           options:
             node_hostname: client_2
 
