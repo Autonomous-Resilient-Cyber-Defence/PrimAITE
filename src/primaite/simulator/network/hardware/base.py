@@ -136,7 +136,8 @@ class NetworkInterface(SimComponent, ABC):
             }
         )
         if CAPTURE_NMNE:
-            state.update({"nmne": self.nmne})
+            state.update({"nmne": {k: v for k, v in self.nmne.items()}})
+            self.nmne.clear()
         return state
 
     @abstractmethod
