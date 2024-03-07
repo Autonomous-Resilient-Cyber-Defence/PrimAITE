@@ -37,7 +37,7 @@ def data_manipulation_config_path() -> Path:
     :return: Path to the example config.
     :rtype: Path
     """
-    path = _EXAMPLE_CFG / "example_config.yaml"
+    path = _EXAMPLE_CFG / "data_manipulation.yaml"
     if not path.exists():
         msg = f"Example config does not exist: {path}. Have you run `primaite setup`?"
         _LOGGER.error(msg)
