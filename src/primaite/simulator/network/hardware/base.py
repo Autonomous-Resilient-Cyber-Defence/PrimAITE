@@ -136,7 +136,7 @@ class NetworkInterface(SimComponent, ABC):
             }
         )
         if CAPTURE_NMNE:
-            state.update({"nmne": self.nmne})
+            state.update({"nmne": {k: v for k, v in self.nmne.items()}})
         return state
 
     @abstractmethod
@@ -252,6 +252,15 @@ class NetworkInterface(SimComponent, ABC):
         :return: A string combining the port number and the mac address
         """
         return f"Port {self.port_name if self.port_name else self.port_num}: {self.mac_address}"
+
+    def apply_timestep(self, timestep: int) -> None:
+        """
+        Apply a timestep evolution to this component.
+
+        This just clears the nmne count back to 0.tests/integration_tests/network/test_capture_nmne.py
+        """
+        super().apply_timestep(timestep=timestep)
+        self.nmne.clear()
 
 
 class WiredNetworkInterface(NetworkInterface, ABC):
@@ -882,6 +891,9 @@ class Node(SimComponent):
         :type timestep: int
         """
         super().apply_timestep(timestep=timestep)
+
+        for network_interface in self.network_interfaces.values():
+            network_interface.apply_timestep(timestep=timestep)
 
         # count down to boot up
         if self.start_up_countdown > 0:
