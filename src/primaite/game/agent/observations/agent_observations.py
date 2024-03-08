@@ -2,12 +2,12 @@ from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from gymnasium import spaces
 
+from primaite.game.agent.observations.node_observations import NodeObservation
 from primaite.game.agent.observations.observations import (
     AbstractObservation,
     AclObservation,
     ICSObservation,
     LinkObservation,
-    NodeObservation,
     NullObservation,
 )
 
