@@ -96,7 +96,7 @@ class RequestManager(BaseModel):
             # _LOGGER.error(msg)
             # raise RuntimeError(msg)
             _LOGGER.debug(msg)
-            return RequestResponse(status="failure", data={"reason": msg})
+            return RequestResponse(status="unreachable", data={"reason": msg})
 
         request_type = self.request_types[request_key]
 
@@ -226,7 +226,7 @@ class SimComponent(BaseModel):
         """
         if self._request_manager is None:
             return
-        self._request_manager(request, context)
+        return self._request_manager(request, context)
 
     def apply_timestep(self, timestep: int) -> None:
         """

@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.http import (
     HttpRequestMethod,
@@ -52,7 +53,10 @@ class WebBrowser(Application):
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
         rm.add_request(
-            name="execute", request_type=RequestType(func=lambda request, context: self.get_webpage())  # noqa
+            name="execute",
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.get_webpage())
+            ),  # noqa
         )
 
         return rm

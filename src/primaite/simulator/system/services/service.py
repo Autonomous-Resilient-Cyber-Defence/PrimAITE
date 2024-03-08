@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Any, Dict, Optional
 
 from primaite import getLogger
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
@@ -80,14 +81,14 @@ class Service(IOSoftware):
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
-        rm.add_request("scan", RequestType(func=lambda request, context: self.scan()))
-        rm.add_request("stop", RequestType(func=lambda request, context: self.stop()))
-        rm.add_request("start", RequestType(func=lambda request, context: self.start()))
-        rm.add_request("pause", RequestType(func=lambda request, context: self.pause()))
-        rm.add_request("resume", RequestType(func=lambda request, context: self.resume()))
-        rm.add_request("restart", RequestType(func=lambda request, context: self.restart()))
-        rm.add_request("disable", RequestType(func=lambda request, context: self.disable()))
-        rm.add_request("enable", RequestType(func=lambda request, context: self.enable()))
+        rm.add_request("scan", RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan())))
+        rm.add_request("stop", RequestType(func=lambda request, context: RequestResponse.from_bool(self.stop())))
+        rm.add_request("start", RequestType(func=lambda request, context: RequestResponse.from_bool(self.start())))
+        rm.add_request("pause", RequestType(func=lambda request, context: RequestResponse.from_bool(self.pause())))
+        rm.add_request("resume", RequestType(func=lambda request, context: RequestResponse.from_bool(self.resume())))
+        rm.add_request("restart", RequestType(func=lambda request, context: RequestResponse.from_bool(self.restart())))
+        rm.add_request("disable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.disable())))
+        rm.add_request("enable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.enable())))
         return rm
 
     @abstractmethod
@@ -106,17 +107,19 @@ class Service(IOSoftware):
         state["health_state_visible"] = self.health_state_visible.value
         return state
 
-    def stop(self) -> None:
+    def stop(self) -> bool:
         """Stop the service."""
         if self.operating_state in [ServiceOperatingState.RUNNING, ServiceOperatingState.PAUSED]:
             self.sys_log.info(f"Stopping service {self.name}")
             self.operating_state = ServiceOperatingState.STOPPED
+            return True
+        return False
 
-    def start(self, **kwargs) -> None:
+    def start(self, **kwargs) -> bool:
         """Start the service."""
         # cant start the service if the node it is on is off
         if not super()._can_perform_action():
-            return
+            return False
 
         if self.operating_state == ServiceOperatingState.STOPPED:
             self.sys_log.info(f"Starting service {self.name}")
@@ -124,36 +127,47 @@ class Service(IOSoftware):
             # set software health state to GOOD if initially set to UNUSED
             if self.health_state_actual == SoftwareHealthState.UNUSED:
                 self.set_health_state(SoftwareHealthState.GOOD)
+            return True
+        return False
 
-    def pause(self) -> None:
+    def pause(self) -> bool:
         """Pause the service."""
         if self.operating_state == ServiceOperatingState.RUNNING:
             self.sys_log.info(f"Pausing service {self.name}")
             self.operating_state = ServiceOperatingState.PAUSED
+            return True
+        return False
 
-    def resume(self) -> None:
+    def resume(self) -> bool:
         """Resume paused service."""
         if self.operating_state == ServiceOperatingState.PAUSED:
             self.sys_log.info(f"Resuming service {self.name}")
             self.operating_state = ServiceOperatingState.RUNNING
+            return True
+        return False
 
-    def restart(self) -> None:
+    def restart(self) -> bool:
         """Restart running service."""
         if self.operating_state in [ServiceOperatingState.RUNNING, ServiceOperatingState.PAUSED]:
             self.sys_log.info(f"Pausing service {self.name}")
             self.operating_state = ServiceOperatingState.RESTARTING
             self.restart_countdown = self.restart_duration
+            return True
+        return False
 
-    def disable(self) -> None:
+    def disable(self) -> bool:
         """Disable the service."""
         self.sys_log.info(f"Disabling Application {self.name}")
         self.operating_state = ServiceOperatingState.DISABLED
+        return True
 
-    def enable(self) -> None:
+    def enable(self) -> bool:
         """Enable the disabled service."""
         if self.operating_state == ServiceOperatingState.DISABLED:
             self.sys_log.info(f"Enabling Application {self.name}")
             self.operating_state = ServiceOperatingState.STOPPED
+            return True
+        return False
 
     def apply_timestep(self, timestep: int) -> None:
         """

@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional
 from uuid import uuid4
 
 from primaite import getLogger
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -37,7 +38,7 @@ class DatabaseClient(Application):
 
     def _init_request_manager(self) -> RequestManager:
         rm = super()._init_request_manager()
-        rm.add_request("execute", RequestType(func=lambda request, context: self.execute()))
+        rm.add_request("execute", RequestType(func=lambda request, context: RequestResponse.from_bool(self.execute())))
         return rm
 
     def execute(self) -> bool:

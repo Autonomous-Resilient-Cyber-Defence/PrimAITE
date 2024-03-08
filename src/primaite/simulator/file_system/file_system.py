@@ -7,6 +7,7 @@ from typing import Dict, Optional
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file import File
 from primaite.simulator.file_system.file_type import FileType
@@ -41,12 +42,16 @@ class FileSystem(SimComponent):
         self._delete_manager.add_request(
             name="file",
             request_type=RequestType(
-                func=lambda request, context: self.delete_file(folder_name=request[0], file_name=request[1])
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.delete_file(folder_name=request[0], file_name=request[1])
+                )
             ),
         )
         self._delete_manager.add_request(
             name="folder",
-            request_type=RequestType(func=lambda request, context: self.delete_folder(folder_name=request[0])),
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.delete_folder(folder_name=request[0]))
+            ),
         )
         rm.add_request(
             name="delete",
@@ -57,12 +62,16 @@ class FileSystem(SimComponent):
         self._restore_manager.add_request(
             name="file",
             request_type=RequestType(
-                func=lambda request, context: self.restore_file(folder_name=request[0], file_name=request[1])
+                func=lambda request, context: RequestResponse(
+                    self.restore_file(folder_name=request[0], file_name=request[1])
+                )
             ),
         )
         self._restore_manager.add_request(
             name="folder",
-            request_type=RequestType(func=lambda request, context: self.restore_folder(folder_name=request[0])),
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.restore_folder(folder_name=request[0]))
+            ),
         )
         rm.add_request(
             name="restore",
@@ -138,7 +147,7 @@ class FileSystem(SimComponent):
         )
         return folder
 
-    def delete_folder(self, folder_name: str):
+    def delete_folder(self, folder_name: str) -> bool:
         """
         Deletes a folder, removes it from the folders list and removes any child folders and files.
 
@@ -146,24 +155,26 @@ class FileSystem(SimComponent):
         """
         if folder_name == "root":
             self.sys_log.warning("Cannot delete the root folder.")
-            return
+            return False
         folder = self.get_folder(folder_name)
-        if folder:
-            # set folder to deleted state
-            folder.delete()
-
-            # remove from folder list
-            self.folders.pop(folder.uuid)
-
-            # add to deleted list
-            folder.remove_all_files()
-
-            self.deleted_folders[folder.uuid] = folder
-            self.sys_log.info(f"Deleted folder /{folder.name} and its contents")
-        else:
+        if not folder:
             _LOGGER.debug(f"Cannot delete folder as it does not exist: {folder_name}")
+            return False
 
-    def delete_folder_by_id(self, folder_uuid: str):
+        # set folder to deleted state
+        folder.delete()
+
+        # remove from folder list
+        self.folders.pop(folder.uuid)
+
+        # add to deleted list
+        folder.remove_all_files()
+
+        self.deleted_folders[folder.uuid] = folder
+        self.sys_log.info(f"Deleted folder /{folder.name} and its contents")
+        return True
+
+    def delete_folder_by_id(self, folder_uuid: str) -> None:
         """
         Deletes a folder via its uuid.
 
@@ -297,7 +308,7 @@ class FileSystem(SimComponent):
 
         return file
 
-    def delete_file(self, folder_name: str, file_name: str):
+    def delete_file(self, folder_name: str, file_name: str) -> bool:
         """
         Delete a file by its name from a specific folder.
 
@@ -309,8 +320,10 @@ class FileSystem(SimComponent):
             file = folder.get_file(file_name)
             if file:
                 folder.remove_file(file)
+                return True
+        return False
 
-    def delete_file_by_id(self, folder_uuid: str, file_uuid: str):
+    def delete_file_by_id(self, folder_uuid: str, file_uuid: str) -> None:
         """
         Deletes a file via its uuid.
 
@@ -327,7 +340,7 @@ class FileSystem(SimComponent):
             else:
                 self.sys_log.error(f"Unable to delete file that does not exist. (id: {file_uuid})")
 
-    def move_file(self, src_folder_name: str, src_file_name: str, dst_folder_name: str):
+    def move_file(self, src_folder_name: str, src_file_name: str, dst_folder_name: str) -> None:
         """
         Move a file from one folder to another.
 
@@ -404,7 +417,7 @@ class FileSystem(SimComponent):
     # Agent actions
     ###############################################################
 
-    def scan(self, instant_scan: bool = False):
+    def scan(self, instant_scan: bool = False) -> None:
         """
         Scan all the folders (and child files) in the file system.
 
@@ -413,7 +426,7 @@ class FileSystem(SimComponent):
         for folder_id in self.folders:
             self.folders[folder_id].scan(instant_scan=instant_scan)
 
-    def reveal_to_red(self, instant_scan: bool = False):
+    def reveal_to_red(self, instant_scan: bool = False) -> None:
         """
         Reveals all the folders (and child files) in the file system to the red agent.
 
@@ -422,7 +435,7 @@ class FileSystem(SimComponent):
         for folder_id in self.folders:
             self.folders[folder_id].reveal_to_red(instant_scan=instant_scan)
 
-    def restore_folder(self, folder_name: str):
+    def restore_folder(self, folder_name: str) -> bool:
         """
         Restore a folder.
 
@@ -435,13 +448,14 @@ class FileSystem(SimComponent):
 
         if folder is None:
             self.sys_log.error(f"Unable to restore folder {folder_name}. Folder is not in deleted folder list.")
-            return
+            return False
 
         self.deleted_folders.pop(folder.uuid, None)
         folder.restore()
         self.folders[folder.uuid] = folder
+        return True
 
-    def restore_file(self, folder_name: str, file_name: str):
+    def restore_file(self, folder_name: str, file_name: str) -> bool:
         """
         Restore a file.
 
@@ -454,12 +468,15 @@ class FileSystem(SimComponent):
         :type: file_name: str
         """
         folder = self.get_folder(folder_name=folder_name)
+        if not folder:
+            _LOGGER.debug(f"Cannot restore file {file_name} in folder {folder_name} as the folder does not exist.")
+            return False
 
-        if folder:
-            file = folder.get_file(file_name=file_name, include_deleted=True)
+        file = folder.get_file(file_name=file_name, include_deleted=True)
 
-            if file is None:
-                self.sys_log.error(f"Unable to restore file {file_name}. File does not exist.")
-                return
+        if not file:
+            msg = f"Unable to restore file {file_name}. File was not found."
+            self.sys_log.error(msg)
+            return False
 
-            folder.restore_file(file_name=file_name)
+        return folder.restore_file(file_name=file_name)

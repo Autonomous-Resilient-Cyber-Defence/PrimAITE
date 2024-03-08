@@ -5,6 +5,7 @@ from typing import Dict, Optional
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.file_system.file import File
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC, FileSystemItemHealthStatus
@@ -53,7 +54,9 @@ class Folder(FileSystemItemABC):
         rm = super()._init_request_manager()
         rm.add_request(
             name="delete",
-            request_type=RequestType(func=lambda request, context: self.remove_file_by_id(file_uuid=request[0])),
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.remove_file_by_name(file_name=request[0]))
+            ),
         )
         self._file_request_manager = RequestManager()
         rm.add_request(
@@ -249,6 +252,21 @@ class Folder(FileSystemItemABC):
         file = self.get_file_by_id(file_uuid=file_uuid)
         self.remove_file(file=file)
 
+    def remove_file_by_name(self, file_name: str) -> bool:
+        """
+        Remove a file using its name.
+
+        :param file_name: filename
+        :type file_name: str
+        :return: Whether it was successfully removed.
+        :rtype: bool
+        """
+        for f in self.files.values():
+            if f.name == file_name:
+                self.remove_file(f)
+                return True
+        return False
+
     def remove_all_files(self):
         """Removes all the files in the folder."""
         for file_id in self.files:
@@ -258,7 +276,7 @@ class Folder(FileSystemItemABC):
 
         self.files = {}
 
-    def restore_file(self, file_name: str):
+    def restore_file(self, file_name: str) -> bool:
         """
         Restores a file.
 
@@ -268,13 +286,14 @@ class Folder(FileSystemItemABC):
         file = self.get_file(file_name=file_name, include_deleted=True)
         if not file:
             self.sys_log.error(f"Unable to restore file {file_name}. File does not exist.")
-            return
+            return False
 
         file.restore()
         self.files[file.uuid] = file
 
         if file.deleted:
             self.deleted_files.pop(file.uuid)
+        return True
 
     def quarantine(self):
         """Quarantines the File System Folder."""
