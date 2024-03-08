@@ -287,24 +287,24 @@ class WiredNetworkInterface(NetworkInterface, ABC):
     _connected_link: Optional[Link] = None
     "The network link to which the network interface is connected."
 
-    def enable(self):
+    def enable(self) -> bool:
         """Attempt to enable the network interface."""
         if self.enabled:
-            return
+            return True
 
         if not self._connected_node:
             _LOGGER.error(f"Interface {self} cannot be enabled as it is not connected to a Node")
-            return
+            return False
 
         if self._connected_node.operating_state != NodeOperatingState.ON:
             self._connected_node.sys_log.info(
                 f"Interface {self} cannot be enabled as the connected Node is not powered on"
             )
-            return
+            return False
 
         if not self._connected_link:
             self._connected_node.sys_log.info(f"Interface {self} cannot be enabled as there is no Link connected.")
-            return
+            return False
 
         self.enabled = True
         self._connected_node.sys_log.info(f"Network Interface {self} enabled")
@@ -313,11 +313,12 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         )
         if self._connected_link:
             self._connected_link.endpoint_up()
+        return True
 
-    def disable(self):
+    def disable(self) -> bool:
         """Disable the network interface."""
         if not self.enabled:
-            return
+            return True
         self.enabled = False
         if self._connected_node:
             self._connected_node.sys_log.info(f"Network Interface {self} disabled")
@@ -325,6 +326,7 @@ class WiredNetworkInterface(NetworkInterface, ABC):
             _LOGGER.debug(f"Interface {self} disabled")
         if self._connected_link:
             self._connected_link.endpoint_down()
+        return True
 
     def connect_link(self, link: Link):
         """
@@ -499,7 +501,7 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
 
         return state
 
-    def enable(self):
+    def enable(self) -> bool:
         """
         Enables this wired network interface and attempts to send a "hello" message to the default gateway.
 
@@ -515,8 +517,10 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
         try:
             pass
             self._connected_node.default_gateway_hello()
+            return True
         except AttributeError:
             pass
+        return False
 
     @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:

@@ -307,7 +307,7 @@ class Folder(FileSystemItemABC):
         """Returns true if the folder is being quarantined."""
         pass
 
-    def scan(self, instant_scan: bool = False) -> None:
+    def scan(self, instant_scan: bool = False) -> bool:
         """
         Update Folder visible status.
 
@@ -315,7 +315,7 @@ class Folder(FileSystemItemABC):
         """
         if self.deleted:
             self.sys_log.error(f"Unable to scan deleted folder {self.name}")
-            return
+            return False
 
         if instant_scan:
             for file_id in self.files:
@@ -323,7 +323,7 @@ class Folder(FileSystemItemABC):
                 file.scan()
                 if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
                     self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
-            return
+            return True
 
         if self.scan_countdown <= 0:
             # scan one file per timestep
@@ -332,6 +332,7 @@ class Folder(FileSystemItemABC):
         else:
             # scan already in progress
             self.sys_log.info(f"Scan is already in progress {self.name} (id: {self.uuid})")
+        return True
 
     def reveal_to_red(self, instant_scan: bool = False):
         """
@@ -358,7 +359,7 @@ class Folder(FileSystemItemABC):
             # scan already in progress
             self.sys_log.info(f"Red Agent Scan is already in progress {self.name} (id: {self.uuid})")
 
-    def check_hash(self) -> None:
+    def check_hash(self) -> bool:
         """
         Runs a :func:`check_hash` on all files in the folder.
 
@@ -371,7 +372,7 @@ class Folder(FileSystemItemABC):
         """
         if self.deleted:
             self.sys_log.error(f"Unable to check hash of deleted folder {self.name}")
-            return
+            return False
 
         # iterate through the files and run a check hash
         no_corrupted_files = True
@@ -387,12 +388,13 @@ class Folder(FileSystemItemABC):
             self.corrupt()
 
         self.sys_log.info(f"Checking hash of folder {self.name} (id: {self.uuid})")
+        return True
 
-    def repair(self) -> None:
+    def repair(self) -> bool:
         """Repair a corrupted Folder by setting the folder and containing files status to FileSystemItemStatus.GOOD."""
         if self.deleted:
             self.sys_log.error(f"Unable to repair deleted folder {self.name}")
-            return
+            return False
 
         # iterate through the files in the folder
         for file_id in self.files:
@@ -406,8 +408,9 @@ class Folder(FileSystemItemABC):
         self.health_status = FileSystemItemHealthStatus.GOOD
 
         self.sys_log.info(f"Repaired folder {self.name} (id: {self.uuid})")
+        return True
 
-    def restore(self) -> None:
+    def restore(self) -> bool:
         """
         If a Folder is corrupted, run a repair on the folder and its child files.
 
@@ -423,12 +426,13 @@ class Folder(FileSystemItemABC):
         else:
             # scan already in progress
             self.sys_log.info(f"Folder restoration already in progress {self.name} (id: {self.uuid})")
+        return True
 
-    def corrupt(self) -> None:
+    def corrupt(self) -> bool:
         """Corrupt a File by setting the folder and containing files status to FileSystemItemStatus.CORRUPT."""
         if self.deleted:
             self.sys_log.error(f"Unable to corrupt deleted folder {self.name}")
-            return
+            return False
 
         # iterate through the files in the folder
         for file_id in self.files:
@@ -439,11 +443,13 @@ class Folder(FileSystemItemABC):
         self.health_status = FileSystemItemHealthStatus.CORRUPT
 
         self.sys_log.info(f"Corrupted folder {self.name} (id: {self.uuid})")
+        return True
 
-    def delete(self):
+    def delete(self) -> bool:
         """Marks the file as deleted. Prevents agent actions from occuring."""
         if self.deleted:
             self.sys_log.error(f"Unable to delete an already deleted folder {self.name}")
-            return
+            return False
 
         self.deleted = True
+        return True

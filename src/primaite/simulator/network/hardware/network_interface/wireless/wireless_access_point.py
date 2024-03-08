@@ -51,13 +51,15 @@ class WirelessAccessPoint(IPWirelessNetworkInterface):
 
         return state
 
-    def enable(self):
+    def enable(self) -> bool:
         """Enable the interface."""
         pass
+        return True
 
-    def disable(self):
+    def disable(self) -> bool:
         """Disable the interface."""
         pass
+        return True
 
     def send_frame(self, frame: Frame) -> bool:
         """

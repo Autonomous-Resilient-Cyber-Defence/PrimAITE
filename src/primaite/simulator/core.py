@@ -43,7 +43,7 @@ class RequestType(BaseModel):
     the request can be performed or not.
     """
 
-    func: Callable[[List[str], Dict], RequestResponse]
+    func: Callable[[List[Union[str, int, float]], Dict], RequestResponse]
     """
     ``func`` is a function that accepts a request and a context dict. Typically this would be a lambda function
     that invokes a class method of your SimComponent. For example if the component is a node and the request type is for
@@ -73,7 +73,7 @@ class RequestManager(BaseModel):
     """maps request name to an RequestType object."""
 
     @validate_call
-    def __call__(self, request: List[str], context: Dict) -> RequestResponse:
+    def __call__(self, request: List[Union[str, int, float]], context: Dict) -> RequestResponse:
         """
         Process an request request.
 
@@ -206,7 +206,8 @@ class SimComponent(BaseModel):
         }
         return state
 
-    def apply_request(self, request: List[str], context: Dict = {}) -> None:
+    @validate_call
+    def apply_request(self, request: List[Union[str, int, float]], context: Dict = {}) -> RequestResponse:
         """
         Apply a request to a simulation component. Request data is passed in as a 'namespaced' list of strings.
 
