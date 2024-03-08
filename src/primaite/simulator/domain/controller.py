@@ -87,6 +87,7 @@ class DomainController(SimComponent):
             "account",
             RequestType(
                 func=lambda request, context: self.accounts[request.pop(0)].apply_request(request, context),
+                # TODO: not sure what should get returned here, revisit
                 validator=GroupMembershipValidator(allowed_groups=[AccountGroup.DOMAIN_ADMIN]),
             ),
         )
