@@ -1,6 +1,6 @@
 """PrimAITE game - Encapsulates the simulation and agents."""
 from ipaddress import IPv4Address
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict
 
@@ -67,8 +67,13 @@ class PrimaiteGameOptions(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     max_episode_length: int = 256
+    """Maximum number of episodes for the PrimAITE game."""
     ports: List[str]
+    """A whitelist of available ports in the simulation."""
     protocols: List[str]
+    """A whitelist of available protocols in the simulation."""
+    thresholds: Optional[Dict] = {}
+    """A dict containing the thresholds used for determining what is acceptable during observations."""
 
 
 class PrimaiteGame:

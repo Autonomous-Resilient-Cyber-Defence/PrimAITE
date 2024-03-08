@@ -5,8 +5,9 @@ from typing import Union
 import yaml
 
 from primaite.config.load import data_manipulation_config_path
-from primaite.game.agent.interface import ProxyAgent, RandomAgent
+from primaite.game.agent.interface import ProxyAgent
 from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
+from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
 from primaite.game.game import APPLICATION_TYPES_MAPPING, PrimaiteGame, SERVICE_TYPES_MAPPING
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -43,15 +44,15 @@ def test_example_config():
 
     # green agent 1
     assert "client_2_green_user" in game.agents
-    assert isinstance(game.agents["client_2_green_user"], RandomAgent)
+    assert isinstance(game.agents["client_2_green_user"], ProbabilisticAgent)
 
     # green agent 2
     assert "client_1_green_user" in game.agents
-    assert isinstance(game.agents["client_1_green_user"], RandomAgent)
+    assert isinstance(game.agents["client_1_green_user"], ProbabilisticAgent)
 
     # red agent
-    assert "client_1_data_manipulation_red_bot" in game.agents
-    assert isinstance(game.agents["client_1_data_manipulation_red_bot"], DataManipulationAgent)
+    assert "data_manipulation_attacker" in game.agents
+    assert isinstance(game.agents["data_manipulation_attacker"], DataManipulationAgent)
 
     # blue agent
     assert "defender" in game.agents

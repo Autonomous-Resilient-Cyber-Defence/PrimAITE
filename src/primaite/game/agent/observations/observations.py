@@ -7,7 +7,6 @@ from gymnasium import spaces
 
 from primaite import getLogger
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
-from primaite.simulator.network.nmne import CAPTURE_NMNE
 
 _LOGGER = getLogger(__name__)
 
@@ -114,107 +113,6 @@ class LinkObservation(AbstractObservation):
         :rtype: LinkObservation
         """
         return cls(where=["network", "links", game.ref_map_links[config["link_ref"]]])
-
-
-class NicObservation(AbstractObservation):
-    """Observation of a Network Interface Card (NIC) in the network."""
-
-    @property
-    def default_observation(self) -> Dict:
-        """The default NIC observation dict."""
-        data = {"nic_status": 0}
-        if CAPTURE_NMNE:
-            data.update({"nmne": {"inbound": 0, "outbound": 0}})
-
-        return data
-
-    def __init__(self, where: Optional[Tuple[str]] = None) -> None:
-        """Initialise NIC observation.
-
-        :param where: Where in the simulation state dictionary to find the relevant information for this NIC. A typical
-            example may look like this:
-            ['network','nodes',<node_hostname>,'NICs',<nic_number>]
-            If None, this denotes that the NIC does not exist and the observation will be populated with zeroes.
-        :type where: Optional[Tuple[str]], optional
-        """
-        super().__init__()
-        self.where: Optional[Tuple[str]] = where
-
-    def _categorise_mne_count(self, nmne_count: int) -> int:
-        """
-        Categorise the number of Malicious Network Events (NMNEs) into discrete bins.
-
-        This helps in classifying the severity or volume of MNEs into manageable levels for the agent.
-
-        Bins are defined as follows:
-        - 0: No MNEs detected (0 events).
-        - 1: Low number of MNEs (1-5 events).
-        - 2: Moderate number of MNEs (6-10 events).
-        - 3: High number of MNEs (more than 10 events).
-
-        :param nmne_count: Number of MNEs detected.
-        :return: Bin number corresponding to the number of MNEs. Returns 0, 1, 2, or 3 based on the detected MNE count.
-        """
-        if nmne_count > 10:
-            return 3
-        elif nmne_count > 5:
-            return 2
-        elif nmne_count > 0:
-            return 1
-        return 0
-
-    def observe(self, state: Dict) -> Dict:
-        """Generate observation based on the current state of the simulation.
-
-        :param state: Simulation state dictionary
-        :type state: Dict
-        :return: Observation
-        :rtype: Dict
-        """
-        if self.where is None:
-            return self.default_observation
-        nic_state = access_from_nested_dict(state, self.where)
-
-        if nic_state is NOT_PRESENT_IN_STATE:
-            return self.default_observation
-        else:
-            obs_dict = {"nic_status": 1 if nic_state["enabled"] else 2}
-            if CAPTURE_NMNE:
-                obs_dict.update({"nmne": {}})
-                direction_dict = nic_state["nmne"].get("direction", {})
-                inbound_keywords = direction_dict.get("inbound", {}).get("keywords", {})
-                inbound_count = inbound_keywords.get("*", 0)
-                outbound_keywords = direction_dict.get("outbound", {}).get("keywords", {})
-                outbound_count = outbound_keywords.get("*", 0)
-                obs_dict["nmne"]["inbound"] = self._categorise_mne_count(inbound_count)
-                obs_dict["nmne"]["outbound"] = self._categorise_mne_count(outbound_count)
-            return obs_dict
-
-    @property
-    def space(self) -> spaces.Space:
-        """Gymnasium space object describing the observation space shape."""
-        return spaces.Dict(
-            {
-                "nic_status": spaces.Discrete(3),
-                "nmne": spaces.Dict({"inbound": spaces.Discrete(6), "outbound": spaces.Discrete(6)}),
-            }
-        )
-
-    @classmethod
-    def from_config(cls, config: Dict, game: "PrimaiteGame", parent_where: Optional[List[str]]) -> "NicObservation":
-        """Create NIC observation from a config.
-
-        :param config: Dictionary containing the configuration for this NIC observation.
-        :type config: Dict
-        :param game: Reference to the PrimaiteGame object that spawned this observation.
-        :type game: PrimaiteGame
-        :param parent_where: Where in the simulation state dictionary to find the information about this NIC's parent
-            node. A typical location for a node ``where`` can be: ['network','nodes',<node_hostname>]
-        :type parent_where: Optional[List[str]]
-        :return: Constructed NIC observation
-        :rtype: NicObservation
-        """
-        return cls(where=parent_where + ["NICs", config["nic_num"]])
 
 
 class AclObservation(AbstractObservation):

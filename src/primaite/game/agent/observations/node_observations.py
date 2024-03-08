@@ -4,7 +4,8 @@ from gymnasium import spaces
 
 from primaite import getLogger
 from primaite.game.agent.observations.file_system_observations import FolderObservation
-from primaite.game.agent.observations.observations import AbstractObservation, NicObservation
+from primaite.game.agent.observations.nic_observations import NicObservation
+from primaite.game.agent.observations.observations import AbstractObservation
 from primaite.game.agent.observations.software_observation import ServiceObservation
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 

@@ -1,4 +1,4 @@
-from primaite.game.agent.observations.observations import NicObservation
+from primaite.game.agent.observations.nic_observations import NicObservation
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.nmne import set_nmne_config
 from primaite.simulator.sim_container import Simulation
