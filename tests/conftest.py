@@ -10,7 +10,8 @@ from _pytest.monkeypatch import MonkeyPatch
 from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent
-from primaite.game.agent.observations import ICSObservation, ObservationManager
+from primaite.game.agent.observations.observation_manager import ObservationManager
+from primaite.game.agent.observations.observations import ICSObservation
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.game import PrimaiteGame
 from primaite.session.session import PrimaiteSession

@@ -6,11 +6,11 @@ from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
-from primaite.game.agent.observations import ObservationManager
+from primaite.game.agent.observations.observation_manager import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
-from primaite.game.agent.scripted_agents import ProbabilisticAgent
+from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
+from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
