@@ -62,7 +62,7 @@ class FileSystem(SimComponent):
         self._restore_manager.add_request(
             name="file",
             request_type=RequestType(
-                func=lambda request, context: RequestResponse(
+                func=lambda request, context: RequestResponse.from_bool(
                     self.restore_file(folder_name=request[0], file_name=request[1])
                 )
             ),
