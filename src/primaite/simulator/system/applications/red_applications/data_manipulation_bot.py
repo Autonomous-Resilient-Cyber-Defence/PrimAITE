@@ -194,6 +194,8 @@ class DataManipulationBot(Application):
         """
         if not self._can_perform_action():
             return
+
+        self.num_executions += 1
         if self.server_ip_address and self.payload:
             self.sys_log.info(f"{self.name}: Running")
             self._logon()

@@ -131,6 +131,7 @@ class Folder(FileSystemItemABC):
                     file.scan()
                     if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
                         self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
+                self.visible_health_status = self.health_status
 
     def _reveal_to_red_timestep(self) -> None:
         """Apply reveal to red timestep."""
