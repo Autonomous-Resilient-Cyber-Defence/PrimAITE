@@ -130,7 +130,7 @@ class Folder(FileSystemItemABC):
                     file = self.get_file_by_id(file_uuid=file_id)
                     file.scan()
                     if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
-                        self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
+                        self.health_status = FileSystemItemHealthStatus.CORRUPT
                 self.visible_health_status = self.health_status
 
     def _reveal_to_red_timestep(self) -> None:
