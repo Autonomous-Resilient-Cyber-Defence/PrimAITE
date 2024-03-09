@@ -14,7 +14,7 @@ from primaite import getLogger
 from primaite.exceptions import NetworkError
 from primaite.interface.request import RequestResponse
 from primaite.simulator import SIM_OUTPUT
-from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.core import RequestFormat, RequestManager, RequestPermissionValidator, RequestType, SimComponent
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
@@ -772,47 +772,69 @@ class Node(SimComponent):
             self.sys_log.current_episode = episode
             self.sys_log.setup_logger()
 
+    class _NodeIsOnValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the node is on.
+
+        This is useful because no actions should be being resolved if the node is off.
+        """
+
+        node: Node
+        """Save a reference to the node instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the node is on or off."""
+            return self.node.operating_state == NodeOperatingState.ON
+
     def _init_request_manager(self) -> RequestManager:
-        # TODO: I see that this code is really confusing and hard to read right now... I think some of these things will
-        # need a better name and better documentation.
+        _node_is_on = Node._NodeIsOnValidator(node=self)
+
         rm = super()._init_request_manager()
         # since there are potentially many services, create an request manager that can map service name
         self._service_request_manager = RequestManager()
-        rm.add_request("service", RequestType(func=self._service_request_manager))
+        rm.add_request("service", RequestType(func=self._service_request_manager, validator=_node_is_on))
         self._nic_request_manager = RequestManager()
-        rm.add_request("network_interface", RequestType(func=self._nic_request_manager))
+        rm.add_request("network_interface", RequestType(func=self._nic_request_manager, validator=_node_is_on))
 
-        rm.add_request("file_system", RequestType(func=self.file_system._request_manager))
+        rm.add_request("file_system", RequestType(func=self.file_system._request_manager, validator=_node_is_on))
 
         # currently we don't have any applications nor processes, so these will be empty
         self._process_request_manager = RequestManager()
-        rm.add_request("process", RequestType(func=self._process_request_manager))
+        rm.add_request("process", RequestType(func=self._process_request_manager, validator=_node_is_on))
         self._application_request_manager = RequestManager()
-        rm.add_request("application", RequestType(func=self._application_request_manager))
+        rm.add_request("application", RequestType(func=self._application_request_manager, validator=_node_is_on))
 
         rm.add_request(
-            "scan", RequestType(func=lambda request, context: RequestResponse.from_bool(self.reveal_to_red()))
+            "scan",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.reveal_to_red()), validator=_node_is_on
+            ),
         )
 
         rm.add_request(
-            "shutdown", RequestType(func=lambda request, context: RequestResponse.from_bool(self.power_off()))
+            "shutdown",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.power_off()), validator=_node_is_on
+            ),
         )
         rm.add_request("startup", RequestType(func=lambda request, context: RequestResponse.from_bool(self.power_on())))
         rm.add_request(
-            "reset", RequestType(func=lambda request, context: RequestResponse.from_bool(self.reset()))
+            "reset",
+            RequestType(func=lambda request, context: RequestResponse.from_bool(self.reset()), validator=_node_is_on),
         )  # TODO implement node reset
         rm.add_request(
-            "logon", RequestType(func=lambda request, context: RequestResponse.from_bool(False))
+            "logon", RequestType(func=lambda request, context: RequestResponse.from_bool(False), validator=_node_is_on)
         )  # TODO implement logon request
         rm.add_request(
-            "logoff", RequestType(func=lambda request, context: RequestResponse.from_bool(False))
+            "logoff", RequestType(func=lambda request, context: RequestResponse.from_bool(False), validator=_node_is_on)
         )  # TODO implement logoff request
 
         self._os_request_manager = RequestManager()
         self._os_request_manager.add_request(
-            "scan", RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan()))
+            "scan",
+            RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan()), validator=_node_is_on),
         )
-        rm.add_request("os", RequestType(func=self._os_request_manager))
+        rm.add_request("os", RequestType(func=self._os_request_manager, validator=_node_is_on))
 
         return rm
 

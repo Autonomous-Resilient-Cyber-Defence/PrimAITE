@@ -1,6 +1,6 @@
 from typing import Dict, ForwardRef, Literal
 
-from pydantic import BaseModel, ConfigDict, validate_call
+from pydantic import BaseModel, ConfigDict, StrictBool, validate_call
 
 RequestResponse = ForwardRef("RequestResponse")
 """This makes it possible to type-hint RequestResponse.from_bool return type."""
@@ -9,7 +9,7 @@ RequestResponse = ForwardRef("RequestResponse")
 class RequestResponse(BaseModel):
     """Schema for generic request responses."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", strict=True)
     """Cannot have extra fields in the response. Anything custom goes into the data field."""
 
     status: Literal["pending", "success", "failure", "unreachable"] = "pending"
@@ -29,7 +29,7 @@ class RequestResponse(BaseModel):
 
     @classmethod
     @validate_call
-    def from_bool(cls, status_bool: bool) -> RequestResponse:
+    def from_bool(cls, status_bool: StrictBool) -> RequestResponse:
         """
         Construct a basic request response from a boolean.
 
