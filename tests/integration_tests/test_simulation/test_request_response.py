@@ -9,6 +9,8 @@ import pytest
 from primaite.interface.request import RequestResponse
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
+from primaite.simulator.network.transmission.transport_layer import Port
 from tests.conftest import TestApplication, TestService
 
 
@@ -90,3 +92,69 @@ def test_request_fails_if_node_off(example_network, node_request):
     assert client_1.operating_state == NodeOperatingState.OFF
     resp_2 = net.apply_request(node_request)
     assert resp_2.status == "failure"
+
+
+class TestDataManipulationGreenRequests:
+    def test_node_off(self, uc2_network):
+        """Test that green requests succeed when the node is on and fail if the node is off."""
+        net = uc2_network
+
+        client_1_browser_execute = net.apply_request(["node", "client_1", "application", "WebBrowser", "execute"])
+        client_1_db_client_execute = net.apply_request(["node", "client_1", "application", "DatabaseClient", "execute"])
+        client_2_browser_execute = net.apply_request(["node", "client_2", "application", "WebBrowser", "execute"])
+        client_2_db_client_execute = net.apply_request(["node", "client_2", "application", "DatabaseClient", "execute"])
+        assert client_1_browser_execute.status == "success"
+        assert client_1_db_client_execute.status == "success"
+        assert client_2_browser_execute.status == "success"
+        assert client_2_db_client_execute.status == "success"
+
+        client_1 = net.get_node_by_hostname("client_1")
+        client_2 = net.get_node_by_hostname("client_2")
+
+        client_1.shut_down_duration = 0
+        client_1.power_off()
+        client_2.shut_down_duration = 0
+        client_2.power_off()
+
+        client_1_browser_execute_off = net.apply_request(["node", "client_1", "application", "WebBrowser", "execute"])
+        client_1_db_client_execute_off = net.apply_request(
+            ["node", "client_1", "application", "DatabaseClient", "execute"]
+        )
+        client_2_browser_execute_off = net.apply_request(["node", "client_2", "application", "WebBrowser", "execute"])
+        client_2_db_client_execute_off = net.apply_request(
+            ["node", "client_2", "application", "DatabaseClient", "execute"]
+        )
+        assert client_1_browser_execute_off.status == "failure"
+        assert client_1_db_client_execute_off.status == "failure"
+        assert client_2_browser_execute_off.status == "failure"
+        assert client_2_db_client_execute_off.status == "failure"
+
+    def test_acl_block(self, uc2_network):
+        """Test that green requests succeed when not blocked by ACLs but fail when blocked."""
+        net = uc2_network
+
+        router: Router = net.get_node_by_hostname("router_1")
+        client_1: HostNode = net.get_node_by_hostname("client_1")
+        client_2: HostNode = net.get_node_by_hostname("client_2")
+
+        client_1_browser_execute = net.apply_request(["node", "client_1", "application", "WebBrowser", "execute"])
+        client_2_browser_execute = net.apply_request(["node", "client_2", "application", "WebBrowser", "execute"])
+        assert client_1_browser_execute.status == "success"
+        assert client_2_browser_execute.status == "success"
+
+        router.acl.add_rule(ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=3)
+        client_1_browser_execute = net.apply_request(["node", "client_1", "application", "WebBrowser", "execute"])
+        client_2_browser_execute = net.apply_request(["node", "client_2", "application", "WebBrowser", "execute"])
+        assert client_1_browser_execute.status == "failure"
+        assert client_2_browser_execute.status == "failure"
+
+        client_1_db_client_execute = net.apply_request(["node", "client_1", "application", "DatabaseClient", "execute"])
+        client_2_db_client_execute = net.apply_request(["node", "client_2", "application", "DatabaseClient", "execute"])
+        assert client_1_db_client_execute.status == "success"
+        assert client_2_db_client_execute.status == "success"
+
+        router.acl.add_rule(ACLAction.DENY, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER)
+        client_1_db_client_execute = net.apply_request(["node", "client_1", "application", "DatabaseClient", "execute"])
+        client_2_db_client_execute = net.apply_request(["node", "client_2", "application", "DatabaseClient", "execute"])
+        assert client_1_db_client_execute.status == "failure"
+        assert client_2_db_client_execute.status == "failure"
