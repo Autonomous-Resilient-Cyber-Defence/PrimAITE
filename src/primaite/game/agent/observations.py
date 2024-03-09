@@ -367,6 +367,13 @@ class NicObservation(AbstractObservation):
         """
         super().__init__()
         self.where: Optional[Tuple[str]] = where
+        if CAPTURE_NMNE:
+            self.nmne_inbound_last_step: int = 0
+            """NMNEs persist for the whole episode, but we want to count per step. Keeping track of last step count lets
+              us find the difference."""
+            self.nmne_outbound_last_step: int = 0
+            """NMNEs persist for the whole episode, but we want to count per step. Keeping track of last step count lets
+              us find the difference."""
 
     def _categorise_mne_count(self, nmne_count: int) -> int:
         """
@@ -414,8 +421,10 @@ class NicObservation(AbstractObservation):
                 inbound_count = inbound_keywords.get("*", 0)
                 outbound_keywords = direction_dict.get("outbound", {}).get("keywords", {})
                 outbound_count = outbound_keywords.get("*", 0)
-                obs_dict["nmne"]["inbound"] = self._categorise_mne_count(inbound_count)
-                obs_dict["nmne"]["outbound"] = self._categorise_mne_count(outbound_count)
+                obs_dict["nmne"]["inbound"] = self._categorise_mne_count(inbound_count - self.nmne_inbound_last_step)
+                obs_dict["nmne"]["outbound"] = self._categorise_mne_count(outbound_count - self.nmne_outbound_last_step)
+                self.nmne_inbound_last_step = inbound_count
+                self.nmne_outbound_last_step = outbound_count
             return obs_dict
 
     @property

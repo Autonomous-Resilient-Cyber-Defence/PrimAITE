@@ -260,10 +260,9 @@ class NetworkInterface(SimComponent, ABC):
         """
         Apply a timestep evolution to this component.
 
-        This just clears the nmne count back to 0.tests/integration_tests/network/test_capture_nmne.py
+        This just clears the nmne count back to 0.
         """
         super().apply_timestep(timestep=timestep)
-        self.nmne.clear()
 
 
 class WiredNetworkInterface(NetworkInterface, ABC):
