@@ -1,4 +1,5 @@
 import pytest
+from gymnasium import spaces
 
 from primaite.game.agent.observations.software_observation import ApplicationObservation, ServiceObservation
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -28,6 +29,9 @@ def test_service_observation(simulation):
     assert ntp_server
 
     service_obs = ServiceObservation(where=["network", "nodes", pc.hostname, "services", "NTPServer"])
+
+    assert service_obs.space["operating_status"] == spaces.Discrete(7)
+    assert service_obs.space["health_status"] == spaces.Discrete(5)
 
     observation_state = service_obs.observe(simulation.describe_state())
 

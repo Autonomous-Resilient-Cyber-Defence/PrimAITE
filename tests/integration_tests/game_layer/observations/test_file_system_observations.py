@@ -26,7 +26,7 @@ def test_file_observation(simulation):
         where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"]
     )
 
-    assert dog_file_obs.space == spaces.Dict({"health_status": spaces.Discrete(6)})
+    assert dog_file_obs.space["health_status"] == spaces.Discrete(6)
 
     observation_state = dog_file_obs.observe(simulation.describe_state())
     assert observation_state.get("health_status") == 1  # good initial
@@ -51,6 +51,8 @@ def test_folder_observation(simulation):
     root_folder_obs = FolderObservation(
         where=["network", "nodes", pc.hostname, "file_system", "folders", "test_folder"]
     )
+
+    assert root_folder_obs.space["health_status"] == spaces.Discrete(6)
 
     observation_state = root_folder_obs.observe(simulation.describe_state())
     assert observation_state.get("FILES") is not None

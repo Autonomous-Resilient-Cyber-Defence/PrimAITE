@@ -22,8 +22,6 @@ io_settings:
 game:
   max_episode_length: 256
   ports:
-  - ARP
-  - DNS
   - HTTP
   - POSTGRES_SERVER
   protocols:

@@ -20,6 +20,8 @@ class NicObservation(AbstractObservation):
     high_nmne_threshold: int = 10
     """The minimum number of malicious network events to be considered high."""
 
+    global CAPTURE_NMNE
+
     @property
     def default_observation(self) -> Dict:
         """The default NIC observation dict."""
@@ -46,6 +48,15 @@ class NicObservation(AbstractObservation):
         """
         super().__init__()
         self.where: Optional[Tuple[str]] = where
+
+        global CAPTURE_NMNE
+        if CAPTURE_NMNE:
+            self.nmne_inbound_last_step: int = 0
+            """NMNEs persist for the whole episode, but we want to count per step. Keeping track of last step count lets
+              us find the difference."""
+            self.nmne_outbound_last_step: int = 0
+            """NMNEs persist for the whole episode, but we want to count per step. Keeping track of last step count lets
+              us find the difference."""
 
         if low_nmne_threshold or med_nmne_threshold or high_nmne_threshold:
             self._validate_nmne_categories(
@@ -128,19 +139,21 @@ class NicObservation(AbstractObservation):
                 inbound_count = inbound_keywords.get("*", 0)
                 outbound_keywords = direction_dict.get("outbound", {}).get("keywords", {})
                 outbound_count = outbound_keywords.get("*", 0)
-                obs_dict["nmne"]["inbound"] = self._categorise_mne_count(inbound_count)
-                obs_dict["nmne"]["outbound"] = self._categorise_mne_count(outbound_count)
+                obs_dict["nmne"]["inbound"] = self._categorise_mne_count(inbound_count - self.nmne_inbound_last_step)
+                obs_dict["nmne"]["outbound"] = self._categorise_mne_count(outbound_count - self.nmne_outbound_last_step)
+                self.nmne_inbound_last_step = inbound_count
+                self.nmne_outbound_last_step = outbound_count
             return obs_dict
 
     @property
     def space(self) -> spaces.Space:
         """Gymnasium space object describing the observation space shape."""
-        return spaces.Dict(
-            {
-                "nic_status": spaces.Discrete(3),
-                "nmne": spaces.Dict({"inbound": spaces.Discrete(6), "outbound": spaces.Discrete(6)}),
-            }
-        )
+        space = spaces.Dict({"nic_status": spaces.Discrete(3)})
+
+        if CAPTURE_NMNE:
+            space["nmne"] = spaces.Dict({"inbound": spaces.Discrete(4), "outbound": spaces.Discrete(4)})
+
+        return space
 
     @classmethod
     def from_config(cls, config: Dict, game: "PrimaiteGame", parent_where: Optional[List[str]]) -> "NicObservation":

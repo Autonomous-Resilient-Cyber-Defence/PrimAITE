@@ -1,9 +1,27 @@
+from pathlib import Path
+from typing import Union
+
 import pytest
+import yaml
+from gymnasium import spaces
 
 from primaite.game.agent.observations.nic_observations import NicObservation
+from primaite.game.game import PrimaiteGame
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
+from primaite.simulator.network.nmne import CAPTURE_NMNE
 from primaite.simulator.sim_container import Simulation
+from tests import TEST_ASSETS_ROOT
+
+BASIC_CONFIG = TEST_ASSETS_ROOT / "configs/basic_switched_network.yaml"
+
+
+def load_config(config_path: Union[str, Path]) -> PrimaiteGame:
+    """Returns a PrimaiteGame object which loads the contents of a given yaml path."""
+    with open(config_path, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    return PrimaiteGame.from_config(cfg)
 
 
 @pytest.fixture(scope="function")
@@ -23,6 +41,10 @@ def test_nic(simulation):
     nic: NIC = pc.network_interface[1]
 
     nic_obs = NicObservation(where=["network", "nodes", pc.hostname, "NICs", 1])
+
+    assert nic_obs.space["nic_status"] == spaces.Discrete(3)
+    assert nic_obs.space["nmne"]["inbound"] == spaces.Discrete(4)
+    assert nic_obs.space["nmne"]["outbound"] == spaces.Discrete(4)
 
     observation_state = nic_obs.observe(simulation.describe_state())
     assert observation_state.get("nic_status") == 1  # enabled

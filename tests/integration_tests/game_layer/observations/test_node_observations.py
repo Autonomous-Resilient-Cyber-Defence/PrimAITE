@@ -2,6 +2,7 @@ import copy
 from uuid import uuid4
 
 import pytest
+from gymnasium import spaces
 
 from primaite.game.agent.observations.node_observations import NodeObservation
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -23,6 +24,8 @@ def test_node_observation(simulation):
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
 
     node_obs = NodeObservation(where=["network", "nodes", pc.hostname])
+
+    assert node_obs.space["operating_status"] == spaces.Discrete(5)
 
     observation_state = node_obs.observe(simulation.describe_state())
     assert observation_state.get("operating_status") == 1  # computer is on

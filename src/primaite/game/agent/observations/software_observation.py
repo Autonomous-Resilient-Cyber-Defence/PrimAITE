@@ -51,7 +51,7 @@ class ServiceObservation(AbstractObservation):
     @property
     def space(self) -> spaces.Space:
         """Gymnasium space object describing the observation space shape."""
-        return spaces.Dict({"operating_status": spaces.Discrete(7), "health_status": spaces.Discrete(6)})
+        return spaces.Dict({"operating_status": spaces.Discrete(7), "health_status": spaces.Discrete(5)})
 
     @classmethod
     def from_config(
