@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Dict, Optional
 
 from primaite import getLogger
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.system.core.sys_log import SysLog
 
@@ -100,14 +101,33 @@ class FileSystemItemABC(SimComponent):
         return state
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
 
-        rm.add_request(name="scan", request_type=RequestType(func=lambda request, context: self.scan()))
-        rm.add_request(name="checkhash", request_type=RequestType(func=lambda request, context: self.check_hash()))
-        rm.add_request(name="repair", request_type=RequestType(func=lambda request, context: self.repair()))
-        rm.add_request(name="restore", request_type=RequestType(func=lambda request, context: self.restore()))
+        rm.add_request(
+            name="scan", request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan()))
+        )
+        rm.add_request(
+            name="checkhash",
+            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.check_hash())),
+        )
+        rm.add_request(
+            name="repair",
+            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.repair())),
+        )
+        rm.add_request(
+            name="restore",
+            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.restore())),
+        )
 
-        rm.add_request(name="corrupt", request_type=RequestType(func=lambda request, context: self.corrupt()))
+        rm.add_request(
+            name="corrupt",
+            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.corrupt())),
+        )
 
         return rm
 
@@ -124,9 +144,9 @@ class FileSystemItemABC(SimComponent):
         return convert_size(self.size)
 
     @abstractmethod
-    def scan(self) -> None:
+    def scan(self) -> bool:
         """Scan the folder/file - updates the visible_health_status."""
-        pass
+        return False
 
     @abstractmethod
     def reveal_to_red(self) -> None:
@@ -134,7 +154,7 @@ class FileSystemItemABC(SimComponent):
         pass
 
     @abstractmethod
-    def check_hash(self) -> None:
+    def check_hash(self) -> bool:
         """
         Checks the has of the file to detect any changes.
 
@@ -142,30 +162,30 @@ class FileSystemItemABC(SimComponent):
 
         Return False if corruption is detected, otherwise True
         """
-        pass
+        return False
 
     @abstractmethod
-    def repair(self) -> None:
+    def repair(self) -> bool:
         """
         Repair the FileSystemItem.
 
         True if successfully repaired. False otherwise.
         """
-        pass
+        return False
 
     @abstractmethod
-    def corrupt(self) -> None:
+    def corrupt(self) -> bool:
         """
         Corrupt the FileSystemItem.
 
         True if successfully corrupted. False otherwise.
         """
-        pass
+        return False
 
     @abstractmethod
-    def restore(self) -> None:
+    def restore(self) -> bool:
         """Restore the file/folder to the state before it got ruined."""
-        pass
+        return False
 
     @abstractmethod
     def delete(self) -> None:

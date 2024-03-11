@@ -4,6 +4,7 @@ from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.game.science import simulate_trial
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -74,9 +75,17 @@ class DataManipulationBot(Application):
         return db_client
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
 
-        rm.add_request(name="execute", request_type=RequestType(func=lambda request, context: self.attack()))
+        rm.add_request(
+            name="execute",
+            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.attack())),
+        )
 
         return rm
 
@@ -179,21 +188,21 @@ class DataManipulationBot(Application):
         """
         super().run()
 
-    def attack(self):
+    def attack(self) -> bool:
         """Perform the attack steps after opening the application."""
         if not self._can_perform_action():
             _LOGGER.debug("Data manipulation application attempted to execute but it cannot perform actions right now.")
             self.run()
-        self._application_loop()
+        return self._application_loop()
 
-    def _application_loop(self):
+    def _application_loop(self) -> bool:
         """
         The main application loop of the bot, handling the attack process.
 
         This is the core loop where the bot sequentially goes through the stages of the attack.
         """
         if not self._can_perform_action():
-            return
+            return False
         if self.server_ip_address and self.payload:
             self.sys_log.info(f"{self.name}: Running")
             self._logon()
@@ -205,8 +214,12 @@ class DataManipulationBot(Application):
                 DataManipulationAttackStage.FAILED,
             ):
                 self.attack_stage = DataManipulationAttackStage.NOT_STARTED
+
+            return True
+
         else:
             self.sys_log.error(f"{self.name}: Failed to start as it requires both a target_ip_address and payload.")
+            return False
 
     def apply_timestep(self, timestep: int) -> None:
         """

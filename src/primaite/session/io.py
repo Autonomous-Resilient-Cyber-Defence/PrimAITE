@@ -93,7 +93,7 @@ class PrimaiteIO:
                 {
                     "episode": episode,
                     "timestep": timestep,
-                    "agent_actions": {k: {"action": v[0], "parameters": v[1]} for k, v in agent_actions.items()},
+                    "agent_actions": agent_actions,
                 }
             ]
         )

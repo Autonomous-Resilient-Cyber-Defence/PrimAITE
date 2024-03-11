@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import validate_call
 
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.hardware.base import IPWiredNetworkInterface
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
@@ -293,6 +294,11 @@ class AccessControlList(SimComponent):
         self._acl = [None] * (self.max_acl_rules - 1)
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         # TODO: Add src and dst wildcard masks as positional args in this request.
         rm = super()._init_request_manager()
 
@@ -308,19 +314,24 @@ class AccessControlList(SimComponent):
         rm.add_request(
             "add_rule",
             RequestType(
-                func=lambda request, context: self.add_rule(
-                    action=ACLAction[request[0]],
-                    protocol=None if request[1] == "ALL" else IPProtocol[request[1]],
-                    src_ip_address=None if request[2] == "ALL" else IPv4Address(request[2]),
-                    src_port=None if request[3] == "ALL" else Port[request[3]],
-                    dst_ip_address=None if request[4] == "ALL" else IPv4Address(request[4]),
-                    dst_port=None if request[5] == "ALL" else Port[request[5]],
-                    position=int(request[6]),
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.add_rule(
+                        action=ACLAction[request[0]],
+                        protocol=None if request[1] == "ALL" else IPProtocol[request[1]],
+                        src_ip_address=None if request[2] == "ALL" else IPv4Address(request[2]),
+                        src_port=None if request[3] == "ALL" else Port[request[3]],
+                        dst_ip_address=None if request[4] == "ALL" else IPv4Address(request[4]),
+                        dst_port=None if request[5] == "ALL" else Port[request[5]],
+                        position=int(request[6]),
+                    )
                 )
             ),
         )
 
-        rm.add_request("remove_rule", RequestType(func=lambda request, context: self.remove_rule(int(request[0]))))
+        rm.add_request(
+            "remove_rule",
+            RequestType(func=lambda request, context: RequestResponse.from_bool(self.remove_rule(int(request[0])))),
+        )
         return rm
 
     def describe_state(self) -> Dict:
@@ -366,7 +377,7 @@ class AccessControlList(SimComponent):
         src_port: Optional[Port] = None,
         dst_port: Optional[Port] = None,
         position: int = 0,
-    ) -> None:
+    ) -> bool:
         """
         Adds a new ACL rule to control network traffic based on specified criteria.
 
@@ -423,10 +434,12 @@ class AccessControlList(SimComponent):
                 src_port=src_port,
                 dst_port=dst_port,
             )
+            return True
         else:
             raise ValueError(f"Cannot add ACL rule, position {position} is out of bounds.")
+        return False
 
-    def remove_rule(self, position: int) -> None:
+    def remove_rule(self, position: int) -> bool:
         """
         Remove an ACL rule from a specific position.
 
@@ -437,8 +450,10 @@ class AccessControlList(SimComponent):
             rule = self._acl[position]  # noqa
             self._acl[position] = None
             del rule
+            return True
         else:
             raise ValueError(f"Cannot remove ACL rule, position {position} is out of bounds.")
+        return False
 
     def is_permitted(self, frame: Frame) -> Tuple[bool, ACLRule]:
         """Check if a packet with the given properties is permitted through the ACL."""
@@ -1082,6 +1097,11 @@ class Router(NetworkNode):
         super().setup_for_episode(episode=episode)
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
         rm.add_request("acl", RequestType(func=self.acl._request_manager))
         return rm

@@ -492,9 +492,9 @@ class NetworkACLAddRuleAction(AbstractAction):
             "add_rule",
             permission_str,
             protocol,
-            src_ip,
+            str(src_ip),
             src_port,
-            dst_ip,
+            str(dst_ip),
             dst_port,
             position,
         ]
