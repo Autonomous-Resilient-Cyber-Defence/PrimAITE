@@ -125,8 +125,8 @@ def test_describe_state_nmne(uc2_network):
     web_server_nic_state = web_server_nic.describe_state()
     db_server_nic_state = db_server_nic.describe_state()
     uc2_network.apply_timestep(timestep=0)
-    assert web_server_nic_state["nmne"] == {}
-    assert db_server_nic_state["nmne"] == {}
+    assert web_server_nic_state["nmne"] == {"direction": {"outbound": {"keywords": {"*": 1}}}}
+    assert db_server_nic_state["nmne"] == {"direction": {"inbound": {"keywords": {"*": 1}}}}
 
     # Perform another "DELETE" query
     db_client.query("DELETE")
@@ -135,8 +135,8 @@ def test_describe_state_nmne(uc2_network):
     web_server_nic_state = web_server_nic.describe_state()
     db_server_nic_state = db_server_nic.describe_state()
     uc2_network.apply_timestep(timestep=0)
-    assert web_server_nic_state["nmne"] == {"direction": {"outbound": {"keywords": {"*": 1}}}}
-    assert db_server_nic_state["nmne"] == {"direction": {"inbound": {"keywords": {"*": 1}}}}
+    assert web_server_nic_state["nmne"] == {"direction": {"outbound": {"keywords": {"*": 2}}}}
+    assert db_server_nic_state["nmne"] == {"direction": {"inbound": {"keywords": {"*": 2}}}}
 
 
 def test_capture_nmne_observations(uc2_network):

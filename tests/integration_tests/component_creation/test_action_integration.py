@@ -12,6 +12,8 @@ def test_passing_actions_down(monkeypatch) -> None:
     sim = Simulation()
 
     pc1 = Computer(hostname="PC-1", ip_address="10.10.1.1", subnet_mask="255.255.255.0")
+    pc1.start_up_duration = 0
+    pc1.power_on()
     pc2 = Computer(hostname="PC-2", ip_address="10.10.1.2", subnet_mask="255.255.255.0")
     srv = Server(hostname="WEBSERVER", ip_address="10.10.1.100", subnet_mask="255.255.255.0")
     s1 = Switch(hostname="switch1")
