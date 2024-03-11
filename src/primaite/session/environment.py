@@ -49,23 +49,20 @@ class PrimaiteGymEnv(gymnasium.Env):
         # make ProxyAgent store the action chosen my the RL policy
         self.agent.store_action(action)
         # apply_agent_actions accesses the action we just stored
-        agent_actions = self.game.apply_agent_actions()
+        self.game.apply_agent_actions()
         self.game.advance_timestep()
         state = self.game.get_sim_state()
-
         self.game.update_agents(state)
 
-        next_obs = self._get_obs()
+        next_obs = self._get_obs()  # this doesn't update observation, just gets the current observation
         reward = self.agent.reward_function.current_reward
         terminated = False
         truncated = self.game.calculate_truncated()
-        info = {"agent_actions": agent_actions}  # tell us what all the agents did for convenience.
+        info = {
+            "agent_actions": {name: agent.action_history[-1] for name, agent in self.game.agents.items()}
+        }  # tell us what all the agents did for convenience.
         if self.game.save_step_metadata:
             self._write_step_metadata_json(action, state, reward)
-        if self.io.settings.save_agent_actions:
-            self.io.store_agent_actions(
-                agent_actions=agent_actions, episode=self.episode_counter, timestep=self.game.step_counter
-            )
         return next_obs, reward, terminated, truncated, info
 
     def _write_step_metadata_json(self, action: int, state: Dict, reward: int):
@@ -91,13 +88,13 @@ class PrimaiteGymEnv(gymnasium.Env):
             f"avg. reward: {self.agent.reward_function.total_reward}"
         )
         if self.io.settings.save_agent_actions:
-            self.io.write_agent_actions(episode=self.episode_counter)
-            self.io.clear_agent_actions()
+            all_agent_actions = {name: agent.action_history for name, agent in self.game.agents.items()}
+            self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
         self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=copy.deepcopy(self.game_config))
         self.game.setup_for_episode(episode=self.episode_counter)
         self.episode_counter += 1
         state = self.game.get_sim_state()
-        self.game.update_agents(state)
+        self.game.update_agents(state=state)
         next_obs = self._get_obs()
         info = {}
         return next_obs, info
@@ -217,7 +214,7 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         # 1. Perform actions
         for agent_name, action in actions.items():
             self.agents[agent_name].store_action(action)
-        agent_actions = self.game.apply_agent_actions()
+        self.game.apply_agent_actions()
 
         # 2. Advance timestep
         self.game.advance_timestep()
@@ -236,10 +233,6 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         truncateds["__all__"] = self.game.calculate_truncated()
         if self.game.save_step_metadata:
             self._write_step_metadata_json(actions, state, rewards)
-        if self.io.settings.save_agent_actions:
-            self.io.store_agent_actions(
-                agent_actions=agent_actions, episode=self.episode_counter, timestep=self.game.step_counter
-            )
         return next_obs, rewards, terminateds, truncateds, infos
 
     def _write_step_metadata_json(self, actions: Dict, state: Dict, rewards: Dict):

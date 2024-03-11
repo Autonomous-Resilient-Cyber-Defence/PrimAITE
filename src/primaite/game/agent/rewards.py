@@ -26,10 +26,13 @@ the structure:
 ```
 """
 from abc import abstractmethod
-from typing import Dict, List, Tuple, Type
+from typing import Dict, List, Tuple, Type, TYPE_CHECKING
 
 from primaite import getLogger
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+
+if TYPE_CHECKING:
+    from primaite.game.agent.interface import AgentActionHistoryItem
 
 _LOGGER = getLogger(__name__)
 
@@ -38,7 +41,9 @@ class AbstractReward:
     """Base class for reward function components."""
 
     @abstractmethod
-    def calculate(self, state: Dict) -> float:
+    def calculate(
+        self, state: Dict, last_action_response: "AgentActionHistoryItem"
+    ) -> float:  # todo maybe make last_action_response optional?
         """Calculate the reward for the current state."""
         return 0.0
 
@@ -58,7 +63,9 @@ class AbstractReward:
 class DummyReward(AbstractReward):
     """Dummy reward function component which always returns 0."""
 
-    def calculate(self, state: Dict) -> float:
+    def calculate(
+        self, state: Dict, last_action_response: "AgentActionHistoryItem"
+    ) -> float:  # todo maybe make last_action_response optional?
         """Calculate the reward for the current state."""
         return 0.0
 
@@ -98,7 +105,9 @@ class DatabaseFileIntegrity(AbstractReward):
             file_name,
         ]
 
-    def calculate(self, state: Dict) -> float:
+    def calculate(
+        self, state: Dict, last_action_response: "AgentActionHistoryItem"
+    ) -> float:  # todo maybe make last_action_response optional?
         """Calculate the reward for the current state.
 
         :param state: The current state of the simulation.
@@ -153,7 +162,9 @@ class WebServer404Penalty(AbstractReward):
         """
         self.location_in_state = ["network", "nodes", node_hostname, "services", service_name]
 
-    def calculate(self, state: Dict) -> float:
+    def calculate(
+        self, state: Dict, last_action_response: "AgentActionHistoryItem"
+    ) -> float:  # todo maybe make last_action_response optional?
         """Calculate the reward for the current state.
 
         :param state: The current state of the simulation.
@@ -206,7 +217,9 @@ class WebpageUnavailablePenalty(AbstractReward):
         self._node = node_hostname
         self.location_in_state = ["network", "nodes", node_hostname, "applications", "WebBrowser"]
 
-    def calculate(self, state: Dict) -> float:
+    def calculate(
+        self, state: Dict, last_action_response: "AgentActionHistoryItem"
+    ) -> float:  # todo maybe make last_action_response optional?
         """
         Calculate the reward based on current simulation state.
 
@@ -255,13 +268,17 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         self._node = node_hostname
         self.location_in_state = ["network", "nodes", node_hostname, "applications", "DatabaseClient"]
 
-    def calculate(self, state: Dict) -> float:
+    def calculate(
+        self, state: Dict, last_action_response: "AgentActionHistoryItem"
+    ) -> float:  # todo maybe make last_action_response optional?
         """
         Calculate the reward based on current simulation state.
 
         :param state: The current state of the simulation.
         :type state: Dict
         """
+        if last_action_response.request == ["network", "node", "client_2", "application", "DatabaseClient", "execute"]:
+            pass  # TODO
         db_state = access_from_nested_dict(state, self.location_in_state)
         if db_state is NOT_PRESENT_IN_STATE or "last_connection_successful" not in db_state:
             _LOGGER.debug(f"Can't calculate reward for {self.__class__.__name__}")
@@ -313,7 +330,9 @@ class RewardFunction:
         """
         self.reward_components.append((component, weight))
 
-    def update(self, state: Dict) -> float:
+    def update(
+        self, state: Dict, last_action_response: "AgentActionHistoryItem"
+    ) -> float:  # todo maybe make last_action_response optional?
         """Calculate the overall reward for the current state.
 
         :param state: The current state of the simulation.
@@ -323,7 +342,7 @@ class RewardFunction:
         for comp_and_weight in self.reward_components:
             comp = comp_and_weight[0]
             weight = comp_and_weight[1]
-            total += weight * comp.calculate(state=state)
+            total += weight * comp.calculate(state=state, last_action_response=last_action_response)
         self.current_reward = total
         return self.current_reward
 

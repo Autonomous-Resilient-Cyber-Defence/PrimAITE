@@ -1,6 +1,6 @@
 """PrimAITE game - Encapsulates the simulation and agents."""
 from ipaddress import IPv4Address
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from pydantic import BaseModel, ConfigDict
 
@@ -130,17 +130,17 @@ class PrimaiteGame:
         """
         _LOGGER.debug(f"Stepping. Step counter: {self.step_counter}")
 
-        # Get the current state of the simulation
-        sim_state = self.get_sim_state()
-
-        # Update agents' observations and rewards based on the current state
-        self.update_agents(sim_state)
-
         # Apply all actions to simulation as requests
-        self.apply_agent_actions()
+        action_data = self.apply_agent_actions()
 
         # Advance timestep
         self.advance_timestep()
+
+        # Get the current state of the simulation
+        sim_state = self.get_sim_state()
+
+        # Update agents' observations and rewards based on the current state, and the response from the last action
+        self.update_agents(state=sim_state, action_data=action_data)
 
     def get_sim_state(self) -> Dict:
         """Get the current state of the simulation."""
@@ -148,31 +148,26 @@ class PrimaiteGame:
 
     def update_agents(self, state: Dict) -> None:
         """Update agents' observations and rewards based on the current state."""
-        for _, agent in self.agents.items():
-            agent.update_observation(state)
-            agent.update_reward(state)
+        for agent_name, agent in self.agents.items():
+            if self.step_counter > 0:  # can't get reward before first action
+                agent.update_reward(state=state)
+            agent.update_observation(state=state)
             agent.reward_function.total_reward += agent.reward_function.current_reward
 
-    def apply_agent_actions(self) -> Dict[str, Tuple[str, Dict]]:
-        """
-        Apply all actions to simulation as requests.
-
-        :return: A recap of each agent's actions, in CAOS format.
-        :rtype: Dict[str, Tuple[str, Dict]]
-
-        """
-        agent_actions = {}
+    def apply_agent_actions(self) -> None:
+        """Apply all actions to simulation as requests."""
         for _, agent in self.agents.items():
             obs = agent.observation_manager.current_observation
-            action_choice, options = agent.get_action(obs, timestep=self.step_counter)
-            request = agent.format_request(action_choice, options)
+            action_choice, parameters = agent.get_action(obs, timestep=self.step_counter)
+            request = agent.format_request(action_choice, parameters)
             response = self.simulation.apply_request(request)
-            agent_actions[agent.agent_name] = {
-                "action": action_choice,
-                "parameters": options,
-                "response": response.model_dump(),
-            }
-        return agent_actions
+            agent.process_action_response(
+                timestep=self.step_counter,
+                action=action_choice,
+                parameters=parameters,
+                request=request,
+                response=response,
+            )
 
     def advance_timestep(self) -> None:
         """Advance timestep."""
