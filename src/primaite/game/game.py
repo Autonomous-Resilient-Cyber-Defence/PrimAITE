@@ -9,8 +9,9 @@ from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
 from primaite.game.agent.observations import ObservationManager
-from primaite.game.agent.rewards import RewardFunction
+from primaite.game.agent.rewards import RewardFunction, SharedReward
 from primaite.game.agent.scripted_agents import ProbabilisticAgent
+from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
@@ -110,6 +111,9 @@ class PrimaiteGame:
         self.save_step_metadata: bool = False
         """Whether to save the RL agents' action, environment state, and other data at every single step."""
 
+        self._reward_calculation_order: List[str] = [name for name in self.agents]
+        """Agent order for reward evaluation, as some rewards can be dependent on other agents' rewards."""
+
     def step(self):
         """
         Perform one step of the simulation/agent loop.
@@ -148,10 +152,11 @@ class PrimaiteGame:
 
     def update_agents(self, state: Dict) -> None:
         """Update agents' observations and rewards based on the current state."""
-        for agent_name, agent in self.agents.items():
+        for agent_name in self._reward_calculation_order:
+            agent = self.agents[agent_name]
             if self.step_counter > 0:  # can't get reward before first action
                 agent.update_reward(state=state)
-            agent.update_observation(state=state)
+            agent.update_observation(state=state)  # order of this doesn't matter so just use reward order
             agent.reward_function.total_reward += agent.reward_function.current_reward
 
     def apply_agent_actions(self) -> None:
@@ -443,7 +448,51 @@ class PrimaiteGame:
                 raise ValueError(msg)
             game.agents[agent_cfg["ref"]] = new_agent
 
+        # Validate that if any agents are sharing rewards, they aren't forming an infinite loop.
+        game.setup_reward_sharing()
+
         # Set the NMNE capture config
         set_nmne_config(network_config.get("nmne_config", {}))
 
         return game
+
+    def setup_reward_sharing(self):
+        """Do necessary setup to enable reward sharing between agents.
+
+        This method ensures that there are no cycles in the reward sharing. A cycle would be for example if agent_1
+        depends on agent_2 and agent_2 depends on agent_1. It would cause an infinite loop.
+
+        Also, SharedReward requires us to pass it a callback method that will provide the reward of the agent who is
+        sharing their reward. This callback is provided by this setup method.
+
+        Finally, this method sorts the agents in order in which rewards will be evaluated to make sure that any rewards
+        that rely on the value of another reward are evaluated later.
+
+        :raises RuntimeError: If the reward sharing is specified with a cyclic dependency.
+        """
+        # construct dependency graph in the reward sharing between agents.
+        graph = {}
+        for name, agent in self.agents.items():
+            graph[name] = set()
+            for comp, weight in agent.reward_function.reward_components:
+                if isinstance(comp, SharedReward):
+                    comp: SharedReward
+                    graph[name].add(comp.agent_name)
+
+                    # while constructing the graph, we might as well set up the reward sharing itself.
+                    comp.callback = lambda: self.agents[comp.agent_name].reward_function.current_reward
+                    # TODO: make sure this lambda is working like I think it does -> it goes to the agent and fetches
+                    # the most recent value of current_reward, NOT just simply caching the reward value at the time this
+                    # callback method is defined.
+
+        # make sure the graph is acyclic. Otherwise we will enter an infinite loop of reward sharing.
+        if graph_has_cycle(graph):
+            raise RuntimeError(
+                (
+                    "Detected cycle in agent reward sharing. Check the agent reward function ",
+                    "configuration: reward sharing can only go one way.",
+                )
+            )
+
+        # sort the agents so the rewards that depend on other rewards are always evaluated later
+        self._reward_calculation_order = topological_sort(graph)

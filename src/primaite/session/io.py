@@ -77,16 +77,17 @@ class PrimaiteIO:
         :type episode: int
         """
         data = {}
-        longest_history = max([len(hist) for hist in agent_actions])
+        longest_history = max([len(hist) for hist in agent_actions.values()])
         for i in range(longest_history):
-            data[i] = {"timestep": i, "episode": episode, **{name: acts[i] for name, acts in agent_actions.items()}}
+            data[i] = {"timestep": i, "episode": episode}
+            data[i].update({name: acts[i] for name, acts in agent_actions.items() if len(acts) > i})
 
         path = self.generate_agent_actions_save_path(episode=episode)
         path.parent.mkdir(exist_ok=True, parents=True)
         path.touch()
         _LOGGER.info(f"Saving agent action log to {path}")
         with open(path, "w") as file:
-            json.dump(data, fp=file, indent=1)
+            json.dump(data, fp=file, indent=1, default=lambda x: x.model_dump())
 
     @classmethod
     def from_config(cls, config: Dict) -> "PrimaiteIO":
