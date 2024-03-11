@@ -80,6 +80,11 @@ class Service(IOSoftware):
         return super().receive(payload=payload, session_id=session_id, **kwargs)
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
         rm.add_request("scan", RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan())))
         rm.add_request("stop", RequestType(func=lambda request, context: RequestResponse.from_bool(self.stop())))

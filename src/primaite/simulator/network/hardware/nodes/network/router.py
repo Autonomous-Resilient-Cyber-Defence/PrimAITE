@@ -294,6 +294,11 @@ class AccessControlList(SimComponent):
         self._acl = [None] * (self.max_acl_rules - 1)
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         # TODO: Add src and dst wildcard masks as positional args in this request.
         rm = super()._init_request_manager()
 
@@ -1092,6 +1097,11 @@ class Router(NetworkNode):
         super().setup_for_episode(episode=episode)
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
         rm.add_request("acl", RequestType(func=self.acl._request_manager))
         return rm

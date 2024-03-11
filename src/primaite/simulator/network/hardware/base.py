@@ -114,6 +114,11 @@ class NetworkInterface(SimComponent, ABC):
         self.enable()
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
 
         rm.add_request("enable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.enable())))
@@ -786,6 +791,11 @@ class Node(SimComponent):
             return self.node.operating_state == NodeOperatingState.ON
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         _node_is_on = Node._NodeIsOnValidator(node=self)
 
         rm = super()._init_request_manager()
