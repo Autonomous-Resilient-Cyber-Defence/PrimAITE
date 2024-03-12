@@ -75,7 +75,14 @@ agents:
 
     reward_function:
       reward_components:
-        - type: DUMMY
+        - type: WEBPAGE_UNAVAILABLE_PENALTY
+          weight: 0.25
+          options:
+            node_hostname: client_2
+        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
+          weight: 0.05
+          options:
+            node_hostname: client_2
 
   - ref: client_1_green_user
     team: GREEN
@@ -118,7 +125,14 @@ agents:
 
     reward_function:
       reward_components:
-        - type: DUMMY
+        - type: WEBPAGE_UNAVAILABLE_PENALTY
+          weight: 0.25
+          options:
+            node_hostname: client_1
+        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
+          weight: 0.05
+          options:
+            node_hostname: client_1
 
 
 
@@ -700,22 +714,14 @@ agents:
             node_hostname: database_server
             folder_name: database
             file_name: database.db
-        - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.25
+        - type: SHARED_REWARD
+          weight: 1.0
           options:
-            node_hostname: client_1
-        - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.25
+            agent_name: client_1_green_user
+        - type: SHARED_REWARD
+          weight: 1.0
           options:
-            node_hostname: client_2
-        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.05
-          options:
-            node_hostname: client_1
-        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.05
-          options:
-            node_hostname: client_2
+            agent_name: client_2_green_user
 
 
     agent_settings:
@@ -1259,22 +1265,14 @@ agents:
             node_hostname: database_server
             folder_name: database
             file_name: database.db
-        - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.25
+        - type: SHARED_REWARD
+          weight: 1.0
           options:
-            node_hostname: client_1
-        - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.25
+            agent_name: client_1_green_user
+        - type: SHARED_REWARD
+          weight: 1.0
           options:
-            node_hostname: client_2
-        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.05
-          options:
-            node_hostname: client_1
-        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.05
-          options:
-            node_hostname: client_2
+            agent_name: client_2_green_user
 
 
     agent_settings:
