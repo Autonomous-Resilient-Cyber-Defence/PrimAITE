@@ -353,7 +353,6 @@ class SharedReward(AbstractReward):
 
     def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Simply access the other agent's reward and return it."""
-        print(self.callback(), self.agent_name)
         return self.callback()
 
     @classmethod
