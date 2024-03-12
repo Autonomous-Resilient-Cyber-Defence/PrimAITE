@@ -91,5 +91,4 @@ def topological_sort(graph: Mapping[Any, Iterable[Any]]) -> Iterable[Any]:
     for node in graph:
         dfs(node)
 
-    # Reverse the stack and return it.
-    return stack[::-1]
+    return stack

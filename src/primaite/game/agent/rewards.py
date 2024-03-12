@@ -230,7 +230,7 @@ class WebpageUnavailablePenalty(AbstractReward):
         component will keep track of that information. In that case, it doesn't matter whether the last webpage
         had a 200 status code, because there has been an unsuccessful request since.
         """
-        if last_action_response.request == ["network", "node", self._node, "application", "DatabaseClient", "execute"]:
+        if last_action_response.request == ["network", "node", self._node, "application", "WebBrowser", "execute"]:
             self._last_request_failed = last_action_response.response.status != "success"
 
         # if agent couldn't even get as far as sending the request (because for example the node was off), then
@@ -338,7 +338,7 @@ class SharedReward(AbstractReward):
         self.agent_name = agent_name
         """Agent whose reward to track."""
 
-        def default_callback() -> Never:
+        def default_callback(agent_name: str) -> Never:
             """
             Default callback to prevent calling this reward until it's properly initialised.
 
@@ -348,12 +348,12 @@ class SharedReward(AbstractReward):
             """
             raise RuntimeError("Attempted to calculate SharedReward but it was not initialised properly.")
 
-        self.callback: Callable[[], float] = default_callback
+        self.callback: Callable[[str], float] = default_callback
         """Method that retrieves an agent's current reward given the agent's name."""
 
     def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Simply access the other agent's reward and return it."""
-        return self.callback()
+        return self.callback(self.agent_name)
 
     @classmethod
     def from_config(cls, config: Dict) -> "SharedReward":

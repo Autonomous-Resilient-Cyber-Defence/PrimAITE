@@ -480,10 +480,7 @@ class PrimaiteGame:
                     graph[name].add(comp.agent_name)
 
                     # while constructing the graph, we might as well set up the reward sharing itself.
-                    comp.callback = lambda: self.agents[comp.agent_name].reward_function.current_reward
-                    # TODO: make sure this lambda is working like I think it does -> it goes to the agent and fetches
-                    # the most recent value of current_reward, NOT just simply caching the reward value at the time this
-                    # callback method is defined.
+                    comp.callback = lambda agent_name: self.agents[agent_name].reward_function.current_reward
 
         # make sure the graph is acyclic. Otherwise we will enter an infinite loop of reward sharing.
         if graph_has_cycle(graph):
