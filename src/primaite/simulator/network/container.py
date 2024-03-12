@@ -61,6 +61,11 @@ class Network(SimComponent):
                     software.run()
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
         self._node_request_manager = RequestManager()
         rm.add_request(

@@ -58,6 +58,11 @@ class DoSBot(DatabaseClient):
         self.max_sessions = 1000  # override normal max sessions
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
 
         rm.add_request(
