@@ -4,6 +4,7 @@ from typing import Optional
 
 from primaite import getLogger
 from primaite.game.science import simulate_trial
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -57,9 +58,17 @@ class DoSBot(DatabaseClient):
         self.max_sessions = 1000  # override normal max sessions
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
 
-        rm.add_request(name="execute", request_type=RequestType(func=lambda request, context: self.run()))
+        rm.add_request(
+            name="execute",
+            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.run())),
+        )
 
         return rm
 
@@ -97,26 +106,26 @@ class DoSBot(DatabaseClient):
             f"{repeat=}, {port_scan_p_of_success=}, {dos_intensity=}, {max_sessions=}."
         )
 
-    def run(self):
+    def run(self) -> bool:
         """Run the Denial of Service Bot."""
         super().run()
-        self._application_loop()
+        return self._application_loop()
 
-    def _application_loop(self):
+    def _application_loop(self) -> bool:
         """
         The main application loop for the Denial of Service bot.
 
         The loop goes through the stages of a DoS attack.
         """
         if not self._can_perform_action():
-            return
+            return False
 
         # DoS bot cannot do anything without a target
         if not self.target_ip_address or not self.target_port:
             self.sys_log.error(
                 f"{self.name} is not properly configured. {self.target_ip_address=}, {self.target_port=}"
             )
-            return
+            return True
 
         self.clear_connections()
         self._perform_port_scan(p_of_success=self.port_scan_p_of_success)
@@ -126,6 +135,7 @@ class DoSBot(DatabaseClient):
             self.attack_stage = DoSAttackStage.NOT_STARTED
         else:
             self.attack_stage = DoSAttackStage.COMPLETED
+        return True
 
     def _perform_port_scan(self, p_of_success: Optional[float] = 0.1):
         """

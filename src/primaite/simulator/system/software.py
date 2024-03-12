@@ -5,6 +5,7 @@ from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, Optional, TYPE_CHECKING, Union
 
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
@@ -101,20 +102,27 @@ class Software(SimComponent):
     "Current number of ticks left to patch the software."
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
         rm.add_request(
             "compromise",
             RequestType(
-                func=lambda request, context: self.set_health_state(SoftwareHealthState.COMPROMISED),
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.set_health_state(SoftwareHealthState.COMPROMISED)
+                ),
             ),
         )
         rm.add_request(
             "patch",
             RequestType(
-                func=lambda request, context: self.patch(),
+                func=lambda request, context: RequestResponse.from_bool(self.patch()),
             ),
         )
-        rm.add_request("scan", RequestType(func=lambda request, context: self.scan()))
+        rm.add_request("scan", RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan())))
         return rm
 
     def _get_session_details(self, session_id: str) -> Session:
@@ -148,7 +156,7 @@ class Software(SimComponent):
         )
         return state
 
-    def set_health_state(self, health_state: SoftwareHealthState) -> None:
+    def set_health_state(self, health_state: SoftwareHealthState) -> bool:
         """
         Assign a new health state to this software.
 
@@ -160,6 +168,7 @@ class Software(SimComponent):
         :type health_state: SoftwareHealthState
         """
         self.health_state_actual = health_state
+        return True
 
     def install(self) -> None:
         """
@@ -180,15 +189,18 @@ class Software(SimComponent):
         """
         pass
 
-    def scan(self) -> None:
+    def scan(self) -> bool:
         """Update the observed health status to match the actual health status."""
         self.health_state_visible = self.health_state_actual
+        return True
 
-    def patch(self) -> None:
+    def patch(self) -> bool:
         """Perform a patch on the software."""
         if self.health_state_actual in (SoftwareHealthState.COMPROMISED, SoftwareHealthState.GOOD):
             self._patching_countdown = self.patching_duration
             self.set_health_state(SoftwareHealthState.PATCHING)
+            return True
+        return False
 
     def _update_patch_status(self) -> None:
         """Update the patch status of the software."""

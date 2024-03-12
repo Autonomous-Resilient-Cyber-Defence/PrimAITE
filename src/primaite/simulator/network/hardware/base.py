@@ -12,8 +12,9 @@ from pydantic import BaseModel, Field
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
+from primaite.interface.request import RequestResponse
 from primaite.simulator import SIM_OUTPUT
-from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.core import RequestFormat, RequestManager, RequestPermissionValidator, RequestType, SimComponent
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
@@ -113,10 +114,15 @@ class NetworkInterface(SimComponent, ABC):
         self.enable()
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
 
-        rm.add_request("enable", RequestType(func=lambda request, context: self.enable()))
-        rm.add_request("disable", RequestType(func=lambda request, context: self.disable()))
+        rm.add_request("enable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.enable())))
+        rm.add_request("disable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.disable())))
 
         return rm
 
@@ -140,14 +146,16 @@ class NetworkInterface(SimComponent, ABC):
         return state
 
     @abstractmethod
-    def enable(self):
+    def enable(self) -> bool:
         """Enable the interface."""
         pass
+        return False
 
     @abstractmethod
-    def disable(self):
+    def disable(self) -> bool:
         """Disable the interface."""
         pass
+        return False
 
     def _capture_nmne(self, frame: Frame, inbound: bool = True) -> None:
         """
@@ -257,10 +265,9 @@ class NetworkInterface(SimComponent, ABC):
         """
         Apply a timestep evolution to this component.
 
-        This just clears the nmne count back to 0.tests/integration_tests/network/test_capture_nmne.py
+        This just clears the nmne count back to 0.
         """
         super().apply_timestep(timestep=timestep)
-        self.nmne.clear()
 
 
 class WiredNetworkInterface(NetworkInterface, ABC):
@@ -284,24 +291,24 @@ class WiredNetworkInterface(NetworkInterface, ABC):
     _connected_link: Optional[Link] = None
     "The network link to which the network interface is connected."
 
-    def enable(self):
+    def enable(self) -> bool:
         """Attempt to enable the network interface."""
         if self.enabled:
-            return
+            return True
 
         if not self._connected_node:
             _LOGGER.error(f"Interface {self} cannot be enabled as it is not connected to a Node")
-            return
+            return False
 
         if self._connected_node.operating_state != NodeOperatingState.ON:
             self._connected_node.sys_log.info(
                 f"Interface {self} cannot be enabled as the connected Node is not powered on"
             )
-            return
+            return False
 
         if not self._connected_link:
             self._connected_node.sys_log.info(f"Interface {self} cannot be enabled as there is no Link connected.")
-            return
+            return False
 
         self.enabled = True
         self._connected_node.sys_log.info(f"Network Interface {self} enabled")
@@ -310,11 +317,12 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         )
         if self._connected_link:
             self._connected_link.endpoint_up()
+        return True
 
-    def disable(self):
+    def disable(self) -> bool:
         """Disable the network interface."""
         if not self.enabled:
-            return
+            return True
         self.enabled = False
         if self._connected_node:
             self._connected_node.sys_log.info(f"Network Interface {self} disabled")
@@ -322,6 +330,7 @@ class WiredNetworkInterface(NetworkInterface, ABC):
             _LOGGER.debug(f"Interface {self} disabled")
         if self._connected_link:
             self._connected_link.endpoint_down()
+        return True
 
     def connect_link(self, link: Link):
         """
@@ -496,7 +505,7 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
 
         return state
 
-    def enable(self):
+    def enable(self) -> bool:
         """
         Enables this wired network interface and attempts to send a "hello" message to the default gateway.
 
@@ -512,8 +521,10 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
         try:
             pass
             self._connected_node.default_gateway_hello()
+            return True
         except AttributeError:
             pass
+        return False
 
     @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
@@ -765,35 +776,74 @@ class Node(SimComponent):
             self.sys_log.current_episode = episode
             self.sys_log.setup_logger()
 
+    class _NodeIsOnValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the node is on.
+
+        This is useful because no actions should be being resolved if the node is off.
+        """
+
+        node: Node
+        """Save a reference to the node instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the node is on or off."""
+            return self.node.operating_state == NodeOperatingState.ON
+
     def _init_request_manager(self) -> RequestManager:
-        # TODO: I see that this code is really confusing and hard to read right now... I think some of these things will
-        # need a better name and better documentation.
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
+        _node_is_on = Node._NodeIsOnValidator(node=self)
+
         rm = super()._init_request_manager()
         # since there are potentially many services, create an request manager that can map service name
         self._service_request_manager = RequestManager()
-        rm.add_request("service", RequestType(func=self._service_request_manager))
+        rm.add_request("service", RequestType(func=self._service_request_manager, validator=_node_is_on))
         self._nic_request_manager = RequestManager()
-        rm.add_request("network_interface", RequestType(func=self._nic_request_manager))
+        rm.add_request("network_interface", RequestType(func=self._nic_request_manager, validator=_node_is_on))
 
-        rm.add_request("file_system", RequestType(func=self.file_system._request_manager))
+        rm.add_request("file_system", RequestType(func=self.file_system._request_manager, validator=_node_is_on))
 
         # currently we don't have any applications nor processes, so these will be empty
         self._process_request_manager = RequestManager()
-        rm.add_request("process", RequestType(func=self._process_request_manager))
+        rm.add_request("process", RequestType(func=self._process_request_manager, validator=_node_is_on))
         self._application_request_manager = RequestManager()
-        rm.add_request("application", RequestType(func=self._application_request_manager))
+        rm.add_request("application", RequestType(func=self._application_request_manager, validator=_node_is_on))
 
-        rm.add_request("scan", RequestType(func=lambda request, context: self.reveal_to_red()))
+        rm.add_request(
+            "scan",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.reveal_to_red()), validator=_node_is_on
+            ),
+        )
 
-        rm.add_request("shutdown", RequestType(func=lambda request, context: self.power_off()))
-        rm.add_request("startup", RequestType(func=lambda request, context: self.power_on()))
-        rm.add_request("reset", RequestType(func=lambda request, context: self.reset()))  # TODO implement node reset
-        rm.add_request("logon", RequestType(func=lambda request, context: ...))  # TODO implement logon request
-        rm.add_request("logoff", RequestType(func=lambda request, context: ...))  # TODO implement logoff request
+        rm.add_request(
+            "shutdown",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.power_off()), validator=_node_is_on
+            ),
+        )
+        rm.add_request("startup", RequestType(func=lambda request, context: RequestResponse.from_bool(self.power_on())))
+        rm.add_request(
+            "reset",
+            RequestType(func=lambda request, context: RequestResponse.from_bool(self.reset()), validator=_node_is_on),
+        )  # TODO implement node reset
+        rm.add_request(
+            "logon", RequestType(func=lambda request, context: RequestResponse.from_bool(False), validator=_node_is_on)
+        )  # TODO implement logon request
+        rm.add_request(
+            "logoff", RequestType(func=lambda request, context: RequestResponse.from_bool(False), validator=_node_is_on)
+        )  # TODO implement logoff request
 
         self._os_request_manager = RequestManager()
-        self._os_request_manager.add_request("scan", RequestType(func=lambda request, context: self.scan()))
-        rm.add_request("os", RequestType(func=self._os_request_manager))
+        self._os_request_manager.add_request(
+            "scan",
+            RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan()), validator=_node_is_on),
+        )
+        rm.add_request("os", RequestType(func=self._os_request_manager, validator=_node_is_on))
 
         return rm
 
@@ -973,7 +1023,7 @@ class Node(SimComponent):
 
             self.file_system.apply_timestep(timestep=timestep)
 
-    def scan(self) -> None:
+    def scan(self) -> bool:
         """
         Scan the node and all the items within it.
 
@@ -987,8 +1037,9 @@ class Node(SimComponent):
         to the red agent.
         """
         self.node_scan_countdown = self.node_scan_duration
+        return True
 
-    def reveal_to_red(self) -> None:
+    def reveal_to_red(self) -> bool:
         """
         Reveals the node and all the items within it to the red agent.
 
@@ -1002,34 +1053,40 @@ class Node(SimComponent):
         `revealed_to_red` to `True`.
         """
         self.red_scan_countdown = self.node_scan_duration
+        return True
 
-    def power_on(self):
+    def power_on(self) -> bool:
         """Power on the Node, enabling its NICs if it is in the OFF state."""
-        if self.operating_state == NodeOperatingState.OFF:
-            self.operating_state = NodeOperatingState.BOOTING
-            self.start_up_countdown = self.start_up_duration
-
         if self.start_up_duration <= 0:
             self.operating_state = NodeOperatingState.ON
             self._start_up_actions()
             self.sys_log.info("Power on")
             for network_interface in self.network_interfaces.values():
                 network_interface.enable()
+            return True
+        if self.operating_state == NodeOperatingState.OFF:
+            self.operating_state = NodeOperatingState.BOOTING
+            self.start_up_countdown = self.start_up_duration
+            return True
 
-    def power_off(self):
+        return False
+
+    def power_off(self) -> bool:
         """Power off the Node, disabling its NICs if it is in the ON state."""
+        if self.shut_down_duration <= 0:
+            self._shut_down_actions()
+            self.operating_state = NodeOperatingState.OFF
+            self.sys_log.info("Power off")
+            return True
         if self.operating_state == NodeOperatingState.ON:
             for network_interface in self.network_interfaces.values():
                 network_interface.disable()
             self.operating_state = NodeOperatingState.SHUTTING_DOWN
             self.shut_down_countdown = self.shut_down_duration
+            return True
+        return False
 
-        if self.shut_down_duration <= 0:
-            self._shut_down_actions()
-            self.operating_state = NodeOperatingState.OFF
-            self.sys_log.info("Power off")
-
-    def reset(self):
+    def reset(self) -> bool:
         """
         Resets the node.
 
@@ -1040,6 +1097,8 @@ class Node(SimComponent):
             self.is_resetting = True
             self.sys_log.info("Resetting")
             self.power_off()
+            return True
+        return False
 
     def connect_nic(self, network_interface: NetworkInterface, port_name: Optional[str] = None):
         """

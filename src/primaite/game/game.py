@@ -170,9 +170,13 @@ class PrimaiteGame:
         for _, agent in self.agents.items():
             obs = agent.observation_manager.current_observation
             action_choice, options = agent.get_action(obs, timestep=self.step_counter)
-            agent_actions[agent.agent_name] = (action_choice, options)
             request = agent.format_request(action_choice, options)
-            self.simulation.apply_request(request)
+            response = self.simulation.apply_request(request)
+            agent_actions[agent.agent_name] = {
+                "action": action_choice,
+                "parameters": options,
+                "response": response.model_dump(),
+            }
         return agent_actions
 
     def advance_timestep(self) -> None:

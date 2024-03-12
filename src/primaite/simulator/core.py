@@ -1,14 +1,17 @@
 # flake8: noqa
 """Core of the PrimAITE Simulator."""
 from abc import abstractmethod
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Literal, Optional, Union
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, validate_call
 
 from primaite import getLogger
+from primaite.interface.request import RequestResponse
 
 _LOGGER = getLogger(__name__)
+
+RequestFormat = List[Union[str, int, float]]
 
 
 class RequestPermissionValidator(BaseModel):
@@ -21,15 +24,15 @@ class RequestPermissionValidator(BaseModel):
     """
 
     @abstractmethod
-    def __call__(self, request: List[str], context: Dict) -> bool:
-        """Use the request and context paramters to decide whether the request should be permitted."""
+    def __call__(self, request: RequestFormat, context: Dict) -> bool:
+        """Use the request and context parameters to decide whether the request should be permitted."""
         pass
 
 
 class AllowAllValidator(RequestPermissionValidator):
     """Always allows the request."""
 
-    def __call__(self, request: List[str], context: Dict) -> bool:
+    def __call__(self, request: RequestFormat, context: Dict) -> bool:
         """Always allow the request."""
         return True
 
@@ -42,7 +45,7 @@ class RequestType(BaseModel):
     the request can be performed or not.
     """
 
-    func: Callable[[List[str], Dict], None]
+    func: Callable[[RequestFormat, Dict], RequestResponse]
     """
     ``func`` is a function that accepts a request and a context dict. Typically this would be a lambda function
     that invokes a class method of your SimComponent. For example if the component is a node and the request type is for
@@ -71,7 +74,7 @@ class RequestManager(BaseModel):
     request_types: Dict[str, RequestType] = {}
     """maps request name to an RequestType object."""
 
-    def __call__(self, request: Callable[[List[str], Dict], None], context: Dict) -> None:
+    def __call__(self, request: RequestFormat, context: Dict) -> RequestResponse:
         """
         Process an request request.
 
@@ -84,23 +87,23 @@ class RequestManager(BaseModel):
         :raises RuntimeError: If the request parameter does not have a valid request name as the first item.
         """
         request_key = request[0]
+        request_options = request[1:]
 
         if request_key not in self.request_types:
             msg = (
                 f"Request {request} could not be processed because {request_key} is not a valid request name",
                 "within this RequestManager",
             )
-            _LOGGER.error(msg)
-            raise RuntimeError(msg)
+            _LOGGER.debug(msg)
+            return RequestResponse(status="unreachable", data={"reason": msg})
 
         request_type = self.request_types[request_key]
-        request_options = request[1:]
 
         if not request_type.validator(request_options, context):
             _LOGGER.debug(f"Request {request} was denied due to insufficient permissions")
-            return
+            return RequestResponse(status="failure", data={"reason": "request validation failed"})
 
-        request_type.func(request_options, context)
+        return request_type.func(request_options, context)
 
     def add_request(self, name: str, request_type: RequestType) -> None:
         """
@@ -202,7 +205,8 @@ class SimComponent(BaseModel):
         }
         return state
 
-    def apply_request(self, request: List[str], context: Dict = {}) -> None:
+    @validate_call
+    def apply_request(self, request: RequestFormat, context: Dict = {}) -> RequestResponse:
         """
         Apply a request to a simulation component. Request data is passed in as a 'namespaced' list of strings.
 
@@ -222,7 +226,7 @@ class SimComponent(BaseModel):
         """
         if self._request_manager is None:
             return
-        self._request_manager(request, context)
+        return self._request_manager(request, context)
 
     def apply_timestep(self, timestep: int) -> None:
         """

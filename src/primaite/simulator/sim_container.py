@@ -1,5 +1,6 @@
 from typing import Dict
 
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.domain.controller import DomainController
 from primaite.simulator.network.container import Network
@@ -26,12 +27,18 @@ class Simulation(SimComponent):
         self.network.setup_for_episode(episode=episode)
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
         # pass through network requests to the network objects
         rm.add_request("network", RequestType(func=self.network._request_manager))
         # pass through domain requests to the domain object
         rm.add_request("domain", RequestType(func=self.domain._request_manager))
-        rm.add_request("do_nothing", RequestType(func=lambda request, context: ()))
+        # if 'do_nothing' is requested, just return a success
+        rm.add_request("do_nothing", RequestType(func=lambda request, context: RequestResponse(status="success")))
         return rm
 
     def describe_state(self) -> Dict:
