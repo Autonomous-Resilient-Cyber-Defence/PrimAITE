@@ -32,7 +32,7 @@ def test_node_observation(simulation):
 
     assert observation_state.get("SERVICES") is not None
     assert observation_state.get("FOLDERS") is not None
-    assert observation_state.get("NETWORK_INTERFACES") is not None
+    assert observation_state.get("NICS") is not None
 
     # turn off computer
     pc.power_off()

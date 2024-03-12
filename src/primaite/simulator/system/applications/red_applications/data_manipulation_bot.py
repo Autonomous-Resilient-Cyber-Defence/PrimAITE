@@ -193,6 +193,8 @@ class DataManipulationBot(Application):
         if not self._can_perform_action():
             _LOGGER.debug("Data manipulation application attempted to execute but it cannot perform actions right now.")
             self.run()
+
+        self.num_executions += 1
         return self._application_loop()
 
     def _application_loop(self) -> bool:
@@ -202,7 +204,6 @@ class DataManipulationBot(Application):
         This is the core loop where the bot sequentially goes through the stages of the attack.
         """
         if not self._can_perform_action():
-            self.num_executions += 1
             return False
         if self.server_ip_address and self.payload:
             self.sys_log.info(f"{self.name}: Running")

@@ -86,7 +86,7 @@ class NodeObservation(AbstractObservation):
         self.default_observation: Dict = {
             "SERVICES": {i + 1: s.default_observation for i, s in enumerate(self.services)},
             "FOLDERS": {i + 1: f.default_observation for i, f in enumerate(self.folders)},
-            "NETWORK_INTERFACES": {i + 1: n.default_observation for i, n in enumerate(self.network_interfaces)},
+            "NICS": {i + 1: n.default_observation for i, n in enumerate(self.network_interfaces)},
             "operating_status": 0,
         }
         if self.logon_status:
@@ -111,7 +111,7 @@ class NodeObservation(AbstractObservation):
         obs["SERVICES"] = {i + 1: service.observe(state) for i, service in enumerate(self.services)}
         obs["FOLDERS"] = {i + 1: folder.observe(state) for i, folder in enumerate(self.folders)}
         obs["operating_status"] = node_state["operating_state"]
-        obs["NETWORK_INTERFACES"] = {
+        obs["NICS"] = {
             i + 1: network_interface.observe(state) for i, network_interface in enumerate(self.network_interfaces)
         }
 
@@ -127,7 +127,7 @@ class NodeObservation(AbstractObservation):
             "SERVICES": spaces.Dict({i + 1: service.space for i, service in enumerate(self.services)}),
             "FOLDERS": spaces.Dict({i + 1: folder.space for i, folder in enumerate(self.folders)}),
             "operating_status": spaces.Discrete(5),
-            "NETWORK_INTERFACES": spaces.Dict(
+            "NICS": spaces.Dict(
                 {i + 1: network_interface.space for i, network_interface in enumerate(self.network_interfaces)}
             ),
         }

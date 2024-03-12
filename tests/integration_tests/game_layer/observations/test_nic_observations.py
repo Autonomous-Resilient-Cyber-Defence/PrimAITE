@@ -43,14 +43,14 @@ def test_nic(simulation):
     nic_obs = NicObservation(where=["network", "nodes", pc.hostname, "NICs", 1])
 
     assert nic_obs.space["nic_status"] == spaces.Discrete(3)
-    assert nic_obs.space["nmne"]["inbound"] == spaces.Discrete(4)
-    assert nic_obs.space["nmne"]["outbound"] == spaces.Discrete(4)
+    assert nic_obs.space["NMNE"]["inbound"] == spaces.Discrete(4)
+    assert nic_obs.space["NMNE"]["outbound"] == spaces.Discrete(4)
 
     observation_state = nic_obs.observe(simulation.describe_state())
     assert observation_state.get("nic_status") == 1  # enabled
-    assert observation_state.get("nmne") is not None
-    assert observation_state["nmne"].get("inbound") == 0
-    assert observation_state["nmne"].get("outbound") == 0
+    assert observation_state.get("NMNE") is not None
+    assert observation_state["NMNE"].get("inbound") == 0
+    assert observation_state["NMNE"].get("outbound") == 0
 
     nic.disable()
     observation_state = nic_obs.observe(simulation.describe_state())

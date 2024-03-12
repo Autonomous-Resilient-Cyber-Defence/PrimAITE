@@ -27,7 +27,7 @@ class NicObservation(AbstractObservation):
         """The default NIC observation dict."""
         data = {"nic_status": 0}
         if CAPTURE_NMNE:
-            data.update({"nmne": {"inbound": 0, "outbound": 0}})
+            data.update({"NMNE": {"inbound": 0, "outbound": 0}})
 
         return data
 
@@ -133,14 +133,14 @@ class NicObservation(AbstractObservation):
         else:
             obs_dict = {"nic_status": 1 if nic_state["enabled"] else 2}
             if CAPTURE_NMNE:
-                obs_dict.update({"nmne": {}})
+                obs_dict.update({"NMNE": {}})
                 direction_dict = nic_state["nmne"].get("direction", {})
                 inbound_keywords = direction_dict.get("inbound", {}).get("keywords", {})
                 inbound_count = inbound_keywords.get("*", 0)
                 outbound_keywords = direction_dict.get("outbound", {}).get("keywords", {})
                 outbound_count = outbound_keywords.get("*", 0)
-                obs_dict["nmne"]["inbound"] = self._categorise_mne_count(inbound_count - self.nmne_inbound_last_step)
-                obs_dict["nmne"]["outbound"] = self._categorise_mne_count(outbound_count - self.nmne_outbound_last_step)
+                obs_dict["NMNE"]["inbound"] = self._categorise_mne_count(inbound_count - self.nmne_inbound_last_step)
+                obs_dict["NMNE"]["outbound"] = self._categorise_mne_count(outbound_count - self.nmne_outbound_last_step)
                 self.nmne_inbound_last_step = inbound_count
                 self.nmne_outbound_last_step = outbound_count
             return obs_dict
@@ -151,7 +151,7 @@ class NicObservation(AbstractObservation):
         space = spaces.Dict({"nic_status": spaces.Discrete(3)})
 
         if CAPTURE_NMNE:
-            space["nmne"] = spaces.Dict({"inbound": spaces.Discrete(4), "outbound": spaces.Discrete(4)})
+            space["NMNE"] = spaces.Dict({"inbound": spaces.Discrete(4), "outbound": spaces.Discrete(4)})
 
         return space
 
