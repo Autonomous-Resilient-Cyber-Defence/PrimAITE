@@ -141,8 +141,6 @@ class AbstractAgent(ABC):
 
         :param obs: Observation of the environment.
         :type obs: ObsType
-        :param reward: Reward from the previous action, defaults to None TODO: should this parameter even be accepted?
-        :type reward: float, optional
         :param timestep: The current timestep in the simulation, used for non-RL agents. Optional
         :type timestep: int
         :return: Action to be taken in the environment.

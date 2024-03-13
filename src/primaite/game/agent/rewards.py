@@ -43,9 +43,7 @@ class AbstractReward:
     """Base class for reward function components."""
 
     @abstractmethod
-    def calculate(
-        self, state: Dict, last_action_response: "AgentActionHistoryItem"
-    ) -> float:  # todo maybe make last_action_response optional?
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Calculate the reward for the current state."""
         return 0.0
 
@@ -65,9 +63,7 @@ class AbstractReward:
 class DummyReward(AbstractReward):
     """Dummy reward function component which always returns 0."""
 
-    def calculate(
-        self, state: Dict, last_action_response: "AgentActionHistoryItem"
-    ) -> float:  # todo maybe make last_action_response optional?
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Calculate the reward for the current state."""
         return 0.0
 
@@ -107,9 +103,7 @@ class DatabaseFileIntegrity(AbstractReward):
             file_name,
         ]
 
-    def calculate(
-        self, state: Dict, last_action_response: "AgentActionHistoryItem"
-    ) -> float:  # todo maybe make last_action_response optional?
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Calculate the reward for the current state.
 
         :param state: The current state of the simulation.
@@ -164,9 +158,7 @@ class WebServer404Penalty(AbstractReward):
         """
         self.location_in_state = ["network", "nodes", node_hostname, "services", service_name]
 
-    def calculate(
-        self, state: Dict, last_action_response: "AgentActionHistoryItem"
-    ) -> float:  # todo maybe make last_action_response optional?
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Calculate the reward for the current state.
 
         :param state: The current state of the simulation.
@@ -220,9 +212,7 @@ class WebpageUnavailablePenalty(AbstractReward):
         self.location_in_state: List[str] = ["network", "nodes", node_hostname, "applications", "WebBrowser"]
         self._last_request_failed: bool = False
 
-    def calculate(
-        self, state: Dict, last_action_response: "AgentActionHistoryItem"
-    ) -> float:  # todo maybe make last_action_response optional?
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """
         Calculate the reward based on current simulation state, and the recent agent action.
 
@@ -397,9 +387,7 @@ class RewardFunction:
         """
         self.reward_components.append((component, weight))
 
-    def update(
-        self, state: Dict, last_action_response: "AgentActionHistoryItem"
-    ) -> float:  # todo maybe make last_action_response optional?
+    def update(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Calculate the overall reward for the current state.
 
         :param state: The current state of the simulation.
