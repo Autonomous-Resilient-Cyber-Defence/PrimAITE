@@ -10,28 +10,14 @@
 # 4. Check that the simulation has changed in the way that I expect.
 # 5. Repeat for all actions.
 
-from typing import Dict, Tuple
+from typing import Tuple
 
 import pytest
 
-from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, ProxyAgent
-from primaite.game.agent.observations import ICSObservation, ObservationManager
-from primaite.game.agent.rewards import RewardFunction
+from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
-from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
-from primaite.simulator.network.hardware.nodes.network.switch import Switch
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.web_browser import WebBrowser
-from primaite.simulator.system.services.dns.dns_client import DNSClient
-from primaite.simulator.system.services.dns.dns_server import DNSServer
-from primaite.simulator.system.services.web_server.web_server import WebServer
 from primaite.simulator.system.software import SoftwareHealthState
 
 

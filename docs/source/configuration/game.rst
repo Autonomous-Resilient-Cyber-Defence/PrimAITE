@@ -23,6 +23,11 @@ This section defines high-level settings that apply across the game, currently i
             - ICMP
             - TCP
             - UDP
+        thresholds:
+            nmne:
+                high: 10
+                medium: 5
+                low: 0
 
 ``max_episode_length``
 ----------------------
@@ -44,3 +49,8 @@ See :ref:`List of Ports <List of Ports>` for a list of ports.
 A list of protocols that the Reinforcement Learning agent(s) are able to see in the observation space.
 
 See :ref:`List of IPProtocols <List of IPProtocols>` for a list of protocols.
+
+``thresholds``
+--------------
+
+These are used to determine the thresholds of high, medium and low categories for counted observation occurrences.

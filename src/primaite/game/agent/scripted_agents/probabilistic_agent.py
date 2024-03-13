@@ -7,7 +7,7 @@ from gymnasium.core import ObsType
 
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractScriptedAgent
-from primaite.game.agent.observations import ObservationManager
+from primaite.game.agent.observations.observation_manager import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 
 

@@ -193,6 +193,8 @@ class DataManipulationBot(Application):
         if not self._can_perform_action():
             _LOGGER.debug("Data manipulation application attempted to execute but it cannot perform actions right now.")
             self.run()
+
+        self.num_executions += 1
         return self._application_loop()
 
     def _application_loop(self) -> bool:

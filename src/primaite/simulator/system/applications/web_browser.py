@@ -89,6 +89,8 @@ class WebBrowser(Application):
         if not self._can_perform_action():
             return False
 
+        self.num_executions += 1  # trying to connect counts as an execution
+
         # reset latest response
         self.latest_response = HttpResponsePacket(status_code=HttpStatusCode.NOT_FOUND)
 

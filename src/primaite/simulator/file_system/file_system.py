@@ -28,6 +28,10 @@ class FileSystem(SimComponent):
     "Instance of SysLog used to create system logs."
     sim_root: Path
     "Root path of the simulation."
+    num_file_creations: int = 0
+    "Number of file creations in the current step."
+    num_file_deletions: int = 0
+    "Number of file deletions in the current step."
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -264,6 +268,8 @@ class FileSystem(SimComponent):
         )
         folder.add_file(file)
         self._file_request_manager.add_request(name=file.name, request_type=RequestType(func=file._request_manager))
+        # increment file creation
+        self.num_file_creations += 1
         return file
 
     def get_file(self, folder_name: str, file_name: str, include_deleted: Optional[bool] = False) -> Optional[File]:
@@ -324,6 +330,8 @@ class FileSystem(SimComponent):
         if folder:
             file = folder.get_file(file_name)
             if file:
+                # increment file creation
+                self.num_file_deletions += 1
                 folder.remove_file(file)
                 return True
         return False
@@ -355,15 +363,14 @@ class FileSystem(SimComponent):
         """
         file = self.get_file(folder_name=src_folder_name, file_name=src_file_name)
         if file:
-            src_folder = file.folder
-
             # remove file from src
-            src_folder.remove_file(file)
+            self.delete_file(folder_name=file.folder_name, file_name=file.name)
             dst_folder = self.get_folder(folder_name=dst_folder_name)
             if not dst_folder:
                 dst_folder = self.create_folder(dst_folder_name)
             # add file to dst
             dst_folder.add_file(file)
+            self.num_file_creations += 1
             if file.real:
                 old_sim_path = file.sim_path
                 file.sim_path = file.sim_root / file.path
@@ -391,6 +398,10 @@ class FileSystem(SimComponent):
                 folder_name=dst_folder.name,
                 **file.model_dump(exclude={"uuid", "folder_id", "folder_name", "sim_path"}),
             )
+            self.num_file_creations += 1
+            # increment access counter
+            file.num_access += 1
+
             dst_folder.add_file(file_copy, force=True)
 
             if file.real:
@@ -408,11 +419,19 @@ class FileSystem(SimComponent):
         state = super().describe_state()
         state["folders"] = {folder.name: folder.describe_state() for folder in self.folders.values()}
         state["deleted_folders"] = {folder.name: folder.describe_state() for folder in self.deleted_folders.values()}
+        state["num_file_creations"] = self.num_file_creations
+        state["num_file_deletions"] = self.num_file_deletions
         return state
 
     def apply_timestep(self, timestep: int) -> None:
         """Apply time step to FileSystem and its child folders and files."""
         super().apply_timestep(timestep=timestep)
+
+        # reset number of file creations
+        self.num_file_creations = 0
+
+        # reset number of file deletions
+        self.num_file_deletions = 0
 
         # apply timestep to folders
         for folder_id in self.folders:

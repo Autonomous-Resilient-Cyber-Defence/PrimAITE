@@ -1,4 +1,4 @@
-from primaite.game.agent.observations import NicObservation
+from primaite.game.agent.observations.nic_observations import NicObservation
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.nmne import set_nmne_config
 from primaite.simulator.sim_container import Simulation
@@ -179,8 +179,8 @@ def test_capture_nmne_observations(uc2_network):
 
         # Observe the current state of NMNEs from the NICs of both the database and web servers
         state = sim.describe_state()
-        db_nic_obs = db_server_nic_obs.observe(state)["nmne"]
-        web_nic_obs = web_server_nic_obs.observe(state)["nmne"]
+        db_nic_obs = db_server_nic_obs.observe(state)["NMNE"]
+        web_nic_obs = web_server_nic_obs.observe(state)["NMNE"]
 
         # Define expected NMNE values based on the iteration count
         if i > 10:

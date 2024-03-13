@@ -59,6 +59,16 @@ class Application(IOSoftware):
         )
         return state
 
+    def apply_timestep(self, timestep: int) -> None:
+        """
+        Apply a timestep to the application.
+
+        :param timestep: The current timestep of the simulation.
+        """
+        super().apply_timestep(timestep=timestep)
+
+        self.num_executions = 0  # reset number of executions
+
     def _can_perform_action(self) -> bool:
         """
         Checks if the application can perform actions.
