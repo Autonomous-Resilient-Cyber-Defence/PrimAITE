@@ -22,14 +22,17 @@ io_settings:
 game:
   max_episode_length: 256
   ports:
-  - ARP
-  - DNS
   - HTTP
   - POSTGRES_SERVER
   protocols:
   - ICMP
   - TCP
   - UDP
+  thresholds:
+    nmne:
+      high: 10
+      medium: 5
+      low: 0
 
 agents:
   - ref: client_2_green_user

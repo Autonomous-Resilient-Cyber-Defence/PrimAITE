@@ -48,6 +48,7 @@ class DatabaseClient(Application):
 
     def execute(self) -> bool:
         """Execution definition for db client: perform a select query."""
+        self.num_executions += 1  # trying to connect counts as an execution
         if self.connections:
             can_connect = self.check_connection(connection_id=list(self.connections.keys())[-1])
         else:

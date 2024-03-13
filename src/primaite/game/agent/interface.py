@@ -6,7 +6,7 @@ from gymnasium.core import ActType, ObsType
 from pydantic import BaseModel, model_validator
 
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.observations import ObservationManager
+from primaite.game.agent.observations.observation_manager import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.interface.request import RequestFormat, RequestResponse
 
@@ -171,23 +171,10 @@ class AbstractAgent(ABC):
 class AbstractScriptedAgent(AbstractAgent):
     """Base class for actors which generate their own behaviour."""
 
-    pass
-
-
-class RandomAgent(AbstractScriptedAgent):
-    """Agent that ignores its observation and acts completely at random."""
-
+    @abstractmethod
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
-        """Sample the action space randomly.
-
-        :param obs: Current observation for this agent, not used in RandomAgent
-        :type obs: ObsType
-        :param timestep: The current simulation timestep, not used in RandomAgent
-        :type timestep: int
-        :return: Action formatted in CAOS format
-        :rtype: Tuple[str, Dict]
-        """
-        return self.action_manager.get_action(self.action_manager.space.sample())
+        """Return an action to be taken in the environment."""
+        return super().get_action(obs=obs, timestep=timestep)
 
 
 class ProxyAgent(AbstractAgent):

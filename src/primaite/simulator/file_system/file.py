@@ -38,6 +38,8 @@ class File(FileSystemItemABC):
     "The Path if real is True."
     sim_root: Optional[Path] = None
     "Root path of the simulation."
+    num_access: int = 0
+    "Number of times the file was accessed in the current step."
 
     def __init__(self, **kwargs):
         """
@@ -93,11 +95,23 @@ class File(FileSystemItemABC):
             return os.path.getsize(self.sim_path)
         return self.sim_size
 
+    def apply_timestep(self, timestep: int) -> None:
+        """
+        Apply a timestep to the file.
+
+        :param timestep: The current timestep of the simulation.
+        """
+        super().apply_timestep(timestep=timestep)
+
+        # reset the number of accesses to 0
+        self.num_access = 0
+
     def describe_state(self) -> Dict:
         """Produce a dictionary describing the current state of this object."""
         state = super().describe_state()
         state["size"] = self.size
         state["file_type"] = self.file_type.name
+        state["num_access"] = self.num_access
         return state
 
     def scan(self) -> bool:
@@ -106,6 +120,7 @@ class File(FileSystemItemABC):
             self.sys_log.error(f"Unable to scan deleted file {self.folder_name}/{self.name}")
             return False
 
+        self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Scanning file {self.sim_path if self.sim_path else path}")
         self.visible_health_status = self.health_status
@@ -162,6 +177,7 @@ class File(FileSystemItemABC):
         if self.health_status == FileSystemItemHealthStatus.CORRUPT:
             self.health_status = FileSystemItemHealthStatus.GOOD
 
+        self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Repaired file {self.sim_path if self.sim_path else path}")
         return True
@@ -176,6 +192,7 @@ class File(FileSystemItemABC):
         if self.health_status == FileSystemItemHealthStatus.GOOD:
             self.health_status = FileSystemItemHealthStatus.CORRUPT
 
+        self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Corrupted file {self.sim_path if self.sim_path else path}")
         return True
@@ -189,6 +206,7 @@ class File(FileSystemItemABC):
         if self.health_status == FileSystemItemHealthStatus.CORRUPT:
             self.health_status = FileSystemItemHealthStatus.GOOD
 
+        self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Restored file {self.sim_path if self.sim_path else path}")
         return True
@@ -199,6 +217,7 @@ class File(FileSystemItemABC):
             self.sys_log.error(f"Unable to delete an already deleted file {self.folder_name}/{self.name}")
             return False
 
+        self.num_access += 1  # file was accessed
         self.deleted = True
         self.sys_log.info(f"File deleted {self.folder_name}/{self.name}")
         return True

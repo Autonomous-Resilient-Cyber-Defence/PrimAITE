@@ -1,16 +1,16 @@
 """PrimAITE game - Encapsulates the simulation and agents."""
 from ipaddress import IPv4Address
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
-from primaite.game.agent.observations import ObservationManager
+from primaite.game.agent.observations.observation_manager import ObservationManager
 from primaite.game.agent.rewards import RewardFunction, SharedReward
-from primaite.game.agent.scripted_agents import ProbabilisticAgent
+from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
+from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -68,8 +68,13 @@ class PrimaiteGameOptions(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     max_episode_length: int = 256
+    """Maximum number of episodes for the PrimAITE game."""
     ports: List[str]
+    """A whitelist of available ports in the simulation."""
     protocols: List[str]
+    """A whitelist of available protocols in the simulation."""
+    thresholds: Optional[Dict] = {}
+    """A dict containing the thresholds used for determining what is acceptable during observations."""
 
 
 class PrimaiteGame:
