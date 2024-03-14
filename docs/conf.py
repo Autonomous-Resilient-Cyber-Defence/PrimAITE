@@ -10,6 +10,7 @@ import datetime
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
 import sys
+from typing import Any
 
 import furo  # noqa
 
@@ -63,3 +64,21 @@ html_theme = "furo"
 html_static_path = ["_static"]
 html_theme_options = {"globaltoc_collapse": True, "globaltoc_maxdepth": 2}
 html_copy_source = False
+
+
+def replace_token(app: Any, docname: Any, source: Any):
+    """Replaces a token from the list of tokens."""
+    result = source[0]
+    for key in app.config.tokens:
+        result = result.replace(key, app.config.tokens[key])
+    source[0] = result
+
+
+tokens = {"{VERSION}": release}  # Token VERSION is replaced by the value of the PrimAITE version in the version file
+"""Dict containing the tokens that need to be replaced in documentation."""
+
+
+def setup(app: Any):
+    """Custom setup for sphinx."""
+    app.add_config_value("tokens", {}, True)
+    app.connect("source-read", replace_token)

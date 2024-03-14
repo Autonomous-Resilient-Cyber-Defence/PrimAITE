@@ -17,12 +17,12 @@ Running Jupyter Notebooks
 .. code-block:: bash
     :caption: Unix
 
-    cd ~/primaite/PRIMAITE_VERSION_TOKEN
+    cd ~/primaite/{VERSION}
 
 .. code-block:: powershell
     :caption: Windows (Powershell)
 
-    cd ~\primaite\PRIMAITE_VERSION_TOKEN
+    cd ~\primaite\{VERSION}
 
 2. Run jupyter notebook
 
