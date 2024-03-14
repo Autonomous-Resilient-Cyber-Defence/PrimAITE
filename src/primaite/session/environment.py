@@ -189,8 +189,8 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
     def reset(self, *, seed: int = None, options: dict = None) -> Tuple[ObsType, Dict]:
         """Reset the environment."""
         if self.io.settings.save_agent_actions:
-            self.io.write_agent_actions(episode=self.episode_counter)
-            self.io.clear_agent_actions()
+            all_agent_actions = {name: agent.action_history for name, agent in self.game.agents.items()}
+            self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
         self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=copy.deepcopy(self.game_config))
         self.game.setup_for_episode(episode=self.episode_counter)
         self.episode_counter += 1
