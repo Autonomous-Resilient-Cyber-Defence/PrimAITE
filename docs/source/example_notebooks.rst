@@ -5,7 +5,7 @@
 Example Jupyter Notebooks
 =========================
 
-There are a few example notebooks included which helps with the understanding of PrimAITE's capabilities.
+There are a few example notebooks included which help with the understanding of PrimAITE's capabilities.
 
 The Jupyter Notebooks can be run via the 2 examples below. These assume that the instructions to install PrimAITE from the :ref:`Getting Started <getting-started>` page is completed as a prerequisite.
 
@@ -24,7 +24,7 @@ Running Jupyter Notebooks
 
     cd ~\primaite\{VERSION}
 
-2. Run jupyter notebook
+2. Run jupyter notebook (the python environment to which you installed PrimAITE must be active)
 
 .. code-block:: bash
     :caption: Unix
@@ -38,19 +38,13 @@ Running Jupyter Notebooks
 
 3. Opening the jupyter webpage (optional)
 
-The default web browser may automatically open the webpage. However, if that is not the case, open a web browser and navigate to |jupyter_index|.
+The default web browser may automatically open the webpage. However, if that is not the case, click the link shown in your command prompt output. It should look like this: ``http://localhost:8888/?token=ab83071fd13cb5a1384efba318...``
 
-.. |jupyter_index| raw:: html
-
-   <a href="http://localhost:8888/tree" target="_blank">http://localhost:8888/tree</a>
 
 4. Navigate to the list of notebooks
 
-The example notebooks are located in notebooks/example_notebooks or by navigating to |jupyter_index_notebooks|
+The example notebooks are located in ``notebooks/example_notebooks/``. The file system shown in the jupyter webpage is relative to the location in which the ``jupyter notebook`` command was used.
 
-.. |jupyter_index_notebooks| raw:: html
-
-   <a href="http://localhost:8888/tree/notebooks/example_notebooks" target="_blank">http://localhost:8888/tree/notebooks/example_notebooks</a>
 
 Running Jupyter Notebooks via VSCode
 ------------------------------------
