@@ -108,7 +108,7 @@ class NetworkInterface(SimComponent, ABC):
         """Reset the original state of the SimComponent."""
         super().setup_for_episode(episode=episode)
         self.nmne = {}
-        if episode and self.pcap:
+        if episode and self.pcap and SIM_OUTPUT.save_pcap_logs:
             self.pcap.current_episode = episode
             self.pcap.setup_logger()
         self.enable()

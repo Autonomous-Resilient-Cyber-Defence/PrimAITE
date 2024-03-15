@@ -49,8 +49,9 @@ class PacketCapture:
 
         self.current_episode: int = 1
 
-        self.setup_logger(outbound=False)
-        self.setup_logger(outbound=True)
+        if SIM_OUTPUT.save_pcap_logs:
+            self.setup_logger(outbound=False)
+            self.setup_logger(outbound=True)
 
     def setup_logger(self, outbound: bool = False):
         """Set up the logger configuration."""
@@ -108,8 +109,9 @@ class PacketCapture:
 
         :param frame: The PCAP frame to capture.
         """
-        msg = frame.model_dump_json()
-        self.inbound_logger.log(level=60, msg=msg)  # Log at custom log level > CRITICAL
+        if SIM_OUTPUT.save_pcap_logs:
+            msg = frame.model_dump_json()
+            self.inbound_logger.log(level=60, msg=msg)  # Log at custom log level > CRITICAL
 
     def capture_outbound(self, frame):  # noqa - I'll have a circular import and cant use if TYPE_CHECKING ;(
         """
@@ -117,5 +119,6 @@ class PacketCapture:
 
         :param frame: The PCAP frame to capture.
         """
-        msg = frame.model_dump_json()
-        self.outbound_logger.log(level=60, msg=msg)  # Log at custom log level > CRITICAL
+        if SIM_OUTPUT.save_pcap_logs:
+            msg = frame.model_dump_json()
+            self.outbound_logger.log(level=60, msg=msg)  # Log at custom log level > CRITICAL

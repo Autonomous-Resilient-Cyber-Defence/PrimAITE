@@ -11,16 +11,14 @@ training_config:
     - defender
 
 io_settings:
-  save_checkpoints: true
-  checkpoint_interval: 5
   save_agent_actions: true
   save_step_metadata: false
   save_pcap_logs: false
-  save_sys_logs: true
+  save_sys_logs: false
 
 
 game:
-  max_episode_length: 256
+  max_episode_length: 128
   ports:
   - HTTP
   - POSTGRES_SERVER
@@ -323,7 +321,7 @@ agents:
               folder_id: 0
               file_id: 0
           10:
-            action: "NODE_FILE_CHECKHASH"
+            action: "NODE_FILE_SCAN" # CHECKHASH replaced by SCAN - but the behaviour is the same in this context.
             options:
               node_id: 2
               folder_id: 0
@@ -351,7 +349,7 @@ agents:
               node_id: 2
               folder_id: 0
           15:
-            action: "NODE_FOLDER_CHECKHASH"
+            action: "NODE_FOLDER_SCAN" # CHECKHASH replaced by SCAN - but the behaviour is the same in this context.
             options:
               node_id: 2
               folder_id: 0
