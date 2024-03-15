@@ -319,11 +319,11 @@ class SharedReward(AbstractReward):
         """
         Initialise the shared reward.
 
-        The agent_ref is a placeholder value. It starts off as none, but it must be set before this reward can work
+        The agent_name is a placeholder value. It starts off as none, but it must be set before this reward can work
         correctly.
 
         :param agent_name: The name whose reward is an input
-        :type agent_ref: Optional[str]
+        :type agent_name: Optional[str]
         """
         self.agent_name = agent_name
         """Agent whose reward to track."""
