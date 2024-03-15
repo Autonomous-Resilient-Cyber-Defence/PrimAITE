@@ -531,4 +531,6 @@ def game_and_agent():
 
     game.agents["test_agent"] = test_agent
 
+    game.setup_reward_sharing()
+
     return (game, test_agent)

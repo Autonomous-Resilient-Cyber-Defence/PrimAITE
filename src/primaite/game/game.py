@@ -1,6 +1,6 @@
 """PrimAITE game - Encapsulates the simulation and agents."""
 from ipaddress import IPv4Address
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -8,9 +8,10 @@ from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
 from primaite.game.agent.observations.observation_manager import ObservationManager
-from primaite.game.agent.rewards import RewardFunction
+from primaite.game.agent.rewards import RewardFunction, SharedReward
 from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
+from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
@@ -115,6 +116,9 @@ class PrimaiteGame:
         self.save_step_metadata: bool = False
         """Whether to save the RL agents' action, environment state, and other data at every single step."""
 
+        self._reward_calculation_order: List[str] = [name for name in self.agents]
+        """Agent order for reward evaluation, as some rewards can be dependent on other agents' rewards."""
+
     def step(self):
         """
         Perform one step of the simulation/agent loop.
@@ -135,17 +139,21 @@ class PrimaiteGame:
         """
         _LOGGER.debug(f"Stepping. Step counter: {self.step_counter}")
 
-        # Get the current state of the simulation
-        sim_state = self.get_sim_state()
-
-        # Update agents' observations and rewards based on the current state
-        self.update_agents(sim_state)
-
+        if self.step_counter == 0:
+            state = self.get_sim_state()
+            for agent in self.agents.values():
+                agent.update_observation(state=state)
         # Apply all actions to simulation as requests
         self.apply_agent_actions()
 
         # Advance timestep
         self.advance_timestep()
+
+        # Get the current state of the simulation
+        sim_state = self.get_sim_state()
+
+        # Update agents' observations and rewards based on the current state, and the response from the last action
+        self.update_agents(state=sim_state)
 
     def get_sim_state(self) -> Dict:
         """Get the current state of the simulation."""
@@ -153,31 +161,27 @@ class PrimaiteGame:
 
     def update_agents(self, state: Dict) -> None:
         """Update agents' observations and rewards based on the current state."""
-        for _, agent in self.agents.items():
-            agent.update_observation(state)
-            agent.update_reward(state)
+        for agent_name in self._reward_calculation_order:
+            agent = self.agents[agent_name]
+            if self.step_counter > 0:  # can't get reward before first action
+                agent.update_reward(state=state)
+            agent.update_observation(state=state)  # order of this doesn't matter so just use reward order
             agent.reward_function.total_reward += agent.reward_function.current_reward
 
-    def apply_agent_actions(self) -> Dict[str, Tuple[str, Dict]]:
-        """
-        Apply all actions to simulation as requests.
-
-        :return: A recap of each agent's actions, in CAOS format.
-        :rtype: Dict[str, Tuple[str, Dict]]
-
-        """
-        agent_actions = {}
+    def apply_agent_actions(self) -> None:
+        """Apply all actions to simulation as requests."""
         for _, agent in self.agents.items():
             obs = agent.observation_manager.current_observation
-            action_choice, options = agent.get_action(obs, timestep=self.step_counter)
-            request = agent.format_request(action_choice, options)
+            action_choice, parameters = agent.get_action(obs, timestep=self.step_counter)
+            request = agent.format_request(action_choice, parameters)
             response = self.simulation.apply_request(request)
-            agent_actions[agent.agent_name] = {
-                "action": action_choice,
-                "parameters": options,
-                "response": response.model_dump(),
-            }
-        return agent_actions
+            agent.process_action_response(
+                timestep=self.step_counter,
+                action=action_choice,
+                parameters=parameters,
+                request=request,
+                response=response,
+            )
 
     def advance_timestep(self) -> None:
         """Advance timestep."""
@@ -453,7 +457,49 @@ class PrimaiteGame:
                 raise ValueError(msg)
             game.agents[agent_cfg["ref"]] = new_agent
 
+        # Validate that if any agents are sharing rewards, they aren't forming an infinite loop.
+        game.setup_reward_sharing()
+
         # Set the NMNE capture config
         set_nmne_config(network_config.get("nmne_config", {}))
+        game.update_agents(game.get_sim_state())
 
         return game
+
+    def setup_reward_sharing(self):
+        """Do necessary setup to enable reward sharing between agents.
+
+        This method ensures that there are no cycles in the reward sharing. A cycle would be for example if agent_1
+        depends on agent_2 and agent_2 depends on agent_1. It would cause an infinite loop.
+
+        Also, SharedReward requires us to pass it a callback method that will provide the reward of the agent who is
+        sharing their reward. This callback is provided by this setup method.
+
+        Finally, this method sorts the agents in order in which rewards will be evaluated to make sure that any rewards
+        that rely on the value of another reward are evaluated later.
+
+        :raises RuntimeError: If the reward sharing is specified with a cyclic dependency.
+        """
+        # construct dependency graph in the reward sharing between agents.
+        graph = {}
+        for name, agent in self.agents.items():
+            graph[name] = set()
+            for comp, weight in agent.reward_function.reward_components:
+                if isinstance(comp, SharedReward):
+                    comp: SharedReward
+                    graph[name].add(comp.agent_name)
+
+                    # while constructing the graph, we might as well set up the reward sharing itself.
+                    comp.callback = lambda agent_name: self.agents[agent_name].reward_function.current_reward
+
+        # make sure the graph is acyclic. Otherwise we will enter an infinite loop of reward sharing.
+        if graph_has_cycle(graph):
+            raise RuntimeError(
+                (
+                    "Detected cycle in agent reward sharing. Check the agent reward function ",
+                    "configuration: reward sharing can only go one way.",
+                )
+            )
+
+        # sort the agents so the rewards that depend on other rewards are always evaluated later
+        self._reward_calculation_order = topological_sort(graph)

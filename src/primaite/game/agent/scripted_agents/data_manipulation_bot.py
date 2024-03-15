@@ -14,7 +14,7 @@ class DataManipulationAgent(AbstractScriptedAgent):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.reset_agent_for_episode()
+        self.setup_agent()
 
     def _set_next_execution_timestep(self, timestep: int) -> None:
         """Set the next execution timestep with a configured random variance.
@@ -43,9 +43,8 @@ class DataManipulationAgent(AbstractScriptedAgent):
 
         return "NODE_APPLICATION_EXECUTE", {"node_id": self.starting_node_idx, "application_id": 0}
 
-    def reset_agent_for_episode(self) -> None:
+    def setup_agent(self) -> None:
         """Set the next execution timestep when the episode resets."""
-        super().reset_agent_for_episode()
         self._select_start_node()
         self._set_next_execution_timestep(self.agent_settings.start_settings.start_step)
 
