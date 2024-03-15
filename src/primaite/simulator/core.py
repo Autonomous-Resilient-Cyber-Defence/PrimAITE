@@ -7,11 +7,9 @@ from uuid import uuid4
 from pydantic import BaseModel, ConfigDict, Field, validate_call
 
 from primaite import getLogger
-from primaite.interface.request import RequestResponse
+from primaite.interface.request import RequestFormat, RequestResponse
 
 _LOGGER = getLogger(__name__)
-
-RequestFormat = List[Union[str, int, float]]
 
 
 class RequestPermissionValidator(BaseModel):

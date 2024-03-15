@@ -707,12 +707,6 @@ agents:
 
     reward_function:
       reward_components:
-        - type: DATABASE_FILE_INTEGRITY
-          weight: 0.40
-          options:
-            node_hostname: database_server
-            folder_name: database
-            file_name: database.db
         - type: SHARED_REWARD
           weight: 1.0
           options:

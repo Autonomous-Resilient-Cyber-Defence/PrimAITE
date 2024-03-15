@@ -48,8 +48,6 @@ class PrimaiteIO:
         SIM_OUTPUT.save_pcap_logs = self.settings.save_pcap_logs
         SIM_OUTPUT.save_sys_logs = self.settings.save_sys_logs
 
-        self.agent_action_log: List[Dict] = []
-
     def generate_session_path(self, timestamp: Optional[datetime] = None) -> Path:
         """Create a folder for the session and return the path to it."""
         if timestamp is None:
@@ -72,48 +70,24 @@ class PrimaiteIO:
         """Return the path where agent actions will be saved."""
         return self.session_path / "agent_actions" / f"episode_{episode}.json"
 
-    def store_agent_actions(self, agent_actions: Dict, episode: int, timestep: int) -> None:
-        """Cache agent actions for a particular step.
-
-        :param agent_actions: Dictionary describing actions for any agents that acted in this timestep. The expected
-            format contains agent identifiers as keys. The keys should map to a tuple of [CAOS action, parameters]
-            CAOS action is a string representing one the CAOS actions.
-            parameters is a dict of parameter names and values for that particular CAOS action.
-            For example:
-                {
-                    'green1' : ('NODE_APPLICATION_EXECUTE', {'node_id':1, 'application_id':0}),
-                    'defender': ('DO_NOTHING', {})
-                }
-        :type agent_actions: Dict
-        :param timestep: Simulation timestep when these actions occurred.
-        :type timestep: int
-        """
-        self.agent_action_log.append(
-            [
-                {
-                    "episode": episode,
-                    "timestep": timestep,
-                    "agent_actions": agent_actions,
-                }
-            ]
-        )
-
-    def write_agent_actions(self, episode: int) -> None:
+    def write_agent_actions(self, agent_actions: Dict[str, List], episode: int) -> None:
         """Take the contents of the agent action log and write it to a file.
 
         :param episode: Episode number
         :type episode: int
         """
+        data = {}
+        longest_history = max([len(hist) for hist in agent_actions.values()])
+        for i in range(longest_history):
+            data[i] = {"timestep": i, "episode": episode}
+            data[i].update({name: acts[i] for name, acts in agent_actions.items() if len(acts) > i})
+
         path = self.generate_agent_actions_save_path(episode=episode)
         path.parent.mkdir(exist_ok=True, parents=True)
         path.touch()
         _LOGGER.info(f"Saving agent action log to {path}")
         with open(path, "w") as file:
-            json.dump(self.agent_action_log, fp=file, indent=1)
-
-    def clear_agent_actions(self) -> None:
-        """Reset the agent action log back to an empty dictionary."""
-        self.agent_action_log = []
+            json.dump(data, fp=file, indent=1, default=lambda x: x.model_dump())
 
     @classmethod
     def from_config(cls, config: Dict) -> "PrimaiteIO":

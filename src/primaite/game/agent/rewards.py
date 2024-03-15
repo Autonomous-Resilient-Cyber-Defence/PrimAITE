@@ -26,10 +26,15 @@ the structure:
 ```
 """
 from abc import abstractmethod
-from typing import Dict, List, Tuple, Type
+from typing import Callable, Dict, List, Optional, Tuple, Type, TYPE_CHECKING
+
+from typing_extensions import Never
 
 from primaite import getLogger
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+
+if TYPE_CHECKING:
+    from primaite.game.agent.interface import AgentActionHistoryItem
 
 _LOGGER = getLogger(__name__)
 
@@ -38,7 +43,7 @@ class AbstractReward:
     """Base class for reward function components."""
 
     @abstractmethod
-    def calculate(self, state: Dict) -> float:
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Calculate the reward for the current state."""
         return 0.0
 
@@ -58,7 +63,7 @@ class AbstractReward:
 class DummyReward(AbstractReward):
     """Dummy reward function component which always returns 0."""
 
-    def calculate(self, state: Dict) -> float:
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Calculate the reward for the current state."""
         return 0.0
 
@@ -98,7 +103,7 @@ class DatabaseFileIntegrity(AbstractReward):
             file_name,
         ]
 
-    def calculate(self, state: Dict) -> float:
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Calculate the reward for the current state.
 
         :param state: The current state of the simulation.
@@ -153,7 +158,7 @@ class WebServer404Penalty(AbstractReward):
         """
         self.location_in_state = ["network", "nodes", node_hostname, "services", service_name]
 
-    def calculate(self, state: Dict) -> float:
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Calculate the reward for the current state.
 
         :param state: The current state of the simulation.
@@ -203,16 +208,27 @@ class WebpageUnavailablePenalty(AbstractReward):
         :param node_hostname: Hostname of the node which has the web browser.
         :type node_hostname: str
         """
-        self._node = node_hostname
-        self.location_in_state = ["network", "nodes", node_hostname, "applications", "WebBrowser"]
+        self._node: str = node_hostname
+        self.location_in_state: List[str] = ["network", "nodes", node_hostname, "applications", "WebBrowser"]
+        self._last_request_failed: bool = False
 
-    def calculate(self, state: Dict) -> float:
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """
-        Calculate the reward based on current simulation state.
+        Calculate the reward based on current simulation state, and the recent agent action.
 
-        :param state: The current state of the simulation.
-        :type state: Dict
+        When the green agent requests to execute the browser application, and that request fails, this reward
+        component will keep track of that information. In that case, it doesn't matter whether the last webpage
+        had a 200 status code, because there has been an unsuccessful request since.
         """
+        if last_action_response.request == ["network", "node", self._node, "application", "WebBrowser", "execute"]:
+            self._last_request_failed = last_action_response.response.status != "success"
+
+        # if agent couldn't even get as far as sending the request (because for example the node was off), then
+        # apply a penalty
+        if self._last_request_failed:
+            return -1.0
+
+        # If the last request did actually go through, then check if the webpage also loaded
         web_browser_state = access_from_nested_dict(state, self.location_in_state)
         if web_browser_state is NOT_PRESENT_IN_STATE or "history" not in web_browser_state:
             _LOGGER.info(
@@ -252,16 +268,28 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         :param node_hostname: Hostname of the node where the database client sits.
         :type node_hostname: str
         """
-        self._node = node_hostname
-        self.location_in_state = ["network", "nodes", node_hostname, "applications", "DatabaseClient"]
+        self._node: str = node_hostname
+        self.location_in_state: List[str] = ["network", "nodes", node_hostname, "applications", "DatabaseClient"]
+        self._last_request_failed: bool = False
 
-    def calculate(self, state: Dict) -> float:
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """
-        Calculate the reward based on current simulation state.
+        Calculate the reward based on current simulation state, and the recent agent action.
 
-        :param state: The current state of the simulation.
-        :type state: Dict
+        When the green agent requests to execute the database client application, and that request fails, this reward
+        component will keep track of that information. In that case, it doesn't matter whether the last successful
+        request returned was able to connect to the database server, because there has been an unsuccessful request
+        since.
         """
+        if last_action_response.request == ["network", "node", self._node, "application", "DatabaseClient", "execute"]:
+            self._last_request_failed = last_action_response.response.status != "success"
+
+        # if agent couldn't even get as far as sending the request (because for example the node was off), then
+        # apply a penalty
+        if self._last_request_failed:
+            return -1.0
+
+        # If the last request was actually sent, then check if the connection was established.
         db_state = access_from_nested_dict(state, self.location_in_state)
         if db_state is NOT_PRESENT_IN_STATE or "last_connection_successful" not in db_state:
             _LOGGER.debug(f"Can't calculate reward for {self.__class__.__name__}")
@@ -284,6 +312,51 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         return cls(node_hostname=node_hostname)
 
 
+class SharedReward(AbstractReward):
+    """Adds another agent's reward to the overall reward."""
+
+    def __init__(self, agent_name: Optional[str] = None) -> None:
+        """
+        Initialise the shared reward.
+
+        The agent_name is a placeholder value. It starts off as none, but it must be set before this reward can work
+        correctly.
+
+        :param agent_name: The name whose reward is an input
+        :type agent_name: Optional[str]
+        """
+        self.agent_name = agent_name
+        """Agent whose reward to track."""
+
+        def default_callback(agent_name: str) -> Never:
+            """
+            Default callback to prevent calling this reward until it's properly initialised.
+
+            SharedReward should not be used until the game layer replaces self.callback with a reference to the
+            function that retrieves the desired agent's reward. Therefore, we define this default callback that raises
+            an error.
+            """
+            raise RuntimeError("Attempted to calculate SharedReward but it was not initialised properly.")
+
+        self.callback: Callable[[str], float] = default_callback
+        """Method that retrieves an agent's current reward given the agent's name."""
+
+    def calculate(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
+        """Simply access the other agent's reward and return it."""
+        return self.callback(self.agent_name)
+
+    @classmethod
+    def from_config(cls, config: Dict) -> "SharedReward":
+        """
+        Build the SharedReward object from config.
+
+        :param config: Configuration dictionary
+        :type config: Dict
+        """
+        agent_name = config.get("agent_name")
+        return cls(agent_name=agent_name)
+
+
 class RewardFunction:
     """Manages the reward function for the agent."""
 
@@ -293,6 +366,7 @@ class RewardFunction:
         "WEB_SERVER_404_PENALTY": WebServer404Penalty,
         "WEBPAGE_UNAVAILABLE_PENALTY": WebpageUnavailablePenalty,
         "GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY": GreenAdminDatabaseUnreachablePenalty,
+        "SHARED_REWARD": SharedReward,
     }
     """List of reward class identifiers."""
 
@@ -313,7 +387,7 @@ class RewardFunction:
         """
         self.reward_components.append((component, weight))
 
-    def update(self, state: Dict) -> float:
+    def update(self, state: Dict, last_action_response: "AgentActionHistoryItem") -> float:
         """Calculate the overall reward for the current state.
 
         :param state: The current state of the simulation.
@@ -323,7 +397,7 @@ class RewardFunction:
         for comp_and_weight in self.reward_components:
             comp = comp_and_weight[0]
             weight = comp_and_weight[1]
-            total += weight * comp.calculate(state=state)
+            total += weight * comp.calculate(state=state, last_action_response=last_action_response)
         self.current_reward = total
         return self.current_reward
 
