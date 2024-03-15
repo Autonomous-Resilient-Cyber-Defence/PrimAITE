@@ -51,6 +51,8 @@ Running Jupyter Notebooks via VSCode
 
 It is also possible to view the Jupyter notebooks within VSCode.
 
+The best place to start is by opening a notebook file (.ipynb) in VSCode. If using VSCode to view a notebook for the first time, follow the steps below.
+
 Installing extensions
 """""""""""""""""""""
 
@@ -71,3 +73,5 @@ The following extensions should now be installed
     :align: center
 
 VSCode will then ask for a Python environment version to use. PrimAITE is compatible with Python versions 3.8 - 3.10
+
+You should now be able to interact with the notebook.

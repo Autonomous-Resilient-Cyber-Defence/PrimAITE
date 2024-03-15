@@ -57,7 +57,7 @@ Install PrimAITE
 .. code-block:: powershell
     :caption: Windows (Powershell)
 
-        cd ~\primaite\3.0.0
+        cd ~\primaite\{VERSION}
         python3 -m venv .venv
         attrib +h .venv /s /d # Hides the .venv directory
 
