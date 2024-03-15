@@ -38,7 +38,7 @@ Running Jupyter Notebooks
 
 3. Opening the jupyter webpage (optional)
 
-The default web browser may automatically open the webpage. However, if that is not the case, click the link shown in your command prompt output. It should look like this: ``http://localhost:8888/?token=ab83071fd13cb5a1384efba318...``
+The default web browser may automatically open the webpage. However, if that is not the case, click the link shown in your command prompt output. It should look like this: ``http://localhost:8888/?token=0123456798abc0123456789abc``
 
 
 4. Navigate to the list of notebooks
