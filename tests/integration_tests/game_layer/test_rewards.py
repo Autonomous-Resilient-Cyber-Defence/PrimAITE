@@ -1,10 +1,16 @@
+import yaml
+
+from primaite.game.agent.interface import AgentActionHistoryItem
 from primaite.game.agent.rewards import GreenAdminDatabaseUnreachablePenalty, WebpageUnavailablePenalty
+from primaite.game.game import PrimaiteGame
+from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.database.database_service import DatabaseService
+from tests import TEST_ASSETS_ROOT
 from tests.conftest import ControlledAgent
 
 
@@ -61,13 +67,18 @@ def test_uc2_rewards(game_and_agent):
 
     comp = GreenAdminDatabaseUnreachablePenalty("client_1")
 
-    db_client.apply_request(
+    response = db_client.apply_request(
         [
             "execute",
         ]
     )
     state = game.get_sim_state()
-    reward_value = comp.calculate(state)
+    reward_value = comp.calculate(
+        state,
+        last_action_response=AgentActionHistoryItem(
+            timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=["execute"], response=response
+        ),
+    )
     assert reward_value == 1.0
 
     router.acl.remove_rule(position=2)
@@ -78,5 +89,32 @@ def test_uc2_rewards(game_and_agent):
         ]
     )
     state = game.get_sim_state()
-    reward_value = comp.calculate(state)
+    reward_value = comp.calculate(
+        state,
+        last_action_response=AgentActionHistoryItem(
+            timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=["execute"], response=response
+        ),
+    )
     assert reward_value == -1.0
+
+
+def test_shared_reward():
+    CFG_PATH = TEST_ASSETS_ROOT / "configs/shared_rewards.yaml"
+    with open(CFG_PATH, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    env = PrimaiteGymEnv(game_config=cfg)
+
+    env.reset()
+
+    order = env.game._reward_calculation_order
+    assert order.index("defender") > order.index("client_1_green_user")
+    assert order.index("defender") > order.index("client_2_green_user")
+
+    for step in range(256):
+        act = env.action_space.sample()
+        env.step(act)
+        g1_reward = env.game.agents["client_1_green_user"].reward_function.current_reward
+        g2_reward = env.game.agents["client_2_green_user"].reward_function.current_reward
+        blue_reward = env.game.agents["defender"].reward_function.current_reward
+        assert blue_reward == g1_reward + g2_reward
