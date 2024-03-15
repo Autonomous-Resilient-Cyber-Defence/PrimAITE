@@ -111,7 +111,7 @@ class DatabaseFileIntegrity(AbstractReward):
         """
         database_file_state = access_from_nested_dict(state, self.location_in_state)
         if database_file_state is NOT_PRESENT_IN_STATE:
-            _LOGGER.info(
+            _LOGGER.debug(
                 f"Could not calculate {self.__class__} reward because "
                 "simulation state did not contain enough information."
             )
