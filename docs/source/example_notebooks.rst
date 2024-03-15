@@ -5,7 +5,7 @@
 Example Jupyter Notebooks
 =========================
 
-There are a few example notebooks included which helps with the understanding of PrimAITE's capabilities.
+There are a few example notebooks included which help with the understanding of PrimAITE's capabilities.
 
 The Jupyter Notebooks can be run via the 2 examples below. These assume that the instructions to install PrimAITE from the :ref:`Getting Started <getting-started>` page is completed as a prerequisite.
 
@@ -57,6 +57,8 @@ Running Jupyter Notebooks via VSCode
 
 It is also possible to view the Jupyter notebooks within VSCode.
 
+The best place to start is by opening a notebook file (.ipynb) in VSCode. If using VSCode to view a notebook for the first time, follow the steps below.
+
 Installing extensions
 """""""""""""""""""""
 
@@ -77,3 +79,5 @@ The following extensions should now be installed
     :align: center
 
 VSCode will then ask for a Python environment version to use. PrimAITE is compatible with Python versions 3.8 - 3.10
+
+You should now be able to interact with the notebook.
