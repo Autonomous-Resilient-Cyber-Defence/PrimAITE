@@ -1,17 +1,21 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import pytest
 import yaml
+from _pytest.monkeypatch import MonkeyPatch
 
 from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent
-from primaite.game.agent.observations import ICSObservation, ObservationManager
+from primaite.game.agent.observations.observation_manager import ObservationManager
+from primaite.game.agent.observations.observations import ICSObservation
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.game import PrimaiteGame
 from primaite.session.session import PrimaiteSession
+from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -29,12 +33,28 @@ from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.web_server.web_server import WebServer
+from tests import TEST_ASSETS_ROOT
 from tests.mock_and_patch.get_session_path_mock import temp_user_sessions_path
 
 ACTION_SPACE_NODE_VALUES = 1
 ACTION_SPACE_NODE_ACTION_VALUES = 1
 
 _LOGGER = getLogger(__name__)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def set_syslog_output_to_true():
+    """Will be run before each test."""
+    monkeypatch = MonkeyPatch()
+    monkeypatch.setattr(
+        SIM_OUTPUT,
+        "path",
+        Path(TEST_ASSETS_ROOT.parent.parent / "simulation_output" / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")),
+    )
+    monkeypatch.setattr(SIM_OUTPUT, "save_pcap_logs", True)
+    monkeypatch.setattr(SIM_OUTPUT, "save_sys_logs", True)
+
+    yield
 
 
 class TestService(Service):
@@ -309,7 +329,7 @@ class ControlledAgent(AbstractAgent):
         )
         self.most_recent_action: Tuple[str, Dict]
 
-    def get_action(self, obs: None, reward: float = 0.0) -> Tuple[str, Dict]:
+    def get_action(self, obs: None, timestep: int = 0) -> Tuple[str, Dict]:
         """Return the agent's most recent action, formatted in CAOS format."""
         return self.most_recent_action
 
@@ -403,7 +423,7 @@ def install_stuff_to_sim(sim: Simulation):
     assert len(sim.network.nodes) == 6
     assert len(sim.network.links) == 5
     # 5.1: Assert the router is correctly configured
-    r = sim.network.routers[0]
+    r = sim.network.router_nodes[0]
     for i, acl_rule in enumerate(r.acl.acl):
         if i == 1:
             assert acl_rule.src_port == acl_rule.dst_port == Port.DNS
@@ -478,7 +498,6 @@ def game_and_agent():
     ]
 
     action_space = ActionManager(
-        game=game,
         actions=actions,  # ALL POSSIBLE ACTIONS
         nodes=[
             {
@@ -510,6 +529,8 @@ def game_and_agent():
         reward_function=reward_function,
     )
 
-    game.agents.append(test_agent)
+    game.agents["test_agent"] = test_agent
+
+    game.setup_reward_sharing()
 
     return (game, test_agent)

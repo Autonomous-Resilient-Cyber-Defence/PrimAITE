@@ -11,8 +11,11 @@ training_config:
     - defender
 
 io_settings:
-  save_checkpoints: true
-  checkpoint_interval: 5
+  save_agent_actions: true
+  save_step_metadata: true
+  save_pcap_logs: true
+  save_sys_logs: true
+
 
 
 game:
@@ -29,7 +32,7 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: GreenWebBrowsingAgent
+    type: ProbabilisticAgent
     observation_space:
       type: UC2GreenObservation
     action_space:
@@ -55,7 +58,7 @@ agents:
         frequency: 20
         variance: 5
 
-  - ref: client_1_data_manipulation_red_bot
+  - ref: data_manipulation_attacker
     team: RED
     type: RedDatabaseCorruptingAgent
 
@@ -599,15 +602,16 @@ simulation:
       hostname: web_server
       ip_address: 192.168.1.12
       subnet_mask: 255.255.255.0
-      default_gateway: 192.168.1.10
+      default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
+      - ref: web_server_web_service
+        type: WebServer
+      applications:
       - ref: web_server_database_client
         type: DatabaseClient
         options:
           db_server_ip: 192.168.1.14
-      - ref: web_server_web_service
-        type: WebServer
 
 
     - ref: database_server
@@ -630,7 +634,7 @@ simulation:
       dns_server: 192.168.1.10
       services:
       - ref: backup_service
-        type: DatabaseBackup
+        type: FTPServer
 
     - ref: security_suite
       type: server

@@ -105,9 +105,12 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
 
    source/getting_started
    source/primaite_session
+   source/example_notebooks
    source/simulation
    source/game_layer
    source/config
+   source/environment
+   source/customising_scenarios
 
 .. toctree::
    :caption: Developer information:

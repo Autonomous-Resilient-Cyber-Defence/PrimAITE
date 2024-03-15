@@ -492,9 +492,9 @@ class NetworkACLAddRuleAction(AbstractAction):
             "add_rule",
             permission_str,
             protocol,
-            src_ip,
+            str(src_ip),
             src_port,
-            dst_ip,
+            str(dst_ip),
             dst_port,
             position,
         ]
@@ -572,7 +572,7 @@ class NetworkNICDisableAction(NetworkNICAbstractAction):
 class ActionManager:
     """Class which manages the action space for an agent."""
 
-    _act_class_identifiers: Dict[str, type] = {
+    act_class_identifiers: Dict[str, type] = {
         "DONOTHING": DoNothingAction,
         "NODE_SERVICE_SCAN": NodeServiceScanAction,
         "NODE_SERVICE_STOP": NodeServiceStopAction,
@@ -607,7 +607,6 @@ class ActionManager:
 
     def __init__(
         self,
-        game: "PrimaiteGame",  # reference to game for information lookup
         actions: List[Dict],  # stores list of actions available to agent
         nodes: List[Dict],  # extra configuration for each node
         max_folders_per_node: int = 2,  # allows calculating shape
@@ -618,7 +617,7 @@ class ActionManager:
         max_acl_rules: int = 10,  # allows calculating shape
         protocols: List[str] = ["TCP", "UDP", "ICMP"],  # allow mapping index to protocol
         ports: List[str] = ["HTTP", "DNS", "ARP", "FTP", "NTP"],  # allow mapping index to port
-        ip_address_list: Optional[List[str]] = None,  # to allow us to map an index to an ip address.
+        ip_address_list: List[str] = [],  # to allow us to map an index to an ip address.
         act_map: Optional[Dict[int, Dict]] = None,  # allows restricting set of possible actions
     ) -> None:
         """Init method for ActionManager.
@@ -649,7 +648,6 @@ class ActionManager:
         :param act_map: Action map which maps integers to actions. Used for restricting the set of possible actions.
         :type act_map: Optional[Dict[int, Dict]]
         """
-        self.game: "PrimaiteGame" = game
         self.node_names: List[str] = [n["node_name"] for n in nodes]
         """List of node names in this action space. The list order is the mapping between node index and node name."""
         self.application_names: List[List[str]] = []
@@ -707,25 +705,7 @@ class ActionManager:
         self.protocols: List[str] = protocols
         self.ports: List[str] = ports
 
-        self.ip_address_list: List[str]
-
-        # If the user has provided a list of IP addresses, use that. Otherwise, generate a list of IP addresses from
-        # the nodes in the simulation.
-        # TODO: refactor. Options:
-        # 1: This should be pulled out into it's own function for clarity
-        # 2: The simulation itself should be able to provide a list of IP addresses with its API, rather than having to
-        #    go through the nodes here.
-        if ip_address_list is not None:
-            self.ip_address_list = ip_address_list
-        else:
-            self.ip_address_list = []
-            for node_name in self.node_names:
-                node_obj = self.game.simulation.network.get_node_by_hostname(node_name)
-                if node_obj is None:
-                    continue
-                network_interfaces = node_obj.network_interfaces
-                for nic_uuid, nic_obj in network_interfaces.items():
-                    self.ip_address_list.append(nic_obj.ip_address)
+        self.ip_address_list: List[str] = ip_address_list
 
         # action_args are settings which are applied to the action space as a whole.
         global_action_args = {
@@ -753,7 +733,7 @@ class ActionManager:
             # and `options` is an optional dict of options to pass to the init method of the action class
             act_type = act_spec.get("type")
             act_options = act_spec.get("options", {})
-            self.actions[act_type] = self._act_class_identifiers[act_type](self, **global_action_args, **act_options)
+            self.actions[act_type] = self.act_class_identifiers[act_type](self, **global_action_args, **act_options)
 
         self.action_map: Dict[int, Tuple[str, Dict]] = {}
         """
@@ -832,6 +812,13 @@ class ActionManager:
         :return: The node hostname.
         :rtype: str
         """
+        if not node_idx < len(self.node_names):
+            msg = (
+                f"Error: agent attempted to perform an action on node {node_idx}, but its action space only"
+                f"has {len(self.node_names)} nodes."
+            )
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
         return self.node_names[node_idx]
 
     def get_folder_name_by_idx(self, node_idx: int, folder_idx: int) -> Optional[str]:
@@ -845,6 +832,13 @@ class ActionManager:
         :return: The name of the folder. Or None if the node has fewer folders than the given index.
         :rtype: Optional[str]
         """
+        if node_idx >= len(self.folder_names) or folder_idx >= len(self.folder_names[node_idx]):
+            msg = (
+                f"Error: agent attempted to perform an action on node {node_idx} and folder {folder_idx}, but this"
+                f" is out of range for its action space.   Folder on each node:  {self.folder_names}"
+            )
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
         return self.folder_names[node_idx][folder_idx]
 
     def get_file_name_by_idx(self, node_idx: int, folder_idx: int, file_idx: int) -> Optional[str]:
@@ -860,6 +854,17 @@ class ActionManager:
             fewer files than the given index.
         :rtype: Optional[str]
         """
+        if (
+            node_idx >= len(self.file_names)
+            or folder_idx >= len(self.file_names[node_idx])
+            or file_idx >= len(self.file_names[node_idx][folder_idx])
+        ):
+            msg = (
+                f"Error: agent attempted to perform an action on node {node_idx} folder {folder_idx} file {file_idx}"
+                f" but this is out of range for its action space.   Files on each node:  {self.file_names}"
+            )
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
         return self.file_names[node_idx][folder_idx][file_idx]
 
     def get_service_name_by_idx(self, node_idx: int, service_idx: int) -> Optional[str]:
@@ -872,6 +877,13 @@ class ActionManager:
         :return: The name of the service. Or None if the node has fewer services than the given index.
         :rtype: Optional[str]
         """
+        if node_idx >= len(self.service_names) or service_idx >= len(self.service_names[node_idx]):
+            msg = (
+                f"Error: agent attempted to perform an action on node {node_idx} and service {service_idx}, but this"
+                f" is out of range for its action space.   Services on each node:  {self.service_names}"
+            )
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
         return self.service_names[node_idx][service_idx]
 
     def get_application_name_by_idx(self, node_idx: int, application_idx: int) -> Optional[str]:
@@ -884,6 +896,13 @@ class ActionManager:
         :return: The name of the service. Or None if the node has fewer services than the given index.
         :rtype: Optional[str]
         """
+        if node_idx >= len(self.application_names) or application_idx >= len(self.application_names[node_idx]):
+            msg = (
+                f"Error: agent attempted to perform an action on node {node_idx} and app {application_idx}, but "
+                f"this is out of range for its action space.   Applications on each node:  {self.application_names}"
+            )
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
         return self.application_names[node_idx][application_idx]
 
     def get_internet_protocol_by_idx(self, protocol_idx: int) -> str:
@@ -894,6 +913,13 @@ class ActionManager:
         :return: The protocol.
         :rtype: str
         """
+        if protocol_idx >= len(self.protocols):
+            msg = (
+                f"Error: agent attempted to perform an action on protocol {protocol_idx} but this"
+                f" is out of range for its action space.   Protocols:  {self.protocols}"
+            )
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
         return self.protocols[protocol_idx]
 
     def get_ip_address_by_idx(self, ip_idx: int) -> str:
@@ -905,6 +931,13 @@ class ActionManager:
         :return: The IP address.
         :rtype: str
         """
+        if ip_idx >= len(self.ip_address_list):
+            msg = (
+                f"Error: agent attempted to perform an action on ip address {ip_idx} but this"
+                f" is out of range for its action space.   IP address list:  {self.ip_address_list}"
+            )
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
         return self.ip_address_list[ip_idx]
 
     def get_port_by_idx(self, port_idx: int) -> str:
@@ -916,6 +949,13 @@ class ActionManager:
         :return: The port.
         :rtype: str
         """
+        if port_idx >= len(self.ports):
+            msg = (
+                f"Error: agent attempted to perform an action on port {port_idx} but this"
+                f" is out of range for its action space.   Port list:  {self.ip_address_list}"
+            )
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
         return self.ports[port_idx]
 
     def get_nic_num_by_idx(self, node_idx: int, nic_idx: int) -> int:
@@ -958,6 +998,12 @@ class ActionManager:
         :return: The constructed ActionManager.
         :rtype: ActionManager
         """
+        # If the user has provided a list of IP addresses, use that. Otherwise, generate a list of IP addresses from
+        # the nodes in the simulation.
+        # TODO: refactor. Options:
+        # 1: This should be pulled out into it's own function for clarity
+        # 2: The simulation itself should be able to provide a list of IP addresses with its API, rather than having to
+        #    go through the nodes here.
         ip_address_order = cfg["options"].pop("ip_address_order", {})
         ip_address_list = []
         for entry in ip_address_order:
@@ -967,13 +1013,22 @@ class ActionManager:
             ip_address = node_obj.network_interface[nic_num].ip_address
             ip_address_list.append(ip_address)
 
+        if not ip_address_list:
+            node_names = [n["node_name"] for n in cfg.get("nodes", {})]
+            for node_name in node_names:
+                node_obj = game.simulation.network.get_node_by_hostname(node_name)
+                if node_obj is None:
+                    continue
+                network_interfaces = node_obj.network_interfaces
+                for nic_uuid, nic_obj in network_interfaces.items():
+                    ip_address_list.append(nic_obj.ip_address)
+
         obj = cls(
-            game=game,
             actions=cfg["action_list"],
             **cfg["options"],
             protocols=game.options.protocols,
             ports=game.options.ports,
-            ip_address_list=ip_address_list or None,
+            ip_address_list=ip_address_list,
             act_map=cfg.get("action_map"),
         )
 

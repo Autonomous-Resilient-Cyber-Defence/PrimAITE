@@ -3,6 +3,8 @@ from typing import Any, Dict, Optional
 from uuid import uuid4
 
 from primaite import getLogger
+from primaite.interface.request import RequestResponse
+from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
@@ -25,26 +27,34 @@ class DatabaseClient(Application):
     server_password: Optional[str] = None
     connected: bool = False
     _query_success_tracker: Dict[str, bool] = {}
+    _last_connection_successful: Optional[bool] = None
+    """Keep track of connections that were established or verified during this step. Used for rewards."""
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseClient"
         kwargs["port"] = Port.POSTGRES_SERVER
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
-        self.set_original_state()
 
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting DatabaseClient WebServer original state on node {self.software_manager.node.hostname}")
-        super().set_original_state()
-        vals_to_include = {"server_ip_address", "server_password", "connected", "_query_success_tracker"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
+    def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
 
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug(f"Resetting DataBaseClient state on node {self.software_manager.node.hostname}")
-        super().reset_component_for_episode(episode)
-        self._query_success_tracker.clear()
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
+        rm = super()._init_request_manager()
+        rm.add_request("execute", RequestType(func=lambda request, context: RequestResponse.from_bool(self.execute())))
+        return rm
+
+    def execute(self) -> bool:
+        """Execution definition for db client: perform a select query."""
+        self.num_executions += 1  # trying to connect counts as an execution
+        if self.connections:
+            can_connect = self.check_connection(connection_id=list(self.connections.keys())[-1])
+        else:
+            can_connect = self.check_connection(connection_id=str(uuid4()))
+        self._last_connection_successful = can_connect
+        return can_connect
 
     def describe_state(self) -> Dict:
         """
@@ -52,8 +62,10 @@ class DatabaseClient(Application):
 
         :return: A dictionary representing the current state.
         """
-        pass
-        return super().describe_state()
+        state = super().describe_state()
+        # list of connections that were established or verified during this step.
+        state["last_connection_successful"] = self._last_connection_successful
+        return state
 
     def configure(self, server_ip_address: IPv4Address, server_password: Optional[str] = None):
         """
@@ -78,6 +90,18 @@ class DatabaseClient(Application):
             server_ip_address=self.server_ip_address, password=self.server_password, connection_id=connection_id
         )
         return self.connected
+
+    def check_connection(self, connection_id: str) -> bool:
+        """Check whether the connection can be successfully re-established.
+
+        :param connection_id: connection ID to check
+        :type connection_id: str
+        :return: Whether the connection was successfully re-established.
+        :rtype: bool
+        """
+        if not self._can_perform_action():
+            return False
+        return self.query("SELECT * FROM pg_stat_activity", connection_id=connection_id)
 
     def _connect(
         self,
@@ -196,7 +220,11 @@ class DatabaseClient(Application):
             return False
 
         if connection_id is None:
-            connection_id = str(uuid4())
+            if self.connections:
+                connection_id = list(self.connections.keys())[-1]
+                # TODO: if the most recent connection dies, it should be automatically cleared.
+            else:
+                connection_id = str(uuid4())
 
         if not self.connections.get(connection_id):
             if not self.connect(connection_id=connection_id):

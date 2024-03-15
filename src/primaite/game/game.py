@@ -1,22 +1,25 @@
 """PrimAITE game - Encapsulates the simulation and agents."""
 from ipaddress import IPv4Address
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.data_manipulation_bot import DataManipulationAgent
-from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent, RandomAgent
-from primaite.game.agent.observations import ObservationManager
-from primaite.game.agent.rewards import RewardFunction
-from primaite.session.io import SessionIO, SessionIOSettings
+from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
+from primaite.game.agent.observations.observation_manager import ObservationManager
+from primaite.game.agent.rewards import RewardFunction, SharedReward
+from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
+from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
+from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
+from primaite.simulator.network.nmne import set_nmne_config
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -40,6 +43,7 @@ APPLICATION_TYPES_MAPPING = {
     "DataManipulationBot": DataManipulationBot,
     "DoSBot": DoSBot,
 }
+"""List of available applications that can be installed on nodes in the PrimAITE Simulation."""
 
 SERVICE_TYPES_MAPPING = {
     "DNSClient": DNSClient,
@@ -51,6 +55,7 @@ SERVICE_TYPES_MAPPING = {
     "NTPClient": NTPClient,
     "NTPServer": NTPServer,
 }
+"""List of available services that can be installed on nodes in the PrimAITE Simulation."""
 
 
 class PrimaiteGameOptions(BaseModel):
@@ -63,8 +68,13 @@ class PrimaiteGameOptions(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     max_episode_length: int = 256
+    """Maximum number of episodes for the PrimAITE game."""
     ports: List[str]
+    """A whitelist of available ports in the simulation."""
     protocols: List[str]
+    """A whitelist of available protocols in the simulation."""
+    thresholds: Optional[Dict] = {}
+    """A dict containing the thresholds used for determining what is acceptable during observations."""
 
 
 class PrimaiteGame:
@@ -79,17 +89,14 @@ class PrimaiteGame:
         self.simulation: Simulation = Simulation()
         """Simulation object with which the agents will interact."""
 
-        self.agents: List[AbstractAgent] = []
-        """List of agents."""
+        self.agents: Dict[str, AbstractAgent] = {}
+        """Mapping from agent name to agent object."""
 
-        self.rl_agents: List[ProxyAgent] = []
-        """Subset of agent list including only the reinforcement learning agents."""
+        self.rl_agents: Dict[str, ProxyAgent] = {}
+        """Subset of agents which are intended for reinforcement learning."""
 
         self.step_counter: int = 0
         """Current timestep within the episode."""
-
-        self.episode_counter: int = 0
-        """Current episode number."""
 
         self.options: PrimaiteGameOptions
         """Special options that apply for the entire game."""
@@ -108,6 +115,9 @@ class PrimaiteGame:
 
         self.save_step_metadata: bool = False
         """Whether to save the RL agents' action, environment state, and other data at every single step."""
+
+        self._reward_calculation_order: List[str] = [name for name in self.agents]
+        """Agent order for reward evaluation, as some rewards can be dependent on other agents' rewards."""
 
     def step(self):
         """
@@ -129,17 +139,21 @@ class PrimaiteGame:
         """
         _LOGGER.debug(f"Stepping. Step counter: {self.step_counter}")
 
-        # Get the current state of the simulation
-        sim_state = self.get_sim_state()
-
-        # Update agents' observations and rewards based on the current state
-        self.update_agents(sim_state)
-
+        if self.step_counter == 0:
+            state = self.get_sim_state()
+            for agent in self.agents.values():
+                agent.update_observation(state=state)
         # Apply all actions to simulation as requests
-        agent_actions = self.apply_agent_actions()  # noqa
+        self.apply_agent_actions()
 
         # Advance timestep
         self.advance_timestep()
+
+        # Get the current state of the simulation
+        sim_state = self.get_sim_state()
+
+        # Update agents' observations and rewards based on the current state, and the response from the last action
+        self.update_agents(state=sim_state)
 
     def get_sim_state(self) -> Dict:
         """Get the current state of the simulation."""
@@ -147,22 +161,27 @@ class PrimaiteGame:
 
     def update_agents(self, state: Dict) -> None:
         """Update agents' observations and rewards based on the current state."""
-        for agent in self.agents:
-            agent.update_observation(state)
-            agent.update_reward(state)
+        for agent_name in self._reward_calculation_order:
+            agent = self.agents[agent_name]
+            if self.step_counter > 0:  # can't get reward before first action
+                agent.update_reward(state=state)
+            agent.update_observation(state=state)  # order of this doesn't matter so just use reward order
             agent.reward_function.total_reward += agent.reward_function.current_reward
 
     def apply_agent_actions(self) -> None:
         """Apply all actions to simulation as requests."""
-        agent_actions = {}
-        for agent in self.agents:
+        for _, agent in self.agents.items():
             obs = agent.observation_manager.current_observation
-            rew = agent.reward_function.current_reward
-            action_choice, options = agent.get_action(obs, rew)
-            agent_actions[agent.agent_name] = (action_choice, options)
-            request = agent.format_request(action_choice, options)
-            self.simulation.apply_request(request)
-        return agent_actions
+            action_choice, parameters = agent.get_action(obs, timestep=self.step_counter)
+            request = agent.format_request(action_choice, parameters)
+            response = self.simulation.apply_request(request)
+            agent.process_action_response(
+                timestep=self.step_counter,
+                action=action_choice,
+                parameters=parameters,
+                request=request,
+                response=response,
+            )
 
     def advance_timestep(self) -> None:
         """Advance timestep."""
@@ -178,19 +197,13 @@ class PrimaiteGame:
             return True
         return False
 
-    def reset(self) -> None:
-        """Reset the game, this will reset the simulation."""
-        self.episode_counter += 1
-        self.step_counter = 0
-        _LOGGER.debug(f"Resetting primaite game, episode = {self.episode_counter}")
-        self.simulation.reset_component_for_episode(episode=self.episode_counter)
-        for agent in self.agents:
-            agent.reward_function.total_reward = 0.0
-            agent.reset_agent_for_episode()
-
     def close(self) -> None:
         """Close the game, this will close the simulation."""
         return NotImplemented
+
+    def setup_for_episode(self, episode: int) -> None:
+        """Perform any final configuration of components to make them ready for the game to start."""
+        self.simulation.setup_for_episode(episode=episode)
 
     @classmethod
     def from_config(cls, cfg: Dict) -> "PrimaiteGame":
@@ -209,10 +222,6 @@ class PrimaiteGame:
         :return: A PrimaiteGame object.
         :rtype: PrimaiteGame
         """
-        io_settings = cfg.get("io_settings", {})
-        _ = SessionIO(SessionIOSettings(**io_settings))
-        # Instantiating this ensures that the game saves to the correct output dir even without being part of a session
-
         game = cls()
         game.options = PrimaiteGameOptions(**cfg["game"])
         game.save_step_metadata = cfg.get("io_settings", {}).get("save_step_metadata") or False
@@ -221,8 +230,12 @@ class PrimaiteGame:
         sim = game.simulation
         net = sim.network
 
-        nodes_cfg = cfg["simulation"]["network"]["nodes"]
-        links_cfg = cfg["simulation"]["network"]["links"]
+        simulation_config = cfg.get("simulation", {})
+        network_config = simulation_config.get("network", {})
+
+        nodes_cfg = network_config.get("nodes", [])
+        links_cfg = network_config.get("links", [])
+
         for node_cfg in nodes_cfg:
             node_ref = node_cfg["ref"]
             n_type = node_cfg["type"]
@@ -230,28 +243,36 @@ class PrimaiteGame:
                 new_node = Computer(
                     hostname=node_cfg["hostname"],
                     ip_address=node_cfg["ip_address"],
-                    subnet_mask=node_cfg["subnet_mask"],
+                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
                     default_gateway=node_cfg["default_gateway"],
-                    dns_server=node_cfg["dns_server"],
-                    operating_state=NodeOperatingState.ON,
+                    dns_server=node_cfg.get("dns_server", None),
+                    operating_state=NodeOperatingState.ON
+                    if not (p := node_cfg.get("operating_state"))
+                    else NodeOperatingState[p.upper()],
                 )
             elif n_type == "server":
                 new_node = Server(
                     hostname=node_cfg["hostname"],
                     ip_address=node_cfg["ip_address"],
-                    subnet_mask=node_cfg["subnet_mask"],
+                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
                     default_gateway=node_cfg["default_gateway"],
-                    dns_server=node_cfg.get("dns_server"),
-                    operating_state=NodeOperatingState.ON,
+                    dns_server=node_cfg.get("dns_server", None),
+                    operating_state=NodeOperatingState.ON
+                    if not (p := node_cfg.get("operating_state"))
+                    else NodeOperatingState[p.upper()],
                 )
             elif n_type == "switch":
                 new_node = Switch(
                     hostname=node_cfg["hostname"],
-                    num_ports=node_cfg.get("num_ports"),
-                    operating_state=NodeOperatingState.ON,
+                    num_ports=int(node_cfg.get("num_ports", "8")),
+                    operating_state=NodeOperatingState.ON
+                    if not (p := node_cfg.get("operating_state"))
+                    else NodeOperatingState[p.upper()],
                 )
             elif n_type == "router":
                 new_node = Router.from_config(node_cfg)
+            elif n_type == "firewall":
+                new_node = Firewall.from_config(node_cfg)
             else:
                 _LOGGER.warning(f"invalid node type {n_type} in config")
             if "services" in node_cfg:
@@ -264,8 +285,13 @@ class PrimaiteGame:
                         new_node.software_manager.install(SERVICE_TYPES_MAPPING[service_type])
                         new_service = new_node.software_manager.software[service_type]
                         game.ref_map_services[service_ref] = new_service.uuid
+
+                        # start the service
+                        new_service.start()
                     else:
-                        _LOGGER.warning(f"service type not found {service_type}")
+                        msg = f"Configuration contains an invalid service type: {service_type}"
+                        _LOGGER.error(msg)
+                        raise ValueError(msg)
                     # service-dependent options
                     if service_type == "DNSClient":
                         if "options" in service_cfg:
@@ -281,18 +307,16 @@ class PrimaiteGame:
                     if service_type == "DatabaseService":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
+                            new_service.password = opt.get("db_password", None)
                             new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
-                        new_service.start()
                     if service_type == "FTPServer":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
                             new_service.server_password = opt.get("server_password")
-                        new_service.start()
                     if service_type == "NTPClient":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
                             new_service.ntp_server = IPv4Address(opt.get("ntp_server_ip"))
-                        new_service.start()
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
                     new_application = None
@@ -304,7 +328,12 @@ class PrimaiteGame:
                         new_application = new_node.software_manager.software[application_type]
                         game.ref_map_applications[application_ref] = new_application.uuid
                     else:
-                        _LOGGER.warning(f"application type not found {application_type}")
+                        msg = f"Configuration contains an invalid application type: {application_type}"
+                        _LOGGER.error(msg)
+                        raise ValueError(msg)
+
+                    # run the application
+                    new_application.run()
 
                     if application_type == "DataManipulationBot":
                         if "options" in application_cfg:
@@ -312,7 +341,7 @@ class PrimaiteGame:
                             new_application.configure(
                                 server_ip_address=IPv4Address(opt.get("server_ip")),
                                 server_password=opt.get("server_password"),
-                                payload=opt.get("payload"),
+                                payload=opt.get("payload", "DELETE"),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
                             )
@@ -327,7 +356,6 @@ class PrimaiteGame:
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
                             new_application.target_url = opt.get("target_url")
-
                     elif application_type == "DoSBot":
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
@@ -344,9 +372,19 @@ class PrimaiteGame:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
 
+            # temporarily set to 0 so all nodes are initially on
+            new_node.start_up_duration = 0
+            new_node.shut_down_duration = 0
+
             net.add_node(new_node)
-            new_node.power_on()
+            # run through the power on step if the node is to be turned on at the start
+            if new_node.operating_state == NodeOperatingState.ON:
+                new_node.power_on()
             game.ref_map_nodes[node_ref] = new_node.uuid
+
+            # set start up and shut down duration
+            new_node.start_up_duration = int(node_cfg.get("start_up_duration", 3))
+            new_node.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
@@ -364,7 +402,7 @@ class PrimaiteGame:
             game.ref_map_links[link_cfg["ref"]] = new_link.uuid
 
         # 3. create agents
-        agents_cfg = cfg["agents"]
+        agents_cfg = cfg.get("agents", [])
 
         for agent_cfg in agents_cfg:
             agent_ref = agent_cfg["ref"]  # noqa: F841
@@ -382,21 +420,19 @@ class PrimaiteGame:
             # CREATE REWARD FUNCTION
             reward_function = RewardFunction.from_config(reward_function_cfg)
 
-            # OTHER AGENT SETTINGS
-            agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-
             # CREATE AGENT
-            if agent_type == "GreenWebBrowsingAgent":
+            if agent_type == "ProbabilisticAgent":
                 # TODO: implement non-random agents and fix this parsing
-                new_agent = RandomAgent(
+                settings = agent_cfg.get("agent_settings", {})
+                new_agent = ProbabilisticAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,
                     reward_function=reward_function,
-                    agent_settings=agent_settings,
+                    settings=settings,
                 )
-                game.agents.append(new_agent)
             elif agent_type == "ProxyAgent":
+                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
                 new_agent = ProxyAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
@@ -404,9 +440,10 @@ class PrimaiteGame:
                     reward_function=reward_function,
                     agent_settings=agent_settings,
                 )
-                game.agents.append(new_agent)
-                game.rl_agents.append(new_agent)
+                game.rl_agents[agent_cfg["ref"]] = new_agent
             elif agent_type == "RedDatabaseCorruptingAgent":
+                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
+
                 new_agent = DataManipulationAgent(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
@@ -414,10 +451,55 @@ class PrimaiteGame:
                     reward_function=reward_function,
                     agent_settings=agent_settings,
                 )
-                game.agents.append(new_agent)
             else:
-                _LOGGER.warning(f"agent type {agent_type} not found")
+                msg = f"Configuration error: {agent_type} is not a valid agent type."
+                _LOGGER.error(msg)
+                raise ValueError(msg)
+            game.agents[agent_cfg["ref"]] = new_agent
 
-        game.simulation.set_original_state()
+        # Validate that if any agents are sharing rewards, they aren't forming an infinite loop.
+        game.setup_reward_sharing()
+
+        # Set the NMNE capture config
+        set_nmne_config(network_config.get("nmne_config", {}))
+        game.update_agents(game.get_sim_state())
 
         return game
+
+    def setup_reward_sharing(self):
+        """Do necessary setup to enable reward sharing between agents.
+
+        This method ensures that there are no cycles in the reward sharing. A cycle would be for example if agent_1
+        depends on agent_2 and agent_2 depends on agent_1. It would cause an infinite loop.
+
+        Also, SharedReward requires us to pass it a callback method that will provide the reward of the agent who is
+        sharing their reward. This callback is provided by this setup method.
+
+        Finally, this method sorts the agents in order in which rewards will be evaluated to make sure that any rewards
+        that rely on the value of another reward are evaluated later.
+
+        :raises RuntimeError: If the reward sharing is specified with a cyclic dependency.
+        """
+        # construct dependency graph in the reward sharing between agents.
+        graph = {}
+        for name, agent in self.agents.items():
+            graph[name] = set()
+            for comp, weight in agent.reward_function.reward_components:
+                if isinstance(comp, SharedReward):
+                    comp: SharedReward
+                    graph[name].add(comp.agent_name)
+
+                    # while constructing the graph, we might as well set up the reward sharing itself.
+                    comp.callback = lambda agent_name: self.agents[agent_name].reward_function.current_reward
+
+        # make sure the graph is acyclic. Otherwise we will enter an infinite loop of reward sharing.
+        if graph_has_cycle(graph):
+            raise RuntimeError(
+                (
+                    "Detected cycle in agent reward sharing. Check the agent reward function ",
+                    "configuration: reward sharing can only go one way.",
+                )
+            )
+
+        # sort the agents so the rewards that depend on other rewards are always evaluated later
+        self._reward_calculation_order = topological_sort(graph)

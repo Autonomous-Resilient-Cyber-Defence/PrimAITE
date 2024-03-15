@@ -1,12 +1,12 @@
+# raise DeprecationWarning("This module is deprecated")
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict
 
-from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteGymEnv, PrimaiteRayEnv, PrimaiteRayMARLEnv
-from primaite.session.io import SessionIO, SessionIOSettings
+from primaite.session.io import PrimaiteIO
 
 # from primaite.game.game import PrimaiteGame
 from primaite.session.policy.policy import PolicyABC
@@ -40,7 +40,7 @@ class SessionMode(Enum):
 class PrimaiteSession:
     """The main entrypoint for PrimAITE sessions, this manages a simulation, policy training, and environments."""
 
-    def __init__(self, game: PrimaiteGame):
+    def __init__(self, game_cfg: Dict):
         """Initialise PrimaiteSession object."""
         self.training_options: TrainingOptions
         """Options specific to agent training."""
@@ -54,11 +54,17 @@ class PrimaiteSession:
         self.policy: PolicyABC
         """The reinforcement learning policy."""
 
-        self.io_manager: Optional["SessionIO"] = None
+        self.io_manager: Optional["PrimaiteIO"] = None
         """IO manager for the session."""
 
-        self.game: PrimaiteGame = game
+        self.game_cfg: Dict = game_cfg
         """Primaite Game object for managing main simulation loop and agents."""
+
+        self.save_checkpoints: bool = False
+        """Whether to save checkpoints."""
+
+        self.checkpoint_interval: int = 10
+        """If save_checkpoints is true, checkpoints will be saved every checkpoint_interval episodes."""
 
     def start_session(self) -> None:
         """Commence the training/eval session."""
@@ -90,22 +96,21 @@ class PrimaiteSession:
     def from_config(cls, cfg: Dict, agent_load_path: Optional[str] = None) -> "PrimaiteSession":
         """Create a PrimaiteSession object from a config dictionary."""
         # READ IO SETTINGS (this sets the global session path as well) # TODO: GLOBAL SIDE EFFECTS...
-        io_settings = cfg.get("io_settings", {})
-        io_manager = SessionIO(SessionIOSettings(**io_settings))
+        io_manager = PrimaiteIO.from_config(cfg.get("io_settings", {}))
 
-        game = PrimaiteGame.from_config(cfg)
-
-        sess = cls(game=game)
+        sess = cls(game_cfg=cfg)
         sess.io_manager = io_manager
         sess.training_options = TrainingOptions(**cfg["training_config"])
+        sess.save_checkpoints = cfg.get("io_settings", {}).get("save_checkpoints")
+        sess.checkpoint_interval = cfg.get("io_settings", {}).get("checkpoint_interval")
 
         # CREATE ENVIRONMENT
         if sess.training_options.rl_framework == "RLLIB_single_agent":
-            sess.env = PrimaiteRayEnv(env_config={"cfg": cfg})
+            sess.env = PrimaiteRayEnv(env_config=cfg)
         elif sess.training_options.rl_framework == "RLLIB_multi_agent":
-            sess.env = PrimaiteRayMARLEnv(env_config={"cfg": cfg})
+            sess.env = PrimaiteRayMARLEnv(env_config=cfg)
         elif sess.training_options.rl_framework == "SB3":
-            sess.env = PrimaiteGymEnv(game=game)
+            sess.env = PrimaiteGymEnv(game_config=cfg)
 
         sess.policy = PolicyABC.from_config(sess.training_options, session=sess)
         if agent_load_path:

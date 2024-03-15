@@ -21,16 +21,17 @@ class TestPrimaiteSession:
                 raise AssertionError
 
             assert session is not None
-            assert session.game.simulation
-            assert len(session.game.agents) == 3
-            assert len(session.game.rl_agents) == 1
+            assert session.env.game.simulation
+            assert len(session.env.game.agents) == 3
+            assert len(session.env.game.rl_agents) == 1
 
             assert session.policy
             assert session.env
 
-            assert session.game.simulation.network
-            assert len(session.game.simulation.network.nodes) == 10
+            assert session.env.game.simulation.network
+            assert len(session.env.game.simulation.network.nodes) == 10
 
+    @pytest.mark.skip(reason="Session is not being maintained and will be removed in the subsequent beta release.")
     @pytest.mark.parametrize("temp_primaite_session", [[CFG_PATH]], indirect=True)
     def test_start_session(self, temp_primaite_session):
         """Make sure you can go all the way through the session without errors."""

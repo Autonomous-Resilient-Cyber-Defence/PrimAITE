@@ -1,0 +1,174 @@
+#  Basic Switched network
+#
+#  --------------      --------------      --------------
+#  |  client_1  |------|  switch_1  |------|  client_2  |
+#  --------------      --------------      --------------
+#
+
+training_config:
+  rl_framework: SB3
+  rl_algorithm: PPO
+  seed: 333
+  n_learn_episodes: 1
+  n_eval_episodes: 5
+  max_steps_per_episode: 128
+  deterministic_eval: false
+  n_agents: 1
+  agent_references:
+    - defender
+
+io_settings:
+  save_checkpoints: true
+  checkpoint_interval: 5
+  save_step_metadata: false
+  save_pcap_logs: true
+  save_sys_logs: true
+
+
+game:
+  max_episode_length: 256
+  ports:
+    - ARP
+    - DNS
+    - HTTP
+    - POSTGRES_SERVER
+  protocols:
+    - ICMP
+    - TCP
+    - UDP
+
+agents:
+  - ref: client_2_green_user
+    team: GREEN
+    type: ProbabilisticAgent
+    observation_space:
+      type: UC2GreenObservation
+    action_space:
+      action_list:
+        - type: DONOTHING
+        - type: NODE_APPLICATION_EXECUTE
+      options:
+        nodes:
+          - node_name: client_2
+            applications:
+              - application_name: WebBrowser
+        max_folders_per_node: 1
+        max_files_per_folder: 1
+        max_services_per_node: 1
+        max_applications_per_node: 1
+
+    reward_function:
+      reward_components:
+        - type: DUMMY
+
+    agent_settings:
+      start_settings:
+        start_step: 5
+        frequency: 4
+        variance: 3
+
+simulation:
+  network:
+    nodes:
+
+      - ref: firewall
+        type: firewall
+        hostname: firewall
+        start_up_duration: 0
+        shut_down_duration: 0
+        ports:
+          external_port: # port 1
+            ip_address: 192.168.20.1
+            subnet_mask: 255.255.255.0
+          internal_port: # port 2
+            ip_address: 192.168.1.2
+            subnet_mask: 255.255.255.0
+        acl:
+          internal_inbound_acl:
+            21:
+              action: PERMIT
+              protocol: TCP
+            22:
+              action: PERMIT
+              protocol: UDP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          internal_outbound_acl:
+            21:
+              action: PERMIT
+              protocol: TCP
+            22:
+              action: PERMIT
+              protocol: UDP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          dmz_inbound_acl:
+            21:
+              action: PERMIT
+              protocol: TCP
+            22:
+              action: PERMIT
+              protocol: UDP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          dmz_outbound_acl:
+            21:
+              action: PERMIT
+              protocol: TCP
+            22:
+              action: PERMIT
+              protocol: UDP
+            23:
+              action: PERMIT
+              protocol: ICMP
+
+      - ref: switch_1
+        type: switch
+        hostname: switch_1
+        num_ports: 8
+      - ref: switch_2
+        type: switch
+        hostname: switch_2
+        num_ports: 8
+
+      - ref: client_1
+        type: computer
+        hostname: client_1
+        ip_address: 192.168.10.21
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.10.1
+        dns_server: 192.168.1.10
+        # pre installed services and applications
+      - ref: client_2
+        type: computer
+        hostname: client_2
+        ip_address: 192.168.10.22
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.10.1
+        dns_server: 192.168.1.10
+        # pre installed services and applications
+
+    links:
+      - ref: switch_1___client_1
+        endpoint_a_ref: switch_1
+        endpoint_a_port: 1
+        endpoint_b_ref: client_1
+        endpoint_b_port: 1
+      - ref: switch_2___client_2
+        endpoint_a_ref: switch_2
+        endpoint_a_port: 1
+        endpoint_b_ref: client_2
+        endpoint_b_port: 1
+      - ref: switch_1___firewall
+        endpoint_a_ref: switch_1
+        endpoint_a_port: 2
+        endpoint_b_ref: firewall
+        endpoint_b_port: 1
+      - ref: switch_2___firewall
+        endpoint_a_ref: switch_2
+        endpoint_a_port: 2
+        endpoint_b_ref: firewall
+        endpoint_b_port: 2

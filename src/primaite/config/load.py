@@ -30,14 +30,14 @@ def load(file_path: Union[str, Path]) -> Dict:
     return config
 
 
-def example_config_path() -> Path:
+def data_manipulation_config_path() -> Path:
     """
     Get the path to the example config.
 
     :return: Path to the example config.
     :rtype: Path
     """
-    path = _EXAMPLE_CFG / "example_config.yaml"
+    path = _EXAMPLE_CFG / "data_manipulation.yaml"
     if not path.exists():
         msg = f"Example config does not exist: {path}. Have you run `primaite setup`?"
         _LOGGER.error(msg)

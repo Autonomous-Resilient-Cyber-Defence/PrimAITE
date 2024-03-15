@@ -3,8 +3,9 @@ from abc import abstractmethod
 from datetime import datetime
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, TYPE_CHECKING, Union
 
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
@@ -12,6 +13,9 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
+
+if TYPE_CHECKING:
+    from primaite.simulator.system.core.software_manager import SoftwareManager
 
 
 class SoftwareType(Enum):
@@ -84,7 +88,7 @@ class Software(SimComponent):
     "The count of times the software has been scanned, defaults to 0."
     revealed_to_red: bool = False
     "Indicates if the software has been revealed to red agent, defaults is False."
-    software_manager: Any = None
+    software_manager: "SoftwareManager" = None
     "An instance of Software Manager that is used by the parent node."
     sys_log: SysLog = None
     "An instance of SysLog that is used by the parent node."
@@ -97,34 +101,28 @@ class Software(SimComponent):
     _patching_countdown: Optional[int] = None
     "Current number of ticks left to patch the software."
 
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {
-            "name",
-            "health_state_actual",
-            "health_state_visible",
-            "criticality",
-            "patching_count",
-            "scanning_count",
-            "revealed_to_red",
-        }
-        self._original_state = self.model_dump(include=vals_to_include)
-
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
         rm.add_request(
             "compromise",
             RequestType(
-                func=lambda request, context: self.set_health_state(SoftwareHealthState.COMPROMISED),
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.set_health_state(SoftwareHealthState.COMPROMISED)
+                ),
             ),
         )
         rm.add_request(
             "patch",
             RequestType(
-                func=lambda request, context: self.patch(),
+                func=lambda request, context: RequestResponse.from_bool(self.patch()),
             ),
         )
-        rm.add_request("scan", RequestType(func=lambda request, context: self.scan()))
+        rm.add_request("scan", RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan())))
         return rm
 
     def _get_session_details(self, session_id: str) -> Session:
@@ -158,7 +156,7 @@ class Software(SimComponent):
         )
         return state
 
-    def set_health_state(self, health_state: SoftwareHealthState) -> None:
+    def set_health_state(self, health_state: SoftwareHealthState) -> bool:
         """
         Assign a new health state to this software.
 
@@ -170,6 +168,7 @@ class Software(SimComponent):
         :type health_state: SoftwareHealthState
         """
         self.health_state_actual = health_state
+        return True
 
     def install(self) -> None:
         """
@@ -190,15 +189,18 @@ class Software(SimComponent):
         """
         pass
 
-    def scan(self) -> None:
+    def scan(self) -> bool:
         """Update the observed health status to match the actual health status."""
         self.health_state_visible = self.health_state_actual
+        return True
 
-    def patch(self) -> None:
+    def patch(self) -> bool:
         """Perform a patch on the software."""
         if self.health_state_actual in (SoftwareHealthState.COMPROMISED, SoftwareHealthState.GOOD):
             self._patching_countdown = self.patching_duration
             self.set_health_state(SoftwareHealthState.PATCHING)
+            return True
+        return False
 
     def _update_patch_status(self) -> None:
         """Update the patch status of the software."""
@@ -247,12 +249,6 @@ class IOSoftware(Software):
     "The IP Protocol the Software operates on."
     _connections: Dict[str, Dict] = {}
     "Active connections."
-
-    def set_original_state(self):
-        """Sets the original state."""
-        super().set_original_state()
-        vals_to_include = {"installing_count", "max_sessions", "tcp", "udp", "port"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
 
     @abstractmethod
     def describe_state(self) -> Dict:

@@ -1,16 +1,36 @@
 """Interface for agents."""
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from gymnasium.core import ActType, ObsType
 from pydantic import BaseModel, model_validator
 
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.observations import ObservationManager
+from primaite.game.agent.observations.observation_manager import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
+from primaite.interface.request import RequestFormat, RequestResponse
 
 if TYPE_CHECKING:
     pass
+
+
+class AgentActionHistoryItem(BaseModel):
+    """One entry of an agent's action log - what the agent did and how the simulator responded in 1 step."""
+
+    timestep: int
+    """Timestep of this action."""
+
+    action: str
+    """CAOS Action name."""
+
+    parameters: Dict[str, Any]
+    """CAOS parameters for the given action."""
+
+    request: RequestFormat
+    """The request that was sent to the simulation based on the CAOS action chosen."""
+
+    response: RequestResponse
+    """The response sent back by the simulator for this action."""
 
 
 class AgentStartSettings(BaseModel):
@@ -90,6 +110,7 @@ class AbstractAgent(ABC):
         self.observation_manager: Optional[ObservationManager] = observation_space
         self.reward_function: Optional[RewardFunction] = reward_function
         self.agent_settings = agent_settings or AgentSettings()
+        self.action_history: List[AgentActionHistoryItem] = []
 
     def update_observation(self, state: Dict) -> ObsType:
         """
@@ -109,10 +130,10 @@ class AbstractAgent(ABC):
         :return: Reward from the state.
         :rtype: float
         """
-        return self.reward_function.update(state)
+        return self.reward_function.update(state=state, last_action_response=self.action_history[-1])
 
     @abstractmethod
-    def get_action(self, obs: ObsType, reward: float = 0.0) -> Tuple[str, Dict]:
+    def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
         Return an action to be taken in the environment.
 
@@ -120,8 +141,8 @@ class AbstractAgent(ABC):
 
         :param obs: Observation of the environment.
         :type obs: ObsType
-        :param reward: Reward from the previous action, defaults to None TODO: should this parameter even be accepted?
-        :type reward: float, optional
+        :param timestep: The current timestep in the simulation, used for non-RL agents. Optional
+        :type timestep: int
         :return: Action to be taken in the environment.
         :rtype: Tuple[str, Dict]
         """
@@ -136,31 +157,24 @@ class AbstractAgent(ABC):
         request = self.action_manager.form_request(action_identifier=action, action_options=options)
         return request
 
-    def reset_agent_for_episode(self) -> None:
-        """Agent reset logic should go here."""
-        pass
+    def process_action_response(
+        self, timestep: int, action: str, parameters: Dict[str, Any], request: RequestFormat, response: RequestResponse
+    ) -> None:
+        """Process the response from the most recent action."""
+        self.action_history.append(
+            AgentActionHistoryItem(
+                timestep=timestep, action=action, parameters=parameters, request=request, response=response
+            )
+        )
 
 
 class AbstractScriptedAgent(AbstractAgent):
     """Base class for actors which generate their own behaviour."""
 
-    ...
-
-
-class RandomAgent(AbstractScriptedAgent):
-    """Agent that ignores its observation and acts completely at random."""
-
-    def get_action(self, obs: ObsType, reward: float = 0.0) -> Tuple[str, Dict]:
-        """Randomly sample an action from the action space.
-
-        :param obs: _description_
-        :type obs: ObsType
-        :param reward: _description_, defaults to None
-        :type reward: float, optional
-        :return: _description_
-        :rtype: Tuple[str, Dict]
-        """
-        return self.action_manager.get_action(self.action_manager.space.sample())
+    @abstractmethod
+    def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
+        """Return an action to be taken in the environment."""
+        return super().get_action(obs=obs, timestep=timestep)
 
 
 class ProxyAgent(AbstractAgent):
@@ -183,14 +197,14 @@ class ProxyAgent(AbstractAgent):
         self.most_recent_action: ActType
         self.flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False
 
-    def get_action(self, obs: ObsType, reward: float = 0.0) -> Tuple[str, Dict]:
+    def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
         Return the agent's most recent action, formatted in CAOS format.
 
         :param obs: Observation for the agent. Not used by ProxyAgents, but required by the interface.
         :type obs: ObsType
-        :param reward: Reward value for the agent. Not used by ProxyAgents, defaults to None.
-        :type reward: float, optional
+        :param timestep: Current simulation timestep. Not used by ProxyAgents, bur required for the interface.
+        :type timestep: int
         :return: Action to be taken in CAOS format.
         :rtype: Tuple[str, Dict]
         """

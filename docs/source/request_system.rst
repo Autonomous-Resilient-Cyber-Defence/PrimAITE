@@ -3,7 +3,7 @@
     © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
 
 Request System
-==============
+**************
 
 ``SimComponent`` objects in the simulation are decoupled from the agent training logic. However, they still need a managed means of accepting requests to perform actions. For this, they use ``RequestManager`` and ``RequestType``.
 
@@ -12,31 +12,42 @@ Just like other aspects of SimComponent, the request types are not managed centr
 - API
     When requesting an action within the simulation, these two arguments must be provided:
 
-    1. ``request`` - selects which action you want to take on this ``SimComponent``. This is formatted as a list of strings such as `['network', 'node', '<node-name>', 'service', '<service-name>', 'restart']`.
+    1. ``request`` - selects which action you want to take on this ``SimComponent``. This is formatted as a list of strings such as ``['network', 'node', '<node-name>', 'service', '<service-name>', 'restart']``.
     2. ``context`` - optional extra information that can be used to decide how to process the request. This is formatted as a dictionary. For example, if the request requires authentication, the context can include information about the user that initiated the request to decide if their permissions are sufficient.
+
+    When a request is resolved, it returns a success status, and optional additional data about the request.
+
+    ``status`` can be one of:
+
+    * ``success``: the request was executed
+    * ``failure``: the request could not be executed
+    * ``unreachable``: the target for the request was not found
+    * ``pending``: the request was initiated, but has not finished during this step
+
+    ``data`` can be a dictionary with any arbitrary JSON-like data to describe the outcome of the request.
 
 - ``request`` detail
     The request is a list of strings which help specify who should handle the request. The strings in the request list help RequestManagers traverse the 'ownership tree' of SimComponent. The example given above would be handled in the following way:
 
-    1. ``Simulation`` receives `['network', 'node', '<node-name>', 'service', '<service-name>', 'restart']`.
+    1. ``Simulation`` receives ``['network', 'node', 'computer_1', 'service', 'DNSService', 'restart']``.
         The first element of the request is ``network``, therefore it passes the request down to its network.
-    2. ``Network`` receives `['node', '<node-name>', 'service', '<service-name>', 'restart']`.
+    2. ``Network`` receives ``['node', 'computer_1', 'service', 'DNSService', 'restart']``.
         The first element of the request is ``node``, therefore the network looks at the node name and passes the request down to the node with that name.
-    3. ``Node`` receives `['service', '<service-name>', 'restart']`.
+    3. ``computer_1`` receives ``['service', 'DNSService', 'restart']``.
         The first element of the request is ``service``, therefore the node looks at the service name and passes the rest of the request to the service with that name.
-    4. ``Service`` receives ``['restart']``.
+    4. ``DNSService`` receives ``['restart']``.
         Since ``restart`` is a defined request type in the service's own RequestManager, the service performs a restart.
 
 - ``context`` detail
     The context is not used by any of the currently implemented components or requests.
 
 Technical Detail
-----------------
+================
 
 This system was achieved by implementing two classes, :py:class:`primaite.simulator.core.RequestType`, and :py:class:`primaite.simulator.core.RequestManager`.
 
 ``RequestType``
-------
+---------------
 
 The ``RequestType`` object stores a reference to a method that executes the request, for example a node could have a request type that stores a reference to ``self.turn_on()``. Technically, this can be any callable that accepts `request, context` as it's parameters. In practice, this is often defined using ``lambda`` functions within a component's ``self._init_request_manager()`` method. Optionally, the ``RequestType`` object can also hold a validator that will permit/deny the request depending on context.
 
@@ -60,7 +71,7 @@ A simple example without chaining can be seen in the :py:class:`primaite.simulat
 *ellipses (``...``) used to omit code impertinent to this explanation*
 
 Chaining RequestManagers
------------------------
+------------------------
 
 A request function needs to be a callable that accepts ``request, context`` as parameters. Since the request manager resolves requests by invoking it with ``request, context`` as parameter, it is possible to use a ``RequestManager`` as a ``RequestType``.
 
@@ -93,3 +104,19 @@ An example of how this works is in the :py:class:`primaite.simulator.network.har
             self._service_request_manager.add_request(service.name, RequestType(func=service._request_manager))
 
 This process is repeated until the request word corresponds to a callable function rather than another ``RequestManager`` .
+
+Request Validation
+------------------
+
+There are times when a request should be rejected. For instance, if an agent attempts to run an application on a node that is currently off. For this purpose, requests are filtered by an object called a validator. :py:class:`primaite.simulator.core.RequestPermissionValidator` is a basic class whose ``__call__()`` method returns ``True`` if the request should be permitted or ``False`` if it cannot be permitted. For example, the Node class has a validator called :py:class:`primaite.simulator.network.hardware.base.Node._NodeIsOnValidator<_NodeIsOnValidator>` which allows requests only when the operating status of the node is ``ON``.
+
+Requests that are specified without a validator automatically get assigned an ``AllowAllValidator`` which allows requests no matter what.
+
+Request Response
+----------------
+
+The :py:class:`primaite.interface.request.RequestResponse<RequestResponse>` is a data transfer object that carries response data between the simulator and the game layer. The ``status`` field reports on the success or failure, and the ``data`` field is for any additional data. The most common way that this class is initiated is by its ``from_bool`` method. This way, given a True or False, a successful or failed request response is generated, respectively (with an empty data field).
+
+For instance, the ``execute`` action on a :py:class:`primaite.simulator.system.applications.web_browser.WebBrowser<WebBrowser>` calls the ``get_webpage()`` method of the ``WebBrowser``. ``get_webpage()`` returns a True if the webpage was successfully retrieved, and False if unsuccessful for any reason, such as being blocked by an ACL, or if the database server is unresponsive. The boolean returned from ``get_webpage()`` is used to create the request response.
+
+Just as the requests themselves were passed from owner to component, the request response is bubbled back up from component to owner until it arrives at the game layer.

@@ -51,13 +51,15 @@ class WirelessAccessPoint(IPWirelessNetworkInterface):
 
         return state
 
-    def enable(self):
+    def enable(self) -> bool:
         """Enable the interface."""
         pass
+        return True
 
-    def disable(self):
+    def disable(self) -> bool:
         """Disable the interface."""
         pass
+        return True
 
     def send_frame(self, frame: Frame) -> bool:
         """
@@ -83,4 +85,4 @@ class WirelessAccessPoint(IPWirelessNetworkInterface):
 
         :return: A string combining the port number, MAC address and IP address of the NIC.
         """
-        return f"Port {self.port_num}: {self.mac_address}/{self.ip_address}"
+        return f"Port {self.port_name if self.port_name else self.port_num}: {self.mac_address}/{self.ip_address}"

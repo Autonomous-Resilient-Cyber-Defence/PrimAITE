@@ -80,7 +80,10 @@ class WirelessAccessPoint(IPWirelessNetworkInterface):
 
         :return: A string combining the port number, MAC address and IP address of the NIC.
         """
-        return f"Port {self.port_num}: {self.mac_address}/{self.ip_address} ({self.frequency})"
+        return (
+            f"Port {self.port_name if self.port_name else self.port_num}: "
+            f"{self.mac_address}/{self.ip_address} ({self.frequency})"
+        )
 
 
 class WirelessRouter(Router):
@@ -121,8 +124,6 @@ class WirelessRouter(Router):
         self.connect_nic(WirelessAccessPoint(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0"))
 
         self.connect_nic(RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0"))
-
-        self.set_original_state()
 
     @property
     def wireless_access_point(self) -> WirelessAccessPoint:
@@ -166,7 +167,6 @@ class WirelessRouter(Router):
         network_interface.ip_address = ip_address
         network_interface.subnet_mask = subnet_mask
         self.sys_log.info(f"Configured WAP {network_interface}")
-        self.set_original_state()
         self.wireless_access_point.frequency = frequency  # Set operating frequency
         self.wireless_access_point.enable()  # Re-enable the WAP with new settings
 

@@ -23,6 +23,7 @@ class DatabaseService(Service):
     """
 
     password: Optional[str] = None
+    """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
 
     backup_server_ip: IPv4Address = None
     """IP address of the backup server."""
@@ -39,25 +40,6 @@ class DatabaseService(Service):
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
         self._create_db_file()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting DatabaseService original state on node {self.software_manager.node.hostname}")
-        super().set_original_state()
-        vals_to_include = {
-            "password",
-            "connections",
-            "backup_server_ip",
-            "latest_backup_directory",
-            "latest_backup_file_name",
-        }
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug("Resetting DatabaseService original state on node {self.software_manager.node.hostname}")
-        self.clear_connections()
-        super().reset_component_for_episode(episode)
 
     def configure_backup(self, backup_server: IPv4Address):
         """
@@ -239,6 +221,18 @@ class DatabaseService(Service):
                 }
             else:
                 return {"status_code": 404, "data": False}
+        elif query == "SELECT * FROM pg_stat_activity":
+            # Check if the connection is active.
+            if self.health_state_actual == SoftwareHealthState.GOOD:
+                return {
+                    "status_code": 200,
+                    "type": "sql",
+                    "data": False,
+                    "uuid": query_id,
+                    "connection_id": connection_id,
+                }
+            else:
+                return {"status_code": 401, "data": False}
         else:
             # Invalid query
             self.sys_log.info(f"{self.name}: Invalid {query}")

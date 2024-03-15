@@ -6,19 +6,17 @@ import pytest
 import yaml
 from stable_baselines3 import PPO
 
-from primaite.config.load import example_config_path
+from primaite.config.load import data_manipulation_config_path
 from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteGymEnv
 
 
-# @pytest.mark.skip(reason="no way of currently testing this")
 def test_sb3_compatibility():
     """Test that the Gymnasium environment can be used with an SB3 agent."""
-    with open(example_config_path(), "r") as f:
+    with open(data_manipulation_config_path(), "r") as f:
         cfg = yaml.safe_load(f)
 
-    game = PrimaiteGame.from_config(cfg)
-    gym = PrimaiteGymEnv(game=game)
+    gym = PrimaiteGymEnv(game_config=cfg)
     model = PPO("MlpPolicy", gym)
 
     model.learn(total_timesteps=1000)

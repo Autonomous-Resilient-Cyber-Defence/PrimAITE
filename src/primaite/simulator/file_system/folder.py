@@ -5,6 +5,7 @@ from typing import Dict, Optional
 from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.file_system.file import File
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC, FileSystemItemHealthStatus
@@ -49,54 +50,18 @@ class Folder(FileSystemItemABC):
 
         self.sys_log.info(f"Created file /{self.name} (id: {self.uuid})")
 
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting Folder ({self.name}) original state on node {self.sys_log.hostname}")
-        for file in self.files.values():
-            file.set_original_state()
-        super().set_original_state()
-        vals_to_include = {
-            "scan_duration",
-            "scan_countdown",
-            "red_scan_duration",
-            "red_scan_countdown",
-            "restore_duration",
-            "restore_countdown",
-        }
-        self._original_state.update(self.model_dump(include=vals_to_include))
-        self._original_state["original_file_uuids"] = list(self.files.keys())
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug(f"Resetting Folder ({self.name}) state on node {self.sys_log.hostname}")
-        # Move any 'original' file that have been deleted back to files
-        original_file_uuids = self._original_state["original_file_uuids"]
-        for uuid in original_file_uuids:
-            if uuid in self.deleted_files:
-                file = self.deleted_files[uuid]
-                self.deleted_files.pop(uuid)
-                self.files[uuid] = file
-
-        # Clear any other deleted files that aren't original (have been created by agent)
-        self.deleted_files.clear()
-
-        # Now clear all non-original files created by agent
-        current_file_uuids = list(self.files.keys())
-        for uuid in current_file_uuids:
-            if uuid not in original_file_uuids:
-                file = self.files[uuid]
-                self.files.pop(uuid)
-
-        # Now reset all remaining files
-        for file in self.files.values():
-            file.reset_component_for_episode(episode)
-        super().reset_component_for_episode(episode)
-
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
         rm.add_request(
             name="delete",
-            request_type=RequestType(func=lambda request, context: self.remove_file_by_id(file_uuid=request[0])),
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.remove_file_by_name(file_name=request[0]))
+            ),
         )
         self._file_request_manager = RequestManager()
         rm.add_request(
@@ -173,7 +138,8 @@ class Folder(FileSystemItemABC):
                     file = self.get_file_by_id(file_uuid=file_id)
                     file.scan()
                     if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
-                        self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
+                        self.health_status = FileSystemItemHealthStatus.CORRUPT
+                self.visible_health_status = self.health_status
 
     def _reveal_to_red_timestep(self) -> None:
         """Apply reveal to red timestep."""
@@ -292,6 +258,21 @@ class Folder(FileSystemItemABC):
         file = self.get_file_by_id(file_uuid=file_uuid)
         self.remove_file(file=file)
 
+    def remove_file_by_name(self, file_name: str) -> bool:
+        """
+        Remove a file using its name.
+
+        :param file_name: filename
+        :type file_name: str
+        :return: Whether it was successfully removed.
+        :rtype: bool
+        """
+        for f in self.files.values():
+            if f.name == file_name:
+                self.remove_file(f)
+                return True
+        return False
+
     def remove_all_files(self):
         """Removes all the files in the folder."""
         for file_id in self.files:
@@ -301,7 +282,7 @@ class Folder(FileSystemItemABC):
 
         self.files = {}
 
-    def restore_file(self, file_name: str):
+    def restore_file(self, file_name: str) -> bool:
         """
         Restores a file.
 
@@ -311,13 +292,14 @@ class Folder(FileSystemItemABC):
         file = self.get_file(file_name=file_name, include_deleted=True)
         if not file:
             self.sys_log.error(f"Unable to restore file {file_name}. File does not exist.")
-            return
+            return False
 
         file.restore()
         self.files[file.uuid] = file
 
         if file.deleted:
             self.deleted_files.pop(file.uuid)
+        return True
 
     def quarantine(self):
         """Quarantines the File System Folder."""
@@ -331,7 +313,7 @@ class Folder(FileSystemItemABC):
         """Returns true if the folder is being quarantined."""
         pass
 
-    def scan(self, instant_scan: bool = False) -> None:
+    def scan(self, instant_scan: bool = False) -> bool:
         """
         Update Folder visible status.
 
@@ -339,7 +321,7 @@ class Folder(FileSystemItemABC):
         """
         if self.deleted:
             self.sys_log.error(f"Unable to scan deleted folder {self.name}")
-            return
+            return False
 
         if instant_scan:
             for file_id in self.files:
@@ -347,7 +329,7 @@ class Folder(FileSystemItemABC):
                 file.scan()
                 if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
                     self.visible_health_status = FileSystemItemHealthStatus.CORRUPT
-            return
+            return True
 
         if self.scan_countdown <= 0:
             # scan one file per timestep
@@ -356,6 +338,7 @@ class Folder(FileSystemItemABC):
         else:
             # scan already in progress
             self.sys_log.info(f"Scan is already in progress {self.name} (id: {self.uuid})")
+        return True
 
     def reveal_to_red(self, instant_scan: bool = False):
         """
@@ -382,7 +365,7 @@ class Folder(FileSystemItemABC):
             # scan already in progress
             self.sys_log.info(f"Red Agent Scan is already in progress {self.name} (id: {self.uuid})")
 
-    def check_hash(self) -> None:
+    def check_hash(self) -> bool:
         """
         Runs a :func:`check_hash` on all files in the folder.
 
@@ -395,7 +378,7 @@ class Folder(FileSystemItemABC):
         """
         if self.deleted:
             self.sys_log.error(f"Unable to check hash of deleted folder {self.name}")
-            return
+            return False
 
         # iterate through the files and run a check hash
         no_corrupted_files = True
@@ -411,12 +394,13 @@ class Folder(FileSystemItemABC):
             self.corrupt()
 
         self.sys_log.info(f"Checking hash of folder {self.name} (id: {self.uuid})")
+        return True
 
-    def repair(self) -> None:
+    def repair(self) -> bool:
         """Repair a corrupted Folder by setting the folder and containing files status to FileSystemItemStatus.GOOD."""
         if self.deleted:
             self.sys_log.error(f"Unable to repair deleted folder {self.name}")
-            return
+            return False
 
         # iterate through the files in the folder
         for file_id in self.files:
@@ -430,8 +414,9 @@ class Folder(FileSystemItemABC):
         self.health_status = FileSystemItemHealthStatus.GOOD
 
         self.sys_log.info(f"Repaired folder {self.name} (id: {self.uuid})")
+        return True
 
-    def restore(self) -> None:
+    def restore(self) -> bool:
         """
         If a Folder is corrupted, run a repair on the folder and its child files.
 
@@ -447,12 +432,13 @@ class Folder(FileSystemItemABC):
         else:
             # scan already in progress
             self.sys_log.info(f"Folder restoration already in progress {self.name} (id: {self.uuid})")
+        return True
 
-    def corrupt(self) -> None:
+    def corrupt(self) -> bool:
         """Corrupt a File by setting the folder and containing files status to FileSystemItemStatus.CORRUPT."""
         if self.deleted:
             self.sys_log.error(f"Unable to corrupt deleted folder {self.name}")
-            return
+            return False
 
         # iterate through the files in the folder
         for file_id in self.files:
@@ -463,11 +449,13 @@ class Folder(FileSystemItemABC):
         self.health_status = FileSystemItemHealthStatus.CORRUPT
 
         self.sys_log.info(f"Corrupted folder {self.name} (id: {self.uuid})")
+        return True
 
-    def delete(self):
+    def delete(self) -> bool:
         """Marks the file as deleted. Prevents agent actions from occuring."""
         if self.deleted:
             self.sys_log.error(f"Unable to delete an already deleted folder {self.name}")
-            return
+            return False
 
         self.deleted = True
+        return True

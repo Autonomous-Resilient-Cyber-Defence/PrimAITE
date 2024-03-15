@@ -157,7 +157,7 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
             return
 
         if not self._connected_node:
-            _LOGGER.error(f"Interface {self} cannot be enabled as it is not connected to a Node")
+            _LOGGER.warning(f"Interface {self} cannot be enabled as it is not connected to a Node")
             return
 
         if self._connected_node.operating_state != NodeOperatingState.ON:
@@ -168,7 +168,9 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
 
         self.enabled = True
         self._connected_node.sys_log.info(f"Network Interface {self} enabled")
-        self.pcap = PacketCapture(hostname=self._connected_node.hostname, interface_num=self.port_num)
+        self.pcap = PacketCapture(
+            hostname=self._connected_node.hostname, port_num=self.port_num, port_name=self.port_name
+        )
         AIR_SPACE.add_wireless_interface(self)
 
     def disable(self):
@@ -272,11 +274,6 @@ class IPWirelessNetworkInterface(WirelessNetworkInterface, Layer3Interface, ABC)
         state["frequency"] = self.frequency
 
         return state
-
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {"ip_address", "subnet_mask", "mac_address", "speed", "mtu", "wake_on_lan", "enabled"}
-        self._original_state = self.model_dump(include=vals_to_include)
 
     def enable(self):
         """

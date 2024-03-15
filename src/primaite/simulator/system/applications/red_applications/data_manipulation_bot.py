@@ -1,10 +1,14 @@
 from enum import IntEnum
 from ipaddress import IPv4Address
-from typing import Optional
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.game.science import simulate_trial
+from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient
 
 _LOGGER = getLogger(__name__)
@@ -32,12 +36,10 @@ class DataManipulationAttackStage(IntEnum):
     "Signifies that the attack has failed."
 
 
-class DataManipulationBot(DatabaseClient):
+class DataManipulationBot(Application):
     """A bot that simulates a script which performs a SQL injection attack."""
 
-    server_ip_address: Optional[IPv4Address] = None
     payload: Optional[str] = None
-    server_password: Optional[str] = None
     port_scan_p_of_success: float = 0.1
     data_manipulation_p_of_success: float = 0.1
 
@@ -46,33 +48,44 @@ class DataManipulationBot(DatabaseClient):
     "Whether to repeat attacking once finished."
 
     def __init__(self, **kwargs):
+        kwargs["name"] = "DataManipulationBot"
+        kwargs["port"] = Port.NONE
+        kwargs["protocol"] = IPProtocol.NONE
+
         super().__init__(**kwargs)
-        self.name = "DataManipulationBot"
 
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting DataManipulationBot original state on node {self.software_manager.node.hostname}")
-        super().set_original_state()
-        vals_to_include = {
-            "server_ip_address",
-            "payload",
-            "server_password",
-            "port_scan_p_of_success",
-            "data_manipulation_p_of_success",
-            "attack_stage",
-            "repeat",
-        }
-        self._original_state.update(self.model_dump(include=vals_to_include))
+    def describe_state(self) -> Dict:
+        """
+        Produce a dictionary describing the current state of this object.
 
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug(f"Resetting DataManipulationBot state on node {self.software_manager.node.hostname}")
-        super().reset_component_for_episode(episode)
+        Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+        :return: Current state of this object and child objects.
+        :rtype: Dict
+        """
+        state = super().describe_state()
+        return state
+
+    @property
+    def _host_db_client(self) -> DatabaseClient:
+        """Return the database client that is installed on the same machine as the DataManipulationBot."""
+        db_client = self.software_manager.software.get("DatabaseClient")
+        if db_client is None:
+            _LOGGER.info(f"{self.__class__.__name__} cannot find a database client on its host.")
+        return db_client
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
 
-        rm.add_request(name="execute", request_type=RequestType(func=lambda request, context: self.attack()))
+        rm.add_request(
+            name="execute",
+            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.attack())),
+        )
 
         return rm
 
@@ -96,8 +109,8 @@ class DataManipulationBot(DatabaseClient):
         :param repeat: Whether to repeat attacking once finished.
         """
         self.server_ip_address = server_ip_address
-        self.payload = payload
         self.server_password = server_password
+        self.payload = payload
         self.port_scan_p_of_success = port_scan_p_of_success
         self.data_manipulation_p_of_success = data_manipulation_p_of_success
         self.repeat = repeat
@@ -143,15 +156,21 @@ class DataManipulationBot(DatabaseClient):
 
         :param p_of_success: Probability of successfully performing data manipulation, by default 0.1.
         """
+        if self._host_db_client is None:
+            self.attack_stage = DataManipulationAttackStage.FAILED
+            return
+
+        self._host_db_client.server_ip_address = self.server_ip_address
+        self._host_db_client.server_password = self.server_password
         if self.attack_stage == DataManipulationAttackStage.PORT_SCAN:
             # perform the actual data manipulation attack
             if simulate_trial(p_of_success):
                 self.sys_log.info(f"{self.name}: Performing data manipulation")
                 # perform the attack
-                if not len(self.connections):
-                    self.connect()
-                if len(self.connections):
-                    self.query(self.payload)
+                if not len(self._host_db_client.connections):
+                    self._host_db_client.connect()
+                if len(self._host_db_client.connections):
+                    self._host_db_client.query(self.payload)
                     self.sys_log.info(f"{self.name} payload delivered: {self.payload}")
                     attack_successful = True
                     if attack_successful:
@@ -169,21 +188,23 @@ class DataManipulationBot(DatabaseClient):
         """
         super().run()
 
-    def attack(self):
+    def attack(self) -> bool:
         """Perform the attack steps after opening the application."""
         if not self._can_perform_action():
             _LOGGER.debug("Data manipulation application attempted to execute but it cannot perform actions right now.")
             self.run()
-        self._application_loop()
 
-    def _application_loop(self):
+        self.num_executions += 1
+        return self._application_loop()
+
+    def _application_loop(self) -> bool:
         """
         The main application loop of the bot, handling the attack process.
 
         This is the core loop where the bot sequentially goes through the stages of the attack.
         """
         if not self._can_perform_action():
-            return
+            return False
         if self.server_ip_address and self.payload:
             self.sys_log.info(f"{self.name}: Running")
             self._logon()
@@ -195,8 +216,12 @@ class DataManipulationBot(DatabaseClient):
                 DataManipulationAttackStage.FAILED,
             ):
                 self.attack_stage = DataManipulationAttackStage.NOT_STARTED
+
+            return True
+
         else:
             self.sys_log.error(f"{self.name}: Failed to start as it requires both a target_ip_address and payload.")
+            return False
 
     def apply_timestep(self, timestep: int) -> None:
         """

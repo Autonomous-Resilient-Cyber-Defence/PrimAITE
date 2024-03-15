@@ -13,6 +13,8 @@ facilitates modular development, enhances maintainability, and supports scalabil
 allowing for focused enhancements within each layer.
 
 .. image:: primaite_network_interface_model.png
+    :width: 500
+    :align: center
 
 Layer Descriptions
 ==================
@@ -65,9 +67,14 @@ Network Interface Classes
 
 **NetworkInterface (Base Layer)**
 
-Abstract base class defining core interface properties like MAC address, speed, MTU.
-Requires subclasses implement key methods like send/receive frames, enable/disable interface.
-Establishes universal network interface capabilities.
+- Abstract base class defining core interface properties like MAC address, speed, MTU.
+- Requires subclasses implement key methods like send/receive frames, enable/disable interface.
+- Establishes universal network interface capabilities.
+- Malicious Network Events Monitoring:
+
+   * Enhances network interfaces with the capability to monitor and capture Malicious Network Events (MNEs) based on predefined criteria such as specific keywords or traffic patterns.
+   * Integrates Number of Malicious Network Events (NMNE) detection functionalities, leveraging configurable settings like ``capture_nmne``, `nmne_capture_keywords``, and observation mechanisms such as ``NicObservation`` to classify and record network anomalies.
+   * Offers an additional layer of security and data analysis, crucial for identifying and mitigating malicious activities within the network infrastructure. Provides vital information for network security analysis and reinforcement learning algorithms.
 
 **WiredNetworkInterface (Connection Type Layer)**
 

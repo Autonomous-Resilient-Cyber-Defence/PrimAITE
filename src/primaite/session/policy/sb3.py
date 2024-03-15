@@ -39,9 +39,9 @@ class SB3Policy(PolicyABC, identifier="SB3"):
 
     def learn(self, n_episodes: int, timesteps_per_episode: int) -> None:
         """Train the agent."""
-        if self.session.io_manager.settings.save_checkpoints:
+        if self.session.save_checkpoints:
             checkpoint_callback = CheckpointCallback(
-                save_freq=timesteps_per_episode * self.session.io_manager.settings.checkpoint_interval,
+                save_freq=timesteps_per_episode * self.session.checkpoint_interval,
                 save_path=self.session.io_manager.generate_model_save_path("sb3"),
                 name_prefix="sb3_model",
             )

@@ -229,7 +229,7 @@ To limit database server access to selected external IP addresses:
        position=7
    )
 
-**Permitting DMZ Web Server Access while Blocking Specific Threats*
+**Permitting DMZ Web Server Access while Blocking Specific Threats**
 
 To authorize HTTP/HTTPS access to a DMZ-hosted web server, excluding known malicious IPs:
 

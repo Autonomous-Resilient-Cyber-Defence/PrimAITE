@@ -7,26 +7,11 @@ from primaite.simulator.domain.account import Account, AccountType
 @pytest.fixture(scope="function")
 def account() -> Account:
     acct = Account(username="Jake", password="totally_hashed_password", account_type=AccountType.USER)
-    acct.set_original_state()
     return acct
 
 
 def test_original_state(account):
     """Test the original state - see if it resets properly"""
-    account.log_on()
-    account.log_off()
-    account.disable()
-
-    state = account.describe_state()
-    assert state["num_logons"] is 1
-    assert state["num_logoffs"] is 1
-    assert state["num_group_changes"] is 0
-    assert state["username"] is "Jake"
-    assert state["password"] is "totally_hashed_password"
-    assert state["account_type"] is AccountType.USER.value
-    assert state["enabled"] is False
-
-    account.reset_component_for_episode(episode=1)
     state = account.describe_state()
     assert state["num_logons"] is 0
     assert state["num_logoffs"] is 0
@@ -39,13 +24,7 @@ def test_original_state(account):
     account.log_on()
     account.log_off()
     account.disable()
-    account.set_original_state()
 
-    account.log_on()
-    state = account.describe_state()
-    assert state["num_logons"] is 2
-
-    account.reset_component_for_episode(episode=2)
     state = account.describe_state()
     assert state["num_logons"] is 1
     assert state["num_logoffs"] is 1

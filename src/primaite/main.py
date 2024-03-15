@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 from primaite import getLogger
-from primaite.config.load import example_config_path, load
+from primaite.config.load import data_manipulation_config_path, load
 from primaite.session.session import PrimaiteSession
 
 # from primaite.primaite_session import PrimaiteSession
@@ -42,6 +42,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if not args.config:
-        args.config = example_config_path()
+        args.config = data_manipulation_config_path()
 
     run(args.config)

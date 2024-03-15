@@ -32,12 +32,6 @@ class SwitchPort(WiredNetworkInterface):
     _connected_node: Optional[Switch] = None
     "The Switch to which the SwitchPort is connected."
 
-    def set_original_state(self):
-        """Sets the original state."""
-        vals_to_include = {"port_num", "mac_address", "speed", "mtu", "enabled"}
-        self._original_state = self.model_dump(include=vals_to_include)
-        super().set_original_state()
-
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.

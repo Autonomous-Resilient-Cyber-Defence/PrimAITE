@@ -8,10 +8,6 @@ from prettytable import MARKDOWN, PrettyTable
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.hardware.base import Link, Node, WiredNetworkInterface
-from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.network.hardware.nodes.network.router import Router
-from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.service import Service
 
@@ -45,19 +41,12 @@ class Network(SimComponent):
 
         self._nx_graph = MultiGraph()
 
-    def set_original_state(self):
-        """Sets the original state."""
-        for node in self.nodes.values():
-            node.set_original_state()
-        for link in self.links.values():
-            link.set_original_state()
-
-    def reset_component_for_episode(self, episode: int):
+    def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         for node in self.nodes.values():
-            node.reset_component_for_episode(episode)
+            node.setup_for_episode(episode=episode)
         for link in self.links.values():
-            link.reset_component_for_episode(episode)
+            link.setup_for_episode(episode=episode)
 
         for node in self.nodes.values():
             node.power_on()
@@ -72,6 +61,11 @@ class Network(SimComponent):
                     software.run()
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
         self._node_request_manager = RequestManager()
         rm.add_request(
@@ -92,24 +86,29 @@ class Network(SimComponent):
             self.links[link_id].apply_timestep(timestep=timestep)
 
     @property
-    def routers(self) -> List[Router]:
+    def router_nodes(self) -> List[Node]:
         """The Routers in the Network."""
-        return [node for node in self.nodes.values() if isinstance(node, Router)]
+        return [node for node in self.nodes.values() if node.__class__.__name__ == "Router"]
 
     @property
-    def switches(self) -> List[Switch]:
+    def switch_nodes(self) -> List[Node]:
         """The Switches in the Network."""
-        return [node for node in self.nodes.values() if isinstance(node, Switch)]
+        return [node for node in self.nodes.values() if node.__class__.__name__ == "Switch"]
 
     @property
-    def computers(self) -> List[Computer]:
+    def computer_nodes(self) -> List[Node]:
         """The Computers in the Network."""
-        return [node for node in self.nodes.values() if isinstance(node, Computer) and not isinstance(node, Server)]
+        return [node for node in self.nodes.values() if node.__class__.__name__ == "Computer"]
 
     @property
-    def servers(self) -> List[Server]:
+    def server_nodes(self) -> List[Node]:
         """The Servers in the Network."""
-        return [node for node in self.nodes.values() if isinstance(node, Server)]
+        return [node for node in self.nodes.values() if node.__class__.__name__ == "Server"]
+
+    @property
+    def firewall_nodes(self) -> List[Node]:
+        """The Firewalls in the Network."""
+        return [node for node in self.nodes.values() if node.__class__.__name__ == "Firewall"]
 
     def show(self, nodes: bool = True, ip_addresses: bool = True, links: bool = True, markdown: bool = False):
         """
@@ -124,10 +123,11 @@ class Network(SimComponent):
         :param markdown: Use Markdown style in table output. Defaults to False.
         """
         nodes_type_map = {
-            "Router": self.routers,
-            "Switch": self.switches,
-            "Server": self.servers,
-            "Computer": self.computers,
+            "Router": self.router_nodes,
+            "Firewall": self.firewall_nodes,
+            "Switch": self.switch_nodes,
+            "Server": self.server_nodes,
+            "Computer": self.computer_nodes,
         }
         if nodes:
             table = PrettyTable(["Node", "Type", "Operating State"])
@@ -150,7 +150,10 @@ class Network(SimComponent):
                 for node in nodes:
                     for i, port in node.network_interface.items():
                         if hasattr(port, "ip_address"):
-                            table.add_row([node.hostname, i, port.ip_address, port.subnet_mask, node.default_gateway])
+                            port_str = port.port_name if port.port_name else port.port_num
+                            table.add_row(
+                                [node.hostname, port_str, port.ip_address, port.subnet_mask, node.default_gateway]
+                            )
             print(table)
 
         if links:
@@ -179,7 +182,7 @@ class Network(SimComponent):
     def clear_links(self):
         """Clear all the links in the network by resetting their component state for the episode."""
         for link in self.links.values():
-            link.reset_component_for_episode()
+            link.setup_for_episode(episode=0)  # TODO: shouldn't be using this method here.
 
     def draw(self, seed: int = 123):
         """

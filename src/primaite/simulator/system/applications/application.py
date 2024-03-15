@@ -38,12 +38,6 @@ class Application(IOSoftware):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def set_original_state(self):
-        """Sets the original state."""
-        super().set_original_state()
-        vals_to_include = {"operating_state", "execution_control_status", "num_executions", "groups"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
     @abstractmethod
     def describe_state(self) -> Dict:
         """
@@ -65,6 +59,16 @@ class Application(IOSoftware):
         )
         return state
 
+    def apply_timestep(self, timestep: int) -> None:
+        """
+        Apply a timestep to the application.
+
+        :param timestep: The current timestep of the simulation.
+        """
+        super().apply_timestep(timestep=timestep)
+
+        self.num_executions = 0  # reset number of executions
+
     def _can_perform_action(self) -> bool:
         """
         Checks if the application can perform actions.
@@ -79,7 +83,7 @@ class Application(IOSoftware):
 
         if self.operating_state is not self.operating_state.RUNNING:
             # service is not running
-            _LOGGER.error(f"Cannot perform action: {self.name} is {self.operating_state.name}")
+            _LOGGER.debug(f"Cannot perform action: {self.name} is {self.operating_state.name}")
             return False
 
         return True

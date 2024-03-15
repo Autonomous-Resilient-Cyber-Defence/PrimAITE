@@ -38,6 +38,8 @@ class File(FileSystemItemABC):
     "The Path if real is True."
     sim_root: Optional[Path] = None
     "Root path of the simulation."
+    num_access: int = 0
+    "Number of times the file was accessed in the current step."
 
     def __init__(self, **kwargs):
         """
@@ -73,20 +75,6 @@ class File(FileSystemItemABC):
 
         self.sys_log.info(f"Created file /{self.path} (id: {self.uuid})")
 
-        self.set_original_state()
-
-    def set_original_state(self):
-        """Sets the original state."""
-        _LOGGER.debug(f"Setting File ({self.path}) original state on node {self.sys_log.hostname}")
-        super().set_original_state()
-        vals_to_include = {"folder_id", "folder_name", "file_type", "sim_size", "real", "sim_path", "sim_root"}
-        self._original_state.update(self.model_dump(include=vals_to_include))
-
-    def reset_component_for_episode(self, episode: int):
-        """Reset the original state of the SimComponent."""
-        _LOGGER.debug(f"Resetting File ({self.path}) state on node {self.sys_log.hostname}")
-        super().reset_component_for_episode(episode)
-
     @property
     def path(self) -> str:
         """
@@ -107,22 +95,36 @@ class File(FileSystemItemABC):
             return os.path.getsize(self.sim_path)
         return self.sim_size
 
+    def apply_timestep(self, timestep: int) -> None:
+        """
+        Apply a timestep to the file.
+
+        :param timestep: The current timestep of the simulation.
+        """
+        super().apply_timestep(timestep=timestep)
+
+        # reset the number of accesses to 0
+        self.num_access = 0
+
     def describe_state(self) -> Dict:
         """Produce a dictionary describing the current state of this object."""
         state = super().describe_state()
         state["size"] = self.size
         state["file_type"] = self.file_type.name
+        state["num_access"] = self.num_access
         return state
 
-    def scan(self) -> None:
+    def scan(self) -> bool:
         """Updates the visible statuses of the file."""
         if self.deleted:
             self.sys_log.error(f"Unable to scan deleted file {self.folder_name}/{self.name}")
-            return
+            return False
 
+        self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Scanning file {self.sim_path if self.sim_path else path}")
         self.visible_health_status = self.health_status
+        return True
 
     def reveal_to_red(self) -> None:
         """Reveals the folder/file to the red agent."""
@@ -131,7 +133,7 @@ class File(FileSystemItemABC):
             return
         self.revealed_to_red = True
 
-    def check_hash(self) -> None:
+    def check_hash(self) -> bool:
         """
         Check if the file has been changed.
 
@@ -141,7 +143,7 @@ class File(FileSystemItemABC):
         """
         if self.deleted:
             self.sys_log.error(f"Unable to check hash of deleted file {self.folder_name}/{self.name}")
-            return
+            return False
         current_hash = None
 
         # if file is real, read the file contents
@@ -163,50 +165,59 @@ class File(FileSystemItemABC):
         # if the previous hash and current hash do not match, mark file as corrupted
         if self.previous_hash is not current_hash:
             self.corrupt()
+        return True
 
-    def repair(self) -> None:
+    def repair(self) -> bool:
         """Repair a corrupted File by setting the status to FileSystemItemStatus.GOOD."""
         if self.deleted:
             self.sys_log.error(f"Unable to repair deleted file {self.folder_name}/{self.name}")
-            return
+            return False
 
         # set file status to good if corrupt
         if self.health_status == FileSystemItemHealthStatus.CORRUPT:
             self.health_status = FileSystemItemHealthStatus.GOOD
 
+        self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Repaired file {self.sim_path if self.sim_path else path}")
+        return True
 
-    def corrupt(self) -> None:
+    def corrupt(self) -> bool:
         """Corrupt a File by setting the status to FileSystemItemStatus.CORRUPT."""
         if self.deleted:
             self.sys_log.error(f"Unable to corrupt deleted file {self.folder_name}/{self.name}")
-            return
+            return False
 
         # set file status to good if corrupt
         if self.health_status == FileSystemItemHealthStatus.GOOD:
             self.health_status = FileSystemItemHealthStatus.CORRUPT
 
+        self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Corrupted file {self.sim_path if self.sim_path else path}")
+        return True
 
-    def restore(self) -> None:
+    def restore(self) -> bool:
         """Determines if the file needs to be repaired or unmarked as deleted."""
         if self.deleted:
             self.deleted = False
-            return
+            return True
 
         if self.health_status == FileSystemItemHealthStatus.CORRUPT:
             self.health_status = FileSystemItemHealthStatus.GOOD
 
+        self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
         self.sys_log.info(f"Restored file {self.sim_path if self.sim_path else path}")
+        return True
 
-    def delete(self):
+    def delete(self) -> bool:
         """Marks the file as deleted."""
         if self.deleted:
             self.sys_log.error(f"Unable to delete an already deleted file {self.folder_name}/{self.name}")
-            return
+            return False
 
+        self.num_access += 1  # file was accessed
         self.deleted = True
         self.sys_log.info(f"File deleted {self.folder_name}/{self.name}")
+        return True

@@ -80,6 +80,11 @@ class DomainController(SimComponent):
         super().__init__(**kwargs)
 
     def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
         rm = super()._init_request_manager()
         # Action 'account' matches requests like:
         # ['account', '<account-uuid>', *account_action]
@@ -87,6 +92,7 @@ class DomainController(SimComponent):
             "account",
             RequestType(
                 func=lambda request, context: self.accounts[request.pop(0)].apply_request(request, context),
+                # TODO: not sure what should get returned here, revisit
                 validator=GroupMembershipValidator(allowed_groups=[AccountGroup.DOMAIN_ADMIN]),
             ),
         )
