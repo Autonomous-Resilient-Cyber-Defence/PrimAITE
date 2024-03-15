@@ -13,8 +13,6 @@ training_config:
 
 
 io_settings:
-  save_checkpoints: true
-  checkpoint_interval: 5
   save_agent_actions: true
   save_step_metadata: false
   save_pcap_logs: false

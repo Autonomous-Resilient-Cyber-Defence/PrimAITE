@@ -297,7 +297,7 @@ class WiredNetworkInterface(NetworkInterface, ABC):
             return True
 
         if not self._connected_node:
-            _LOGGER.error(f"Interface {self} cannot be enabled as it is not connected to a Node")
+            _LOGGER.warning(f"Interface {self} cannot be enabled as it is not connected to a Node")
             return False
 
         if self._connected_node.operating_state != NodeOperatingState.ON:
@@ -343,11 +343,11 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         :param link: The Link instance to connect to this network interface.
         """
         if self._connected_link:
-            _LOGGER.error(f"Cannot connect Link to network interface {self} as it already has a connection")
+            _LOGGER.warning(f"Cannot connect Link to network interface {self} as it already has a connection")
             return
 
         if self._connected_link == link:
-            _LOGGER.error(f"Cannot connect Link to network interface {self} as it is already connected")
+            _LOGGER.warning(f"Cannot connect Link to network interface {self} as it is already connected")
             return
 
         self._connected_link = link

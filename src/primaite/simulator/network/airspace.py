@@ -157,7 +157,7 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
             return
 
         if not self._connected_node:
-            _LOGGER.error(f"Interface {self} cannot be enabled as it is not connected to a Node")
+            _LOGGER.warning(f"Interface {self} cannot be enabled as it is not connected to a Node")
             return
 
         if self._connected_node.operating_state != NodeOperatingState.ON:

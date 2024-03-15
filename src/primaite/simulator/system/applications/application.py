@@ -83,7 +83,7 @@ class Application(IOSoftware):
 
         if self.operating_state is not self.operating_state.RUNNING:
             # service is not running
-            _LOGGER.error(f"Cannot perform action: {self.name} is {self.operating_state.name}")
+            _LOGGER.debug(f"Cannot perform action: {self.name} is {self.operating_state.name}")
             return False
 
         return True

@@ -111,7 +111,7 @@ class DatabaseFileIntegrity(AbstractReward):
         """
         database_file_state = access_from_nested_dict(state, self.location_in_state)
         if database_file_state is NOT_PRESENT_IN_STATE:
-            _LOGGER.info(
+            _LOGGER.debug(
                 f"Could not calculate {self.__class__} reward because "
                 "simulation state did not contain enough information."
             )
@@ -231,7 +231,7 @@ class WebpageUnavailablePenalty(AbstractReward):
         # If the last request did actually go through, then check if the webpage also loaded
         web_browser_state = access_from_nested_dict(state, self.location_in_state)
         if web_browser_state is NOT_PRESENT_IN_STATE or "history" not in web_browser_state:
-            _LOGGER.info(
+            _LOGGER.debug(
                 "Web browser reward could not be calculated because the web browser history on node",
                 f"{self._node} was not reported in the simulation state. Returning 0.0",
             )
