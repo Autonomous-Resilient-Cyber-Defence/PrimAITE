@@ -495,6 +495,8 @@ def game_and_agent():
         {"type": "NETWORK_ACL_REMOVERULE", "options": {"target_router_hostname": "router"}},
         {"type": "NETWORK_NIC_ENABLE"},
         {"type": "NETWORK_NIC_DISABLE"},
+        {"type": "NETWORK_PORT_ENABLE"},
+        {"type": "NETWORK_PORT_DISABLE"},
     ]
 
     action_space = ActionManager(
@@ -507,6 +509,7 @@ def game_and_agent():
             },
             {"node_name": "server_1", "services": [{"service_name": "DNSServer"}]},
             {"node_name": "server_2", "services": [{"service_name": "WebServer"}]},
+            {"node_name": "router"},
         ],
         max_folders_per_node=2,
         max_files_per_folder=2,
