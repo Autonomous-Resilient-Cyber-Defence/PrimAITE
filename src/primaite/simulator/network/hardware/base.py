@@ -519,12 +519,10 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
         """
         super().enable()
         try:
-            pass
             self._connected_node.default_gateway_hello()
-            return True
         except AttributeError:
             pass
-        return False
+        return True
 
     @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:

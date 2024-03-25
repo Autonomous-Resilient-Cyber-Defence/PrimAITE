@@ -312,3 +312,65 @@ def test_node_file_delete_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
     assert not client_1.file_system.get_file("downloads", "cat.png")
     # 3.1 (but with the reference to the original file, we can check that deleted flag is True )
     assert file.deleted
+
+
+def test_network_router_port_disable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that the NetworkPortDisableAction can form a request and that it is accepted by the simulation."""
+    game, agent = game_and_agent
+
+    # 1: Check that client_1 can access the network
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")
+    server_1 = game.simulation.network.get_node_by_hostname("server_1")
+    router = game.simulation.network.get_node_by_hostname("router")
+
+    browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
+    browser.run()
+    browser.target_url = "http://www.example.com"
+    assert browser.get_webpage()  # check that the browser can access example.com before we block it
+
+    # 2: Disable the NIC on client_1
+    action = (
+        "NETWORK_PORT_DISABLE",
+        {
+            "node_id": 3,  # router
+            "port_id": 0,  # port 1
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    # 3: Check that the NIC is disabled, and that client 1 cannot access example.com
+    assert router.network_interface[1].enabled == False
+    assert not browser.get_webpage()
+    assert not client_1.ping("10.0.2.2")
+    assert not client_1.ping("10.0.2.3")
+
+    # 4: check that servers can still communicate
+    assert server_1.ping("10.0.2.3")
+
+
+def test_network_router_port_enable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that the NetworkPortEnableAction can form a request and that it is accepted by the simulation."""
+
+    game, agent = game_and_agent
+
+    # 1: Disable router port 1
+    router = game.simulation.network.get_node_by_hostname("router")
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")
+    router.network_interface[1].disable()
+    assert not client_1.ping("10.0.2.2")
+
+    # 2: Use action to enable port
+    action = (
+        "NETWORK_PORT_ENABLE",
+        {
+            "node_id": 3,  # router
+            "port_id": 0,  # port 1
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    # 3: Check that the Port is enabled, and that client 1 can ping again
+    assert router.network_interface[1].enabled == True
+    assert client_1.ping("10.0.2.3")
