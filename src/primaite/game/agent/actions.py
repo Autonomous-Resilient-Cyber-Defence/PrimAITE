@@ -609,7 +609,7 @@ class NetworkPortEnableAction(NetworkPortAbstractAction):
 
 
 class NetworkPortDisableAction(NetworkPortAbstractAction):
-    """Action which disables a NIC."""
+    """Action which disables a PORT."""
 
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, max_nics_per_node=max_nics_per_node, **kwargs)
