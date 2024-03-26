@@ -694,7 +694,7 @@ simulation:
         ip_address: 192.169.1.1
         subnet_mask: 255.255.255.0
       wireless_access_point:
-        ip_address: 192.169.1.1
+        ip_address: 192.170.1.1
         subnet_mask: 255.255.255.0
         frequency: WIFI_2_4
       acl:
