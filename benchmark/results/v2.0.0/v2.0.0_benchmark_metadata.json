@@ -5634,7 +5634,7 @@
         "green_ier_blocked": -0.001,
         "os_patching_duration": 5,
         "node_reset_duration": 5,
-        "service_fixing_duration": 5,
+        "service_patching_duration": 5,
         "file_system_repairing_limit": 5,
         "file_system_restoring_limit": 5,
         "file_system_scanning_limit": 5

@@ -158,7 +158,7 @@ green_ier_blocked: -0.001
 # Patching / Reset durations
 os_patching_duration: 5            # The time taken to patch the OS
 node_reset_duration: 5             # The time taken to reset a node (hardware)
-service_fixing_duration: 5       # The time taken to patch a service
+service_patching_duration: 5       # The time taken to patch a service
 file_system_repairing_limit: 5      # The time take to repair the file system
 file_system_restoring_limit: 5      # The time take to restore the file system
 file_system_scanning_limit: 5       # The time taken to scan the file system
