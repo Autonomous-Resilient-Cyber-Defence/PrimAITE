@@ -69,7 +69,7 @@ def test_node_service_fix_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
     """
     Test that the NodeServiceFixAction can form a request and that it is accepted by the simulation.
 
-    When you initiate a patch action, the software health state turns to PATCHING, then after a few steps, it goes
+    When you initiate a patch action, the software health state turns to FIXING, then after a few steps, it goes
     to GOOD.
     """
     game, agent = game_and_agent
@@ -83,8 +83,8 @@ def test_node_service_fix_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
     agent.store_action(action)
     game.step()
 
-    # 3: Check that the service is now in the patching state
-    assert svc.health_state_actual == SoftwareHealthState.PATCHING
+    # 3: Check that the service is now in the FIXING state
+    assert svc.health_state_actual == SoftwareHealthState.FIXING
 
     # 4: perform a few do-nothing steps and check that the service is now in the good state
     action = ("DONOTHING", {})
@@ -413,7 +413,7 @@ def test_node_application_scan_integration(game_and_agent: Tuple[PrimaiteGame, P
 def test_node_application_fix_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     """Test that the NodeApplicationFixAction can form a request and that it is accepted by the simulation.
 
-    When you initiate a fix action, the software health state turns to PATCHING, then after a few steps, it goes
+    When you initiate a fix action, the software health state turns to FIXING, then after a few steps, it goes
     to GOOD."""
     game, agent = game_and_agent
 
@@ -428,8 +428,8 @@ def test_node_application_fix_integration(game_and_agent: Tuple[PrimaiteGame, Pr
     agent.store_action(action)
     game.step()
 
-    # 3: Check that the application is now in the patching state
-    assert browser.health_state_actual == SoftwareHealthState.PATCHING
+    # 3: Check that the application is now in the FIXING state
+    assert browser.health_state_actual == SoftwareHealthState.FIXING
 
     # 4: perform a few do-nothing steps and check that the application is now in the good state
     action = ("DONOTHING", {})

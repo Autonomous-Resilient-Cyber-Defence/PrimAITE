@@ -86,8 +86,8 @@ def test_service_fix(service):
     assert service.health_state_actual == SoftwareHealthState.GOOD
 
     service.apply_request(["fix"])
-    assert service.health_state_actual == SoftwareHealthState.PATCHING
+    assert service.health_state_actual == SoftwareHealthState.FIXING
     service.apply_timestep(1)
-    assert service.health_state_actual == SoftwareHealthState.PATCHING
+    assert service.health_state_actual == SoftwareHealthState.FIXING
     service.apply_timestep(2)
     assert service.health_state_actual == SoftwareHealthState.GOOD

@@ -93,7 +93,7 @@ def test_restart_compromised(service):
     """
     Service should be compromised even after reset.
 
-    Only way to remove compromised status is via patching.
+    Only way to remove compromised status is via FIXING.
     """
 
     timestep = 0
@@ -143,7 +143,7 @@ def test_service_fixing(service):
     service.set_health_state(SoftwareHealthState.COMPROMISED)
 
     service.fix()
-    assert service.health_state_actual == SoftwareHealthState.PATCHING
+    assert service.health_state_actual == SoftwareHealthState.FIXING
 
     for i in range(service.fixing_duration + 1):
         service.apply_timestep(i)

@@ -47,4 +47,4 @@ def test_application_describe_states(application):
     assert SoftwareHealthState.COMPROMISED.value == application.describe_state().get("health_state_actual")
 
     application.fix()
-    assert SoftwareHealthState.PATCHING.value == application.describe_state().get("health_state_actual")
+    assert SoftwareHealthState.FIXING.value == application.describe_state().get("health_state_actual")

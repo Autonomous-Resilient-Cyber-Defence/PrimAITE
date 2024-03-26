@@ -41,11 +41,11 @@ The game layer is built on top of the simulator and it consumes the simulation a
   * Hardware State (ON, OFF, RESETTING, SHUTTING_DOWN, BOOTING - enumeration)
   Active Nodes also have the following attributes (Class: Active Node):
   * IP Address
-  * Software State (GOOD, PATCHING, COMPROMISED - enumeration)
+  * Software State (GOOD, FIXING, COMPROMISED - enumeration)
   * File System State (GOOD, CORRUPT, DESTROYED, REPAIRING, RESTORING - enumeration)
   Service Nodes also have the following attributes (Class: Service Node):
   * List of Services (where service is composed of service name and port). There is no theoretical limit on the number of services that can be modelled. Services and protocols are currently intrinsically linked (i.e. a service is an application on a node transmitting traffic of this protocol type)
-  * Service state (GOOD, PATCHING, COMPROMISED, OVERWHELMED - enumeration)
+  * Service state (GOOD, FIXING, COMPROMISED, OVERWHELMED - enumeration)
   Passive Nodes are currently not used (but may be employed for non IP-based components such as machinery actuators in future releases).
   **Links**
   Links are modelled both as network edges (networkx) and as Python classes, in order to extend their functionality. Links include the following attributes:
@@ -70,8 +70,8 @@ The game layer is built on top of the simulator and it consumes the simulation a
   * Running status (i.e. on / off)
   The application of green agent IERs between a source and destination follows a number of rules. Specifically:
   1. Does the current simulation time step fall between IER start and end step
-  2. Is the source node operational (both physically and at an O/S level), and is the service (protocol / port) associated with the IER (a) present on this node, and (b) in an operational state (i.e. not PATCHING)
-  3. Is the destination node operational (both physically and at an O/S level), and is the service (protocol / port) associated with the IER (a) present on this node, and (b) in an operational state (i.e. not PATCHING)
+  2. Is the source node operational (both physically and at an O/S level), and is the service (protocol / port) associated with the IER (a) present on this node, and (b) in an operational state (i.e. not FIXING)
+  3. Is the destination node operational (both physically and at an O/S level), and is the service (protocol / port) associated with the IER (a) present on this node, and (b) in an operational state (i.e. not FIXING)
   4. Are there any Access Control List rules in place that prevent the application of this IER
   5. Are all switches in the (OSPF) path between source and destination operational (both physically and at an O/S level)
   For red agent IERs, the application of IERs between a source and destination follows a number of subtly different rules. Specifically:
@@ -95,7 +95,7 @@ The game layer is built on top of the simulator and it consumes the simulation a
   * Active Nodes and Service Nodes:
     * Software State:
         * GOOD
-        * PATCHING - when a status of patching is entered, the node will automatically exit this state after a number of steps (as defined by the osPatchingDuration configuration item) after which it returns to a GOOD state
+        * FIXING - when a status of FIXING is entered, the node will automatically exit this state after a number of steps (as defined by the osFIXINGDuration configuration item) after which it returns to a GOOD state
         * COMPROMISED
     * File System State:
         * GOOD
@@ -106,7 +106,7 @@ The game layer is built on top of the simulator and it consumes the simulation a
   * Service Nodes only:
     * Service State (for any associated service):
         * GOOD
-        * PATCHING - when a status of patching is entered, the service will automatically exit this state after a number of steps (as defined by the servicePatchingDuration configuration item) after which it returns to a GOOD state
+        * FIXING - when a status of FIXING is entered, the service will automatically exit this state after a number of steps (as defined by the serviceFIXINGDuration configuration item) after which it returns to a GOOD state
         * COMPROMISED
         * OVERWHELMED
   Red agent pattern-of-life has an additional feature not found in the green pattern-of-life. This is the ability to influence the state of the attributes of a node via a number of different conditions:
@@ -211,8 +211,8 @@ The game layer is built on top of the simulator and it consumes the simulation a
       Hardware State            (1=ON,   2=OFF,  3=RESETTING,  4=SHUTTING_DOWN, 5=BOOTING)
       Operating System State    (0=none, 1=GOOD, 2=PATCHING,   3=COMPROMISED)
       File System State         (0=none, 1=GOOD, 2=CORRUPT,    3=DESTROYED,  4=REPAIRING, 5=RESTORING)
-      Service1/Protocol1 state  (0=none, 1=GOOD, 2=PATCHING,   3=COMPROMISED)
-      Service2/Protocol2 state  (0=none, 1=GOOD, 2=PATCHING,   3=COMPROMISED)
+      Service1/Protocol1 state  (0=none, 1=GOOD, 2=FIXING,   3=COMPROMISED)
+      Service2/Protocol2 state  (0=none, 1=GOOD, 2=FIXING,   3=COMPROMISED)
     ]
   (Note that each service available in the network is provided as a column, although not all nodes may utilise all services)
   For the links, the following statuses are represented:
@@ -241,8 +241,8 @@ The game layer is built on top of the simulator and it consumes the simulation a
       hardware_state    (0=none, 1=ON,   2=OFF,      3=RESETTING, 4=SHUTTING_DOWN, 5=BOOTING)
       software_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)
       file_system_state (0=none, 1=GOOD, 2=CORRUPT,  3=DESTROYED, 4=REPAIRING, 5=RESTORING)
-      service1_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)
-      service2_state    (0=none, 1=GOOD, 2=PATCHING, 3=COMPROMISED)
+      service1_state    (0=none, 1=GOOD, 2=FIXING, 3=COMPROMISED)
+      service2_state    (0=none, 1=GOOD, 2=FIXING, 3=COMPROMISED)
     ]
   In a network with three nodes and two services, the full observation space would have 15 elements. It can be written with ``gym`` notation to indicate the number of discrete options for each of the elements of the observation space. For example:
   .. code-block::
@@ -278,7 +278,7 @@ The game layer is built on top of the simulator and it consumes the simulation a
   3. Any (Agent can take both node-based and ACL-based actions)
   The choice of action space used during a training session is determined in the config_[name].yaml file.
   **Node-Based**
-  The agent is able to influence the status of nodes by switching them off, resetting, or patching operating systems and services. In this instance, the action space is a Gymnasium spaces.Discrete type, as follows:
+  The agent is able to influence the status of nodes by switching them off, resetting, or FIXING operating systems and services. In this instance, the action space is a Gymnasium spaces.Discrete type, as follows:
   * Dictionary item {... ,1: [x1, x2, x3,x4] ...}
     The placeholders inside the list under the key '1' mean the following:
       * [0, num nodes] - Node ID (0 = nothing, node ID)

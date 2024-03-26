@@ -305,7 +305,7 @@ class DatabaseService(Service):
         return super().apply_timestep(timestep)
 
     def _update_fix_status(self) -> None:
-        """Perform a database restore when the patching countdown is finished."""
+        """Perform a database restore when the FIXING countdown is finished."""
         super()._update_fix_status()
         if self._fixing_countdown is None:
             self.restore_backup()

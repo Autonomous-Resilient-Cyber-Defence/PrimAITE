@@ -43,8 +43,8 @@ class SoftwareHealthState(Enum):
     "Unused state."
     GOOD = 1
     "The software is in a good and healthy condition."
-    PATCHING = 2
-    "The software is undergoing patching or updates."
+    FIXING = 2
+    "The software is undergoing FIXING or updates."
     COMPROMISED = 3
     "The software's security has been compromised."
     OVERWHELMED = 4
@@ -198,7 +198,7 @@ class Software(SimComponent):
         """Perform a fix on the software."""
         if self.health_state_actual in (SoftwareHealthState.COMPROMISED, SoftwareHealthState.GOOD):
             self._fixing_countdown = self.fixing_duration
-            self.set_health_state(SoftwareHealthState.PATCHING)
+            self.set_health_state(SoftwareHealthState.FIXING)
             return True
         return False
 
@@ -221,7 +221,7 @@ class Software(SimComponent):
         :param timestep: The current timestep of the simulation.
         """
         super().apply_timestep(timestep)
-        if self.health_state_actual == SoftwareHealthState.PATCHING:
+        if self.health_state_actual == SoftwareHealthState.FIXING:
             self._update_fix_status()
 
 
