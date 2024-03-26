@@ -136,16 +136,16 @@ def test_compromised_service_remains_compromised(service):
     assert service.health_state_actual == SoftwareHealthState.COMPROMISED
 
 
-def test_service_patching(service):
+def test_service_fixing(service):
     service.start()
     assert service.health_state_actual == SoftwareHealthState.GOOD
 
     service.set_health_state(SoftwareHealthState.COMPROMISED)
 
-    service.patch()
+    service.fix()
     assert service.health_state_actual == SoftwareHealthState.PATCHING
 
-    for i in range(service.patching_duration + 1):
+    for i in range(service.fixing_duration + 1):
         service.apply_timestep(i)
 
     assert service.health_state_actual == SoftwareHealthState.GOOD

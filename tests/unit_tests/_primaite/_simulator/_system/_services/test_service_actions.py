@@ -80,12 +80,12 @@ def test_service_enable(service):
     assert service.operating_state == ServiceOperatingState.STOPPED
 
 
-def test_service_patch(service):
-    """Test that a service can be patched and that it takes two timesteps to complete."""
+def test_service_fix(service):
+    """Test that a service can be fixed and that it takes two timesteps to complete."""
     service.start()
     assert service.health_state_actual == SoftwareHealthState.GOOD
 
-    service.apply_request(["patch"])
+    service.apply_request(["fix"])
     assert service.health_state_actual == SoftwareHealthState.PATCHING
     service.apply_timestep(1)
     assert service.health_state_actual == SoftwareHealthState.PATCHING

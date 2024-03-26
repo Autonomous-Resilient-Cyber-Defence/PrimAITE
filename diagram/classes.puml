@@ -48,7 +48,7 @@ class "ActiveNode" as primaite.nodes.active_node.ActiveNode {
   file_system_state_actual : GOOD
   file_system_state_observed : REPAIRING, RESTORING, GOOD
   ip_address : str
-  patching_count : int
+  fixing_count : int
   software_state
   software_state : GOOD
   set_file_system_state(file_system_state: FileSystemState) -> None
@@ -353,10 +353,10 @@ class "SB3Agent" as primaite.agents.sb3.SB3Agent {
 }
 class "Service" as primaite.common.service.Service {
   name : str
-  patching_count : int
+  fixing_count : int
   port : str
   software_state : GOOD
-  reduce_patching_count() -> None
+  reduce_fixing_count() -> None
 }
 class "ServiceNode" as primaite.nodes.service_node.ServiceNode {
   services : Dict[str, Service]
@@ -455,7 +455,7 @@ class "TrainingConfig" as primaite.config.training_config.TrainingConfig {
   sb3_output_verbose_level
   scanning : float
   seed : Optional[int]
-  service_patching_duration : int
+  service_fixing_duration : int
   session_type
   time_delay : int
   from_dict(config_dict: Dict[str, Any]) -> TrainingConfig

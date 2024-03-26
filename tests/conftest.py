@@ -475,7 +475,7 @@ def game_and_agent():
         {"type": "NODE_SERVICE_RESTART"},
         {"type": "NODE_SERVICE_DISABLE"},
         {"type": "NODE_SERVICE_ENABLE"},
-        {"type": "NODE_SERVICE_PATCH"},
+        {"type": "NODE_SERVICE_FIX"},
         {"type": "NODE_APPLICATION_EXECUTE"},
         {"type": "NODE_APPLICATION_SCAN"},
         {"type": "NODE_APPLICATION_CLOSE"},

@@ -65,9 +65,9 @@ def test_node_service_scan_integration(game_and_agent: Tuple[PrimaiteGame, Proxy
     assert svc.health_state_visible == SoftwareHealthState.COMPROMISED
 
 
-def test_node_service_patch_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+def test_node_service_fix_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     """
-    Test that the NodeServicePatchAction can form a request and that it is accepted by the simulation.
+    Test that the NodeServiceFixAction can form a request and that it is accepted by the simulation.
 
     When you initiate a patch action, the software health state turns to PATCHING, then after a few steps, it goes
     to GOOD.
@@ -79,7 +79,7 @@ def test_node_service_patch_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     svc.health_state_actual = SoftwareHealthState.COMPROMISED
 
     # 2: Apply a patch action
-    action = ("NODE_SERVICE_PATCH", {"node_id": 1, "service_id": 0})
+    action = ("NODE_SERVICE_FIX", {"node_id": 1, "service_id": 0})
     agent.store_action(action)
     game.step()
 

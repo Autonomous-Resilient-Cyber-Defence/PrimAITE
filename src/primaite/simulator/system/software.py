@@ -82,7 +82,7 @@ class Software(SimComponent):
     "The health state of the software visible to the red agent."
     criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
     "The criticality level of the software."
-    patching_count: int = 0
+    fixing_count: int = 0
     "The count of patches applied to the software, defaults to 0."
     scanning_count: int = 0
     "The count of times the software has been scanned, defaults to 0."
@@ -96,9 +96,9 @@ class Software(SimComponent):
     "The FileSystem of the Node the Software is installed on."
     folder: Optional[Folder] = None
     "The folder on the file system the Software uses."
-    patching_duration: int = 2
+    fixing_duration: int = 2
     "The number of ticks it takes to patch the software."
-    _patching_countdown: Optional[int] = None
+    _fixing_countdown: Optional[int] = None
     "Current number of ticks left to patch the software."
 
     def _init_request_manager(self) -> RequestManager:
@@ -117,9 +117,9 @@ class Software(SimComponent):
             ),
         )
         rm.add_request(
-            "patch",
+            "fix",
             RequestType(
-                func=lambda request, context: RequestResponse.from_bool(self.patch()),
+                func=lambda request, context: RequestResponse.from_bool(self.fix()),
             ),
         )
         rm.add_request("scan", RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan())))
@@ -149,7 +149,7 @@ class Software(SimComponent):
                 "health_state_actual": self.health_state_actual.value,
                 "health_state_visible": self.health_state_visible.value,
                 "criticality": self.criticality.value,
-                "patching_count": self.patching_count,
+                "fixing_count": self.fixing_count,
                 "scanning_count": self.scanning_count,
                 "revealed_to_red": self.revealed_to_red,
             }
@@ -194,21 +194,21 @@ class Software(SimComponent):
         self.health_state_visible = self.health_state_actual
         return True
 
-    def patch(self) -> bool:
-        """Perform a patch on the software."""
+    def fix(self) -> bool:
+        """Perform a fix on the software."""
         if self.health_state_actual in (SoftwareHealthState.COMPROMISED, SoftwareHealthState.GOOD):
-            self._patching_countdown = self.patching_duration
+            self._fixing_countdown = self.fixing_duration
             self.set_health_state(SoftwareHealthState.PATCHING)
             return True
         return False
 
-    def _update_patch_status(self) -> None:
-        """Update the patch status of the software."""
-        self._patching_countdown -= 1
-        if self._patching_countdown <= 0:
+    def _update_fix_status(self) -> None:
+        """Update the fix status of the software."""
+        self._fixing_countdown -= 1
+        if self._fixing_countdown <= 0:
             self.set_health_state(SoftwareHealthState.GOOD)
-            self._patching_countdown = None
-            self.patching_count += 1
+            self._fixing_countdown = None
+            self.fixing_count += 1
 
     def reveal_to_red(self) -> None:
         """Reveals the software to the red agent."""
@@ -222,7 +222,7 @@ class Software(SimComponent):
         """
         super().apply_timestep(timestep)
         if self.health_state_actual == SoftwareHealthState.PATCHING:
-            self._update_patch_status()
+            self._update_fix_status()
 
 
 class IOSoftware(Software):
