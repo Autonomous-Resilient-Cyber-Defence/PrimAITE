@@ -28,3 +28,9 @@ class Server(HostNode):
     * Applications:
         * Web Browser
     """
+
+
+class Printer(HostNode):
+    """Printer? I don't even know her!."""
+
+    # TODO: Implement printer-specific behaviour

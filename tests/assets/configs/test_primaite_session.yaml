@@ -681,6 +681,12 @@ simulation:
       - ref: client_2_dns_client
         type: DNSClient
 
+    - ref: HP_LaserJet_Pro_4102fdn_printer
+      type: printer
+      hostname: HP_LaserJet_Pro_4102fdn_printer
+      ip_address: 192.168.10.99
+      subnet_mask: 255.255.255.0
+
     links:
     - ref: router_1___switch_1
       endpoint_a_ref: router_1
