@@ -1441,6 +1441,8 @@ class Router(NetworkNode):
                     protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
                     src_ip_address=r_cfg.get("src_ip"),
                     dst_ip_address=r_cfg.get("dst_ip"),
+                    src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
+                    dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                     position=r_num,
                 )
         if "routes" in cfg:
