@@ -29,7 +29,7 @@ class TestPrimaiteSession:
             assert session.env
 
             assert session.env.game.simulation.network
-            assert len(session.env.game.simulation.network.nodes) == 10
+            assert len(session.env.game.simulation.network.nodes) == 11
 
     @pytest.mark.skip(reason="Session is not being maintained and will be removed in the subsequent beta release.")
     @pytest.mark.parametrize("temp_primaite_session", [[CFG_PATH]], indirect=True)
