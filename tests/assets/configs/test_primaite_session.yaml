@@ -687,6 +687,33 @@ simulation:
       ip_address: 192.168.10.99
       subnet_mask: 255.255.255.0
 
+    - ref: router_2
+      type: wireless_router
+      hostname: router_2
+      router_interface:
+        ip_address: 192.169.1.1
+        subnet_mask: 255.255.255.0
+      wireless_access_point:
+        ip_address: 192.169.1.1
+        subnet_mask: 255.255.255.0
+        frequency: WIFI_2_4
+      acl:
+        0:
+          action: PERMIT
+          src_port: POSTGRES_SERVER
+          dst_port: POSTGRES_SERVER
+        1:
+          action: PERMIT
+          src_port: DNS
+          dst_port: DNS
+        22:
+          action: PERMIT
+          src_port: ARP
+          dst_port: ARP
+        23:
+          action: PERMIT
+          protocol: ICMP
+
     links:
     - ref: router_1___switch_1
       endpoint_a_ref: router_1

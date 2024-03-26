@@ -1418,7 +1418,7 @@ class Router(NetworkNode):
         :return: Configured router.
         :rtype: Router
         """
-        router = Router(
+        router = cls(
             hostname=cfg["hostname"],
             num_ports=int(cfg.get("num_ports", "5")),
             operating_state=NodeOperatingState.ON
