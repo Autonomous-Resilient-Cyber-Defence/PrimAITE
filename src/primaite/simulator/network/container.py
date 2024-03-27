@@ -8,6 +8,7 @@ from prettytable import MARKDOWN, PrettyTable
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.hardware.base import Link, Node, WiredNetworkInterface
+from primaite.simulator.network.hardware.nodes.host.server import Printer
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.service import Service
 
@@ -110,6 +111,16 @@ class Network(SimComponent):
         """The Firewalls in the Network."""
         return [node for node in self.nodes.values() if node.__class__.__name__ == "Firewall"]
 
+    @property
+    def printer_nodes(self) -> List[Node]:
+        """The printers on the network."""
+        return [node for node in self.nodes.values() if isinstance(node, Printer)]
+
+    @property
+    def wireless_router_nodes(self) -> List[Node]:
+        """The Routers in the Network."""
+        return [node for node in self.nodes.values() if node.__class__.__name__ == "WirelessRouter"]
+
     def show(self, nodes: bool = True, ip_addresses: bool = True, links: bool = True, markdown: bool = False):
         """
         Print tables describing the Network.
@@ -128,6 +139,8 @@ class Network(SimComponent):
             "Switch": self.switch_nodes,
             "Server": self.server_nodes,
             "Computer": self.computer_nodes,
+            "Printer": self.printer_nodes,
+            "Wireless Router": self.wireless_router_nodes,
         }
         if nodes:
             table = PrettyTable(["Node", "Type", "Operating State"])

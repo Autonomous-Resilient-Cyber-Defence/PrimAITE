@@ -1,10 +1,14 @@
+from ipaddress import IPv4Address
 from typing import Any, Dict, Union
 
 from pydantic import validate_call
 
 from primaite.simulator.network.airspace import AirSpaceFrequency, IPWirelessNetworkInterface
-from primaite.simulator.network.hardware.nodes.network.router import Router, RouterInterface
+from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router, RouterInterface
 from primaite.simulator.network.transmission.data_link_layer import Frame
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.utils.validators import IPV4Address
 
 
@@ -209,3 +213,68 @@ class WirelessRouter(Router):
         raise NotImplementedError(
             "Please use the 'configure_wireless_access_point' and 'configure_router_interface' functions."
         )
+
+    @classmethod
+    def from_config(cls, cfg: Dict) -> "WirelessRouter":
+        """Generate the wireless router from config.
+
+        Schema:
+          - hostname (str): unique name for this router.
+          - router_interface (dict): The values should be another dict specifying
+                - ip_address (str)
+                - subnet_mask (str)
+          - wireless_access_point (dict): Dict with
+                - ip address,
+                - subnet mask,
+                - frequency, (string: either WIFI_2_4 or WIFI_5)
+          - acl (dict): Dict with integers from 1 - max_acl_rules as keys. The key defines the position within the ACL
+                where the rule will be added (lower number is resolved first). The values should describe valid ACL
+                Rules as:
+              - action (str): either PERMIT or DENY
+              - src_port (str, optional): the named port such as HTTP, HTTPS, or POSTGRES_SERVER
+              - dst_port (str, optional): the named port such as HTTP, HTTPS, or POSTGRES_SERVER
+              - protocol (str, optional): the named IP protocol such as ICMP, TCP, or UDP
+              - src_ip_address (str, optional): IP address octet written in base 10
+              - dst_ip_address (str, optional): IP address octet written in base 10
+
+        :param cfg: Config dictionary
+        :type cfg: Dict
+        :return: WirelessRouter instance.
+        :rtype: WirelessRouter
+        """
+        operating_state = (
+            NodeOperatingState.ON if not (p := cfg.get("operating_state")) else NodeOperatingState[p.upper()]
+        )
+        router = cls(hostname=cfg["hostname"], operating_state=operating_state)
+        if "router_interface" in cfg:
+            ip_address = cfg["router_interface"]["ip_address"]
+            subnet_mask = cfg["router_interface"]["subnet_mask"]
+            router.configure_router_interface(ip_address=ip_address, subnet_mask=subnet_mask)
+        if "wireless_access_point" in cfg:
+            ip_address = cfg["wireless_access_point"]["ip_address"]
+            subnet_mask = cfg["wireless_access_point"]["subnet_mask"]
+            frequency = AirSpaceFrequency[cfg["wireless_access_point"]["frequency"]]
+            router.configure_wireless_access_point(ip_address=ip_address, subnet_mask=subnet_mask, frequency=frequency)
+
+        if "acl" in cfg:
+            for r_num, r_cfg in cfg["acl"].items():
+                router.acl.add_rule(
+                    action=ACLAction[r_cfg["action"]],
+                    src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
+                    dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
+                    protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                    src_ip_address=r_cfg.get("src_ip"),
+                    dst_ip_address=r_cfg.get("dst_ip"),
+                    src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
+                    dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
+                    position=r_num,
+                )
+        if "routes" in cfg:
+            for route in cfg.get("routes"):
+                router.route_table.add_route(
+                    address=IPv4Address(route.get("address")),
+                    subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),
+                    next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
+                    metric=float(route.get("metric", 0)),
+                )
+        return router
