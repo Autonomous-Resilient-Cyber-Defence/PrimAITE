@@ -177,12 +177,53 @@ agents:
     type: ProxyAgent
 
     observation_space:
+      - type: NODES
+        label: NODES # What is the dictionary key called
+        options:
+          hosts:
+            - hostname: domain_controller
+            - hostname: web_server
+            - hostname: database_server
+            - hostname: backup_server
+            - hostname: security_suite
+            - hostname: client_1
+            - hostname: client_2
+          routers:
+            - hostname: router_1
+          firewalls: {}
+
+          num_host_services: 1
+          num_host_applications: 0
+          num_host_folders: 1
+          num_host_files: 1
+          num_host_network_interfaces: 2
+          num_router_ports: 4
+          num_acl_rules: 10
+          num_firewall_ports: 4
+          firewalls_internal_inbound_acl: true
+          firewalls_internal_outbound_acl: true
+          firewalls_dmz_inbound_acl: true
+          firewalls_dmz_outbound_acl: true
+          firewalls_external_inbound_acl: true
+          firewalls_external_outbound_acl: true
+      - type: LINKS
+        label: "LINKS"
+        options:
+          links:
+            - link_ref: router_1___switch_1
+            - link_ref: router_1___switch_2
+            - link_ref: switch_1___domain_controller
+            - link_ref: switch_1___web_server
+            - link_ref: switch_1___database_server
+            - link_ref: switch_1___backup_server
+            - link_ref: switch_1___security_suite
+            - link_ref: switch_2___client_1
+            - link_ref: switch_2___client_2
+            - link_ref: switch_2___security_suite
+
+    observation_space:
       type: UC2BlueObservation
       options:
-        num_services_per_node: 1
-        num_folders_per_node: 1
-        num_files_per_folder: 1
-        num_nics_per_node: 2
         nodes:
         - node_hostname: domain_controller
           services:
