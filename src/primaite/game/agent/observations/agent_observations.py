@@ -2,7 +2,7 @@ from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from gymnasium import spaces
 
-from primaite.game.agent.observations.node_observations import NodeObservation
+from primaite.game.agent.observations.host import NodeObservation
 from primaite.game.agent.observations.observations import (
     AbstractObservation,
     AclObservation,
@@ -136,53 +136,3 @@ class UC2BlueObservation(AbstractObservation):
         new = cls(nodes=nodes, links=links, acl=acl, ics=ics, where=["network"])
         return new
 
-
-class UC2RedObservation(AbstractObservation):
-    """Container for all observations used by the red agent in UC2."""
-
-    def __init__(self, nodes: List[NodeObservation], where: Optional[List[str]] = None) -> None:
-        super().__init__()
-        self.where: Optional[List[str]] = where
-        self.nodes: List[NodeObservation] = nodes
-
-        self.default_observation: Dict = {
-            "NODES": {i + 1: n.default_observation for i, n in enumerate(self.nodes)},
-        }
-
-    def observe(self, state: Dict) -> Dict:
-        """Generate observation based on the current state of the simulation."""
-        if self.where is None:
-            return self.default_observation
-
-        obs = {}
-        obs["NODES"] = {i + 1: node.observe(state) for i, node in enumerate(self.nodes)}
-        return obs
-
-    @property
-    def space(self) -> spaces.Space:
-        """Gymnasium space object describing the observation space shape."""
-        return spaces.Dict(
-            {
-                "NODES": spaces.Dict({i + 1: node.space for i, node in enumerate(self.nodes)}),
-            }
-        )
-
-    @classmethod
-    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "UC2RedObservation":
-        """
-        Create UC2 red observation from a config.
-
-        :param config: Dictionary containing the configuration for this UC2 red observation.
-        :type config: Dict
-        :param game: Reference to the PrimaiteGame object that spawned this observation.
-        :type game: PrimaiteGame
-        """
-        node_configs = config["nodes"]
-        nodes = [NodeObservation.from_config(config=cfg, game=game) for cfg in node_configs]
-        return cls(nodes=nodes, where=["network"])
-
-
-class UC2GreenObservation(NullObservation):
-    """Green agent observation. As the green agent's actions don't depend on the observation, this is empty."""
-
-    pass

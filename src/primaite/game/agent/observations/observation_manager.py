@@ -2,11 +2,6 @@ from typing import Dict, TYPE_CHECKING
 
 from gymnasium.core import ObsType
 
-from primaite.game.agent.observations.agent_observations import (
-    UC2BlueObservation,
-    UC2GreenObservation,
-    UC2RedObservation,
-)
 from primaite.game.agent.observations.observations import AbstractObservation
 
 if TYPE_CHECKING:
@@ -63,11 +58,10 @@ class ObservationManager:
         :param game: Reference to the PrimaiteGame object that spawned this observation.
         :type game: PrimaiteGame
         """
-        if config["type"] == "UC2BlueObservation":
-            return cls(UC2BlueObservation.from_config(config.get("options", {}), game=game))
-        elif config["type"] == "UC2RedObservation":
-            return cls(UC2RedObservation.from_config(config.get("options", {}), game=game))
-        elif config["type"] == "UC2GreenObservation":
-            return cls(UC2GreenObservation.from_config(config.get("options", {}), game=game))
-        else:
-            raise ValueError("Observation space type invalid")
+
+        for obs_cfg in config:
+            obs_type = obs_cfg['type']
+            obs_class = AbstractObservation._registry[obs_type]
+        observation = obs_class.from_config(obs_class.ConfigSchema(**obs_cfg['options']))
+        obs_manager = cls(observation)
+        return obs_manager

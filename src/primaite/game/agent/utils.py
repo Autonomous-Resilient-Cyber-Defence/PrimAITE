@@ -1,4 +1,4 @@
-from typing import Any, Dict, Hashable, Sequence
+from typing import Any, Dict, Hashable, Optional, Sequence
 
 NOT_PRESENT_IN_STATE = object()
 """
@@ -7,7 +7,7 @@ the thing requested in the state could equal None. This NOT_PRESENT_IN_STATE is 
 """
 
 
-def access_from_nested_dict(dictionary: Dict, keys: Sequence[Hashable]) -> Any:
+def access_from_nested_dict(dictionary: Dict, keys: Optional[Sequence[Hashable]]) -> Any:
     """
     Access an item from a deeply dictionary with a list of keys.
 
@@ -21,6 +21,8 @@ def access_from_nested_dict(dictionary: Dict, keys: Sequence[Hashable]) -> Any:
     :return: The value in the dictionary
     :rtype: Any
     """
+    if keys is None:
+        return NOT_PRESENT_IN_STATE
     key_list = [*keys]  # copy keys to a new list to prevent editing original list
     if len(key_list) == 0:
         return dictionary

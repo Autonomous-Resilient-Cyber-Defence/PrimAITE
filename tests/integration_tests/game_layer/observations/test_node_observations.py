@@ -4,7 +4,7 @@ from uuid import uuid4
 import pytest
 from gymnasium import spaces
 
-from primaite.game.agent.observations.node_observations import NodeObservation
+from primaite.game.agent.observations.host import NodeObservation
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.sim_container import Simulation
 
