@@ -140,7 +140,7 @@ class Network(SimComponent):
             "Server": self.server_nodes,
             "Computer": self.computer_nodes,
             "Printer": self.printer_nodes,
-            "Wireless Router": self.wireless_routers,
+            "Wireless Router": self.wireless_router_nodes,
         }
         if nodes:
             table = PrettyTable(["Node", "Type", "Operating State"])
