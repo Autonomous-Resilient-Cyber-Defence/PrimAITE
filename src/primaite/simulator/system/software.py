@@ -88,7 +88,7 @@ class Software(SimComponent):
     "The count of times the software has been scanned, defaults to 0."
     revealed_to_red: bool = False
     "Indicates if the software has been revealed to red agent, defaults is False."
-    software_manager: "SoftwareManager" = None
+    software_manager: Optional["SoftwareManager"] = None
     "An instance of Software Manager that is used by the parent node."
     sys_log: SysLog = None
     "An instance of SysLog that is used by the parent node."

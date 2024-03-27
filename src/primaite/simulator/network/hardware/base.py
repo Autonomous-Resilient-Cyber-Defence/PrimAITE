@@ -5,7 +5,7 @@ import secrets
 from abc import ABC, abstractmethod
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Type, TypeVar, Union
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel, Field
@@ -35,7 +35,10 @@ from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.processes.process import Process
 from primaite.simulator.system.services.service import Service
+from primaite.simulator.system.software import IOSoftware
 from primaite.utils.validators import IPV4Address
+
+IOSoftwareClass = TypeVar("IOSoftwareClass", bound=IOSoftware)
 
 _LOGGER = getLogger(__name__)
 
@@ -843,11 +846,55 @@ class Node(SimComponent):
         )
         rm.add_request("os", RequestType(func=self._os_request_manager, validator=_node_is_on))
 
+        self._software_manager = RequestManager()
+        rm.add_request("software_manager", RequestType(func=self._software_manager, validator=_node_is_on))
+        self._application_manager = RequestManager()
+        self._software_manager.add_request(name="application", request_type=RequestType(func=self._application_manager))
+
+        self._application_manager.add_request(
+            name="install",
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.application_install_action(
+                        application=self._read_application_type(request[0]), ip_address=request[1]
+                    )
+                )
+            ),
+        )
+
+        self._application_manager.add_request(
+            name="uninstall",
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.application_uninstall_action(application=self._read_application_type(request[0]))
+                )
+            ),
+        )
+
         return rm
 
     def _install_system_software(self):
         """Install System Software - software that is usually provided with the OS."""
         pass
+
+    def _read_application_type(self, application_class_str: str) -> Type[IOSoftwareClass]:
+        """Wrapper that converts the string from the request manager into the appropriate class for the application."""
+        if application_class_str.lower() == "DoSBot".lower():
+            from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
+
+            return DoSBot
+        elif application_class_str.lower() == "DataManipulationBot".lower():
+            from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
+                DataManipulationBot,
+            )
+
+            return DataManipulationBot
+        elif application_class_str.lower() == "WebBrowser".lower():
+            from primaite.simulator.system.applications.web_browser import WebBrowser
+
+            return WebBrowser
+        else:
+            return 0
 
     def describe_state(self) -> Dict:
         """
@@ -1256,6 +1303,78 @@ class Node(SimComponent):
         self.sys_log.info(f"Uninstalled application {application.name}")
         _LOGGER.info(f"Removed application {application.name} from node {self.hostname}")
         self._application_request_manager.remove_request(application.name)
+
+    def application_install_action(self, application: Application, ip_address: Optional[str] = None) -> bool:
+        """
+        Install an application on this node and configure it.
+
+        This method is useful for allowing agents to take this action.
+
+        :param application: Application instance that has not been installed on any node yet.
+        :type application: Application
+        :parm
+        """
+        if application in self:
+            _LOGGER.warning(
+                f"Can't add application {application.__name__}" + f"to node {self.hostname}. It's already installed."
+            )
+        self.software_manager.install(application)
+
+        application_instance = self.software_manager.software.get(str(application.__name__))
+        self.applications[application_instance.uuid] = application_instance
+        application.parent = self
+        self.sys_log.info(f"Installed application {application.__name__}")
+        _LOGGER.debug(f"Added application {application.__name__} to node {self.hostname}")
+        self._application_request_manager.add_request(
+            application_instance.name, RequestType(func=application_instance._request_manager)
+        )
+
+        # Configure application if additional parameters are given
+        if ip_address:
+            from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
+                DataManipulationBot,
+            )
+            from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
+
+            if application == DoSBot:
+                application_instance.configure(target_ip_address=IPv4Address(ip_address))
+            elif application == DataManipulationBot:
+                application_instance.configure(server_ip_address=IPv4Address(ip_address))
+            else:
+                pass
+
+        if application in self:
+            return True
+        else:
+            return False
+
+    def application_uninstall_action(self, application: Application) -> bool:
+        """
+        Uninstall and completely remove application from this node.
+
+        This method is useful for allowing agents to take this action.
+
+        :param application: Application object that is currently associated with this node.
+        :type application: Application
+        """
+        if application.__name__ not in self.software_manager.software:
+            _LOGGER.warning(
+                f"Can't remove application {application.__name__}" + f"from node {self.hostname}. It's not installed."
+            )
+            return True
+        application_instance = self.software_manager.software.get(
+            str(application.__name__)
+        )  # This works because we can't have two applications with the same name on the same node
+        self.applications.pop(application_instance.uuid)
+        application.parent = None
+        self.sys_log.info(f"Uninstalled application {application.__name__}")
+        _LOGGER.info(f"Removed application {application.__name__} from node {self.hostname}")
+        self._application_request_manager.remove_request(application_instance.name)
+        self.software_manager.uninstall(application_instance.name)
+        if application_instance.name not in self.software_manager.software:
+            return True
+        else:
+            return False
 
     def _shut_down_actions(self):
         """Actions to perform when the node is shut down."""
