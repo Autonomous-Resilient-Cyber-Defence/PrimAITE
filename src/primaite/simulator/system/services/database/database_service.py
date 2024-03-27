@@ -304,8 +304,8 @@ class DatabaseService(Service):
             self.backup_database()
         return super().apply_timestep(timestep)
 
-    def _update_patch_status(self) -> None:
-        """Perform a database restore when the patching countdown is finished."""
-        super()._update_patch_status()
-        if self._patching_countdown is None:
+    def _update_fix_status(self) -> None:
+        """Perform a database restore when the FIXING countdown is finished."""
+        super()._update_fix_status()
+        if self._fixing_countdown is None:
             self.restore_backup()

@@ -156,12 +156,12 @@ class NodeServiceEnableAction(NodeServiceAbstractAction):
         self.verb: str = "enable"
 
 
-class NodeServicePatchAction(NodeServiceAbstractAction):
-    """Action which patches a service."""
+class NodeServiceFixAction(NodeServiceAbstractAction):
+    """Action which fixes a service."""
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_services: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_services=num_services)
-        self.verb: str = "patch"
+        self.verb: str = "fix"
 
 
 class NodeApplicationAbstractAction(AbstractAction):
@@ -193,6 +193,30 @@ class NodeApplicationExecuteAction(NodeApplicationAbstractAction):
     def __init__(self, manager: "ActionManager", num_nodes: int, num_applications: int, **kwargs) -> None:
         super().__init__(manager=manager, num_nodes=num_nodes, num_applications=num_applications)
         self.verb: str = "execute"
+
+
+class NodeApplicationScanAction(NodeApplicationAbstractAction):
+    """Action which scans an application."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_applications: int, **kwargs) -> None:
+        super().__init__(manager=manager, num_nodes=num_nodes, num_applications=num_applications)
+        self.verb: str = "scan"
+
+
+class NodeApplicationCloseAction(NodeApplicationAbstractAction):
+    """Action which closes an application."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_applications: int, **kwargs) -> None:
+        super().__init__(manager=manager, num_nodes=num_nodes, num_applications=num_applications)
+        self.verb: str = "close"
+
+
+class NodeApplicationFixAction(NodeApplicationAbstractAction):
+    """Action which fixes an application."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_applications: int, **kwargs) -> None:
+        super().__init__(manager=manager, num_nodes=num_nodes, num_applications=num_applications)
+        self.verb: str = "fix"
 
 
 class NodeFolderAbstractAction(AbstractAction):
@@ -629,8 +653,11 @@ class ActionManager:
         "NODE_SERVICE_RESTART": NodeServiceRestartAction,
         "NODE_SERVICE_DISABLE": NodeServiceDisableAction,
         "NODE_SERVICE_ENABLE": NodeServiceEnableAction,
-        "NODE_SERVICE_PATCH": NodeServicePatchAction,
+        "NODE_SERVICE_FIX": NodeServiceFixAction,
         "NODE_APPLICATION_EXECUTE": NodeApplicationExecuteAction,
+        "NODE_APPLICATION_SCAN": NodeApplicationScanAction,
+        "NODE_APPLICATION_CLOSE": NodeApplicationCloseAction,
+        "NODE_APPLICATION_FIX": NodeApplicationFixAction,
         "NODE_FILE_SCAN": NodeFileScanAction,
         "NODE_FILE_CHECKHASH": NodeFileCheckhashAction,
         "NODE_FILE_DELETE": NodeFileDeleteAction,

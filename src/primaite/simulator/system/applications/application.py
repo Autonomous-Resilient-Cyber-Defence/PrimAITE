@@ -3,6 +3,8 @@ from enum import Enum
 from typing import Any, Dict, Set
 
 from primaite import getLogger
+from primaite.interface.request import RequestResponse
+from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 _LOGGER = getLogger(__name__)
@@ -37,6 +39,17 @@ class Application(IOSoftware):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
+        rm = super()._init_request_manager()
+
+        rm.add_request("close", RequestType(func=lambda request, context: RequestResponse.from_bool(self.close())))
+        return rm
 
     @abstractmethod
     def describe_state(self) -> Dict:
@@ -104,11 +117,12 @@ class Application(IOSoftware):
         """The main application loop."""
         pass
 
-    def close(self) -> None:
+    def close(self) -> bool:
         """Close the Application."""
         if self.operating_state == ApplicationOperatingState.RUNNING:
             self.sys_log.info(f"Closed Application{self.name}")
             self.operating_state = ApplicationOperatingState.CLOSED
+        return True
 
     def install(self) -> None:
         """Install Application."""

@@ -246,7 +246,7 @@ agents:
         - type: NODE_SERVICE_RESTART
         - type: NODE_SERVICE_DISABLE
         - type: NODE_SERVICE_ENABLE
-        - type: NODE_SERVICE_PATCH
+        - type: NODE_SERVICE_FIX
         - type: NODE_FILE_SCAN
         - type: NODE_FILE_CHECKHASH
         - type: NODE_FILE_DELETE
@@ -341,7 +341,7 @@ agents:
               folder_id: 0
               file_id: 0
           13:
-            action: "NODE_SERVICE_PATCH"
+            action: "NODE_SERVICE_FIX"
             options:
               node_id: 2
               service_id: 0
@@ -797,7 +797,7 @@ agents:
         - type: NODE_SERVICE_RESTART
         - type: NODE_SERVICE_DISABLE
         - type: NODE_SERVICE_ENABLE
-        - type: NODE_SERVICE_PATCH
+        - type: NODE_SERVICE_FIX
         - type: NODE_FILE_SCAN
         - type: NODE_FILE_CHECKHASH
         - type: NODE_FILE_DELETE
@@ -892,7 +892,7 @@ agents:
               folder_id: 0
               file_id: 0
           13:
-            action: "NODE_SERVICE_PATCH"
+            action: "NODE_SERVICE_FIX"
             options:
               node_id: 2
               service_id: 0
