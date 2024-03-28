@@ -107,6 +107,7 @@ SessionManager.
 - Ability to add ``Router``/``Firewall`` ``ACLRule`` via config
 - NMNE capturing capabilities to `NetworkInterface` class for detecting and logging Malicious Network Events.
 - New `nmne_config` settings in the simulation configuration to enable NMNE capturing and specify keywords such as "DELETE".
+- Router-specific SessionManager Implementation: Introduced a specialized version of the SessionManager tailored for router operations. This enhancement enables the SessionManager to determine the routing path by consulting the route table.
 
 ### Changed
 - Integrated the RouteTable into the Routers frame processing.

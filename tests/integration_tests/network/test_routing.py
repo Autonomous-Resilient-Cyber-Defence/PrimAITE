@@ -152,6 +152,17 @@ def test_with_routes_can_ping(multi_hop_network):
     assert pc_a.ping(pc_b.network_interface[1].ip_address)
 
 
+def test_ping_router_port_multi_hop(multi_hop_network):
+    pc_a = multi_hop_network.get_node_by_hostname("pc_a")
+    router_2 = multi_hop_network.get_node_by_hostname("router_2")
+
+    router_2.route_table.add_route(
+        address="192.168.0.0", subnet_mask="255.255.255.0", next_hop_ip_address="192.168.1.1"
+    )
+
+    assert pc_a.ping(router_2.network_interface[1].ip_address)
+
+
 def test_routing_services(multi_hop_network):
     pc_a = multi_hop_network.get_node_by_hostname("pc_a")
 

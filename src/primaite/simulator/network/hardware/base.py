@@ -889,8 +889,9 @@ class Node(SimComponent):
         table.align = "l"
         table.title = f"{self.hostname} Open Ports"
         for port in self.software_manager.get_open_ports():
-            table.add_row([port.value, port.name])
-        print(table)
+            if port.value > 0:
+                table.add_row([port.value, port.name])
+        print(table.get_string(sortby="Port"))
 
     @property
     def has_enabled_network_interface(self) -> bool:
@@ -918,7 +919,7 @@ class Node(SimComponent):
             table.add_row(
                 [
                     port,
-                    type(network_interface),
+                    network_interface.__class__.__name__,
                     network_interface.mac_address,
                     f"{network_interface.ip_address}/{network_interface.ip_network.prefixlen}",
                     network_interface.speed,
