@@ -849,7 +849,9 @@ class Node(SimComponent):
         self._software_request_manager = RequestManager()
         rm.add_request("software_manager", RequestType(func=self._software_request_manager, validator=_node_is_on))
         self._application_manager = RequestManager()
-        self._software_request_manager.add_request(name="application", request_type=RequestType(func=self._application_manager))
+        self._software_request_manager.add_request(
+            name="application", request_type=RequestType(func=self._application_manager)
+        )
 
         self._application_manager.add_request(
             name="install",
@@ -1321,8 +1323,9 @@ class Node(SimComponent):
             _LOGGER.warning(
                 f"Can't add application {application.__name__}" + f"to node {self.hostname}. It's already installed."
             )
-        self.software_manager.install(application)
+            return True
 
+        self.software_manager.install(application)
         application_instance = self.software_manager.software.get(str(application.__name__))
         self.applications[application_instance.uuid] = application_instance
         self.sys_log.info(f"Installed application {application_instance.name}")
@@ -1360,14 +1363,11 @@ class Node(SimComponent):
                 f"Can't remove application {application.__name__}" + f"from node {self.hostname}. It's not installed."
             )
             return True
+
         application_instance = self.software_manager.software.get(
             str(application.__name__)
         )  # This works because we can't have two applications with the same name on the same node
-        self.applications.pop(application_instance.uuid)
-        application_instance.parent = None
-        self.sys_log.info(f"Uninstalled application {application_instance.name}")
-        _LOGGER.info(f"Removed application {application_instance.name} from node {self.hostname}")
-        self._application_request_manager.remove_request(application_instance.name)
+        self.uninstall_application(application_instance)
         self.software_manager.uninstall(application_instance.name)
 
         if application_instance.name not in self.software_manager.software:
