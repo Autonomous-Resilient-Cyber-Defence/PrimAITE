@@ -51,13 +51,27 @@ def test_application_install_uninstall_on_uc2():
     _, _, _, _, _ = env.step(0)
     domcon = env.game.simulation.network.get_node_by_hostname("domain_controller")
 
-    _, _, _, _, _ = env.step(78)
+    # Test we cannot execute the DoSBot app as it is not installed yet
+    _, _, _, _, info = env.step(81)
+    assert info["agent_actions"]["defender"].response.status == "unreachable"
+
+    # Test we can Install the DoSBot app
+    _, _, _, _, info = env.step(78)
     assert "DoSBot" in domcon.software_manager.software
 
-    _, _, _, _, _ = env.step(79)
+    # Test we can now execute the DoSBot app
+    _, _, _, _, info = env.step(81)
+    assert info["agent_actions"]["defender"].response.status == "success"
 
+    # Test we can Uninstall the DoSBot app
+    _, _, _, _, info = env.step(79)
     assert "DoSBot" not in domcon.software_manager.software
-    assert "WebBrowser" in domcon.software_manager.software
 
-    _, _, _, _, _ = env.step(80)
+    # Test we cannot execute the DoSBot app as it was uninstalled
+    _, _, _, _, info = env.step(81)
+    assert info["agent_actions"]["defender"].response.status == "unreachable"
+
+    # Test we can uninstall one of the default apps (WebBrowser)
+    assert "WebBrowser" in domcon.software_manager.software
+    _, _, _, _, info = env.step(80)
     assert "WebBrowser" not in domcon.software_manager.software

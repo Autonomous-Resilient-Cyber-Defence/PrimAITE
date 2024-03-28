@@ -1343,7 +1343,7 @@ class Node(SimComponent):
             else:
                 pass
 
-        if application in self:
+        if application_instance.name in self.software_manager.software:
             return True
         else:
             return False
@@ -1367,7 +1367,7 @@ class Node(SimComponent):
         application_instance = self.software_manager.software.get(
             str(application.__name__)
         )  # This works because we can't have two applications with the same name on the same node
-        self.uninstall_application(application_instance)
+        # self.uninstall_application(application_instance)
         self.software_manager.uninstall(application_instance.name)
 
         if application_instance.name not in self.software_manager.software:
@@ -1406,4 +1406,6 @@ class Node(SimComponent):
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Service):
             return item.uuid in self.services
+        elif isinstance(item, Application):
+            return item.uuid in self.applications
         return None
