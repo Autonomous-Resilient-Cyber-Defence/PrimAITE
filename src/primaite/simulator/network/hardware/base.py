@@ -1310,7 +1310,7 @@ class Node(SimComponent):
 
         This method is useful for allowing agents to take this action.
 
-        :param application: Application instance that has not been installed on any node yet.
+        :param application: Application object that has not been installed on any node yet.
         :type application: Application
         :param ip_address: IP address used to configure the application
         (target IP for the DoSBot or server IP for the DataManipulationBot)
