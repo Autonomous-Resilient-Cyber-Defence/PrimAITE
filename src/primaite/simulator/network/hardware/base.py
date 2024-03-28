@@ -846,10 +846,10 @@ class Node(SimComponent):
         )
         rm.add_request("os", RequestType(func=self._os_request_manager, validator=_node_is_on))
 
-        self._software_manager = RequestManager()
-        rm.add_request("software_manager", RequestType(func=self._software_manager, validator=_node_is_on))
+        self._software_request_manager = RequestManager()
+        rm.add_request("software_manager", RequestType(func=self._software_request_manager, validator=_node_is_on))
         self._application_manager = RequestManager()
-        self._software_manager.add_request(name="application", request_type=RequestType(func=self._application_manager))
+        self._software_request_manager.add_request(name="application", request_type=RequestType(func=self._application_manager))
 
         self._application_manager.add_request(
             name="install",
@@ -879,17 +879,17 @@ class Node(SimComponent):
 
     def _read_application_type(self, application_class_str: str) -> Type[IOSoftwareClass]:
         """Wrapper that converts the string from the request manager into the appropriate class for the application."""
-        if application_class_str.lower() == "DoSBot".lower():
+        if application_class_str == "DoSBot":
             from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
 
             return DoSBot
-        elif application_class_str.lower() == "DataManipulationBot".lower():
+        elif application_class_str == "DataManipulationBot":
             from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
                 DataManipulationBot,
             )
 
             return DataManipulationBot
-        elif application_class_str.lower() == "WebBrowser".lower():
+        elif application_class_str == "WebBrowser":
             from primaite.simulator.system.applications.web_browser import WebBrowser
 
             return WebBrowser
