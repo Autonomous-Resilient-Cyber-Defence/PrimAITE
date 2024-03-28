@@ -222,15 +222,11 @@ class NodeApplicationFixAction(NodeApplicationAbstractAction):
 class NodeApplicationInstallAction(AbstractAction):
     """Action which installs an application."""
 
-    def __init__(
-        self, manager: "ActionManager", num_nodes: int, application_name: str, ip_address: str, **kwargs
-    ) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes}
-        self.application_name = application_name
-        self.ip_address = ip_address
 
-    def form_request(self, node_id: int) -> List[str]:
+    def form_request(self, node_id: int, application_name: str, ip_address: str) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None:
@@ -242,25 +238,24 @@ class NodeApplicationInstallAction(AbstractAction):
             "software_manager",
             "application",
             "install",
-            self.application_name,
-            self.ip_address,
+            application_name,
+            ip_address,
         ]
 
 
 class NodeApplicationRemoveAction(AbstractAction):
     """Action which removes/uninstalls an application."""
 
-    def __init__(self, manager: "ActionManager", num_nodes: int, application_name: str, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes}
-        self.application_name = application_name
 
-    def form_request(self, node_id: int) -> List[str]:
+    def form_request(self, node_id: int, application_name: str) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None:
             return ["do_nothing"]
-        return ["network", "node", node_name, "software_manager", "application", "uninstall", self.application_name]
+        return ["network", "node", node_name, "software_manager", "application", "uninstall", application_name]
 
 
 class NodeFolderAbstractAction(AbstractAction):

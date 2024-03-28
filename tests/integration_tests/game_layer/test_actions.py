@@ -470,13 +470,13 @@ def test_node_application_install_and_uninstall_integration(game_and_agent: Tupl
 
     assert client_1.software_manager.software.get("DoSBot") is None
 
-    action = ("NODE_APPLICATION_INSTALL", {"node_id": 0})
+    action = ("NODE_APPLICATION_INSTALL", {"node_id": 0, "application_name": "DoSBot", "ip_address": "192.168.1.14"})
     agent.store_action(action)
     game.step()
 
     assert client_1.software_manager.software.get("DoSBot") is not None
 
-    action = ("NODE_APPLICATION_REMOVE", {"node_id": 0})
+    action = ("NODE_APPLICATION_REMOVE", {"node_id": 0, "application_name": "DoSBot"})
     agent.store_action(action)
     game.step()
 
