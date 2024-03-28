@@ -1312,7 +1312,10 @@ class Node(SimComponent):
 
         :param application: Application instance that has not been installed on any node yet.
         :type application: Application
-        :parm
+        :param ip_address: IP address used to configure the application
+        (target IP for the DoSBot or server IP for the DataManipulationBot)
+        :type ip_address: str
+        :return: True if the application is installed successfully, otherwise False.
         """
         if application in self:
             _LOGGER.warning(
@@ -1356,6 +1359,7 @@ class Node(SimComponent):
 
         :param application: Application object that is currently associated with this node.
         :type application: Application
+        :return: True if the application is uninstalled successfully, otherwise False.
         """
         if application.__name__ not in self.software_manager.software:
             _LOGGER.warning(
