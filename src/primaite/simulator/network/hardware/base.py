@@ -1325,23 +1325,17 @@ class Node(SimComponent):
 
         application_instance = self.software_manager.software.get(str(application.__name__))
         self.applications[application_instance.uuid] = application_instance
-        application.parent = self
-        self.sys_log.info(f"Installed application {application.__name__}")
-        _LOGGER.debug(f"Added application {application.__name__} to node {self.hostname}")
+        self.sys_log.info(f"Installed application {application_instance.name}")
+        _LOGGER.debug(f"Added application {application_instance.name} to node {self.hostname}")
         self._application_request_manager.add_request(
             application_instance.name, RequestType(func=application_instance._request_manager)
         )
 
         # Configure application if additional parameters are given
         if ip_address:
-            from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
-                DataManipulationBot,
-            )
-            from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
-
-            if application == DoSBot:
+            if application_instance.name == "DoSBot":
                 application_instance.configure(target_ip_address=IPv4Address(ip_address))
-            elif application == DataManipulationBot:
+            elif application_instance.name == "DataManipulationBot":
                 application_instance.configure(server_ip_address=IPv4Address(ip_address))
             else:
                 pass
@@ -1370,11 +1364,12 @@ class Node(SimComponent):
             str(application.__name__)
         )  # This works because we can't have two applications with the same name on the same node
         self.applications.pop(application_instance.uuid)
-        application.parent = None
-        self.sys_log.info(f"Uninstalled application {application.__name__}")
-        _LOGGER.info(f"Removed application {application.__name__} from node {self.hostname}")
+        application_instance.parent = None
+        self.sys_log.info(f"Uninstalled application {application_instance.name}")
+        _LOGGER.info(f"Removed application {application_instance.name} from node {self.hostname}")
         self._application_request_manager.remove_request(application_instance.name)
         self.software_manager.uninstall(application_instance.name)
+
         if application_instance.name not in self.software_manager.software:
             return True
         else:
