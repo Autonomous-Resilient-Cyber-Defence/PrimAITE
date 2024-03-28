@@ -480,6 +480,8 @@ def game_and_agent():
         {"type": "NODE_APPLICATION_SCAN"},
         {"type": "NODE_APPLICATION_CLOSE"},
         {"type": "NODE_APPLICATION_FIX"},
+        {"type": "NODE_APPLICATION_INSTALL"},
+        {"type": "NODE_APPLICATION_REMOVE"},
         {"type": "NODE_FILE_SCAN"},
         {"type": "NODE_FILE_CHECKHASH"},
         {"type": "NODE_FILE_DELETE"},
@@ -507,10 +509,16 @@ def game_and_agent():
         nodes=[
             {
                 "node_name": "client_1",
-                "applications": [{"application_name": "WebBrowser"}],
+                "applications": [
+                    {"application_name": "WebBrowser"},
+                    {"application_name": "DoSBot"},
+                ],
                 "folders": [{"folder_name": "downloads", "files": [{"file_name": "cat.png"}]}],
             },
-            {"node_name": "server_1", "services": [{"service_name": "DNSServer"}]},
+            {
+                "node_name": "server_1",
+                "services": [{"service_name": "DNSServer"}],
+            },
             {"node_name": "server_2", "services": [{"service_name": "WebServer"}]},
             {"node_name": "router"},
         ],
