@@ -219,6 +219,45 @@ class NodeApplicationFixAction(NodeApplicationAbstractAction):
         self.verb: str = "fix"
 
 
+class NodeApplicationInstallAction(AbstractAction):
+    """Action which installs an application."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
+        super().__init__(manager=manager)
+        self.shape: Dict[str, int] = {"node_id": num_nodes}
+
+    def form_request(self, node_id: int, application_name: str, ip_address: str) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        return [
+            "network",
+            "node",
+            node_name,
+            "software_manager",
+            "application",
+            "install",
+            application_name,
+            ip_address,
+        ]
+
+
+class NodeApplicationRemoveAction(AbstractAction):
+    """Action which removes/uninstalls an application."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
+        super().__init__(manager=manager)
+        self.shape: Dict[str, int] = {"node_id": num_nodes}
+
+    def form_request(self, node_id: int, application_name: str) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        return ["network", "node", node_name, "software_manager", "application", "uninstall", application_name]
+
+
 class NodeFolderAbstractAction(AbstractAction):
     """
     Base class for folder actions.
@@ -802,6 +841,8 @@ class ActionManager:
         "NODE_APPLICATION_SCAN": NodeApplicationScanAction,
         "NODE_APPLICATION_CLOSE": NodeApplicationCloseAction,
         "NODE_APPLICATION_FIX": NodeApplicationFixAction,
+        "NODE_APPLICATION_INSTALL": NodeApplicationInstallAction,
+        "NODE_APPLICATION_REMOVE": NodeApplicationRemoveAction,
         "NODE_FILE_SCAN": NodeFileScanAction,
         "NODE_FILE_CHECKHASH": NodeFileCheckhashAction,
         "NODE_FILE_DELETE": NodeFileDeleteAction,
