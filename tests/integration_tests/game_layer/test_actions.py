@@ -10,16 +10,24 @@
 # 4. Check that the simulation has changed in the way that I expect.
 # 5. Repeat for all actions.
 
+from ipaddress import IPv4Address
 from typing import Tuple
 
 import pytest
+import yaml
 
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
+from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.software import SoftwareHealthState
+from tests import TEST_ASSETS_ROOT
+
+FIREWALL_ACTIONS_NETWORK = TEST_ASSETS_ROOT / "configs/firewall_actions_network.yaml"
 
 
 def test_do_nothing_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
@@ -458,3 +466,97 @@ def test_node_application_close_integration(game_and_agent: Tuple[PrimaiteGame, 
     game.step()
 
     assert browser.operating_state == ApplicationOperatingState.CLOSED
+
+
+def test_firewall_acl_add_remove_rule_integration():
+    """
+    Test that FirewallACLAddRuleAction and FirewallACLRemoveRuleAction can form a request and that it is accepted by the simulation.
+
+    Check that all the details of the ACL rules are correctly added to each ACL list of the Firewall.
+    Check that rules are removed as expected.
+    """
+    with open(FIREWALL_ACTIONS_NETWORK, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    env = PrimaiteGymEnv(game_config=cfg)
+
+    # 1: Check that traffic is normal and acl starts off with 4 rules.
+    firewall = env.game.simulation.network.get_node_by_hostname("firewall")
+    assert firewall.internal_inbound_acl.num_rules == 2
+    assert firewall.internal_outbound_acl.num_rules == 2
+    assert firewall.dmz_inbound_acl.num_rules == 2
+    assert firewall.dmz_outbound_acl.num_rules == 2
+    assert firewall.external_inbound_acl.num_rules == 1
+    assert firewall.external_outbound_acl.num_rules == 1
+
+    env.step(1)  # Add ACL rule to Internal Inbound
+    assert firewall.internal_inbound_acl.num_rules == 3
+    assert firewall.internal_inbound_acl.acl[1].action.name == "PERMIT"
+    assert firewall.internal_inbound_acl.acl[1].src_ip_address == IPv4Address("192.168.0.10")
+    assert firewall.internal_inbound_acl.acl[1].dst_ip_address is None
+    assert firewall.internal_inbound_acl.acl[1].dst_port is None
+    assert firewall.internal_inbound_acl.acl[1].src_port is None
+    assert firewall.internal_inbound_acl.acl[1].protocol is None
+
+    env.step(2)  # Remove ACL rule from Internal Inbound
+    assert firewall.internal_inbound_acl.num_rules == 2
+
+    env.step(3)  # Add ACL rule to Internal Outbound
+    assert firewall.internal_outbound_acl.num_rules == 3
+    assert firewall.internal_outbound_acl.acl[1].action.name == "DENY"
+    assert firewall.internal_outbound_acl.acl[1].src_ip_address == IPv4Address("192.168.0.10")
+    assert firewall.internal_outbound_acl.acl[1].dst_ip_address is None
+    assert firewall.internal_outbound_acl.acl[1].dst_port == Port.DNS
+    assert firewall.internal_outbound_acl.acl[1].src_port == Port.ARP
+    assert firewall.internal_outbound_acl.acl[1].protocol == IPProtocol.ICMP
+
+    env.step(4)  # Remove ACL rule from Internal Outbound
+    assert firewall.internal_outbound_acl.num_rules == 2
+
+    env.step(5)  # Add ACL rule to DMZ Inbound
+    assert firewall.dmz_inbound_acl.num_rules == 3
+    assert firewall.dmz_inbound_acl.acl[1].action.name == "DENY"
+    assert firewall.dmz_inbound_acl.acl[1].src_ip_address == IPv4Address("192.168.10.10")
+    assert firewall.dmz_inbound_acl.acl[1].dst_ip_address == IPv4Address("192.168.0.10")
+    assert firewall.dmz_inbound_acl.acl[1].dst_port == Port.HTTP
+    assert firewall.dmz_inbound_acl.acl[1].src_port == Port.HTTP
+    assert firewall.dmz_inbound_acl.acl[1].protocol == IPProtocol.UDP
+
+    env.step(6)  # Remove ACL rule from DMZ Inbound
+    assert firewall.dmz_inbound_acl.num_rules == 2
+
+    env.step(7)  # Add ACL rule to DMZ Outbound
+    assert firewall.dmz_outbound_acl.num_rules == 3
+    assert firewall.dmz_outbound_acl.acl[2].action.name == "DENY"
+    assert firewall.dmz_outbound_acl.acl[2].src_ip_address == IPv4Address("192.168.10.10")
+    assert firewall.dmz_outbound_acl.acl[2].dst_ip_address == IPv4Address("192.168.0.10")
+    assert firewall.dmz_outbound_acl.acl[2].dst_port == Port.HTTP
+    assert firewall.dmz_outbound_acl.acl[2].src_port == Port.HTTP
+    assert firewall.dmz_outbound_acl.acl[2].protocol == IPProtocol.TCP
+
+    env.step(8)  # Remove ACL rule from DMZ Outbound
+    assert firewall.dmz_outbound_acl.num_rules == 2
+
+    env.step(9)  # Add ACL rule to External Inbound
+    assert firewall.external_inbound_acl.num_rules == 2
+    assert firewall.external_inbound_acl.acl[10].action.name == "DENY"
+    assert firewall.external_inbound_acl.acl[10].src_ip_address == IPv4Address("192.168.20.10")
+    assert firewall.external_inbound_acl.acl[10].dst_ip_address == IPv4Address("192.168.10.10")
+    assert firewall.external_inbound_acl.acl[10].dst_port == Port.POSTGRES_SERVER
+    assert firewall.external_inbound_acl.acl[10].src_port == Port.POSTGRES_SERVER
+    assert firewall.external_inbound_acl.acl[10].protocol == IPProtocol.ICMP
+
+    env.step(10)  # Remove ACL rule from External Inbound
+    assert firewall.external_inbound_acl.num_rules == 1
+
+    env.step(11)  # Add ACL rule to External Outbound
+    assert firewall.external_outbound_acl.num_rules == 2
+    assert firewall.external_outbound_acl.acl[1].action.name == "DENY"
+    assert firewall.external_outbound_acl.acl[1].src_ip_address == IPv4Address("192.168.20.10")
+    assert firewall.external_outbound_acl.acl[1].dst_ip_address == IPv4Address("192.168.0.10")
+    assert firewall.external_outbound_acl.acl[1].dst_port is None
+    assert firewall.external_outbound_acl.acl[1].src_port is None
+    assert firewall.external_outbound_acl.acl[1].protocol is None
+
+    env.step(12)  # Remove ACL rule from External Outbound
+    assert firewall.external_outbound_acl.num_rules == 1
