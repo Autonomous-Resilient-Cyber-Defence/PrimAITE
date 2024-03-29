@@ -147,8 +147,10 @@ class ACLRule(SimComponent):
         state["action"] = self.action.value
         state["protocol"] = self.protocol.name if self.protocol else None
         state["src_ip_address"] = str(self.src_ip_address) if self.src_ip_address else None
+        state["src_wildcard_mask"] = str(self.src_wildcard_mask) if self.src_wildcard_mask else None
         state["src_port"] = self.src_port.name if self.src_port else None
         state["dst_ip_address"] = str(self.dst_ip_address) if self.dst_ip_address else None
+        state["dst_wildcard_mask"] = str(self.dst_wildcard_mask) if self.dst_wildcard_mask else None
         state["dst_port"] = self.dst_port.name if self.dst_port else None
         state["match_count"] = self.match_count
         return state
