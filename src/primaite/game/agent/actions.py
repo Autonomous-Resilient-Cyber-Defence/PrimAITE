@@ -405,25 +405,22 @@ class NodeResetAction(NodeAbstractAction):
         self.verb: str = "reset"
 
 
-class NetworkACLAddRuleAction(AbstractAction):
+class RouterACLAddRuleAction(AbstractAction):
     """Action which adds a rule to a router's ACL."""
 
     def __init__(
         self,
         manager: "ActionManager",
-        target_router_hostname: str,
         max_acl_rules: int,
         num_ips: int,
         num_ports: int,
         num_protocols: int,
         **kwargs,
     ) -> None:
-        """Init method for NetworkACLAddRuleAction.
+        """Init method for RouterACLAddRuleAction.
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
-        :param target_router_hostname: hostname of the router to which the ACL rule should be added.
-        :type target_router_hostname: str
         :param max_acl_rules: Maximum number of ACL rules that can be added to the router.
         :type max_acl_rules: int
         :param num_ips: Number of IP addresses in the simulation.
@@ -444,10 +441,10 @@ class NetworkACLAddRuleAction(AbstractAction):
             "dest_port_id": num_ports,
             "protocol_id": num_protocols,
         }
-        self.target_router_name: str = target_router_hostname
 
     def form_request(
         self,
+        target_router_nodename: str,
         position: int,
         permission: int,
         source_ip_id: int,
@@ -511,7 +508,7 @@ class NetworkACLAddRuleAction(AbstractAction):
         return [
             "network",
             "node",
-            self.target_router_name,
+            target_router_nodename,
             "acl",
             "add_rule",
             permission_str,
@@ -524,26 +521,23 @@ class NetworkACLAddRuleAction(AbstractAction):
         ]
 
 
-class NetworkACLRemoveRuleAction(AbstractAction):
+class RouterACLRemoveRuleAction(AbstractAction):
     """Action which removes a rule from a router's ACL."""
 
-    def __init__(self, manager: "ActionManager", target_router_hostname: str, max_acl_rules: int, **kwargs) -> None:
-        """Init method for NetworkACLRemoveRuleAction.
+    def __init__(self, manager: "ActionManager", max_acl_rules: int, **kwargs) -> None:
+        """Init method for RouterACLRemoveRuleAction.
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
-        :param target_router_hostname: Hostname of the router from which the ACL rule should be removed.
-        :type target_router_hostname: str
         :param max_acl_rules: Maximum number of ACL rules that can be added to the router.
         :type max_acl_rules: int
         """
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"position": max_acl_rules}
-        self.target_router_name: str = target_router_hostname
 
-    def form_request(self, position: int) -> List[str]:
+    def form_request(self, target_router_nodename: str, position: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["network", "node", self.target_router_name, "acl", "remove_rule", position]
+        return ["network", "node", target_router_nodename, "acl", "remove_rule", position]
 
 
 class NetworkNICAbstractAction(AbstractAction):
@@ -672,8 +666,8 @@ class ActionManager:
         "NODE_SHUTDOWN": NodeShutdownAction,
         "NODE_STARTUP": NodeStartupAction,
         "NODE_RESET": NodeResetAction,
-        "NETWORK_ACL_ADDRULE": NetworkACLAddRuleAction,
-        "NETWORK_ACL_REMOVERULE": NetworkACLRemoveRuleAction,
+        "ROUTER_ACL_ADDRULE": RouterACLAddRuleAction,
+        "ROUTER_ACL_REMOVERULE": RouterACLRemoveRuleAction,
         "NETWORK_NIC_ENABLE": NetworkNICEnableAction,
         "NETWORK_NIC_DISABLE": NetworkNICDisableAction,
         "NETWORK_PORT_ENABLE": NetworkPortEnableAction,

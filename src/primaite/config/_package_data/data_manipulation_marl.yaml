@@ -260,12 +260,8 @@ agents:
         - type: NODE_SHUTDOWN
         - type: NODE_STARTUP
         - type: NODE_RESET
-        - type: NETWORK_ACL_ADDRULE
-          options:
-            target_router_hostname: router_1
-        - type: NETWORK_ACL_REMOVERULE
-          options:
-            target_router_hostname: router_1
+        - type: ROUTER_ACL_ADDRULE
+        - type: ROUTER_ACL_REMOVERULE
         - type: NETWORK_NIC_ENABLE
         - type: NETWORK_NIC_DISABLE
 
@@ -479,8 +475,9 @@ agents:
               node_id: 6
 
           46: # old action num: 22 # "ACL: ADDRULE - Block outgoing traffic from client 1"
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 1
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -489,8 +486,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 1
           47: # old action num: 23 # "ACL: ADDRULE - Block outgoing traffic from client 2"
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 2
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -499,8 +497,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 1
           48: # old action num: 24 # block tcp traffic from client 1 to web app
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 3
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -509,8 +508,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           49: # old action num: 25 # block tcp traffic from client 2 to web app
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 4
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -519,8 +519,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           50: # old action num: 26
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 5
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -529,8 +530,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           51: # old action num: 27
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 6
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -539,44 +541,54 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           52: # old action num: 28
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 0
           53: # old action num: 29
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 1
           54: # old action num: 30
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 2
           55: # old action num: 31
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 3
           56: # old action num: 32
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 4
           57: # old action num: 33
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 5
           58: # old action num: 34
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 6
           59: # old action num: 35
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 7
           60: # old action num: 36
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 8
           61: # old action num: 37
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 9
           62: # old action num: 38
             action: "NETWORK_NIC_DISABLE"
@@ -811,12 +823,12 @@ agents:
         - type: NODE_SHUTDOWN
         - type: NODE_STARTUP
         - type: NODE_RESET
-        - type: NETWORK_ACL_ADDRULE
+        - type: ROUTER_ACL_ADDRULE
           options:
-            target_router_hostname: router_1
-        - type: NETWORK_ACL_REMOVERULE
+            target_router_nodename: router_1
+        - type: ROUTER_ACL_REMOVERULE
           options:
-            target_router_hostname: router_1
+            target_router_nodename: router_1
         - type: NETWORK_NIC_ENABLE
         - type: NETWORK_NIC_DISABLE
 
@@ -1030,8 +1042,9 @@ agents:
               node_id: 6
 
           46: # old action num: 22 # "ACL: ADDRULE - Block outgoing traffic from client 1"
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 1
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -1040,8 +1053,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 1
           47: # old action num: 23 # "ACL: ADDRULE - Block outgoing traffic from client 2"
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 2
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -1050,8 +1064,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 1
           48: # old action num: 24 # block tcp traffic from client 1 to web app
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 3
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -1060,8 +1075,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           49: # old action num: 25 # block tcp traffic from client 2 to web app
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 4
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -1070,8 +1086,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           50: # old action num: 26
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 5
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -1080,8 +1097,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           51: # old action num: 27
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 6
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -1090,44 +1108,54 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           52: # old action num: 28
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 0
           53: # old action num: 29
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 1
           54: # old action num: 30
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 2
           55: # old action num: 31
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 3
           56: # old action num: 32
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 4
           57: # old action num: 33
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 5
           58: # old action num: 34
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 6
           59: # old action num: 35
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 7
           60: # old action num: 36
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 8
           61: # old action num: 37
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 9
           62: # old action num: 38
             action: "NETWORK_NIC_DISABLE"

@@ -93,9 +93,9 @@ def test_node_service_fix_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
     assert svc.health_state_actual == SoftwareHealthState.GOOD
 
 
-def test_network_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     """
-    Test that the NetworkACLAddRuleAction can form a request and that it is accepted by the simulation.
+    Test that the RouterACLAddRuleAction can form a request and that it is accepted by the simulation.
 
     The ACL starts off with 4 rules, and we add a rule, and check that the ACL now has 5 rules.
     """
@@ -112,8 +112,9 @@ def test_network_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Pro
 
     # 2: Add a rule to block client 1 from reaching server 2 on router
     action = (
-        "NETWORK_ACL_ADDRULE",
+        "ROUTER_ACL_ADDRULE",
         {
+            "target_router_nodename": "router",
             "position": 4,  # 4th rule
             "permission": 2,  # DENY
             "source_ip_id": 3,  # 10.0.1.2 (client_1)
@@ -136,8 +137,9 @@ def test_network_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Pro
 
     # 4: Add a rule to block server_1 from reaching server_2 on router (this should not affect comms as they are on same subnet)
     action = (
-        "NETWORK_ACL_ADDRULE",
+        "ROUTER_ACL_ADDRULE",
         {
+            "target_router_nodename": "router",
             "position": 5,  # 5th rule
             "permission": 2,  # DENY
             "source_ip_id": 5,  # 10.0.2.2 (server_1)
@@ -155,8 +157,8 @@ def test_network_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Pro
     assert server_1.ping("10.0.2.3")  # Can ping server_2
 
 
-def test_network_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
-    """Test that the NetworkACLRemoveRuleAction can form a request and that it is accepted by the simulation."""
+def test_router_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that the RouterACLRemoveRuleAction can form a request and that it is accepted by the simulation."""
     game, agent = game_and_agent
 
     # 1: Check that http traffic is going across the network nicely.
@@ -171,8 +173,9 @@ def test_network_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, 
 
     # 2: Remove rule that allows HTTP traffic across the network
     action = (
-        "NETWORK_ACL_REMOVERULE",
+        "ROUTER_ACL_REMOVERULE",
         {
+            "target_router_nodename": "router",
             "position": 3,  # 4th rule
         },
     )

@@ -4,6 +4,7 @@ from typing import Dict, Final, Optional, Union
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import validate_call
 
+# from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import (
     AccessControlList,
@@ -122,6 +123,66 @@ class Firewall(Router):
         self.external_outbound_acl = AccessControlList(
             sys_log=kwargs["sys_log"], implicit_action=ACLAction.PERMIT, name=f"{hostname} - External Outbound"
         )
+
+    # def _init_request_manager(self) -> RequestManager:
+    #     """
+    #     Initialise the request manager.
+
+    #     More information in user guide and docstring for SimComponent._init_request_manager.
+    #     """
+    #     rm = super()._init_request_manager()
+    #     self._internal_acl_request_manager = RequestManager()
+    #     rm.add_request("internal", RequestType(func=self._internal_acl_request_manager))
+
+    #     self._dmz_acl_request_manager = RequestManager()
+    #     rm.add_request("dmz", RequestType(func=self._dmz_acl_request_manager))
+
+    #     self._external_acl_request_manager = RequestManager()
+    #     rm.add_request("external", RequestType(func=self._external_acl_request_manager))
+
+    #     self._internal_inbound_acl_request_manager = RequestManager()
+    #     self._internal_outbound_acl_request_manager = RequestManager()
+    #     self._internal_acl_request_manager.add_request(
+    #         "inbound", RequestType(func=self._internal_inbound_acl_request_manager)
+    #     )
+    #     self._internal_acl_request_manager.add_request(
+    #         "outbound", RequestType(func=self._internal_outbound_acl_request_manager)
+    #     )
+
+    #     self.dmz_inbound_acl_request_manager = RequestManager()
+    #     self.dmz_outbound_acl_request_manager = RequestManager()
+    #     self._dmz_acl_request_manager.add_request("inbound", RequestType(func=self.dmz_inbound_acl_request_manager))
+    #     self._dmz_acl_request_manager.add_request("outbound", RequestType(func=self.dmz_outbound_acl_request_manager))
+
+    #     self.external_inbound_acl_request_manager = RequestManager()
+    #     self.external_outbound_acl_request_manager = RequestManager()
+    #     self._external_acl_request_manager.add_request(
+    #         "inbound", RequestType(func=self.external_inbound_acl_request_manager)
+    #     )
+    #     self._external_acl_request_manager.add_request(
+    #         "outbound", RequestType(func=self.external_outbound_acl_request_manager)
+    #     )
+
+    #     self._internal_inbound_acl_request_manager.add_request(
+    #         "acl", RequestType(func=self.internal_inbound_acl._request_manager)
+    #     )
+    #     self._internal_outbound_acl_request_manager.add_request(
+    #         "acl", RequestType(func=self.internal_outbound_acl._request_manager)
+    #     )
+
+    #  self.dmz_inbound_acl_request_manager.add_request("acl", RequestType(func=self.dmz_inbound_acl._request_manager))
+    #     self.dmz_outbound_acl_request_manager.add_request(
+    #         "acl", RequestType(func=self.dmz_outbound_acl._request_manager)
+    #     )
+
+    #     self.external_inbound_acl_request_manager.add_request(
+    #         "acl", RequestType(func=self.external_inbound_acl._request_manager)
+    #     )
+    #     self.external_outbound_acl_request_manager.add_request(
+    #         "acl", RequestType(func=self.external_outbound_acl._request_manager)
+    #     )
+
+    #     return rm
 
     def describe_state(self) -> Dict:
         """
