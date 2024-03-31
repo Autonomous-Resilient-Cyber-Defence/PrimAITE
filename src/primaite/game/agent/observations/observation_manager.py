@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -120,6 +120,30 @@ class NestedObservation(AbstractObservation, identifier="CUSTOM"):
         return cls(components=instances)
 
 
+class NullObservation(AbstractObservation, identifier="NONE"):
+    """Empty observation that acts as a placeholder."""
+
+    def __init__(self) -> None:
+        """Initialise the empty observation."""
+        self.default_observation = 0
+
+    def observe(self, state: Dict) -> Any:
+        """Simply return 0."""
+        return 0
+
+    @property
+    def space(self) -> spaces.Space:
+        """Essentially empty space."""
+        return spaces.Discrete(1)
+
+    @classmethod
+    def from_config(
+        cls, config: NullObservation.ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []
+    ) -> NullObservation:
+        """Instantiate a NullObservation. Accepts parameters to comply with API."""
+        return cls()
+
+
 class ObservationManager:
     """
     Manage the observations of an Agent.
@@ -156,7 +180,7 @@ class ObservationManager:
         return self.obs.space
 
     @classmethod
-    def from_config(cls, config: Dict, game: "PrimaiteGame") -> "ObservationManager":
+    def from_config(cls, config: Optional[Dict], game: "PrimaiteGame") -> "ObservationManager":
         """
         Create observation space from a config.
 
@@ -168,6 +192,9 @@ class ObservationManager:
         :param game: Reference to the PrimaiteGame object that spawned this observation.
         :type game: PrimaiteGame
         """
+        if config is None:
+            return cls(NullObservation())
+        print(config)
         obs_type = config["type"]
         obs_class = AbstractObservation._registry[obs_type]
         observation = obs_class.from_config(config=obs_class.ConfigSchema(**config["options"]), game=game)

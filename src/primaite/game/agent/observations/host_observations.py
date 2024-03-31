@@ -94,6 +94,8 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         """
         self.where: WhereType = where
 
+        self.include_num_access = include_num_access
+
         # Ensure lists have lengths equal to specified counts by truncating or padding
         self.services: List[ServiceObservation] = services
         while len(self.services) < num_services:
@@ -135,9 +137,10 @@ class HostObservation(AbstractObservation, identifier="HOST"):
             "FOLDERS": {i + 1: f.default_observation for i, f in enumerate(self.folders)},
             "NICS": {i + 1: n.default_observation for i, n in enumerate(self.network_interfaces)},
             "operating_status": 0,
-            "num_file_creations": 0,
-            "num_file_deletions": 0,
         }
+        if self.include_num_access:
+            self.default_observation["num_file_creations"] = 0
+            self.default_observation["num_file_deletions"] = 0
 
     def observe(self, state: Dict) -> ObsType:
         """
@@ -160,8 +163,9 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         obs["NICS"] = {
             i + 1: network_interface.observe(state) for i, network_interface in enumerate(self.network_interfaces)
         }
-        obs["num_file_creations"] = node_state["file_system"]["num_file_creations"]
-        obs["num_file_deletions"] = node_state["file_system"]["num_file_deletions"]
+        if self.include_num_access:
+            obs["num_file_creations"] = node_state["file_system"]["num_file_creations"]
+            obs["num_file_deletions"] = node_state["file_system"]["num_file_deletions"]
         return obs
 
     @property
@@ -180,9 +184,10 @@ class HostObservation(AbstractObservation, identifier="HOST"):
             "NICS": spaces.Dict(
                 {i + 1: network_interface.space for i, network_interface in enumerate(self.network_interfaces)}
             ),
-            "num_file_creations": spaces.Discrete(4),
-            "num_file_deletions": spaces.Discrete(4),
         }
+        if self.include_num_access:
+            shape["num_file_creations"] = spaces.Discrete(4)
+            shape["num_file_deletions"] = spaces.Discrete(4)
         return spaces.Dict(shape)
 
     @classmethod

@@ -132,7 +132,7 @@ class LinksObservation(AbstractObservation, identifier="LINKS"):
         :return: Gymnasium space representing the observation space for multiple links.
         :rtype: spaces.Space
         """
-        return {i + 1: l.space for i, l in enumerate(self.links)}
+        return spaces.Dict({i + 1: l.space for i, l in enumerate(self.links)})
 
     @classmethod
     def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> LinksObservation:

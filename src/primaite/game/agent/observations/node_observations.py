@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict, List, TYPE_CHECKING
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
+from pydantic import model_validator
 
 from primaite import getLogger
 from primaite.game.agent.observations.firewall_observation import FirewallObservation
@@ -28,32 +29,62 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         """List of configurations for router observations."""
         firewalls: List[FirewallObservation.ConfigSchema] = []
         """List of configurations for firewall observations."""
-        num_services: int
+        num_services: Optional[int] = None
         """Number of services."""
-        num_applications: int
+        num_applications: Optional[int] = None
         """Number of applications."""
-        num_folders: int
+        num_folders: Optional[int] = None
         """Number of folders."""
-        num_files: int
+        num_files: Optional[int] = None
         """Number of files."""
-        num_nics: int
+        num_nics: Optional[int] = None
         """Number of network interface cards (NICs)."""
-        include_nmne: bool
+        include_nmne: Optional[bool] = None
         """Flag to include nmne."""
-        include_num_access: bool
+        include_num_access: Optional[bool] = None
         """Flag to include the number of accesses."""
-        num_ports: int
+        num_ports: Optional[int] = None
         """Number of ports."""
-        ip_list: List[str]
+        ip_list: Optional[List[str]] = None
         """List of IP addresses for encoding ACLs."""
-        wildcard_list: List[str]
+        wildcard_list: Optional[List[str]] = None
         """List of IP wildcards for encoding ACLs."""
-        port_list: List[int]
+        port_list: Optional[List[int]] = None
         """List of ports for encoding ACLs."""
-        protocol_list: List[str]
+        protocol_list: Optional[List[str]] = None
         """List of protocols for encoding ACLs."""
-        num_rules: int
+        num_rules: Optional[int] = None
         """Number of rules ACL rules to show."""
+
+        @model_validator(mode="after")
+        def force_optional_fields(self) -> NodesObservation.ConfigSchema:
+            """Check that options are specified only if they are needed for the nodes that are part of the config."""
+            # check for hosts:
+            host_fields = (
+                self.num_services,
+                self.num_applications,
+                self.num_folders,
+                self.num_files,
+                self.num_nics,
+                self.include_nmne,
+                self.include_num_access,
+            )
+            router_fields = (
+                self.num_ports,
+                self.ip_list,
+                self.wildcard_list,
+                self.port_list,
+                self.protocol_list,
+                self.num_rules,
+            )
+            firewall_fields = (self.ip_list, self.wildcard_list, self.port_list, self.protocol_list, self.num_rules)
+            if len(self.hosts) > 0 and any([x is None for x in host_fields]):
+                raise ValueError("Configuration error: Host observation options were not fully specified.")
+            if len(self.routers) > 0 and any([x is None for x in router_fields]):
+                raise ValueError("Configuration error: Router observation options were not fully specified.")
+            if len(self.firewalls) > 0 and any([x is None for x in firewall_fields]):
+                raise ValueError("Configuration error: Firewall observation options were not fully specified.")
+            return self
 
     def __init__(
         self,
