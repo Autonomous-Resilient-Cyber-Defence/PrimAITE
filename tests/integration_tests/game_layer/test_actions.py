@@ -198,8 +198,8 @@ def test_router_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, P
     assert client_1.ping("10.0.2.3")
 
 
-def test_network_nic_disable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
-    """Test that the NetworkNICDisableAction can form a request and that it is accepted by the simulation."""
+def test_host_nic_disable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that the HostNICDisableAction can form a request and that it is accepted by the simulation."""
     game, agent = game_and_agent
 
     # 1: Check that client_1 can access the network
@@ -214,7 +214,7 @@ def test_network_nic_disable_integration(game_and_agent: Tuple[PrimaiteGame, Pro
 
     # 2: Disable the NIC on client_1
     action = (
-        "NETWORK_NIC_DISABLE",
+        "HOST_NIC_DISABLE",
         {
             "node_id": 0,  # client_1
             "nic_id": 0,  # the only nic (eth-1)
@@ -233,8 +233,8 @@ def test_network_nic_disable_integration(game_and_agent: Tuple[PrimaiteGame, Pro
     assert server_1.ping("10.0.2.3")
 
 
-def test_network_nic_enable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
-    """Test that the NetworkNICEnableAction can form a request and that it is accepted by the simulation."""
+def test_host_nic_enable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that the HostNICEnableAction can form a request and that it is accepted by the simulation."""
 
     game, agent = game_and_agent
 
@@ -245,7 +245,7 @@ def test_network_nic_enable_integration(game_and_agent: Tuple[PrimaiteGame, Prox
 
     # 2: Use action to enable nic
     action = (
-        "NETWORK_NIC_ENABLE",
+        "HOST_NIC_ENABLE",
         {
             "node_id": 0,  # client_1
             "nic_id": 0,  # the only nic (eth-1)
@@ -343,8 +343,8 @@ def test_network_router_port_disable_integration(game_and_agent: Tuple[PrimaiteG
     action = (
         "NETWORK_PORT_DISABLE",
         {
-            "node_id": 3,  # router
-            "port_id": 0,  # port 1
+            "target_nodename": "router",  # router
+            "port_id": 1,  # port 1
         },
     )
     agent.store_action(action)
@@ -375,8 +375,8 @@ def test_network_router_port_enable_integration(game_and_agent: Tuple[PrimaiteGa
     action = (
         "NETWORK_PORT_ENABLE",
         {
-            "node_id": 3,  # router
-            "port_id": 0,  # port 1
+            "target_nodename": "router",  # router
+            "port_id": 1,  # port 1
         },
     )
     agent.store_action(action)
@@ -585,3 +585,22 @@ def test_firewall_acl_add_remove_rule_integration():
 
     env.step(12)  # Remove ACL rule from External Outbound
     assert firewall.external_outbound_acl.num_rules == 1
+
+
+def test_firewall_port_disable_enable_integration():
+    """
+    Test that NetworkPortEnableAction and NetworkPortDisableAction can form a request and that it is accepted by the simulation.
+    """
+    with open(FIREWALL_ACTIONS_NETWORK, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    env = PrimaiteGymEnv(game_config=cfg)
+    firewall = env.game.simulation.network.get_node_by_hostname("firewall")
+
+    assert firewall.dmz_port.enabled == True
+
+    env.step(13)  # Disable Firewall DMZ Port
+    assert firewall.dmz_port.enabled == False
+
+    env.step(14)  # Enable Firewall DMZ Port
+    assert firewall.dmz_port.enabled == True

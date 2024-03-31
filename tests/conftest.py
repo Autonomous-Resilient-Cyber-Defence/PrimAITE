@@ -498,8 +498,8 @@ def game_and_agent():
         {"type": "NODE_RESET"},
         {"type": "ROUTER_ACL_ADDRULE"},
         {"type": "ROUTER_ACL_REMOVERULE"},
-        {"type": "NETWORK_NIC_ENABLE"},
-        {"type": "NETWORK_NIC_DISABLE"},
+        {"type": "HOST_NIC_ENABLE"},
+        {"type": "HOST_NIC_DISABLE"},
         {"type": "NETWORK_PORT_ENABLE"},
         {"type": "NETWORK_PORT_DISABLE"},
     ]

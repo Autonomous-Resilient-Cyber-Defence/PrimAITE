@@ -183,8 +183,8 @@ agents:
         - type: NODE_RESET
         - type: ROUTER_ACL_ADDRULE
         - type: ROUTER_ACL_REMOVERULE
-        - type: NETWORK_NIC_ENABLE
-        - type: NETWORK_NIC_DISABLE
+        - type: HOST_NIC_ENABLE
+        - type: HOST_NIC_DISABLE
 
       action_map:
           0:
@@ -415,82 +415,82 @@ agents:
                 target_router_nodename: router_1
                 position: 9
           38:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 0
                 nic_id: 0
           39:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 0
                 nic_id: 0
           40:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 1
                 nic_id: 0
           41:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 1
                 nic_id: 0
           42:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 2
                 nic_id: 0
           43:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 2
                 nic_id: 0
           44:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 3
                 nic_id: 0
           45:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 3
                 nic_id: 0
           46:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 4
                 nic_id: 0
           47:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 4
                 nic_id: 0
           48:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 4
                 nic_id: 1
           49:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 4
                 nic_id: 1
           50:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 5
                 nic_id: 0
           51:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 5
                 nic_id: 0
           52:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 6
                 nic_id: 0
           53:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 6
                 nic_id: 0

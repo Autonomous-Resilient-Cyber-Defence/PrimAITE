@@ -729,7 +729,7 @@ class FirewallACLRemoveRuleAction(AbstractAction):
         ]
 
 
-class NetworkNICAbstractAction(AbstractAction):
+class HostNICAbstractAction(AbstractAction):
     """
     Abstract base class for NIC actions.
 
@@ -738,7 +738,7 @@ class NetworkNICAbstractAction(AbstractAction):
     """
 
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
-        """Init method for NetworkNICAbstractAction.
+        """Init method for HostNICAbstractAction.
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
@@ -760,7 +760,7 @@ class NetworkNICAbstractAction(AbstractAction):
         return ["network", "node", node_name, "network_interface", nic_num, self.verb]
 
 
-class NetworkNICEnableAction(NetworkNICAbstractAction):
+class HostNICEnableAction(HostNICAbstractAction):
     """Action which enables a NIC."""
 
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
@@ -768,7 +768,7 @@ class NetworkNICEnableAction(NetworkNICAbstractAction):
         self.verb: str = "enable"
 
 
-class NetworkNICDisableAction(NetworkNICAbstractAction):
+class HostNICDisableAction(HostNICAbstractAction):
     """Action which disables a NIC."""
 
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
@@ -776,51 +776,42 @@ class NetworkNICDisableAction(NetworkNICAbstractAction):
         self.verb: str = "disable"
 
 
-class NetworkPortAbstractAction(AbstractAction):
-    """
-    Abstract base class for Port actions.
+class NetworkPortEnableAction(AbstractAction):
+    """Action which enables are port on a router or a firewall."""
 
-    Any action which applies to a Router/Firewall and uses node_id and port_id as its only two parameters
-    can inherit from this base class.
-    """
+    def __init__(self, manager: "ActionManager", max_nics_per_node: int, **kwargs) -> None:
+        """Init method for NetworkPortEnableAction.
 
-    def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
-        """Init method for NetworkNICAbstractAction.
-
-        :param manager: Reference to the ActionManager which created this action.
-        :type manager: ActionManager
-        :param num_nodes: Number of nodes in the simulation.
-        :type num_nodes: int
         :param max_nics_per_node: Maximum number of NICs per node.
         :type max_nics_per_node: int
         """
         super().__init__(manager=manager)
-        self.shape: Dict[str, int] = {"node_id": num_nodes, "port_id": max_nics_per_node}
-        self.verb: str  # define but don't initialise: defends against children classes not defining this
+        self.shape: Dict[str, int] = {"port_id": max_nics_per_node}
 
-    def form_request(self, node_id: int, port_id: int) -> List[str]:
+    def form_request(self, target_nodename: str, port_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_name = self.manager.get_node_name_by_idx(node_idx=node_id)
-        port_num = self.manager.get_nic_num_by_idx(node_idx=node_id, nic_idx=port_id)
-        if node_name is None or port_num is None:
+        if target_nodename is None or port_id is None:
             return ["do_nothing"]
-        return ["network", "node", node_name, "network_interface", port_num, self.verb]
+        return ["network", "node", target_nodename, "network_interface", port_id, "enable"]
 
 
-class NetworkPortEnableAction(NetworkPortAbstractAction):
-    """Action which enables a PORT."""
+class NetworkPortDisableAction(AbstractAction):
+    """Action which disables are port on a router or a firewall."""
 
-    def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
-        super().__init__(manager=manager, num_nodes=num_nodes, max_nics_per_node=max_nics_per_node, **kwargs)
-        self.verb: str = "enable"
+    def __init__(self, manager: "ActionManager", max_nics_per_node: int, **kwargs) -> None:
+        """Init method for NetworkPortDisableAction.
 
+        :param max_nics_per_node: Maximum number of NICs per node.
+        :type max_nics_per_node: int
+        """
+        super().__init__(manager=manager)
+        self.shape: Dict[str, int] = {"port_id": max_nics_per_node}
 
-class NetworkPortDisableAction(NetworkPortAbstractAction):
-    """Action which disables a PORT."""
-
-    def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
-        super().__init__(manager=manager, num_nodes=num_nodes, max_nics_per_node=max_nics_per_node, **kwargs)
-        self.verb: str = "disable"
+    def form_request(self, target_nodename: str, port_id: int) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        if target_nodename is None or port_id is None:
+            return ["do_nothing"]
+        return ["network", "node", target_nodename, "network_interface", port_id, "disable"]
 
 
 class ActionManager:
@@ -861,8 +852,8 @@ class ActionManager:
         "ROUTER_ACL_REMOVERULE": RouterACLRemoveRuleAction,
         "FIREWALL_ACL_ADDRULE": FirewallACLAddRuleAction,
         "FIREWALL_ACL_REMOVERULE": FirewallACLRemoveRuleAction,
-        "NETWORK_NIC_ENABLE": NetworkNICEnableAction,
-        "NETWORK_NIC_DISABLE": NetworkNICDisableAction,
+        "HOST_NIC_ENABLE": HostNICEnableAction,
+        "HOST_NIC_DISABLE": HostNICDisableAction,
         "NETWORK_PORT_ENABLE": NetworkPortEnableAction,
         "NETWORK_PORT_DISABLE": NetworkPortDisableAction,
     }

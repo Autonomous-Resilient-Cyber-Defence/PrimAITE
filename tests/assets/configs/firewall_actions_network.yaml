@@ -88,6 +88,8 @@ agents:
         - type: DONOTHING
         - type: FIREWALL_ACL_ADDRULE
         - type: FIREWALL_ACL_REMOVERULE
+        - type: NETWORK_PORT_DISABLE
+        - type: NETWORK_PORT_ENABLE
       action_map:
           0:
             action: DONOTHING
@@ -212,6 +214,16 @@ agents:
               firewall_port_name: external
               firewall_port_direction: outbound
               position: 1
+          13:
+            action: NETWORK_PORT_DISABLE
+            options:
+              target_nodename: firewall
+              port_id: 3
+          14:
+            action: NETWORK_PORT_ENABLE
+            options:
+              target_nodename: firewall
+              port_id: 3
       options:
         nodes:
         - node_name: client_1
