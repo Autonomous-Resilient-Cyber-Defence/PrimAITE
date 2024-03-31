@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Dict, List, TYPE_CHECKING
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
 from pydantic import BaseModel, ConfigDict, model_validator, ValidationError
 
-from primaite.game.agent.observations.observations import AbstractObservation
+from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 
 if TYPE_CHECKING:
     from primaite.game.game import PrimaiteGame
@@ -43,7 +43,7 @@ class NestedObservation(AbstractObservation, identifier="CUSTOM"):
     class ConfigSchema(AbstractObservation.ConfigSchema):
         """Configuration schema for NestedObservation."""
 
-        components: List[NestedObservation.NestedObservationItem]
+        components: List[NestedObservation.NestedObservationItem] = []
         """List of observation components to be part of this space."""
 
     def __init__(self, components: Dict[str, AbstractObservation]) -> None:
@@ -54,7 +54,7 @@ class NestedObservation(AbstractObservation, identifier="CUSTOM"):
         self.default_observation = {label: obs.default_observation for label, obs in self.components.items()}
         """Default observation is just the default observations of constituents."""
 
-    def observe(self, state: Dict) -> Any:
+    def observe(self, state: Dict) -> ObsType:
         """
         Generate observation based on the current state of the simulation.
 
@@ -76,7 +76,7 @@ class NestedObservation(AbstractObservation, identifier="CUSTOM"):
         return spaces.Dict({label: obs.space for label, obs in self.components.items()})
 
     @classmethod
-    def from_config(cls, config: ConfigSchema) -> NestedObservation:
+    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> NestedObservation:
         """
         Read the Nested observation config and create all defined subcomponents.
 
@@ -115,7 +115,7 @@ class NestedObservation(AbstractObservation, identifier="CUSTOM"):
         instances = dict()
         for component in config.components:
             obs_class = AbstractObservation._registry[component.type]
-            obs_instance = obs_class.from_config(obs_class.ConfigSchema(**component.options))
+            obs_instance = obs_class.from_config(config=obs_class.ConfigSchema(**component.options), game=game)
             instances[component.label] = obs_instance
         return cls(components=instances)
 
@@ -170,6 +170,6 @@ class ObservationManager:
         """
         obs_type = config["type"]
         obs_class = AbstractObservation._registry[obs_type]
-        observation = obs_class.from_config(obs_class.ConfigSchema(**config["options"]))
+        observation = obs_class.from_config(config=obs_class.ConfigSchema(**config["options"]), game=game)
         obs_manager = cls(observation)
         return obs_manager

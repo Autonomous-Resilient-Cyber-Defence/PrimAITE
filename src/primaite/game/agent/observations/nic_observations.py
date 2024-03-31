@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Dict, Optional, TYPE_CHECKING
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
 
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+
+if TYPE_CHECKING:
+    from primaite.game.game import PrimaiteGame
 
 
 class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
@@ -82,7 +85,7 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
         return space
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> NICObservation:
+    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> NICObservation:
         """
         Create a network interface observation from a configuration schema.
 
@@ -142,7 +145,7 @@ class PortObservation(AbstractObservation, identifier="PORT"):
         return spaces.Dict({"operating_status": spaces.Discrete(3)})
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> PortObservation:
+    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> PortObservation:
         """
         Create a port observation from a configuration schema.
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -12,6 +12,8 @@ from primaite.game.agent.observations.observations import AbstractObservation, W
 from primaite.game.agent.observations.software_observation import ApplicationObservation, ServiceObservation
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 
+if TYPE_CHECKING:
+    from primaite.game.game import PrimaiteGame
 _LOGGER = getLogger(__name__)
 
 
@@ -184,7 +186,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         return spaces.Dict(shape)
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, parent_where: WhereType = None) -> HostObservation:
+    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> HostObservation:
         """
         Create a host observation from a configuration schema.
 
@@ -196,7 +198,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         :return: Constructed host observation instance.
         :rtype: HostObservation
         """
-        if parent_where is None:
+        if parent_where == []:
             where = ["network", "nodes", config.hostname]
         else:
             where = parent_where + ["nodes", config.hostname]
@@ -208,10 +210,12 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         for nic_config in config.network_interfaces:
             nic_config.include_nmne = config.include_nmne
 
-        services = [ServiceObservation.from_config(config=c, parent_where=where) for c in config.services]
-        applications = [ApplicationObservation.from_config(config=c, parent_where=where) for c in config.applications]
-        folders = [FolderObservation.from_config(config=c, parent_where=where) for c in config.folders]
-        nics = [NICObservation.from_config(config=c, parent_where=where) for c in config.network_interfaces]
+        services = [ServiceObservation.from_config(config=c, game=game, parent_where=where) for c in config.services]
+        applications = [
+            ApplicationObservation.from_config(config=c, game=game, parent_where=where) for c in config.applications
+        ]
+        folders = [FolderObservation.from_config(config=c, game=game, parent_where=where) for c in config.folders]
+        nics = [NICObservation.from_config(config=c, game=game, parent_where=where) for c in config.network_interfaces]
 
         return cls(
             where=where,

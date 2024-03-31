@@ -6,7 +6,7 @@ CAPTURE_NMNE: bool = True
 NMNE_CAPTURE_KEYWORDS: List[str] = []
 """List of keywords to identify malicious network events."""
 
-# TODO: Remove final and make configurable after example layout when the NicObservation creates nmne structure dynamically
+# TODO: Remove final and make configurable after example layout when the NICObservation creates nmne structure dynamically
 CAPTURE_BY_DIRECTION: Final[bool] = True
 """Flag to determine if captures should be organized by traffic direction (inbound/outbound)."""
 CAPTURE_BY_IP_ADDRESS: Final[bool] = False

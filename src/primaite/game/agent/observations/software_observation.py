@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
 
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+
+if TYPE_CHECKING:
+    from primaite.game.game import PrimaiteGame
 
 
 class ServiceObservation(AbstractObservation, identifier="SERVICE"):
@@ -57,7 +60,9 @@ class ServiceObservation(AbstractObservation, identifier="SERVICE"):
         return spaces.Dict({"operating_status": spaces.Discrete(7), "health_status": spaces.Discrete(5)})
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> ServiceObservation:
+    def from_config(
+        cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []
+    ) -> ServiceObservation:
         """
         Create a service observation from a configuration schema.
 
@@ -128,7 +133,9 @@ class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
         )
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> ApplicationObservation:
+    def from_config(
+        cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []
+    ) -> ApplicationObservation:
         """
         Create an application observation from a configuration schema.
 

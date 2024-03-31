@@ -10,8 +10,7 @@ from _pytest.monkeypatch import MonkeyPatch
 from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent
-from primaite.game.agent.observations.observation_manager import ObservationManager
-from primaite.game.agent.observations.observations import ICSObservation
+from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.game import PrimaiteGame
 from primaite.session.session import PrimaiteSession
@@ -525,7 +524,7 @@ def game_and_agent():
         ip_address_list=["10.0.1.1", "10.0.1.2", "10.0.2.1", "10.0.2.2", "10.0.2.3"],
         act_map={},
     )
-    observation_space = ObservationManager(ICSObservation())
+    observation_space = ObservationManager(NestedObservation(components={}))
     reward_function = RewardFunction()
 
     test_agent = ControlledAgent(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -11,6 +11,8 @@ from primaite.game.agent.observations.host_observations import HostObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.observations.router_observation import RouterObservation
 
+if TYPE_CHECKING:
+    from primaite.game.game import PrimaiteGame
 _LOGGER = getLogger(__name__)
 
 
@@ -119,7 +121,7 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         return space
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> NodesObservation:
+    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> NodesObservation:
         """
         Create a nodes observation from a configuration schema.
 
@@ -178,8 +180,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
             if firewall_config.num_rules is None:
                 firewall_config.num_rules = config.num_rules
 
-        hosts = [HostObservation.from_config(config=c, parent_where=where) for c in config.hosts]
-        routers = [RouterObservation.from_config(config=c, parent_where=where) for c in config.routers]
-        firewalls = [FirewallObservation.from_config(config=c, parent_where=where) for c in config.firewalls]
+        hosts = [HostObservation.from_config(config=c, game=game, parent_where=where) for c in config.hosts]
+        routers = [RouterObservation.from_config(config=c, game=game, parent_where=where) for c in config.routers]
+        firewalls = [FirewallObservation.from_config(config=c, game=game, parent_where=where) for c in config.firewalls]
 
         return cls(where=where, hosts=hosts, routers=routers, firewalls=firewalls)

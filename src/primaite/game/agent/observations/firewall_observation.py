@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -10,6 +10,8 @@ from primaite.game.agent.observations.acl_observation import ACLObservation
 from primaite.game.agent.observations.nic_observations import PortObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 
+if TYPE_CHECKING:
+    from primaite.game.game import PrimaiteGame
 _LOGGER = getLogger(__name__)
 
 
@@ -190,7 +192,9 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
         return space
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> FirewallObservation:
+    def from_config(
+        cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []
+    ) -> FirewallObservation:
         """
         Create a firewall observation from a configuration schema.
 

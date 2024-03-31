@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, TYPE_CHECKING
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -9,6 +9,8 @@ from primaite import getLogger
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 
+if TYPE_CHECKING:
+    from primaite.game.game import PrimaiteGame
 _LOGGER = getLogger(__name__)
 
 
@@ -73,7 +75,7 @@ class FileObservation(AbstractObservation, identifier="FILE"):
         return spaces.Dict(space)
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> FileObservation:
+    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> FileObservation:
         """
         Create a file observation from a configuration schema.
 
@@ -172,7 +174,7 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         )
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> FolderObservation:
+    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> FolderObservation:
         """
         Create a folder observation from a configuration schema.
 
@@ -190,5 +192,5 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         for file_config in config.files:
             file_config.include_num_access = config.include_num_access
 
-        files = [FileObservation.from_config(config=f, parent_where=where) for f in config.files]
+        files = [FileObservation.from_config(config=f, game=game, parent_where=where) for f in config.files]
         return cls(where=where, files=files, num_files=config.num_files, include_num_access=config.include_num_access)

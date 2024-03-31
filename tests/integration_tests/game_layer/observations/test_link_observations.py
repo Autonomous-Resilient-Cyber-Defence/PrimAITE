@@ -1,7 +1,7 @@
 import pytest
 from gymnasium import spaces
 
-from primaite.game.agent.observations.observations import LinkObservation
+from primaite.game.agent.observations.link_observation import LinkObservation
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.base import Link, Node
 from primaite.simulator.network.hardware.nodes.host.computer import Computer

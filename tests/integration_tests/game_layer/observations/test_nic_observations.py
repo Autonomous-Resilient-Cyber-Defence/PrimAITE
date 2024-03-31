@@ -5,7 +5,7 @@ import pytest
 import yaml
 from gymnasium import spaces
 
-from primaite.game.agent.observations.nic_observations import NicObservation
+from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.game.game import PrimaiteGame
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
@@ -40,7 +40,7 @@ def test_nic(simulation):
 
     nic: NIC = pc.network_interface[1]
 
-    nic_obs = NicObservation(where=["network", "nodes", pc.hostname, "NICs", 1])
+    nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1])
 
     assert nic_obs.space["nic_status"] == spaces.Discrete(3)
     assert nic_obs.space["NMNE"]["inbound"] == spaces.Discrete(4)
@@ -61,13 +61,13 @@ def test_nic_categories(simulation):
     """Test the NIC observation nmne count categories."""
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
 
-    nic_obs = NicObservation(where=["network", "nodes", pc.hostname, "NICs", 1])
+    nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1])
 
     assert nic_obs.high_nmne_threshold == 10  # default
     assert nic_obs.med_nmne_threshold == 5  # default
     assert nic_obs.low_nmne_threshold == 0  # default
 
-    nic_obs = NicObservation(
+    nic_obs = NICObservation(
         where=["network", "nodes", pc.hostname, "NICs", 1],
         low_nmne_threshold=3,
         med_nmne_threshold=6,
@@ -80,7 +80,7 @@ def test_nic_categories(simulation):
 
     with pytest.raises(Exception):
         # should throw an error
-        NicObservation(
+        NICObservation(
             where=["network", "nodes", pc.hostname, "NICs", 1],
             low_nmne_threshold=9,
             med_nmne_threshold=6,
@@ -89,7 +89,7 @@ def test_nic_categories(simulation):
 
     with pytest.raises(Exception):
         # should throw an error
-        NicObservation(
+        NICObservation(
             where=["network", "nodes", pc.hostname, "NICs", 1],
             low_nmne_threshold=3,
             med_nmne_threshold=9,
