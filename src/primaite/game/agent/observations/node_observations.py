@@ -61,7 +61,7 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         firewalls: List[FirewallObservation],
     ) -> None:
         """
-        Initialize a nodes observation instance.
+        Initialise a nodes observation instance.
 
         :param where: Where in the simulation state dictionary to find the relevant information for nodes.
             A typical location for nodes might be ['network', 'nodes'].

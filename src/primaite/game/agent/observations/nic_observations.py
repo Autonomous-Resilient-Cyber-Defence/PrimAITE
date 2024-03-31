@@ -22,7 +22,7 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
 
     def __init__(self, where: WhereType, include_nmne: bool) -> None:
         """
-        Initialize a network interface observation instance.
+        Initialise a network interface observation instance.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this interface.
             A typical location for a network interface might be
@@ -108,7 +108,7 @@ class PortObservation(AbstractObservation, identifier="PORT"):
 
     def __init__(self, where: WhereType) -> None:
         """
-        Initialize a port observation instance.
+        Initialise a port observation instance.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this port.
             A typical location for a port might be ['network', 'nodes', <node_hostname>, 'NICs', <port_id>].

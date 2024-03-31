@@ -40,7 +40,7 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
         protocol_list: List[str],
     ) -> None:
         """
-        Initialize an ACL observation instance.
+        Initialise an ACL observation instance.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this ACL.
         :type where: WhereType

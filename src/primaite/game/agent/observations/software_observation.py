@@ -20,7 +20,7 @@ class ServiceObservation(AbstractObservation, identifier="SERVICE"):
 
     def __init__(self, where: WhereType) -> None:
         """
-        Initialize a service observation instance.
+        Initialise a service observation instance.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this service.
             A typical location for a service might be ['network', 'nodes', <node_hostname>, 'services', <service_name>].

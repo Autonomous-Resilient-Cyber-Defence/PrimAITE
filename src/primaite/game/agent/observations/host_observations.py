@@ -62,7 +62,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         include_num_access: bool,
     ) -> None:
         """
-        Initialize a host observation instance.
+        Initialise a host observation instance.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this host.
             A typical location for a host might be ['network', 'nodes', <hostname>].

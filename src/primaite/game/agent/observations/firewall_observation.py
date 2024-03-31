@@ -42,7 +42,7 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
         num_rules: int,
     ) -> None:
         """
-        Initialize a firewall observation instance.
+        Initialise a firewall observation instance.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this firewall.
             A typical location for a firewall might be ['network', 'nodes', <firewall_hostname>].

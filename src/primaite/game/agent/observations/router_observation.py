@@ -47,7 +47,7 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         acl: ACLObservation,
     ) -> None:
         """
-        Initialize a router observation instance.
+        Initialise a router observation instance.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this router.
             A typical location for a router might be ['network', 'nodes', <node_hostname>].

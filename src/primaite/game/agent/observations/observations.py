@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Iterable, Type
 
 from gymnasium import spaces
+from gymnasium.core import ObsType
 from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
@@ -25,6 +26,10 @@ class AbstractObservation(ABC):
 
     Automatically populated when subclasses are defined. Used for defining from_config.
     """
+
+    def __init__(self) -> None:
+        """Initialise an observation. This method must be overwritten."""
+        self.default_observation: ObsType
 
     def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
         """
@@ -58,10 +63,10 @@ class AbstractObservation(ABC):
         pass
 
     @classmethod
-    def from_config(cls, cfg: Dict) -> "AbstractObservation":
+    @abstractmethod
+    def from_config(cls, config: ConfigSchema) -> "AbstractObservation":
         """Create this observation space component form a serialised format."""
-        ObservationType = cls._registry[cfg["type"]]
-        return ObservationType.from_config(cfg=cfg)
+        return cls()
 
 
 '''

@@ -25,7 +25,7 @@ class FileObservation(AbstractObservation, identifier="FILE"):
 
     def __init__(self, where: WhereType, include_num_access: bool) -> None:
         """
-        Initialize a file observation instance.
+        Initialise a file observation instance.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this file.
             A typical location for a file might be
@@ -107,7 +107,7 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         self, where: WhereType, files: Iterable[FileObservation], num_files: int, include_num_access: bool
     ) -> None:
         """
-        Initialize a folder observation instance.
+        Initialise a folder observation instance.
 
         :param where: Where in the simulation state dictionary to find the relevant information for this folder.
             A typical location for a folder might be ['network', 'nodes', <node_hostname>, 'folders', <folder_name>].
