@@ -23,7 +23,11 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
         include_nmne: Optional[bool] = None
         """Whether to include number of malicious network events (NMNE) in the observation."""
 
-    def __init__(self, where: WhereType, include_nmne: bool) -> None:
+    def __init__(
+        self,
+        where: WhereType,
+        include_nmne: bool,
+    ) -> None:
         """
         Initialise a network interface observation instance.
 
@@ -40,6 +44,36 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
         self.default_observation: ObsType = {"nic_status": 0}
         if self.include_nmne:
             self.default_observation.update({"NMNE": {"inbound": 0, "outbound": 0}})
+            self.nmne_inbound_last_step: int = 0
+            self.nmne_outbound_last_step: int = 0
+
+        # TODO: allow these to be configured in yaml
+        self.high_nmne_threshold = 10
+        self.med_nmne_threshold = 5
+        self.low_nmne_threshold = 0
+
+    def _categorise_mne_count(self, nmne_count: int) -> int:
+        """
+        Categorise the number of Malicious Network Events (NMNEs) into discrete bins.
+
+        This helps in classifying the severity or volume of MNEs into manageable levels for the agent.
+
+        Bins are defined as follows:
+        - 0: No MNEs detected (0 events).
+        - 1: Low number of MNEs (default 1-5 events).
+        - 2: Moderate number of MNEs (default 6-10 events).
+        - 3: High number of MNEs (default more than 10 events).
+
+        :param nmne_count: Number of MNEs detected.
+        :return: Bin number corresponding to the number of MNEs. Returns 0, 1, 2, or 3 based on the detected MNE count.
+        """
+        if nmne_count > self.high_nmne_threshold:
+            return 3
+        elif nmne_count > self.med_nmne_threshold:
+            return 2
+        elif nmne_count > self.low_nmne_threshold:
+            return 1
+        return 0
 
     def observe(self, state: Dict) -> ObsType:
         """

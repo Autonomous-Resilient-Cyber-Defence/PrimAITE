@@ -133,8 +133,9 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
 
         self.default_observation = {
             "health_status": 0,
-            "FILES": {i + 1: f.default_observation for i, f in enumerate(self.files)},
         }
+        if self.files:
+            self.default_observation["FILES"] = {i + 1: f.default_observation for i, f in enumerate(self.files)}
 
     def observe(self, state: Dict) -> ObsType:
         """
@@ -154,7 +155,8 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         obs = {}
 
         obs["health_status"] = health_status
-        obs["FILES"] = {i + 1: file.observe(state) for i, file in enumerate(self.files)}
+        if self.files:
+            obs["FILES"] = {i + 1: file.observe(state) for i, file in enumerate(self.files)}
 
         return obs
 
@@ -166,12 +168,10 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         :return: Gymnasium space representing the observation space for folder status.
         :rtype: spaces.Space
         """
-        return spaces.Dict(
-            {
-                "health_status": spaces.Discrete(6),
-                "FILES": spaces.Dict({i + 1: f.space for i, f in enumerate(self.files)}),
-            }
-        )
+        shape = {"health_status": spaces.Discrete(6)}
+        if self.files:
+            shape["FILES"] = spaces.Dict({i + 1: f.space for i, f in enumerate(self.files)})
+        return spaces.Dict(shape)
 
     @classmethod
     def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> FolderObservation:

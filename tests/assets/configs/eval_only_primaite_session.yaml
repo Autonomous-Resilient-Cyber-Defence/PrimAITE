@@ -26,8 +26,7 @@ agents:
   - ref: client_2_green_user
     team: GREEN
     type: ProbabilisticAgent
-    observation_space:
-      type: UC2GreenObservation
+    observation_space: null
     action_space:
       action_list:
         - type: DONOTHING
@@ -55,10 +54,7 @@ agents:
     team: RED
     type: RedDatabaseCorruptingAgent
 
-    observation_space:
-      type: UC2RedObservation
-      options:
-        nodes: {}
+    observation_space: null
 
     action_space:
       action_list:
@@ -90,63 +86,73 @@ agents:
     type: ProxyAgent
 
     observation_space:
-      type: UC2BlueObservation
+      type: CUSTOM
       options:
-        num_services_per_node: 1
-        num_folders_per_node: 1
-        num_files_per_folder: 1
-        num_nics_per_node: 2
-        nodes:
-        - node_hostname: domain_controller
-          services:
-          - service_name: domain_controller_dns_server
-        - node_hostname: web_server
-          services:
-          - service_name: web_server_database_client
-        - node_hostname: database_server
-          services:
-          - service_name: database_service
-          folders:
-          - folder_name: database
-            files:
-            - file_name: database.db
-        - node_hostname: backup_server
-        - node_hostname: security_suite
-        - node_hostname: client_1
-        - node_hostname: client_2
-        links:
-        - link_ref: router_1___switch_1
-        - link_ref: router_1___switch_2
-        - link_ref: switch_1___domain_controller
-        - link_ref: switch_1___web_server
-        - link_ref: switch_1___database_server
-        - link_ref: switch_1___backup_server
-        - link_ref: switch_1___security_suite
-        - link_ref: switch_2___client_1
-        - link_ref: switch_2___client_2
-        - link_ref: switch_2___security_suite
-        acl:
-          options:
-            max_acl_rules: 10
-          router_hostname: router_1
-          ip_address_order:
-            - node_hostname: domain_controller
-              nic_num: 1
-            - node_hostname: web_server
-              nic_num: 1
-            - node_hostname: database_server
-              nic_num: 1
-            - node_hostname: backup_server
-              nic_num: 1
-            - node_hostname: security_suite
-              nic_num: 1
-            - node_hostname: client_1
-              nic_num: 1
-            - node_hostname: client_2
-              nic_num: 1
-            - node_hostname: security_suite
-              nic_num: 2
-        ics: null
+        components:
+          - type: NODES
+            label: NODES
+            options:
+              hosts:
+                - hostname: domain_controller
+                - hostname: web_server
+                  services:
+                    - service_name: WebServer
+                - hostname: database_server
+                  folders:
+                    - folder_name: database
+                      files:
+                      - file_name: database.db
+                - hostname: backup_server
+                - hostname: security_suite
+                - hostname: client_1
+                - hostname: client_2
+              num_services: 1
+              num_applications: 0
+              num_folders: 1
+              num_files: 1
+              num_nics: 2
+              include_num_access: false
+              include_nmne: true
+              routers:
+                - hostname: router_1
+              num_ports: 0
+              ip_list:
+                - 192.168.1.10
+                - 192.168.1.12
+                - 192.168.1.14
+                - 192.168.1.16
+                - 192.168.1.110
+                - 192.168.10.21
+                - 192.168.10.22
+                - 192.168.10.110
+              wildcard_list:
+                - 0.0.0.1
+              port_list:
+                - 80
+                - 5432
+              protocol_list:
+                - ICMP
+                - TCP
+                - UDP
+              num_rules: 10
+
+          - type: LINKS
+            label: LINKS
+            options:
+              link_references:
+                - router_1___switch_1
+                - router_1___switch_2
+                - switch_1___domain_controller
+                - switch_1___web_server
+                - switch_1___database_server
+                - switch_1___backup_server
+                - switch_1___security_suite
+                - switch_2___client_1
+                - switch_2___client_2
+                - switch_2___security_suite
+          - type: "NONE"
+            label: ICS
+            options: {}
 
     action_space:
       action_list:

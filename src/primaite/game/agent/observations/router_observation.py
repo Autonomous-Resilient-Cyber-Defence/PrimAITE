@@ -74,9 +74,10 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
             _LOGGER.warning(msg)
 
         self.default_observation = {
-            "PORTS": {i + 1: p.default_observation for i, p in enumerate(self.ports)},
             "ACL": self.acl.default_observation,
         }
+        if self.ports:
+            self.default_observation["PORTS"] = {i + 1: p.default_observation for i, p in enumerate(self.ports)}
 
     def observe(self, state: Dict) -> ObsType:
         """
@@ -92,8 +93,9 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
             return self.default_observation
 
         obs = {}
-        obs["PORTS"] = {i + 1: p.observe(state) for i, p in enumerate(self.ports)}
         obs["ACL"] = self.acl.observe(state)
+        if self.ports:
+            obs["PORTS"] = {i + 1: p.observe(state) for i, p in enumerate(self.ports)}
         return obs
 
     @property
@@ -104,9 +106,10 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         :return: Gymnasium space representing the observation space for router status.
         :rtype: spaces.Space
         """
-        return spaces.Dict(
-            {"PORTS": spaces.Dict({i + 1: p.space for i, p in enumerate(self.ports)}), "ACL": self.acl.space}
-        )
+        shape = {"ACL": self.acl.space}
+        if self.ports:
+            shape["PORTS"] = spaces.Dict({i + 1: p.space for i, p in enumerate(self.ports)})
+        return spaces.Dict(shape)
 
     @classmethod
     def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> RouterObservation:

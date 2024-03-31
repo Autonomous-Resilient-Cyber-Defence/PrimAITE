@@ -11,8 +11,9 @@ MISCONFIGURED_PATH = TEST_ASSETS_ROOT / "configs/bad_primaite_session.yaml"
 MULTI_AGENT_PATH = TEST_ASSETS_ROOT / "configs/multi_agent_session.yaml"
 
 
-# @pytest.mark.skip(reason="no way of currently testing this")
+@pytest.mark.skip(reason="Session is not being maintained and will be removed in the subsequent beta release.")
 class TestPrimaiteSession:
+    @pytest.mark.skip(reason="Session is not being maintained and will be removed in the subsequent beta release.")
     @pytest.mark.parametrize("temp_primaite_session", [[CFG_PATH]], indirect=True)
     def test_creating_session(self, temp_primaite_session):
         """Check that creating a session from config works."""
@@ -51,6 +52,7 @@ class TestPrimaiteSession:
             assert checkpoint_2.exists()
             assert not checkpoint_3.exists()
 
+    @pytest.mark.skip(reason="Session is not being maintained and will be removed in the subsequent beta release.")
     @pytest.mark.parametrize("temp_primaite_session", [[TRAINING_ONLY_PATH]], indirect=True)
     def test_training_only_session(self, temp_primaite_session):
         """Check that you can run a training-only session."""
@@ -59,6 +61,7 @@ class TestPrimaiteSession:
             session.start_session()
             # TODO: include checks that the model was trained, e.g. that the loss changed and checkpoints were saved?
 
+    @pytest.mark.skip(reason="Session is not being maintained and will be removed in the subsequent beta release.")
     @pytest.mark.parametrize("temp_primaite_session", [[EVAL_ONLY_PATH]], indirect=True)
     def test_eval_only_session(self, temp_primaite_session):
         """Check that you can load a model and run an eval-only session."""
@@ -67,6 +70,7 @@ class TestPrimaiteSession:
             session.start_session()
             # TODO: include checks that the model was loaded and that the eval-only session ran
 
+    @pytest.mark.skip(reason="Session is not being maintained and will be removed in the subsequent beta release.")
     @pytest.mark.skip(reason="Slow, reenable later")
     @pytest.mark.parametrize("temp_primaite_session", [[MULTI_AGENT_PATH]], indirect=True)
     def test_multi_agent_session(self, temp_primaite_session):
@@ -74,10 +78,12 @@ class TestPrimaiteSession:
         with temp_primaite_session as session:
             session.start_session()
 
+    @pytest.mark.skip(reason="Session is not being maintained and will be removed in the subsequent beta release.")
     def test_error_thrown_on_bad_configuration(self):
         with pytest.raises(pydantic.ValidationError):
             session = TempPrimaiteSession.from_config(MISCONFIGURED_PATH)
 
+    @pytest.mark.skip(reason="Session is not being maintained and will be removed in the subsequent beta release.")
     @pytest.mark.skip(
         reason="Currently software cannot be dynamically created/destroyed during simulation. Therefore, "
         "reset doesn't implement software restore."

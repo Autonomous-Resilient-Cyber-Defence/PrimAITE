@@ -59,10 +59,10 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
         """
         self.where = where
         self.num_rules: int = num_rules
-        self.ip_to_id: Dict[str, int] = {i + 2: p for i, p in enumerate(ip_list)}
-        self.wildcard_to_id: Dict[str, int] = {i + 2: p for i, p in enumerate(wildcard_list)}
-        self.port_to_id: Dict[int, int] = {i + 2: p for i, p in enumerate(port_list)}
-        self.protocol_to_id: Dict[str, int] = {i + 2: p for i, p in enumerate(protocol_list)}
+        self.ip_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(ip_list)}
+        self.wildcard_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(wildcard_list)}
+        self.port_to_id: Dict[int, int] = {p: i + 2 for i, p in enumerate(port_list)}
+        self.protocol_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(protocol_list)}
         self.default_observation: Dict = {
             i
             + 1: {
@@ -110,16 +110,16 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
                 }
             else:
                 src_ip = rule_state["src_ip_address"]
-                src_node_id = self.ip_to_id.get(src_ip, 1)
+                src_node_id = 1 if src_ip is None else self.ip_to_id[src_ip]
                 dst_ip = rule_state["dst_ip_address"]
-                dst_node_ip = self.ip_to_id.get(dst_ip, 1)
-                src_wildcard = rule_state["source_wildcard_id"]
+                dst_node_id = 1 if dst_ip is None else self.ip_to_id[dst_ip]
+                src_wildcard = rule_state["src_wildcard_mask"]
                 src_wildcard_id = self.wildcard_to_id.get(src_wildcard, 1)
-                dst_wildcard = rule_state["dest_wildcard_id"]
+                dst_wildcard = rule_state["dst_wildcard_mask"]
                 dst_wildcard_id = self.wildcard_to_id.get(dst_wildcard, 1)
-                src_port = rule_state["source_port_id"]
+                src_port = rule_state["src_port"]
                 src_port_id = self.port_to_id.get(src_port, 1)
-                dst_port = rule_state["dest_port_id"]
+                dst_port = rule_state["dst_port"]
                 dst_port_id = self.port_to_id.get(dst_port, 1)
                 protocol = rule_state["protocol"]
                 protocol_id = self.protocol_to_id.get(protocol, 1)
@@ -129,7 +129,7 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
                     "source_ip_id": src_node_id,
                     "source_wildcard_id": src_wildcard_id,
                     "source_port_id": src_port_id,
-                    "dest_ip_id": dst_node_ip,
+                    "dest_ip_id": dst_node_id,
                     "dest_wildcard_id": dst_wildcard_id,
                     "dest_port_id": dst_port_id,
                     "protocol_id": protocol_id,

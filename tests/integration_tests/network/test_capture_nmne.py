@@ -168,8 +168,8 @@ def test_capture_nmne_observations(uc2_network):
     set_nmne_config(nmne_config)
 
     # Define observations for the NICs  of the database and web servers
-    db_server_nic_obs = NICObservation(where=["network", "nodes", "database_server", "NICs", 1])
-    web_server_nic_obs = NICObservation(where=["network", "nodes", "web_server", "NICs", 1])
+    db_server_nic_obs = NICObservation(where=["network", "nodes", "database_server", "NICs", 1], include_nmne=True)
+    web_server_nic_obs = NICObservation(where=["network", "nodes", "web_server", "NICs", 1], include_nmne=True)
 
     # Iterate through a set of test cases to simulate multiple DELETE queries
     for i in range(0, 20):

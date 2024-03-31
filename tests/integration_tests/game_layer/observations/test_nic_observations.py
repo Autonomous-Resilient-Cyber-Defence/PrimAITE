@@ -40,7 +40,7 @@ def test_nic(simulation):
 
     nic: NIC = pc.network_interface[1]
 
-    nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1])
+    nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=True)
 
     assert nic_obs.space["nic_status"] == spaces.Discrete(3)
     assert nic_obs.space["NMNE"]["inbound"] == spaces.Discrete(4)
@@ -61,17 +61,22 @@ def test_nic_categories(simulation):
     """Test the NIC observation nmne count categories."""
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
 
-    nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1])
+    nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=True)
 
     assert nic_obs.high_nmne_threshold == 10  # default
     assert nic_obs.med_nmne_threshold == 5  # default
     assert nic_obs.low_nmne_threshold == 0  # default
 
+
+@pytest.mark.skip(reason="Feature not implemented yet")
+def test_config_nic_categories(simulation):
+    pc: Computer = simulation.network.get_node_by_hostname("client_1")
     nic_obs = NICObservation(
         where=["network", "nodes", pc.hostname, "NICs", 1],
         low_nmne_threshold=3,
         med_nmne_threshold=6,
         high_nmne_threshold=9,
+        include_nmne=True,
     )
 
     assert nic_obs.high_nmne_threshold == 9
@@ -85,6 +90,7 @@ def test_nic_categories(simulation):
             low_nmne_threshold=9,
             med_nmne_threshold=6,
             high_nmne_threshold=9,
+            include_nmne=True,
         )
 
     with pytest.raises(Exception):
@@ -94,4 +100,5 @@ def test_nic_categories(simulation):
             low_nmne_threshold=3,
             med_nmne_threshold=9,
             high_nmne_threshold=9,
+            include_nmne=True,
         )

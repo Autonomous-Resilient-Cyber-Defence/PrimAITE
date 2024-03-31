@@ -36,9 +36,11 @@ def test_acl_observations(simulation):
 
     acl_obs = ACLObservation(
         where=["network", "nodes", router.hostname, "acl", "acl"],
-        node_ip_to_id={},
-        ports=["NTP", "HTTP", "POSTGRES_SERVER"],
-        protocols=["TCP", "UDP", "ICMP"],
+        ip_list=[],
+        port_list=["NTP", "HTTP", "POSTGRES_SERVER"],
+        protocol_list=["TCP", "UDP", "ICMP"],
+        num_rules=10,
+        wildcard_list=[],
     )
 
     observation_space = acl_obs.observe(simulation.describe_state())
@@ -46,11 +48,11 @@ def test_acl_observations(simulation):
     rule_obs = observation_space.get(1)  # this is the ACL Rule added to allow NTP
     assert rule_obs.get("position") == 0  # rule was put at position 1 (0 because counting from 1 instead of 1)
     assert rule_obs.get("permission") == 1  # permit = 1 deny = 2
-    assert rule_obs.get("source_node_id") == 1  # applies to all source nodes
-    assert rule_obs.get("dest_node_id") == 1  # applies to all destination nodes
-    assert rule_obs.get("source_port") == 2  # NTP port is mapped to value 2 (1 = ALL, so 1+1 = 2 quik mafs)
-    assert rule_obs.get("dest_port") == 2  # NTP port is mapped to value 2
-    assert rule_obs.get("protocol") == 1  # 1 = No Protocol
+    assert rule_obs.get("source_ip_id") == 1  # applies to all source nodes
+    assert rule_obs.get("dest_ip_id") == 1  # applies to all destination nodes
+    assert rule_obs.get("source_port_id") == 2  # NTP port is mapped to value 2 (1 = ALL, so 1+1 = 2 quik mafs)
+    assert rule_obs.get("dest_port_id") == 2  # NTP port is mapped to value 2
+    assert rule_obs.get("protocol_id") == 1  # 1 = No Protocol
 
     router.acl.remove_rule(1)
 
@@ -59,8 +61,8 @@ def test_acl_observations(simulation):
     rule_obs = observation_space.get(1)  # this is the ACL Rule added to allow NTP
     assert rule_obs.get("position") == 0
     assert rule_obs.get("permission") == 0
-    assert rule_obs.get("source_node_id") == 0
-    assert rule_obs.get("dest_node_id") == 0
-    assert rule_obs.get("source_port") == 0
-    assert rule_obs.get("dest_port") == 0
-    assert rule_obs.get("protocol") == 0
+    assert rule_obs.get("source_ip_id") == 0
+    assert rule_obs.get("dest_ip_id") == 0
+    assert rule_obs.get("source_port_id") == 0
+    assert rule_obs.get("dest_port_id") == 0
+    assert rule_obs.get("protocol_id") == 0

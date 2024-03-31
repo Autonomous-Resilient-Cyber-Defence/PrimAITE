@@ -19,15 +19,28 @@ def simulation(example_network) -> Simulation:
     return sim
 
 
-def test_node_observation(simulation):
-    """Test a Node observation."""
+def test_host_observation(simulation):
+    """Test a Host observation."""
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
 
-    node_obs = HostObservation(where=["network", "nodes", pc.hostname])
+    host_obs = HostObservation(
+        where=["network", "nodes", pc.hostname],
+        num_applications=0,
+        num_files=1,
+        num_folders=1,
+        num_nics=2,
+        num_services=1,
+        include_num_access=False,
+        include_nmne=False,
+        services=[],
+        applications=[],
+        folders=[],
+        network_interfaces=[],
+    )
 
-    assert node_obs.space["operating_status"] == spaces.Discrete(5)
+    assert host_obs.space["operating_status"] == spaces.Discrete(5)
 
-    observation_state = node_obs.observe(simulation.describe_state())
+    observation_state = host_obs.observe(simulation.describe_state())
     assert observation_state.get("operating_status") == 1  # computer is on
 
     assert observation_state.get("SERVICES") is not None
@@ -36,11 +49,11 @@ def test_node_observation(simulation):
 
     # turn off computer
     pc.power_off()
-    observation_state = node_obs.observe(simulation.describe_state())
+    observation_state = host_obs.observe(simulation.describe_state())
     assert observation_state.get("operating_status") == 4  # shutting down
 
     for i in range(pc.shut_down_duration + 1):
         pc.apply_timestep(i)
 
-    observation_state = node_obs.observe(simulation.describe_state())
+    observation_state = host_obs.observe(simulation.describe_state())
     assert observation_state.get("operating_status") == 2

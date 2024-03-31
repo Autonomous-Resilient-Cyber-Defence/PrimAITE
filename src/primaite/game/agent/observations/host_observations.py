@@ -123,21 +123,27 @@ class HostObservation(AbstractObservation, identifier="HOST"):
             msg = f"Too many folders in Node observation space for node. Truncating folder {truncated_folder.where}"
             _LOGGER.warning(msg)
 
-        self.network_interfaces: List[NICObservation] = network_interfaces
-        while len(self.network_interfaces) < num_nics:
-            self.network_interfaces.append(NICObservation(where=None, include_nmne=include_nmne))
-        while len(self.network_interfaces) > num_nics:
-            truncated_nic = self.network_interfaces.pop()
+        self.nics: List[NICObservation] = network_interfaces
+        while len(self.nics) < num_nics:
+            self.nics.append(NICObservation(where=None, include_nmne=include_nmne))
+        while len(self.nics) > num_nics:
+            truncated_nic = self.nics.pop()
             msg = f"Too many network_interfaces in Node observation space for node. Truncating {truncated_nic.where}"
             _LOGGER.warning(msg)
 
         self.default_observation: ObsType = {
-            "SERVICES": {i + 1: s.default_observation for i, s in enumerate(self.services)},
-            "APPLICATIONS": {i + 1: a.default_observation for i, a in enumerate(self.applications)},
-            "FOLDERS": {i + 1: f.default_observation for i, f in enumerate(self.folders)},
-            "NICS": {i + 1: n.default_observation for i, n in enumerate(self.network_interfaces)},
             "operating_status": 0,
         }
+        if self.services:
+            self.default_observation["SERVICES"] = {i + 1: s.default_observation for i, s in enumerate(self.services)}
+        if self.applications:
+            self.default_observation["APPLICATIONS"] = {
+                i + 1: a.default_observation for i, a in enumerate(self.applications)
+            }
+        if self.folders:
+            self.default_observation["FOLDERS"] = {i + 1: f.default_observation for i, f in enumerate(self.folders)}
+        if self.nics:
+            self.default_observation["NICS"] = {i + 1: n.default_observation for i, n in enumerate(self.nics)}
         if self.include_num_access:
             self.default_observation["num_file_creations"] = 0
             self.default_observation["num_file_deletions"] = 0
@@ -156,13 +162,15 @@ class HostObservation(AbstractObservation, identifier="HOST"):
             return self.default_observation
 
         obs = {}
-        obs["SERVICES"] = {i + 1: service.observe(state) for i, service in enumerate(self.services)}
-        obs["APPLICATIONS"] = {i + 1: app.observe(state) for i, app in enumerate(self.applications)}
-        obs["FOLDERS"] = {i + 1: folder.observe(state) for i, folder in enumerate(self.folders)}
         obs["operating_status"] = node_state["operating_state"]
-        obs["NICS"] = {
-            i + 1: network_interface.observe(state) for i, network_interface in enumerate(self.network_interfaces)
-        }
+        if self.services:
+            obs["SERVICES"] = {i + 1: service.observe(state) for i, service in enumerate(self.services)}
+        if self.applications:
+            obs["APPLICATIONS"] = {i + 1: app.observe(state) for i, app in enumerate(self.applications)}
+        if self.folders:
+            obs["FOLDERS"] = {i + 1: folder.observe(state) for i, folder in enumerate(self.folders)}
+        if self.nics:
+            obs["NICS"] = {i + 1: nic.observe(state) for i, nic in enumerate(self.nics)}
         if self.include_num_access:
             obs["num_file_creations"] = node_state["file_system"]["num_file_creations"]
             obs["num_file_deletions"] = node_state["file_system"]["num_file_deletions"]
@@ -177,14 +185,16 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         :rtype: spaces.Space
         """
         shape = {
-            "SERVICES": spaces.Dict({i + 1: service.space for i, service in enumerate(self.services)}),
-            "APPLICATIONS": spaces.Dict({i + 1: app.space for i, app in enumerate(self.applications)}),
-            "FOLDERS": spaces.Dict({i + 1: folder.space for i, folder in enumerate(self.folders)}),
             "operating_status": spaces.Discrete(5),
-            "NICS": spaces.Dict(
-                {i + 1: network_interface.space for i, network_interface in enumerate(self.network_interfaces)}
-            ),
         }
+        if self.services:
+            shape["SERVICES"] = spaces.Dict({i + 1: service.space for i, service in enumerate(self.services)})
+        if self.applications:
+            shape["APPLICATIONS"] = spaces.Dict({i + 1: app.space for i, app in enumerate(self.applications)})
+        if self.folders:
+            shape["FOLDERS"] = spaces.Dict({i + 1: folder.space for i, folder in enumerate(self.folders)})
+        if self.nics:
+            shape["NICS"] = spaces.Dict({i + 1: nic.space for i, nic in enumerate(self.nics)})
         if self.include_num_access:
             shape["num_file_creations"] = spaces.Discrete(4)
             shape["num_file_deletions"] = spaces.Discrete(4)
