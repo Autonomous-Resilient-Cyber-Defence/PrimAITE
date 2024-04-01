@@ -63,12 +63,12 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
         self.where: WhereType = where
 
         self.ports: List[PortObservation] = [
-            PortObservation(where=self.where + ["port", port_num]) for port_num in (1, 2, 3)
+            PortObservation(where=self.where + ["NICs", port_num]) for port_num in (1, 2, 3)
         ]
         # TODO: check what the port nums are for firewall.
 
         self.internal_inbound_acl = ACLObservation(
-            where=self.where + ["acl", "internal", "inbound"],
+            where=self.where + ["internal_inbound_acl", "acl"],
             num_rules=num_rules,
             ip_list=ip_list,
             wildcard_list=wildcard_list,
@@ -76,7 +76,7 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
             protocol_list=protocol_list,
         )
         self.internal_outbound_acl = ACLObservation(
-            where=self.where + ["acl", "internal", "outbound"],
+            where=self.where + ["internal_outbound_acl", "acl"],
             num_rules=num_rules,
             ip_list=ip_list,
             wildcard_list=wildcard_list,
@@ -84,7 +84,7 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
             protocol_list=protocol_list,
         )
         self.dmz_inbound_acl = ACLObservation(
-            where=self.where + ["acl", "dmz", "inbound"],
+            where=self.where + ["dmz_inbound_acl", "acl"],
             num_rules=num_rules,
             ip_list=ip_list,
             wildcard_list=wildcard_list,
@@ -92,7 +92,7 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
             protocol_list=protocol_list,
         )
         self.dmz_outbound_acl = ACLObservation(
-            where=self.where + ["acl", "dmz", "outbound"],
+            where=self.where + ["dmz_outbound_acl", "acl"],
             num_rules=num_rules,
             ip_list=ip_list,
             wildcard_list=wildcard_list,
@@ -100,7 +100,7 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
             protocol_list=protocol_list,
         )
         self.external_inbound_acl = ACLObservation(
-            where=self.where + ["acl", "external", "inbound"],
+            where=self.where + ["external_inbound_acl", "acl"],
             num_rules=num_rules,
             ip_list=ip_list,
             wildcard_list=wildcard_list,
@@ -108,7 +108,7 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
             protocol_list=protocol_list,
         )
         self.external_outbound_acl = ACLObservation(
-            where=self.where + ["acl", "external", "outbound"],
+            where=self.where + ["external_outbound_acl", "acl"],
             num_rules=num_rules,
             ip_list=ip_list,
             wildcard_list=wildcard_list,
@@ -118,17 +118,19 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
 
         self.default_observation = {
             "PORTS": {i + 1: p.default_observation for i, p in enumerate(self.ports)},
-            "INTERNAL": {
-                "INBOUND": self.internal_inbound_acl.default_observation,
-                "OUTBOUND": self.internal_outbound_acl.default_observation,
-            },
-            "DMZ": {
-                "INBOUND": self.dmz_inbound_acl.default_observation,
-                "OUTBOUND": self.dmz_outbound_acl.default_observation,
-            },
-            "EXTERNAL": {
-                "INBOUND": self.external_inbound_acl.default_observation,
-                "OUTBOUND": self.external_outbound_acl.default_observation,
+            "ACL": {
+                "INTERNAL": {
+                    "INBOUND": self.internal_inbound_acl.default_observation,
+                    "OUTBOUND": self.internal_outbound_acl.default_observation,
+                },
+                "DMZ": {
+                    "INBOUND": self.dmz_inbound_acl.default_observation,
+                    "OUTBOUND": self.dmz_outbound_acl.default_observation,
+                },
+                "EXTERNAL": {
+                    "INBOUND": self.external_inbound_acl.default_observation,
+                    "OUTBOUND": self.external_outbound_acl.default_observation,
+                },
             },
         }
 
@@ -143,17 +145,19 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
         """
         obs = {
             "PORTS": {i + 1: p.observe(state) for i, p in enumerate(self.ports)},
-            "INTERNAL": {
-                "INBOUND": self.internal_inbound_acl.observe(state),
-                "OUTBOUND": self.internal_outbound_acl.observe(state),
-            },
-            "DMZ": {
-                "INBOUND": self.dmz_inbound_acl.observe(state),
-                "OUTBOUND": self.dmz_outbound_acl.observe(state),
-            },
-            "EXTERNAL": {
-                "INBOUND": self.external_inbound_acl.observe(state),
-                "OUTBOUND": self.external_outbound_acl.observe(state),
+            "ACL": {
+                "INTERNAL": {
+                    "INBOUND": self.internal_inbound_acl.observe(state),
+                    "OUTBOUND": self.internal_outbound_acl.observe(state),
+                },
+                "DMZ": {
+                    "INBOUND": self.dmz_inbound_acl.observe(state),
+                    "OUTBOUND": self.dmz_outbound_acl.observe(state),
+                },
+                "EXTERNAL": {
+                    "INBOUND": self.external_inbound_acl.observe(state),
+                    "OUTBOUND": self.external_outbound_acl.observe(state),
+                },
             },
         }
         return obs
@@ -169,22 +173,26 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
         space = spaces.Dict(
             {
                 "PORTS": spaces.Dict({i + 1: p.space for i, p in enumerate(self.ports)}),
-                "INTERNAL": spaces.Dict(
+                "ACL": spaces.Dict(
                     {
-                        "INBOUND": self.internal_inbound_acl.space,
-                        "OUTBOUND": self.internal_outbound_acl.space,
-                    }
-                ),
-                "DMZ": spaces.Dict(
-                    {
-                        "INBOUND": self.dmz_inbound_acl.space,
-                        "OUTBOUND": self.dmz_outbound_acl.space,
-                    }
-                ),
-                "EXTERNAL": spaces.Dict(
-                    {
-                        "INBOUND": self.external_inbound_acl.space,
-                        "OUTBOUND": self.external_outbound_acl.space,
+                        "INTERNAL": spaces.Dict(
+                            {
+                                "INBOUND": self.internal_inbound_acl.space,
+                                "OUTBOUND": self.internal_outbound_acl.space,
+                            }
+                        ),
+                        "DMZ": spaces.Dict(
+                            {
+                                "INBOUND": self.dmz_inbound_acl.space,
+                                "OUTBOUND": self.dmz_outbound_acl.space,
+                            }
+                        ),
+                        "EXTERNAL": spaces.Dict(
+                            {
+                                "INBOUND": self.external_inbound_acl.space,
+                                "OUTBOUND": self.external_outbound_acl.space,
+                            }
+                        ),
                     }
                 ),
             }
