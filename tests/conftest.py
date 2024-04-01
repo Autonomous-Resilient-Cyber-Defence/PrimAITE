@@ -479,6 +479,8 @@ def game_and_agent():
         {"type": "NODE_APPLICATION_SCAN"},
         {"type": "NODE_APPLICATION_CLOSE"},
         {"type": "NODE_APPLICATION_FIX"},
+        {"type": "NODE_APPLICATION_INSTALL"},
+        {"type": "NODE_APPLICATION_REMOVE"},
         {"type": "NODE_FILE_SCAN"},
         {"type": "NODE_FILE_CHECKHASH"},
         {"type": "NODE_FILE_DELETE"},
@@ -493,10 +495,10 @@ def game_and_agent():
         {"type": "NODE_SHUTDOWN"},
         {"type": "NODE_STARTUP"},
         {"type": "NODE_RESET"},
-        {"type": "NETWORK_ACL_ADDRULE", "options": {"target_router_hostname": "router"}},
-        {"type": "NETWORK_ACL_REMOVERULE", "options": {"target_router_hostname": "router"}},
-        {"type": "NETWORK_NIC_ENABLE"},
-        {"type": "NETWORK_NIC_DISABLE"},
+        {"type": "ROUTER_ACL_ADDRULE"},
+        {"type": "ROUTER_ACL_REMOVERULE"},
+        {"type": "HOST_NIC_ENABLE"},
+        {"type": "HOST_NIC_DISABLE"},
         {"type": "NETWORK_PORT_ENABLE"},
         {"type": "NETWORK_PORT_DISABLE"},
     ]
@@ -506,10 +508,16 @@ def game_and_agent():
         nodes=[
             {
                 "node_name": "client_1",
-                "applications": [{"application_name": "WebBrowser"}],
+                "applications": [
+                    {"application_name": "WebBrowser"},
+                    {"application_name": "DoSBot"},
+                ],
                 "folders": [{"folder_name": "downloads", "files": [{"file_name": "cat.png"}]}],
             },
-            {"node_name": "server_1", "services": [{"service_name": "DNSServer"}]},
+            {
+                "node_name": "server_1",
+                "services": [{"service_name": "DNSServer"}],
+            },
             {"node_name": "server_2", "services": [{"service_name": "WebServer"}]},
             {"node_name": "router"},
         ],

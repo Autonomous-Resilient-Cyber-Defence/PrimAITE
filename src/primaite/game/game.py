@@ -15,10 +15,11 @@ from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
-from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
 from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
+from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.nmne import set_nmne_config
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
@@ -273,8 +274,18 @@ class PrimaiteGame:
                 new_node = Router.from_config(node_cfg)
             elif n_type == "firewall":
                 new_node = Firewall.from_config(node_cfg)
+            elif n_type == "wireless_router":
+                new_node = WirelessRouter.from_config(node_cfg)
+            elif n_type == "printer":
+                new_node = Printer(
+                    hostname=node_cfg["hostname"],
+                    ip_address=node_cfg["ip_address"],
+                    subnet_mask=node_cfg["subnet_mask"],
+                )
             else:
-                _LOGGER.warning(f"invalid node type {n_type} in config")
+                msg = f"invalid node type {n_type} in config"
+                _LOGGER.error(msg)
+                raise ValueError(msg)
             if "services" in node_cfg:
                 for service_cfg in node_cfg["services"]:
                     new_service = None

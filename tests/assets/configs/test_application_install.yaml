@@ -11,14 +11,14 @@ training_config:
     - defender
 
 io_settings:
-  save_agent_actions: false
+  save_agent_actions: true
   save_step_metadata: false
   save_pcap_logs: false
   save_sys_logs: false
 
 
 game:
-  max_episode_length: 256
+  max_episode_length: 128
   ports:
   - HTTP
   - POSTGRES_SERVER
@@ -41,7 +41,8 @@ agents:
         0: 0.3
         1: 0.6
         2: 0.1
-    observation_space: null
+    observation_space:
+      type: UC2GreenObservation
     action_space:
       action_list:
         - type: DONOTHING
@@ -90,7 +91,8 @@ agents:
         0: 0.3
         1: 0.6
         2: 0.1
-    observation_space: null
+    observation_space:
+      type: UC2GreenObservation
     action_space:
       action_list:
         - type: DONOTHING
@@ -139,7 +141,10 @@ agents:
     team: RED
     type: RedDatabaseCorruptingAgent
 
-    observation_space: null
+    observation_space:
+      type: UC2RedObservation
+      options:
+        nodes: {}
 
     action_space:
       action_list:
@@ -172,73 +177,61 @@ agents:
     type: ProxyAgent
 
     observation_space:
-      type: CUSTOM
+      type: UC2BlueObservation
       options:
-        components:
-          - type: NODES
-            label: NODES
-            options:
-              hosts:
-                - hostname: domain_controller
-                - hostname: web_server
-                  services:
-                    - service_name: WebServer
-                - hostname: database_server
-                  folders:
-                    - folder_name: database
-                      files:
-                      - file_name: database.db
-                - hostname: backup_server
-                - hostname: security_suite
-                - hostname: client_1
-                - hostname: client_2
-              num_services: 1
-              num_applications: 0
-              num_folders: 1
-              num_files: 1
-              num_nics: 2
-              include_num_access: false
-              include_nmne: true
-              routers:
-                - hostname: router_1
-              num_ports: 0
-              ip_list:
-                - 192.168.1.10
-                - 192.168.1.12
-                - 192.168.1.14
-                - 192.168.1.16
-                - 192.168.1.110
-                - 192.168.10.21
-                - 192.168.10.22
-                - 192.168.10.110
-              wildcard_list:
-                - 0.0.0.1
-              port_list:
-                - 80
-                - 5432
-              protocol_list:
-                - ICMP
-                - TCP
-                - UDP
-              num_rules: 10
-
-          - type: LINKS
-            label: LINKS
-            options:
-              link_references:
-                - router_1___switch_1
-                - router_1___switch_2
-                - switch_1___domain_controller
-                - switch_1___web_server
-                - switch_1___database_server
-                - switch_1___backup_server
-                - switch_1___security_suite
-                - switch_2___client_1
-                - switch_2___client_2
-                - switch_2___security_suite
-          - type: "NONE"
-            label: ICS
-            options: {}
+        num_services_per_node: 1
+        num_folders_per_node: 1
+        num_files_per_folder: 1
+        num_nics_per_node: 2
+        nodes:
+        - node_hostname: domain_controller
+          services:
+          - service_name: DNSServer
+        - node_hostname: web_server
+          services:
+          - service_name: WebServer
+        - node_hostname: database_server
+          folders:
+          - folder_name: database
+            files:
+            - file_name: database.db
+        - node_hostname: backup_server
+        - node_hostname: security_suite
+        - node_hostname: client_1
+        - node_hostname: client_2
+        links:
+        - link_ref: router_1___switch_1
+        - link_ref: router_1___switch_2
+        - link_ref: switch_1___domain_controller
+        - link_ref: switch_1___web_server
+        - link_ref: switch_1___database_server
+        - link_ref: switch_1___backup_server
+        - link_ref: switch_1___security_suite
+        - link_ref: switch_2___client_1
+        - link_ref: switch_2___client_2
+        - link_ref: switch_2___security_suite
+        acl:
+          options:
+            max_acl_rules: 10
+          router_hostname: router_1
+          ip_address_order:
+            - node_hostname: domain_controller
+              nic_num: 1
+            - node_hostname: web_server
+              nic_num: 1
+            - node_hostname: database_server
+              nic_num: 1
+            - node_hostname: backup_server
+              nic_num: 1
+            - node_hostname: security_suite
+              nic_num: 1
+            - node_hostname: client_1
+              nic_num: 1
+            - node_hostname: client_2
+              nic_num: 1
+            - node_hostname: security_suite
+              nic_num: 2
+        ics: null
 
     action_space:
       action_list:
@@ -269,6 +262,9 @@ agents:
         - type: ROUTER_ACL_REMOVERULE
         - type: HOST_NIC_ENABLE
         - type: HOST_NIC_DISABLE
+        - type: NODE_APPLICATION_INSTALL
+        - type: NODE_APPLICATION_REMOVE
+        - type: NODE_APPLICATION_EXECUTE
 
       action_map:
           0:
@@ -324,7 +320,7 @@ agents:
               folder_id: 0
               file_id: 0
           10:
-            action: "NODE_FILE_CHECKHASH"
+            action: "NODE_FILE_SCAN" # CHECKHASH replaced by SCAN - but the behaviour is the same in this context.
             options:
               node_id: 2
               folder_id: 0
@@ -352,7 +348,7 @@ agents:
               node_id: 2
               folder_id: 0
           15:
-            action: "NODE_FOLDER_CHECKHASH"
+            action: "NODE_FOLDER_SCAN" # CHECKHASH replaced by SCAN - but the behaviour is the same in this context.
             options:
               node_id: 2
               folder_id: 0
@@ -482,7 +478,7 @@ agents:
           46: # old action num: 22 # "ACL: ADDRULE - Block outgoing traffic from client 1"
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 1
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -493,7 +489,7 @@ agents:
           47: # old action num: 23 # "ACL: ADDRULE - Block outgoing traffic from client 2"
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 2
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -504,7 +500,7 @@ agents:
           48: # old action num: 24 # block tcp traffic from client 1 to web app
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 3
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -515,7 +511,7 @@ agents:
           49: # old action num: 25 # block tcp traffic from client 2 to web app
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 4
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -526,7 +522,7 @@ agents:
           50: # old action num: 26
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 5
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -537,7 +533,7 @@ agents:
           51: # old action num: 27
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 6
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -548,52 +544,52 @@ agents:
           52: # old action num: 28
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 0
           53: # old action num: 29
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 1
           54: # old action num: 30
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 2
           55: # old action num: 31
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 3
           56: # old action num: 32
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 4
           57: # old action num: 33
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 5
           58: # old action num: 34
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 6
           59: # old action num: 35
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 7
           60: # old action num: 36
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 8
           61: # old action num: 37
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router_hostname: router_1
                 position: 9
           62: # old action num: 38
             action: "HOST_NIC_DISABLE"
@@ -675,12 +671,35 @@ agents:
             options:
                 node_id: 6
                 nic_id: 0
+          78:
+            action: NODE_APPLICATION_INSTALL
+            options:
+              node_id: 0
+              application_name: DoSBot
+              ip_address: 192.168.1.14
+          79:
+            action: NODE_APPLICATION_REMOVE
+            options:
+              node_id: 0
+              application_name: DoSBot
+          80:
+            action: NODE_APPLICATION_REMOVE
+            options:
+              node_id: 0
+              application_name: WebBrowser
+          81:
+            action: NODE_APPLICATION_EXECUTE
+            options:
+              node_id: 0
+              application_id: 0
 
 
 
       options:
         nodes:
         - node_name: domain_controller
+          applications:
+            - application_name: DoSBot
         - node_name: web_server
           applications:
           - application_name: DatabaseClient
@@ -724,6 +743,12 @@ agents:
 
     reward_function:
       reward_components:
+        - type: DATABASE_FILE_INTEGRITY
+          weight: 0.40
+          options:
+            node_hostname: database_server
+            folder_name: database
+            file_name: database.db
         - type: SHARED_REWARD
           weight: 1.0
           options:

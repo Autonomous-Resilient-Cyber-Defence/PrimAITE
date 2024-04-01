@@ -265,14 +265,10 @@ agents:
         - type: NODE_SHUTDOWN
         - type: NODE_STARTUP
         - type: NODE_RESET
-        - type: NETWORK_ACL_ADDRULE
-          options:
-            target_router_hostname: router_1
-        - type: NETWORK_ACL_REMOVERULE
-          options:
-            target_router_hostname: router_1
-        - type: NETWORK_NIC_ENABLE
-        - type: NETWORK_NIC_DISABLE
+        - type: ROUTER_ACL_ADDRULE
+        - type: ROUTER_ACL_REMOVERULE
+        - type: HOST_NIC_ENABLE
+        - type: HOST_NIC_DISABLE
 
       action_map:
           0:
@@ -484,8 +480,9 @@ agents:
               node_id: 6
 
           46: # old action num: 22 # "ACL: ADDRULE - Block outgoing traffic from client 1"
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 1
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -494,8 +491,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 1
           47: # old action num: 23 # "ACL: ADDRULE - Block outgoing traffic from client 2"
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 2
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -504,8 +502,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 1
           48: # old action num: 24 # block tcp traffic from client 1 to web app
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 3
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -514,8 +513,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           49: # old action num: 25 # block tcp traffic from client 2 to web app
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 4
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -524,8 +524,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           50: # old action num: 26
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 5
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -534,8 +535,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           51: # old action num: 27
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 6
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -544,122 +546,132 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           52: # old action num: 28
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 0
           53: # old action num: 29
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 1
           54: # old action num: 30
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 2
           55: # old action num: 31
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 3
           56: # old action num: 32
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 4
           57: # old action num: 33
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 5
           58: # old action num: 34
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 6
           59: # old action num: 35
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 7
           60: # old action num: 36
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 8
           61: # old action num: 37
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 9
           62: # old action num: 38
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 0
                 nic_id: 0
           63: # old action num: 39
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 0
                 nic_id: 0
           64: # old action num: 40
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 1
                 nic_id: 0
           65: # old action num: 41
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 1
                 nic_id: 0
           66: # old action num: 42
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 2
                 nic_id: 0
           67: # old action num: 43
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 2
                 nic_id: 0
           68: # old action num: 44
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 3
                 nic_id: 0
           69: # old action num: 45
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 3
                 nic_id: 0
           70: # old action num: 46
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 4
                 nic_id: 0
           71: # old action num: 47
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 4
                 nic_id: 0
           72: # old action num: 48
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 4
                 nic_id: 1
           73: # old action num: 49
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 4
                 nic_id: 1
           74: # old action num: 50
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 5
                 nic_id: 0
           75: # old action num: 51
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 5
                 nic_id: 0
           76: # old action num: 52
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 6
                 nic_id: 0
           77: # old action num: 53
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 6
                 nic_id: 0

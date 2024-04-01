@@ -219,6 +219,45 @@ class NodeApplicationFixAction(NodeApplicationAbstractAction):
         self.verb: str = "fix"
 
 
+class NodeApplicationInstallAction(AbstractAction):
+    """Action which installs an application."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
+        super().__init__(manager=manager)
+        self.shape: Dict[str, int] = {"node_id": num_nodes}
+
+    def form_request(self, node_id: int, application_name: str, ip_address: str) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        return [
+            "network",
+            "node",
+            node_name,
+            "software_manager",
+            "application",
+            "install",
+            application_name,
+            ip_address,
+        ]
+
+
+class NodeApplicationRemoveAction(AbstractAction):
+    """Action which removes/uninstalls an application."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
+        super().__init__(manager=manager)
+        self.shape: Dict[str, int] = {"node_id": num_nodes}
+
+    def form_request(self, node_id: int, application_name: str) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        return ["network", "node", node_name, "software_manager", "application", "uninstall", application_name]
+
+
 class NodeFolderAbstractAction(AbstractAction):
     """
     Base class for folder actions.
@@ -405,25 +444,22 @@ class NodeResetAction(NodeAbstractAction):
         self.verb: str = "reset"
 
 
-class NetworkACLAddRuleAction(AbstractAction):
+class RouterACLAddRuleAction(AbstractAction):
     """Action which adds a rule to a router's ACL."""
 
     def __init__(
         self,
         manager: "ActionManager",
-        target_router_hostname: str,
         max_acl_rules: int,
         num_ips: int,
         num_ports: int,
         num_protocols: int,
         **kwargs,
     ) -> None:
-        """Init method for NetworkACLAddRuleAction.
+        """Init method for RouterACLAddRuleAction.
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
-        :param target_router_hostname: hostname of the router to which the ACL rule should be added.
-        :type target_router_hostname: str
         :param max_acl_rules: Maximum number of ACL rules that can be added to the router.
         :type max_acl_rules: int
         :param num_ips: Number of IP addresses in the simulation.
@@ -444,10 +480,10 @@ class NetworkACLAddRuleAction(AbstractAction):
             "dest_port_id": num_ports,
             "protocol_id": num_protocols,
         }
-        self.target_router_name: str = target_router_hostname
 
     def form_request(
         self,
+        target_router_nodename: str,
         position: int,
         permission: int,
         source_ip_id: int,
@@ -461,7 +497,7 @@ class NetworkACLAddRuleAction(AbstractAction):
             permission_str = "UNUSED"
             return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
         elif permission == 1:
-            permission_str = "ALLOW"
+            permission_str = "PERMIT"
         elif permission == 2:
             permission_str = "DENY"
         else:
@@ -511,7 +547,7 @@ class NetworkACLAddRuleAction(AbstractAction):
         return [
             "network",
             "node",
-            self.target_router_name,
+            target_router_nodename,
             "acl",
             "add_rule",
             permission_str,
@@ -524,29 +560,176 @@ class NetworkACLAddRuleAction(AbstractAction):
         ]
 
 
-class NetworkACLRemoveRuleAction(AbstractAction):
+class RouterACLRemoveRuleAction(AbstractAction):
     """Action which removes a rule from a router's ACL."""
 
-    def __init__(self, manager: "ActionManager", target_router_hostname: str, max_acl_rules: int, **kwargs) -> None:
-        """Init method for NetworkACLRemoveRuleAction.
+    def __init__(self, manager: "ActionManager", max_acl_rules: int, **kwargs) -> None:
+        """Init method for RouterACLRemoveRuleAction.
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
-        :param target_router_hostname: Hostname of the router from which the ACL rule should be removed.
-        :type target_router_hostname: str
         :param max_acl_rules: Maximum number of ACL rules that can be added to the router.
         :type max_acl_rules: int
         """
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"position": max_acl_rules}
-        self.target_router_name: str = target_router_hostname
 
-    def form_request(self, position: int) -> List[str]:
+    def form_request(self, target_router_nodename: str, position: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["network", "node", self.target_router_name, "acl", "remove_rule", position]
+        return ["network", "node", target_router_nodename, "acl", "remove_rule", position]
 
 
-class NetworkNICAbstractAction(AbstractAction):
+class FirewallACLAddRuleAction(AbstractAction):
+    """Action which adds a rule to a firewall port's ACL."""
+
+    def __init__(
+        self,
+        manager: "ActionManager",
+        max_acl_rules: int,
+        num_ips: int,
+        num_ports: int,
+        num_protocols: int,
+        **kwargs,
+    ) -> None:
+        """Init method for FirewallACLAddRuleAction.
+
+        :param manager: Reference to the ActionManager which created this action.
+        :type manager: ActionManager
+        :param max_acl_rules: Maximum number of ACL rules that can be added to the router.
+        :type max_acl_rules: int
+        :param num_ips: Number of IP addresses in the simulation.
+        :type num_ips: int
+        :param num_ports: Number of ports in the simulation.
+        :type num_ports: int
+        :param num_protocols: Number of protocols in the simulation.
+        :type num_protocols: int
+        """
+        super().__init__(manager=manager)
+        num_permissions = 3
+        self.shape: Dict[str, int] = {
+            "position": max_acl_rules,
+            "permission": num_permissions,
+            "source_ip_id": num_ips,
+            "dest_ip_id": num_ips,
+            "source_port_id": num_ports,
+            "dest_port_id": num_ports,
+            "protocol_id": num_protocols,
+        }
+
+    def form_request(
+        self,
+        target_firewall_nodename: str,
+        firewall_port_name: str,
+        firewall_port_direction: str,
+        position: int,
+        permission: int,
+        source_ip_id: int,
+        dest_ip_id: int,
+        source_port_id: int,
+        dest_port_id: int,
+        protocol_id: int,
+    ) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        if permission == 0:
+            permission_str = "UNUSED"
+            return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
+        elif permission == 1:
+            permission_str = "PERMIT"
+        elif permission == 2:
+            permission_str = "DENY"
+        else:
+            _LOGGER.warning(f"{self.__class__} received permission {permission}, expected 0 or 1.")
+
+        if protocol_id == 0:
+            return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
+
+        if protocol_id == 1:
+            protocol = "ALL"
+        else:
+            protocol = self.manager.get_internet_protocol_by_idx(protocol_id - 2)
+            # subtract 2 to account for UNUSED=0 and ALL=1.
+
+        if source_ip_id == 0:
+            return ["do_nothing"]  # invalid formulation
+        elif source_ip_id == 1:
+            src_ip = "ALL"
+        else:
+            src_ip = self.manager.get_ip_address_by_idx(source_ip_id - 2)
+            # subtract 2 to account for UNUSED=0, and ALL=1
+
+        if source_port_id == 0:
+            return ["do_nothing"]  # invalid formulation
+        elif source_port_id == 1:
+            src_port = "ALL"
+        else:
+            src_port = self.manager.get_port_by_idx(source_port_id - 2)
+            # subtract 2 to account for UNUSED=0, and ALL=1
+
+        if source_ip_id == 0:
+            return ["do_nothing"]  # invalid formulation
+        elif dest_ip_id == 1:
+            dst_ip = "ALL"
+        else:
+            dst_ip = self.manager.get_ip_address_by_idx(dest_ip_id - 2)
+            # subtract 2 to account for UNUSED=0, and ALL=1
+
+        if dest_port_id == 0:
+            return ["do_nothing"]  # invalid formulation
+        elif dest_port_id == 1:
+            dst_port = "ALL"
+        else:
+            dst_port = self.manager.get_port_by_idx(dest_port_id - 2)
+            # subtract 2 to account for UNUSED=0, and ALL=1
+
+        return [
+            "network",
+            "node",
+            target_firewall_nodename,
+            firewall_port_name,
+            firewall_port_direction,
+            "acl",
+            "add_rule",
+            permission_str,
+            protocol,
+            str(src_ip),
+            src_port,
+            str(dst_ip),
+            dst_port,
+            position,
+        ]
+
+
+class FirewallACLRemoveRuleAction(AbstractAction):
+    """Action which removes a rule from a firewall port's ACL."""
+
+    def __init__(self, manager: "ActionManager", max_acl_rules: int, **kwargs) -> None:
+        """Init method for RouterACLRemoveRuleAction.
+
+        :param manager: Reference to the ActionManager which created this action.
+        :type manager: ActionManager
+        :param max_acl_rules: Maximum number of ACL rules that can be added to the router.
+        :type max_acl_rules: int
+        """
+        super().__init__(manager=manager)
+        self.shape: Dict[str, int] = {"position": max_acl_rules}
+
+    def form_request(
+        self, target_firewall_nodename: str, firewall_port_name: str, firewall_port_direction: str, position: int
+    ) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        return [
+            "network",
+            "node",
+            target_firewall_nodename,
+            firewall_port_name,
+            firewall_port_direction,
+            "acl",
+            "remove_rule",
+            position,
+        ]
+
+
+class HostNICAbstractAction(AbstractAction):
     """
     Abstract base class for NIC actions.
 
@@ -555,7 +738,7 @@ class NetworkNICAbstractAction(AbstractAction):
     """
 
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
-        """Init method for NetworkNICAbstractAction.
+        """Init method for HostNICAbstractAction.
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
@@ -577,7 +760,7 @@ class NetworkNICAbstractAction(AbstractAction):
         return ["network", "node", node_name, "network_interface", nic_num, self.verb]
 
 
-class NetworkNICEnableAction(NetworkNICAbstractAction):
+class HostNICEnableAction(HostNICAbstractAction):
     """Action which enables a NIC."""
 
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
@@ -585,7 +768,7 @@ class NetworkNICEnableAction(NetworkNICAbstractAction):
         self.verb: str = "enable"
 
 
-class NetworkNICDisableAction(NetworkNICAbstractAction):
+class HostNICDisableAction(HostNICAbstractAction):
     """Action which disables a NIC."""
 
     def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
@@ -593,51 +776,42 @@ class NetworkNICDisableAction(NetworkNICAbstractAction):
         self.verb: str = "disable"
 
 
-class NetworkPortAbstractAction(AbstractAction):
-    """
-    Abstract base class for Port actions.
+class NetworkPortEnableAction(AbstractAction):
+    """Action which enables are port on a router or a firewall."""
 
-    Any action which applies to a Router/Firewall and uses node_id and port_id as its only two parameters
-    can inherit from this base class.
-    """
+    def __init__(self, manager: "ActionManager", max_nics_per_node: int, **kwargs) -> None:
+        """Init method for NetworkPortEnableAction.
 
-    def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
-        """Init method for NetworkNICAbstractAction.
-
-        :param manager: Reference to the ActionManager which created this action.
-        :type manager: ActionManager
-        :param num_nodes: Number of nodes in the simulation.
-        :type num_nodes: int
         :param max_nics_per_node: Maximum number of NICs per node.
         :type max_nics_per_node: int
         """
         super().__init__(manager=manager)
-        self.shape: Dict[str, int] = {"node_id": num_nodes, "port_id": max_nics_per_node}
-        self.verb: str  # define but don't initialise: defends against children classes not defining this
+        self.shape: Dict[str, int] = {"port_id": max_nics_per_node}
 
-    def form_request(self, node_id: int, port_id: int) -> List[str]:
+    def form_request(self, target_nodename: str, port_id: int) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_name = self.manager.get_node_name_by_idx(node_idx=node_id)
-        port_num = self.manager.get_nic_num_by_idx(node_idx=node_id, nic_idx=port_id)
-        if node_name is None or port_num is None:
+        if target_nodename is None or port_id is None:
             return ["do_nothing"]
-        return ["network", "node", node_name, "network_interface", port_num, self.verb]
+        return ["network", "node", target_nodename, "network_interface", port_id, "enable"]
 
 
-class NetworkPortEnableAction(NetworkPortAbstractAction):
-    """Action which enables a PORT."""
+class NetworkPortDisableAction(AbstractAction):
+    """Action which disables are port on a router or a firewall."""
 
-    def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
-        super().__init__(manager=manager, num_nodes=num_nodes, max_nics_per_node=max_nics_per_node, **kwargs)
-        self.verb: str = "enable"
+    def __init__(self, manager: "ActionManager", max_nics_per_node: int, **kwargs) -> None:
+        """Init method for NetworkPortDisableAction.
 
+        :param max_nics_per_node: Maximum number of NICs per node.
+        :type max_nics_per_node: int
+        """
+        super().__init__(manager=manager)
+        self.shape: Dict[str, int] = {"port_id": max_nics_per_node}
 
-class NetworkPortDisableAction(NetworkPortAbstractAction):
-    """Action which disables a PORT."""
-
-    def __init__(self, manager: "ActionManager", num_nodes: int, max_nics_per_node: int, **kwargs) -> None:
-        super().__init__(manager=manager, num_nodes=num_nodes, max_nics_per_node=max_nics_per_node, **kwargs)
-        self.verb: str = "disable"
+    def form_request(self, target_nodename: str, port_id: int) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        if target_nodename is None or port_id is None:
+            return ["do_nothing"]
+        return ["network", "node", target_nodename, "network_interface", port_id, "disable"]
 
 
 class ActionManager:
@@ -658,6 +832,8 @@ class ActionManager:
         "NODE_APPLICATION_SCAN": NodeApplicationScanAction,
         "NODE_APPLICATION_CLOSE": NodeApplicationCloseAction,
         "NODE_APPLICATION_FIX": NodeApplicationFixAction,
+        "NODE_APPLICATION_INSTALL": NodeApplicationInstallAction,
+        "NODE_APPLICATION_REMOVE": NodeApplicationRemoveAction,
         "NODE_FILE_SCAN": NodeFileScanAction,
         "NODE_FILE_CHECKHASH": NodeFileCheckhashAction,
         "NODE_FILE_DELETE": NodeFileDeleteAction,
@@ -672,10 +848,12 @@ class ActionManager:
         "NODE_SHUTDOWN": NodeShutdownAction,
         "NODE_STARTUP": NodeStartupAction,
         "NODE_RESET": NodeResetAction,
-        "NETWORK_ACL_ADDRULE": NetworkACLAddRuleAction,
-        "NETWORK_ACL_REMOVERULE": NetworkACLRemoveRuleAction,
-        "NETWORK_NIC_ENABLE": NetworkNICEnableAction,
-        "NETWORK_NIC_DISABLE": NetworkNICDisableAction,
+        "ROUTER_ACL_ADDRULE": RouterACLAddRuleAction,
+        "ROUTER_ACL_REMOVERULE": RouterACLRemoveRuleAction,
+        "FIREWALL_ACL_ADDRULE": FirewallACLAddRuleAction,
+        "FIREWALL_ACL_REMOVERULE": FirewallACLRemoveRuleAction,
+        "HOST_NIC_ENABLE": HostNICEnableAction,
+        "HOST_NIC_DISABLE": HostNICDisableAction,
         "NETWORK_PORT_ENABLE": NetworkPortEnableAction,
         "NETWORK_PORT_DISABLE": NetworkPortDisableAction,
     }
@@ -819,7 +997,8 @@ class ActionManager:
         {0: ("NODE_SERVICE_SCAN", {node_id:0, service_id:2})}
         """
         if act_map is None:
-            self.action_map = self._enumerate_actions()
+            # raise RuntimeError("Action map must be specified in the config file.")
+            pass
         else:
             self.action_map = {i: (a["action"], a["options"]) for i, a in act_map.items()}
         # make sure all numbers between 0 and N are represented as dict keys in action map

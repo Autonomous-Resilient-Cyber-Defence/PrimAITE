@@ -37,7 +37,10 @@ agents:
     action_space:
       action_list:
         - type: DONOTHING
-
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
       options:
         nodes:
         - node_name: client_2
@@ -70,6 +73,15 @@ agents:
         - type: NODE_FILE_DELETE
         - type: NODE_FILE_CORRUPT
         - type: NODE_OS_SCAN
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
+        1:
+          action: NODE_APPLICATION_EXECUTE
+          options:
+            node_id: 0
+            application_id: 0
       options:
         nodes:
         - node_name: client_1
@@ -187,14 +199,10 @@ agents:
         - type: NODE_SHUTDOWN
         - type: NODE_STARTUP
         - type: NODE_RESET
-        - type: NETWORK_ACL_ADDRULE
-          options:
-            target_router_hostname: router_1
-        - type: NETWORK_ACL_REMOVERULE
-          options:
-            target_router_hostname: router_1
-        - type: NETWORK_NIC_ENABLE
-        - type: NETWORK_NIC_DISABLE
+        - type: ROUTER_ACL_ADDRULE
+        - type: ROUTER_ACL_REMOVERULE
+        - type: HOST_NIC_ENABLE
+        - type: HOST_NIC_DISABLE
 
       action_map:
           0:
@@ -309,8 +317,9 @@ agents:
             options:
                 node_id: 5
           22: # "ACL: ADDRULE - Block outgoing traffic from client 1" (not supported in Primaite)
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 1
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -319,8 +328,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 1
           23: # "ACL: ADDRULE - Block outgoing traffic from client 2" (not supported in Primaite)
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 2
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -329,8 +339,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 1
           24: # block tcp traffic from client 1 to web app
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 3
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -339,8 +350,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           25: # block tcp traffic from client 2 to web app
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 4
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -349,8 +361,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           26:
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 5
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -359,8 +372,9 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           27:
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 6
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -369,122 +383,132 @@ agents:
                 dest_port_id: 1
                 protocol_id: 3
           28:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 0
           29:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 1
           30:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 2
           31:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 3
           32:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 4
           33:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 5
           34:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 6
           35:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 7
           36:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 8
           37:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 9
           38:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 0
                 nic_id: 0
           39:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 0
                 nic_id: 0
           40:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 1
                 nic_id: 0
           41:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 1
                 nic_id: 0
           42:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 2
                 nic_id: 0
           43:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 2
                 nic_id: 0
           44:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 3
                 nic_id: 0
           45:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 3
                 nic_id: 0
           46:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 4
                 nic_id: 0
           47:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 4
                 nic_id: 0
           48:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 4
                 nic_id: 1
           49:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 4
                 nic_id: 1
           50:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 5
                 nic_id: 0
           51:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 5
                 nic_id: 0
           52:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 6
                 nic_id: 0
           53:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 6
                 nic_id: 0
@@ -684,6 +708,39 @@ simulation:
       services:
       - ref: client_2_dns_client
         type: DNSClient
+
+    - ref: HP_LaserJet_Pro_4102fdn_printer
+      type: printer
+      hostname: HP_LaserJet_Pro_4102fdn_printer
+      ip_address: 192.168.10.99
+      subnet_mask: 255.255.255.0
+
+    - ref: router_2
+      type: wireless_router
+      hostname: router_2
+      router_interface:
+        ip_address: 192.169.1.1
+        subnet_mask: 255.255.255.0
+      wireless_access_point:
+        ip_address: 192.170.1.1
+        subnet_mask: 255.255.255.0
+        frequency: WIFI_2_4
+      acl:
+        0:
+          action: PERMIT
+          src_port: POSTGRES_SERVER
+          dst_port: POSTGRES_SERVER
+        1:
+          action: PERMIT
+          src_port: DNS
+          dst_port: DNS
+        22:
+          action: PERMIT
+          src_port: ARP
+          dst_port: ARP
+        23:
+          action: PERMIT
+          protocol: ICMP
 
     links:
     - ref: router_1___switch_1

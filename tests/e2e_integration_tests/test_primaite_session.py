@@ -1,6 +1,8 @@
 import pydantic
 import pytest
 
+from primaite.simulator.network.hardware.nodes.host.server import Printer
+from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from tests import TEST_ASSETS_ROOT
 from tests.conftest import TempPrimaiteSession
 
@@ -30,7 +32,11 @@ class TestPrimaiteSession:
             assert session.env
 
             assert session.env.game.simulation.network
-            assert len(session.env.game.simulation.network.nodes) == 10
+            assert len(session.env.game.simulation.network.nodes) == 12
+            wireless = session.env.game.simulation.network.get_node_by_hostname("router_2")
+            assert isinstance(wireless, WirelessRouter)
+            printer = session.env.game.simulation.network.get_node_by_hostname("HP_LaserJet_Pro_4102fdn_printer")
+            assert isinstance(printer, Printer)
 
     @pytest.mark.skip(reason="Session is not being maintained and will be removed in the subsequent beta release.")
     @pytest.mark.parametrize("temp_primaite_session", [[CFG_PATH]], indirect=True)

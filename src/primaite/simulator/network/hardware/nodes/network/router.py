@@ -277,7 +277,7 @@ class AccessControlList(SimComponent):
     :ivar int max_acl_rules: The maximum number of ACL rules that can be added to the list. Defaults to 25.
     """
 
-    sys_log: SysLog
+    sys_log: Optional[SysLog] = None
     implicit_action: ACLAction
     implicit_rule: ACLRule
     max_acl_rules: int = 25
@@ -1420,7 +1420,7 @@ class Router(NetworkNode):
         :return: Configured router.
         :rtype: Router
         """
-        router = Router(
+        router = cls(
             hostname=cfg["hostname"],
             num_ports=int(cfg.get("num_ports", "5")),
             operating_state=NodeOperatingState.ON
@@ -1443,6 +1443,8 @@ class Router(NetworkNode):
                     protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
                     src_ip_address=r_cfg.get("src_ip"),
                     dst_ip_address=r_cfg.get("dst_ip"),
+                    src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
+                    dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                     position=r_num,
                 )
         if "routes" in cfg:
