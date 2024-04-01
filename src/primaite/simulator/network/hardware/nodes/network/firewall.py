@@ -113,7 +113,7 @@ class Firewall(Router):
         self.connect_nic(
             RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", port_name="dmz")
         )
-        # Initialise ACLs for internal and dmz interfaces with a default DENY policy
+        # Update ACL objects with firewall's hostname and syslog to allow accurate logging
         self.internal_inbound_acl.sys_log = kwargs["sys_log"]
         self.internal_inbound_acl.name = f"{hostname} - Internal Inbound"
 
