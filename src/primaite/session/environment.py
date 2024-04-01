@@ -28,6 +28,8 @@ class PrimaiteGymEnv(gymnasium.Env):
         super().__init__()
         self.game_config: Dict = game_config
         """PrimaiteGame definition. This can be changed between episodes to enable curriculum learning."""
+        self.io = PrimaiteIO.from_config(game_config.get("io_settings", {}))
+        """Handles IO for the environment. This produces sys logs, agent logs, etc."""
         self.game: PrimaiteGame = PrimaiteGame.from_config(copy.deepcopy(self.game_config))
         """Current game."""
         self._agent_name = next(iter(self.game.rl_agents))
@@ -35,9 +37,6 @@ class PrimaiteGymEnv(gymnasium.Env):
 
         self.episode_counter: int = 0
         """Current episode number."""
-
-        self.io = PrimaiteIO.from_config(game_config.get("io_settings", {}))
-        """Handles IO for the environment. This produces sys logs, agent logs, etc."""
 
     @property
     def agent(self) -> ProxyAgent:
@@ -168,6 +167,8 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         """
         self.game_config: Dict = env_config
         """PrimaiteGame definition. This can be changed between episodes to enable curriculum learning."""
+        self.io = PrimaiteIO.from_config(env_config.get("io_settings"))
+        """Handles IO for the environment. This produces sys logs, agent logs, etc."""
         self.game: PrimaiteGame = PrimaiteGame.from_config(copy.deepcopy(self.game_config))
         """Reference to the primaite game"""
         self._agent_ids = list(self.game.rl_agents.keys())
@@ -186,9 +187,6 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         self.action_space = gymnasium.spaces.Dict(
             {name: agent.action_manager.space for name, agent in self.agents.items()}
         )
-
-        self.io = PrimaiteIO.from_config(env_config.get("io_settings"))
-        """Handles IO for the environment. This produces sys logs, agent logs, etc."""
 
         super().__init__()
 
