@@ -275,7 +275,7 @@ class AccessControlList(SimComponent):
     :ivar int max_acl_rules: The maximum number of ACL rules that can be added to the list. Defaults to 25.
     """
 
-    sys_log: SysLog
+    sys_log: Optional[SysLog] = None
     implicit_action: ACLAction
     implicit_rule: ACLRule
     max_acl_rules: int = 25
