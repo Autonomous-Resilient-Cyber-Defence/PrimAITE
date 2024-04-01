@@ -10,7 +10,7 @@ from primaite.simulator.network.transmission.transport_layer import Port
 
 def check_default_rules(acl_obs):
     assert len(acl_obs) == 7
-    assert all(acl_obs[i]["position"] == i for i in range(1, 8))
+    assert all(acl_obs[i]["position"] == i - 1 for i in range(1, 8))
     assert all(acl_obs[i]["permission"] == 0 for i in range(1, 8))
     assert all(acl_obs[i]["source_ip_id"] == 0 for i in range(1, 8))
     assert all(acl_obs[i]["source_wildcard_id"] == 0 for i in range(1, 8))
@@ -72,7 +72,7 @@ def test_firewall_observation():
 
     observation = firewall_observation.observe(firewall.describe_state())
     observed_rule = observation["ACL"]["INTERNAL"]["INBOUND"][5]
-    assert observed_rule["position"] == 5
+    assert observed_rule["position"] == 4
     assert observed_rule["permission"] == 2
     assert observed_rule["source_ip_id"] == 2
     assert observed_rule["source_wildcard_id"] == 3

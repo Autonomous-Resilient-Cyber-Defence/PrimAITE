@@ -64,7 +64,8 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
         self.port_to_id: Dict[int, int] = {p: i + 2 for i, p in enumerate(port_list)}
         self.protocol_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(protocol_list)}
         self.default_observation: Dict = {
-            i: {
+            i
+            + 1: {
                 "position": i,
                 "permission": 0,
                 "source_ip_id": 0,
@@ -75,7 +76,7 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
                 "dest_port_id": 0,
                 "protocol_id": 0,
             }
-            for i in range(1, self.num_rules + 1)
+            for i in range(self.num_rules)
         }
 
     def observe(self, state: Dict) -> ObsType:
@@ -97,7 +98,7 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
             rule_state = acl_items[i]
             if rule_state is None:
                 obs[i] = {
-                    "position": i,
+                    "position": i - 1,
                     "permission": 0,
                     "source_ip_id": 0,
                     "source_wildcard_id": 0,
@@ -123,7 +124,7 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
                 protocol = rule_state["protocol"]
                 protocol_id = self.protocol_to_id.get(protocol, 1)
                 obs[i] = {
-                    "position": i,
+                    "position": i - 1,
                     "permission": rule_state["action"],
                     "source_ip_id": src_node_id,
                     "source_wildcard_id": src_wildcard_id,
