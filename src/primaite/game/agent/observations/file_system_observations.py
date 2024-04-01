@@ -43,6 +43,26 @@ class FileObservation(AbstractObservation, identifier="FILE"):
         if self.include_num_access:
             self.default_observation["num_access"] = 0
 
+        # TODO: allow these to be configured in yaml
+        self.high_threshold = 10
+        self.med_threshold = 5
+        self.low_threshold = 0
+
+    def _categorise_num_access(self, num_access: int) -> int:
+        """
+        Represent number of file accesses as a categorical variable.
+
+        :param num_access: Number of file accesses.
+        :return: Bin number corresponding to the number of accesses.
+        """
+        if num_access > self.high_threshold:
+            return 3
+        elif num_access > self.med_threshold:
+            return 2
+        elif num_access > self.low_threshold:
+            return 1
+        return 0
+
     def observe(self, state: Dict) -> ObsType:
         """
         Generate observation based on the current state of the simulation.
@@ -57,8 +77,7 @@ class FileObservation(AbstractObservation, identifier="FILE"):
             return self.default_observation
         obs = {"health_status": file_state["visible_status"]}
         if self.include_num_access:
-            obs["num_access"] = file_state["num_access"]
-            # raise NotImplementedError("TODO: need to fix num_access to use thresholds instead of raw value.")
+            obs["num_access"] = self._categorise_num_access(file_state["num_access"])
         return obs
 
     @property

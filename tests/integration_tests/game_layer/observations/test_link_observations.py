@@ -51,31 +51,8 @@ def simulation() -> Simulation:
     return sim
 
 
-def test_link_observation(simulation):
-    """Test the link observation."""
-    # get a link
-    link: Link = next(iter(simulation.network.links.values()))
-
-    computer: Computer = simulation.network.get_node_by_hostname("computer")
-    server: Server = simulation.network.get_node_by_hostname("server")
-
-    simulation.apply_timestep(0)  # some pings when network was made - reset with apply timestep
-
-    link_obs = LinkObservation(where=["network", "links", link.uuid])
-
-    assert link_obs.space["PROTOCOLS"]["ALL"] == spaces.Discrete(11)  # test that the spaces are 0-10 including 0 and 10
-
-    observation_state = link_obs.observe(simulation.describe_state())
-    assert observation_state.get("PROTOCOLS") is not None
-    assert observation_state["PROTOCOLS"]["ALL"] == 0
-
-    computer.ping(server.network_interface.get(1).ip_address)
-
-    observation_state = link_obs.observe(simulation.describe_state())
-    assert observation_state["PROTOCOLS"]["ALL"] == 1
-
-
-def test_link_observation_again():
+def test_link_observation():
+    """Check the shape and contents of the link observation."""
     net = Network()
     sim = Simulation(network=net)
     switch = Switch(hostname="switch", num_ports=5, operating_state=NodeOperatingState.ON)
@@ -102,6 +79,8 @@ def test_link_observation_again():
     assert "PROTOCOLS" in link_2_obs
     assert "ALL" in link_1_obs["PROTOCOLS"]
     assert "ALL" in link_2_obs["PROTOCOLS"]
+    assert link_1_observation.space["PROTOCOLS"]["ALL"] == spaces.Discrete(11)
+    assert link_2_observation.space["PROTOCOLS"]["ALL"] == spaces.Discrete(11)
     assert link_1_obs["PROTOCOLS"]["ALL"] == 0
     assert link_2_obs["PROTOCOLS"]["ALL"] == 0
 

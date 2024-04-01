@@ -72,3 +72,6 @@ def test_folder_observation(simulation):
 
     observation_state = root_folder_obs.observe(simulation.describe_state())
     assert observation_state.get("health_status") == 3  # file is corrupt therefore folder is corrupted too
+
+
+# TODO: Add tests to check num access is correct.

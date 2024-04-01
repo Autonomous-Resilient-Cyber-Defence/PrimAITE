@@ -185,9 +185,11 @@ class ObservationManager:
         Create observation space from a config.
 
         :param config: Dictionary containing the configuration for this observation space.
-            It should contain the key 'type' which selects which observation class to use (from a choice of:
-            UC2BlueObservation, UC2RedObservation, UC2GreenObservation)
-            The other key is 'options' which are passed to the constructor of the selected observation class.
+            If None, a blank observation space is created.
+            Otherwise, this must be a Dict with a type field and options field.
+            type: string that corresponds to one of the observation identifiers that are provided when subclassing
+            AbstractObservation
+            options: this must adhere to the chosen observation type's ConfigSchema nested class.
         :type config: Dict
         :param game: Reference to the PrimaiteGame object that spawned this observation.
         :type game: PrimaiteGame

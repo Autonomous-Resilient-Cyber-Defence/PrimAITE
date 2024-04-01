@@ -98,6 +98,26 @@ class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
         self.where = where
         self.default_observation = {"operating_status": 0, "health_status": 0, "num_executions": 0}
 
+        # TODO: allow these to be configured in yaml
+        self.high_threshold = 10
+        self.med_threshold = 5
+        self.low_threshold = 0
+
+    def _categorise_num_executions(self, num_executions: int) -> int:
+        """
+        Represent number of file accesses as a categorical variable.
+
+        :param num_access: Number of file accesses.
+        :return: Bin number corresponding to the number of accesses.
+        """
+        if num_executions > self.high_threshold:
+            return 3
+        elif num_executions > self.med_threshold:
+            return 2
+        elif num_executions > self.low_threshold:
+            return 1
+        return 0
+
     def observe(self, state: Dict) -> ObsType:
         """
         Generate observation based on the current state of the simulation.
@@ -113,7 +133,7 @@ class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
         return {
             "operating_status": application_state["operating_state"],
             "health_status": application_state["health_state_visible"],
-            "num_executions": application_state["num_executions"],
+            "num_executions": self._categorise_num_executions(application_state["num_executions"]),
         }
 
     @property

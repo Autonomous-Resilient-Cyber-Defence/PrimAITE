@@ -214,9 +214,8 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
         :return: Constructed firewall observation instance.
         :rtype: FirewallObservation
         """
-        where = parent_where + ["nodes", config.hostname]
         return cls(
-            where=where,
+            where=parent_where + ["nodes", config.hostname],
             ip_list=config.ip_list,
             wildcard_list=config.wildcard_list,
             port_list=config.port_list,
