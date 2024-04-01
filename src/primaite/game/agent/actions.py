@@ -997,7 +997,8 @@ class ActionManager:
         {0: ("NODE_SERVICE_SCAN", {node_id:0, service_id:2})}
         """
         if act_map is None:
-            raise RuntimeError("Action map must be specified in the config file.")
+            # raise RuntimeError("Action map must be specified in the config file.")
+            pass
         else:
             self.action_map = {i: (a["action"], a["options"]) for i, a in act_map.items()}
         # make sure all numbers between 0 and N are represented as dict keys in action map

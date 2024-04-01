@@ -38,7 +38,10 @@ agents:
     action_space:
       action_list:
         - type: DONOTHING
-
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
       options:
         nodes:
         - node_name: client_2
@@ -74,6 +77,15 @@ agents:
         - type: NODE_FILE_DELETE
         - type: NODE_FILE_CORRUPT
         - type: NODE_OS_SCAN
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
+        1:
+          action: NODE_APPLICATION_EXECUTE
+          options:
+            node_id: 0
+            application_id: 0
       options:
         nodes:
         - node_name: client_1
