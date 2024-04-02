@@ -1023,11 +1023,11 @@ class RouterSessionManager(SessionManager):
     """
     Manages network sessions, including session creation, lookup, and communication with other components.
 
-    The RouterSessionManager is a Router/Firewall specific implementation of SessionManager. It enables to resolve
-    outbound interface transmission details functions to leverage the route table instead of the default gateway.
+    The RouterSessionManager is a Router/Firewall specific implementation of SessionManager. It overrides the
+    resolve_outbound_network_interface and resolve_outbound_transmission_details functions, allowing them to leverage
+    the route table instead of the default gateway.
 
     :param sys_log: A reference to the system log component.
-    :param arp_cache: A reference to the ARP cache component.
     """
 
     def resolve_outbound_network_interface(self, dst_ip_address: IPv4Address) -> Optional[RouterInterface]:
