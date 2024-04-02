@@ -3,6 +3,7 @@ from typing import Tuple
 
 import pytest
 
+from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -136,6 +137,68 @@ def test_restore_backup(uc2_network):
     assert db_service.restore_backup() is True
 
     assert db_service.file_system.get_file(folder_name="database", file_name="database.db") is not None
+
+
+def test_restore_backup_without_updating_scan(uc2_network):
+    """Same test as restore backup but the file is previously seen as corrupted."""
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+
+    # create a back up
+    assert db_service.backup_database() is True
+
+    db_service.db_file.corrupt()  # corrupt the db
+    assert db_service.db_file.health_status == FileSystemItemHealthStatus.CORRUPT  # db file is actually corrupt
+    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.GOOD  # not scanned yet
+
+    db_service.db_file.scan()  # scan the db file
+
+    # db file is corrupt since last scan
+    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.CORRUPT
+
+    # back up should be restored
+    assert db_service.restore_backup() is True
+
+    assert db_service.db_file.health_status == FileSystemItemHealthStatus.GOOD  # db file is actually good
+    # db file is corrupt since last scan
+    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.CORRUPT
+
+    db_service.db_file.scan()  # scan the db file
+    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.GOOD  # now looks good
+
+
+def test_restore_backup_after_deleting_file_without_updating_scan(uc2_network):
+    """Same test as restore backup but the file is previously seen as corrupted."""
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+
+    # create a back up
+    assert db_service.backup_database() is True
+
+    db_service.db_file.corrupt()  # corrupt the db
+    assert db_service.db_file.health_status == FileSystemItemHealthStatus.CORRUPT  # db file is actually corrupt
+    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.GOOD  # not scanned yet
+
+    db_service.db_file.scan()  # scan the db file
+
+    # db file is corrupt since last scan
+    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.CORRUPT
+
+    # delete database locally
+    db_service.file_system.delete_file(folder_name="database", file_name="database.db")
+
+    # db file is gone, reduced to atoms
+    assert db_service.db_file is None
+
+    # back up should be restored
+    assert db_service.restore_backup() is True
+
+    assert db_service.db_file.health_status == FileSystemItemHealthStatus.GOOD  # db file is actually good
+    # db file is corrupt since last scan
+    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.CORRUPT
+
+    db_service.db_file.scan()  # scan the db file
+    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.GOOD  # now looks good
 
 
 def test_database_client_cannot_query_offline_database_server(uc2_network):
