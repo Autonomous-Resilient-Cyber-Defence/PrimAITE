@@ -104,14 +104,30 @@ class DatabaseService(Service):
             self.sys_log.error("Unable to restore database backup.")
             return False
 
+        old_visible_state = SoftwareHealthState.GOOD
+
+        # get db file regardless of whether or not it was deleted
+        db_file = self.file_system.get_file(folder_name="database", file_name="database.db", include_deleted=True)
+
+        if db_file is None:
+            self.sys_log.error("Database file not initialised.")
+            return False
+
+        # if the file was deleted, get the old visible health state
+        if db_file.deleted:
+            old_visible_state = db_file.visible_health_status
+        else:
+            old_visible_state = self.db_file.visible_health_status
+            self.file_system.delete_file(folder_name="database", file_name="database.db")
+
         # replace db file
-        self.file_system.delete_file(folder_name="database", file_name="database.db")
         self.file_system.copy_file(src_folder_name="downloads", src_file_name="database.db", dst_folder_name="database")
 
         if self.db_file is None:
             self.sys_log.error("Copying database backup failed.")
             return False
 
+        self.db_file.visible_health_status = old_visible_state
         self.set_health_state(SoftwareHealthState.GOOD)
 
         return True
