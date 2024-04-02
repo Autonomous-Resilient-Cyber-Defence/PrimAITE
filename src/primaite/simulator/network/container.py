@@ -170,7 +170,9 @@ class Network(SimComponent):
             print(table)
 
         if links:
-            table = PrettyTable(["Endpoint A", "Endpoint B", "is Up", "Bandwidth (MBits)", "Current Load"])
+            table = PrettyTable(
+                ["Endpoint A", "A Port", "Endpoint B", "B Port", "is Up", "Bandwidth (MBits)", "Current Load"]
+            )
             if markdown:
                 table.set_style(MARKDOWN)
             table.align = "l"
@@ -183,7 +185,9 @@ class Network(SimComponent):
                             table.add_row(
                                 [
                                     link.endpoint_a.parent.hostname,
+                                    str(link.endpoint_a),
                                     link.endpoint_b.parent.hostname,
+                                    str(link.endpoint_b),
                                     link.is_up,
                                     link.bandwidth,
                                     link.current_load_percent,

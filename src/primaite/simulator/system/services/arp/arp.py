@@ -65,6 +65,10 @@ class ARP(Service):
         """Clears the arp cache."""
         self.arp.clear()
 
+    def get_default_gateway_network_interface(self) -> Optional[NetworkInterface]:
+        """Not used at the parent ARP level. Should return None when there is no override by child class."""
+        return None
+
     def add_arp_cache_entry(
         self, ip_address: IPV4Address, mac_address: str, network_interface: NetworkInterface, override: bool = False
     ):
