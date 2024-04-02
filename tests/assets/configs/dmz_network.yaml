@@ -66,8 +66,7 @@ agents:
   - ref: client_1_green_user
     team: GREEN
     type: ProbabilisticAgent
-    observation_space:
-      type: UC2GreenObservation
+    observation_space: null
     action_space:
       action_list:
         - type: DONOTHING

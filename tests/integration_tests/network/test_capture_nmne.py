@@ -1,4 +1,4 @@
-from primaite.game.agent.observations.nic_observations import NicObservation
+from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.nmne import set_nmne_config
 from primaite.simulator.sim_container import Simulation
@@ -141,9 +141,9 @@ def test_describe_state_nmne(uc2_network):
 
 def test_capture_nmne_observations(uc2_network):
     """
-    Tests the NicObservation class's functionality within a simulated network environment.
+    Tests the NICObservation class's functionality within a simulated network environment.
 
-    This test ensures the observation space, as defined by instances of NicObservation, accurately reflects the
+    This test ensures the observation space, as defined by instances of NICObservation, accurately reflects the
     number of MNEs detected based on network activities over multiple iterations.
 
     The test employs a series of "DELETE" SQL operations, considered as MNEs, to validate the dynamic update
@@ -168,8 +168,8 @@ def test_capture_nmne_observations(uc2_network):
     set_nmne_config(nmne_config)
 
     # Define observations for the NICs  of the database and web servers
-    db_server_nic_obs = NicObservation(where=["network", "nodes", "database_server", "NICs", 1])
-    web_server_nic_obs = NicObservation(where=["network", "nodes", "web_server", "NICs", 1])
+    db_server_nic_obs = NICObservation(where=["network", "nodes", "database_server", "NICs", 1], include_nmne=True)
+    web_server_nic_obs = NICObservation(where=["network", "nodes", "web_server", "NICs", 1], include_nmne=True)
 
     # Iterate through a set of test cases to simulate multiple DELETE queries
     for i in range(0, 20):

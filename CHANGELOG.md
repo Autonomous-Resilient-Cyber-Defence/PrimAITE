@@ -120,7 +120,7 @@ SessionManager.
 - Updated all tests to employ the `Network()` class for managing nodes and their connections, ensuring a consistent and structured approach to setting up network topologies in testing scenarios.
 - **ACLRule Wildcard Masking**: Updated the `ACLRule` class to support IP ranges using wildcard masking. This enhancement allows for more flexible and granular control over traffic filtering, enabling the specification of broader or more specific IP address ranges in ACL rules.
 - Updated `NetworkInterface` documentation to reflect the new NMNE capturing features and how to use them.
-- Integration of NMNE capturing functionality within the `NicObservation` class.
+- Integration of NMNE capturing functionality within the `NICObservation` class.
 - Changed blue action set to enable applying node scan, reset, start, and shutdown to every host in data manipulation scenario
 
 ### Removed
