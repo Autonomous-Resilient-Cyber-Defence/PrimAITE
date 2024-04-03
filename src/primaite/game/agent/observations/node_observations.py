@@ -164,7 +164,7 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         :return: Constructed nodes observation instance.
         :rtype: NodesObservation
         """
-        if parent_where is None:
+        if not parent_where:
             where = ["network", "nodes"]
         else:
             where = parent_where + ["nodes"]

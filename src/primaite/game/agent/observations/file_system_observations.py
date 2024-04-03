@@ -205,7 +205,7 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         :return: Constructed folder observation instance.
         :rtype: FolderObservation
         """
-        where = parent_where + ["folders", config.folder_name]
+        where = parent_where + ["file_system", "folders", config.folder_name]
 
         # pass down shared/common config items
         for file_config in config.files:

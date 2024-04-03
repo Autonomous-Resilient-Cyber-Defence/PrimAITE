@@ -124,7 +124,7 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         :return: Constructed router observation instance.
         :rtype: RouterObservation
         """
-        where = parent_where + ["nodes", config.hostname]
+        where = parent_where + [config.hostname]
 
         if config.acl is None:
             config.acl = ACLObservation.ConfigSchema()

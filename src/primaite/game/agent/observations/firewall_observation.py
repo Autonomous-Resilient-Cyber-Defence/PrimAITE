@@ -215,7 +215,7 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
         :rtype: FirewallObservation
         """
         return cls(
-            where=parent_where + ["nodes", config.hostname],
+            where=parent_where + [config.hostname],
             ip_list=config.ip_list,
             wildcard_list=config.wildcard_list,
             port_list=config.port_list,
