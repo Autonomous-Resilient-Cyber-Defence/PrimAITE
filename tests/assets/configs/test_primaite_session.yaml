@@ -743,43 +743,43 @@ simulation:
           protocol: ICMP
 
     links:
-    - endpoint_a_ref: router_1
+    - endpoint_a_hostname: router_1
       endpoint_a_port: 1
-      endpoint_b_ref: switch_1
+      endpoint_b_hostname: switch_1
       endpoint_b_port: 8
-    - endpoint_a_ref: router_1
+    - endpoint_a_hostname: router_1
       endpoint_a_port: 2
-      endpoint_b_ref: switch_2
+      endpoint_b_hostname: switch_2
       endpoint_b_port: 8
-    - endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 1
-      endpoint_b_ref: domain_controller
+      endpoint_b_hostname: domain_controller
       endpoint_b_port: 1
-    - endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 2
-      endpoint_b_ref: web_server
+      endpoint_b_hostname: web_server
       endpoint_b_port: 1
-    - endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 3
-      endpoint_b_ref: database_server
+      endpoint_b_hostname: database_server
       endpoint_b_port: 1
-    - endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 4
-      endpoint_b_ref: backup_server
+      endpoint_b_hostname: backup_server
       endpoint_b_port: 1
-    - endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 7
-      endpoint_b_ref: security_suite
+      endpoint_b_hostname: security_suite
       endpoint_b_port: 1
-    - endpoint_a_ref: switch_2
+    - endpoint_a_hostname: switch_2
       endpoint_a_port: 1
-      endpoint_b_ref: client_1
+      endpoint_b_hostname: client_1
       endpoint_b_port: 1
-    - endpoint_a_ref: switch_2
+    - endpoint_a_hostname: switch_2
       endpoint_a_port: 2
-      endpoint_b_ref: client_2
+      endpoint_b_hostname: client_2
       endpoint_b_port: 1
-    - endpoint_a_ref: switch_2
+    - endpoint_a_hostname: switch_2
       endpoint_a_port: 7
-      endpoint_b_ref: security_suite
+      endpoint_b_hostname: security_suite
       endpoint_b_port: 2

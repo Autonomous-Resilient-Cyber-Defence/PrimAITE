@@ -161,22 +161,22 @@ simulation:
 
     links:
       - ref: switch_1___client_1
-        endpoint_a_ref: switch_1
+        endpoint_a_hostname: switch_1
         endpoint_a_port: 1
-        endpoint_b_ref: client_1
+        endpoint_b_hostname: client_1
         endpoint_b_port: 1
       - ref: switch_2___client_2
-        endpoint_a_ref: switch_2
+        endpoint_a_hostname: switch_2
         endpoint_a_port: 1
-        endpoint_b_ref: client_2
+        endpoint_b_hostname: client_2
         endpoint_b_port: 1
       - ref: switch_1___firewall
-        endpoint_a_ref: switch_1
+        endpoint_a_hostname: switch_1
         endpoint_a_port: 2
-        endpoint_b_ref: firewall
+        endpoint_b_hostname: firewall
         endpoint_b_port: 1
       - ref: switch_2___firewall
-        endpoint_a_ref: switch_2
+        endpoint_a_hostname: switch_2
         endpoint_a_port: 2
-        endpoint_b_ref: firewall
+        endpoint_b_hostname: firewall
         endpoint_b_port: 2

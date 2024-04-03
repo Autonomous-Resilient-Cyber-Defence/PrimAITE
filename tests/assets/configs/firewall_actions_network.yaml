@@ -461,42 +461,42 @@ simulation:
             type: DNSServer
     links:
       - ref: client_1___switch_1
-        endpoint_a_ref: client_1
+        endpoint_a_hostname: client_1
         endpoint_a_port: 1
-        endpoint_b_ref: switch_1
+        endpoint_b_hostname: switch_1
         endpoint_b_port: 1
       - ref: router_1___switch_1
-        endpoint_a_ref: router_1
+        endpoint_a_hostname: router_1
         endpoint_a_port: 1
-        endpoint_b_ref: switch_1
+        endpoint_b_hostname: switch_1
         endpoint_b_port: 8
       - ref: router_1___firewall
-        endpoint_a_ref: firewall
+        endpoint_a_hostname: firewall
         endpoint_a_port: 2 # internal firewall port
-        endpoint_b_ref: router_1
+        endpoint_b_hostname: router_1
         endpoint_b_port: 2
       - ref: firewall___switch_2
-        endpoint_a_ref: firewall
+        endpoint_a_hostname: firewall
         endpoint_a_port: 3 # dmz firewall port
-        endpoint_b_ref: switch_2
+        endpoint_b_hostname: switch_2
         endpoint_b_port: 8
       - ref: dmz_server___switch_2
-        endpoint_a_ref: dmz_server
+        endpoint_a_hostname: dmz_server
         endpoint_a_port: 1
-        endpoint_b_ref: switch_2
+        endpoint_b_hostname: switch_2
         endpoint_b_port: 1
       - ref: firewall___switch_3
-        endpoint_a_ref: firewall
+        endpoint_a_hostname: firewall
         endpoint_a_port: 1 # external firewall port
-        endpoint_b_ref: switch_3
+        endpoint_b_hostname: switch_3
         endpoint_b_port: 8
       - ref: external_computer___switch_3
-        endpoint_a_ref: external_computer
+        endpoint_a_hostname: external_computer
         endpoint_a_port: 1
-        endpoint_b_ref: switch_3
+        endpoint_b_hostname: switch_3
         endpoint_b_port: 1
       - ref: external_server___switch_3
-        endpoint_a_ref: external_server
+        endpoint_a_hostname: external_server
         endpoint_a_port: 1
-        endpoint_b_ref: switch_3
+        endpoint_b_hostname: switch_3
         endpoint_b_port: 2

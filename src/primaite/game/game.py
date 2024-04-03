@@ -396,8 +396,8 @@ class PrimaiteGame:
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
-            node_a = net.get_node_by_hostname(link_cfg["endpoint_a_ref"])
-            node_b = net.get_node_by_hostname(link_cfg["endpoint_b_ref"])
+            node_a = net.get_node_by_hostname(link_cfg["endpoint_a_hostname"])
+            node_b = net.get_node_by_hostname(link_cfg["endpoint_b_hostname"])
             if isinstance(node_a, Switch):
                 endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]
             else:
