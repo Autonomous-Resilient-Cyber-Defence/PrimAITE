@@ -152,16 +152,16 @@ agents:
             label: LINKS
             options:
               link_references:
-                - router_1___switch_1
-                - router_1___switch_2
-                - switch_1___domain_controller
-                - switch_1___web_server
-                - switch_1___database_server
-                - switch_1___backup_server
-                - switch_1___security_suite
-                - switch_2___client_1
-                - switch_2___client_2
-                - switch_2___security_suite
+                - router_1:eth-1<->switch_1:eth-8
+                - router_1:eth-2<->switch_2:eth-8
+                - switch_1:eth-1<->domain_controller:eth-1
+                - switch_1:eth-2<->web_server:eth-1
+                - switch_1:eth-3<->database_server:eth-1
+                - switch_1:eth-4<->backup_server:eth-1
+                - switch_1:eth-7<->security_suite:eth-1
+                - switch_2:eth-1<->client_1:eth-1
+                - switch_2:eth-2<->client_2:eth-1
+                - switch_2:eth-7<->security_suite:eth-2
           - type: "NONE"
             label: ICS
             options: {}
@@ -703,53 +703,43 @@ simulation:
         type: DNSClient
 
     links:
-    - ref: router_1___switch_1
-      endpoint_a_ref: router_1
+    - endpoint_a_ref: router_1
       endpoint_a_port: 1
       endpoint_b_ref: switch_1
       endpoint_b_port: 8
-    - ref: router_1___switch_2
-      endpoint_a_ref: router_1
+    - endpoint_a_ref: router_1
       endpoint_a_port: 2
       endpoint_b_ref: switch_2
       endpoint_b_port: 8
-    - ref: switch_1___domain_controller
-      endpoint_a_ref: switch_1
+    - endpoint_a_ref: switch_1
       endpoint_a_port: 1
       endpoint_b_ref: domain_controller
       endpoint_b_port: 1
-    - ref: switch_1___web_server
-      endpoint_a_ref: switch_1
+    - endpoint_a_ref: switch_1
       endpoint_a_port: 2
       endpoint_b_ref: web_server
       endpoint_b_port: 1
-    - ref: switch_1___database_server
-      endpoint_a_ref: switch_1
+    - endpoint_a_ref: switch_1
       endpoint_a_port: 3
       endpoint_b_ref: database_server
       endpoint_b_port: 1
-    - ref: switch_1___backup_server
-      endpoint_a_ref: switch_1
+    - endpoint_a_ref: switch_1
       endpoint_a_port: 4
       endpoint_b_ref: backup_server
       endpoint_b_port: 1
-    - ref: switch_1___security_suite
-      endpoint_a_ref: switch_1
+    - endpoint_a_ref: switch_1
       endpoint_a_port: 7
       endpoint_b_ref: security_suite
       endpoint_b_port: 1
-    - ref: switch_2___client_1
-      endpoint_a_ref: switch_2
+    - endpoint_a_ref: switch_2
       endpoint_a_port: 1
       endpoint_b_ref: client_1
       endpoint_b_port: 1
-    - ref: switch_2___client_2
-      endpoint_a_ref: switch_2
+    - endpoint_a_ref: switch_2
       endpoint_a_port: 2
       endpoint_b_ref: client_2
       endpoint_b_port: 1
-    - ref: switch_2___security_suite
-      endpoint_a_ref: switch_2
+    - endpoint_a_ref: switch_2
       endpoint_a_port: 7
       endpoint_b_ref: security_suite
       endpoint_b_port: 2

@@ -69,8 +69,8 @@ def test_link_observation():
     assert link_1 is not None
     assert link_2 is not None
 
-    link_1_observation = LinkObservation(where=["network", "links", link_1.uuid])
-    link_2_observation = LinkObservation(where=["network", "links", link_2.uuid])
+    link_1_observation = LinkObservation(where=["network", "links", "switch:eth-1<->computer_1:eth-1"])
+    link_2_observation = LinkObservation(where=["network", "links", "switch:eth-2<->computer_2:eth-1"])
 
     state = sim.describe_state()
     link_1_obs = link_1_observation.observe(state)

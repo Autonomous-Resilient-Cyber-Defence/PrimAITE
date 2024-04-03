@@ -162,13 +162,11 @@ simulation:
       # pre installed services and applications
 
     links:
-    - ref: switch_1___client_1
-      endpoint_a_ref: switch_1
+    - endpoint_a_ref: switch_1
       endpoint_a_port: 1
       endpoint_b_ref: client_1
       endpoint_b_port: 1
-    - ref: switch_1___client_2
-      endpoint_a_ref: switch_1
+    - endpoint_a_ref: switch_1
       endpoint_a_port: 2
       endpoint_b_ref: client_2
       endpoint_b_port: 1

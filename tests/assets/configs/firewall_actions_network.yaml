@@ -101,7 +101,7 @@ agents:
             label: LINKS
             options:
               link_references:
-                - client_1___switch_1
+                - client_1:eth-1<->switch_1:eth-1
           - type: "NONE"
             label: ICS
             options: {}
