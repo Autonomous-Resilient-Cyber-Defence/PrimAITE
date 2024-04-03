@@ -216,7 +216,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         if parent_where == []:
             where = ["network", "nodes", config.hostname]
         else:
-            where = parent_where + ["nodes", config.hostname]
+            where = parent_where + [config.hostname]
 
         # Pass down shared/common config items
         for folder_config in config.folders:
