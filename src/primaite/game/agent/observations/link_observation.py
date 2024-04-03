@@ -82,7 +82,7 @@ class LinkObservation(AbstractObservation, identifier="LINK"):
         :return: Constructed link observation instance.
         :rtype: LinkObservation
         """
-        link_reference = game.ref_map_links[config.link_reference]
+        link_reference = config.link_reference
         if parent_where == []:
             where = ["network", "links", link_reference]
         else:

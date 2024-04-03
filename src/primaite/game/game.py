@@ -111,9 +111,6 @@ class PrimaiteGame:
         self.ref_map_applications: Dict[str, str] = {}
         """Mapping from human-readable application reference to application object. Used for parsing config files."""
 
-        self.ref_map_links: Dict[str, str] = {}
-        """Mapping from human-readable link reference to link object. Used when parsing config files."""
-
         self.save_step_metadata: bool = False
         """Whether to save the RL agents' action, environment state, and other data at every single step."""
 
@@ -409,8 +406,7 @@ class PrimaiteGame:
                 endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
             else:
                 endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
-            new_link = net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b)
-            game.ref_map_links[link_cfg["ref"]] = new_link.uuid
+            net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b)
 
         # 3. create agents
         agents_cfg = cfg.get("agents", [])
