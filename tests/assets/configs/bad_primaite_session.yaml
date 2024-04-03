@@ -551,8 +551,7 @@ simulation:
   network:
     nodes:
 
-    - ref: router_1
-      type: router
+    - type: router
       hostname: router_1
       num_ports: 5
       ports:
@@ -579,70 +578,58 @@ simulation:
           action: PERMIT
           protocol: ICMP
 
-    - ref: switch_1
-      type: switch
+    - type: switch
       hostname: switch_1
       num_ports: 8
 
-    - ref: switch_2
-      type: switch
+    - type: switch
       hostname: switch_2
       num_ports: 8
 
-    - ref: domain_controller
-      type: server
+    - type: server
       hostname: domain_controller
       ip_address: 192.168.1.10
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       services:
-      - ref: domain_controller_dns_server
-        type: DNSServer
+      - type: DNSServer
         options:
           domain_mapping:
             arcd.com: 192.168.1.12 # web server
 
-    - ref: web_server
-      type: server
+    - type: server
       hostname: web_server
       ip_address: 192.168.1.12
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - ref: web_server_web_service
-        type: WebServer
+      - type: WebServer
       applications:
-      - ref: web_server_database_client
-        type: DatabaseClient
+      - type: DatabaseClient
         options:
           db_server_ip: 192.168.1.14
 
 
-    - ref: database_server
-      type: server
+    - type: server
       hostname: database_server
       ip_address: 192.168.1.14
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - ref: database_service
-        type: DatabaseService
+      - type: DatabaseService
 
-    - ref: backup_server
-      type: server
+    - type: server
       hostname: backup_server
       ip_address: 192.168.1.16
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - ref: backup_service
-        type: FTPServer
+      - type: FTPServer
 
-    - ref: security_suite
-      type: server
+    - type: server
       hostname: security_suite
       ip_address: 192.168.1.110
       subnet_mask: 255.255.255.0
@@ -653,38 +640,32 @@ simulation:
           ip_address: 192.168.10.110
           subnet_mask: 255.255.255.0
 
-    - ref: client_1
-      type: computer
+    - type: computer
       hostname: client_1
       ip_address: 192.168.10.21
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-      - ref: data_manipulation_bot
-        type: DataManipulationBot
+      - type: DataManipulationBot
         options:
           port_scan_p_of_success: 0.1
           data_manipulation_p_of_success: 0.1
           payload: "DELETE"
           server_ip: 192.168.1.14
       services:
-      - ref: client_1_dns_client
-        type: DNSClient
+      - type: DNSClient
 
-    - ref: client_2
-      type: computer
+    - type: computer
       hostname: client_2
       ip_address: 192.168.10.22
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-      - ref: client_2_web_browser
-        type: WebBrowser
+      - type: WebBrowser
       services:
-      - ref: client_2_dns_client
-        type: DNSClient
+      - type: DNSClient
 
     links:
     - endpoint_a_hostname: router_1

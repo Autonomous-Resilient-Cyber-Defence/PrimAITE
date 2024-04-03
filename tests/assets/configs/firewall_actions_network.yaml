@@ -298,8 +298,7 @@ agents:
 simulation:
   network:
     nodes:
-      - ref: client_1
-        type: computer
+      - type: computer
         hostname: client_1
         ip_address: 192.168.0.10
         subnet_mask: 255.255.255.0
@@ -308,15 +307,13 @@ simulation:
         start_up_duration: 0
         shut_down_duration: 0
 
-      - ref: switch_1
-        type: switch
+      - type: switch
         hostname: switch_1
         num_ports: 8
         start_up_duration: 0
         shut_down_duration: 0
 
-      - ref: router_1
-        type: router
+      - type: router
         hostname: router_1
         num_ports: 5
         start_up_duration: 0
@@ -350,8 +347,7 @@ simulation:
             next_hop_ip_address: 192.168.1.2
             metric: 0
 
-      - ref: dmz_server
-        type: server
+      - type: server
         hostname: dmz_server
         ip_address: 192.168.10.10
         subnet_mask: 255.255.255.0
@@ -360,15 +356,13 @@ simulation:
         start_up_duration: 0
         shut_down_duration: 0
 
-      - ref: switch_2
-        type: switch
+      - type: switch
         hostname: switch_2
         num_ports: 8
         start_up_duration: 0
         shut_down_duration: 0
 
-      - ref: firewall
-        type: firewall
+      - type: firewall
         hostname: firewall
         start_up_duration: 0
         shut_down_duration: 0
@@ -431,15 +425,13 @@ simulation:
             next_hop_ip_address: 192.168.1.1
             metric: 0
 
-      - ref: switch_3
-        type: switch
+      - type: switch
         hostname: switch_3
         num_ports: 8
         start_up_duration: 0
         shut_down_duration: 0
 
-      - ref: external_computer
-        type: computer
+      - type: computer
         hostname: external_computer
         ip_address: 192.168.20.10
         subnet_mask: 255.255.255.0
@@ -448,8 +440,7 @@ simulation:
         start_up_duration: 0
         shut_down_duration: 0
 
-      - ref: external_server
-        type: server
+      - type: server
         hostname: external_server
         ip_address: 192.168.20.11
         subnet_mask: 255.255.255.0
@@ -457,46 +448,37 @@ simulation:
         start_up_duration: 0
         shut_down_duration: 0
         services:
-          - ref: domain_controller_dns_server
-            type: DNSServer
+          - type: DNSServer
     links:
-      - ref: client_1___switch_1
-        endpoint_a_hostname: client_1
+      - endpoint_a_hostname: client_1
         endpoint_a_port: 1
         endpoint_b_hostname: switch_1
         endpoint_b_port: 1
-      - ref: router_1___switch_1
-        endpoint_a_hostname: router_1
+      - endpoint_a_hostname: router_1
         endpoint_a_port: 1
         endpoint_b_hostname: switch_1
         endpoint_b_port: 8
-      - ref: router_1___firewall
-        endpoint_a_hostname: firewall
+      - endpoint_a_hostname: firewall
         endpoint_a_port: 2 # internal firewall port
         endpoint_b_hostname: router_1
         endpoint_b_port: 2
-      - ref: firewall___switch_2
-        endpoint_a_hostname: firewall
+      - endpoint_a_hostname: firewall
         endpoint_a_port: 3 # dmz firewall port
         endpoint_b_hostname: switch_2
         endpoint_b_port: 8
-      - ref: dmz_server___switch_2
-        endpoint_a_hostname: dmz_server
+      - endpoint_a_hostname: dmz_server
         endpoint_a_port: 1
         endpoint_b_hostname: switch_2
         endpoint_b_port: 1
-      - ref: firewall___switch_3
-        endpoint_a_hostname: firewall
+      - endpoint_a_hostname: firewall
         endpoint_a_port: 1 # external firewall port
         endpoint_b_hostname: switch_3
         endpoint_b_port: 8
-      - ref: external_computer___switch_3
-        endpoint_a_hostname: external_computer
+      - endpoint_a_hostname: external_computer
         endpoint_a_port: 1
         endpoint_b_hostname: switch_3
         endpoint_b_port: 1
-      - ref: external_server___switch_3
-        endpoint_a_hostname: external_server
+      - endpoint_a_hostname: external_server
         endpoint_a_port: 1
         endpoint_b_hostname: switch_3
         endpoint_b_port: 2

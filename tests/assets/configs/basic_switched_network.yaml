@@ -79,79 +79,64 @@ simulation:
   network:
     nodes:
 
-    - ref: switch_1
-      type: switch
+    - type: switch
       hostname: switch_1
       num_ports: 8
 
-    - ref: client_1
+    - hostname: client_1
       type: computer
-      hostname: client_1
       ip_address: 192.168.10.21
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-      - ref: client_1_web_browser
-        type: WebBrowser
+      - type: WebBrowser
         options:
           target_url: http://arcd.com/users/
-      - ref: client_1_database_client
-        type: DatabaseClient
+      - type: DatabaseClient
         options:
           db_server_ip: 192.168.1.10
           server_password: arcd
-      - ref: data_manipulation_bot
-        type: DataManipulationBot
+      - type: DataManipulationBot
         options:
           port_scan_p_of_success: 0.8
           data_manipulation_p_of_success: 0.8
           payload: "DELETE"
           server_ip: 192.168.1.21
           server_password: arcd
-      - ref: dos_bot
-        type: DoSBot
+      - type: DoSBot
         options:
           target_ip_address: 192.168.10.21
           payload: SPOOF DATA
           port_scan_p_of_success: 0.8
       services:
-      - ref: client_1_dns_client
-        type: DNSClient
+      - type: DNSClient
         options:
           dns_server: 192.168.1.10
-      - ref: client_1_dns_server
-        type: DNSServer
+      - type: DNSServer
         options:
           domain_mapping:
             arcd.com: 192.168.1.10
-      - ref: client_1_database_service
-        type: DatabaseService
+      - type: DatabaseService
         options:
           backup_server_ip: 192.168.1.10
-      - ref: client_1_web_service
-        type: WebServer
-      - ref: client_1_ftp_server
-        type: FTPServer
+      - type: WebServer
+      - type: FTPServer
         options:
           server_password: arcd
-      - ref: client_1_ntp_client
-        type: NTPClient
+      - type: NTPClient
         options:
           ntp_server_ip: 192.168.1.10
-      - ref: client_1_ntp_server
-        type: NTPServer
-    - ref: client_2
+      - type: NTPServer
+    - hostname: client_2
       type: computer
-      hostname: client_2
       ip_address: 192.168.10.22
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       # pre installed services and applications
-    - ref: client_3
+    - hostname: client_3
       type: computer
-      hostname: client_3
       ip_address: 192.168.10.23
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
