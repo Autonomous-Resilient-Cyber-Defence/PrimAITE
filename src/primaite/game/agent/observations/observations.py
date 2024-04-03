@@ -1,6 +1,6 @@
 """Manages the observation space for the agent."""
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Type, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Type
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -8,8 +8,6 @@ from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger
 
-if TYPE_CHECKING:
-    from primaite.game.game import PrimaiteGame
 _LOGGER = getLogger(__name__)
 WhereType = Iterable[str | int] | None
 
@@ -65,8 +63,6 @@ class AbstractObservation(ABC):
 
     @classmethod
     @abstractmethod
-    def from_config(
-        cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []
-    ) -> "AbstractObservation":
+    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> "AbstractObservation":
         """Create this observation space component form a serialised format."""
         return cls()

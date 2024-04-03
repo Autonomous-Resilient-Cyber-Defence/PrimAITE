@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Dict, List, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -11,8 +11,6 @@ from primaite.game.agent.observations.nic_observations import PortObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 
-if TYPE_CHECKING:
-    from primaite.game.game import PrimaiteGame
 _LOGGER = getLogger(__name__)
 
 
@@ -112,7 +110,7 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         return spaces.Dict(shape)
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> RouterObservation:
+    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> RouterObservation:
         """
         Create a router observation from a configuration schema.
 
@@ -142,6 +140,6 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         if config.ports is None:
             config.ports = [PortObservation.ConfigSchema(port_id=i + 1) for i in range(config.num_ports)]
 
-        ports = [PortObservation.from_config(config=c, game=game, parent_where=where) for c in config.ports]
-        acl = ACLObservation.from_config(config=config.acl, game=game, parent_where=where)
+        ports = [PortObservation.from_config(config=c, parent_where=where) for c in config.ports]
+        acl = ACLObservation.from_config(config=config.acl, parent_where=where)
         return cls(where=where, ports=ports, num_ports=config.num_ports, acl=acl)

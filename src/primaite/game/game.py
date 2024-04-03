@@ -396,8 +396,8 @@ class PrimaiteGame:
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
-            node_a = net.nodes[game.ref_map_nodes[link_cfg["endpoint_a_ref"]]]
-            node_b = net.nodes[game.ref_map_nodes[link_cfg["endpoint_b_ref"]]]
+            node_a = net.get_node_by_hostname(link_cfg["endpoint_a_ref"])
+            node_b = net.get_node_by_hostname(link_cfg["endpoint_b_ref"])
             if isinstance(node_a, Switch):
                 endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]
             else:
@@ -419,7 +419,7 @@ class PrimaiteGame:
             reward_function_cfg = agent_cfg["reward_function"]
 
             # CREATE OBSERVATION SPACE
-            obs_space = ObservationManager.from_config(observation_space_cfg, game)
+            obs_space = ObservationManager.from_config(observation_space_cfg)
 
             # CREATE ACTION SPACE
             action_space = ActionManager.from_config(game, action_space_cfg)
