@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
 from pydantic import BaseModel, ConfigDict, model_validator, ValidationError
 
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
-
-if TYPE_CHECKING:
-    from primaite.game.game import PrimaiteGame
 
 
 class NestedObservation(AbstractObservation, identifier="CUSTOM"):
@@ -76,7 +73,7 @@ class NestedObservation(AbstractObservation, identifier="CUSTOM"):
         return spaces.Dict({label: obs.space for label, obs in self.components.items()})
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> NestedObservation:
+    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> NestedObservation:
         """
         Read the Nested observation config and create all defined subcomponents.
 
@@ -115,7 +112,7 @@ class NestedObservation(AbstractObservation, identifier="CUSTOM"):
         instances = dict()
         for component in config.components:
             obs_class = AbstractObservation._registry[component.type]
-            obs_instance = obs_class.from_config(config=obs_class.ConfigSchema(**component.options), game=game)
+            obs_instance = obs_class.from_config(config=obs_class.ConfigSchema(**component.options))
             instances[component.label] = obs_instance
         return cls(components=instances)
 
@@ -137,9 +134,7 @@ class NullObservation(AbstractObservation, identifier="NONE"):
         return spaces.Discrete(1)
 
     @classmethod
-    def from_config(
-        cls, config: NullObservation.ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []
-    ) -> NullObservation:
+    def from_config(cls, config: NullObservation.ConfigSchema, parent_where: WhereType = []) -> NullObservation:
         """Instantiate a NullObservation. Accepts parameters to comply with API."""
         return cls()
 
@@ -180,7 +175,7 @@ class ObservationManager:
         return self.obs.space
 
     @classmethod
-    def from_config(cls, config: Optional[Dict], game: "PrimaiteGame") -> "ObservationManager":
+    def from_config(cls, config: Optional[Dict]) -> "ObservationManager":
         """
         Create observation space from a config.
 
@@ -191,14 +186,12 @@ class ObservationManager:
             AbstractObservation
             options: this must adhere to the chosen observation type's ConfigSchema nested class.
         :type config: Dict
-        :param game: Reference to the PrimaiteGame object that spawned this observation.
-        :type game: PrimaiteGame
         """
         if config is None:
             return cls(NullObservation())
         print(config)
         obs_type = config["type"]
         obs_class = AbstractObservation._registry[obs_type]
-        observation = obs_class.from_config(config=obs_class.ConfigSchema(**config["options"]), game=game)
+        observation = obs_class.from_config(config=obs_class.ConfigSchema(**config["options"]))
         obs_manager = cls(observation)
         return obs_manager

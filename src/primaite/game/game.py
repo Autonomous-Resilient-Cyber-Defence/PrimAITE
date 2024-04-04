@@ -102,18 +102,6 @@ class PrimaiteGame:
         self.options: PrimaiteGameOptions
         """Special options that apply for the entire game."""
 
-        self.ref_map_nodes: Dict[str, str] = {}
-        """Mapping from unique node reference name to node object. Used when parsing config files."""
-
-        self.ref_map_services: Dict[str, str] = {}
-        """Mapping from human-readable service reference to service object. Used for parsing config files."""
-
-        self.ref_map_applications: Dict[str, str] = {}
-        """Mapping from human-readable application reference to application object. Used for parsing config files."""
-
-        self.ref_map_links: Dict[str, str] = {}
-        """Mapping from human-readable link reference to link object. Used when parsing config files."""
-
         self.save_step_metadata: bool = False
         """Whether to save the RL agents' action, environment state, and other data at every single step."""
 
@@ -238,7 +226,6 @@ class PrimaiteGame:
         links_cfg = network_config.get("links", [])
 
         for node_cfg in nodes_cfg:
-            node_ref = node_cfg["ref"]
             n_type = node_cfg["type"]
             if n_type == "computer":
                 new_node = Computer(
@@ -289,13 +276,11 @@ class PrimaiteGame:
             if "services" in node_cfg:
                 for service_cfg in node_cfg["services"]:
                     new_service = None
-                    service_ref = service_cfg["ref"]
                     service_type = service_cfg["type"]
                     if service_type in SERVICE_TYPES_MAPPING:
                         _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
                         new_node.software_manager.install(SERVICE_TYPES_MAPPING[service_type])
                         new_service = new_node.software_manager.software[service_type]
-                        game.ref_map_services[service_ref] = new_service.uuid
 
                         # start the service
                         new_service.start()
@@ -331,13 +316,11 @@ class PrimaiteGame:
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
                     new_application = None
-                    application_ref = application_cfg["ref"]
                     application_type = application_cfg["type"]
 
                     if application_type in APPLICATION_TYPES_MAPPING:
                         new_node.software_manager.install(APPLICATION_TYPES_MAPPING[application_type])
                         new_application = new_node.software_manager.software[application_type]
-                        game.ref_map_applications[application_ref] = new_application.uuid
                     else:
                         msg = f"Configuration contains an invalid application type: {application_type}"
                         _LOGGER.error(msg)
@@ -391,7 +374,6 @@ class PrimaiteGame:
             # run through the power on step if the node is to be turned on at the start
             if new_node.operating_state == NodeOperatingState.ON:
                 new_node.power_on()
-            game.ref_map_nodes[node_ref] = new_node.uuid
 
             # set start up and shut down duration
             new_node.start_up_duration = int(node_cfg.get("start_up_duration", 3))
@@ -399,8 +381,8 @@ class PrimaiteGame:
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
-            node_a = net.nodes[game.ref_map_nodes[link_cfg["endpoint_a_ref"]]]
-            node_b = net.nodes[game.ref_map_nodes[link_cfg["endpoint_b_ref"]]]
+            node_a = net.get_node_by_hostname(link_cfg["endpoint_a_hostname"])
+            node_b = net.get_node_by_hostname(link_cfg["endpoint_b_hostname"])
             if isinstance(node_a, Switch):
                 endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]
             else:
@@ -409,8 +391,7 @@ class PrimaiteGame:
                 endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
             else:
                 endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
-            new_link = net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b)
-            game.ref_map_links[link_cfg["ref"]] = new_link.uuid
+            net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b)
 
         # 3. create agents
         agents_cfg = cfg.get("agents", [])
@@ -423,7 +404,7 @@ class PrimaiteGame:
             reward_function_cfg = agent_cfg["reward_function"]
 
             # CREATE OBSERVATION SPACE
-            obs_space = ObservationManager.from_config(observation_space_cfg, game)
+            obs_space = ObservationManager.from_config(observation_space_cfg)
 
             # CREATE ACTION SPACE
             action_space = ActionManager.from_config(game, action_space_cfg)

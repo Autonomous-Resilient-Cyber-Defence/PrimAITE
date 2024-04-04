@@ -160,16 +160,16 @@ agents:
             label: LINKS
             options:
               link_references:
-                - router_1___switch_1
-                - router_1___switch_2
-                - switch_1___domain_controller
-                - switch_1___web_server
-                - switch_1___database_server
-                - switch_1___backup_server
-                - switch_1___security_suite
-                - switch_2___client_1
-                - switch_2___client_2
-                - switch_2___security_suite
+                - router_1:eth-1<->switch_1:eth-8
+                - router_1:eth-2<->switch_2:eth-8
+                - switch_1:eth-1<->domain_controller:eth-1
+                - switch_1:eth-2<->web_server:eth-1
+                - switch_1:eth-3<->database_server:eth-1
+                - switch_1:eth-4<->backup_server:eth-1
+                - switch_1:eth-7<->security_suite:eth-1
+                - switch_2:eth-1<->client_1:eth-1
+                - switch_2:eth-2<->client_2:eth-1
+                - switch_2:eth-7<->security_suite:eth-2
           - type: "NONE"
             label: ICS
             options: {}
@@ -574,8 +574,7 @@ simulation:
   network:
     nodes:
 
-    - ref: router_1
-      type: router
+    - type: router
       hostname: router_1
       num_ports: 5
       ports:
@@ -602,70 +601,58 @@ simulation:
           action: PERMIT
           protocol: ICMP
 
-    - ref: switch_1
-      type: switch
+    - type: switch
       hostname: switch_1
       num_ports: 8
 
-    - ref: switch_2
-      type: switch
+    - type: switch
       hostname: switch_2
       num_ports: 8
 
-    - ref: domain_controller
-      type: server
+    - type: server
       hostname: domain_controller
       ip_address: 192.168.1.10
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       services:
-      - ref: domain_controller_dns_server
-        type: DNSServer
+      - type: DNSServer
         options:
           domain_mapping:
             arcd.com: 192.168.1.12 # web server
 
-    - ref: web_server
-      type: server
+    - type: server
       hostname: web_server
       ip_address: 192.168.1.12
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - ref: web_server_web_service
-        type: WebServer
+      - type: WebServer
       applications:
-      - ref: web_server_database_client
-        type: DatabaseClient
+      - type: DatabaseClient
         options:
           db_server_ip: 192.168.1.14
 
 
-    - ref: database_server
-      type: server
+    - type: server
       hostname: database_server
       ip_address: 192.168.1.14
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - ref: database_service
-        type: DatabaseService
+      - type: DatabaseService
 
-    - ref: backup_server
-      type: server
+    - type: server
       hostname: backup_server
       ip_address: 192.168.1.16
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - ref: backup_service
-        type: FTPServer
+      - type: FTPServer
 
-    - ref: security_suite
-      type: server
+    - type: server
       hostname: security_suite
       ip_address: 192.168.1.110
       subnet_mask: 255.255.255.0
@@ -676,87 +663,71 @@ simulation:
           ip_address: 192.168.10.110
           subnet_mask: 255.255.255.0
 
-    - ref: client_1
-      type: computer
+    - type: computer
       hostname: client_1
       ip_address: 192.168.10.21
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-      - ref: data_manipulation_bot
-        type: DataManipulationBot
+      - type: DataManipulationBot
         options:
           port_scan_p_of_success: 0.1
           data_manipulation_p_of_success: 0.1
           payload: "DELETE"
           server_ip: 192.168.1.14
       services:
-      - ref: client_1_dns_client
-        type: DNSClient
+      - type: DNSClient
 
-    - ref: client_2
-      type: computer
+    - type: computer
       hostname: client_2
       ip_address: 192.168.10.22
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-      - ref: client_2_web_browser
-        type: WebBrowser
+      - type: WebBrowser
       services:
-      - ref: client_2_dns_client
-        type: DNSClient
+      - type: DNSClient
 
     links:
-    - ref: router_1___switch_1
-      endpoint_a_ref: router_1
+    - endpoint_a_hostname: router_1
       endpoint_a_port: 1
-      endpoint_b_ref: switch_1
+      endpoint_b_hostname: switch_1
       endpoint_b_port: 8
-    - ref: router_1___switch_2
-      endpoint_a_ref: router_1
+    - endpoint_a_hostname: router_1
       endpoint_a_port: 2
-      endpoint_b_ref: switch_2
+      endpoint_b_hostname: switch_2
       endpoint_b_port: 8
-    - ref: switch_1___domain_controller
-      endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 1
-      endpoint_b_ref: domain_controller
+      endpoint_b_hostname: domain_controller
       endpoint_b_port: 1
-    - ref: switch_1___web_server
-      endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 2
-      endpoint_b_ref: web_server
+      endpoint_b_hostname: web_server
       endpoint_b_port: 1
-    - ref: switch_1___database_server
-      endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 3
-      endpoint_b_ref: database_server
+      endpoint_b_hostname: database_server
       endpoint_b_port: 1
-    - ref: switch_1___backup_server
-      endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 4
-      endpoint_b_ref: backup_server
+      endpoint_b_hostname: backup_server
       endpoint_b_port: 1
-    - ref: switch_1___security_suite
-      endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 7
-      endpoint_b_ref: security_suite
+      endpoint_b_hostname: security_suite
       endpoint_b_port: 1
-    - ref: switch_2___client_1
-      endpoint_a_ref: switch_2
+    - endpoint_a_hostname: switch_2
       endpoint_a_port: 1
-      endpoint_b_ref: client_1
+      endpoint_b_hostname: client_1
       endpoint_b_port: 1
-    - ref: switch_2___client_2
-      endpoint_a_ref: switch_2
+    - endpoint_a_hostname: switch_2
       endpoint_a_port: 2
-      endpoint_b_ref: client_2
+      endpoint_b_hostname: client_2
       endpoint_b_port: 1
-    - ref: switch_2___security_suite
-      endpoint_a_ref: switch_2
+    - endpoint_a_hostname: switch_2
       endpoint_a_port: 7
-      endpoint_b_ref: security_suite
+      endpoint_b_hostname: security_suite
       endpoint_b_port: 2

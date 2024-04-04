@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ipaddress import IPv4Address
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Dict, List, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -10,8 +10,6 @@ from primaite import getLogger
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 
-if TYPE_CHECKING:
-    from primaite.game.game import PrimaiteGame
 _LOGGER = getLogger(__name__)
 
 
@@ -167,7 +165,7 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
         )
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> ACLObservation:
+    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> ACLObservation:
         """
         Create an ACL observation from a configuration schema.
 

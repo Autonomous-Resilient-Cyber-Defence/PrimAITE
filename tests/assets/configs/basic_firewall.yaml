@@ -79,8 +79,7 @@ simulation:
   network:
     nodes:
 
-      - ref: firewall
-        type: firewall
+      - type: firewall
         hostname: firewall
         start_up_duration: 0
         shut_down_duration: 0
@@ -133,25 +132,21 @@ simulation:
               action: PERMIT
               protocol: ICMP
 
-      - ref: switch_1
-        type: switch
+      - type: switch
         hostname: switch_1
         num_ports: 8
-      - ref: switch_2
-        type: switch
+      - type: switch
         hostname: switch_2
         num_ports: 8
 
-      - ref: client_1
-        type: computer
+      - type: computer
         hostname: client_1
         ip_address: 192.168.10.21
         subnet_mask: 255.255.255.0
         default_gateway: 192.168.10.1
         dns_server: 192.168.1.10
         # pre installed services and applications
-      - ref: client_2
-        type: computer
+      - type: computer
         hostname: client_2
         ip_address: 192.168.10.22
         subnet_mask: 255.255.255.0
@@ -160,23 +155,19 @@ simulation:
         # pre installed services and applications
 
     links:
-      - ref: switch_1___client_1
-        endpoint_a_ref: switch_1
+      - endpoint_a_hostname: switch_1
         endpoint_a_port: 1
-        endpoint_b_ref: client_1
+        endpoint_b_hostname: client_1
         endpoint_b_port: 1
-      - ref: switch_2___client_2
-        endpoint_a_ref: switch_2
+      - endpoint_a_hostname: switch_2
         endpoint_a_port: 1
-        endpoint_b_ref: client_2
+        endpoint_b_hostname: client_2
         endpoint_b_port: 1
-      - ref: switch_1___firewall
-        endpoint_a_ref: switch_1
+      - endpoint_a_hostname: switch_1
         endpoint_a_port: 2
-        endpoint_b_ref: firewall
+        endpoint_b_hostname: firewall
         endpoint_b_port: 1
-      - ref: switch_2___firewall
-        endpoint_a_ref: switch_2
+      - endpoint_a_hostname: switch_2
         endpoint_a_port: 2
-        endpoint_b_ref: firewall
+        endpoint_b_hostname: firewall
         endpoint_b_port: 2

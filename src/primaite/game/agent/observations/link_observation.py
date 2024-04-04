@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -9,8 +9,6 @@ from primaite import getLogger
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 
-if TYPE_CHECKING:
-    from primaite.game.game import PrimaiteGame
 _LOGGER = getLogger(__name__)
 
 
@@ -68,21 +66,19 @@ class LinkObservation(AbstractObservation, identifier="LINK"):
         return spaces.Dict({"PROTOCOLS": spaces.Dict({"ALL": spaces.Discrete(11)})})
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> LinkObservation:
+    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> LinkObservation:
         """
         Create a link observation from a configuration schema.
 
         :param config: Configuration schema containing the necessary information for the link observation.
         :type config: ConfigSchema
-        :param game: The PrimaiteGame instance.
-        :type game: PrimaiteGame
         :param parent_where: Where in the simulation state dictionary to find the information about this link.
             A typical location might be ['network', 'links', <link_reference>].
         :type parent_where: WhereType, optional
         :return: Constructed link observation instance.
         :rtype: LinkObservation
         """
-        link_reference = game.ref_map_links[config.link_reference]
+        link_reference = config.link_reference
         if parent_where == []:
             where = ["network", "links", link_reference]
         else:
@@ -135,14 +131,12 @@ class LinksObservation(AbstractObservation, identifier="LINKS"):
         return spaces.Dict({i + 1: l.space for i, l in enumerate(self.links)})
 
     @classmethod
-    def from_config(cls, config: ConfigSchema, game: "PrimaiteGame", parent_where: WhereType = []) -> LinksObservation:
+    def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> LinksObservation:
         """
         Create a links observation from a configuration schema.
 
         :param config: Configuration schema containing the necessary information for the links observation.
         :type config: ConfigSchema
-        :param game: The PrimaiteGame instance.
-        :type game: PrimaiteGame
         :param parent_where: Where in the simulation state dictionary to find the information about these links.
             A typical location might be ['network'].
         :type parent_where: WhereType, optional
@@ -151,5 +145,5 @@ class LinksObservation(AbstractObservation, identifier="LINKS"):
         """
         where = parent_where + ["network"]
         link_cfgs = [LinkObservation.ConfigSchema(link_reference=ref) for ref in config.link_references]
-        links = [LinkObservation.from_config(c, game=game, parent_where=where) for c in link_cfgs]
+        links = [LinkObservation.from_config(c, parent_where=where) for c in link_cfgs]
         return cls(where=where, links=links)

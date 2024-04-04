@@ -225,18 +225,19 @@ class Network(SimComponent):
             }
         )
         # Update the links one-by-one. The key is a 4-tuple of `hostname_a, port_a, hostname_b, port_b`
-        for uuid, link in self.links.items():
+        for _, link in self.links.items():
             node_a = link.endpoint_a._connected_node
             node_b = link.endpoint_b._connected_node
             hostname_a = node_a.hostname if node_a else None
             hostname_b = node_b.hostname if node_b else None
             port_a = link.endpoint_a.port_num
             port_b = link.endpoint_b.port_num
-            state["links"][uuid] = link.describe_state()
-            state["links"][uuid]["hostname_a"] = hostname_a
-            state["links"][uuid]["hostname_b"] = hostname_b
-            state["links"][uuid]["port_a"] = port_a
-            state["links"][uuid]["port_b"] = port_b
+            link_key = f"{hostname_a}:eth-{port_a}<->{hostname_b}:eth-{port_b}"
+            state["links"][link_key] = link.describe_state()
+            state["links"][link_key]["hostname_a"] = hostname_a
+            state["links"][link_key]["hostname_b"] = hostname_b
+            state["links"][link_key]["port_a"] = port_a
+            state["links"][link_key]["port_b"] = port_b
 
         return state
 
