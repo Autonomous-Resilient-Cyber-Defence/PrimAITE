@@ -29,6 +29,8 @@ class DatabaseClient(Application):
     _query_success_tracker: Dict[str, bool] = {}
     _last_connection_successful: Optional[bool] = None
     """Keep track of connections that were established or verified during this step. Used for rewards."""
+    last_query_response: Optional[Dict] = None
+    """Keep track of the latest query response. Used to determine rewards."""
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseClient"
@@ -219,6 +221,9 @@ class DatabaseClient(Application):
         if not self._can_perform_action():
             return False
 
+        # reset last query response
+        self.last_query_response = None
+
         if connection_id is None:
             if self.connections:
                 connection_id = list(self.connections.keys())[-1]
@@ -252,6 +257,7 @@ class DatabaseClient(Application):
                     # add connection
                     self.add_connection(connection_id=payload.get("connection_id"), session_id=session_id)
             elif payload["type"] == "sql":
+                self.last_query_response = payload
                 query_id = payload.get("uuid")
                 status_code = payload.get("status_code")
                 self._query_success_tracker[query_id] = status_code == 200

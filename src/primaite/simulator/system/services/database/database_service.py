@@ -204,7 +204,7 @@ class DatabaseService(Service):
 
         if not self.db_file:
             self.sys_log.info(f"{self.name}: Failed to run {query} because the database file is missing.")
-            return {"status_code": 404, "data": False}
+            return {"status_code": 404, "type": "sql", "data": False}
 
         if query == "SELECT":
             if self.db_file.health_status == FileSystemItemHealthStatus.GOOD:
@@ -216,7 +216,7 @@ class DatabaseService(Service):
                     "connection_id": connection_id,
                 }
             else:
-                return {"status_code": 404, "data": False}
+                return {"status_code": 404, "type": "sql", "data": False}
         elif query == "DELETE":
             self.db_file.health_status = FileSystemItemHealthStatus.COMPROMISED
             return {
@@ -236,7 +236,7 @@ class DatabaseService(Service):
                     "connection_id": connection_id,
                 }
             else:
-                return {"status_code": 404, "data": False}
+                return {"status_code": 404, "type": "sql", "data": False}
         elif query == "SELECT * FROM pg_stat_activity":
             # Check if the connection is active.
             if self.health_state_actual == SoftwareHealthState.GOOD:
