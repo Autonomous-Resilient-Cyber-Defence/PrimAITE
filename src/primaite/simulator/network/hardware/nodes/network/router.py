@@ -1215,8 +1215,7 @@ class Router(NetworkNode):
         icmp: RouterICMP = self.software_manager.icmp  # noqa
         icmp.router = self
         self.software_manager.install(RouterARP)
-        arp: RouterARP = self.software_manager.arp  # noqa
-        arp.router = self
+        self.arp.router = self
 
     def _set_default_acl(self):
         """

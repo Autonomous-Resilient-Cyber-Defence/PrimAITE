@@ -316,6 +316,10 @@ class HostNode(Node):
         super().__init__(**kwargs)
         self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))
 
+    @property
+    def arp(self) -> Optional[ARP]:
+        return self.software_manager.software.get("ARP")
+
     def _install_system_software(self):
         """
         Installs the system software and network services typically found on an operating system.
