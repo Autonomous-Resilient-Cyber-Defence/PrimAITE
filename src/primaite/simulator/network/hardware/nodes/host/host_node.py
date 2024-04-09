@@ -319,7 +319,7 @@ class HostNode(Node):
     @property
     def arp(self) -> Optional[ARP]:
         """
-        Return the ARP Cache of the HostNode
+        Return the ARP Cache of the HostNode.
 
         :return: ARP Cache for given HostNode
         :rtype: Optional[ARP] 

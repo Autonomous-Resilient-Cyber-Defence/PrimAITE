@@ -33,7 +33,7 @@ class NetworkNode(Node):
     @property
     def arp(self) -> Optional[ARP]:
         """
-        Return the ARP Cache of the NetworkNode
+        Return the ARP Cache of the NetworkNode.
 
         :return: ARP Cache for given NetworkNode
         :rtype: Optional[ARP] 
