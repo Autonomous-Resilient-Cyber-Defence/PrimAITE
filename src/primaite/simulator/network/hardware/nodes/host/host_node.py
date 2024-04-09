@@ -322,7 +322,7 @@ class HostNode(Node):
         Return the ARP Cache of the HostNode.
 
         :return: ARP Cache for given HostNode
-        :rtype: Optional[ARP] 
+        :rtype: Optional[ARP]
         """
         return self.software_manager.software.get("ARP")
 

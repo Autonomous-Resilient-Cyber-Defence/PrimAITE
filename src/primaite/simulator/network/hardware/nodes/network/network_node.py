@@ -5,6 +5,7 @@ from primaite.simulator.network.hardware.base import NetworkInterface, Node
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.system.services.arp.arp import ARP
 
+
 class NetworkNode(Node):
     """
     Represents an abstract base class for a network node that can receive and process network frames.
@@ -36,6 +37,6 @@ class NetworkNode(Node):
         Return the ARP Cache of the NetworkNode.
 
         :return: ARP Cache for given NetworkNode
-        :rtype: Optional[ARP] 
+        :rtype: Optional[ARP]
         """
         return self.software_manager.software.get("ARP")
