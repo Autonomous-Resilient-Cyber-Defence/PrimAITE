@@ -1476,7 +1476,7 @@ simulation:
         options:
           db_server_ip: 192.168.1.14
       services:
-      - ty DNSClient
+      - type: DNSClient
 
 
 
