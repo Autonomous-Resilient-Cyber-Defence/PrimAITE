@@ -26,7 +26,7 @@ the structure:
 ```
 """
 from abc import abstractmethod
-from typing import Callable, Dict, List, Optional, Tuple, Type, TYPE_CHECKING
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Type, TYPE_CHECKING
 
 from typing_extensions import Never
 
@@ -37,6 +37,7 @@ if TYPE_CHECKING:
     from primaite.game.agent.interface import AgentActionHistoryItem
 
 _LOGGER = getLogger(__name__)
+WhereType = Iterable[str | int] | None
 
 
 class AbstractReward:
@@ -293,6 +294,7 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         db_state = access_from_nested_dict(state, self.location_in_state)
         if db_state is NOT_PRESENT_IN_STATE or "last_connection_successful" not in db_state:
             _LOGGER.debug(f"Can't calculate reward for {self.__class__.__name__}")
+            return 0.0
         last_connection_successful = db_state["last_connection_successful"]
         if last_connection_successful is False:
             return -1.0

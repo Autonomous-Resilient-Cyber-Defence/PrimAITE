@@ -226,6 +226,15 @@ class SimComponent(BaseModel):
             return
         return self._request_manager(request, context)
 
+    def pre_timestep(self, timestep: int) -> None:
+        """
+        Apply any logic that needs to happen at the beginning of the timestep to ensure correct observations/rewards.
+
+        :param timestep: what's the current time
+        :type timestep: int
+        """
+        pass
+
     def apply_timestep(self, timestep: int) -> None:
         """
         Apply a timestep evolution to this component.

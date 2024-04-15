@@ -80,7 +80,10 @@ class Application(IOSoftware):
         """
         super().apply_timestep(timestep=timestep)
 
-        self.num_executions = 0  # reset number of executions
+    def pre_timestep(self, timestep: int) -> None:
+        """Apply pre-timestep logic."""
+        super().pre_timestep(timestep)
+        self.num_executions = 0
 
     def _can_perform_action(self) -> bool:
         """

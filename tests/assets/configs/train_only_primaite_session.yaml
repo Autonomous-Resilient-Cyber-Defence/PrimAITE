@@ -327,6 +327,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 1
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           23: # "ACL: ADDRULE - Block outgoing traffic from client 2" (not supported in Primaite)
             action: "ROUTER_ACL_ADDRULE"
             options:
@@ -338,6 +340,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 1
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           24: # block tcp traffic from client 1 to web app
             action: "ROUTER_ACL_ADDRULE"
             options:
@@ -349,6 +353,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           25: # block tcp traffic from client 2 to web app
             action: "ROUTER_ACL_ADDRULE"
             options:
@@ -360,6 +366,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           26:
             action: "ROUTER_ACL_ADDRULE"
             options:
@@ -371,6 +379,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           27:
             action: "ROUTER_ACL_ADDRULE"
             options:
@@ -382,6 +392,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           28:
             action: "ROUTER_ACL_REMOVERULE"
             options:
@@ -528,23 +540,15 @@ agents:
         max_services_per_node: 2
         max_nics_per_node: 8
         max_acl_rules: 10
-        ip_address_order:
-        - node_name: domain_controller
-          nic_num: 1
-        - node_name: web_server
-          nic_num: 1
-        - node_name: database_server
-          nic_num: 1
-        - node_name: backup_server
-          nic_num: 1
-        - node_name: security_suite
-          nic_num: 1
-        - node_name: client_1
-          nic_num: 1
-        - node_name: client_2
-          nic_num: 1
-        - node_name: security_suite
-          nic_num: 2
+        ip_list:
+          - 192.168.1.10
+          - 192.168.1.12
+          - 192.168.1.14
+          - 192.168.1.16
+          - 192.168.1.110
+          - 192.168.10.21
+          - 192.168.10.22
+          - 192.168.10.110
 
     reward_function:
       reward_components:

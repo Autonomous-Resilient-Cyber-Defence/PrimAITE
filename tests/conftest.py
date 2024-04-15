@@ -50,8 +50,8 @@ def set_syslog_output_to_true():
         "path",
         Path(TEST_ASSETS_ROOT.parent.parent / "simulation_output" / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")),
     )
-    monkeypatch.setattr(SIM_OUTPUT, "save_pcap_logs", True)
-    monkeypatch.setattr(SIM_OUTPUT, "save_sys_logs", True)
+    monkeypatch.setattr(SIM_OUTPUT, "save_pcap_logs", False)
+    monkeypatch.setattr(SIM_OUTPUT, "save_sys_logs", False)
 
     yield
 
@@ -529,7 +529,7 @@ def game_and_agent():
         max_acl_rules=10,
         protocols=["TCP", "UDP", "ICMP"],
         ports=["HTTP", "DNS", "ARP"],
-        ip_address_list=["10.0.1.1", "10.0.1.2", "10.0.2.1", "10.0.2.2", "10.0.2.3"],
+        ip_list=["10.0.1.1", "10.0.1.2", "10.0.2.1", "10.0.2.2", "10.0.2.3"],
         act_map={},
     )
     observation_space = ObservationManager(NestedObservation(components={}))

@@ -21,6 +21,7 @@ def test_create_folder_and_file(file_system):
     assert file_system.get_folder("test_folder").get_file("test_file.txt")
 
     file_system.apply_timestep(0)
+    file_system.pre_timestep(0)
 
     # num file creations should reset
     assert file_system.num_file_creations == 0
@@ -38,6 +39,7 @@ def test_create_file_no_folder(file_system):
     assert file_system.get_folder("root").get_file("test_file.txt").size == 10
 
     file_system.apply_timestep(0)
+    file_system.pre_timestep(0)
 
     # num file creations should reset
     assert file_system.num_file_creations == 0
@@ -59,6 +61,7 @@ def test_delete_file(file_system):
     assert len(file_system.get_folder("root").deleted_files) == 1
 
     file_system.apply_timestep(0)
+    file_system.pre_timestep(0)
 
     # num file deletions should reset
     assert file_system.num_file_deletions == 0
@@ -174,6 +177,7 @@ def test_move_file(file_system):
     assert file_system.get_file("dst_folder", "test_file.txt").uuid == original_uuid
 
     file_system.apply_timestep(0)
+    file_system.pre_timestep(0)
 
     # num file creations and deletions should reset
     assert file_system.num_file_creations == 0
@@ -203,6 +207,7 @@ def test_copy_file(file_system):
     assert file_system.get_file("dst_folder", "test_file.txt").uuid != original_uuid
 
     file_system.apply_timestep(0)
+    file_system.pre_timestep(0)
 
     # num file creations should reset
     assert file_system.num_file_creations == 0
