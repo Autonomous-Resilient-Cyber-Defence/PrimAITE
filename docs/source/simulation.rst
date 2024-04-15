@@ -26,7 +26,6 @@ Contents
    simulation_components/network/nodes/wireless_router
    simulation_components/network/nodes/firewall
    simulation_components/network/switch
-   simulation_components/network/radio
    simulation_components/network/network
    simulation_components/system/internal_frame_processing
    simulation_components/system/sys_log
