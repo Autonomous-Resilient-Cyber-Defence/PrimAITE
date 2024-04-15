@@ -103,6 +103,10 @@ class File(FileSystemItemABC):
         """
         super().apply_timestep(timestep=timestep)
 
+    def pre_timestep(self, timestep: int) -> None:
+        """Apply pre-timestep logic."""
+        super().pre_timestep(timestep)
+
         # reset the number of accesses to 0
         self.num_access = 0
 

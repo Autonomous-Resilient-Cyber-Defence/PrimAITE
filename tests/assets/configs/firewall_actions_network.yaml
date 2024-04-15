@@ -106,25 +106,6 @@ agents:
             label: ICS
             options: {}
 
-    # observation_space:
-    #   type: UC2BlueObservation
-    #   options:
-    #     num_services_per_node: 1
-    #     num_folders_per_node: 1
-    #     num_files_per_folder: 1
-    #     num_nics_per_node: 2
-    #     nodes:
-    #     - node_hostname: client_1
-    #     links:
-    #     - link_ref: client_1___switch_1
-    #     acl:
-    #       options:
-    #         max_acl_rules: 10
-    #       router_hostname: router_1
-    #       ip_address_order:
-    #         - node_hostname: client_1
-    #           nic_num: 1
-    #     ics: null
     action_space:
       action_list:
         - type: DONOTHING
@@ -149,6 +130,8 @@ agents:
               source_port_id: 1
               dest_port_id: 1
               protocol_id: 1
+              source_wildcard_id: 0
+              dest_wildcard_id: 0
           2:
             action: FIREWALL_ACL_REMOVERULE
             options:
@@ -169,6 +152,8 @@ agents:
               source_port_id: 2
               dest_port_id: 3
               protocol_id: 2
+              source_wildcard_id: 0
+              dest_wildcard_id: 0
           4:
             action: FIREWALL_ACL_REMOVERULE
             options:
@@ -189,6 +174,8 @@ agents:
               source_port_id: 4
               dest_port_id: 4
               protocol_id: 4
+              source_wildcard_id: 0
+              dest_wildcard_id: 0
           6:
             action: FIREWALL_ACL_REMOVERULE
             options:
@@ -209,6 +196,8 @@ agents:
               source_port_id: 4
               dest_port_id: 4
               protocol_id: 3
+              source_wildcard_id: 0
+              dest_wildcard_id: 0
           8:
             action: FIREWALL_ACL_REMOVERULE
             options:
@@ -229,6 +218,8 @@ agents:
               source_port_id: 5
               dest_port_id: 5
               protocol_id: 2
+              source_wildcard_id: 0
+              dest_wildcard_id: 0
           10:
             action: FIREWALL_ACL_REMOVERULE
             options:
@@ -249,6 +240,8 @@ agents:
               source_port_id: 1
               dest_port_id: 1
               protocol_id: 1
+              source_wildcard_id: 0
+              dest_wildcard_id: 0
           12:
             action: FIREWALL_ACL_REMOVERULE
             options:
@@ -271,13 +264,10 @@ agents:
         - node_name: client_1
         - node_name: dmz_server
         - node_name: external_computer
-        ip_address_order:
-        - node_name: client_1
-          nic_num: 1
-        - node_name: dmz_server
-          nic_num: 1
-        - node_name: external_computer
-          nic_num: 1
+        ip_list:
+          - 192.168.0.10
+          - 192.168.10.10
+          - 192.168.20.10
         max_folders_per_node: 2
         max_files_per_folder: 2
         max_services_per_node: 2

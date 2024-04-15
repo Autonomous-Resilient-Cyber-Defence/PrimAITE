@@ -1,3 +1,4 @@
+from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional
 
 import matplotlib.pyplot as plt
@@ -86,6 +87,16 @@ class Network(SimComponent):
         for link_id in self.links:
             self.links[link_id].apply_timestep(timestep=timestep)
 
+    def pre_timestep(self, timestep: int) -> None:
+        """Apply pre-timestep logic."""
+        super().pre_timestep(timestep)
+
+        for node in self.nodes.values():
+            node.pre_timestep(timestep)
+
+        for link in self.links.values():
+            link.pre_timestep(timestep)
+
     @property
     def router_nodes(self) -> List[Node]:
         """The Routers in the Network."""
@@ -163,10 +174,11 @@ class Network(SimComponent):
                 for node in nodes:
                     for i, port in node.network_interface.items():
                         if hasattr(port, "ip_address"):
-                            port_str = port.port_name if port.port_name else port.port_num
-                            table.add_row(
-                                [node.hostname, port_str, port.ip_address, port.subnet_mask, node.default_gateway]
-                            )
+                            if port.ip_address != IPv4Address("127.0.0.1"):
+                                port_str = port.port_name if port.port_name else port.port_num
+                                table.add_row(
+                                    [node.hostname, port_str, port.ip_address, port.subnet_mask, node.default_gateway]
+                                )
             print(table)
 
         if links:

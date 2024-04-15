@@ -293,6 +293,7 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         db_state = access_from_nested_dict(state, self.location_in_state)
         if db_state is NOT_PRESENT_IN_STATE or "last_connection_successful" not in db_state:
             _LOGGER.debug(f"Can't calculate reward for {self.__class__.__name__}")
+            return 0.0
         last_connection_successful = db_state["last_connection_successful"]
         if last_connection_successful is False:
             return -1.0

@@ -224,6 +224,10 @@ class Software(SimComponent):
         if self.health_state_actual == SoftwareHealthState.FIXING:
             self._update_fix_status()
 
+    def pre_timestep(self, timestep: int) -> None:
+        """Apply pre-timestep logic."""
+        super().pre_timestep(timestep)
+
 
 class IOSoftware(Software):
     """

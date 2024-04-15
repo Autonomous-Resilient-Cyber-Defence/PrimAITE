@@ -152,6 +152,22 @@ def test_with_routes_can_ping(multi_hop_network):
     assert pc_a.ping(pc_b.network_interface[1].ip_address)
 
 
+def test_with_default_routes_can_ping(multi_hop_network):
+    pc_a = multi_hop_network.get_node_by_hostname("pc_a")
+    pc_b = multi_hop_network.get_node_by_hostname("pc_b")
+
+    router_1: Router = multi_hop_network.get_node_by_hostname("router_1")  # noqa
+    router_2: Router = multi_hop_network.get_node_by_hostname("router_2")  # noqa
+
+    # Configure Route from Router 1 to PC B subnet
+    router_1.route_table.set_default_route_next_hop_ip_address("192.168.1.2")
+
+    # Configure Route from Router 2 to PC A subnet
+    router_2.route_table.set_default_route_next_hop_ip_address("192.168.1.1")
+
+    assert pc_a.ping(pc_b.network_interface[1].ip_address)
+
+
 def test_ping_router_port_multi_hop(multi_hop_network):
     pc_a = multi_hop_network.get_node_by_hostname("pc_a")
     router_2 = multi_hop_network.get_node_by_hostname("router_2")

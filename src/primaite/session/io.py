@@ -29,10 +29,12 @@ class PrimaiteIO:
         """Whether to save a log of all agents' actions every step."""
         save_step_metadata: bool = False
         """Whether to save the RL agents' action, environment state, and other data at every single step."""
-        save_pcap_logs: bool = False
+        save_pcap_logs: bool = True
         """Whether to save PCAP logs."""
-        save_sys_logs: bool = False
+        save_sys_logs: bool = True
         """Whether to save system logs."""
+        write_sys_log_to_terminal: bool = False
+        """Whether to write the sys log to the terminal."""
 
     def __init__(self, settings: Optional[Settings] = None) -> None:
         """
@@ -47,6 +49,7 @@ class PrimaiteIO:
         SIM_OUTPUT.path = self.session_path / "simulation_output"
         SIM_OUTPUT.save_pcap_logs = self.settings.save_pcap_logs
         SIM_OUTPUT.save_sys_logs = self.settings.save_sys_logs
+        SIM_OUTPUT.write_sys_log_to_terminal = self.settings.write_sys_log_to_terminal
 
     def generate_session_path(self, timestamp: Optional[datetime] = None) -> Path:
         """Create a folder for the session and return the path to it."""
@@ -93,4 +96,5 @@ class PrimaiteIO:
     def from_config(cls, config: Dict) -> "PrimaiteIO":
         """Create an instance of PrimaiteIO based on a configuration dict."""
         new = cls(settings=cls.Settings(**config))
+
         return new

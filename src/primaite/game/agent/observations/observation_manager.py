@@ -189,7 +189,6 @@ class ObservationManager:
         """
         if config is None:
             return cls(NullObservation())
-        print(config)
         obs_type = config["type"]
         obs_class = AbstractObservation._registry[obs_type]
         observation = obs_class.from_config(config=obs_class.ConfigSchema(**config["options"]))

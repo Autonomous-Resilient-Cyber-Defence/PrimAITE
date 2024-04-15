@@ -14,6 +14,7 @@ class _SimOutput:
         )
         self.save_pcap_logs: bool = False
         self.save_sys_logs: bool = False
+        self.write_sys_log_to_terminal: bool = False
 
     @property
     def path(self) -> Path:

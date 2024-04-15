@@ -11,7 +11,10 @@ from primaite.game.agent.observations.observation_manager import ObservationMana
 from primaite.game.agent.rewards import RewardFunction, SharedReward
 from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
+from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
+from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
+from primaite.simulator.network.airspace import AIR_SPACE
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
@@ -26,6 +29,7 @@ from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
+from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_client import DNSClient
@@ -43,6 +47,7 @@ APPLICATION_TYPES_MAPPING = {
     "DatabaseClient": DatabaseClient,
     "DataManipulationBot": DataManipulationBot,
     "DoSBot": DoSBot,
+    "RansomwareScript": RansomwareScript,
 }
 """List of available applications that can be installed on nodes in the PrimAITE Simulation."""
 
@@ -128,6 +133,8 @@ class PrimaiteGame:
         """
         _LOGGER.debug(f"Stepping. Step counter: {self.step_counter}")
 
+        self.pre_timestep()
+
         if self.step_counter == 0:
             state = self.get_sim_state()
             for agent in self.agents.values():
@@ -172,6 +179,10 @@ class PrimaiteGame:
                 response=response,
             )
 
+    def pre_timestep(self) -> None:
+        """Apply any pre-timestep logic that helps make sure we have the correct observations."""
+        self.simulation.pre_timestep(self.step_counter)
+
     def advance_timestep(self) -> None:
         """Advance timestep."""
         self.step_counter += 1
@@ -211,6 +222,7 @@ class PrimaiteGame:
         :return: A PrimaiteGame object.
         :rtype: PrimaiteGame
         """
+        AIR_SPACE.clear()
         game = cls()
         game.options = PrimaiteGameOptions(**cfg["game"])
         game.save_step_metadata = cfg.get("io_settings", {}).get("save_step_metadata") or False
@@ -268,6 +280,9 @@ class PrimaiteGame:
                     hostname=node_cfg["hostname"],
                     ip_address=node_cfg["ip_address"],
                     subnet_mask=node_cfg["subnet_mask"],
+                    operating_state=NodeOperatingState.ON
+                    if not (p := node_cfg.get("operating_state"))
+                    else NodeOperatingState[p.upper()],
                 )
             else:
                 msg = f"invalid node type {n_type} in config"
@@ -338,6 +353,19 @@ class PrimaiteGame:
                                 payload=opt.get("payload", "DELETE"),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
+                            )
+                    elif application_type == "RansomwareScript":
+                        if "options" in application_cfg:
+                            opt = application_cfg["options"]
+                            new_application.configure(
+                                server_ip_address=IPv4Address(opt.get("server_ip")),
+                                server_password=opt.get("server_password"),
+                                payload=opt.get("payload", "ENCRYPT"),
+                                c2_beacon_p_of_success=float(opt.get("c2_beacon_p_of_success", "0.5")),
+                                target_scan_p_of_success=float(opt.get("target_scan_p_of_success", "0.1")),
+                                ransomware_encrypt_p_of_success=float(
+                                    opt.get("ransomware_encrypt_p_of_success", "0.1")
+                                ),
                             )
                     elif application_type == "DatabaseClient":
                         if "options" in application_cfg:
@@ -423,6 +451,15 @@ class PrimaiteGame:
                     reward_function=reward_function,
                     settings=settings,
                 )
+            elif agent_type == "PeriodicAgent":
+                settings = PeriodicAgent.Settings(**agent_cfg.get("settings", {}))
+                new_agent = PeriodicAgent(
+                    agent_name=agent_cfg["ref"],
+                    action_space=action_space,
+                    observation_space=obs_space,
+                    reward_function=reward_function,
+                    settings=settings,
+                )
             elif agent_type == "ProxyAgent":
                 agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
                 new_agent = ProxyAgent(
@@ -437,6 +474,15 @@ class PrimaiteGame:
                 agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
 
                 new_agent = DataManipulationAgent(
+                    agent_name=agent_cfg["ref"],
+                    action_space=action_space,
+                    observation_space=obs_space,
+                    reward_function=reward_function,
+                    agent_settings=agent_settings,
+                )
+            elif agent_type == "TAP001":
+                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
+                new_agent = TAP001(
                     agent_name=agent_cfg["ref"],
                     action_space=action_space,
                     observation_space=obs_space,

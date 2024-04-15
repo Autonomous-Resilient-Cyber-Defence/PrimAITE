@@ -26,6 +26,9 @@ class PrimaiteGymEnv(gymnasium.Env):
     def __init__(self, game_config: Dict):
         """Initialise the environment."""
         super().__init__()
+        self.io = PrimaiteIO.from_config(game_config.get("io_settings", {}))
+        """Handles IO for the environment. This produces sys logs, agent logs, etc."""
+
         self.game_config: Dict = game_config
         """PrimaiteGame definition. This can be changed between episodes to enable curriculum learning."""
         self.io = PrimaiteIO.from_config(game_config.get("io_settings", {}))
@@ -49,6 +52,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         step = self.game.step_counter
         self.agent.store_action(action)
         # apply_agent_actions accesses the action we just stored
+        self.game.pre_timestep()
         self.game.apply_agent_actions()
         self.game.advance_timestep()
         state = self.game.get_sim_state()
@@ -224,6 +228,7 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         # 1. Perform actions
         for agent_name, action in actions.items():
             self.agents[agent_name].store_action(action)
+        self.game.pre_timestep()
         self.game.apply_agent_actions()
 
         # 2. Advance timestep

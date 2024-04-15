@@ -8,7 +8,7 @@ from primaite.simulator.network.protocols.icmp import ICMPPacket
 from primaite.simulator.network.protocols.packet import DataPacket
 from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
 from primaite.simulator.network.transmission.primaite_layer import PrimaiteHeader
-from primaite.simulator.network.transmission.transport_layer import TCPHeader, UDPHeader
+from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader, UDPHeader
 from primaite.simulator.network.utils import convert_bytes_to_megabits
 
 _LOGGER = getLogger(__name__)
@@ -141,3 +141,37 @@ class Frame(BaseModel):
     def size_Mbits(self) -> float:  # noqa - Keep it as MBits as this is how they're expressed
         """The daa transfer size of the Frame in Mbits."""
         return convert_bytes_to_megabits(self.size)
+
+    @property
+    def is_broadcast(self) -> bool:
+        """
+        Determines if the Frame is a broadcast frame.
+
+        A Frame is considered a broadcast frame if the destination MAC address is set to the broadcast address
+        "ff:ff:ff:ff:ff:ff".
+
+        :return: True if the destination MAC address is a broadcast address, otherwise False.
+        """
+        return self.ethernet.dst_mac_addr.lower() == "ff:ff:ff:ff:ff:ff"
+
+    @property
+    def is_arp(self) -> bool:
+        """
+        Checks if the Frame is an ARP (Address Resolution Protocol) packet.
+
+        This is determined by checking if the destination port of the TCP header is equal to the ARP port.
+
+        :return: True if the Frame is an ARP packet, otherwise False.
+        """
+        return self.udp.dst_port == Port.ARP
+
+    @property
+    def is_icmp(self) -> bool:
+        """
+        Determines if the Frame is an ICMP (Internet Control Message Protocol) packet.
+
+        This check is performed by verifying if the 'icmp' attribute of the Frame instance is present (not None).
+
+        :return: True if the Frame is an ICMP packet (i.e., has an ICMP header), otherwise False.
+        """
+        return self.icmp is not None
