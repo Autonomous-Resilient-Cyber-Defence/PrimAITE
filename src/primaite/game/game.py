@@ -411,6 +411,7 @@ class PrimaiteGame:
         for link_cfg in links_cfg:
             node_a = net.get_node_by_hostname(link_cfg["endpoint_a_hostname"])
             node_b = net.get_node_by_hostname(link_cfg["endpoint_b_hostname"])
+
             if isinstance(node_a, Switch):
                 endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]
             else:
@@ -460,6 +461,7 @@ class PrimaiteGame:
                     reward_function=reward_function,
                     settings=settings,
                 )
+
             elif agent_type == "ProxyAgent":
                 agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
                 new_agent = ProxyAgent(
