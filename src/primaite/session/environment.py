@@ -48,7 +48,7 @@ class PrimaiteGymEnv(gymnasium.Env):
 
     def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, Dict[str, Any]]:
         """Perform a step in the environment."""
-        # make ProxyAgent store the action chosen my the RL policy
+        # make ProxyAgent store the action chosen by the RL policy
         step = self.game.step_counter
         self.agent.store_action(action)
         # apply_agent_actions accesses the action we just stored

@@ -271,7 +271,7 @@ class IPWirelessNetworkInterface(WirelessNetworkInterface, Layer3Interface, ABC)
         # Update the state with information from Layer3Interface
         state.update(Layer3Interface.describe_state(self))
 
-        state["frequency"] = self.frequency
+        state["frequency"] = self.frequency.value
 
         return state
 

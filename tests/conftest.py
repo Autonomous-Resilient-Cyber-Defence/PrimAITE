@@ -13,7 +13,6 @@ from primaite.game.agent.interface import AbstractAgent
 from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.game import PrimaiteGame
-from primaite.session.session import PrimaiteSession
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.container import Network
@@ -119,38 +118,6 @@ def file_system() -> FileSystem:
     computer = Computer(hostname="fs_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
     computer.power_on()
     return computer.file_system
-
-
-# PrimAITE v2 stuff
-class TempPrimaiteSession(PrimaiteSession):
-    """
-    A temporary PrimaiteSession class.
-
-    Uses context manager for deletion of files upon exit.
-    """
-
-    @classmethod
-    def from_config(cls, config_path: Union[str, Path]) -> "TempPrimaiteSession":
-        """Create a temporary PrimaiteSession object from a config file."""
-        config_path = Path(config_path)
-        with open(config_path, "r") as f:
-            config = yaml.safe_load(f)
-
-        return super().from_config(cfg=config)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, tb):
-        pass
-
-
-@pytest.fixture
-def temp_primaite_session(request, monkeypatch) -> TempPrimaiteSession:
-    """Create a temporary PrimaiteSession object."""
-    monkeypatch.setattr(PRIMAITE_PATHS, "user_sessions_path", temp_user_sessions_path())
-    config_path = request.param[0]
-    return TempPrimaiteSession.from_config(config_path=config_path)
 
 
 @pytest.fixture(scope="function")

@@ -1,33 +1,28 @@
-import pytest
 import ray
 import yaml
 from ray import air, tune
 from ray.rllib.algorithms.ppo import PPOConfig
 
-from primaite.config.load import data_manipulation_config_path
-from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteRayMARLEnv
+from tests import TEST_ASSETS_ROOT
+
+MULTI_AGENT_PATH = TEST_ASSETS_ROOT / "configs/multi_agent_session.yaml"
 
 
-@pytest.mark.skip(reason="Slow, reenable later")
 def test_rllib_multi_agent_compatibility():
     """Test that the PrimaiteRayEnv class can be used with a multi agent RLLIB system."""
 
-    with open(data_manipulation_config_path(), "r") as f:
+    with open(MULTI_AGENT_PATH, "r") as f:
         cfg = yaml.safe_load(f)
 
-    game = PrimaiteGame.from_config(cfg)
-
-    ray.shutdown()
     ray.init()
 
-    env_config = {"game": game}
     config = (
         PPOConfig()
-        .environment(env=PrimaiteRayMARLEnv, env_config={"game": game})
+        .environment(env=PrimaiteRayMARLEnv, env_config=cfg)
         .rollouts(num_rollout_workers=0)
         .multi_agent(
-            policies={agent.agent_name for agent in game.rl_agents},
+            policies={agent["ref"] for agent in cfg["agents"]},
             policy_mapping_fn=lambda agent_id, episode, worker, **kw: agent_id,
         )
         .training(train_batch_size=128)

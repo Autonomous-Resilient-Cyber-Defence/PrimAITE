@@ -95,6 +95,7 @@ class PrimaiteIO:
     @classmethod
     def from_config(cls, config: Dict) -> "PrimaiteIO":
         """Create an instance of PrimaiteIO based on a configuration dict."""
+        config = config or {}
         new = cls(settings=cls.Settings(**config))
 
         return new

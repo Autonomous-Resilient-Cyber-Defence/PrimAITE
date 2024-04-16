@@ -10,15 +10,6 @@ The simulator and game layer communicate using the PrimAITE State API and the Pr
 
 The game layer is responsible for managing agents and getting them to interface with the simulator correctly. It consists of several components:
 
-PrimAITE Session
-================
-
-.. admonition:: Deprecated
-   :class: deprecated
-
-   PrimAITE Session is being deprecated in favour of Jupyter Notebooks. The `session` command will be removed in future releases, but example notebooks will be provided to demonstrate the same functionality.
-
-``PrimaiteSession`` is the main entry point into Primaite and it allows the simultaneous coordination of a simulation and agents that interact with it. ``PrimaiteSession`` keeps track of multiple agents of different types.
 
 Agents
 ======
