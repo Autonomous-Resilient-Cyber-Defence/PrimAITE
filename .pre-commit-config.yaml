@@ -6,7 +6,7 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-added-large-files
-        args: ['--maxkb=1000']
+        args: ['--maxkb=5000']
       - id: mixed-line-ending
       - id: requirements-txt-fixer
   - repo: http://github.com/psf/black
@@ -28,3 +28,7 @@ repos:
         additional_dependencies:
           - flake8-docstrings
           - flake8-annotations
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.7.1
+    hooks:
+      - id: nbstripout

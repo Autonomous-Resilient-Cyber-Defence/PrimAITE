@@ -11,6 +11,9 @@ class Port(Enum):
     .. _List of Ports:
     """
 
+    UNUSED = -1
+    "An unused port stub."
+
     NONE = 0
     "Place holder for a non-port."
     WOL = 9

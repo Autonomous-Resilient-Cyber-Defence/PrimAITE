@@ -264,6 +264,9 @@ class NetworkInterface(SimComponent, ABC):
         """
         return f"Port {self.port_name if self.port_name else self.port_num}: {self.mac_address}"
 
+    def __hash__(self) -> int:
+        return hash(self.uuid)
+
     def apply_timestep(self, timestep: int) -> None:
         """
         Apply a timestep evolution to this component.
@@ -661,6 +664,10 @@ class Link(SimComponent):
     def apply_timestep(self, timestep: int) -> None:
         """Apply a timestep to the simulation."""
         super().apply_timestep(timestep)
+
+    def pre_timestep(self, timestep: int) -> None:
+        """Apply pre-timestep logic."""
+        super().pre_timestep(timestep)
         self.current_load = 0.0
 
 
@@ -895,6 +902,10 @@ class Node(SimComponent):
             from primaite.simulator.system.applications.web_browser import WebBrowser
 
             return WebBrowser
+        elif application_class_str == "RansomwareScript":
+            from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
+
+            return RansomwareScript
         else:
             return 0
 
@@ -965,12 +976,15 @@ class Node(SimComponent):
         table.align = "l"
         table.title = f"{self.hostname} Network Interface Cards"
         for port, network_interface in self.network_interface.items():
+            ip_address = ""
+            if hasattr(network_interface, "ip_address"):
+                ip_address = f"{network_interface.ip_address}/{network_interface.ip_network.prefixlen}"
             table.add_row(
                 [
                     port,
                     network_interface.__class__.__name__,
                     network_interface.mac_address,
-                    f"{network_interface.ip_address}/{network_interface.ip_network.prefixlen}",
+                    ip_address,
                     network_interface.speed,
                     "Enabled" if network_interface.enabled else "Disabled",
                 ]
@@ -1070,6 +1084,23 @@ class Node(SimComponent):
                 self.applications[application_id].apply_timestep(timestep=timestep)
 
             self.file_system.apply_timestep(timestep=timestep)
+
+    def pre_timestep(self, timestep: int) -> None:
+        """Apply pre-timestep logic."""
+        super().pre_timestep(timestep)
+        for network_interface in self.network_interfaces.values():
+            network_interface.pre_timestep(timestep=timestep)
+
+        for process_id in self.processes:
+            self.processes[process_id].pre_timestep(timestep=timestep)
+
+        for service_id in self.services:
+            self.services[service_id].pre_timestep(timestep=timestep)
+
+        for application_id in self.applications:
+            self.applications[application_id].pre_timestep(timestep=timestep)
+
+        self.file_system.pre_timestep(timestep=timestep)
 
     def scan(self) -> bool:
         """
@@ -1340,6 +1371,8 @@ class Node(SimComponent):
             if application_instance.name == "DoSBot":
                 application_instance.configure(target_ip_address=IPv4Address(ip_address))
             elif application_instance.name == "DataManipulationBot":
+                application_instance.configure(server_ip_address=IPv4Address(ip_address))
+            elif application_instance.name == "RansomwareScript":
                 application_instance.configure(server_ip_address=IPv4Address(ip_address))
             else:
                 pass

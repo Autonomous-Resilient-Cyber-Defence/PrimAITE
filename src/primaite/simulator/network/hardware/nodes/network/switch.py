@@ -100,13 +100,8 @@ class Switch(NetworkNode):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if not self.network_interface:
-            self.network_interface = {i: SwitchPort() for i in range(1, self.num_ports + 1)}
-        for port_num, port in self.network_interface.items():
-            port._connected_node = self
-            port.port_num = port_num
-            port.parent = self
-            port.port_num = port_num
+        for i in range(1, self.num_ports + 1):
+            self.connect_nic(SwitchPort())
 
     def show(self, markdown: bool = False):
         """

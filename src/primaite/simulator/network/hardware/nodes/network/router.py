@@ -322,10 +322,12 @@ class AccessControlList(SimComponent):
                         action=ACLAction[request[0]],
                         protocol=None if request[1] == "ALL" else IPProtocol[request[1]],
                         src_ip_address=None if request[2] == "ALL" else IPv4Address(request[2]),
-                        src_port=None if request[3] == "ALL" else Port[request[3]],
-                        dst_ip_address=None if request[4] == "ALL" else IPv4Address(request[4]),
-                        dst_port=None if request[5] == "ALL" else Port[request[5]],
-                        position=int(request[6]),
+                        src_wildcard_mask=None if request[3] == "NONE" else IPv4Address(request[3]),
+                        src_port=None if request[4] == "ALL" else Port[request[4]],
+                        dst_ip_address=None if request[5] == "ALL" else IPv4Address(request[5]),
+                        dst_wildcard_mask=None if request[6] == "NONE" else IPv4Address(request[6]),
+                        dst_port=None if request[7] == "ALL" else Port[request[7]],
+                        position=int(request[8]),
                     )
                 )
             ),
@@ -772,6 +774,13 @@ class RouterARP(ARP):
                     is_reattempt=True,
                     is_default_route_attempt=is_default_route_attempt,
                 )
+            elif route and route == self.router.route_table.default_route:
+                self.send_arp_request(self.router.route_table.default_route.next_hop_ip_address)
+                return self._get_arp_cache_mac_address(
+                    ip_address=self.router.route_table.default_route.next_hop_ip_address,
+                    is_reattempt=True,
+                    is_default_route_attempt=True,
+                )
         else:
             if self.router.route_table.default_route:
                 if not is_default_route_attempt:
@@ -822,6 +831,12 @@ class RouterARP(ARP):
                 return network_interface
 
         if not is_reattempt:
+            if self.router.ip_is_in_router_interface_subnet(ip_address):
+                self.send_arp_request(ip_address)
+                return self._get_arp_cache_network_interface(
+                    ip_address=ip_address, is_reattempt=True, is_default_route_attempt=is_default_route_attempt
+                )
+
             route = self.router.route_table.find_best_route(ip_address)
             if route and route != self.router.route_table.default_route:
                 self.send_arp_request(route.next_hop_ip_address)
@@ -829,6 +844,13 @@ class RouterARP(ARP):
                     ip_address=route.next_hop_ip_address,
                     is_reattempt=True,
                     is_default_route_attempt=is_default_route_attempt,
+                )
+            elif route and route == self.router.route_table.default_route:
+                self.send_arp_request(self.router.route_table.default_route.next_hop_ip_address)
+                return self._get_arp_cache_network_interface(
+                    ip_address=self.router.route_table.default_route.next_hop_ip_address,
+                    is_reattempt=True,
+                    is_default_route_attempt=True,
                 )
         else:
             if self.router.route_table.default_route:
@@ -1459,6 +1481,8 @@ class Router(NetworkNode):
             frame.ethernet.src_mac_addr = network_interface.mac_address
             frame.ethernet.dst_mac_addr = target_mac
             network_interface.send_frame(frame)
+        else:
+            self.sys_log.error(f"Frame dropped as there is no route to {frame.ip.dst_ip_address}")
 
     def configure_port(self, port: int, ip_address: Union[IPv4Address, str], subnet_mask: Union[IPv4Address, str]):
         """
@@ -1539,6 +1563,13 @@ class Router(NetworkNode):
               - protocol (str, optional): the named IP protocol such as ICMP, TCP, or UDP
               - src_ip_address (str, optional): IP address octet written in base 10
               - dst_ip_address (str, optional): IP address octet written in base 10
+          - routes (list[dict]): List of route dicts with values:
+            - address (str): The destination address of the route.
+            - subnet_mask (str): The subnet mask of the route.
+            - next_hop_ip_address (str): The next hop IP for the route.
+            - metric (int): The metric of the route. Optional.
+          - default_route:
+            - next_hop_ip_address (str): The next hop IP for the route.
 
         Example config:
         ```
@@ -1549,6 +1580,10 @@ class Router(NetworkNode):
                 1: {
                     'ip_address' : '192.168.1.1',
                     'subnet_mask' : '255.255.255.0',
+                },
+                2: {
+                    'ip_address' : '192.168.0.1',
+                    'subnet_mask' : '255.255.255.252',
                 }
             },
             'acl' : {
@@ -1556,6 +1591,10 @@ class Router(NetworkNode):
                 22: {'action': 'PERMIT', 'src_port': 'ARP', 'dst_port': 'ARP'},
                 23: {'action': 'PERMIT', 'protocol': 'ICMP'},
             },
+            'routes' : [
+                {'address': '192.168.0.0', 'subnet_mask': '255.255.255.0', 'next_hop_ip_address': '192.168.1.2'}
+            ],
+            'default_route': {'next_hop_ip_address': '192.168.0.2'}
         }
         ```
 
@@ -1599,4 +1638,8 @@ class Router(NetworkNode):
                     next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
                     metric=float(route.get("metric", 0)),
                 )
+        if "default_route" in cfg:
+            next_hop_ip_address = cfg["default_route"].get("next_hop_ip_address", None)
+            if next_hop_ip_address:
+                router.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
         return router

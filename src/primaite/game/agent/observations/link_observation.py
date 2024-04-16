@@ -43,7 +43,10 @@ class LinkObservation(AbstractObservation, identifier="LINK"):
         """
         link_state = access_from_nested_dict(state, self.where)
         if link_state is NOT_PRESENT_IN_STATE:
-            return self.default_observation
+            self.where[-1] = "<->".join(self.where[-1].split("<->")[::-1])  # try swapping endpoint A and B
+            link_state = access_from_nested_dict(state, self.where)
+            if link_state is NOT_PRESENT_IN_STATE:
+                return self.default_observation
 
         bandwidth = link_state["bandwidth"]
         load = link_state["current_load"]

@@ -4,22 +4,7 @@
 #  |  client_1  |------|  switch_1  |------|  client_2  |
 #  --------------      --------------      --------------
 #
-
-training_config:
-  rl_framework: SB3
-  rl_algorithm: PPO
-  seed: 333
-  n_learn_episodes: 1
-  n_eval_episodes: 5
-  max_steps_per_episode: 128
-  deterministic_eval: false
-  n_agents: 1
-  agent_references:
-    - defender
-
 io_settings:
-  save_checkpoints: true
-  checkpoint_interval: 5
   save_step_metadata: false
   save_pcap_logs: true
   save_sys_logs: true

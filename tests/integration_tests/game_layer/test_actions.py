@@ -130,6 +130,8 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
             "dest_port_id": 1,  # ALL
             "source_port_id": 1,  # ALL
             "protocol_id": 1,  # ALL
+            "source_wildcard_id": 0,
+            "dest_wildcard_id": 0,
         },
     )
     agent.store_action(action)
@@ -155,6 +157,8 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
             "dest_port_id": 1,  # ALL
             "source_port_id": 1,  # ALL
             "protocol_id": 1,  # ALL
+            "source_wildcard_id": 0,
+            "dest_wildcard_id": 0,
         },
     )
     agent.store_action(action)
