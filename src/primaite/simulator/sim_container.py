@@ -63,3 +63,8 @@ class Simulation(SimComponent):
         """Apply a timestep to the simulation."""
         super().apply_timestep(timestep)
         self.network.apply_timestep(timestep)
+
+    def pre_timestep(self, timestep: int) -> None:
+        """Apply pre-timestep logic."""
+        super().pre_timestep(timestep)
+        self.network.pre_timestep(timestep)

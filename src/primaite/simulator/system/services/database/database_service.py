@@ -141,8 +141,7 @@ class DatabaseService(Service):
         """Returns the database file."""
         return self.file_system.get_file(folder_name="database", file_name="database.db")
 
-    @property
-    def folder(self) -> Folder:
+    def _return_database_folder(self) -> Folder:
         """Returns the database folder."""
         return self.file_system.get_folder_by_id(self.db_file.folder_id)
 
@@ -187,7 +186,10 @@ class DatabaseService(Service):
         }
 
     def _process_sql(
-        self, query: Literal["SELECT", "DELETE", "INSERT"], query_id: str, connection_id: Optional[str] = None
+        self,
+        query: Literal["SELECT", "DELETE", "INSERT", "ENCRYPT"],
+        query_id: str,
+        connection_id: Optional[str] = None,
     ) -> Dict[str, Union[int, List[Any]]]:
         """
         Executes the given SQL query and returns the result.
@@ -196,6 +198,7 @@ class DatabaseService(Service):
         - SELECT : returns the data
         - DELETE : deletes the data
         - INSERT : inserts the data
+        - ENCRYPT : corrupts the data
 
         :param query: The SQL query to be executed.
         :return: Dictionary containing status code and data fetched.
@@ -207,7 +210,15 @@ class DatabaseService(Service):
             return {"status_code": 404, "type": "sql", "data": False}
 
         if query == "SELECT":
-            if self.db_file.health_status == FileSystemItemHealthStatus.GOOD:
+            if self.db_file.health_status == FileSystemItemHealthStatus.CORRUPT:
+                return {
+                    "status_code": 200,
+                    "type": "sql",
+                    "data": False,
+                    "uuid": query_id,
+                    "connection_id": connection_id,
+                }
+            elif self.db_file.health_status == FileSystemItemHealthStatus.GOOD:
                 return {
                     "status_code": 200,
                     "type": "sql",
@@ -219,6 +230,20 @@ class DatabaseService(Service):
                 return {"status_code": 404, "type": "sql", "data": False}
         elif query == "DELETE":
             self.db_file.health_status = FileSystemItemHealthStatus.COMPROMISED
+            return {
+                "status_code": 200,
+                "type": "sql",
+                "data": False,
+                "uuid": query_id,
+                "connection_id": connection_id,
+            }
+        elif query == "ENCRYPT":
+            self.file_system.num_file_creations += 1
+            self.db_file.health_status = FileSystemItemHealthStatus.CORRUPT
+            self.db_file.num_access += 1
+            database_folder = self._return_database_folder()
+            database_folder.health_status = FileSystemItemHealthStatus.CORRUPT
+            self.file_system.num_file_deletions += 1
             return {
                 "status_code": 200,
                 "type": "sql",

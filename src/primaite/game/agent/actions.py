@@ -487,7 +487,9 @@ class RouterACLAddRuleAction(AbstractAction):
         position: int,
         permission: int,
         source_ip_id: int,
+        source_wildcard_id: int,
         dest_ip_id: int,
+        dest_wildcard_id: int,
         source_port_id: int,
         dest_port_id: int,
         protocol_id: int,
@@ -519,7 +521,7 @@ class RouterACLAddRuleAction(AbstractAction):
         else:
             src_ip = self.manager.get_ip_address_by_idx(source_ip_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
-
+        src_wildcard = self.manager.get_wildcard_by_idx(source_wildcard_id)
         if source_port_id == 0:
             return ["do_nothing"]  # invalid formulation
         elif source_port_id == 1:
@@ -528,13 +530,14 @@ class RouterACLAddRuleAction(AbstractAction):
             src_port = self.manager.get_port_by_idx(source_port_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
-        if source_ip_id == 0:
+        if dest_ip_id == 0:
             return ["do_nothing"]  # invalid formulation
         elif dest_ip_id == 1:
             dst_ip = "ALL"
         else:
             dst_ip = self.manager.get_ip_address_by_idx(dest_ip_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
+        dst_wildcard = self.manager.get_wildcard_by_idx(dest_wildcard_id)
 
         if dest_port_id == 0:
             return ["do_nothing"]  # invalid formulation
@@ -553,8 +556,10 @@ class RouterACLAddRuleAction(AbstractAction):
             permission_str,
             protocol,
             str(src_ip),
+            src_wildcard,
             src_port,
             str(dst_ip),
+            dst_wildcard,
             dst_port,
             position,
         ]
@@ -624,7 +629,9 @@ class FirewallACLAddRuleAction(AbstractAction):
         position: int,
         permission: int,
         source_ip_id: int,
+        source_wildcard_id: int,
         dest_ip_id: int,
+        dest_wildcard_id: int,
         source_port_id: int,
         dest_port_id: int,
         protocol_id: int,
@@ -665,7 +672,7 @@ class FirewallACLAddRuleAction(AbstractAction):
             src_port = self.manager.get_port_by_idx(source_port_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
-        if source_ip_id == 0:
+        if dest_ip_id == 0:
             return ["do_nothing"]  # invalid formulation
         elif dest_ip_id == 1:
             dst_ip = "ALL"
@@ -680,6 +687,8 @@ class FirewallACLAddRuleAction(AbstractAction):
         else:
             dst_port = self.manager.get_port_by_idx(dest_port_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
+        src_wildcard = self.manager.get_wildcard_by_idx(source_wildcard_id)
+        dst_wildcard = self.manager.get_wildcard_by_idx(dest_wildcard_id)
 
         return [
             "network",
@@ -692,8 +701,10 @@ class FirewallACLAddRuleAction(AbstractAction):
             permission_str,
             protocol,
             str(src_ip),
+            src_wildcard,
             src_port,
             str(dst_ip),
+            dst_wildcard,
             dst_port,
             position,
         ]
@@ -871,7 +882,8 @@ class ActionManager:
         max_acl_rules: int = 10,  # allows calculating shape
         protocols: List[str] = ["TCP", "UDP", "ICMP"],  # allow mapping index to protocol
         ports: List[str] = ["HTTP", "DNS", "ARP", "FTP", "NTP"],  # allow mapping index to port
-        ip_address_list: List[str] = [],  # to allow us to map an index to an ip address.
+        ip_list: List[str] = [],  # to allow us to map an index to an ip address.
+        wildcard_list: List[str] = [],  # to allow mapping from wildcard index to
         act_map: Optional[Dict[int, Dict]] = None,  # allows restricting set of possible actions
     ) -> None:
         """Init method for ActionManager.
@@ -897,8 +909,8 @@ class ActionManager:
         :type protocols: List[str]
         :param ports: List of ports that are available in the simulation. Used for calculating action shape.
         :type ports: List[str]
-        :param ip_address_list: List of IP addresses that known to this agent. Used for calculating action shape.
-        :type ip_address_list: Optional[List[str]]
+        :param ip_list: List of IP addresses that known to this agent. Used for calculating action shape.
+        :type ip_list: Optional[List[str]]
         :param act_map: Action map which maps integers to actions. Used for restricting the set of possible actions.
         :type act_map: Optional[Dict[int, Dict]]
         """
@@ -959,8 +971,10 @@ class ActionManager:
         self.protocols: List[str] = protocols
         self.ports: List[str] = ports
 
-        self.ip_address_list: List[str] = ip_address_list
-
+        self.ip_address_list: List[str] = ip_list
+        self.wildcard_list: List[str] = wildcard_list
+        if self.wildcard_list == []:
+            self.wildcard_list = ["NONE"]
         # action_args are settings which are applied to the action space as a whole.
         global_action_args = {
             "num_nodes": len(self.node_names),
@@ -1195,6 +1209,24 @@ class ActionManager:
             raise RuntimeError(msg)
         return self.ip_address_list[ip_idx]
 
+    def get_wildcard_by_idx(self, wildcard_idx: int) -> str:
+        """
+        Get the IP wildcard corresponding to the given index.
+
+        :param ip_idx: The index of the IP wildcard to retrieve.
+        :type ip_idx: int
+        :return: The wildcard address.
+        :rtype: str
+        """
+        if wildcard_idx >= len(self.wildcard_list):
+            msg = (
+                f"Error: agent attempted to perform an action on ip wildcard {wildcard_idx} but this"
+                f" is out of range for its action space.   Wildcard list:  {self.wildcard_list}"
+            )
+            _LOGGER.error(msg)
+            raise RuntimeError(msg)
+        return self.wildcard_list[wildcard_idx]
+
     def get_port_by_idx(self, port_idx: int) -> str:
         """
         Get the port corresponding to the given index.
@@ -1253,37 +1285,14 @@ class ActionManager:
         :return: The constructed ActionManager.
         :rtype: ActionManager
         """
-        # If the user has provided a list of IP addresses, use that. Otherwise, generate a list of IP addresses from
-        # the nodes in the simulation.
-        # TODO: refactor. Options:
-        # 1: This should be pulled out into it's own function for clarity
-        # 2: The simulation itself should be able to provide a list of IP addresses with its API, rather than having to
-        #    go through the nodes here.
-        ip_address_order = cfg["options"].pop("ip_address_order", {})
-        ip_address_list = []
-        for entry in ip_address_order:
-            node_name = entry["node_name"]
-            nic_num = entry["nic_num"]
-            node_obj = game.simulation.network.get_node_by_hostname(node_name)
-            ip_address = node_obj.network_interface[nic_num].ip_address
-            ip_address_list.append(ip_address)
-
-        if not ip_address_list:
-            node_names = [n["node_name"] for n in cfg.get("nodes", {})]
-            for node_name in node_names:
-                node_obj = game.simulation.network.get_node_by_hostname(node_name)
-                if node_obj is None:
-                    continue
-                network_interfaces = node_obj.network_interfaces
-                for nic_uuid, nic_obj in network_interfaces.items():
-                    ip_address_list.append(nic_obj.ip_address)
+        if "ip_list" not in cfg["options"]:
+            cfg["options"]["ip_list"] = []
 
         obj = cls(
             actions=cfg["action_list"],
             **cfg["options"],
             protocols=game.options.protocols,
             ports=game.options.ports,
-            ip_address_list=ip_address_list,
             act_map=cfg.get("action_map"),
         )
 

@@ -88,6 +88,10 @@ class SysLog:
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self.hostname}_sys.log"
 
+    def _write_to_terminal(self, msg: str, level: str, to_terminal: bool = False):
+        if to_terminal or SIM_OUTPUT.write_sys_log_to_terminal:
+            print(f"{self.hostname}: ({level}) {msg}")
+
     def debug(self, msg: str, to_terminal: bool = False):
         """
         Logs a message with the DEBUG level.
@@ -97,8 +101,7 @@ class SysLog:
         """
         if SIM_OUTPUT.save_sys_logs:
             self.logger.debug(msg)
-        if to_terminal:
-            print(msg)
+        self._write_to_terminal(msg, "DEBUG", to_terminal)
 
     def info(self, msg: str, to_terminal: bool = False):
         """
@@ -109,8 +112,7 @@ class SysLog:
         """
         if SIM_OUTPUT.save_sys_logs:
             self.logger.info(msg)
-        if to_terminal:
-            print(msg)
+        self._write_to_terminal(msg, "INFO", to_terminal)
 
     def warning(self, msg: str, to_terminal: bool = False):
         """
@@ -121,8 +123,7 @@ class SysLog:
         """
         if SIM_OUTPUT.save_sys_logs:
             self.logger.warning(msg)
-        if to_terminal:
-            print(msg)
+        self._write_to_terminal(msg, "WARNING", to_terminal)
 
     def error(self, msg: str, to_terminal: bool = False):
         """
@@ -133,8 +134,7 @@ class SysLog:
         """
         if SIM_OUTPUT.save_sys_logs:
             self.logger.error(msg)
-        if to_terminal:
-            print(msg)
+        self._write_to_terminal(msg, "ERROR", to_terminal)
 
     def critical(self, msg: str, to_terminal: bool = False):
         """
@@ -145,5 +145,4 @@ class SysLog:
         """
         if SIM_OUTPUT.save_sys_logs:
             self.logger.critical(msg)
-        if to_terminal:
-            print(msg)
+        self._write_to_terminal(msg, "CRITICAL", to_terminal)

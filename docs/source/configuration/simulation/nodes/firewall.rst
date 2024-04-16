@@ -22,35 +22,35 @@ example firewall
         network:
             nodes:
                 - ref: firewall
-                hostname: firewall
-                type: firewall
-                start_up_duration: 0
-                shut_down_duration: 0
-                ports:
-                    external_port: # port 1
-                        ip_address: 192.168.20.1
-                        subnet_mask: 255.255.255.0
-                    internal_port: # port 2
-                        ip_address: 192.168.1.2
-                        subnet_mask: 255.255.255.0
-                    dmz_port: # port 3
-                        ip_address: 192.168.10.1
-                        subnet_mask: 255.255.255.0
-                acl:
-                    internal_inbound_acl:
+                    hostname: firewall
+                    type: firewall
+                    start_up_duration: 0
+                    shut_down_duration: 0
+                    ports:
+                        external_port: # port 1
+                            ip_address: 192.168.20.1
+                            subnet_mask: 255.255.255.0
+                        internal_port: # port 2
+                            ip_address: 192.168.1.2
+                            subnet_mask: 255.255.255.0
+                        dmz_port: # port 3
+                            ip_address: 192.168.10.1
+                            subnet_mask: 255.255.255.0
+                    acl:
+                        internal_inbound_acl:
+                            ...
+                        internal_outbound_acl:
+                            ...
+                        dmz_inbound_acl:
+                            ...
+                        dmz_outbound_acl:
+                            ...
+                        external_inbound_acl:
+                            ...
+                        external_outbound_acl:
+                            ...
+                    routes:
                         ...
-                    internal_outbound_acl:
-                        ...
-                    dmz_inbound_acl:
-                        ...
-                    dmz_outbound_acl:
-                        ...
-                    external_inbound_acl:
-                        ...
-                    external_outbound_acl:
-                        ...
-                routes:
-                    ...
 
 .. include:: common/common_node_attributes.rst
 
