@@ -26,7 +26,7 @@ PrimAITE presents the following features:
 
 ## Getting Started with PrimAITE
 
-### 💫 Install & Run
+### 💫 Installation
 **PrimAITE** is designed to be OS-agnostic, and thus should work on most variations/distros of Linux, Windows, and MacOS.
 Currently, the PrimAITE wheel can only be installed from GitHub. This may change in the future with release to PyPi.
 
@@ -47,11 +47,6 @@ pip install https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/relea
 primaite setup
 ```
 
-**Run:**
-
-``` bash
-primaite session
-```
 
 #### Unix
 
@@ -73,12 +68,6 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/releases/download/v2.0.0/primaite-2.0.0-py3-none-any.whl
 primaite setup
-```
-
-**Run:**
-
-``` bash
-primaite session
 ```
 
 
@@ -124,6 +113,29 @@ python3 -m pip install -e .[dev]
 ```bash
 primaite setup
 ```
+
+### Running PrimAITE
+
+Use the provided jupyter notebooks as a starting point to try running PrimAITE. They are automatically copied to your PrimAITE notebook folder when you run `primaite setup`.
+
+#### 1. Activate the virtual environment
+
+##### Windows (Powershell)
+```powershell
+.\venv\Scripts\activate
+```
+
+##### Unix
+```bash
+source venv/bin/activate
+```
+
+#### 2. Open jupyter notebook
+
+```bash
+python -m jupyter notebook
+```
+Then, click the URL provided by the jupyter command to open the jupyter application in your browser. You can also open notebooks in your IDE if supported.
 
 ## 📚 Building documentation
 The PrimAITE documentation can be built with the following commands:

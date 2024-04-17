@@ -1,0 +1,18 @@
+simulation:
+  network:
+    nodes:
+      - hostname: pc_1
+        type: computer
+        ip_address: 192.168.1.11
+        subnet_mask: 255.255.255.0
+
+      - hostname: server_1
+        type: server
+        ip_address: 192.168.1.11
+        subnet_mask: 255.255.255.0
+
+    links:
+      - endpoint_a_hostname: pc_1
+        endpoint_a_port: 1
+        endpoint_b_hostname: server_1
+        endpoint_b_port: 1
