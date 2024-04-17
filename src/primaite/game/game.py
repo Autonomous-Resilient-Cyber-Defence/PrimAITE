@@ -210,8 +210,8 @@ class PrimaiteGame:
         """Create a PrimaiteGame object from a config dictionary.
 
         The config dictionary should have the following top-level keys:
-        1. training_config: options for training the RL agent.
-        2. game_config: options for the game itself. Used by PrimaiteGame.
+        1. io_settings: options for logging data during training
+        2. game_config: options for the game itself, such as agents.
         3. simulation: defines the network topology and the initial state of the simulation.
 
         The specification for each of the three major areas is described in a separate documentation page.

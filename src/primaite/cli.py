@@ -114,23 +114,3 @@ def setup(overwrite_existing: bool = True) -> None:
     reset_example_configs.run(overwrite_existing=True)
 
     _LOGGER.info("PrimAITE setup complete!")
-
-
-@app.command()
-def session(
-    config: Optional[str] = None,
-    agent_load_file: Optional[str] = None,
-) -> None:
-    """
-    Run a PrimAITE session.
-
-    :param config: The path to the config file. Optional, if None, the example config will be used.
-    :type config: Optional[str]
-    """
-    from primaite.config.load import data_manipulation_config_path
-    from primaite.main import run
-
-    if not config:
-        config = data_manipulation_config_path()
-    print(config)
-    run(config_path=config, agent_load_path=agent_load_file)

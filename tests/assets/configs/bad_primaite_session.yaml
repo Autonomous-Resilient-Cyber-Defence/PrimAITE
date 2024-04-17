@@ -1,12 +1,3 @@
-training_config:
-  rl_framework: SB3
-  rl_algorithm: PPO
-  se3ed: 333 # Purposeful typo to check that error is raised with bad configuration.
-  n_learn_steps: 2560
-  n_eval_episodes: 5
-
-
-
 game:
   ports:
   - ARP
