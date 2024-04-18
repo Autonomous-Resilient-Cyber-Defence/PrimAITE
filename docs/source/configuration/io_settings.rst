@@ -18,7 +18,7 @@ This section configures how PrimAITE saves data during simulation and training.
         save_step_metadata: False
         save_pcap_logs: False
         save_sys_logs: False
-        log_level: INFO
+        sys_log_level: INFO
 
 
 ``save_logs``
