@@ -8,7 +8,7 @@ io_settings:
   save_step_metadata: false
   save_pcap_logs: true
   save_sys_logs: true
-  log_level: WARNING
+  sys_log_level: WARNING
 
 
 game:

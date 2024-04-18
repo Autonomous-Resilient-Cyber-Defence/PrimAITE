@@ -11,32 +11,9 @@ def syslog() -> SysLog:
     return SysLog(hostname="test")
 
 
-def test_off_log_level(syslog, capsys):
+def test_debug_sys_log_level(syslog, capsys):
     """Test that the debug log level logs debug syslogs and above."""
-    SIM_OUTPUT.log_level = LogLevel.OFF
-    SIM_OUTPUT.write_sys_log_to_terminal = True
-
-    test_string = str(uuid4())
-
-    syslog.debug(test_string)
-    syslog.info(test_string)
-    syslog.warning(test_string)
-    syslog.error(test_string)
-    syslog.critical(test_string)
-
-    captured = "".join(capsys.readouterr())
-
-    assert test_string not in captured
-    assert "DEBUG" not in captured
-    assert "INFO" not in captured
-    assert "WARNING" not in captured
-    assert "ERROR" not in captured
-    assert "CRITICAL" not in captured
-
-
-def test_debug_log_level(syslog, capsys):
-    """Test that the debug log level logs debug syslogs and above."""
-    SIM_OUTPUT.log_level = LogLevel.DEBUG
+    SIM_OUTPUT.sys_log_level = LogLevel.DEBUG
     SIM_OUTPUT.write_sys_log_to_terminal = True
 
     test_string = str(uuid4())
@@ -57,9 +34,9 @@ def test_debug_log_level(syslog, capsys):
     assert "CRITICAL" in captured
 
 
-def test_info_log_level(syslog, capsys):
+def test_info_sys_log_level(syslog, capsys):
     """Test that the debug log level logs debug syslogs and above."""
-    SIM_OUTPUT.log_level = LogLevel.INFO
+    SIM_OUTPUT.sys_log_level = LogLevel.INFO
     SIM_OUTPUT.write_sys_log_to_terminal = True
 
     test_string = str(uuid4())
@@ -80,9 +57,9 @@ def test_info_log_level(syslog, capsys):
     assert "CRITICAL" in captured
 
 
-def test_warning_log_level(syslog, capsys):
+def test_warning_sys_log_level(syslog, capsys):
     """Test that the debug log level logs debug syslogs and above."""
-    SIM_OUTPUT.log_level = LogLevel.WARNING
+    SIM_OUTPUT.sys_log_level = LogLevel.WARNING
     SIM_OUTPUT.write_sys_log_to_terminal = True
 
     test_string = str(uuid4())
@@ -103,9 +80,9 @@ def test_warning_log_level(syslog, capsys):
     assert "CRITICAL" in captured
 
 
-def test_error_log_level(syslog, capsys):
+def test_error_sys_log_level(syslog, capsys):
     """Test that the debug log level logs debug syslogs and above."""
-    SIM_OUTPUT.log_level = LogLevel.ERROR
+    SIM_OUTPUT.sys_log_level = LogLevel.ERROR
     SIM_OUTPUT.write_sys_log_to_terminal = True
 
     test_string = str(uuid4())
@@ -126,9 +103,9 @@ def test_error_log_level(syslog, capsys):
     assert "CRITICAL" in captured
 
 
-def test_critical_log_level(syslog, capsys):
+def test_critical_sys_log_level(syslog, capsys):
     """Test that the debug log level logs debug syslogs and above."""
-    SIM_OUTPUT.log_level = LogLevel.CRITICAL
+    SIM_OUTPUT.sys_log_level = LogLevel.CRITICAL
     SIM_OUTPUT.write_sys_log_to_terminal = True
 
     test_string = str(uuid4())

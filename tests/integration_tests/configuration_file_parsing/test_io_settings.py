@@ -28,7 +28,7 @@ def test_io_settings():
 
         assert env.io.settings is not None
 
-        assert env.io.settings.log_level is LogLevel.WARNING
+        assert env.io.settings.sys_log_level is LogLevel.WARNING
         assert env.io.settings.save_pcap_logs
         assert env.io.settings.save_sys_logs
         assert env.io.settings.save_step_metadata is False

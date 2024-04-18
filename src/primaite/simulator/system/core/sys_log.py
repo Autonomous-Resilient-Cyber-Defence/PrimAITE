@@ -99,7 +99,7 @@ class SysLog:
         :param msg: The message to be logged.
         :param to_terminal: If True, prints to the terminal too.
         """
-        if SIM_OUTPUT.log_level.value > LogLevel.DEBUG.value:
+        if SIM_OUTPUT.sys_log_level > LogLevel.DEBUG:
             return
 
         if SIM_OUTPUT.save_sys_logs:
@@ -113,7 +113,7 @@ class SysLog:
         :param msg: The message to be logged.
         :param to_terminal: If True, prints to the terminal too.
         """
-        if SIM_OUTPUT.log_level.value > LogLevel.INFO.value:
+        if SIM_OUTPUT.sys_log_level > LogLevel.INFO:
             return
 
         if SIM_OUTPUT.save_sys_logs:
@@ -127,7 +127,7 @@ class SysLog:
         :param msg: The message to be logged.
         :param to_terminal: If True, prints to the terminal too.
         """
-        if SIM_OUTPUT.log_level.value > LogLevel.WARNING.value:
+        if SIM_OUTPUT.sys_log_level > LogLevel.WARNING:
             return
 
         if SIM_OUTPUT.save_sys_logs:
@@ -141,7 +141,7 @@ class SysLog:
         :param msg: The message to be logged.
         :param to_terminal: If True, prints to the terminal too.
         """
-        if SIM_OUTPUT.log_level.value > LogLevel.ERROR.value:
+        if SIM_OUTPUT.sys_log_level > LogLevel.ERROR:
             return
 
         if SIM_OUTPUT.save_sys_logs:
@@ -155,7 +155,7 @@ class SysLog:
         :param msg: The message to be logged.
         :param to_terminal: If True, prints to the terminal too.
         """
-        if LogLevel.CRITICAL.value < SIM_OUTPUT.log_level.value:
+        if LogLevel.CRITICAL < SIM_OUTPUT.sys_log_level:
             return
 
         if SIM_OUTPUT.save_sys_logs:
