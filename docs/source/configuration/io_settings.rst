@@ -18,6 +18,30 @@ This section configures how PrimAITE saves data during simulation and training.
         save_step_metadata: False
         save_pcap_logs: False
         save_sys_logs: False
+        log_level: INFO
+
+
+``log_level``
+-------------
+
+Optional. Default value is ``INFO``.
+
+The level of logging that should be visible in the sys logs or the logs output to the terminal.
+
+Available options are:
+
+- ``OFF``: No logs
+- ``DEBUG``: Debug level items and the items below
+- ``INFO``: Info level items and the items below
+- ``WARNING``: Warning level items and the items below
+- ``ERROR``: Error level items and the items below
+- ``CRITICAL``: Only critical level logs
+
+See also |logging_levels|
+
+.. |logging_levels| raw:: html
+
+    <a href="https://docs.python.org/3/library/logging.html#logging-levels" target="blank">Python logging levels</a>
 
 
 ``save_logs``
