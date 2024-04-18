@@ -8,6 +8,7 @@ io_settings:
   save_step_metadata: false
   save_pcap_logs: true
   save_sys_logs: true
+  log_level: WARNING
 
 
 game:
@@ -59,6 +60,102 @@ agents:
         start_step: 5
         frequency: 4
         variance: 3
+
+
+
+  - ref: defender
+    team: BLUE
+    type: ProxyAgent
+
+    observation_space:
+      type: CUSTOM
+      options:
+        components:
+          - type: NODES
+            label: NODES
+            options:
+              hosts:
+                - hostname: client_1
+                - hostname: client_2
+                - hostname: client_3
+              num_services: 1
+              num_applications: 0
+              num_folders: 1
+              num_files: 1
+              num_nics: 2
+              include_num_access: false
+              include_nmne: true
+              routers:
+                - hostname: router_1
+              num_ports: 0
+              ip_list:
+                - 192.168.10.21
+                - 192.168.10.22
+                - 192.168.10.23
+              wildcard_list:
+                - 0.0.0.1
+              port_list:
+                - 80
+                - 5432
+              protocol_list:
+                - ICMP
+                - TCP
+                - UDP
+              num_rules: 10
+
+          - type: LINKS
+            label: LINKS
+            options:
+              link_references:
+                - switch_1:eth-1<->client_1:eth-1
+                - switch_1:eth-2<->client_2:eth-1
+          - type: "NONE"
+            label: ICS
+            options: {}
+
+    action_space:
+      action_list:
+        - type: DONOTHING
+
+      action_map:
+          0:
+            action: DONOTHING
+            options: {}
+      options:
+        nodes:
+        - node_name: switch
+        - node_name: client_1
+        - node_name: client_2
+        - node_name: client_3
+        max_folders_per_node: 2
+        max_files_per_folder: 2
+        max_services_per_node: 2
+        max_nics_per_node: 8
+        max_acl_rules: 10
+        ip_list:
+          - 192.168.10.21
+          - 192.168.10.22
+          - 192.168.10.23
+
+    reward_function:
+      reward_components:
+        - type: DATABASE_FILE_INTEGRITY
+          weight: 0.5
+          options:
+            node_hostname: database_server
+            folder_name: database
+            file_name: database.db
+
+
+        - type: WEB_SERVER_404_PENALTY
+          weight: 0.5
+          options:
+            node_hostname: web_server
+            service_name: web_server_web_service
+
+
+    agent_settings:
+      flatten_obs: true
 
 simulation:
   network:
