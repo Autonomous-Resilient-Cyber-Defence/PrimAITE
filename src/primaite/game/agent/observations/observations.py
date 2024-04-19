@@ -1,6 +1,6 @@
 """Manages the observation space for the agent."""
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Type
+from typing import Any, Dict, Iterable, Type, Optional, Union
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from primaite import getLogger
 
 _LOGGER = getLogger(__name__)
-WhereType = Iterable[str | int] | None
+WhereType = Optional[Iterable[Union[str, int]]]
 
 
 class AbstractObservation(ABC):

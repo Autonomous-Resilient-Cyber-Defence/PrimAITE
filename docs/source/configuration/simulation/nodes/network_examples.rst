@@ -29,7 +29,75 @@ and a Server on the same subnet with a single Link connecting the two.
     :width: 800
     :align: center
 
+The yaml file contains two nodes in the ``simulation.network.nodes`` array, one with the `pc_1` reference and another
+with the `server_1` reference. both nodes are given a node type, `pc_1` being a `computer` and `server_1` being a
+`server`. Both nodes are then given an ip address and subnet mask.
 
+The link between the two nodes is configured in the ``simulation.network.links`` array, with the hostname and network
+interface for each being configured under ``endpoint_<a or b>_hostname`` and ``endpoint_<a or b>_port`` respectively.
+
+
+
+.. code-block:: yaml
+  :linenos:
+  :emphasive-lines:
+
+    simulation:
+      network:
+        nodes:
+          - hostname: pc_1
+            type: computer
+            ip_address: 192.168.1.11
+            subnet_mask: 255.255.255.0
+
+          - hostname: server_1
+            type: server
+            ip_address: 192.168.1.13
+            subnet_mask: 255.255.255.0
+
+        links:
+          - endpoint_a_hostname: pc_1
+            endpoint_a_port: 1
+            endpoint_b_hostname: server_1
+            endpoint_b_port: 1
+
+The following codeblock demonstrates how to access this network and all ``.show()`` to output the network details:
+
+.. code-block:: python
+
+  from primaite.simulator.network.networks import client_server_p2p_network
+
+  network = client_server_p2p_network()
+
+  network.show()
+
+Which gives the output:
+
+.. code-block:: text
+
+  +---------------------------------------+
+  |                 Nodes                 |
+  +----------+----------+-----------------+
+  | Node     | Type     | Operating State |
+  +----------+----------+-----------------+
+  | server_1 | Server   | ON              |
+  | pc_1     | Computer | ON              |
+  +----------+----------+-----------------+
+  +------------------------------------------------------------------+
+  |                           IP Addresses                           |
+  +----------+------+--------------+---------------+-----------------+
+  | Node     | Port | IP Address   | Subnet Mask   | Default Gateway |
+  +----------+------+--------------+---------------+-----------------+
+  | server_1 | 1    | 192.168.1.13 | 255.255.255.0 | None            |
+  | pc_1     | 1    | 192.168.1.11 | 255.255.255.0 | None            |
+  +----------+------+--------------+---------------+-----------------+
+  +------------------------------------------------------------------------------------------------------------------------------------------------------+
+  |                                                                        Links                                                                         |
+  +------------+----------------------------------------+------------+----------------------------------------+-------+-------------------+--------------+
+  | Endpoint A | A Port                                 | Endpoint B | B Port                                 | is Up | Bandwidth (MBits) | Current Load |
+  +------------+----------------------------------------+------------+----------------------------------------+-------+-------------------+--------------+
+  | pc_1       | Port 1: dd:70:be:52:b1:a9/192.168.1.11 | server_1   | Port 1: 17:3a:11:af:9b:b1/192.168.1.13 | True  | 100.0             | 0.00000%     |
+  +------------+----------------------------------------+------------+----------------------------------------+-------+-------------------+--------------+
 
 #2. Basic Switched Network
 --------------------------

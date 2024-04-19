@@ -1,5 +1,9 @@
 from ipaddress import IPv4Address
 
+import yaml
+
+from primaite import PRIMAITE_PATHS
+from primaite.game.game import PrimaiteGame
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
@@ -279,3 +283,13 @@ def arcd_uc2_network() -> Network:
     router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=3)
 
     return network
+
+
+def client_server_p2p_network_example() -> Network:
+    path = PRIMAITE_PATHS.user_config_path / "example_config" / "client-server-p2p-network-example.yaml"
+    with open(path, "r") as file:
+        cfg = yaml.safe_load(file)
+
+    game = PrimaiteGame.from_config(cfg)
+
+    return game.simulation.network

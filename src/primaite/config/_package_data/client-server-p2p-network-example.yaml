@@ -1,3 +1,11 @@
+game:
+  ports:
+  - ARP
+  protocols:
+  - ICMP
+  - TCP
+  - UDP
+
 simulation:
   network:
     nodes:
@@ -8,7 +16,7 @@ simulation:
 
       - hostname: server_1
         type: server
-        ip_address: 192.168.1.11
+        ip_address: 192.168.1.13
         subnet_mask: 255.255.255.0
 
     links:
