@@ -69,7 +69,7 @@ If ``True``, PrimAITE will print sys log to the terminal.
 ``sys_log_level``
 -------------
 
-Optional. Default value is ``INFO``.
+Optional. Default value is ``WARNING``.
 
 The level of logging that should be visible in the sys logs or the logs output to the terminal.
 
