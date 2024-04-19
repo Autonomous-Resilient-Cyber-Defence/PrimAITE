@@ -2,12 +2,9 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Set
 
-from primaite import getLogger
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
-
-_LOGGER = getLogger(__name__)
 
 
 class ApplicationOperatingState(Enum):
@@ -99,7 +96,7 @@ class Application(IOSoftware):
 
         if self.operating_state is not self.operating_state.RUNNING:
             # service is not running
-            _LOGGER.debug(f"Cannot perform action: {self.name} is {self.operating_state.name}")
+            self.sys_log.error(f"Cannot perform action: {self.name} is {self.operating_state.name}")
             return False
 
         return True

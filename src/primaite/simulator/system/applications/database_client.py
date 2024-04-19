@@ -2,15 +2,12 @@ from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
-from primaite import getLogger
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.software_manager import SoftwareManager
-
-_LOGGER = getLogger(__name__)
 
 
 class DatabaseClient(Application):
@@ -136,7 +133,7 @@ class DatabaseClient(Application):
                 self.server_ip_address = server_ip_address
                 return True
             else:
-                self.sys_log.info(
+                self.sys_log.warning(
                     f"{self.name} {connection_id=}: DatabaseClient connection to {server_ip_address} declined"
                 )
                 return False
@@ -156,12 +153,12 @@ class DatabaseClient(Application):
     def disconnect(self) -> bool:
         """Disconnect from the Database Service."""
         if not self._can_perform_action():
-            self.sys_log.error(f"Unable to disconnect - {self.name} is {self.operating_state.name}")
+            self.sys_log.warning(f"Unable to disconnect - {self.name} is {self.operating_state.name}")
             return False
 
         # if there are no connections - nothing to disconnect
         if not self._server_connection_id:
-            self.sys_log.error(f"Unable to disconnect - {self.name} has no active connections.")
+            self.sys_log.warning(f"Unable to disconnect - {self.name} has no active connections.")
             return False
 
         # if no connection provided, disconnect the first connection
@@ -196,7 +193,7 @@ class DatabaseClient(Application):
             if success:
                 self.sys_log.info(f"{self.name}: Query successful {sql}")
                 return True
-            self.sys_log.info(f"{self.name}: Unable to run query {sql}")
+            self.sys_log.error(f"{self.name}: Unable to run query {sql}")
             return False
         else:
             software_manager: SoftwareManager = self.software_manager
@@ -236,7 +233,7 @@ class DatabaseClient(Application):
 
         if not connection_id:
             msg = "Cannot run sql query, could not establish connection with the server."
-            self.parent.sys_log(msg)
+            self.sys_log.warning(msg)
             return False
 
         uuid = str(uuid4())
@@ -265,5 +262,5 @@ class DatabaseClient(Application):
                 status_code = payload.get("status_code")
                 self._query_success_tracker[query_id] = status_code == 200
                 if self._query_success_tracker[query_id]:
-                    _LOGGER.debug(f"Received payload {payload}")
+                    self.sys_log.debug(f"Received {payload=}")
         return True

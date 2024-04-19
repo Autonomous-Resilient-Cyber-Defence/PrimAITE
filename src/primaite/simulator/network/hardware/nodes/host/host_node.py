@@ -147,7 +147,7 @@ class HostARP(ARP):
         super()._process_arp_request(arp_packet, from_network_interface)
         # Unmatched ARP Request
         if arp_packet.target_ip_address != from_network_interface.ip_address:
-            self.sys_log.info(
+            self.sys_log.warning(
                 f"Ignoring ARP request for {arp_packet.target_ip_address}. Current IP address is "
                 f"{from_network_interface.ip_address}"
             )

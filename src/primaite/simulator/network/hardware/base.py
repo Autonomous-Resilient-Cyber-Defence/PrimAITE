@@ -307,13 +307,13 @@ class WiredNetworkInterface(NetworkInterface, ABC):
             return False
 
         if self._connected_node.operating_state != NodeOperatingState.ON:
-            self._connected_node.sys_log.info(
+            self._connected_node.sys_log.error(
                 f"Interface {self} cannot be enabled as the connected Node is not powered on"
             )
             return False
 
         if not self._connected_link:
-            self._connected_node.sys_log.info(f"Interface {self} cannot be enabled as there is no Link connected.")
+            self._connected_node.sys_log.warning(f"Interface {self} cannot be enabled as there is no Link connected.")
             return False
 
         self.enabled = True
@@ -1201,7 +1201,7 @@ class Node(SimComponent):
             self._nic_request_manager.add_request(new_nic_num, RequestType(func=network_interface._request_manager))
         else:
             msg = f"Cannot connect NIC {network_interface} as it is already connected"
-            self.sys_log.logger.error(msg)
+            self.sys_log.logger.warning(msg)
             raise NetworkError(msg)
 
     def disconnect_nic(self, network_interface: Union[NetworkInterface, str]):
@@ -1228,7 +1228,7 @@ class Node(SimComponent):
                 self._nic_request_manager.remove_request(network_interface_num)
         else:
             msg = f"Cannot disconnect Network Interface {network_interface} as it is not connected"
-            self.sys_log.logger.error(msg)
+            self.sys_log.logger.warning(msg)
             raise NetworkError(msg)
 
     def ping(self, target_ip_address: Union[IPv4Address, str], pings: int = 4) -> bool:

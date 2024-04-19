@@ -3,6 +3,7 @@ io_settings:
   save_step_metadata: false
   save_pcap_logs: false
   save_sys_logs: false
+  sys_log_level: WARNING
 
 
 game:

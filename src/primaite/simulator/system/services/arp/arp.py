@@ -147,7 +147,7 @@ class ARP(Service):
                 payload=arp_packet, dst_ip_address=target_ip_address, dst_port=self.port, ip_protocol=self.protocol
             )
         else:
-            self.sys_log.error(
+            self.sys_log.warning(
                 "Cannot send ARP request as there is no outbound Network Interface to use. Try configuring the default "
                 "gateway."
             )
@@ -173,7 +173,7 @@ class ARP(Service):
                 ip_protocol=self.protocol,
             )
         else:
-            self.sys_log.error(
+            self.sys_log.warning(
                 "Cannot send ARP reply as there is no outbound Network Interface to use. Try configuring the default "
                 "gateway."
             )

@@ -74,7 +74,7 @@ class SwitchPort(WiredNetworkInterface):
         if self.enabled:
             frame.decrement_ttl()
             if frame.ip and frame.ip.ttl < 1:
-                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
+                self._connected_node.sys_log.warning("Frame discarded as TTL limit reached")
                 return False
             self.pcap.capture_inbound(frame)
             self._connected_node.receive_frame(frame=frame, from_network_interface=self)

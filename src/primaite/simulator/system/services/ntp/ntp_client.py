@@ -87,7 +87,7 @@ class NTPClient(Service):
         :return: True if successful, False otherwise.
         """
         if not isinstance(payload, NTPPacket):
-            _LOGGER.debug(f"{self.name}: Failed to parse NTP update")
+            self.sys_log.warning(f"{self.name}: Failed to parse NTP update")
             return False
         if payload.ntp_reply.ntp_datetime:
             self.time = payload.ntp_reply.ntp_datetime
@@ -115,7 +115,6 @@ class NTPClient(Service):
         :param timestep: The current timestep number. (Amount of time since simulation episode began)
         :type timestep: int
         """
-        self.sys_log.info(f"{self.name} apply_timestep")
         super().apply_timestep(timestep)
         if self.operating_state == ServiceOperatingState.RUNNING:
             # request time from server

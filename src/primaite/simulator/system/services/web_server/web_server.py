@@ -167,7 +167,8 @@ class WebServer(Service):
 
         # check if the payload is an HTTPPacket
         if not isinstance(payload, HttpRequestPacket):
-            self.sys_log.error("Payload is not an HTTPPacket")
+            self.sys_log.warning(f"{self.name}: Payload is not an HTTPPacket")
+            self.sys_log.debug(f"{self.name}: {payload}")
             return False
 
         return self._process_http_request(payload=payload, session_id=session_id)

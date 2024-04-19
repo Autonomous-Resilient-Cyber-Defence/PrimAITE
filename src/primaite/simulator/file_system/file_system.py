@@ -6,15 +6,12 @@ from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
 
-from primaite import getLogger
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file import File
 from primaite.simulator.file_system.file_type import FileType
 from primaite.simulator.file_system.folder import Folder
 from primaite.simulator.system.core.sys_log import SysLog
-
-_LOGGER = getLogger(__name__)
 
 
 class FileSystem(SimComponent):
@@ -163,11 +160,11 @@ class FileSystem(SimComponent):
         :param folder_name: The name of the folder.
         """
         if folder_name == "root":
-            self.sys_log.warning("Cannot delete the root folder.")
+            self.sys_log.error("Cannot delete the root folder.")
             return False
         folder = self.get_folder(folder_name)
         if not folder:
-            _LOGGER.debug(f"Cannot delete folder as it does not exist: {folder_name}")
+            self.sys_log.error(f"Cannot delete folder as it does not exist: {folder_name}")
             return False
 
         # set folder to deleted state
@@ -180,7 +177,7 @@ class FileSystem(SimComponent):
         folder.remove_all_files()
 
         self.deleted_folders[folder.uuid] = folder
-        self.sys_log.info(f"Deleted folder /{folder.name} and its contents")
+        self.sys_log.warning(f"Deleted folder /{folder.name} and its contents")
         return True
 
     def delete_folder_by_id(self, folder_uuid: str) -> None:
@@ -283,7 +280,7 @@ class FileSystem(SimComponent):
         folder = self.get_folder(folder_name, include_deleted=include_deleted)
         if folder:
             return folder.get_file(file_name, include_deleted=include_deleted)
-        self.sys_log.info(f"File not found /{folder_name}/{file_name}")
+        self.sys_log.warning(f"File not found /{folder_name}/{file_name}")
 
     def get_file_by_id(
         self, file_uuid: str, folder_uuid: Optional[str] = None, include_deleted: Optional[bool] = False
@@ -499,7 +496,7 @@ class FileSystem(SimComponent):
         """
         folder = self.get_folder(folder_name=folder_name)
         if not folder:
-            _LOGGER.debug(f"Cannot restore file {file_name} in folder {folder_name} as the folder does not exist.")
+            self.sys_log.error(f"Cannot restore file {file_name} in folder {folder_name} as the folder does not exist.")
             return False
 
         file = folder.get_file(file_name=file_name, include_deleted=True)
