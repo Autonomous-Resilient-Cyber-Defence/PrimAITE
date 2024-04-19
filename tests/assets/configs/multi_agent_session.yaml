@@ -1,21 +1,3 @@
-training_config:
-  rl_framework: RLLIB_multi_agent
-  rl_algorithm: PPO
-  seed: 333
-  n_learn_episodes: 2
-  n_eval_episodes: 1
-  max_steps_per_episode: 128
-  deterministic_eval: false
-  n_agents: 1
-  agent_references: #not used :(
-    - defender1
-    - defender2
-
-io_settings:
-  save_checkpoints: true
-  checkpoint_interval: 5
-
-
 game:
   max_episode_length: 128
   ports:
@@ -31,11 +13,12 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: ProbabilisticAgent
+    type: PeriodicAgent
     observation_space: null
     action_space:
       action_list:
         - type: DONOTHING
+        - type: NODE_APPLICATION_EXECUTE
 
       options:
         nodes:
@@ -901,86 +884,6 @@ agents:
             options:
                 target_router_nodename: router_1
                 position: 9
-          38:
-            action: "HOST_NIC_DISABLE"
-            options:
-                node_id: 0
-                nic_id: 0
-          39:
-            action: "HOST_NIC_ENABLE"
-            options:
-                node_id: 0
-                nic_id: 0
-          40:
-            action: "HOST_NIC_DISABLE"
-            options:
-                node_id: 1
-                nic_id: 0
-          41:
-            action: "HOST_NIC_ENABLE"
-            options:
-                node_id: 1
-                nic_id: 0
-          42:
-            action: "HOST_NIC_DISABLE"
-            options:
-                node_id: 2
-                nic_id: 0
-          43:
-            action: "HOST_NIC_ENABLE"
-            options:
-                node_id: 2
-                nic_id: 0
-          44:
-            action: "HOST_NIC_DISABLE"
-            options:
-                node_id: 3
-                nic_id: 0
-          45:
-            action: "HOST_NIC_ENABLE"
-            options:
-                node_id: 3
-                nic_id: 0
-          46:
-            action: "HOST_NIC_DISABLE"
-            options:
-                node_id: 4
-                nic_id: 0
-          47:
-            action: "HOST_NIC_ENABLE"
-            options:
-                node_id: 4
-                nic_id: 0
-          48:
-            action: "HOST_NIC_DISABLE"
-            options:
-                node_id: 4
-                nic_id: 1
-          49:
-            action: "HOST_NIC_ENABLE"
-            options:
-                node_id: 4
-                nic_id: 1
-          50:
-            action: "HOST_NIC_DISABLE"
-            options:
-                node_id: 5
-                nic_id: 0
-          51:
-            action: "HOST_NIC_ENABLE"
-            options:
-                node_id: 5
-                nic_id: 0
-          52:
-            action: "HOST_NIC_DISABLE"
-            options:
-                node_id: 6
-                nic_id: 0
-          53:
-            action: "HOST_NIC_ENABLE"
-            options:
-                node_id: 6
-                nic_id: 0
 
 
       options:
