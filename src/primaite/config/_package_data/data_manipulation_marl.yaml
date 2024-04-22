@@ -1061,6 +1061,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 1
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           47: # old action num: 23 # "ACL: ADDRULE - Block outgoing traffic from client 2"
             action: "ROUTER_ACL_ADDRULE"
             options:
@@ -1072,6 +1074,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 1
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           48: # old action num: 24 # block tcp traffic from client 1 to web app
             action: "ROUTER_ACL_ADDRULE"
             options:
@@ -1083,6 +1087,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           49: # old action num: 25 # block tcp traffic from client 2 to web app
             action: "ROUTER_ACL_ADDRULE"
             options:
@@ -1094,6 +1100,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           50: # old action num: 26
             action: "ROUTER_ACL_ADDRULE"
             options:
@@ -1105,6 +1113,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           51: # old action num: 27
             action: "ROUTER_ACL_ADDRULE"
             options:
@@ -1116,6 +1126,8 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           52: # old action num: 28
             action: "ROUTER_ACL_REMOVERULE"
             options:
