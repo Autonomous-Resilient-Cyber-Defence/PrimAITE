@@ -233,7 +233,7 @@ class DatabaseClient(Application):
 
         if not connection_id:
             msg = "Cannot run sql query, could not establish connection with the server."
-            self.sys_log.warning(msg)
+            self.parent.sys_log.warning(msg)
             return False
 
         uuid = str(uuid4())

@@ -227,6 +227,13 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         applications = [ApplicationObservation.from_config(config=c, parent_where=where) for c in config.applications]
         folders = [FolderObservation.from_config(config=c, parent_where=where) for c in config.folders]
         nics = [NICObservation.from_config(config=c, parent_where=where) for c in config.network_interfaces]
+        # If list of network interfaces is not defined, assume we want to
+        # monitor the first N interfaces. Network interface numbering starts at 1.
+        count = 1
+        while len(nics) < config.num_nics:
+            nic_config = NICObservation.ConfigSchema(nic_num=count, include_nmne=config.include_nmne)
+            nics.append(NICObservation.from_config(config=nic_config, parent_where=where))
+            count += 1
 
         return cls(
             where=where,
