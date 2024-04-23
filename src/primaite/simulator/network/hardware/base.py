@@ -307,7 +307,7 @@ class WiredNetworkInterface(NetworkInterface, ABC):
             return False
 
         if self._connected_node.operating_state != NodeOperatingState.ON:
-            self._connected_node.sys_log.error(
+            self._connected_node.sys_log.warning(
                 f"Interface {self} cannot be enabled as the connected Node is not powered on"
             )
             return False

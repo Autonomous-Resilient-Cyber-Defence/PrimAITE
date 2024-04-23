@@ -177,7 +177,7 @@ class DataManipulationBot(Application):
                         self.sys_log.info(f"{self.name}: Data manipulation successful")
                         self.attack_stage = DataManipulationAttackStage.SUCCEEDED
                     else:
-                        self.sys_log.error(f"{self.name}: Data manipulation failed")
+                        self.sys_log.warning(f"{self.name}: Data manipulation failed")
                         self.attack_stage = DataManipulationAttackStage.FAILED
 
     def run(self):

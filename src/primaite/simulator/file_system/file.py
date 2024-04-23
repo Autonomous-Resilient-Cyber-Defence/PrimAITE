@@ -223,5 +223,5 @@ class File(FileSystemItemABC):
 
         self.num_access += 1  # file was accessed
         self.deleted = True
-        self.sys_log.warning(f"File deleted {self.folder_name}/{self.name}")
+        self.sys_log.info(f"File deleted {self.folder_name}/{self.name}")
         return True
