@@ -26,7 +26,7 @@ the structure:
 ```
 """
 from abc import abstractmethod
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Type, TYPE_CHECKING
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Type, TYPE_CHECKING, Union
 
 from typing_extensions import Never
 
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from primaite.game.agent.interface import AgentActionHistoryItem
 
 _LOGGER = getLogger(__name__)
-WhereType = Iterable[str | int] | None
+WhereType = Optional[Iterable[Union[str, int]]]
 
 
 class AbstractReward:
