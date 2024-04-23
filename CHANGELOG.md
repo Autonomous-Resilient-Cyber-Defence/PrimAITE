@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 3.0.0b9
 - Removed deprecated `PrimaiteSession` class.
 - Upgraded pydantic to version 2.7.0
+- Upgraded Ray to version >= 2.9
 - Added ipywidgets to the dependencies
 
 ## [Unreleased]
