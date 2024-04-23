@@ -23,7 +23,6 @@ game:
 agents:
   - *greens
   - *reds
-  - *blue(s)
 
   - ref: defender
     team: BLUE

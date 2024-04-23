@@ -1,6 +1,7 @@
 import copy
 import json
-from typing import Any, Dict, Optional, SupportsFloat, Tuple
+from os import PathLike
+from typing import Any, Dict, Optional, SupportsFloat, Tuple, Union
 
 import gymnasium
 from gymnasium.core import ActType, ObsType
@@ -9,6 +10,7 @@ from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from primaite import getLogger
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
+from primaite.session.episode_schedule import build_scheduler, EpisodeScheduler
 from primaite.session.io import PrimaiteIO
 from primaite.simulator import SIM_OUTPUT
 
@@ -23,17 +25,14 @@ class PrimaiteGymEnv(gymnasium.Env):
     assumptions about the agent list always having a list of length 1.
     """
 
-    def __init__(self, game_config: Dict):
+    def __init__(self, game_config: Union[Dict, str, PathLike]):
         """Initialise the environment."""
         super().__init__()
-        self.io = PrimaiteIO.from_config(game_config.get("io_settings", {}))
+        self.episode_scheduler: EpisodeScheduler = build_scheduler(game_config)
+        """Object that returns a config corresponding to the current episode."""
+        self.io = PrimaiteIO.from_config(self.episode_scheduler(0).get("io_settings", {}))
         """Handles IO for the environment. This produces sys logs, agent logs, etc."""
-
-        self.game_config: Dict = game_config
-        """PrimaiteGame definition. This can be changed between episodes to enable curriculum learning."""
-        self.io = PrimaiteIO.from_config(game_config.get("io_settings", {}))
-        """Handles IO for the environment. This produces sys logs, agent logs, etc."""
-        self.game: PrimaiteGame = PrimaiteGame.from_config(copy.deepcopy(self.game_config))
+        self.game: PrimaiteGame = PrimaiteGame.from_config(self.episode_scheduler(0))
         """Current game."""
         self._agent_name = next(iter(self.game.rl_agents))
         """Name of the RL agent. Since there should only be one RL agent we can just pull the first and only key."""
@@ -94,9 +93,9 @@ class PrimaiteGymEnv(gymnasium.Env):
         if self.io.settings.save_agent_actions:
             all_agent_actions = {name: agent.action_history for name, agent in self.game.agents.items()}
             self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
-        self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=copy.deepcopy(self.game_config))
-        self.game.setup_for_episode(episode=self.episode_counter)
         self.episode_counter += 1
+        self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=self.episode_scheduler(self.episode_counter))
+        self.game.setup_for_episode(episode=self.episode_counter)
         state = self.game.get_sim_state()
         self.game.update_agents(state=state)
         next_obs = self._get_obs()

@@ -1,5 +1,5 @@
 greens: &greens
-  - ref: green_client_2
+  - ref: green_A
     team: GREEN
     type: ProbabilisticAgent
     agent_settings:
@@ -48,7 +48,7 @@ greens: &greens
           options:
             node_hostname: client_2
 
-  - ref: green_client_1
+  - ref: green_B
     team: GREEN
     type: ProbabilisticAgent
     agent_settings:

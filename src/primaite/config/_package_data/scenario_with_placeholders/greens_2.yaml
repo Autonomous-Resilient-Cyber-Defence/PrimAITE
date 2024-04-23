@@ -1,5 +1,5 @@
 greens: &greens
-  - ref: green_client_2
+  - ref: green_C
     team: GREEN
     type: ProbabilisticAgent
     agent_settings:

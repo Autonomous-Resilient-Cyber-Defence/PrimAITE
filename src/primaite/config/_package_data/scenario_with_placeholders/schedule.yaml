@@ -1,17 +1,17 @@
 base_scenario: scenario.yaml
 schedule:
   0:
-    green: greens_1.yaml
-    red: reds_1.yaml
+    - greens_1.yaml
+    - reds_1.yaml
   1:
-    green: greens_1.yaml
-    red: reds_2.yaml
+    - greens_1.yaml
+    - reds_2.yaml
   2:
-    green: greens_2.yaml
-    red: reds_1.yaml
+    - greens_2.yaml
+    - reds_1.yaml
   3:
-    green: greens_2.yaml
-    red: reds_2.yaml
+    - greens_2.yaml
+    - reds_2.yaml
 
 # touch base with container to see what they've implemented for training schedule and evaluation schedule - for naming convention consistency
 # when you exceed the number of episodes defined in the yaml, raise a warning and loop back to the beginning

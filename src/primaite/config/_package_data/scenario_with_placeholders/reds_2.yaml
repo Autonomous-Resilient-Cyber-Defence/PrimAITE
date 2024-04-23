@@ -1,5 +1,5 @@
 reds: &reds
-  - ref: attacker_2
+  - ref: red_B
     team: RED
     type: RedDatabaseCorruptingAgent
 
