@@ -1,3 +1,4 @@
+from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional
 
 import matplotlib.pyplot as plt
@@ -8,6 +9,7 @@ from prettytable import MARKDOWN, PrettyTable
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.hardware.base import Link, Node, WiredNetworkInterface
+from primaite.simulator.network.hardware.nodes.host.server import Printer
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.service import Service
 
@@ -85,6 +87,16 @@ class Network(SimComponent):
         for link_id in self.links:
             self.links[link_id].apply_timestep(timestep=timestep)
 
+    def pre_timestep(self, timestep: int) -> None:
+        """Apply pre-timestep logic."""
+        super().pre_timestep(timestep)
+
+        for node in self.nodes.values():
+            node.pre_timestep(timestep)
+
+        for link in self.links.values():
+            link.pre_timestep(timestep)
+
     @property
     def router_nodes(self) -> List[Node]:
         """The Routers in the Network."""
@@ -110,6 +122,16 @@ class Network(SimComponent):
         """The Firewalls in the Network."""
         return [node for node in self.nodes.values() if node.__class__.__name__ == "Firewall"]
 
+    @property
+    def printer_nodes(self) -> List[Node]:
+        """The printers on the network."""
+        return [node for node in self.nodes.values() if isinstance(node, Printer)]
+
+    @property
+    def wireless_router_nodes(self) -> List[Node]:
+        """The Routers in the Network."""
+        return [node for node in self.nodes.values() if node.__class__.__name__ == "WirelessRouter"]
+
     def show(self, nodes: bool = True, ip_addresses: bool = True, links: bool = True, markdown: bool = False):
         """
         Print tables describing the Network.
@@ -128,6 +150,8 @@ class Network(SimComponent):
             "Switch": self.switch_nodes,
             "Server": self.server_nodes,
             "Computer": self.computer_nodes,
+            "Printer": self.printer_nodes,
+            "Wireless Router": self.wireless_router_nodes,
         }
         if nodes:
             table = PrettyTable(["Node", "Type", "Operating State"])
@@ -150,14 +174,17 @@ class Network(SimComponent):
                 for node in nodes:
                     for i, port in node.network_interface.items():
                         if hasattr(port, "ip_address"):
-                            port_str = port.port_name if port.port_name else port.port_num
-                            table.add_row(
-                                [node.hostname, port_str, port.ip_address, port.subnet_mask, node.default_gateway]
-                            )
+                            if port.ip_address != IPv4Address("127.0.0.1"):
+                                port_str = port.port_name if port.port_name else port.port_num
+                                table.add_row(
+                                    [node.hostname, port_str, port.ip_address, port.subnet_mask, node.default_gateway]
+                                )
             print(table)
 
         if links:
-            table = PrettyTable(["Endpoint A", "Endpoint B", "is Up", "Bandwidth (MBits)", "Current Load"])
+            table = PrettyTable(
+                ["Endpoint A", "A Port", "Endpoint B", "B Port", "is Up", "Bandwidth (MBits)", "Current Load"]
+            )
             if markdown:
                 table.set_style(MARKDOWN)
             table.align = "l"
@@ -170,7 +197,9 @@ class Network(SimComponent):
                             table.add_row(
                                 [
                                     link.endpoint_a.parent.hostname,
+                                    str(link.endpoint_a),
                                     link.endpoint_b.parent.hostname,
+                                    str(link.endpoint_b),
                                     link.is_up,
                                     link.bandwidth,
                                     link.current_load_percent,
@@ -208,18 +237,19 @@ class Network(SimComponent):
             }
         )
         # Update the links one-by-one. The key is a 4-tuple of `hostname_a, port_a, hostname_b, port_b`
-        for uuid, link in self.links.items():
+        for _, link in self.links.items():
             node_a = link.endpoint_a._connected_node
             node_b = link.endpoint_b._connected_node
             hostname_a = node_a.hostname if node_a else None
             hostname_b = node_b.hostname if node_b else None
             port_a = link.endpoint_a.port_num
             port_b = link.endpoint_b.port_num
-            state["links"][uuid] = link.describe_state()
-            state["links"][uuid]["hostname_a"] = hostname_a
-            state["links"][uuid]["hostname_b"] = hostname_b
-            state["links"][uuid]["port_a"] = port_a
-            state["links"][uuid]["port_b"] = port_b
+            link_key = f"{hostname_a}:eth-{port_a}<->{hostname_b}:eth-{port_b}"
+            state["links"][link_key] = link.describe_state()
+            state["links"][link_key]["hostname_a"] = hostname_a
+            state["links"][link_key]["hostname_b"] = hostname_b
+            state["links"][link_key]["port_a"] = port_a
+            state["links"][link_key]["port_b"] = port_b
 
         return state
 

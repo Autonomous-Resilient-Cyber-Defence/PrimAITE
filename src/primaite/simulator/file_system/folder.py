@@ -128,6 +128,13 @@ class Folder(FileSystemItemABC):
         for file_id in self.files:
             self.files[file_id].apply_timestep(timestep=timestep)
 
+    def pre_timestep(self, timestep: int) -> None:
+        """Apply pre-timestep logic."""
+        super().pre_timestep(timestep)
+
+        for file in self.files.values():
+            file.pre_timestep(timestep)
+
     def _scan_timestep(self) -> None:
         """Apply the scan action timestep."""
         if self.scan_countdown >= 0:

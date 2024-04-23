@@ -10,11 +10,9 @@ from _pytest.monkeypatch import MonkeyPatch
 from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent
-from primaite.game.agent.observations.observation_manager import ObservationManager
-from primaite.game.agent.observations.observations import ICSObservation
+from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.game import PrimaiteGame
-from primaite.session.session import PrimaiteSession
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.container import Network
@@ -51,8 +49,8 @@ def set_syslog_output_to_true():
         "path",
         Path(TEST_ASSETS_ROOT.parent.parent / "simulation_output" / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")),
     )
-    monkeypatch.setattr(SIM_OUTPUT, "save_pcap_logs", True)
-    monkeypatch.setattr(SIM_OUTPUT, "save_sys_logs", True)
+    monkeypatch.setattr(SIM_OUTPUT, "save_pcap_logs", False)
+    monkeypatch.setattr(SIM_OUTPUT, "save_sys_logs", False)
 
     yield
 
@@ -120,38 +118,6 @@ def file_system() -> FileSystem:
     computer = Computer(hostname="fs_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
     computer.power_on()
     return computer.file_system
-
-
-# PrimAITE v2 stuff
-class TempPrimaiteSession(PrimaiteSession):
-    """
-    A temporary PrimaiteSession class.
-
-    Uses context manager for deletion of files upon exit.
-    """
-
-    @classmethod
-    def from_config(cls, config_path: Union[str, Path]) -> "TempPrimaiteSession":
-        """Create a temporary PrimaiteSession object from a config file."""
-        config_path = Path(config_path)
-        with open(config_path, "r") as f:
-            config = yaml.safe_load(f)
-
-        return super().from_config(cfg=config)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, tb):
-        pass
-
-
-@pytest.fixture
-def temp_primaite_session(request, monkeypatch) -> TempPrimaiteSession:
-    """Create a temporary PrimaiteSession object."""
-    monkeypatch.setattr(PRIMAITE_PATHS, "user_sessions_path", temp_user_sessions_path())
-    config_path = request.param[0]
-    return TempPrimaiteSession.from_config(config_path=config_path)
 
 
 @pytest.fixture(scope="function")
@@ -475,8 +441,13 @@ def game_and_agent():
         {"type": "NODE_SERVICE_RESTART"},
         {"type": "NODE_SERVICE_DISABLE"},
         {"type": "NODE_SERVICE_ENABLE"},
-        {"type": "NODE_SERVICE_PATCH"},
+        {"type": "NODE_SERVICE_FIX"},
         {"type": "NODE_APPLICATION_EXECUTE"},
+        {"type": "NODE_APPLICATION_SCAN"},
+        {"type": "NODE_APPLICATION_CLOSE"},
+        {"type": "NODE_APPLICATION_FIX"},
+        {"type": "NODE_APPLICATION_INSTALL"},
+        {"type": "NODE_APPLICATION_REMOVE"},
         {"type": "NODE_FILE_SCAN"},
         {"type": "NODE_FILE_CHECKHASH"},
         {"type": "NODE_FILE_DELETE"},
@@ -491,10 +462,12 @@ def game_and_agent():
         {"type": "NODE_SHUTDOWN"},
         {"type": "NODE_STARTUP"},
         {"type": "NODE_RESET"},
-        {"type": "NETWORK_ACL_ADDRULE", "options": {"target_router_hostname": "router"}},
-        {"type": "NETWORK_ACL_REMOVERULE", "options": {"target_router_hostname": "router"}},
-        {"type": "NETWORK_NIC_ENABLE"},
-        {"type": "NETWORK_NIC_DISABLE"},
+        {"type": "ROUTER_ACL_ADDRULE"},
+        {"type": "ROUTER_ACL_REMOVERULE"},
+        {"type": "HOST_NIC_ENABLE"},
+        {"type": "HOST_NIC_DISABLE"},
+        {"type": "NETWORK_PORT_ENABLE"},
+        {"type": "NETWORK_PORT_DISABLE"},
     ]
 
     action_space = ActionManager(
@@ -502,11 +475,18 @@ def game_and_agent():
         nodes=[
             {
                 "node_name": "client_1",
-                "applications": [{"application_name": "WebBrowser"}],
+                "applications": [
+                    {"application_name": "WebBrowser"},
+                    {"application_name": "DoSBot"},
+                ],
                 "folders": [{"folder_name": "downloads", "files": [{"file_name": "cat.png"}]}],
             },
-            {"node_name": "server_1", "services": [{"service_name": "DNSServer"}]},
+            {
+                "node_name": "server_1",
+                "services": [{"service_name": "DNSServer"}],
+            },
             {"node_name": "server_2", "services": [{"service_name": "WebServer"}]},
+            {"node_name": "router"},
         ],
         max_folders_per_node=2,
         max_files_per_folder=2,
@@ -516,10 +496,10 @@ def game_and_agent():
         max_acl_rules=10,
         protocols=["TCP", "UDP", "ICMP"],
         ports=["HTTP", "DNS", "ARP"],
-        ip_address_list=["10.0.1.1", "10.0.1.2", "10.0.2.1", "10.0.2.2", "10.0.2.3"],
+        ip_list=["10.0.1.1", "10.0.1.2", "10.0.2.1", "10.0.2.2", "10.0.2.3"],
         act_map={},
     )
-    observation_space = ObservationManager(ICSObservation())
+    observation_space = ObservationManager(NestedObservation(components={}))
     reward_function = RewardFunction()
 
     test_agent = ControlledAgent(
@@ -530,5 +510,7 @@ def game_and_agent():
     )
 
     game.agents["test_agent"] = test_agent
+
+    game.setup_reward_sharing()
 
     return (game, test_agent)

@@ -1,9 +1,10 @@
 from ipaddress import IPv4Address
-from typing import Dict, Final, Optional, Union
+from typing import Dict, Final, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import validate_call
+from pydantic import Field, validate_call
 
+from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import (
     AccessControlList,
@@ -67,22 +68,34 @@ class Firewall(Router):
     :ivar str hostname: The Firewall hostname.
     """
 
-    internal_inbound_acl: Optional[AccessControlList] = None
+    internal_inbound_acl: AccessControlList = Field(
+        default_factory=lambda: AccessControlList(name="Internal Inbound", implicit_action=ACLAction.DENY)
+    )
     """Access Control List for managing entering the internal network."""
 
-    internal_outbound_acl: Optional[AccessControlList] = None
+    internal_outbound_acl: AccessControlList = Field(
+        default_factory=lambda: AccessControlList(name="Internal Outbound", implicit_action=ACLAction.DENY)
+    )
     """Access Control List for managing traffic leaving the internal network."""
 
-    dmz_inbound_acl: Optional[AccessControlList] = None
+    dmz_inbound_acl: AccessControlList = Field(
+        default_factory=lambda: AccessControlList(name="DMZ Inbound", implicit_action=ACLAction.DENY)
+    )
     """Access Control List for managing traffic entering the DMZ."""
 
-    dmz_outbound_acl: Optional[AccessControlList] = None
+    dmz_outbound_acl: AccessControlList = Field(
+        default_factory=lambda: AccessControlList(name="DMZ Outbound", implicit_action=ACLAction.DENY)
+    )
     """Access Control List for managing traffic leaving the DMZ."""
 
-    external_inbound_acl: Optional[AccessControlList] = None
+    external_inbound_acl: AccessControlList = Field(
+        default_factory=lambda: AccessControlList(name="External Inbound", implicit_action=ACLAction.PERMIT)
+    )
     """Access Control List for managing traffic entering from an external network."""
 
-    external_outbound_acl: Optional[AccessControlList] = None
+    external_outbound_acl: AccessControlList = Field(
+        default_factory=lambda: AccessControlList(name="External Outbound", implicit_action=ACLAction.PERMIT)
+    )
     """Access Control List for managing traffic leaving towards an external network."""
 
     def __init__(self, hostname: str, **kwargs):
@@ -100,28 +113,84 @@ class Firewall(Router):
         self.connect_nic(
             RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", port_name="dmz")
         )
+        # Update ACL objects with firewall's hostname and syslog to allow accurate logging
+        self.internal_inbound_acl.sys_log = kwargs["sys_log"]
+        self.internal_inbound_acl.name = f"{hostname} - Internal Inbound"
 
-        # Initialise ACLs for internal and dmz interfaces with a default DENY policy
-        self.internal_inbound_acl = AccessControlList(
-            sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=f"{hostname} - Internal Inbound"
+        self.internal_outbound_acl.sys_log = kwargs["sys_log"]
+        self.internal_outbound_acl.name = f"{hostname} - Internal Outbound"
+
+        self.dmz_inbound_acl.sys_log = kwargs["sys_log"]
+        self.dmz_inbound_acl.name = f"{hostname} - DMZ Inbound"
+
+        self.dmz_outbound_acl.sys_log = kwargs["sys_log"]
+        self.dmz_outbound_acl.name = f"{hostname} - DMZ Outbound"
+
+        self.external_inbound_acl.sys_log = kwargs["sys_log"]
+        self.external_inbound_acl.name = f"{hostname} - External Inbound"
+
+        self.external_outbound_acl.sys_log = kwargs["sys_log"]
+        self.external_outbound_acl.name = f"{hostname} - External Outbound"
+
+    def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
+        rm = super()._init_request_manager()
+        self._internal_acl_request_manager = RequestManager()
+        rm.add_request("internal", RequestType(func=self._internal_acl_request_manager))
+
+        self._dmz_acl_request_manager = RequestManager()
+        rm.add_request("dmz", RequestType(func=self._dmz_acl_request_manager))
+
+        self._external_acl_request_manager = RequestManager()
+        rm.add_request("external", RequestType(func=self._external_acl_request_manager))
+
+        self._internal_inbound_acl_request_manager = RequestManager()
+        self._internal_outbound_acl_request_manager = RequestManager()
+        self._internal_acl_request_manager.add_request(
+            "inbound", RequestType(func=self._internal_inbound_acl_request_manager)
         )
-        self.internal_outbound_acl = AccessControlList(
-            sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=f"{hostname} - Internal Outbound"
-        )
-        self.dmz_inbound_acl = AccessControlList(
-            sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=f"{hostname} - DMZ Inbound"
-        )
-        self.dmz_outbound_acl = AccessControlList(
-            sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=f"{hostname} - DMZ Outbound"
+        self._internal_acl_request_manager.add_request(
+            "outbound", RequestType(func=self._internal_outbound_acl_request_manager)
         )
 
-        # external ACLs should have a default PERMIT policy
-        self.external_inbound_acl = AccessControlList(
-            sys_log=kwargs["sys_log"], implicit_action=ACLAction.PERMIT, name=f"{hostname} - External Inbound"
+        self.dmz_inbound_acl_request_manager = RequestManager()
+        self.dmz_outbound_acl_request_manager = RequestManager()
+        self._dmz_acl_request_manager.add_request("inbound", RequestType(func=self.dmz_inbound_acl_request_manager))
+        self._dmz_acl_request_manager.add_request("outbound", RequestType(func=self.dmz_outbound_acl_request_manager))
+
+        self.external_inbound_acl_request_manager = RequestManager()
+        self.external_outbound_acl_request_manager = RequestManager()
+        self._external_acl_request_manager.add_request(
+            "inbound", RequestType(func=self.external_inbound_acl_request_manager)
         )
-        self.external_outbound_acl = AccessControlList(
-            sys_log=kwargs["sys_log"], implicit_action=ACLAction.PERMIT, name=f"{hostname} - External Outbound"
+        self._external_acl_request_manager.add_request(
+            "outbound", RequestType(func=self.external_outbound_acl_request_manager)
         )
+
+        self._internal_inbound_acl_request_manager.add_request(
+            "acl", RequestType(func=self.internal_inbound_acl._request_manager)
+        )
+        self._internal_outbound_acl_request_manager.add_request(
+            "acl", RequestType(func=self.internal_outbound_acl._request_manager)
+        )
+
+        self.dmz_inbound_acl_request_manager.add_request("acl", RequestType(func=self.dmz_inbound_acl._request_manager))
+        self.dmz_outbound_acl_request_manager.add_request(
+            "acl", RequestType(func=self.dmz_outbound_acl._request_manager)
+        )
+
+        self.external_inbound_acl_request_manager.add_request(
+            "acl", RequestType(func=self.external_inbound_acl._request_manager)
+        )
+        self.external_outbound_acl_request_manager.add_request(
+            "acl", RequestType(func=self.external_outbound_acl._request_manager)
+        )
+
+        return rm
 
     def describe_state(self) -> Dict:
         """
@@ -530,7 +599,9 @@ class Firewall(Router):
                         dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
                         protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
                         src_ip_address=r_cfg.get("src_ip"),
+                        src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),
+                        dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                         position=r_num,
                     )
 
@@ -543,7 +614,9 @@ class Firewall(Router):
                         dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
                         protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
                         src_ip_address=r_cfg.get("src_ip"),
+                        src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),
+                        dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                         position=r_num,
                     )
 
@@ -556,7 +629,9 @@ class Firewall(Router):
                         dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
                         protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
                         src_ip_address=r_cfg.get("src_ip"),
+                        src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),
+                        dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                         position=r_num,
                     )
 
@@ -569,7 +644,9 @@ class Firewall(Router):
                         dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
                         protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
                         src_ip_address=r_cfg.get("src_ip"),
+                        src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),
+                        dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                         position=r_num,
                     )
 
@@ -582,7 +659,9 @@ class Firewall(Router):
                         dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
                         protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
                         src_ip_address=r_cfg.get("src_ip"),
+                        src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),
+                        dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                         position=r_num,
                     )
 
@@ -595,7 +674,9 @@ class Firewall(Router):
                         dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
                         protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
                         src_ip_address=r_cfg.get("src_ip"),
+                        src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),
+                        dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                         position=r_num,
                     )
 

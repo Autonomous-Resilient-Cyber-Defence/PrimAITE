@@ -11,7 +11,7 @@ Getting Started
 
 Pre-Requisites
 
-In order to get **PrimAITE** installed, you will need to have a python version between 3.8 and 3.11 installed. If you don't already have it, this is how to install it:
+In order to get **PrimAITE** installed, you will need Python, venv, and pip. If you don't already have them, this is how to install it:
 
 
 .. code-block:: bash
@@ -30,6 +30,8 @@ In order to get **PrimAITE** installed, you will need to have a python version b
 
 **PrimAITE** is designed to be OS-agnostic, and thus should work on most variations/distros of Linux, Windows, and MacOS.
 
+Installing PrimAITE has been tested with all supported python versions, venv 20.24.1, and pip 23.
+
 Install PrimAITE
 ****************
 
@@ -38,12 +40,12 @@ Install PrimAITE
 .. code-block:: bash
     :caption: Unix
 
-    mkdir ~/primaite/3.0.0
+    mkdir -p ~/primaite/{VERSION}
 
 .. code-block:: powershell
     :caption: Windows (Powershell)
 
-    mkdir ~\primaite\3.0.0
+    mkdir ~\primaite\{VERSION}
 
 
 2. Navigate to the primaite directory and create a new python virtual environment (venv)
@@ -51,13 +53,13 @@ Install PrimAITE
 .. code-block:: bash
     :caption: Unix
 
-    cd ~/primaite/3.0.0
+    cd ~/primaite/{VERSION}
     python3 -m venv .venv
 
 .. code-block:: powershell
     :caption: Windows (Powershell)
 
-        cd ~\primaite\3.0.0
+        cd ~\primaite\{VERSION}
         python3 -m venv .venv
         attrib +h .venv /s /d # Hides the .venv directory
 

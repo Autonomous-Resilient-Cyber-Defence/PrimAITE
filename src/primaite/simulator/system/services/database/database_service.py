@@ -104,14 +104,30 @@ class DatabaseService(Service):
             self.sys_log.error("Unable to restore database backup.")
             return False
 
+        old_visible_state = SoftwareHealthState.GOOD
+
+        # get db file regardless of whether or not it was deleted
+        db_file = self.file_system.get_file(folder_name="database", file_name="database.db", include_deleted=True)
+
+        if db_file is None:
+            self.sys_log.error("Database file not initialised.")
+            return False
+
+        # if the file was deleted, get the old visible health state
+        if db_file.deleted:
+            old_visible_state = db_file.visible_health_status
+        else:
+            old_visible_state = self.db_file.visible_health_status
+            self.file_system.delete_file(folder_name="database", file_name="database.db")
+
         # replace db file
-        self.file_system.delete_file(folder_name="database", file_name="database.db")
         self.file_system.copy_file(src_folder_name="downloads", src_file_name="database.db", dst_folder_name="database")
 
         if self.db_file is None:
             self.sys_log.error("Copying database backup failed.")
             return False
 
+        self.db_file.visible_health_status = old_visible_state
         self.set_health_state(SoftwareHealthState.GOOD)
 
         return True
@@ -125,8 +141,7 @@ class DatabaseService(Service):
         """Returns the database file."""
         return self.file_system.get_file(folder_name="database", file_name="database.db")
 
-    @property
-    def folder(self) -> Folder:
+    def _return_database_folder(self) -> Folder:
         """Returns the database folder."""
         return self.file_system.get_folder_by_id(self.db_file.folder_id)
 
@@ -171,7 +186,10 @@ class DatabaseService(Service):
         }
 
     def _process_sql(
-        self, query: Literal["SELECT", "DELETE", "INSERT"], query_id: str, connection_id: Optional[str] = None
+        self,
+        query: Literal["SELECT", "DELETE", "INSERT", "ENCRYPT"],
+        query_id: str,
+        connection_id: Optional[str] = None,
     ) -> Dict[str, Union[int, List[Any]]]:
         """
         Executes the given SQL query and returns the result.
@@ -180,6 +198,7 @@ class DatabaseService(Service):
         - SELECT : returns the data
         - DELETE : deletes the data
         - INSERT : inserts the data
+        - ENCRYPT : corrupts the data
 
         :param query: The SQL query to be executed.
         :return: Dictionary containing status code and data fetched.
@@ -188,10 +207,18 @@ class DatabaseService(Service):
 
         if not self.db_file:
             self.sys_log.info(f"{self.name}: Failed to run {query} because the database file is missing.")
-            return {"status_code": 404, "data": False}
+            return {"status_code": 404, "type": "sql", "data": False}
 
         if query == "SELECT":
-            if self.db_file.health_status == FileSystemItemHealthStatus.GOOD:
+            if self.db_file.health_status == FileSystemItemHealthStatus.CORRUPT:
+                return {
+                    "status_code": 200,
+                    "type": "sql",
+                    "data": False,
+                    "uuid": query_id,
+                    "connection_id": connection_id,
+                }
+            elif self.db_file.health_status == FileSystemItemHealthStatus.GOOD:
                 return {
                     "status_code": 200,
                     "type": "sql",
@@ -200,9 +227,23 @@ class DatabaseService(Service):
                     "connection_id": connection_id,
                 }
             else:
-                return {"status_code": 404, "data": False}
+                return {"status_code": 404, "type": "sql", "data": False}
         elif query == "DELETE":
             self.db_file.health_status = FileSystemItemHealthStatus.COMPROMISED
+            return {
+                "status_code": 200,
+                "type": "sql",
+                "data": False,
+                "uuid": query_id,
+                "connection_id": connection_id,
+            }
+        elif query == "ENCRYPT":
+            self.file_system.num_file_creations += 1
+            self.db_file.health_status = FileSystemItemHealthStatus.CORRUPT
+            self.db_file.num_access += 1
+            database_folder = self._return_database_folder()
+            database_folder.health_status = FileSystemItemHealthStatus.CORRUPT
+            self.file_system.num_file_deletions += 1
             return {
                 "status_code": 200,
                 "type": "sql",
@@ -220,7 +261,7 @@ class DatabaseService(Service):
                     "connection_id": connection_id,
                 }
             else:
-                return {"status_code": 404, "data": False}
+                return {"status_code": 404, "type": "sql", "data": False}
         elif query == "SELECT * FROM pg_stat_activity":
             # Check if the connection is active.
             if self.health_state_actual == SoftwareHealthState.GOOD:
@@ -304,8 +345,8 @@ class DatabaseService(Service):
             self.backup_database()
         return super().apply_timestep(timestep)
 
-    def _update_patch_status(self) -> None:
-        """Perform a database restore when the patching countdown is finished."""
-        super()._update_patch_status()
-        if self._patching_countdown is None:
+    def _update_fix_status(self) -> None:
+        """Perform a database restore when the FIXING countdown is finished."""
+        super()._update_fix_status()
+        if self._fixing_countdown is None:
             self.restore_backup()

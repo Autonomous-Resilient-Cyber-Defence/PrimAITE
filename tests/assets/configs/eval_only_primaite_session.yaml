@@ -1,16 +1,3 @@
-training_config:
-  rl_framework: SB3
-  rl_algorithm: PPO
-  seed: 333
-  n_learn_episodes: 0
-  n_eval_episodes: 5
-  max_steps_per_episode: 128
-  deterministic_eval: false
-  n_agents: 1
-  agent_references:
-    - defender
-
-
 game:
   ports:
   - ARP
@@ -26,12 +13,14 @@ agents:
   - ref: client_2_green_user
     team: GREEN
     type: ProbabilisticAgent
-    observation_space:
-      type: UC2GreenObservation
+    observation_space: null
     action_space:
       action_list:
         - type: DONOTHING
-
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
       options:
         nodes:
         - node_name: client_2
@@ -55,10 +44,7 @@ agents:
     team: RED
     type: RedDatabaseCorruptingAgent
 
-    observation_space:
-      type: UC2RedObservation
-      options:
-        nodes: {}
+    observation_space: null
 
     action_space:
       action_list:
@@ -67,6 +53,15 @@ agents:
         - type: NODE_FILE_DELETE
         - type: NODE_FILE_CORRUPT
         - type: NODE_OS_SCAN
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
+        1:
+          action: NODE_APPLICATION_EXECUTE
+          options:
+            node_id: 0
+            application_id: 0
       options:
         nodes:
         - node_name: client_1
@@ -90,63 +85,73 @@ agents:
     type: ProxyAgent
 
     observation_space:
-      type: UC2BlueObservation
+      type: CUSTOM
       options:
-        num_services_per_node: 1
-        num_folders_per_node: 1
-        num_files_per_folder: 1
-        num_nics_per_node: 2
-        nodes:
-        - node_hostname: domain_controller
-          services:
-          - service_name: domain_controller_dns_server
-        - node_hostname: web_server
-          services:
-          - service_name: web_server_database_client
-        - node_hostname: database_server
-          services:
-          - service_name: database_service
-          folders:
-          - folder_name: database
-            files:
-            - file_name: database.db
-        - node_hostname: backup_server
-        - node_hostname: security_suite
-        - node_hostname: client_1
-        - node_hostname: client_2
-        links:
-        - link_ref: router_1___switch_1
-        - link_ref: router_1___switch_2
-        - link_ref: switch_1___domain_controller
-        - link_ref: switch_1___web_server
-        - link_ref: switch_1___database_server
-        - link_ref: switch_1___backup_server
-        - link_ref: switch_1___security_suite
-        - link_ref: switch_2___client_1
-        - link_ref: switch_2___client_2
-        - link_ref: switch_2___security_suite
-        acl:
-          options:
-            max_acl_rules: 10
-          router_hostname: router_1
-          ip_address_order:
-            - node_hostname: domain_controller
-              nic_num: 1
-            - node_hostname: web_server
-              nic_num: 1
-            - node_hostname: database_server
-              nic_num: 1
-            - node_hostname: backup_server
-              nic_num: 1
-            - node_hostname: security_suite
-              nic_num: 1
-            - node_hostname: client_1
-              nic_num: 1
-            - node_hostname: client_2
-              nic_num: 1
-            - node_hostname: security_suite
-              nic_num: 2
-        ics: null
+        components:
+          - type: NODES
+            label: NODES
+            options:
+              hosts:
+                - hostname: domain_controller
+                - hostname: web_server
+                  services:
+                    - service_name: WebServer
+                - hostname: database_server
+                  folders:
+                    - folder_name: database
+                      files:
+                      - file_name: database.db
+                - hostname: backup_server
+                - hostname: security_suite
+                - hostname: client_1
+                - hostname: client_2
+              num_services: 1
+              num_applications: 0
+              num_folders: 1
+              num_files: 1
+              num_nics: 2
+              include_num_access: false
+              include_nmne: true
+              routers:
+                - hostname: router_1
+              num_ports: 0
+              ip_list:
+                - 192.168.1.10
+                - 192.168.1.12
+                - 192.168.1.14
+                - 192.168.1.16
+                - 192.168.1.110
+                - 192.168.10.21
+                - 192.168.10.22
+                - 192.168.10.110
+              wildcard_list:
+                - 0.0.0.1
+              port_list:
+                - 80
+                - 5432
+              protocol_list:
+                - ICMP
+                - TCP
+                - UDP
+              num_rules: 10
+
+          - type: LINKS
+            label: LINKS
+            options:
+              link_references:
+                - router_1:eth-1<->switch_1:eth-8
+                - router_1:eth-2<->switch_2:eth-8
+                - switch_1:eth-1<->domain_controller:eth-1
+                - switch_1:eth-2<->web_server:eth-1
+                - switch_1:eth-3<->database_server:eth-1
+                - switch_1:eth-4<->backup_server:eth-1
+                - switch_1:eth-7<->security_suite:eth-1
+                - switch_2:eth-1<->client_1:eth-1
+                - switch_2:eth-2<->client_2:eth-1
+                - switch_2:eth-7<->security_suite:eth-2
+          - type: "NONE"
+            label: ICS
+            options: {}
 
     action_space:
       action_list:
@@ -159,7 +164,7 @@ agents:
         - type: NODE_SERVICE_RESTART
         - type: NODE_SERVICE_DISABLE
         - type: NODE_SERVICE_ENABLE
-        - type: NODE_SERVICE_PATCH
+        - type: NODE_SERVICE_FIX
         - type: NODE_FILE_SCAN
         - type: NODE_FILE_CHECKHASH
         - type: NODE_FILE_DELETE
@@ -173,14 +178,10 @@ agents:
         - type: NODE_SHUTDOWN
         - type: NODE_STARTUP
         - type: NODE_RESET
-        - type: NETWORK_ACL_ADDRULE
-          options:
-            target_router_hostname: router_1
-        - type: NETWORK_ACL_REMOVERULE
-          options:
-            target_router_hostname: router_1
-        - type: NETWORK_NIC_ENABLE
-        - type: NETWORK_NIC_DISABLE
+        - type: ROUTER_ACL_ADDRULE
+        - type: ROUTER_ACL_REMOVERULE
+        - type: HOST_NIC_ENABLE
+        - type: HOST_NIC_DISABLE
 
       action_map:
           0:
@@ -254,7 +255,7 @@ agents:
                 folder_id: 1
                 file_id: 0
           13:
-            action: "NODE_SERVICE_PATCH"
+            action: "NODE_SERVICE_FIX"
             options:
                 node_id: 2
                 service_id: 0
@@ -295,8 +296,9 @@ agents:
             options:
                 node_id: 5
           22: # "ACL: ADDRULE - Block outgoing traffic from client 1" (not supported in Primaite)
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 1
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -304,9 +306,12 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 1
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           23: # "ACL: ADDRULE - Block outgoing traffic from client 2" (not supported in Primaite)
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 2
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -314,9 +319,12 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 1
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           24: # block tcp traffic from client 1 to web app
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 3
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -324,9 +332,12 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           25: # block tcp traffic from client 2 to web app
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 4
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -334,9 +345,12 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           26:
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 5
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -344,9 +358,12 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           27:
-            action: "NETWORK_ACL_ADDRULE"
+            action: "ROUTER_ACL_ADDRULE"
             options:
+                target_router_nodename: router_1
                 position: 6
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -354,123 +371,135 @@ agents:
                 source_port_id: 1
                 dest_port_id: 1
                 protocol_id: 3
+                source_wildcard_id: 0
+                dest_wildcard_id: 0
           28:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 0
           29:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 1
           30:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 2
           31:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 3
           32:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 4
           33:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 5
           34:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 6
           35:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 7
           36:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 8
           37:
-            action: "NETWORK_ACL_REMOVERULE"
+            action: "ROUTER_ACL_REMOVERULE"
             options:
+                target_router_nodename: router_1
                 position: 9
           38:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 0
                 nic_id: 0
           39:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 0
                 nic_id: 0
           40:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 1
                 nic_id: 0
           41:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 1
                 nic_id: 0
           42:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 2
                 nic_id: 0
           43:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 2
                 nic_id: 0
           44:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 3
                 nic_id: 0
           45:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 3
                 nic_id: 0
           46:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 4
                 nic_id: 0
           47:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 4
                 nic_id: 0
           48:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 4
                 nic_id: 1
           49:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 4
                 nic_id: 1
           50:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 5
                 nic_id: 0
           51:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 5
                 nic_id: 0
           52:
-            action: "NETWORK_NIC_DISABLE"
+            action: "HOST_NIC_DISABLE"
             options:
                 node_id: 6
                 nic_id: 0
           53:
-            action: "NETWORK_NIC_ENABLE"
+            action: "HOST_NIC_ENABLE"
             options:
                 node_id: 6
                 nic_id: 0
@@ -491,23 +520,15 @@ agents:
         max_services_per_node: 2
         max_nics_per_node: 8
         max_acl_rules: 10
-        ip_address_order:
-        - node_name: domain_controller
-          nic_num: 1
-        - node_name: web_server
-          nic_num: 1
-        - node_name: database_server
-          nic_num: 1
-        - node_name: backup_server
-          nic_num: 1
-        - node_name: security_suite
-          nic_num: 1
-        - node_name: client_1
-          nic_num: 1
-        - node_name: client_2
-          nic_num: 1
-        - node_name: security_suite
-          nic_num: 2
+        ip_list:
+          - 192.168.1.10
+          - 192.168.1.12
+          - 192.168.1.14
+          - 192.168.1.16
+          - 192.168.1.110
+          - 192.168.10.21
+          - 192.168.10.22
+          - 192.168.10.110
 
     reward_function:
       reward_components:
@@ -537,8 +558,7 @@ simulation:
   network:
     nodes:
 
-    - ref: router_1
-      type: router
+    - type: router
       hostname: router_1
       num_ports: 5
       ports:
@@ -565,70 +585,58 @@ simulation:
           action: PERMIT
           protocol: ICMP
 
-    - ref: switch_1
-      type: switch
+    - type: switch
       hostname: switch_1
       num_ports: 8
 
-    - ref: switch_2
-      type: switch
+    - type: switch
       hostname: switch_2
       num_ports: 8
 
-    - ref: domain_controller
-      type: server
+    - type: server
       hostname: domain_controller
       ip_address: 192.168.1.10
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       services:
-      - ref: domain_controller_dns_server
-        type: DNSServer
+      - type: DNSServer
         options:
           domain_mapping:
             arcd.com: 192.168.1.12 # web server
 
-    - ref: web_server
-      type: server
+    - type: server
       hostname: web_server
       ip_address: 192.168.1.12
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - ref: web_server_web_service
-        type: WebServer
+      - type: WebServer
       applications:
-      - ref: web_server_database_client
-        type: DatabaseClient
+      - type: DatabaseClient
         options:
           db_server_ip: 192.168.1.14
 
 
-    - ref: database_server
-      type: server
+    - type: server
       hostname: database_server
       ip_address: 192.168.1.14
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - ref: database_service
-        type: DatabaseService
+      - type: DatabaseService
 
-    - ref: backup_server
-      type: server
+    - type: server
       hostname: backup_server
       ip_address: 192.168.1.16
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - ref: backup_service
-        type: FTPServer
+      - type: FTPServer
 
-    - ref: security_suite
-      type: server
+    - type: server
       hostname: security_suite
       ip_address: 192.168.1.110
       subnet_mask: 255.255.255.0
@@ -639,87 +647,71 @@ simulation:
           ip_address: 192.168.10.110
           subnet_mask: 255.255.255.0
 
-    - ref: client_1
-      type: computer
+    - type: computer
       hostname: client_1
       ip_address: 192.168.10.21
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-      - ref: data_manipulation_bot
-        type: DataManipulationBot
+      - type: DataManipulationBot
         options:
           port_scan_p_of_success: 0.1
           data_manipulation_p_of_success: 0.1
           payload: "DELETE"
           server_ip: 192.168.1.14
       services:
-      - ref: client_1_dns_client
-        type: DNSClient
+      - type: DNSClient
 
-    - ref: client_2
-      type: computer
+    - type: computer
       hostname: client_2
       ip_address: 192.168.10.22
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-      - ref: client_2_web_browser
-        type: WebBrowser
+      - type: WebBrowser
       services:
-      - ref: client_2_dns_client
-        type: DNSClient
+      - type: DNSClient
 
     links:
-    - ref: router_1___switch_1
-      endpoint_a_ref: router_1
+    - endpoint_a_hostname: router_1
       endpoint_a_port: 1
-      endpoint_b_ref: switch_1
+      endpoint_b_hostname: switch_1
       endpoint_b_port: 8
-    - ref: router_1___switch_2
-      endpoint_a_ref: router_1
+    - endpoint_a_hostname: router_1
       endpoint_a_port: 2
-      endpoint_b_ref: switch_2
+      endpoint_b_hostname: switch_2
       endpoint_b_port: 8
-    - ref: switch_1___domain_controller
-      endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 1
-      endpoint_b_ref: domain_controller
+      endpoint_b_hostname: domain_controller
       endpoint_b_port: 1
-    - ref: switch_1___web_server
-      endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 2
-      endpoint_b_ref: web_server
+      endpoint_b_hostname: web_server
       endpoint_b_port: 1
-    - ref: switch_1___database_server
-      endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 3
-      endpoint_b_ref: database_server
+      endpoint_b_hostname: database_server
       endpoint_b_port: 1
-    - ref: switch_1___backup_server
-      endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 4
-      endpoint_b_ref: backup_server
+      endpoint_b_hostname: backup_server
       endpoint_b_port: 1
-    - ref: switch_1___security_suite
-      endpoint_a_ref: switch_1
+    - endpoint_a_hostname: switch_1
       endpoint_a_port: 7
-      endpoint_b_ref: security_suite
+      endpoint_b_hostname: security_suite
       endpoint_b_port: 1
-    - ref: switch_2___client_1
-      endpoint_a_ref: switch_2
+    - endpoint_a_hostname: switch_2
       endpoint_a_port: 1
-      endpoint_b_ref: client_1
+      endpoint_b_hostname: client_1
       endpoint_b_port: 1
-    - ref: switch_2___client_2
-      endpoint_a_ref: switch_2
+    - endpoint_a_hostname: switch_2
       endpoint_a_port: 2
-      endpoint_b_ref: client_2
+      endpoint_b_hostname: client_2
       endpoint_b_port: 1
-    - ref: switch_2___security_suite
-      endpoint_a_ref: switch_2
+    - endpoint_a_hostname: switch_2
       endpoint_a_port: 7
-      endpoint_b_ref: security_suite
+      endpoint_b_hostname: security_suite
       endpoint_b_port: 2

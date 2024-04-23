@@ -72,7 +72,6 @@ class SessionManager:
     Manages network sessions, including session creation, lookup, and communication with other components.
 
     :param sys_log: A reference to the system log component.
-    :param arp_cache: A reference to the ARP cache component.
     """
 
     def __init__(self, sys_log: SysLog):

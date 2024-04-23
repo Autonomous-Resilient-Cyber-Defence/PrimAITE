@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 3.0.0b9
+- Removed deprecated `PrimaiteSession` class.
+- Upgraded pydantic to version 2.7.0
+- Upgraded Ray to version >= 2.9
+- Added ipywidgets to the dependencies
+
 ## [Unreleased]
 - Made requests fail to reach their target if the node is off
 - Added responses to requests
@@ -12,26 +18,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed the red agent in the data manipulation scenario to randomly choose client 1 or client 2 to start its attack.
 - Changed the data manipulation scenario to include a second green agent on client 1.
 - Refactored actions and observations to be configurable via object name, instead of UUID.
-- Fixed a bug where ACL rules were not resetting on episode reset.
-- Fixed a bug where blue agent's ACL actions were being applied against the wrong IP addresses
-- Fixed a bug where deleted files and folders did not reset correctly on episode reset.
-- Fixed a bug where service health status was using the actual health state instead of the visible health state
-- Fixed a bug where the database file health status was using the incorrect value for negative rewards
-- Fixed a bug preventing file actions from reaching their intended file
 - Made database patch correctly take 2 timesteps instead of being immediate
 - Made database patch only possible when the software is compromised or good, it's no longer possible when the software is OFF or RESETTING
-- Temporarily disable the blue agent file delete action due to crashes. This issue is resolved in another branch that will be merged into dev soon.
-- Fix a bug where ACLs were not showing up correctly in the observation space.
 - Added a notebook which explains Data manipulation scenario, demonstrates the attack, and shows off blue agent's action space, observation space, and reward function.
 - Made packet capture and system logging optional (off by default). To turn on, change the io_settings.save_pcap_logs and io_settings.save_sys_logs settings in the config.
-- Made observation space flattening optional (on by default). To turn off for an agent, change the agent_settings.flatten_obs setting in the config.
-- Fixed an issue where the data manipulation attack was triggered at episode start.
-- Fixed a bug where FTP STOR stored an additional copy on the client machine's filesystem
-- Fixed a bug where the red agent acted to early
-- Fixed the order of service health state
-- Fixed an issue where starting a node didn't start the services on it
+- Made observation space flattening optional (on by default). To turn off for an agent, change the `agent_settings.flatten_obs` setting in the config.
 - Added support for SQL INSERT command.
 - Added ability to log each agent's action choices in each step to a JSON file.
+
+### Bug Fixes
+
+- ACL rules were not resetting on episode reset.
+- ACLs were not showing up correctly in the observation space.
+- Blue agent's ACL actions were being applied against the wrong IP addresses
+- Deleted files and folders did not reset correctly on episode reset.
+- Service health status was using the actual health state instead of the visible health state
+- Database file health status was using the incorrect value for negative rewards
+- Preventing file actions from reaching their intended file
+- The data manipulation attack was triggered at episode start.
+- FTP STOR stored an additional copy on the client machine's filesystem
+- The red agent acted to early
+- Order of service health state
+- Starting a node didn't start the services on it
+- Fixed an issue where the services were still able to run even though the node the service is installed on is turned off
 
 
 
@@ -51,8 +60,12 @@ a Service/Application another machine.
 SessionManager.
 - Permission System - each action can define criteria that will be used to permit or deny agent actions.
 - File System - ability to emulate a node's file system during a simulation
-- Example notebooks - There is currently 1 jupyter notebook which walks through using PrimAITE
-  1. Creating a simulation - this notebook explains how to build up a simulation using the Python package. (WIP)
+- Example notebooks - There are 5 jupyter notebook which walk through using PrimAITE
+  1. Training a Stable Baselines 3 agent
+  2. Training a single agent system using Ray RLLib
+  3. Training a multi-agent system Ray RLLib
+  4. Data manipulation end to end demonstration
+  5. Data manipulation scenario with customised red agents
 - Database:
   - `DatabaseClient` and `DatabaseService` created to allow emulation of database actions
   - Ability for `DatabaseService` to backup its data to another server via FTP and restore data from backup
@@ -62,7 +75,6 @@ SessionManager.
 - DNS Services: `DNSClient` and `DNSServer`
 - FTP Services: `FTPClient` and `FTPServer`
 - HTTP Services: `WebBrowser` to simulate a web client and `WebServer`
-- Fixed an issue where the services were still able to run even though the node the service is installed on is turned off
 - NTP Services: `NTPClient` and `NTPServer`
 - **RouterNIC Class**: Introduced a new class `RouterNIC`, extending the standard `NIC` functionality. This class is specifically designed for router operations, optimizing the processing and routing of network traffic.
   - **Custom Layer-3 Processing**: The `RouterNIC` class includes custom handling for network frames, bypassing standard Node NIC's Layer 3 broadcast/unicast checks. This allows for more efficient routing behavior in network scenarios where router-specific frame processing is required.
@@ -101,6 +113,7 @@ SessionManager.
 - Ability to add ``Router``/``Firewall`` ``ACLRule`` via config
 - NMNE capturing capabilities to `NetworkInterface` class for detecting and logging Malicious Network Events.
 - New `nmne_config` settings in the simulation configuration to enable NMNE capturing and specify keywords such as "DELETE".
+- Router-specific SessionManager Implementation: Introduced a specialized version of the SessionManager tailored for router operations. This enhancement enables the SessionManager to determine the routing path by consulting the route table.
 
 ### Changed
 - Integrated the RouteTable into the Routers frame processing.
@@ -113,7 +126,7 @@ SessionManager.
 - Updated all tests to employ the `Network()` class for managing nodes and their connections, ensuring a consistent and structured approach to setting up network topologies in testing scenarios.
 - **ACLRule Wildcard Masking**: Updated the `ACLRule` class to support IP ranges using wildcard masking. This enhancement allows for more flexible and granular control over traffic filtering, enabling the specification of broader or more specific IP address ranges in ACL rules.
 - Updated `NetworkInterface` documentation to reflect the new NMNE capturing features and how to use them.
-- Integration of NMNE capturing functionality within the `NicObservation` class.
+- Integration of NMNE capturing functionality within the `NICObservation` class.
 - Changed blue action set to enable applying node scan, reset, start, and shutdown to every host in data manipulation scenario
 
 ### Removed

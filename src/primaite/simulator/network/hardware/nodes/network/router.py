@@ -18,6 +18,7 @@ from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.core.session_manager import SessionManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.arp.arp import ARP
 from primaite.simulator.system.services.icmp.icmp import ICMP
@@ -147,8 +148,10 @@ class ACLRule(SimComponent):
         state["action"] = self.action.value
         state["protocol"] = self.protocol.name if self.protocol else None
         state["src_ip_address"] = str(self.src_ip_address) if self.src_ip_address else None
+        state["src_wildcard_mask"] = str(self.src_wildcard_mask) if self.src_wildcard_mask else None
         state["src_port"] = self.src_port.name if self.src_port else None
         state["dst_ip_address"] = str(self.dst_ip_address) if self.dst_ip_address else None
+        state["dst_wildcard_mask"] = str(self.dst_wildcard_mask) if self.dst_wildcard_mask else None
         state["dst_port"] = self.dst_port.name if self.dst_port else None
         state["match_count"] = self.match_count
         return state
@@ -275,7 +278,7 @@ class AccessControlList(SimComponent):
     :ivar int max_acl_rules: The maximum number of ACL rules that can be added to the list. Defaults to 25.
     """
 
-    sys_log: SysLog
+    sys_log: Optional[SysLog] = None
     implicit_action: ACLAction
     implicit_rule: ACLRule
     max_acl_rules: int = 25
@@ -319,10 +322,12 @@ class AccessControlList(SimComponent):
                         action=ACLAction[request[0]],
                         protocol=None if request[1] == "ALL" else IPProtocol[request[1]],
                         src_ip_address=None if request[2] == "ALL" else IPv4Address(request[2]),
-                        src_port=None if request[3] == "ALL" else Port[request[3]],
-                        dst_ip_address=None if request[4] == "ALL" else IPv4Address(request[4]),
-                        dst_port=None if request[5] == "ALL" else Port[request[5]],
-                        position=int(request[6]),
+                        src_wildcard_mask=None if request[3] == "NONE" else IPv4Address(request[3]),
+                        src_port=None if request[4] == "ALL" else Port[request[4]],
+                        dst_ip_address=None if request[5] == "ALL" else IPv4Address(request[5]),
+                        dst_wildcard_mask=None if request[6] == "NONE" else IPv4Address(request[6]),
+                        dst_port=None if request[7] == "ALL" else Port[request[7]],
+                        position=int(request[8]),
                     )
                 )
             ),
@@ -624,11 +629,12 @@ class RouteTable(SimComponent):
         """
         pass
 
+    @validate_call()
     def add_route(
         self,
-        address: Union[IPv4Address, str],
-        subnet_mask: Union[IPv4Address, str],
-        next_hop_ip_address: Union[IPv4Address, str],
+        address: Union[IPV4Address, str],
+        subnet_mask: Union[IPV4Address, str],
+        next_hop_ip_address: Union[IPV4Address, str],
         metric: float = 0.0,
     ):
         """
@@ -647,7 +653,8 @@ class RouteTable(SimComponent):
         )
         self.routes.append(route)
 
-    def set_default_route_next_hop_ip_address(self, ip_address: IPv4Address):
+    @validate_call()
+    def set_default_route_next_hop_ip_address(self, ip_address: IPV4Address):
         """
         Sets the next-hop IP address for the default route in a routing table.
 
@@ -660,7 +667,7 @@ class RouteTable(SimComponent):
         """
         if not self.default_route:
             self.default_route = RouteEntry(
-                ip_address=IPv4Address("0.0.0.0"),
+                address=IPv4Address("0.0.0.0"),
                 subnet_mask=IPv4Address("0.0.0.0"),
                 next_hop_ip_address=ip_address,
             )
@@ -767,6 +774,13 @@ class RouterARP(ARP):
                     is_reattempt=True,
                     is_default_route_attempt=is_default_route_attempt,
                 )
+            elif route and route == self.router.route_table.default_route:
+                self.send_arp_request(self.router.route_table.default_route.next_hop_ip_address)
+                return self._get_arp_cache_mac_address(
+                    ip_address=self.router.route_table.default_route.next_hop_ip_address,
+                    is_reattempt=True,
+                    is_default_route_attempt=True,
+                )
         else:
             if self.router.route_table.default_route:
                 if not is_default_route_attempt:
@@ -817,6 +831,12 @@ class RouterARP(ARP):
                 return network_interface
 
         if not is_reattempt:
+            if self.router.ip_is_in_router_interface_subnet(ip_address):
+                self.send_arp_request(ip_address)
+                return self._get_arp_cache_network_interface(
+                    ip_address=ip_address, is_reattempt=True, is_default_route_attempt=is_default_route_attempt
+                )
+
             route = self.router.route_table.find_best_route(ip_address)
             if route and route != self.router.route_table.default_route:
                 self.send_arp_request(route.next_hop_ip_address)
@@ -824,6 +844,13 @@ class RouterARP(ARP):
                     ip_address=route.next_hop_ip_address,
                     is_reattempt=True,
                     is_default_route_attempt=is_default_route_attempt,
+                )
+            elif route and route == self.router.route_table.default_route:
+                self.send_arp_request(self.router.route_table.default_route.next_hop_ip_address)
+                return self._get_arp_cache_network_interface(
+                    ip_address=self.router.route_table.default_route.next_hop_ip_address,
+                    is_reattempt=True,
+                    is_default_route_attempt=True,
                 )
         else:
             if self.router.route_table.default_route:
@@ -1016,6 +1043,144 @@ class RouterInterface(IPWiredNetworkInterface):
         return f"Port {self.port_name if self.port_name else self.port_num}: {self.mac_address}/{self.ip_address}"
 
 
+class RouterSessionManager(SessionManager):
+    """
+    Manages network sessions, including session creation, lookup, and communication with other components.
+
+    The RouterSessionManager is a Router/Firewall specific implementation of SessionManager. It overrides the
+    resolve_outbound_network_interface and resolve_outbound_transmission_details functions, allowing them to leverage
+    the route table instead of the default gateway.
+
+    :param sys_log: A reference to the system log component.
+    """
+
+    def resolve_outbound_network_interface(self, dst_ip_address: IPv4Address) -> Optional[RouterInterface]:
+        """
+        Resolves the appropriate outbound network interface for a given destination IP address.
+
+        This method determines the most suitable network interface for sending a packet to the specified
+        destination IP address. It considers only enabled network interfaces and checks if the destination
+        IP address falls within the subnet of each interface. If no suitable local network interface is found,
+        the method defaults to performing a route table look-up to determine if there is a dedicated route or a default
+        route it can use.
+
+        The search process prioritises local network interfaces based on the IP network to which they belong.
+        If the destination IP address does not match any local subnet, the method assumes that the destination
+        is outside the local network and hence, routes the packet according to route table look-up.
+
+        :param dst_ip_address: The destination IP address for which the outbound interface is to be resolved.
+        :type dst_ip_address: IPv4Address
+        :return: The network interface through which the packet should be sent to reach the destination IP address,
+            or the default gateway's network interface if the destination is not within any local subnet.
+        :rtype: Optional[RouterInterface]
+        """
+        network_interface = super().resolve_outbound_network_interface(dst_ip_address)
+        if not network_interface:
+            route = self.node.route_table.find_best_route(dst_ip_address)
+            if not route:
+                return None
+            network_interface = super().resolve_outbound_network_interface(route.next_hop_ip_address)
+        return network_interface
+
+    def resolve_outbound_transmission_details(
+        self,
+        dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
+        src_port: Optional[Port] = None,
+        dst_port: Optional[Port] = None,
+        protocol: Optional[IPProtocol] = None,
+        session_id: Optional[str] = None,
+    ) -> Tuple[
+        Optional[RouterInterface],
+        Optional[str],
+        IPv4Address,
+        Optional[Port],
+        Optional[Port],
+        Optional[IPProtocol],
+        bool,
+    ]:
+        """
+        Resolves the necessary details for outbound transmission based on the provided parameters.
+
+        This method determines whether the payload should be broadcast or unicast based on the destination IP address
+        and resolves the outbound network interface and destination MAC address accordingly.
+
+        The method first checks if `session_id` is provided and uses the session details if available. For broadcast
+        transmissions, it finds a suitable network interface and uses a broadcast MAC address. For unicast
+        transmissions, it attempts to resolve the destination MAC address using ARP and finds the appropriate
+        outbound network interface. If the destination IP address is outside the local network and no specific MAC
+        address is resolved, it defaults to performing a route table look-up to determine if there is a dedicated route
+        or a default route it can use.
+
+        :param dst_ip_address: The destination IP address or network. If an IPv4Network is provided, the method
+            treats the transmission as a broadcast to that network. Optional.
+        :type dst_ip_address: Optional[Union[IPv4Address, IPv4Network]]
+        :param src_port: The source port number for the transmission. Optional.
+        :type src_port: Optional[Port]
+        :param dst_port: The destination port number for the transmission. Optional.
+        :type dst_port: Optional[Port]
+        :param protocol: The IP protocol to be used for the transmission. Optional.
+        :type protocol: Optional[IPProtocol]
+        :param session_id: The session ID associated with the transmission. If provided, the session details override
+            other parameters. Optional.
+        :type session_id: Optional[str]
+        :return: A tuple containing the resolved outbound network interface, destination MAC address, destination IP
+            address, source port, destination port, protocol, and a boolean indicating whether the transmission is a
+            broadcast.
+        :rtype: Tuple[Optional[RouterInterface], Optional[str], IPv4Address, Optional[Port], Optional[Port],
+            Optional[IPProtocol], bool]
+        """
+        if dst_ip_address and not isinstance(dst_ip_address, (IPv4Address, IPv4Network)):
+            dst_ip_address = IPv4Address(dst_ip_address)
+        is_broadcast = False
+        outbound_network_interface = None
+        dst_mac_address = None
+
+        # Use session details if session_id is provided
+        if session_id:
+            session = self.sessions_by_uuid[session_id]
+
+            dst_ip_address = session.with_ip_address
+            protocol = session.protocol
+            src_port = session.src_port
+            dst_port = session.dst_port
+
+        # Determine if the payload is for broadcast or unicast
+
+        # Handle broadcast transmission
+        if isinstance(dst_ip_address, IPv4Network):
+            is_broadcast = True
+            dst_ip_address = dst_ip_address.broadcast_address
+            if dst_ip_address:
+                # Find a suitable NIC for the broadcast
+                for network_interface in self.node.network_interfaces.values():
+                    if dst_ip_address in network_interface.ip_network and network_interface.enabled:
+                        dst_mac_address = "ff:ff:ff:ff:ff:ff"
+                        outbound_network_interface = network_interface
+                        break
+        else:
+            # Resolve MAC address for unicast transmission
+            use_route_table = True
+            for network_interface in self.node.network_interfaces.values():
+                if dst_ip_address in network_interface.ip_network and network_interface.enabled:
+                    dst_mac_address = self.software_manager.arp.get_arp_cache_mac_address(dst_ip_address)
+                    break
+
+            if dst_mac_address:
+                use_route_table = False
+                outbound_network_interface = self.software_manager.arp.get_arp_cache_network_interface(dst_ip_address)
+
+            if use_route_table:
+                route = self.node.route_table.find_best_route(dst_ip_address)
+                if not route:
+                    raise Exception("cannot use route to resolve outbound details")
+
+                dst_mac_address = self.software_manager.arp.get_arp_cache_mac_address(route.next_hop_ip_address)
+                outbound_network_interface = self.software_manager.arp.get_arp_cache_network_interface(
+                    route.next_hop_ip_address
+                )
+        return outbound_network_interface, dst_mac_address, dst_ip_address, src_port, dst_port, protocol, is_broadcast
+
+
 class Router(NetworkNode):
     """
     Represents a network router, managing routing and forwarding of IP packets across network interfaces.
@@ -1049,6 +1214,10 @@ class Router(NetworkNode):
         if not kwargs.get("route_table"):
             kwargs["route_table"] = RouteTable(sys_log=kwargs["sys_log"])
         super().__init__(hostname=hostname, num_ports=num_ports, **kwargs)
+        self.session_manager = RouterSessionManager(sys_log=self.sys_log)
+        self.session_manager.node = self
+        self.software_manager.session_manager = self.session_manager
+        self.session_manager.software_manager = self.software_manager
         for i in range(1, self.num_ports + 1):
             network_interface = RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
             self.connect_nic(network_interface)
@@ -1068,8 +1237,7 @@ class Router(NetworkNode):
         icmp: RouterICMP = self.software_manager.icmp  # noqa
         icmp.router = self
         self.software_manager.install(RouterARP)
-        arp: RouterARP = self.software_manager.arp  # noqa
-        arp.router = self
+        self.arp.router = self
 
     def _set_default_acl(self):
         """
@@ -1313,6 +1481,8 @@ class Router(NetworkNode):
             frame.ethernet.src_mac_addr = network_interface.mac_address
             frame.ethernet.dst_mac_addr = target_mac
             network_interface.send_frame(frame)
+        else:
+            self.sys_log.error(f"Frame dropped as there is no route to {frame.ip.dst_ip_address}")
 
     def configure_port(self, port: int, ip_address: Union[IPv4Address, str], subnet_mask: Union[IPv4Address, str]):
         """
@@ -1393,6 +1563,13 @@ class Router(NetworkNode):
               - protocol (str, optional): the named IP protocol such as ICMP, TCP, or UDP
               - src_ip_address (str, optional): IP address octet written in base 10
               - dst_ip_address (str, optional): IP address octet written in base 10
+          - routes (list[dict]): List of route dicts with values:
+            - address (str): The destination address of the route.
+            - subnet_mask (str): The subnet mask of the route.
+            - next_hop_ip_address (str): The next hop IP for the route.
+            - metric (int): The metric of the route. Optional.
+          - default_route:
+            - next_hop_ip_address (str): The next hop IP for the route.
 
         Example config:
         ```
@@ -1403,6 +1580,10 @@ class Router(NetworkNode):
                 1: {
                     'ip_address' : '192.168.1.1',
                     'subnet_mask' : '255.255.255.0',
+                },
+                2: {
+                    'ip_address' : '192.168.0.1',
+                    'subnet_mask' : '255.255.255.252',
                 }
             },
             'acl' : {
@@ -1410,6 +1591,10 @@ class Router(NetworkNode):
                 22: {'action': 'PERMIT', 'src_port': 'ARP', 'dst_port': 'ARP'},
                 23: {'action': 'PERMIT', 'protocol': 'ICMP'},
             },
+            'routes' : [
+                {'address': '192.168.0.0', 'subnet_mask': '255.255.255.0', 'next_hop_ip_address': '192.168.1.2'}
+            ],
+            'default_route': {'next_hop_ip_address': '192.168.0.2'}
         }
         ```
 
@@ -1440,7 +1625,9 @@ class Router(NetworkNode):
                     dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
                     protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
                     src_ip_address=r_cfg.get("src_ip"),
+                    src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                     dst_ip_address=r_cfg.get("dst_ip"),
+                    dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                     position=r_num,
                 )
         if "routes" in cfg:
@@ -1451,4 +1638,8 @@ class Router(NetworkNode):
                     next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
                     metric=float(route.get("metric", 0)),
                 )
+        if "default_route" in cfg:
+            next_hop_ip_address = cfg["default_route"].get("next_hop_ip_address", None)
+            if next_hop_ip_address:
+                router.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
         return router

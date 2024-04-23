@@ -7,11 +7,9 @@ from uuid import uuid4
 from pydantic import BaseModel, ConfigDict, Field, validate_call
 
 from primaite import getLogger
-from primaite.interface.request import RequestResponse
+from primaite.interface.request import RequestFormat, RequestResponse
 
 _LOGGER = getLogger(__name__)
-
-RequestFormat = List[Union[str, int, float]]
 
 
 class RequestPermissionValidator(BaseModel):
@@ -227,6 +225,15 @@ class SimComponent(BaseModel):
         if self._request_manager is None:
             return
         return self._request_manager(request, context)
+
+    def pre_timestep(self, timestep: int) -> None:
+        """
+        Apply any logic that needs to happen at the beginning of the timestep to ensure correct observations/rewards.
+
+        :param timestep: what's the current time
+        :type timestep: int
+        """
+        pass
 
     def apply_timestep(self, timestep: int) -> None:
         """

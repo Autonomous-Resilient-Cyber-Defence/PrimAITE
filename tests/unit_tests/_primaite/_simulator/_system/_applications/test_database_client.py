@@ -104,7 +104,7 @@ def test_query_fail_to_connect(database_client_on_computer):
     """Database client query should return False if the connect attempt fails."""
     database_client, computer = database_client_on_computer
 
-    def return_false():
+    def return_false(**kwargs):
         return False
 
     database_client.connect = return_false

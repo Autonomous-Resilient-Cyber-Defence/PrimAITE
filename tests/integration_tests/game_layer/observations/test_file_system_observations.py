@@ -23,7 +23,8 @@ def test_file_observation(simulation):
     file = pc.file_system.create_file(file_name="dog.png")
 
     dog_file_obs = FileObservation(
-        where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"]
+        where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"],
+        include_num_access=False,
     )
 
     assert dog_file_obs.space["health_status"] == spaces.Discrete(6)
@@ -49,7 +50,10 @@ def test_folder_observation(simulation):
     file = pc.file_system.create_file(file_name="dog.png", folder_name="test_folder")
 
     root_folder_obs = FolderObservation(
-        where=["network", "nodes", pc.hostname, "file_system", "folders", "test_folder"]
+        where=["network", "nodes", pc.hostname, "file_system", "folders", "test_folder"],
+        include_num_access=False,
+        num_files=1,
+        files=[],
     )
 
     assert root_folder_obs.space["health_status"] == spaces.Discrete(6)
@@ -68,3 +72,6 @@ def test_folder_observation(simulation):
 
     observation_state = root_folder_obs.observe(simulation.describe_state())
     assert observation_state.get("health_status") == 3  # file is corrupt therefore folder is corrupted too
+
+
+# TODO: Add tests to check num access is correct.

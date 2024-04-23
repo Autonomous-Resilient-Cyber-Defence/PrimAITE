@@ -9,7 +9,7 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 
 
-def num_of_switches_required(num_nodes: int, max_switch_ports: int = 24) -> int:
+def num_of_switches_required(num_nodes: int, max_network_interface: int = 24) -> int:
     """
     Calculate the minimum number of network switches required to connect a given number of nodes.
 
@@ -18,7 +18,7 @@ def num_of_switches_required(num_nodes: int, max_switch_ports: int = 24) -> int:
     to accommodate all nodes under this constraint.
 
     :param num_nodes: The total number of nodes that need to be connected in the network.
-    :param max_switch_ports: The maximum number of ports available on each switch. Defaults to 24.
+    :param max_network_interface: The maximum number of ports available on each switch. Defaults to 24.
 
     :return: The minimum number of switches required to connect all PCs.
 
@@ -33,11 +33,11 @@ def num_of_switches_required(num_nodes: int, max_switch_ports: int = 24) -> int:
     3
     """
     # Reduce the effective number of switch ports by 1 to leave space for the router
-    effective_switch_ports = max_switch_ports - 1
+    effective_network_interface = max_network_interface - 1
 
     # Calculate the number of fully utilised switches and any additional switch for remaining PCs
-    full_switches = num_nodes // effective_switch_ports
-    extra_pcs = num_nodes % effective_switch_ports
+    full_switches = num_nodes // effective_network_interface
+    extra_pcs = num_nodes % effective_network_interface
 
     # Return the total number of switches required
     return full_switches + (1 if extra_pcs > 0 else 0)
@@ -77,7 +77,7 @@ def create_office_lan(
 
     # Calculate the required number of switches
     num_of_switches = num_of_switches_required(num_nodes=num_pcs)
-    effective_switch_ports = 23  # One port less for router connection
+    effective_network_interface = 23  # One port less for router connection
     if pcs_ip_block_start <= num_of_switches:
         raise ValueError(f"pcs_ip_block_start must be greater than the number of required switches {num_of_switches}")
 
@@ -116,7 +116,7 @@ def create_office_lan(
     # Add PCs to the LAN and connect them to switches
     for i in range(1, num_pcs + 1):
         # Add a new edge switch if the current one is full
-        if switch_port == effective_switch_ports:
+        if switch_port == effective_network_interface:
             switch_n += 1
             switch_port = 0
             switch = Switch(hostname=f"switch_edge_{switch_n}_{lan_name}", start_up_duration=0)

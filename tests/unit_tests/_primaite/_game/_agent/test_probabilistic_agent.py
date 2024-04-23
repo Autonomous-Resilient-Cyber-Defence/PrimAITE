@@ -1,6 +1,5 @@
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.observations.observation_manager import ObservationManager
-from primaite.game.agent.observations.observations import ICSObservation
+from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
 
@@ -52,7 +51,7 @@ def test_probabilistic_agent():
             2: {"action": "NODE_FILE_DELETE", "options": {"node_id": 0, "folder_id": 0, "file_id": 0}},
         },
     )
-    observation_space = ObservationManager(ICSObservation())
+    observation_space = ObservationManager(NestedObservation(components={}))
     reward_function = RewardFunction()
 
     pa = ProbabilisticAgent(

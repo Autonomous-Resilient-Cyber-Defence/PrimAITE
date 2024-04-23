@@ -427,15 +427,21 @@ class FileSystem(SimComponent):
         """Apply time step to FileSystem and its child folders and files."""
         super().apply_timestep(timestep=timestep)
 
+        # apply timestep to folders
+        for folder_id in self.folders:
+            self.folders[folder_id].apply_timestep(timestep=timestep)
+
+    def pre_timestep(self, timestep: int) -> None:
+        """Apply pre-timestep logic."""
+        super().pre_timestep(timestep)
         # reset number of file creations
         self.num_file_creations = 0
 
         # reset number of file deletions
         self.num_file_deletions = 0
 
-        # apply timestep to folders
-        for folder_id in self.folders:
-            self.folders[folder_id].apply_timestep(timestep=timestep)
+        for folder in self.folders.values():
+            folder.pre_timestep(timestep)
 
     ###############################################################
     # Agent actions

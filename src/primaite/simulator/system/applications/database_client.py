@@ -29,6 +29,9 @@ class DatabaseClient(Application):
     _query_success_tracker: Dict[str, bool] = {}
     _last_connection_successful: Optional[bool] = None
     """Keep track of connections that were established or verified during this step. Used for rewards."""
+    last_query_response: Optional[Dict] = None
+    """Keep track of the latest query response. Used to determine rewards."""
+    _server_connection_id: Optional[str] = None
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseClient"
@@ -49,10 +52,9 @@ class DatabaseClient(Application):
     def execute(self) -> bool:
         """Execution definition for db client: perform a select query."""
         self.num_executions += 1  # trying to connect counts as an execution
-        if self.connections:
-            can_connect = self.check_connection(connection_id=list(self.connections.keys())[-1])
-        else:
-            can_connect = self.check_connection(connection_id=str(uuid4()))
+        if not self._server_connection_id:
+            self.connect()
+        can_connect = self.check_connection(connection_id=self._server_connection_id)
         self._last_connection_successful = can_connect
         return can_connect
 
@@ -78,17 +80,21 @@ class DatabaseClient(Application):
         self.server_password = server_password
         self.sys_log.info(f"{self.name}: Configured the {self.name} with {server_ip_address=}, {server_password=}.")
 
-    def connect(self, connection_id: Optional[str] = None) -> bool:
+    def connect(self) -> bool:
         """Connect to a Database Service."""
         if not self._can_perform_action():
             return False
 
-        if not connection_id:
-            connection_id = str(uuid4())
+        if not self._server_connection_id:
+            self._server_connection_id = str(uuid4())
 
         self.connected = self._connect(
-            server_ip_address=self.server_ip_address, password=self.server_password, connection_id=connection_id
+            server_ip_address=self.server_ip_address,
+            password=self.server_password,
+            connection_id=self._server_connection_id,
         )
+        if not self.connected:
+            self._server_connection_id = None
         return self.connected
 
     def check_connection(self, connection_id: str) -> bool:
@@ -123,7 +129,7 @@ class DatabaseClient(Application):
         :type: is_reattempt: Optional[bool]
         """
         if is_reattempt:
-            if self.connections.get(connection_id):
+            if self._server_connection_id:
                 self.sys_log.info(
                     f"{self.name} {connection_id=}: DatabaseClient connection to {server_ip_address} authorised"
                 )
@@ -147,31 +153,28 @@ class DatabaseClient(Application):
             server_ip_address=server_ip_address, password=password, connection_id=connection_id, is_reattempt=True
         )
 
-    def disconnect(self, connection_id: Optional[str] = None) -> bool:
+    def disconnect(self) -> bool:
         """Disconnect from the Database Service."""
         if not self._can_perform_action():
             self.sys_log.error(f"Unable to disconnect - {self.name} is {self.operating_state.name}")
             return False
 
         # if there are no connections - nothing to disconnect
-        if not len(self.connections):
+        if not self._server_connection_id:
             self.sys_log.error(f"Unable to disconnect - {self.name} has no active connections.")
             return False
 
         # if no connection provided, disconnect the first connection
-        if not connection_id:
-            connection_id = list(self.connections.keys())[0]
-
         software_manager: SoftwareManager = self.software_manager
         software_manager.send_payload_to_session_manager(
-            payload={"type": "disconnect", "connection_id": connection_id},
+            payload={"type": "disconnect", "connection_id": self._server_connection_id},
             dest_ip_address=self.server_ip_address,
             dest_port=self.port,
         )
-        self.remove_connection(connection_id=connection_id)
+        self.remove_connection(connection_id=self._server_connection_id)
 
         self.sys_log.info(
-            f"{self.name}: DatabaseClient disconnected connection {connection_id} from {self.server_ip_address}"
+            f"{self.name}: DatabaseClient disconnected {self._server_connection_id} from {self.server_ip_address}"
         )
         self.connected = False
 
@@ -219,18 +222,23 @@ class DatabaseClient(Application):
         if not self._can_perform_action():
             return False
 
-        if connection_id is None:
-            if self.connections:
-                connection_id = list(self.connections.keys())[-1]
-                # TODO: if the most recent connection dies, it should be automatically cleared.
-            else:
-                connection_id = str(uuid4())
+        # reset last query response
+        self.last_query_response = None
 
-        if not self.connections.get(connection_id):
-            if not self.connect(connection_id=connection_id):
-                return False
+        connection_id: str
 
-            # Initialise the tracker of this ID to False
+        if not connection_id:
+            connection_id = self._server_connection_id
+
+        if not connection_id:
+            self.connect()
+            connection_id = self._server_connection_id
+
+        if not connection_id:
+            msg = "Cannot run sql query, could not establish connection with the server."
+            self.parent.sys_log.error(msg)
+            return False
+
         uuid = str(uuid4())
         self._query_success_tracker[uuid] = False
         return self._query(sql=sql, query_id=uuid, connection_id=connection_id)
@@ -252,6 +260,7 @@ class DatabaseClient(Application):
                     # add connection
                     self.add_connection(connection_id=payload.get("connection_id"), session_id=session_id)
             elif payload["type"] == "sql":
+                self.last_query_response = payload
                 query_id = payload.get("uuid")
                 status_code = payload.get("status_code")
                 self._query_success_tracker[query_id] = status_code == 200

@@ -23,7 +23,7 @@ def test_successful_application_requests(example_network):
 
     resp_1 = net.apply_request(["node", "client_1", "application", "TestApplication", "scan"])
     assert resp_1 == RequestResponse(status="success", data={})
-    resp_2 = net.apply_request(["node", "client_1", "application", "TestApplication", "patch"])
+    resp_2 = net.apply_request(["node", "client_1", "application", "TestApplication", "fix"])
     assert resp_2 == RequestResponse(status="success", data={})
     resp_3 = net.apply_request(["node", "client_1", "application", "TestApplication", "compromise"])
     assert resp_3 == RequestResponse(status="success", data={})
@@ -46,7 +46,7 @@ def test_successful_service_requests(example_network):
         "resume",
         "compromise",
         "scan",
-        "patch",
+        "fix",
     ]:
         resp_1 = net.apply_request(["node", "server_1", "service", "TestService", verb])
         assert resp_1 == RequestResponse(status="success", data={})
