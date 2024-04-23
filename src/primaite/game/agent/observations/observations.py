@@ -1,6 +1,6 @@
 """Manages the observation space for the agent."""
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Type, Optional, Union
+from typing import Any, Dict, Iterable, Optional, Type, Union
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
