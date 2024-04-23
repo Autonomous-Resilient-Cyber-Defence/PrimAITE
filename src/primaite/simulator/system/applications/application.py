@@ -131,7 +131,6 @@ class Application(IOSoftware):
         """Install Application."""
         super().install()
         if self.operating_state == ApplicationOperatingState.CLOSED:
-            self.sys_log.info(f"Installing Application {self.name}")
             self.operating_state = ApplicationOperatingState.INSTALLING
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:

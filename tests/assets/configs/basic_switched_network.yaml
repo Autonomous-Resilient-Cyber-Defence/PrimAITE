@@ -75,6 +75,7 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
+      - type: RansomwareScript
       - type: WebBrowser
         options:
           target_url: http://arcd.com/users/
