@@ -115,7 +115,6 @@ class NTPClient(Service):
         :param timestep: The current timestep number. (Amount of time since simulation episode began)
         :type timestep: int
         """
-        self.sys_log.info(f"{self.name} apply_timestep")
         super().apply_timestep(timestep)
         if self.operating_state == ServiceOperatingState.RUNNING:
             # request time from server
