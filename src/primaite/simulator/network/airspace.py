@@ -161,7 +161,7 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
             return
 
         if self._connected_node.operating_state != NodeOperatingState.ON:
-            self._connected_node.sys_log.info(
+            self._connected_node.sys_log.error(
                 f"Interface {self} cannot be enabled as the connected Node is not powered on"
             )
             return

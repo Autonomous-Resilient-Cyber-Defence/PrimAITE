@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger, PRIMAITE_PATHS
-from primaite.simulator import SIM_OUTPUT
+from primaite.simulator import LogLevel, SIM_OUTPUT
 
 _LOGGER = getLogger(__name__)
 
@@ -35,6 +35,8 @@ class PrimaiteIO:
         """Whether to save system logs."""
         write_sys_log_to_terminal: bool = False
         """Whether to write the sys log to the terminal."""
+        sys_log_level: LogLevel = LogLevel.INFO
+        """The level of log that should be included in the logfiles/logged into terminal."""
 
     def __init__(self, settings: Optional[Settings] = None) -> None:
         """
@@ -50,6 +52,7 @@ class PrimaiteIO:
         SIM_OUTPUT.save_pcap_logs = self.settings.save_pcap_logs
         SIM_OUTPUT.save_sys_logs = self.settings.save_sys_logs
         SIM_OUTPUT.write_sys_log_to_terminal = self.settings.write_sys_log_to_terminal
+        SIM_OUTPUT.sys_log_level = self.settings.sys_log_level
 
     def generate_session_path(self, timestamp: Optional[datetime] = None) -> Path:
         """Create a folder for the session and return the path to it."""
@@ -96,6 +99,10 @@ class PrimaiteIO:
     def from_config(cls, config: Dict) -> "PrimaiteIO":
         """Create an instance of PrimaiteIO based on a configuration dict."""
         config = config or {}
+
+        if config.get("sys_log_level"):
+            config["sys_log_level"] = LogLevel[config["sys_log_level"].upper()]  # convert to enum
+
         new = cls(settings=cls.Settings(**config))
 
         return new

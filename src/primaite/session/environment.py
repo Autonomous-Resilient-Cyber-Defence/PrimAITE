@@ -26,9 +26,6 @@ class PrimaiteGymEnv(gymnasium.Env):
     def __init__(self, game_config: Dict):
         """Initialise the environment."""
         super().__init__()
-        self.io = PrimaiteIO.from_config(game_config.get("io_settings", {}))
-        """Handles IO for the environment. This produces sys logs, agent logs, etc."""
-
         self.game_config: Dict = game_config
         """PrimaiteGame definition. This can be changed between episodes to enable curriculum learning."""
         self.io = PrimaiteIO.from_config(game_config.get("io_settings", {}))

@@ -122,7 +122,7 @@ class DoSBot(DatabaseClient):
 
         # DoS bot cannot do anything without a target
         if not self.target_ip_address or not self.target_port:
-            self.sys_log.error(
+            self.sys_log.warning(
                 f"{self.name} is not properly configured. {self.target_ip_address=}, {self.target_port=}"
             )
             return True
@@ -152,7 +152,7 @@ class DoSBot(DatabaseClient):
                 # perform the port scan
                 port_is_open = True  # Temporary; later we can implement NMAP port scan.
                 if port_is_open:
-                    self.sys_log.info(f"{self.name}: ")
+                    self.sys_log.debug(f"{self.name}: ")
                     self.attack_stage = DoSAttackStage.PORT_SCAN
 
     def _perform_dos(self):

@@ -95,7 +95,7 @@ class ICMP(Service):
         network_interface = self.software_manager.session_manager.resolve_outbound_network_interface(target_ip_address)
 
         if not network_interface:
-            self.sys_log.error(
+            self.sys_log.warning(
                 "Cannot send ICMP echo request as there is no outbound Network Interface to use. Try configuring the "
                 "default gateway."
             )
@@ -130,7 +130,7 @@ class ICMP(Service):
         )
 
         if not network_interface:
-            self.sys_log.error(
+            self.sys_log.warning(
                 "Cannot send ICMP echo reply as there is no outbound Network Interface to use. Try configuring the "
                 "default gateway."
             )
