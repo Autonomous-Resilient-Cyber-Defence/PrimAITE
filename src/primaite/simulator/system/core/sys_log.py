@@ -3,7 +3,7 @@ from pathlib import Path
 
 from prettytable import MARKDOWN, PrettyTable
 
-from primaite.simulator import SIM_OUTPUT
+from primaite.simulator import LogLevel, SIM_OUTPUT
 
 
 class _NotJSONFilter(logging.Filter):
@@ -100,6 +100,9 @@ class SysLog:
         :param msg: The message to be logged.
         :param to_terminal: If True, prints to the terminal too.
         """
+        if SIM_OUTPUT.sys_log_level > LogLevel.DEBUG:
+            return
+
         if SIM_OUTPUT.save_sys_logs:
             self.logger.debug(msg)
         self._write_to_terminal(msg, "DEBUG", to_terminal)
@@ -111,6 +114,9 @@ class SysLog:
         :param msg: The message to be logged.
         :param to_terminal: If True, prints to the terminal too.
         """
+        if SIM_OUTPUT.sys_log_level > LogLevel.INFO:
+            return
+
         if SIM_OUTPUT.save_sys_logs:
             self.logger.info(msg)
         self._write_to_terminal(msg, "INFO", to_terminal)
@@ -122,6 +128,9 @@ class SysLog:
         :param msg: The message to be logged.
         :param to_terminal: If True, prints to the terminal too.
         """
+        if SIM_OUTPUT.sys_log_level > LogLevel.WARNING:
+            return
+
         if SIM_OUTPUT.save_sys_logs:
             self.logger.warning(msg)
         self._write_to_terminal(msg, "WARNING", to_terminal)
@@ -133,6 +142,9 @@ class SysLog:
         :param msg: The message to be logged.
         :param to_terminal: If True, prints to the terminal too.
         """
+        if SIM_OUTPUT.sys_log_level > LogLevel.ERROR:
+            return
+
         if SIM_OUTPUT.save_sys_logs:
             self.logger.error(msg)
         self._write_to_terminal(msg, "ERROR", to_terminal)
@@ -144,6 +156,9 @@ class SysLog:
         :param msg: The message to be logged.
         :param to_terminal: If True, prints to the terminal too.
         """
+        if LogLevel.CRITICAL < SIM_OUTPUT.sys_log_level:
+            return
+
         if SIM_OUTPUT.save_sys_logs:
             self.logger.critical(msg)
         self._write_to_terminal(msg, "CRITICAL", to_terminal)

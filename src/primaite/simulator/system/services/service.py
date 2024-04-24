@@ -59,7 +59,7 @@ class Service(IOSoftware):
 
         if self.operating_state is not ServiceOperatingState.RUNNING:
             # service is not running
-            _LOGGER.debug(f"Cannot perform action: {self.name} is {self.operating_state.name}")
+            self.sys_log.debug(f"Cannot perform action: {self.name} is {self.operating_state.name}")
             return False
 
         return True
@@ -187,6 +187,6 @@ class Service(IOSoftware):
         super().apply_timestep(timestep)
         if self.operating_state == ServiceOperatingState.RESTARTING:
             if self.restart_countdown <= 0:
-                _LOGGER.debug(f"Restarting finished for service {self.name}")
+                self.sys_log.debug(f"Restarting finished for service {self.name}")
                 self.operating_state = ServiceOperatingState.RUNNING
             self.restart_countdown -= 1

@@ -18,13 +18,14 @@ This section configures how PrimAITE saves data during simulation and training.
         save_step_metadata: False
         save_pcap_logs: False
         save_sys_logs: False
+        write_sys_log_to_terminal: False
+        sys_log_level: WARNING
 
 
 ``save_logs``
 -------------
 
 *currently unused*.
-
 
 ``save_agent_actions``
 ----------------------
@@ -55,3 +56,35 @@ If ``True``, then the pcap files which contain all network traffic during the si
 Optional. Default value is ``False``.
 
 If ``True``, then the log files which contain all node actions during the simulation will be saved.
+
+
+``write_sys_log_to_terminal``
+-----------------------------
+
+Optional. Default value is ``False``.
+
+If ``True``, PrimAITE will print sys log to the terminal.
+
+
+``sys_log_level``
+-------------
+
+Optional. Default value is ``WARNING``.
+
+The level of logging that should be visible in the sys logs or the logs output to the terminal.
+
+``save_sys_logs`` or ``write_sys_log_to_terminal`` has to be set to ``True`` for this setting to be used.
+
+Available options are:
+
+- ``DEBUG``: Debug level items and the items below
+- ``INFO``: Info level items and the items below
+- ``WARNING``: Warning level items and the items below
+- ``ERROR``: Error level items and the items below
+- ``CRITICAL``: Only critical level logs
+
+See also |logging_levels|
+
+.. |logging_levels| raw:: html
+
+    <a href="https://docs.python.org/3/library/logging.html#logging-levels" target="blank">Python logging levels</a>

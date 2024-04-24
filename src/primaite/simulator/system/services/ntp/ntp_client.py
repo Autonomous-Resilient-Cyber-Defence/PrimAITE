@@ -87,7 +87,7 @@ class NTPClient(Service):
         :return: True if successful, False otherwise.
         """
         if not isinstance(payload, NTPPacket):
-            _LOGGER.debug(f"{self.name}: Failed to parse NTP update")
+            self.sys_log.warning(f"{self.name}: Failed to parse NTP update")
             return False
         if payload.ntp_reply.ntp_datetime:
             self.time = payload.ntp_reply.ntp_datetime

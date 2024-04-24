@@ -51,7 +51,8 @@ class NTPServer(Service):
         :return: True if valid NTP request else False.
         """
         if not (isinstance(payload, NTPPacket)):
-            _LOGGER.debug(f"{payload} is not a NTPPacket")
+            self.sys_log.warning(f"{self.name}: Payload is not a NTPPacket")
+            self.sys_log.debug(f"{self.name}: {payload}")
             return False
         payload: NTPPacket = payload
 

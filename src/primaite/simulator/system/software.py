@@ -6,7 +6,7 @@ from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, Optional, TYPE_CHECKING, Union
 
 from primaite.interface.request import RequestResponse
-from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.network_layer import IPProtocol
@@ -287,7 +287,9 @@ class IOSoftware(Software):
         Returns true if the software can perform actions.
         """
         if self.software_manager and self.software_manager.node.operating_state != NodeOperatingState.ON:
-            _LOGGER.debug(f"{self.name} Error: {self.software_manager.node.hostname} is not online.")
+            self.software_manager.node.sys_log.error(
+                f"{self.name} Error: {self.software_manager.node.hostname} is not online."
+            )
             return False
         return True
 
@@ -308,7 +310,7 @@ class IOSoftware(Software):
         # if over or at capacity, set to overwhelmed
         if len(self._connections) >= self.max_sessions:
             self.set_health_state(SoftwareHealthState.OVERWHELMED)
-            self.sys_log.error(f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity.")
+            self.sys_log.warning(f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity.")
             return False
         else:
             # if service was previously overwhelmed, set to good because there is enough space for connections
@@ -327,7 +329,7 @@ class IOSoftware(Software):
                 self.sys_log.info(f"{self.name}: Connect request for {connection_id=} authorised")
                 return True
             # connection with given id already exists
-            self.sys_log.error(
+            self.sys_log.warning(
                 f"{self.name}: Connect request for {connection_id=} declined. Connection already exists."
             )
             return False

@@ -57,7 +57,7 @@ class DatabaseService(Service):
 
         # check if the backup server was configured
         if self.backup_server_ip is None:
-            self.sys_log.error(f"{self.name} - {self.sys_log.hostname}: not configured.")
+            self.sys_log.warning(f"{self.name} - {self.sys_log.hostname}: not configured.")
             return False
 
         software_manager: SoftwareManager = self.software_manager
@@ -110,7 +110,7 @@ class DatabaseService(Service):
         db_file = self.file_system.get_file(folder_name="database", file_name="database.db", include_deleted=True)
 
         if db_file is None:
-            self.sys_log.error("Database file not initialised.")
+            self.sys_log.warning("Database file not initialised.")
             return False
 
         # if the file was deleted, get the old visible health state
@@ -170,12 +170,12 @@ class DatabaseService(Service):
                     # try to create connection
                     if not self.add_connection(connection_id=connection_id):
                         status_code = 500
-                        self.sys_log.info(f"{self.name}: Connect request for {connection_id=} declined")
+                        self.sys_log.warning(f"{self.name}: Connect request for {connection_id=} declined")
                     else:
                         self.sys_log.info(f"{self.name}: Connect request for {connection_id=} authorised")
                 else:
                     status_code = 401  # Unauthorised
-                    self.sys_log.info(f"{self.name}: Connect request for {connection_id=} declined")
+                    self.sys_log.warning(f"{self.name}: Connect request for {connection_id=} declined")
         else:
             status_code = 404  # service not found
         return {
@@ -206,7 +206,7 @@ class DatabaseService(Service):
         self.sys_log.info(f"{self.name}: Running {query}")
 
         if not self.db_file:
-            self.sys_log.info(f"{self.name}: Failed to run {query} because the database file is missing.")
+            self.sys_log.error(f"{self.name}: Failed to run {query} because the database file is missing.")
             return {"status_code": 404, "type": "sql", "data": False}
 
         if query == "SELECT":
@@ -276,7 +276,7 @@ class DatabaseService(Service):
                 return {"status_code": 401, "data": False}
         else:
             # Invalid query
-            self.sys_log.info(f"{self.name}: Invalid {query}")
+            self.sys_log.warning(f"{self.name}: Invalid {query}")
             return {"status_code": 500, "data": False}
 
     def describe_state(self) -> Dict:
