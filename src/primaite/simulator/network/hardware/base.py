@@ -1360,7 +1360,6 @@ class Node(SimComponent):
         self.software_manager.install(application)
         application_instance = self.software_manager.software.get(str(application.__name__))
         self.applications[application_instance.uuid] = application_instance
-        self.sys_log.info(f"Installed application {application_instance.name}")
         _LOGGER.debug(f"Added application {application_instance.name} to node {self.hostname}")
         self._application_request_manager.add_request(
             application_instance.name, RequestType(func=application_instance._request_manager)

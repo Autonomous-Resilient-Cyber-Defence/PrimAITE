@@ -97,7 +97,6 @@ class SoftwareManager:
         software.software_manager = self
         self.software[software.name] = software
         self.port_protocol_mapping[(software.port, software.protocol)] = software
-        self.sys_log.info(f"Installed {software.name}")
         if isinstance(software, Application):
             software.operating_state = ApplicationOperatingState.CLOSED
 

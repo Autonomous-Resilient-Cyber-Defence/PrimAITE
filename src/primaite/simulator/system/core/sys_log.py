@@ -52,6 +52,7 @@ class SysLog:
         file_handler.setFormatter(logging.Formatter(log_format))
 
         self.logger = logging.getLogger(f"{self.hostname}_sys_log")
+        self.logger.handlers.clear()  # clear handlers
         self.logger.setLevel(logging.DEBUG)
         self.logger.addHandler(file_handler)
 
