@@ -166,6 +166,10 @@ class File(FileSystemItemABC):
         if self.previous_hash is None:
             self.previous_hash = current_hash
 
+        # if the previous hash and current hash do not match, mark file as corrupted
+        if self.previous_hash is not current_hash:
+            self.corrupt()
+
         return True
 
     def repair(self) -> bool:

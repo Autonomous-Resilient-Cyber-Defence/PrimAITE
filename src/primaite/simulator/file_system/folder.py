@@ -388,17 +388,17 @@ class Folder(FileSystemItemABC):
             return False
 
         # iterate through the files and run a check hash
-        # no_corrupted_files = True
+        no_corrupted_files = True
 
         for file_id in self.files:
             file = self.get_file_by_id(file_uuid=file_id)
             file.check_hash()
-            # if file.health_status == FileSystemItemHealthStatus.CORRUPT:
-            #     no_corrupted_files = False
+            if file.health_status == FileSystemItemHealthStatus.CORRUPT:
+                no_corrupted_files = False
 
         # if one file in the folder is corrupted, set the folder status to corrupted
-        # if not no_corrupted_files:
-        #     self.corrupt()
+        if not no_corrupted_files:
+            self.corrupt()
 
         self.sys_log.info(f"Checking hash of folder {self.name} (id: {self.uuid})")
         return True
