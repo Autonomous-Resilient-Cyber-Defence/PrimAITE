@@ -19,7 +19,7 @@ This section configures how PrimAITE saves data during simulation and training.
         save_pcap_logs: False
         save_sys_logs: False
         write_sys_log_to_terminal: False
-        sys_log_level: INFO
+        sys_log_level: WARNING
 
 
 ``save_logs``
