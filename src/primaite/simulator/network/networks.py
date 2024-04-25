@@ -2,7 +2,7 @@ from ipaddress import IPv4Address
 
 import yaml
 
-from primaite import PRIMAITE_PATHS
+from primaite import PRIMAITE_PATHS, getLogger
 from primaite.game.game import PrimaiteGame
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -18,6 +18,8 @@ from primaite.simulator.system.services.database.database_service import Databas
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
+
+_LOGGER = getLogger(__name__)
 
 
 def client_server_routed() -> Network:
@@ -285,11 +287,30 @@ def arcd_uc2_network() -> Network:
     return network
 
 
-def client_server_p2p_network_example() -> Network:
-    path = PRIMAITE_PATHS.user_config_path / "example_config" / "client-server-p2p-network-example.yaml"
-    with open(path, "r") as file:
-        cfg = yaml.safe_load(file)
-
+def _get_example_network(path) -> Network:
+    try:
+        with open(path, "r") as file:
+            cfg = yaml.safe_load(file)
+    except FileNotFoundError:
+        msg = f"Failed to locate example network config {path}. Run `primaite setup` to load the example config files."
+        _LOGGER.error(msg)
+        raise FileNotFoundError(msg)
     game = PrimaiteGame.from_config(cfg)
 
     return game.simulation.network
+
+
+def client_server_p2p_network_example() -> Network:
+    path = PRIMAITE_PATHS.user_config_path / "example_config" / "client-server-p2p-network-example.yaml"
+    return _get_example_network(path)
+
+
+def basic_lan_network_example() -> Network:
+    path = PRIMAITE_PATHS.user_config_path / "example_config" / "basic-network-network-example.yaml"
+    return _get_example_network(path)
+
+
+def multi_lan_internet_network_example() -> Network:
+    path = PRIMAITE_PATHS.user_config_path / "example_config" / "complex_multi_lan_internet_network_example.yaml"
+    path = r"src/primaite/config/_package_data/multi_lan_internet_network_example.yaml"
+    return _get_example_network(path)
