@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added ipywidgets to the dependencies
 - Added ability to define scenarios that change depending on the episode number.
 - Standardised Environment API by renaming the config parameter of `PrimaiteGymEnv` from `game_config` to `env_config`
+- added ability to set PrimAITE between development and production modes via PrimAITE CLI ``mode`` command
 
 ## [Unreleased]
 - Made requests fail to reach their target if the node is off
