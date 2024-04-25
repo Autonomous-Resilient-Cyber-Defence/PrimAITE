@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded pydantic to version 2.7.0
 - Upgraded Ray to version >= 2.9
 - Added ipywidgets to the dependencies
+- added ability to set PrimAITE between development and production modes via PrimAITE CLI ``mode`` command
 
 ## [Unreleased]
 - Made requests fail to reach their target if the node is off
