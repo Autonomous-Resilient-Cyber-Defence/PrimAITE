@@ -68,7 +68,7 @@ class WirelessAccessPoint(IPWirelessNetworkInterface):
         if self.enabled:
             frame.decrement_ttl()
             if frame.ip and frame.ip.ttl < 1:
-                self._connected_node.sys_log.info("Frame discarded as TTL limit reached")
+                self._connected_node.sys_log.warning("Frame discarded as TTL limit reached")
                 return False
             frame.set_received_timestamp()
             self.pcap.capture_inbound(frame)

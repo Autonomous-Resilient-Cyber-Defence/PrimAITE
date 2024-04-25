@@ -90,7 +90,8 @@ class DNSServer(Service):
 
         # The payload should be a DNS packet
         if not isinstance(payload, DNSPacket):
-            _LOGGER.debug(f"{payload} is not a DNSPacket")
+            self.sys_log.warning(f"{payload} is not a DNSPacket")
+            self.sys_log.debug(f"{payload} is not a DNSPacket")
             return False
 
         # cast payload into a DNS packet

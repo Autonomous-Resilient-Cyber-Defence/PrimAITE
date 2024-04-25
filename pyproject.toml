@@ -38,8 +38,9 @@ dependencies = [
     "stable-baselines3[extra]==2.1.0",
     "tensorflow==2.12.0",
     "typer[all]==0.9.0",
-    "pydantic==2.1.1",
-    "ray[rllib] == 2.8.0, < 3"
+    "pydantic==2.7.0",
+    "ray[rllib] >= 2.9, < 3",
+    "ipywidgets"
 ]
 
 [tool.setuptools.dynamic]

@@ -97,7 +97,7 @@ class WebBrowser(Application):
         try:
             parsed_url = urlparse(url)
         except Exception:
-            self.sys_log.error(f"{url} is not a valid URL")
+            self.sys_log.warning(f"{url} is not a valid URL")
             return False
 
         # get the IP address of the domain name via DNS
@@ -114,7 +114,7 @@ class WebBrowser(Application):
                 self.domain_name_ip_address = IPv4Address(parsed_url.hostname)
             except Exception:
                 # unable to deal with this request
-                self.sys_log.error(f"{self.name}: Unable to resolve URL {url}")
+                self.sys_log.warning(f"{self.name}: Unable to resolve URL {url}")
                 return False
 
         # create HTTPRequest payload
@@ -140,7 +140,8 @@ class WebBrowser(Application):
             )
             return self.latest_response.status_code is HttpStatusCode.OK
         else:
-            self.sys_log.error(f"Error sending Http Packet {str(payload)}")
+            self.sys_log.warning(f"{self.name}: Error sending Http Packet")
+            self.sys_log.debug(f"{self.name}: {payload=}")
             self.history.append(
                 WebBrowser.BrowserHistoryItem(
                     url=url, status=self.BrowserHistoryItem._HistoryItemStatus.SERVER_UNREACHABLE
@@ -181,7 +182,8 @@ class WebBrowser(Application):
         :return: True if successful, False otherwise.
         """
         if not isinstance(payload, HttpResponsePacket):
-            self.sys_log.error(f"{self.name} received a packet that is not an HttpResponsePacket")
+            self.sys_log.warning(f"{self.name} received a packet that is not an HttpResponsePacket")
+            self.sys_log.debug(f"{self.name}: {payload=}")
             return False
         self.sys_log.info(f"{self.name}: Received HTTP {payload.status_code.value}")
         self.latest_response = payload

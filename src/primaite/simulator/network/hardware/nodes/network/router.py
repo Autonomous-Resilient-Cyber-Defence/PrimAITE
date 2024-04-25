@@ -933,7 +933,7 @@ class RouterICMP(ICMP):
         )
 
         if not network_interface:
-            self.sys_log.error(
+            self.sys_log.warning(
                 "Cannot send ICMP echo reply as there is no outbound Network Interface to use. Try configuring the "
                 "default gateway."
             )
@@ -1482,7 +1482,7 @@ class Router(NetworkNode):
             frame.ethernet.dst_mac_addr = target_mac
             network_interface.send_frame(frame)
         else:
-            self.sys_log.error(f"Frame dropped as there is no route to {frame.ip.dst_ip_address}")
+            self.sys_log.warning(f"Frame dropped as there is no route to {frame.ip.dst_ip_address}")
 
     def configure_port(self, port: int, ip_address: Union[IPv4Address, str], subnet_mask: Union[IPv4Address, str]):
         """

@@ -87,7 +87,7 @@ class SoftwareManager:
         # TODO: Software manager and node itself both have an install method. Need to refactor to have more logical
         # separation of concerns.
         if software_class in self._software_class_to_name_map:
-            self.sys_log.info(f"Cannot install {software_class} as it is already installed")
+            self.sys_log.warning(f"Cannot install {software_class} as it is already installed")
             return
         software = software_class(
             software_manager=self, sys_log=self.sys_log, file_system=self.file_system, dns_server=self.dns_server
@@ -97,7 +97,6 @@ class SoftwareManager:
         software.software_manager = self
         self.software[software.name] = software
         self.port_protocol_mapping[(software.port, software.protocol)] = software
-        self.sys_log.info(f"Installed {software.name}")
         if isinstance(software, Application):
             software.operating_state = ApplicationOperatingState.CLOSED
 
@@ -144,7 +143,7 @@ class SoftwareManager:
         if receiver:
             receiver.receive_payload(payload)
         else:
-            self.sys_log.error(f"No Service of Application found with the name {target_software}")
+            self.sys_log.warning(f"No Service of Application found with the name {target_software}")
 
     def send_payload_to_session_manager(
         self,
@@ -196,7 +195,7 @@ class SoftwareManager:
                 payload=payload, session_id=session_id, from_network_interface=from_network_interface, frame=frame
             )
         else:
-            self.sys_log.error(f"No service or application found for port {port} and protocol {protocol}")
+            self.sys_log.warning(f"No service or application found for port {port} and protocol {protocol}")
         pass
 
     def show(self, markdown: bool = False):

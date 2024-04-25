@@ -72,7 +72,7 @@ class DNSClient(Service):
 
         # check if DNS server is configured
         if self.dns_server is None:
-            self.sys_log.error(f"{self.name}: DNS Server is not configured")
+            self.sys_log.warning(f"{self.name}: DNS Server is not configured")
             return False
 
         # check if the target domain is in the client's DNS cache
@@ -88,7 +88,7 @@ class DNSClient(Service):
         else:
             # return False if already reattempted
             if is_reattempt:
-                self.sys_log.info(f"{self.name}: Domain lookup for {target_domain} failed")
+                self.sys_log.warning(f"{self.name}: Domain lookup for {target_domain} failed")
                 return False
             else:
                 # send a request to check if domain name exists in the DNS Server
@@ -143,7 +143,8 @@ class DNSClient(Service):
         """
         # The payload should be a DNS packet
         if not isinstance(payload, DNSPacket):
-            _LOGGER.debug(f"{payload} is not a DNSPacket")
+            self.sys_log.warning(f"{self.name}: Payload is not a DNSPacket")
+            self.sys_log.debug(f"{self.name}: {payload}")
             return False
 
         if payload.dns_reply is not None:
@@ -156,5 +157,5 @@ class DNSClient(Service):
                 self.dns_cache[payload.dns_request.domain_name_request] = payload.dns_reply.domain_name_ip_address
                 return True
 
-        self.sys_log.error(f"Failed to resolve domain name {payload.dns_request.domain_name_request}")
+        self.sys_log.warning(f"Failed to resolve domain name {payload.dns_request.domain_name_request}")
         return False
