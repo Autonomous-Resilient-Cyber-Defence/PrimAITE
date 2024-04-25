@@ -1,0 +1,14 @@
+base_scenario: scenario.yaml
+schedule:
+  0:
+    - greens_0.yaml
+    - reds_0.yaml
+  1:
+    - greens_0.yaml
+    - reds_1.yaml
+  2:
+    - greens_1.yaml
+    - reds_1.yaml
+  3:
+    - greens_2.yaml
+    - reds_2.yaml

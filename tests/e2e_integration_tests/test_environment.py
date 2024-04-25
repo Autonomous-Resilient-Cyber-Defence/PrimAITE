@@ -21,7 +21,7 @@ class TestPrimaiteEnvironment:
         """Check that environment loads correctly from config and it can be reset."""
         with open(CFG_PATH, "r") as f:
             cfg = yaml.safe_load(f)
-        env = PrimaiteGymEnv(game_config=cfg)
+        env = PrimaiteGymEnv(env_config=cfg)
 
         def env_checks():
             assert env is not None
@@ -44,7 +44,7 @@ class TestPrimaiteEnvironment:
         """Make sure you can go all the way through the session without errors."""
         with open(CFG_PATH, "r") as f:
             cfg = yaml.safe_load(f)
-        env = PrimaiteGymEnv(game_config=cfg)
+        env = PrimaiteGymEnv(env_config=cfg)
 
         assert (num_actions := len(env.agent.action_manager.action_map)) == 54
         # run every action and make sure there's no crash
@@ -88,4 +88,4 @@ class TestPrimaiteEnvironment:
         with open(MISCONFIGURED_PATH, "r") as f:
             cfg = yaml.safe_load(f)
         with pytest.raises(pydantic.ValidationError):
-            env = PrimaiteGymEnv(game_config=cfg)
+            env = PrimaiteGymEnv(env_config=cfg)

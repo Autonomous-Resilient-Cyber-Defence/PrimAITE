@@ -44,7 +44,7 @@ def test_application_install_uninstall_on_uc2():
     with open(TEST_ASSETS_ROOT / "configs/test_application_install.yaml", "r") as f:
         cfg = yaml.safe_load(f)
 
-    env = PrimaiteGymEnv(game_config=cfg)
+    env = PrimaiteGymEnv(env_config=cfg)
     env.agent.flatten_obs = False
     env.reset()
 

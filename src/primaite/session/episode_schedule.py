@@ -22,6 +22,7 @@ class EpisodeScheduler(pydantic.BaseModel, ABC):
     @abstractmethod
     def __call__(self, episode_num: int) -> Dict:
         """Return the config that should be used during this episode."""
+        ...
 
 
 class ConstantEpisodeScheduler(EpisodeScheduler):
