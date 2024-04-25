@@ -1,7 +1,0 @@
-placeholder_1: &placeholder_1
-  - a
-  - b
-
-placeholder_2: &placeholder_2
-  - c
-  - d
