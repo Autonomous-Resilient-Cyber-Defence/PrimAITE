@@ -57,7 +57,7 @@ class EpisodeListScheduler(EpisodeScheduler):
             if not self._exceeded_episode_list:
                 self._exceeded_episode_list = True
                 _LOGGER.warn(
-                    f"Running episode {episode_num} but the schedule only defines"
+                    f"Running episode {episode_num} but the schedule only defines "
                     f"{len(self.schedule)} episodes. Looping back to the beginning"
                 )
                 # not sure if we should be using a traditional warning, or a _LOGGER.warning
