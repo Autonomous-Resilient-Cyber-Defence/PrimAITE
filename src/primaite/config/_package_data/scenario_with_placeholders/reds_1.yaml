@@ -11,22 +11,16 @@ reds: &reds
         - type: NODE_APPLICATION_EXECUTE
       options:
         nodes:
-        - node_name: client_1
+        - node_name: client
           applications:
             - application_name: DataManipulationBot
-        - node_name: client_2
-          applications:
-            - application_name: DataManipulationBot
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
 
     reward_function:
       reward_components:
         - type: DUMMY
 
-    agent_settings: # options specific to this particular agent type, basically args of __init__(self)
+    agent_settings:
       start_settings:
-        start_step: 25
-        frequency: 20
-        variance: 5
+        start_step: 10
+        frequency: 10
+        variance: 0

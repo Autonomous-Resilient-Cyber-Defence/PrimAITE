@@ -1,18 +1,15 @@
 import copy
 from abc import ABC, abstractmethod
-from os import PathLike
+from itertools import chain
 from pathlib import Path
 from typing import Dict, List, Mapping, Sequence, Union
 
 import pydantic
+import yaml
 
 from primaite import getLogger
 
 _LOGGER = getLogger(__name__)
-import warnings
-from itertools import chain
-
-import yaml
 
 
 class EpisodeScheduler(pydantic.BaseModel, ABC):
@@ -28,9 +25,7 @@ class EpisodeScheduler(pydantic.BaseModel, ABC):
 
 
 class ConstantEpisodeScheduler(EpisodeScheduler):
-    """
-    The constant episode schedule simply provides the same game setup every time.
-    """
+    """The constant episode schedule simply provides the same game setup every time."""
 
     config: Dict
 
@@ -40,7 +35,7 @@ class ConstantEpisodeScheduler(EpisodeScheduler):
 
 
 class EpisodeListScheduler(EpisodeScheduler):
-    """The episode list u"""
+    """Cycle through a list of different game setups for each episode."""
 
     schedule: Mapping[int, List[str]]
     """Mapping from episode number to list of filenames"""
@@ -56,9 +51,9 @@ class EpisodeListScheduler(EpisodeScheduler):
     When this happens, we loop back to the beginning, but a warning is raised.
     """
 
-    # TODO: be careful about off-by-one errors with episode number- should it start at 0 or 1?
     def __call__(self, episode_num: int) -> Dict:
-        if episode_num > len(self.schedule):
+        """Return the config for the given episode number."""
+        if episode_num >= len(self.schedule):
             if not self._exceeded_episode_list:
                 self._exceeded_episode_list = True
                 _LOGGER.warn(

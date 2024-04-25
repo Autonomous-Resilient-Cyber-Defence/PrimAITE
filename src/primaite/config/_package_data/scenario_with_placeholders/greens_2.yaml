@@ -1,12 +1,11 @@
-greens: &greens
-  - ref: green_C
+agents: &greens
+  - ref: green_B
     team: GREEN
     type: ProbabilisticAgent
     agent_settings:
       action_probabilities:
-        0: 0.3
-        1: 0.6
-        2: 0.1
+        0: 0.95
+        1: 0.05
     observation_space: null
     action_space:
       action_list:
@@ -14,14 +13,9 @@ greens: &greens
         - type: NODE_APPLICATION_EXECUTE
       options:
         nodes:
-        - node_name: client_2
+        - node_name: client
           applications:
-            - application_name: WebBrowser
             - application_name: DatabaseClient
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-        max_applications_per_node: 2
       action_map:
         0:
           action: DONOTHING
@@ -31,19 +25,10 @@ greens: &greens
           options:
             node_id: 0
             application_id: 0
-        2:
-          action: NODE_APPLICATION_EXECUTE
-          options:
-            node_id: 0
-            application_id: 1
 
     reward_function:
       reward_components:
-        - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.25
-          options:
-            node_hostname: client_2
         - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.05
+          weight: 1.0
           options:
-            node_hostname: client_2
+            node_hostname: client
