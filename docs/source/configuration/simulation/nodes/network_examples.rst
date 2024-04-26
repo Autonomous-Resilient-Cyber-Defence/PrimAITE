@@ -509,7 +509,7 @@ Building the Config File
    - **Home/Office Network**: Consists of PCs and servers that handle daily operations and access to shared resources
      like files and applications.
    - **ISP (Internet Service Provider)**: Manages internet connectivity and external routing, acting as the gateway to
-    the internet for the SomeTech network. Also enabled DNS lookups.
+     the internet for the SomeTech network. Also enabled DNS lookups.
    - **SomeTech Corporate Network**: A complex internal network with multiple subnets, including a DMZ for public-facing
      services, and segregated internal zones like HR, Engineering, and Data/Storage.
 
@@ -557,3 +557,792 @@ Building the Config File
    - **Route Security**: Routing configurations are secured by ensuring that routes do not inadvertently expose
      sensitive parts of the network to unauthorised traffic. Routes are carefully planned to keep internal and external
      traffic separate unless explicitly allowed via ACLs.
+
+
+SomeTech Corporate Network Explained
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The SomeTech corporate network is designed to support complex and varied operational needs across different departments
+and functionalities. It includes a detailed setup with multiple subnets, each tailored to specific functions such as
+development, human resources, and data/storage.
+
+**Network Segmentation and Node Deployment**
+
+- **Web Server (some_tech_web_srv)**: Located in the Demilitarized Zone (DMZ) to ensure it is accessible from the
+  internet for hosting SomeTech's corporate website or external applications. This placement is crucial for security
+  as it isolates the web server from the internal corporate network, protecting sensitive internal data from external
+  threats.
+- **Firewall (some_tech_fw)**: Acts as a gatekeeper between the external internet, the internal network, and the DMZ.
+  It is equipped with multiple ports to distinctly manage traffic:
+
+  - **External Port**: Faces the ISP and handles all inbound and outbound internet traffic.
+  - **Internal Port**: Connects to the corporate router, managing traffic to and from the internal subnets.
+  - **DMZ Port**: Dedicated to traffic to and from the DMZ, specifically for the web server.
+
+- **Corporate Router (some_tech_rt)**: Central to internal network management, routing traffic across various subnets
+  designated for specific departmental functions:
+
+  - **Engineering Subnet**: Hosts developer PCs like some_tech_snr_dev_pc and some_tech_jnr_dev_pc, which are used by
+    senior and junior engineers respectively. These workstations are equipped with tools and applications for software
+    development and database interaction.
+  - **HR Subnet**: Contains the HR PC (some_tech_hr_1), used for managing human resources functions and accessing
+    sensitive employee data securely.
+  - **Data/Storage Subnet**: Contains the some_tech_db_srv and some_tech_storage_srv servers. Critical for storing and
+    managing the company's data. The database server hosts central databases accessed by various applications across
+    the network, while the storage server provides data storage solutions and backup services.
+
+**Security and Access Control**
+
+Each node is configured to ensure it meets the specific security and operational requirements of its function:
+
+- **ACLs on Firewall and Routers**: Carefully crafted Access Control Lists ensure that traffic is meticulously screened
+  before moving between the DMZ, external internet, and internal subnets. Specific rules include:
+
+  - Permitting database queries from the development PCs to the database server.
+  - Permitting database queries from the web server to the database server.
+  - Restricting FTP access from junior developer PCs to sensitive areas like the storage server.
+  - Allowing necessary web traffic to and from the web server in the DMZ.
+
+
+.. code-block:: yaml
+
+    simulation:
+      network:
+        nodes:
+          # Home/Office Network
+          - hostname: pc_1
+            type: computer
+            ip_address: 192.168.1.11
+            subnet_mask: 255.255.255.0
+            default_gateway: 192.168.1.1
+            dns_server: 8.8.8.2
+            applications:
+              - type: DatabaseClient
+                options:
+                  db_server_ip: 10.10.1.11
+              - type: WebBrowser
+                options:
+                  target_url: http://sometech.ai
+
+          - hostname: pc_2
+            type: computer
+            ip_address: 192.168.1.12
+            subnet_mask: 255.255.255.0
+            default_gateway: 192.168.1.1
+            dns_server: 8.8.8.2
+            applications:
+              - type: DatabaseClient
+                options:
+                  db_server_ip: 10.10.1.11
+              - type: WebBrowser
+                options:
+                  target_url: http://sometech.ai
+
+          - hostname: server_1
+            type: server
+            ip_address: 192.168.1.13
+            subnet_mask: 255.255.255.0
+            default_gateway: 192.168.1.1
+            dns_server: 8.8.8.2
+
+          - hostname: switch_1
+            type: switch
+            num_ports: 4
+
+          - hostname: router_1
+            type: router
+            num_ports: 2
+            ports:
+              1:
+                ip_address: 192.168.1.1
+                subnet_mask: 255.255.255.0
+              2:
+                ip_address: 43.35.240.2
+                subnet_mask: 255.255.255.252
+            acl:
+              10:
+                action: PERMIT
+            default_route: # Default route to all external networks
+              next_hop_ip_address: 43.35.240.1 # NI 1 on icp_router
+
+          # ISP Network
+          - hostname: isp_rt
+            type: router
+            num_ports: 3
+            ports:
+              1:
+                ip_address: 43.35.240.1
+                subnet_mask: 255.255.255.252
+              2:
+                ip_address: 94.10.180.1
+                subnet_mask: 255.255.255.252
+              3:
+                ip_address: 8.8.8.1
+                subnet_mask: 255.255.255.252
+            acl:
+              10:
+                action: PERMIT
+            routes:
+              - address: 192.168.1.0 # Route to the Home/Office LAN
+                subnet_mask: 255.255.255.0
+                next_hop_ip_address: 43.35.240.2 # NI 2 on router_1
+              - address: 10.10.0.0 # Route to the SomeTech internal network
+                subnet_mask: 255.255.0.0
+                next_hop_ip_address: 94.10.180.2 # NI ext on some_tech_fw
+              - address: 94.10.180.6 # Route to the Web Server in the SomeTech DMZ
+                subnet_mask: 255.255.255.255
+                next_hop_ip_address: 94.10.180.2 # NI ext on some_tech_fw
+
+          - hostname: isp_dns_srv
+            type: server
+            ip_address: 8.8.8.2
+            subnet_mask: 255.255.255.252
+            default_gateway: 8.8.8.1
+            services:
+              - ref: dns_server
+                type: DNSServer
+                options:
+                  domain_mapping:
+                    sometech.ai: 94.10.180.6
+
+          # SomeTech Network
+          - hostname: some_tech_fw
+            type: firewall
+            ports:
+              external_port: # port 1
+                ip_address: 94.10.180.2
+                subnet_mask: 255.255.255.252
+              internal_port: # port 2
+                ip_address: 10.10.4.2
+                subnet_mask: 255.255.255.252
+              dmz_port: # port 3
+                ip_address: 94.10.180.5
+                subnet_mask: 255.255.255.252
+            acl:
+              internal_inbound_acl:
+                8: # Permit some_tech_web_srv to connect to Database service on some_tech_db_srv
+                  action: PERMIT
+                  src_ip: 94.10.180.6
+                  src_wildcard_mask: 0.0.0.0
+                  src_port: POSTGRES_SERVER
+                  dst_ip: 10.10.1.11
+                  dst_wildcard_mask: 0.0.0.0
+                  dst_port: POSTGRES_SERVER
+                9: # Permit SomeTech to use HTTP
+                  action: PERMIT
+                  src_port: HTTP
+                10: # Permit SomeTech to use DNS
+                  action: PERMIT
+                  src_port: DNS
+                  dst_port: DNS
+              internal_outbound_acl:
+                10: # Permit all internal outbound traffic
+                  action: PERMIT
+              dmz_inbound_acl:
+                7: # Permit Database service on some_tech_db_srv to respong to some_tech_web_srv
+                  action: PERMIT
+                  src_ip: 10.10.1.11
+                  src_port: POSTGRES_SERVER
+                  src_wildcard_mask: 0.0.0.0
+                  dst_ip: 94.10.180.6
+                  dst_port: POSTGRES_SERVER
+                  dst_wildcard_mask: 0.0.0.0
+                8: # Permit SomeTech DMZ to use ARP
+                  action: PERMIT
+                  src_port: ARP
+                  dst_port: ARP
+                9: # Permit SomeTech DMZ to use DNS
+                  action: PERMIT
+                  src_port: DNS
+                  dst_port: DNS
+                10: # Permit all inbound HTTP requests
+                  action: PERMIT
+                  dst_port: HTTP
+              dmz_outbound_acl:
+                7: # Permit some_tech_web_srv to connect to Database service on some_tech_db_srv
+                  action: PERMIT
+                  src_ip: 94.10.180.6
+                  src_port: POSTGRES_SERVER
+                  src_wildcard_mask: 0.0.0.0
+                  dst_ip: 10.10.1.11
+                  dst_port: POSTGRES_SERVER
+                  dst_wildcard_mask: 0.0.0.0
+                8: # Permit SomeTech DMZ to use ARP
+                  action: PERMIT
+                  src_port: ARP
+                  dst_port: ARP
+                9: # Permit SomeTech DMZ to use DNS
+                  action: PERMIT
+                  src_port: DNS
+                  dst_port: DNS
+                10: # Permit all outbound HTTP requests
+                  action: PERMIT
+                  src_port: HTTP
+            default_route: # Default route to all external networks
+              next_hop_ip_address: 94.10.180.1 # NI 2 on isp_rt
+            routes:
+              - address: 10.10.0.0 # Route to the SomeTech internal LAN
+                subnet_mask: 255.255.0.0
+                next_hop_ip_address: 10.10.4.1 # NI 1 on some_tech_rt
+
+
+          - hostname: some_tech_web_srv
+            type: server
+            ip_address: 94.10.180.6
+            subnet_mask: 255.255.255.252
+            default_gateway: 94.10.180.5
+            dns_server: 8.8.8.2
+            services:
+              - ref: web_server
+                type: WebServer
+            applications:
+              - type: DatabaseClient
+                options:
+                  db_server_ip: 10.10.1.11
+
+          - hostname: some_tech_rt
+            type: router
+            num_ports: 4
+            ports:
+              1:
+                ip_address: 10.10.1.1
+                subnet_mask: 255.255.255.0
+              2:
+                ip_address: 10.10.4.1
+                subnet_mask: 255.255.255.252
+              3:
+                ip_address: 10.10.3.1
+                subnet_mask: 255.255.255.0
+              4:
+                ip_address: 10.10.2.1
+                subnet_mask: 255.255.255.0
+
+            acl:
+              2: # Allow the some_tech_web_srv to connect to the Database Service on some_tech_db_srv
+                action: PERMIT
+                src_ip: 94.10.180.6
+                src_wildcard_mask: 0.0.0.0
+                src_port: POSTGRES_SERVER
+                dst_ip: 10.10.1.11
+                dst_wildcard_mask: 0.0.0.0
+                dst_port: POSTGRES_SERVER
+              3: # Allow the Database Service on some_tech_db_srv to respond to some_tech_web_srv
+                action: PERMIT
+                src_ip: 10.10.1.11
+                src_wildcard_mask: 0.0.0.0
+                src_port: POSTGRES_SERVER
+                dst_ip: 94.10.180.6
+                dst_wildcard_mask: 0.0.0.0
+                dst_port: POSTGRES_SERVER
+              4: # Prevent the Junior engineer from downloading files from the some_tech_storage_srv over FTP
+                action: DENY
+                src_ip: 10.10.2.12
+                src_wildcard_mask: 0.0.0.0
+                src_port: FTP
+                dst_ip: 10.10.1.12
+                dst_wildcard_mask: 0.0.0.0
+                dst_port: FTP
+              5: # Allow communication between Engineering and the DB & Storage subnet
+                action: PERMIT
+                src_ip: 10.10.2.0
+                src_wildcard_mask: 0.0.0.255
+                dst_ip: 10.10.1.0
+                dst_wildcard_mask: 0.0.0.255
+              6: # Allow communication between the DB & Storage subnet and Engineering
+                action: PERMIT
+                src_ip: 10.10.1.0
+                src_wildcard_mask: 0.0.0.255
+                dst_ip: 10.10.2.0
+                dst_wildcard_mask: 0.0.0.255
+              7: # Allow the SomeTech network to use HTTP
+                action: PERMIT
+                src_port: HTTP
+                dst_port: HTTP
+              8: # Allow the SomeTech internal network to use ARP
+                action: PERMIT
+                src_ip: 10.10.0.0
+                src_wildcard_mask: 0.0.255.255
+                src_port: ARP
+              9: # Allow the SomeTech internal network to use ICMP
+                action: PERMIT
+                src_ip: 10.10.0.0
+                src_wildcard_mask: 0.0.255.255
+                protocol: ICMP
+              10:
+                action: PERMIT
+                src_ip: 94.10.180.6
+                src_wildcard_mask: 0.0.0.0
+                src_port: HTTP
+                dst_ip: 10.10.0.0
+                dst_wildcard_mask: 0.0.255.255
+                dst_port: HTTP
+              11: # Permit SomeTech to use DNS
+                action: PERMIT
+                src_port: DNS
+                dst_port: DNS
+            default_route: # Default route to all external networks
+              next_hop_ip_address: 10.10.4.2 # NI int on some_tech_fw
+
+
+          - hostname: some_tech_data_sw
+            type: switch
+            num_ports: 3
+
+          - hostname: some_tech_hr_sw
+            type: switch
+            num_ports: 2
+
+          - hostname: some_tech_eng_sw
+            type: switch
+            num_ports: 3
+
+          - hostname: some_tech_db_srv
+            type: server
+            ip_address: 10.10.1.11
+            subnet_mask: 255.255.255.0
+            default_gateway: 10.10.1.1
+            dns_server: 8.8.8.2
+            services:
+              - type: DatabaseService
+                options:
+                  backup_server_ip: 10.10.1.12 # The some_tech_storage_srv server
+              - type: FTPClient
+
+          - hostname: some_tech_storage_srv
+            type: server
+            ip_address: 10.10.1.12
+            subnet_mask: 255.255.255.0
+            default_gateway: 10.10.1.1
+            dns_server: 8.8.8.2
+            services:
+              - type: FTPServer
+
+          - hostname: some_tech_hr_1
+            type: computer
+            ip_address: 10.10.3.11
+            subnet_mask: 255.255.255.0
+            default_gateway: 10.10.3.1
+            dns_server: 8.8.8.2
+            applications:
+              - type: DatabaseClient
+                options:
+                  db_server_ip: 10.10.1.11
+              - type: WebBrowser
+                options:
+                  target_url: http://sometech.ai
+
+          - hostname: some_tech_snr_dev_pc
+            type: computer
+            ip_address: 10.10.2.11
+            subnet_mask: 255.255.255.0
+            default_gateway: 10.10.2.1
+            dns_server: 8.8.8.2
+            applications:
+              - type: DatabaseClient
+                options:
+                  db_server_ip: 10.10.1.11
+              - type: WebBrowser
+                options:
+                  target_url: http://sometech.ai
+
+          - hostname: some_tech_jnr_dev_pc
+            type: computer
+            ip_address: 10.10.2.12
+            subnet_mask: 255.255.255.0
+            default_gateway: 10.10.2.1
+            dns_server: 8.8.8.2
+            applications:
+              - type: DatabaseClient
+                options:
+                  db_server_ip: 10.10.1.11
+              - type: WebBrowser
+                options:
+                  target_url: http://sometech.ai
+
+        links:
+          # Home/Office Lan Links
+          - endpoint_a_hostname: pc_1
+            endpoint_a_port: 1
+            endpoint_b_hostname: switch_1
+            endpoint_b_port: 1
+          - endpoint_a_hostname: pc_2
+            endpoint_a_port: 1
+            endpoint_b_hostname: switch_1
+            endpoint_b_port: 2
+          - endpoint_a_hostname: server_1
+            endpoint_a_port: 1
+            endpoint_b_hostname: switch_1
+            endpoint_b_port: 3
+          - endpoint_a_hostname: router_1
+            endpoint_a_port: 1
+            endpoint_b_hostname: switch_1
+            endpoint_b_port: 4
+
+          # ISP Links
+          - endpoint_a_hostname: isp_rt
+            endpoint_a_port: 1
+            endpoint_b_hostname: router_1
+            endpoint_b_port: 2
+          - endpoint_a_hostname: isp_rt
+            endpoint_a_port: 2
+            endpoint_b_hostname: some_tech_fw
+            endpoint_b_port: 1
+          - endpoint_a_hostname: isp_rt
+            endpoint_a_port: 3
+            endpoint_b_hostname: isp_dns_srv
+            endpoint_b_port: 1
+
+
+          # SomeTech LAN Links
+          - endpoint_a_hostname: some_tech_fw
+            endpoint_a_port: 3
+            endpoint_b_hostname: some_tech_web_srv
+            endpoint_b_port: 1
+          - endpoint_a_hostname: some_tech_fw
+            endpoint_a_port: 2
+            endpoint_b_hostname: some_tech_rt
+            endpoint_b_port: 2
+          - endpoint_a_hostname: some_tech_rt
+            endpoint_a_port: 1
+            endpoint_b_hostname: some_tech_data_sw
+            endpoint_b_port: 3
+          - endpoint_a_hostname: some_tech_rt
+            endpoint_a_port: 3
+            endpoint_b_hostname: some_tech_hr_sw
+            endpoint_b_port: 2
+          - endpoint_a_hostname: some_tech_rt
+            endpoint_a_port: 4
+            endpoint_b_hostname: some_tech_eng_sw
+            endpoint_b_port: 3
+          - endpoint_a_hostname: some_tech_data_sw
+            endpoint_a_port: 1
+            endpoint_b_hostname: some_tech_db_srv
+            endpoint_b_port: 1
+          - endpoint_a_hostname: some_tech_data_sw
+            endpoint_a_port: 2
+            endpoint_b_hostname: some_tech_storage_srv
+            endpoint_b_port: 1
+          - endpoint_a_hostname: some_tech_hr_sw
+            endpoint_a_port: 1
+            endpoint_b_hostname: some_tech_hr_1
+            endpoint_b_port: 1
+          - endpoint_a_hostname: some_tech_eng_sw
+            endpoint_a_port: 1
+            endpoint_b_hostname: some_tech_snr_dev_pc
+            endpoint_b_port: 1
+          - endpoint_a_hostname: some_tech_eng_sw
+            endpoint_a_port: 2
+            endpoint_b_hostname: some_tech_jnr_dev_pc
+            endpoint_b_port: 1
+
+
+
+Inspection and Connectivity Test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+The following codeblock demonstrates how to access this network and all ``.show()`` to output the network details:
+
+.. code-block:: python
+
+    from primaite.simulator.network.networks import multi_lan_internet_network_example
+
+    network = multi_lan_internet_network_example()
+
+    network.show()
+
+Which gives the output:
+
+.. code-block:: text
+
+    +----------------------------------------------------+
+    |                       Nodes                        |
+    +-----------------------+----------+-----------------+
+    | Node                  | Type     | Operating State |
+    +-----------------------+----------+-----------------+
+    | router_1              | Router   | ON              |
+    | isp_rt                | Router   | ON              |
+    | some_tech_rt          | Router   | ON              |
+    | some_tech_fw          | Firewall | ON              |
+    | switch_1              | Switch   | ON              |
+    | some_tech_data_sw     | Switch   | ON              |
+    | some_tech_hr_sw       | Switch   | ON              |
+    | some_tech_eng_sw      | Switch   | ON              |
+    | server_1              | Server   | ON              |
+    | isp_dns_srv           | Server   | ON              |
+    | some_tech_web_srv     | Server   | ON              |
+    | some_tech_db_srv      | Server   | ON              |
+    | some_tech_storage_srv | Server   | ON              |
+    | pc_1                  | Computer | ON              |
+    | pc_2                  | Computer | ON              |
+    | some_tech_hr_1        | Computer | ON              |
+    | some_tech_snr_dev_pc  | Computer | ON              |
+    | some_tech_jnr_dev_pc  | Computer | ON              |
+    +-----------------------+----------+-----------------+
+    +-------------------------------------------------------------------------------------+
+    |                                     IP Addresses                                    |
+    +-----------------------+----------+--------------+-----------------+-----------------+
+    | Node                  | Port     | IP Address   | Subnet Mask     | Default Gateway |
+    +-----------------------+----------+--------------+-----------------+-----------------+
+    | router_1              | 1        | 192.168.1.1  | 255.255.255.0   | None            |
+    | router_1              | 2        | 43.35.240.2  | 255.255.255.252 | None            |
+    | isp_rt                | 1        | 43.35.240.1  | 255.255.255.252 | None            |
+    | isp_rt                | 2        | 94.10.180.1  | 255.255.255.252 | None            |
+    | isp_rt                | 3        | 8.8.8.1      | 255.255.255.252 | None            |
+    | some_tech_rt          | 1        | 10.10.1.1    | 255.255.255.0   | None            |
+    | some_tech_rt          | 2        | 10.10.4.1    | 255.255.255.252 | None            |
+    | some_tech_rt          | 3        | 10.10.3.1    | 255.255.255.0   | None            |
+    | some_tech_rt          | 4        | 10.10.2.1    | 255.255.255.0   | None            |
+    | some_tech_fw          | external | 94.10.180.2  | 255.255.255.252 | None            |
+    | some_tech_fw          | internal | 10.10.4.2    | 255.255.255.252 | None            |
+    | some_tech_fw          | dmz      | 94.10.180.5  | 255.255.255.252 | None            |
+    | server_1              | 1        | 192.168.1.13 | 255.255.255.0   | 192.168.1.1     |
+    | isp_dns_srv           | 1        | 8.8.8.2      | 255.255.255.252 | 8.8.8.1         |
+    | some_tech_web_srv     | 1        | 94.10.180.6  | 255.255.255.252 | 94.10.180.5     |
+    | some_tech_db_srv      | 1        | 10.10.1.11   | 255.255.255.0   | 10.10.1.1       |
+    | some_tech_storage_srv | 1        | 10.10.1.12   | 255.255.255.0   | 10.10.1.1       |
+    | pc_1                  | 1        | 192.168.1.11 | 255.255.255.0   | 192.168.1.1     |
+    | pc_2                  | 1        | 192.168.1.12 | 255.255.255.0   | 192.168.1.1     |
+    | some_tech_hr_1        | 1        | 10.10.3.11   | 255.255.255.0   | 10.10.3.1       |
+    | some_tech_snr_dev_pc  | 1        | 10.10.2.11   | 255.255.255.0   | 10.10.2.1       |
+    | some_tech_jnr_dev_pc  | 1        | 10.10.2.12   | 255.255.255.0   | 10.10.2.1       |
+    +-----------------------+----------+--------------+-----------------+-----------------+
+    +----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                                      Links                                                                                       |
+    +-------------------+--------------------------------------------+-----------------------+----------------------------------------------+-------+-------------------+--------------+
+    | Endpoint A        | A Port                                     | Endpoint B            | B Port                                       | is Up | Bandwidth (MBits) | Current Load |
+    +-------------------+--------------------------------------------+-----------------------+----------------------------------------------+-------+-------------------+--------------+
+    | isp_rt            | Port 1: 8c:3c:c0:80:f2:07/43.35.240.1      | router_1              | Port 2: e1:b1:56:2c:fa:df/43.35.240.2        | True  | 100.0             | 0.00000%     |
+    | router_1          | Port 1: 54:6c:a6:23:4e:fd/192.168.1.1      | switch_1              | Port 4: fe:fd:f9:00:a7:62                    | True  | 100.0             | 0.00000%     |
+    | isp_rt            | Port 3: 2a:af:5c:2b:bc:e1/8.8.8.1          | isp_dns_srv           | Port 1: 23:a3:81:d8:bb:b2/8.8.8.2            | True  | 100.0             | 0.00003%     |
+    | isp_rt            | Port 2: 89:9b:bd:03:ab:89/94.10.180.1      | some_tech_fw          | Port external: 9f:4b:76:68:6a:0c/94.10.180.2 | True  | 100.0             | 0.00000%     |
+    | some_tech_rt      | Port 4: be:f3:e4:f8:d9:05/10.10.2.1        | some_tech_eng_sw      | Port 3: e2:0c:dc:c5:49:c7                    | True  | 100.0             | 0.00006%     |
+    | some_tech_rt      | Port 3: c9:55:0c:c3:f9:af/10.10.3.1        | some_tech_hr_sw       | Port 2: 25:ee:a2:f0:a5:87                    | True  | 100.0             | 0.00003%     |
+    | some_tech_rt      | Port 1: 16:0c:1a:ec:91:82/10.10.1.1        | some_tech_data_sw     | Port 3: 70:ea:69:f8:1f:cf                    | True  | 100.0             | 0.00006%     |
+    | some_tech_fw      | Port internal: fc:dd:9d:67:23:73/10.10.4.2 | some_tech_rt          | Port 2: f4:af:8e:a4:c7:5a/10.10.4.1          | True  | 100.0             | 0.00000%     |
+    | some_tech_fw      | Port dmz: 1b:50:ac:9d:fd:20/94.10.180.5    | some_tech_web_srv     | Port 1: 95:f6:f1:79:57:2d/94.10.180.6        | True  | 100.0             | 0.00003%     |
+    | server_1          | Port 1: b8:39:55:01:6b:8b/192.168.1.13     | switch_1              | Port 3: 74:3d:af:db:69:6e                    | True  | 100.0             | 0.00000%     |
+    | pc_2              | Port 1: 3b:59:9b:44:22:47/192.168.1.12     | switch_1              | Port 2: 2e:eb:17:f7:a1:92                    | True  | 100.0             | 0.00000%     |
+    | pc_1              | Port 1: 82:72:eb:cb:67:50/192.168.1.11     | switch_1              | Port 1: 18:1a:6e:fc:b4:18                    | True  | 100.0             | 0.00000%     |
+    | some_tech_data_sw | Port 2: 96:3b:0e:28:95:f2                  | some_tech_storage_srv | Port 1: 05:ee:9e:87:f9:49/10.10.1.12         | True  | 100.0             | 0.00003%     |
+    | some_tech_data_sw | Port 1: 0a:69:b6:2e:49:f9                  | some_tech_db_srv      | Port 1: 81:1c:18:96:7f:cf/10.10.1.11         | True  | 100.0             | 0.00003%     |
+    | some_tech_hr_sw   | Port 1: 36:4a:02:b7:0c:45                  | some_tech_hr_1        | Port 1: f6:a4:cc:19:15:3b/10.10.3.11         | True  | 100.0             | 0.00003%     |
+    | some_tech_eng_sw  | Port 2: f8:54:70:20:97:5d                  | some_tech_jnr_dev_pc  | Port 1: a7:5f:7c:9a:ab:32/10.10.2.12         | True  | 100.0             | 0.00003%     |
+    | some_tech_eng_sw  | Port 1: ba:77:f5:9b:89:ae                  | some_tech_snr_dev_pc  | Port 1: ab:3c:5d:27:50:52/10.10.2.11         | True  | 100.0             | 0.00003%     |
+    +-------------------+--------------------------------------------+-----------------------+----------------------------------------------+-------+-------------------+--------------+
+
+Once the network in configured, it's vital we check all the services are working as expected, with Router and Firewall
+ACLs permitting or denying traffic as per our configured ACL rules.
+
+**Testing Home/Office PCs Can Access the SomeTech website**
+
+.. code-block:: python
+
+    from primaite.simulator.network.networks import multi_lan_internet_network_example
+    from src.primaite.simulator.system.applications.web_browser import WebBrowser
+
+    network = multi_lan_internet_network_example()
+
+    pc_1_browser: WebBrowser = network.get_node_by_hostname("pc_1").software_manager.software["WebBrowser"]
+    pc_2_browser: WebBrowser = network.get_node_by_hostname("pc_2").software_manager.software["WebBrowser"]
+
+    assert pc_1_browser.get_webpage()
+    assert pc_2_browser.get_webpage()
+
+
+**Testing Home/Office PCs Cannot Access SomeTech DB Servers Database Service**
+
+.. code-block:: python
+
+    from primaite.simulator.network.networks import multi_lan_internet_network_example
+    from primaite.simulator.system.applications.database_client import DatabaseClient
+
+    network = multi_lan_internet_network_example()
+
+    pc_1_db_client: DatabaseClient = network.get_node_by_hostname("pc_1").software_manager.software["DatabaseClient"]
+    pc_2_db_client: DatabaseClient = network.get_node_by_hostname("pc_2").software_manager.software["DatabaseClient"]
+
+    assert not pc_1_db_client.get_new_connection()
+    assert not pc_2_db_client.get_new_connection()
+
+**Testing Home/Office PCs Cannot Access SomeTech Storage Servers FTP Service**
+
+.. code-block:: python
+
+    from primaite.simulator.network.networks import multi_lan_internet_network_example
+    from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+
+    network = multi_lan_internet_network_example()
+
+    some_tech_storage_srv = network.get_node_by_hostname("some_tech_storage_srv")
+    some_tech_storage_srv.file_system.create_file(file_name="test.png")
+
+    pc_1_ftp_client: FTPClient = network.get_node_by_hostname("pc_1").software_manager.software["FTPClient"]
+    pc_2_ftp_client: FTPClient = network.get_node_by_hostname("pc_2").software_manager.software["FTPClient"]
+
+    assert not pc_1_ftp_client.request_file(
+        dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
+        src_folder_name="root",
+        src_file_name="test.png",
+        dest_folder_name="root",
+        dest_file_name="test.png",
+    )
+
+    assert not pc_2_ftp_client.request_file(
+        dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
+        src_folder_name="root",
+        src_file_name="test.png",
+        dest_folder_name="root",
+        dest_file_name="test.png",
+    )
+
+**Test SomeTech Web Server Can Access SomeTech DB Servers Database Service**
+
+.. code-block:: python
+
+    from primaite.simulator.network.networks import multi_lan_internet_network_example
+    from primaite.simulator.system.applications.database_client import DatabaseClient
+
+    network = multi_lan_internet_network_example()
+
+    web_db_client: DatabaseClient = network.get_node_by_hostname("some_tech_web_srv").software_manager.software["DatabaseClient"]
+
+    assert web_db_client.get_new_connection()
+
+**Test SomeTech Web Server Cannot Access SomeTech Storage Servers FTP Service**
+
+.. code-block:: python
+
+    from primaite.simulator.network.networks import multi_lan_internet_network_example
+    from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+    from primaite.simulator.network.hardware.nodes.host.server import Server
+
+    network = multi_lan_internet_network_example()
+
+    some_tech_storage_srv = network.get_node_by_hostname("some_tech_storage_srv")
+    some_tech_storage_srv.file_system.create_file(file_name="test.png")
+
+    web_server: Server = network.get_node_by_hostname("some_tech_web_srv")
+
+    web_ftp_client: FTPClient = web_server.software_manager.software["FTPClient"]
+
+    assert not web_ftp_client.request_file(
+        dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
+        src_folder_name="root",
+        src_file_name="test.png",
+        dest_folder_name="root",
+        dest_file_name="test.png",
+    )
+
+**Test SomeTech Dev PCs Can Access SomeTech DB Servers Database Service**
+
+.. code-block:: python
+
+    from primaite.simulator.network.networks import multi_lan_internet_network_example
+    from primaite.simulator.system.applications.database_client import DatabaseClient
+    from primaite.simulator.network.hardware.nodes.host.computer import Computer
+
+    network = multi_lan_internet_network_example()
+
+    some_tech_snr_dev_pc: Computer = network.get_node_by_hostname("some_tech_snr_dev_pc")
+    snr_dev_db_client: DatabaseClient = some_tech_snr_dev_pc.software_manager.software["DatabaseClient"]
+
+    assert snr_dev_db_client.get_new_connection()
+
+    some_tech_jnr_dev_pc: Computer = network.get_node_by_hostname("some_tech_jnr_dev_pc")
+    jnr_dev_db_client: DatabaseClient = some_tech_jnr_dev_pc.software_manager.software["DatabaseClient"]
+
+    assert jnr_dev_db_client.get_new_connection()
+
+**Test SomeTech Senior Dev Can Access SomeTech Storage Servers FTP Service**
+
+.. code-block:: python
+
+    from primaite.simulator.network.networks import multi_lan_internet_network_example
+    from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+    from primaite.simulator.network.hardware.nodes.host.server import Server
+    from primaite.simulator.network.hardware.nodes.host.computer import Computer
+
+    network = multi_lan_internet_network_example()
+
+    some_tech_storage_srv: Server = network.get_node_by_hostname("some_tech_storage_srv")
+    some_tech_storage_srv.file_system.create_file(file_name="test.png")
+
+    some_tech_snr_dev_pc: Computer = network.get_node_by_hostname("some_tech_snr_dev_pc")
+    snr_dev_ftp_client: FTPClient = some_tech_snr_dev_pc.software_manager.software["FTPClient"]
+
+    assert snr_dev_ftp_client.request_file(
+        dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
+        src_folder_name="root",
+        src_file_name="test.png",
+        dest_folder_name="root",
+        dest_file_name="test.png",
+    )
+
+**Test SomeTech Junior Dev Cannot Access SomeTech Storage Servers FTP Service**
+
+.. code-block:: python
+
+    from primaite.simulator.network.networks import multi_lan_internet_network_example
+    from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+    from primaite.simulator.network.hardware.nodes.host.server import Server
+    from primaite.simulator.network.hardware.nodes.host.computer import Computer
+
+    network = multi_lan_internet_network_example()
+
+    some_tech_storage_srv: Server = network.get_node_by_hostname("some_tech_storage_srv")
+    some_tech_storage_srv.file_system.create_file(file_name="test.png")
+
+    some_tech_jnr_dev_pc: Computer = network.get_node_by_hostname("some_tech_jnr_dev_pc")
+    jnr_dev_ftp_client: FTPClient = some_tech_jnr_dev_pc.software_manager.software["FTPClient"]
+
+    assert not jnr_dev_ftp_client.request_file(
+        dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
+        src_folder_name="root",
+        src_file_name="test.png",
+        dest_folder_name="root",
+        dest_file_name="test.png",
+    )
+
+**Test SomeTech HR PC Cannot Access SomeTech DB Servers Database Service****
+
+.. code-block:: python
+
+    from primaite.simulator.network.networks import multi_lan_internet_network_example
+    from primaite.simulator.system.applications.database_client import DatabaseClient
+    from primaite.simulator.network.hardware.nodes.host.computer import Computer
+
+    network = multi_lan_internet_network_example()
+
+    some_tech_hr_pc: Computer = network.get_node_by_hostname("some_tech_hr_1")
+
+    hr_db_client: DatabaseClient = some_tech_hr_pc.software_manager.software["DatabaseClient"]
+
+    assert not hr_db_client.get_new_connection()
+
+
+
+**Test SomeTech HR PC Cannot Access SomeTech Storage Servers FTP Service**
+
+.. code-block:: python
+
+    from primaite.simulator.network.networks import multi_lan_internet_network_example
+    from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+    from primaite.simulator.network.hardware.nodes.host.server import Server
+    from primaite.simulator.network.hardware.nodes.host.computer import Computer
+
+    network = multi_lan_internet_network_example()
+
+    some_tech_storage_srv: Server = network.get_node_by_hostname("some_tech_storage_srv")
+    some_tech_storage_srv.file_system.create_file(file_name="test.png")
+
+    some_tech_hr_pc: Computer = network.get_node_by_hostname("some_tech_hr_1")
+    hr_ftp_client: FTPClient = some_tech_hr_pc.software_manager.software["FTPClient"]
+
+    assert not hr_ftp_client.request_file(
+        dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
+        src_folder_name="root",
+        src_file_name="test.png",
+        dest_folder_name="root",
+        dest_file_name="test.png",
+    )

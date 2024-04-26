@@ -2,7 +2,7 @@ from ipaddress import IPv4Address
 
 import yaml
 
-from primaite import PRIMAITE_PATHS, getLogger
+from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.game import PrimaiteGame
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -287,7 +287,7 @@ def arcd_uc2_network() -> Network:
     return network
 
 
-def _get_example_network(path) -> Network:
+def _get_example_network(path: str) -> Network:
     try:
         with open(path, "r") as file:
             cfg = yaml.safe_load(file)
@@ -301,16 +301,18 @@ def _get_example_network(path) -> Network:
 
 
 def client_server_p2p_network_example() -> Network:
-    path = PRIMAITE_PATHS.user_config_path / "example_config" / "client-server-p2p-network-example.yaml"
+    """Get the Client-Server P2P example network."""
+    path = PRIMAITE_PATHS.user_config_path / "example_config" / "client_server_p2p_network_example.yaml"
     return _get_example_network(path)
 
 
 def basic_lan_network_example() -> Network:
-    path = PRIMAITE_PATHS.user_config_path / "example_config" / "basic-network-network-example.yaml"
+    """Get the basic LAN example network."""
+    path = PRIMAITE_PATHS.user_config_path / "example_config" / "basic_network_network_example.yaml"
     return _get_example_network(path)
 
 
 def multi_lan_internet_network_example() -> Network:
-    path = PRIMAITE_PATHS.user_config_path / "example_config" / "complex_multi_lan_internet_network_example.yaml"
-    path = r"src/primaite/config/_package_data/multi_lan_internet_network_example.yaml"
+    """Get Multi-LAN with Internet example network."""
+    path = PRIMAITE_PATHS.user_config_path / "example_config" / "multi_lan_internet_network_example.yaml"
     return _get_example_network(path)

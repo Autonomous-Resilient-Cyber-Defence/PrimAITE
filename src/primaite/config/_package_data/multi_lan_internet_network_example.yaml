@@ -19,6 +19,13 @@ simulation:
         subnet_mask: 255.255.255.0
         default_gateway: 192.168.1.1
         dns_server: 8.8.8.2
+        applications:
+          - type: DatabaseClient
+            options:
+              db_server_ip: 10.10.1.11
+          - type: WebBrowser
+            options:
+              target_url: http://sometech.ai
 
       - hostname: pc_2
         type: computer
@@ -26,6 +33,13 @@ simulation:
         subnet_mask: 255.255.255.0
         default_gateway: 192.168.1.1
         dns_server: 8.8.8.2
+        applications:
+          - type: DatabaseClient
+            options:
+              db_server_ip: 10.10.1.11
+          - type: WebBrowser
+            options:
+              target_url: http://sometech.ai
 
       - hostname: server_1
         type: server
@@ -51,8 +65,6 @@ simulation:
         acl:
           10:
             action: PERMIT
-            src_ip: 192.168.1.0
-            src_wildcard_mask: 0.0.0.255
         default_route: # Default route to all external networks
           next_hop_ip_address: 43.35.240.1 # NI 1 on icp_router
 
@@ -111,32 +123,71 @@ simulation:
             subnet_mask: 255.255.255.252
         acl:
           internal_inbound_acl:
-            1:
+            8: # Permit some_tech_web_srv to connect to Database service on some_tech_db_srv
               action: PERMIT
-              protocol: TCP
               src_ip: 94.10.180.6
               src_wildcard_mask: 0.0.0.0
-              dst_ip: 10.10.1.0
-              dst_wildcard_mask: 0.0.0.255
-            22:
+              src_port: POSTGRES_SERVER
+              dst_ip: 10.10.1.11
+              dst_wildcard_mask: 0.0.0.0
+              dst_port: POSTGRES_SERVER
+            9: # Permit SomeTech to use HTTP
               action: PERMIT
-              protocol: UDP
-            23:
+              src_port: HTTP
+            10: # Permit SomeTech to use DNS
               action: PERMIT
-              protocol: ICMP
+              src_port: DNS
+              dst_port: DNS
           internal_outbound_acl:
-            10:
+            10: # Permit all internal outbound traffic
               action: PERMIT
           dmz_inbound_acl:
-            10:
+            7: # Permit Database service on some_tech_db_srv to respong to some_tech_web_srv
               action: PERMIT
+              src_ip: 10.10.1.11
+              src_port: POSTGRES_SERVER
+              src_wildcard_mask: 0.0.0.0
               dst_ip: 94.10.180.6
+              dst_port: POSTGRES_SERVER
               dst_wildcard_mask: 0.0.0.0
+            8: # Permit SomeTech DMZ to use ARP
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            9: # Permit SomeTech DMZ to use DNS
+              action: PERMIT
+              src_port: DNS
+              dst_port: DNS
+            10: # Permit all inbound HTTP requests
+              action: PERMIT
+              dst_port: HTTP
           dmz_outbound_acl:
-            10:
+            7: # Permit some_tech_web_srv to connect to Database service on some_tech_db_srv
               action: PERMIT
               src_ip: 94.10.180.6
+              src_port: POSTGRES_SERVER
               src_wildcard_mask: 0.0.0.0
+              dst_ip: 10.10.1.11
+              dst_port: POSTGRES_SERVER
+              dst_wildcard_mask: 0.0.0.0
+            8: # Permit SomeTech DMZ to use ARP
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            9: # Permit SomeTech DMZ to use DNS
+              action: PERMIT
+              src_port: DNS
+              dst_port: DNS
+            10: # Permit all outbound HTTP requests
+              action: PERMIT
+              src_port: HTTP
+        default_route: # Default route to all external networks
+          next_hop_ip_address: 94.10.180.1 # NI 2 on isp_rt
+        routes:
+          - address: 10.10.0.0 # Route to the SomeTech internal LAN
+            subnet_mask: 255.255.0.0
+            next_hop_ip_address: 10.10.4.1 # NI 1 on some_tech_rt
+
 
       - hostname: some_tech_web_srv
         type: server
@@ -170,9 +221,25 @@ simulation:
             subnet_mask: 255.255.255.0
 
         acl:
+          2: # Allow the some_tech_web_srv to connect to the Database Service on some_tech_db_srv
+            action: PERMIT
+            src_ip: 94.10.180.6
+            src_wildcard_mask: 0.0.0.0
+            src_port: POSTGRES_SERVER
+            dst_ip: 10.10.1.11
+            dst_wildcard_mask: 0.0.0.0
+            dst_port: POSTGRES_SERVER
+          3: # Allow the Database Service on some_tech_db_srv to respond to some_tech_web_srv
+            action: PERMIT
+            src_ip: 10.10.1.11
+            src_wildcard_mask: 0.0.0.0
+            src_port: POSTGRES_SERVER
+            dst_ip: 94.10.180.6
+            dst_wildcard_mask: 0.0.0.0
+            dst_port: POSTGRES_SERVER
           4: # Prevent the Junior engineer from downloading files from the some_tech_storage_srv over FTP
             action: DENY
-            src_ip: 10.10.12.2
+            src_ip: 10.10.2.12
             src_wildcard_mask: 0.0.0.0
             src_port: FTP
             dst_ip: 10.10.1.12
@@ -212,6 +279,10 @@ simulation:
             dst_ip: 10.10.0.0
             dst_wildcard_mask: 0.0.255.255
             dst_port: HTTP
+          11: # Permit SomeTech to use DNS
+            action: PERMIT
+            src_port: DNS
+            dst_port: DNS
         default_route: # Default route to all external networks
           next_hop_ip_address: 10.10.4.2 # NI int on some_tech_fw
 
@@ -237,7 +308,7 @@ simulation:
         services:
           - type: DatabaseService
             options:
-              backup_server_ip: 10.10.1.12
+              backup_server_ip: 10.10.1.12 # The some_tech_storage_srv server
           - type: FTPClient
 
       - hostname: some_tech_storage_srv
@@ -256,6 +327,9 @@ simulation:
         default_gateway: 10.10.3.1
         dns_server: 8.8.8.2
         applications:
+          - type: DatabaseClient
+            options:
+              db_server_ip: 10.10.1.11
           - type: WebBrowser
             options:
               target_url: http://sometech.ai
@@ -266,8 +340,6 @@ simulation:
         subnet_mask: 255.255.255.0
         default_gateway: 10.10.2.1
         dns_server: 8.8.8.2
-        services:
-          - type: FTPClient
         applications:
           - type: DatabaseClient
             options:

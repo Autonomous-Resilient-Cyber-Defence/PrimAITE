@@ -330,7 +330,7 @@ class Firewall(Router):
         # check if External Inbound ACL Rules permit frame
         permitted, rule = self.external_inbound_acl.is_permitted(frame)
         if not permitted:
-            self.sys_log.info(f"Frame blocked at interface {from_network_interface} by rule {rule}")
+            self.sys_log.info(f"Frame blocked at external inbound by rule {rule}")
             return
         self.software_manager.arp.add_arp_cache_entry(
             ip_address=frame.ip.src_ip_address,
@@ -360,7 +360,7 @@ class Firewall(Router):
         # check if External Outbound ACL Rules permit frame
         permitted, rule = self.external_outbound_acl.is_permitted(frame=frame)
         if not permitted:
-            self.sys_log.info(f"Frame blocked at interface {from_network_interface} by rule {rule}")
+            self.sys_log.info(f"Frame blocked at external outbound by rule {rule}")
             return
 
         self.process_frame(frame=frame, from_network_interface=from_network_interface)
@@ -380,7 +380,7 @@ class Firewall(Router):
         # check if Internal Inbound ACL Rules permit frame
         permitted, rule = self.internal_inbound_acl.is_permitted(frame=frame)
         if not permitted:
-            self.sys_log.info(f"Frame blocked at interface {from_network_interface} by rule {rule}")
+            self.sys_log.info(f"Frame blocked at internal inbound by rule {rule}")
             return
 
         self.process_frame(frame=frame, from_network_interface=from_network_interface)
@@ -398,7 +398,7 @@ class Firewall(Router):
         """
         permitted, rule = self.internal_outbound_acl.is_permitted(frame)
         if not permitted:
-            self.sys_log.info(f"Frame blocked at interface {from_network_interface} by rule {rule}")
+            self.sys_log.info(f"Frame blocked at internal outbound by rule {rule}")
             return
         self.software_manager.arp.add_arp_cache_entry(
             ip_address=frame.ip.src_ip_address,
@@ -432,7 +432,7 @@ class Firewall(Router):
         # check if DMZ Inbound ACL Rules permit frame
         permitted, rule = self.dmz_inbound_acl.is_permitted(frame=frame)
         if not permitted:
-            self.sys_log.info(f"Frame blocked at interface {from_network_interface} by rule {rule}")
+            self.sys_log.info(f"Frame blocked at DMZ inbound by rule {rule}")
             return
 
         self.process_frame(frame=frame, from_network_interface=from_network_interface)
@@ -452,7 +452,7 @@ class Firewall(Router):
         """
         permitted, rule = self.dmz_outbound_acl.is_permitted(frame)
         if not permitted:
-            self.sys_log.info(f"Frame blocked at interface {from_network_interface} by rule {rule}")
+            self.sys_log.info(f"Frame blocked at DMZ outbound by rule {rule}")
             return
         self.software_manager.arp.add_arp_cache_entry(
             ip_address=frame.ip.src_ip_address,
@@ -688,4 +688,9 @@ class Firewall(Router):
                     next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
                     metric=float(route.get("metric", 0)),
                 )
+        if "default_route" in cfg:
+            next_hop_ip_address = cfg["default_route"].get("next_hop_ip_address", None)
+            if next_hop_ip_address:
+                firewall.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
+
         return firewall
