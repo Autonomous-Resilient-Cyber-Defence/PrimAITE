@@ -11,7 +11,7 @@ from primaite.simulator.network.protocols.http import (
 )
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.database_client import DatabaseClientConnection
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.software import SoftwareHealthState
 
@@ -48,6 +48,7 @@ class WebServer(Service):
         super().__init__(**kwargs)
         self._install_web_files()
         self.start()
+        self.db_connection: Optional[DatabaseClientConnection] = None
 
     def _install_web_files(self):
         """
@@ -108,9 +109,11 @@ class WebServer(Service):
 
             if path.startswith("users"):
                 # get data from DatabaseServer
-                db_client: DatabaseClient = self.software_manager.software.get("DatabaseClient")
                 # get all users
-                if db_client.query("SELECT"):
+                if not self.db_connection:
+                    self._establish_db_connection()
+
+                if self.db_connection.query("SELECT"):
                     # query succeeded
                     self.set_health_state(SoftwareHealthState.GOOD)
                     response.status_code = HttpStatusCode.OK
@@ -122,6 +125,11 @@ class WebServer(Service):
             # something went wrong on the server
             response.status_code = HttpStatusCode.INTERNAL_SERVER_ERROR
             return response
+
+    def _establish_db_connection(self) -> None:
+        """Establish a connection to db."""
+        db_client = self.software_manager.software.get("DatabaseClient")
+        self.db_connection: DatabaseClientConnection = db_client.get_new_connection()
 
     def send(
         self,

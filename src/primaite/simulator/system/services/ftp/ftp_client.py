@@ -276,7 +276,7 @@ class FTPClient(FTPServiceABC):
 
         # if QUIT succeeded, remove the session from active connection list
         if payload.ftp_command is FTPCommand.QUIT and payload.status_code is FTPStatusCode.OK:
-            self.remove_connection(connection_id=session_id)
+            self.terminate_connection(connection_id=session_id)
 
         self.sys_log.info(f"{self.name}: Received FTP Response {payload.ftp_command.name} {payload.status_code.value}")
 
