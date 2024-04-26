@@ -1,5 +1,3 @@
-# FILEPATH: /home/cade/repos/PrimAITE/tests/unit_tests/_primaite/_session/test_episode_schedule.py
-
 import pytest
 import yaml
 
