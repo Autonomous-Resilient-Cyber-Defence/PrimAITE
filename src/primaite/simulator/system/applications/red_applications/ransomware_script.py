@@ -8,7 +8,7 @@ from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
-from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 
 
 class RansomwareAttackStage(IntEnum):
@@ -73,6 +73,7 @@ class RansomwareScript(Application):
         kwargs["protocol"] = IPProtocol.NONE
 
         super().__init__(**kwargs)
+        self._db_connection: Optional[DatabaseClientConnection] = None
 
     def describe_state(self) -> Dict:
         """
@@ -256,6 +257,11 @@ class RansomwareScript(Application):
         self.num_executions += 1
         return self._application_loop()
 
+    def _establish_db_connection(self) -> bool:
+        """Establish a db connection to the Database Server."""
+        self._db_connection = self._host_db_client.get_new_connection()
+        return True if self._db_connection else False
+
     def _perform_ransomware_encrypt(self):
         """
         Execute the Ransomware Encrypt payload on the target.
@@ -273,12 +279,11 @@ class RansomwareScript(Application):
         if self.attack_stage == RansomwareAttackStage.COMMAND_AND_CONTROL:
             if simulate_trial(self.ransomware_encrypt_p_of_success):
                 self.sys_log.info(f"{self.name}: Attempting to launch payload")
-                if not len(self._host_db_client.connections):
-                    self._host_db_client.connect()
-                if len(self._host_db_client.connections):
-                    self._host_db_client.query(self.payload)
+                if not self._db_connection:
+                    self._establish_db_connection()
+                if self._db_connection:
+                    attack_successful = self._db_connection.query(self.payload)
                     self.sys_log.info(f"{self.name} Payload delivered: {self.payload}")
-                    attack_successful = True
                     if attack_successful:
                         self.sys_log.info(f"{self.name}: Payload Successful")
                         self.attack_stage = RansomwareAttackStage.SUCCEEDED
