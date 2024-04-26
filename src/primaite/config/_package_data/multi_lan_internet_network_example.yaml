@@ -1,6 +1,9 @@
 game:
   ports:
   - ARP
+  - DNS
+  - HTTP
+  - POSTGRES_SERVER
   protocols:
   - ICMP
   - TCP
@@ -252,6 +255,10 @@ simulation:
         subnet_mask: 255.255.255.0
         default_gateway: 10.10.3.1
         dns_server: 8.8.8.2
+        applications:
+          - type: WebBrowser
+            options:
+              target_url: http://sometech.ai
 
       - hostname: some_tech_snr_dev_pc
         type: computer
@@ -265,6 +272,9 @@ simulation:
           - type: DatabaseClient
             options:
               db_server_ip: 10.10.1.11
+          - type: WebBrowser
+            options:
+              target_url: http://sometech.ai
 
       - hostname: some_tech_jnr_dev_pc
         type: computer
@@ -276,6 +286,9 @@ simulation:
           - type: DatabaseClient
             options:
               db_server_ip: 10.10.1.11
+          - type: WebBrowser
+            options:
+              target_url: http://sometech.ai
 
     links:
       # Home/Office Lan Links

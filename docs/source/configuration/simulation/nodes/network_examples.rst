@@ -479,3 +479,81 @@ Node Configuration
 
 - **Ports Configuration**: Similar to routers but with named ports to differentiate between external (internet-facing),
   internal, and demilitarized zone (DMZ) connections.
+- **ACLs** - The firewall is configured with six primary ACLs, designed to manage the traffic across three key network
+  junctions: internal, external, and DMZ.
+
+  - **Internal Port ACLs**:
+
+    - **Inbound ACL**: Controls traffic entering the internal network from other network zones.
+    - **Outbound ACL**: Controls traffic leaving the internal network to other parts of the network or the internet.
+
+  - **DMZ Port ACLs**:
+    - **Inbound ACL**: Controls traffic coming into the DMZ from the internet or internal network.
+    - **Outbound ACL**: Controls traffic leaving the DMZ to reach the internal network or the internet.
+
+  - **External Port ACLs**:
+
+    External ACLs can be used as a single 'catch-all' where two separate but identical rules would be required for both
+    internal and DMZ ports.
+
+    - **Inbound ACL**: Controls traffic coming in from the internet, allowing only authorised access to the network.
+    - **Outbound ACL**: Regulates what internal traffic can exit to the internet.
+
+Building the Config File
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Defining the Network Scope and Scale**
+
+1. **Identify the Participants**:
+
+   - **Home/Office Network**: Consists of PCs and servers that handle daily operations and access to shared resources
+     like files and applications.
+   - **ISP (Internet Service Provider)**: Manages internet connectivity and external routing, acting as the gateway to
+    the internet for the SomeTech network. Also enabled DNS lookups.
+   - **SomeTech Corporate Network**: A complex internal network with multiple subnets, including a DMZ for public-facing
+     services, and segregated internal zones like HR, Engineering, and Data/Storage.
+
+
+**Node Placement and Configuration**
+
+2. **Strategic Node Placement**
+
+   - **Web Server in the DMZ**: The web server is strategically placed within the Demilitarized Zone (DMZ) to ensure
+     that it is accessible from the internet without exposing the internal network to potential security threats. The
+     DMZ acts as a segregated area that isolates public-facing services from critical internal resources, reducing the
+     risk of external attacks spreading into the corporate network.
+   - **Database and Storage Servers**: These servers are located on a separate subnet to enhance security and
+     performance. Segmenting these servers allows for more granular control over access and traffic management,
+     ensuring that sensitive data is tightly secured and that the traffic does not interfere with other operations
+     within the corporate network.
+
+3. **Subnetting Strategy**
+
+   - **/30 Subnets for Router Links**: Links between routers are configured with /30 subnets, which provide just enough
+     addresses for two endpoints and a broadcast address, maximizing the efficiency of IP address usage. This subnet
+     size is typically used for router-to-router connections to minimise the wastage of IP addresses and to simplify
+     network management.
+
+4. **Routing Configurations**
+
+   - **Defining Static Routes**: Static routes are meticulously defined to ensure that data packets find the most
+     direct and secure path to their destinations. This involves specifying routes that direct traffic from the
+     internal network to the internet, between internal subnets, and to the DMZ.
+   - **Use of Default Routes**: Default routes are critical in guiding traffic towards a predefined exit point,
+     typically towards the ISP, when no other specific routes match. This setup ensures that external traffic is
+     efficiently routed through the network gateway, simplifying the routing table.
+
+5. **Security Measures**
+
+   - **ACLs on Routers and Firewalls**: Access Control Lists (ACLs) are crucial in enforcing security policies.
+     They are configured to:
+
+     - **Permit or Deny Specific Traffic**: Depending on the node type and the network segment, ACLs are tailored to
+       control what traffic can enter or leave the network. For instance, ACLs on the firewall regulate traffic between
+       the internet, DMZ, and internal network.
+     - **Support Specific Applications**: ACLs also facilitate the operation of specific applications by allowing
+       necessary communications. For example, permitting HTTP traffic to and from the web server in the DMZ ensures
+       that web services are accessible without compromising the security of other network segments.
+   - **Route Security**: Routing configurations are secured by ensuring that routes do not inadvertently expose
+     sensitive parts of the network to unauthorised traffic. Routes are carefully planned to keep internal and external
+     traffic separate unless explicitly allowed via ACLs.
