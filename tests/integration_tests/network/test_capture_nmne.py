@@ -2,7 +2,7 @@ from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.nmne import set_nmne_config
 from primaite.simulator.sim_container import Simulation
-from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 
 
 def test_capture_nmne(uc2_network):
@@ -15,7 +15,7 @@ def test_capture_nmne(uc2_network):
     """
     web_server: Server = uc2_network.get_node_by_hostname("web_server")  # noqa
     db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]  # noqa
-    db_client.connect()
+    db_client_connection: DatabaseClientConnection = db_client.get_new_connection()
 
     db_server: Server = uc2_network.get_node_by_hostname("database_server")  # noqa
 
@@ -39,42 +39,42 @@ def test_capture_nmne(uc2_network):
     assert db_server_nic.nmne == {}
 
     # Perform a "SELECT" query
-    db_client.query("SELECT")
+    db_client_connection.query(sql="SELECT")
 
     # Check that it does not trigger an MNE capture.
     assert web_server_nic.nmne == {}
     assert db_server_nic.nmne == {}
 
     # Perform a "DELETE" query
-    db_client.query("DELETE")
+    db_client_connection.query(sql="DELETE")
 
     # Check that the web server's outbound interface and the database server's inbound interface register the MNE
     assert web_server_nic.nmne == {"direction": {"outbound": {"keywords": {"*": 1}}}}
     assert db_server_nic.nmne == {"direction": {"inbound": {"keywords": {"*": 1}}}}
 
     # Perform another "SELECT" query
-    db_client.query("SELECT")
+    db_client_connection.query(sql="SELECT")
 
     # Check that no additional MNEs are captured
     assert web_server_nic.nmne == {"direction": {"outbound": {"keywords": {"*": 1}}}}
     assert db_server_nic.nmne == {"direction": {"inbound": {"keywords": {"*": 1}}}}
 
     # Perform another "DELETE" query
-    db_client.query("DELETE")
+    db_client_connection.query(sql="DELETE")
 
     # Check that the web server and database server interfaces register an additional MNE
     assert web_server_nic.nmne == {"direction": {"outbound": {"keywords": {"*": 2}}}}
     assert db_server_nic.nmne == {"direction": {"inbound": {"keywords": {"*": 2}}}}
 
     # Perform an "ENCRYPT" query
-    db_client.query("ENCRYPT")
+    db_client_connection.query(sql="ENCRYPT")
 
     # Check that the web server and database server interfaces register an additional MNE
     assert web_server_nic.nmne == {"direction": {"outbound": {"keywords": {"*": 3}}}}
     assert db_server_nic.nmne == {"direction": {"inbound": {"keywords": {"*": 3}}}}
 
     # Perform another "SELECT" query
-    db_client.query("SELECT")
+    db_client_connection.query(sql="SELECT")
 
     # Check that no additional MNEs are captured
     assert web_server_nic.nmne == {"direction": {"outbound": {"keywords": {"*": 3}}}}
@@ -92,7 +92,7 @@ def test_describe_state_nmne(uc2_network):
     """
     web_server: Server = uc2_network.get_node_by_hostname("web_server")  # noqa
     db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]  # noqa
-    db_client.connect()
+    db_client_connection: DatabaseClientConnection = db_client.get_new_connection()
 
     db_server: Server = uc2_network.get_node_by_hostname("database_server")  # noqa
 
@@ -119,7 +119,7 @@ def test_describe_state_nmne(uc2_network):
     assert db_server_nic_state["nmne"] == {}
 
     # Perform a "SELECT" query
-    db_client.query("SELECT")
+    db_client_connection.query(sql="SELECT")
 
     # Check that it does not trigger an MNE capture.
     web_server_nic_state = web_server_nic.describe_state()
@@ -129,7 +129,7 @@ def test_describe_state_nmne(uc2_network):
     assert db_server_nic_state["nmne"] == {}
 
     # Perform a "DELETE" query
-    db_client.query("DELETE")
+    db_client_connection.query(sql="DELETE")
 
     # Check that the web server's outbound interface and the database server's inbound interface register the MNE
     web_server_nic_state = web_server_nic.describe_state()
@@ -139,7 +139,7 @@ def test_describe_state_nmne(uc2_network):
     assert db_server_nic_state["nmne"] == {"direction": {"inbound": {"keywords": {"*": 1}}}}
 
     # Perform another "SELECT" query
-    db_client.query("SELECT")
+    db_client_connection.query(sql="SELECT")
 
     # Check that no additional MNEs are captured
     web_server_nic_state = web_server_nic.describe_state()
@@ -149,7 +149,7 @@ def test_describe_state_nmne(uc2_network):
     assert db_server_nic_state["nmne"] == {"direction": {"inbound": {"keywords": {"*": 1}}}}
 
     # Perform another "DELETE" query
-    db_client.query("DELETE")
+    db_client_connection.query(sql="DELETE")
 
     # Check that the web server and database server interfaces register an additional MNE
     web_server_nic_state = web_server_nic.describe_state()
@@ -159,7 +159,7 @@ def test_describe_state_nmne(uc2_network):
     assert db_server_nic_state["nmne"] == {"direction": {"inbound": {"keywords": {"*": 2}}}}
 
     # Perform a "ENCRYPT" query
-    db_client.query("ENCRYPT")
+    db_client_connection.query(sql="ENCRYPT")
 
     # Check that the web server's outbound interface and the database server's inbound interface register the MNE
     web_server_nic_state = web_server_nic.describe_state()
@@ -169,7 +169,7 @@ def test_describe_state_nmne(uc2_network):
     assert db_server_nic_state["nmne"] == {"direction": {"inbound": {"keywords": {"*": 3}}}}
 
     # Perform another "SELECT" query
-    db_client.query("SELECT")
+    db_client_connection.query(sql="SELECT")
 
     # Check that no additional MNEs are captured
     web_server_nic_state = web_server_nic.describe_state()
@@ -179,7 +179,7 @@ def test_describe_state_nmne(uc2_network):
     assert db_server_nic_state["nmne"] == {"direction": {"inbound": {"keywords": {"*": 3}}}}
 
     # Perform another "ENCRYPT"
-    db_client.query("ENCRYPT")
+    db_client_connection.query(sql="ENCRYPT")
 
     # Check that the web server and database server interfaces register an additional MNE
     web_server_nic_state = web_server_nic.describe_state()
@@ -206,7 +206,7 @@ def test_capture_nmne_observations(uc2_network):
 
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
     db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
-    db_client.connect()
+    db_client_connection: DatabaseClientConnection = db_client.get_new_connection()
 
     # Set the NMNE configuration to capture DELETE/ENCRYPT queries as MNEs
     nmne_config = {
@@ -228,7 +228,7 @@ def test_capture_nmne_observations(uc2_network):
     for i in range(0, 20):
         # Perform a "DELETE" query each iteration
         for j in range(i):
-            db_client.query("DELETE")
+            db_client_connection.query(sql="DELETE")
 
         # Observe the current state of NMNEs from the NICs of both the database and web servers
         state = sim.describe_state()
@@ -253,7 +253,7 @@ def test_capture_nmne_observations(uc2_network):
     for i in range(0, 20):
         # Perform a "ENCRYPT" query each iteration
         for j in range(i):
-            db_client.query("ENCRYPT")
+            db_client_connection.query(sql="ENCRYPT")
 
         # Observe the current state of NMNEs from the NICs of both the database and web servers
         state = sim.describe_state()

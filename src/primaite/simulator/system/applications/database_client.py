@@ -1,13 +1,56 @@
+from __future__ import annotations
+
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
+from prettytable import MARKDOWN, PrettyTable
+from pydantic import BaseModel
+
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
+from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.software_manager import SoftwareManager
+
+
+class DatabaseClientConnection(BaseModel):
+    """
+    DatabaseClientConnection Class.
+
+    This class is used to record current DatabaseConnections within the DatabaseClient class.
+    """
+
+    connection_id: str
+    """Connection UUID."""
+
+    parent_node: HostNode
+    """The parent Node that this connection was created on."""
+
+    is_active: bool = True
+    """Flag to state whether the connection is still active or not."""
+
+    @property
+    def client(self) -> Optional[DatabaseClient]:
+        """The DatabaseClient that holds this connection."""
+        return self.parent_node.software_manager.software.get("DatabaseClient")
+
+    def query(self, sql: str) -> bool:
+        """
+        Query the databaseserver.
+
+        :return: Boolean value
+        """
+        if self.is_active and self.client:
+            return self.client._query(connection_id=self.connection_id, sql=sql)  # noqa
+        return False
+
+    def disconnect(self):
+        """Disconnect the connection."""
+        if self.client and self.is_active:
+            self.client._disconnect(self.connection_id)  # noqa
 
 
 class DatabaseClient(Application):
@@ -22,13 +65,21 @@ class DatabaseClient(Application):
 
     server_ip_address: Optional[IPv4Address] = None
     server_password: Optional[str] = None
-    connected: bool = False
-    _query_success_tracker: Dict[str, bool] = {}
     _last_connection_successful: Optional[bool] = None
+    _query_success_tracker: Dict[str, bool] = {}
     """Keep track of connections that were established or verified during this step. Used for rewards."""
     last_query_response: Optional[Dict] = None
     """Keep track of the latest query response. Used to determine rewards."""
     _server_connection_id: Optional[str] = None
+    """Connection ID to the Database Server."""
+    client_connections: Dict[str, DatabaseClientConnection] = {}
+    """Keep track of active connections to Database Server."""
+    _client_connection_requests: Dict[str, Optional[str]] = {}
+    """Dictionary of connection requests to Database Server."""
+    connected: bool = False
+    """Boolean Value for whether connected to DB Server."""
+    native_connection: Optional[DatabaseClientConnection] = None
+    """Native Client Connection for using the client directly (similar to psql in a terminal)."""
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseClient"
@@ -48,12 +99,18 @@ class DatabaseClient(Application):
 
     def execute(self) -> bool:
         """Execution definition for db client: perform a select query."""
+        if not self._can_perform_action():
+            return False
+
         self.num_executions += 1  # trying to connect counts as an execution
-        if not self._server_connection_id:
+
+        if not self.native_connection:
             self.connect()
-        can_connect = self.check_connection(connection_id=self._server_connection_id)
-        self._last_connection_successful = can_connect
-        return can_connect
+
+        if self.native_connection:
+            return self.check_connection(connection_id=self.native_connection.connection_id)
+
+        return False
 
     def describe_state(self) -> Dict:
         """
@@ -65,6 +122,23 @@ class DatabaseClient(Application):
         # list of connections that were established or verified during this step.
         state["last_connection_successful"] = self._last_connection_successful
         return state
+
+    def show(self, markdown: bool = False):
+        """
+        Display the client connections in tabular format.
+
+        :param markdown: Whether to display the table in Markdown format or not. Default is `False`.
+        """
+        table = PrettyTable(["Connection ID", "Active"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.sys_log.hostname} {self.name} Client Connections"
+        if self.native_connection:
+            table.add_row([self.native_connection.connection_id, self.native_connection.is_active])
+        for connection_id, connection in self.client_connections.items():
+            table.add_row([connection_id, connection.is_active])
+        print(table.get_string(sortby="Connection ID"))
 
     def configure(self, server_ip_address: IPv4Address, server_password: Optional[str] = None):
         """
@@ -78,21 +152,17 @@ class DatabaseClient(Application):
         self.sys_log.info(f"{self.name}: Configured the {self.name} with {server_ip_address=}, {server_password=}.")
 
     def connect(self) -> bool:
-        """Connect to a Database Service."""
-        if not self._can_perform_action():
-            return False
+        """Connect the native client connection."""
+        if self.native_connection:
+            return True
+        self.native_connection = self.get_new_connection()
+        return self.native_connection is not None
 
-        if not self._server_connection_id:
-            self._server_connection_id = str(uuid4())
-
-        self.connected = self._connect(
-            server_ip_address=self.server_ip_address,
-            password=self.server_password,
-            connection_id=self._server_connection_id,
-        )
-        if not self.connected:
-            self._server_connection_id = None
-        return self.connected
+    def disconnect(self):
+        """Disconnect the native client connection."""
+        if self.native_connection:
+            self._disconnect(self.native_connection.connection_id)
+            self.native_connection = None
 
     def check_connection(self, connection_id: str) -> bool:
         """Check whether the connection can be successfully re-established.
@@ -104,15 +174,19 @@ class DatabaseClient(Application):
         """
         if not self._can_perform_action():
             return False
-        return self.query("SELECT * FROM pg_stat_activity", connection_id=connection_id)
+        return self._query("SELECT * FROM pg_stat_activity", connection_id=connection_id)
+
+    def _check_client_connection(self, connection_id: str) -> bool:
+        """Check that client_connection_id is valid."""
+        return True if connection_id in self._client_connection_requests else False
 
     def _connect(
         self,
         server_ip_address: IPv4Address,
-        connection_id: Optional[str] = None,
+        connection_request_id: str,
         password: Optional[str] = None,
         is_reattempt: bool = False,
-    ) -> bool:
+    ) -> Optional[DatabaseClientConnection]:
         """
         Connects the DatabaseClient to the DatabaseServer.
 
@@ -126,56 +200,106 @@ class DatabaseClient(Application):
         :type: is_reattempt: Optional[bool]
         """
         if is_reattempt:
-            if self._server_connection_id:
+            valid_connection = self._check_client_connection(connection_id=connection_request_id)
+            if valid_connection:
+                database_client_connection = self._client_connection_requests.pop(connection_request_id)
                 self.sys_log.info(
-                    f"{self.name} {connection_id=}: DatabaseClient connection to {server_ip_address} authorised"
+                    f"{self.name}: DatabaseClient connection to {server_ip_address} authorised."
+                    f"Connection Request ID was {connection_request_id}."
                 )
-                self.server_ip_address = server_ip_address
-                return True
+                self.connected = True
+                self._last_connection_successful = True
+                return database_client_connection
             else:
                 self.sys_log.warning(
-                    f"{self.name} {connection_id=}: DatabaseClient connection to {server_ip_address} declined"
+                    f"{self.name}: DatabaseClient connection to {server_ip_address} declined."
+                    f"Connection Request ID was {connection_request_id}."
                 )
-                return False
-        payload = {
-            "type": "connect_request",
-            "password": password,
-            "connection_id": connection_id,
-        }
+                self._last_connection_successful = False
+                return None
+        payload = {"type": "connect_request", "password": password, "connection_request_id": connection_request_id}
         software_manager: SoftwareManager = self.software_manager
         software_manager.send_payload_to_session_manager(
             payload=payload, dest_ip_address=server_ip_address, dest_port=self.port
         )
         return self._connect(
-            server_ip_address=server_ip_address, password=password, connection_id=connection_id, is_reattempt=True
+            server_ip_address=server_ip_address,
+            password=password,
+            is_reattempt=True,
+            connection_request_id=connection_request_id,
         )
 
-    def disconnect(self) -> bool:
-        """Disconnect from the Database Service."""
+    def _disconnect(self, connection_id: str) -> bool:
+        """Disconnect from the Database Service.
+
+        If no connection_id is provided, connect from first ID in
+        self.client_connections.
+
+        :param: connection_id: connection ID to disconnect.
+        :type: connection_id: str
+
+        :return: bool
+        """
         if not self._can_perform_action():
-            self.sys_log.warning(f"Unable to disconnect - {self.name} is {self.operating_state.name}")
             return False
 
         # if there are no connections - nothing to disconnect
-        if not self._server_connection_id:
-            self.sys_log.warning(f"Unable to disconnect - {self.name} has no active connections.")
+        if len(self.client_connections) == 0:
+            self.sys_log.warning(f"{self.name}: Unable to disconnect, no active connections.")
             return False
-
-        # if no connection provided, disconnect the first connection
+        if not self.client_connections.get(connection_id):
+            return False
         software_manager: SoftwareManager = self.software_manager
         software_manager.send_payload_to_session_manager(
-            payload={"type": "disconnect", "connection_id": self._server_connection_id},
+            payload={"type": "disconnect", "connection_id": connection_id},
             dest_ip_address=self.server_ip_address,
             dest_port=self.port,
         )
-        self.remove_connection(connection_id=self._server_connection_id)
+        connection = self.client_connections.pop(connection_id)
+        self.terminate_connection(connection_id=connection_id)
 
-        self.sys_log.info(
-            f"{self.name}: DatabaseClient disconnected {self._server_connection_id} from {self.server_ip_address}"
-        )
+        connection.is_active = False
+
+        self.sys_log.info(f"{self.name}: DatabaseClient disconnected {connection_id} from {self.server_ip_address}")
         self.connected = False
+        return True
 
-    def _query(self, sql: str, query_id: str, connection_id: str, is_reattempt: bool = False) -> bool:
+    def uninstall(self) -> None:
+        """
+        Uninstall the DatabaseClient.
+
+        Calls disconnect on all client connections to ensure that both client and server connections are killed.
+        """
+        while self.client_connections.values():
+            client_connection = self.client_connections[next(iter(self.client_connections.keys()))]
+            client_connection.disconnect()
+        super().uninstall()
+
+    def get_new_connection(self) -> Optional[DatabaseClientConnection]:
+        """Get a new connection to the DatabaseServer.
+
+        :return: DatabaseClientConnection object
+        """
+        if not self._can_perform_action():
+            return None
+        connection_request_id = str(uuid4())
+        self._client_connection_requests[connection_request_id] = None
+
+        return self._connect(
+            server_ip_address=self.server_ip_address,
+            password=self.server_password,
+            connection_request_id=connection_request_id,
+        )
+
+    def _create_client_connection(self, connection_id: str, connection_request_id: str) -> None:
+        """Create a new DatabaseClientConnection Object."""
+        client_connection = DatabaseClientConnection(
+            connection_id=connection_id, client=self, parent_node=self.software_manager.node
+        )
+        self.client_connections[connection_id] = client_connection
+        self._client_connection_requests[connection_request_id] = client_connection
+
+    def _query(self, sql: str, connection_id: str, query_id: Optional[str] = False, is_reattempt: bool = False) -> bool:
         """
         Send a query to the connected database server.
 
@@ -185,15 +309,22 @@ class DatabaseClient(Application):
         :param: query_id: ID of the query, used as reference
         :type: query_id: str
 
+        :param: connection_id: ID of the connection to the database server.
+        :type: connection_id: str
+
         :param: is_reattempt: True if the query request has been reattempted. Default False
         :type: is_reattempt: Optional[bool]
         """
+        if not query_id:
+            query_id = str(uuid4())
         if is_reattempt:
             success = self._query_success_tracker.get(query_id)
             if success:
                 self.sys_log.info(f"{self.name}: Query successful {sql}")
+                self._last_connection_successful = True
                 return True
             self.sys_log.error(f"{self.name}: Unable to run query {sql}")
+            self._last_connection_successful = False
             return False
         else:
             software_manager: SoftwareManager = self.software_manager
@@ -208,39 +339,29 @@ class DatabaseClient(Application):
         """Run the DatabaseClient."""
         super().run()
 
-    def query(self, sql: str, connection_id: Optional[str] = None) -> bool:
+    def query(self, sql: str) -> bool:
         """
         Send a query to the Database Service.
 
         :param: sql: The SQL query.
-        :param: is_reattempt: If true, the action has been reattempted.
+        :type: sql: str
+
         :return: True if the query was successful, otherwise False.
         """
         if not self._can_perform_action():
             return False
 
+        if not self.native_connection:
+            return False
+
         # reset last query response
         self.last_query_response = None
 
-        connection_id: str
-
-        if not connection_id:
-            connection_id = self._server_connection_id
-
-        if not connection_id:
-            self.connect()
-            connection_id = self._server_connection_id
-
-        if not connection_id:
-            msg = "Cannot run sql query, could not establish connection with the server."
-            self.parent.sys_log.warning(msg)
-            return False
-
         uuid = str(uuid4())
         self._query_success_tracker[uuid] = False
-        return self._query(sql=sql, query_id=uuid, connection_id=connection_id)
+        return self.native_connection.query(sql)
 
-    def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
+    def receive(self, session_id: str, payload: Any, **kwargs) -> bool:
         """
         Receive a payload from the Software Manager.
 
@@ -250,12 +371,14 @@ class DatabaseClient(Application):
         """
         if not self._can_perform_action():
             return False
-
         if isinstance(payload, dict) and payload.get("type"):
             if payload["type"] == "connect_response":
                 if payload["response"] is True:
                     # add connection
-                    self.add_connection(connection_id=payload.get("connection_id"), session_id=session_id)
+                    connection_id = payload["connection_id"]
+                    self._create_client_connection(
+                        connection_id=connection_id, connection_request_id=payload["connection_request_id"]
+                    )
             elif payload["type"] == "sql":
                 self.last_query_response = payload
                 query_id = payload.get("uuid")
@@ -263,4 +386,8 @@ class DatabaseClient(Application):
                 self._query_success_tracker[query_id] = status_code == 200
                 if self._query_success_tracker[query_id]:
                     self.sys_log.debug(f"Received {payload=}")
+            elif payload["type"] == "disconnect":
+                connection_id = payload["connection_id"]
+                self.sys_log.info(f"{self.name}: Received disconnect command for {connection_id=} from the server")
+                self._disconnect(payload["connection_id"])
         return True

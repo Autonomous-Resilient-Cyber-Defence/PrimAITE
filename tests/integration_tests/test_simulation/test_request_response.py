@@ -7,6 +7,7 @@
 import pytest
 
 from primaite.interface.request import RequestResponse
+from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
@@ -97,7 +98,7 @@ def test_request_fails_if_node_off(example_network, node_request):
 class TestDataManipulationGreenRequests:
     def test_node_off(self, uc2_network):
         """Test that green requests succeed when the node is on and fail if the node is off."""
-        net = uc2_network
+        net: Network = uc2_network
 
         client_1_browser_execute = net.apply_request(["node", "client_1", "application", "WebBrowser", "execute"])
         client_1_db_client_execute = net.apply_request(["node", "client_1", "application", "DatabaseClient", "execute"])
@@ -131,7 +132,7 @@ class TestDataManipulationGreenRequests:
 
     def test_acl_block(self, uc2_network):
         """Test that green requests succeed when not blocked by ACLs but fail when blocked."""
-        net = uc2_network
+        net: Network = uc2_network
 
         router: Router = net.get_node_by_hostname("router_1")
         client_1: HostNode = net.get_node_by_hostname("client_1")

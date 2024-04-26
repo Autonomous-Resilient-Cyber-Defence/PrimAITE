@@ -113,6 +113,7 @@ class SoftwareManager:
         :param software_name: The software name.
         """
         if software_name in self.software:
+            self.software[software_name].uninstall()
             software = self.software.pop(software_name)  # noqa
             if isinstance(software, Application):
                 self.node.uninstall_application(software)

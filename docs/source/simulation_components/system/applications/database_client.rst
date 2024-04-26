@@ -14,13 +14,14 @@ Key features
 
 - Connects to the :ref:`DatabaseService` via the ``SoftwareManager``.
 - Handles connecting and disconnecting.
+- Handles multiple connections using a dictionary, mapped to connection UIDs
 - Executes SQL queries and retrieves result sets.
 
 Usage
 =====
 
 - Initialise with server IP address and optional password.
-- Connect to the :ref:`DatabaseService` with ``connect``.
+- Connect to the :ref:`DatabaseService` with ``get_new_connection``.
 - Retrieve results in a dictionary.
 - Disconnect when finished.
 
@@ -28,6 +29,7 @@ Implementation
 ==============
 
 - Leverages ``SoftwareManager`` for sending payloads over the network.
+- Active sessions are held as ``DatabaseClientConnection`` objects in a dictionary.
 - Connect and disconnect methods manage sessions.
 - Payloads serialised as dictionaries for transmission.
 - Extends base Application class.
@@ -62,6 +64,9 @@ Python
     # Configure the DatabaseClient
     database_client.configure(server_ip_address=IPv4Address("192.168.0.1"))  # address of the DatabaseService
     database_client.run()
+
+    # Establish a new connection
+    database_client.get_new_connection()
 
 
 Via Configuration
