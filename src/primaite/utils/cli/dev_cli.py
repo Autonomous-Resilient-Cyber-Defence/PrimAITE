@@ -1,0 +1,151 @@
+import typer
+from rich import print
+from typing_extensions import Annotated
+
+from primaite import _PRIMAITE_ROOT
+from primaite.utils.cli.primaite_config_utils import get_primaite_config_dict, is_dev_mode, update_primaite_config
+
+dev = typer.Typer()
+
+PRODUCTION_MODE_MESSAGE = (
+    "\n[green]:monkey_face::monkey_face::monkey_face: "
+    " PrimAITE is running in Production mode "
+    " :monkey_face::monkey_face::monkey_face: [/green]\n"
+)
+
+DEVELOPMENT_MODE_MESSAGE = (
+    "\n[yellow] :construction::construction::construction: "
+    " PrimAITE is running in Development mode "
+    " :construction::construction::construction: [/yellow]\n"
+)
+
+
+def dev_mode():
+    """
+    CLI commands relevant to the dev-mode for PrimAITE.
+
+    The dev-mode contains tools that help with the ease of developing or debugging PrimAITE.
+
+    By default, PrimAITE will be in production mode.
+
+    To enable development mode, use `primaite dev-mode enable`
+    """
+
+
+@dev.command()
+def show():
+    """Show if PrimAITE is in development mode or production mode."""
+    # print if dev mode is enabled
+    print(DEVELOPMENT_MODE_MESSAGE if is_dev_mode() else PRODUCTION_MODE_MESSAGE)
+    print("\nTo see available options, use [medium_turquoise]`primaite dev-mode --help`[/medium_turquoise]\n")
+
+
+@dev.command()
+def enable():
+    """Enable the development mode for PrimAITE."""
+    config_dict = get_primaite_config_dict()
+
+    if config_dict is None:
+        return
+
+    # enable dev mode
+    config_dict["developer_mode"]["enabled"] = True
+    update_primaite_config(config_dict)
+    print(DEVELOPMENT_MODE_MESSAGE)
+
+
+@dev.command()
+def disable():
+    """Disable the development mode for PrimAITE."""
+    config_dict = get_primaite_config_dict()
+
+    if config_dict is None:
+        return
+
+    # disable dev mode
+    config_dict["developer_mode"]["enabled"] = False
+    update_primaite_config(config_dict)
+    print(PRODUCTION_MODE_MESSAGE)
+
+
+def config_callback(
+    ctx: typer.Context,
+    output_sys_logs: Annotated[
+        bool, typer.Option("--output-sys-logs/--no-sys-logs", "-sys/-nsys", help="Output system logs to file.")
+    ] = None,
+    output_pcap_logs: Annotated[
+        bool,
+        typer.Option(
+            "--output-pcap-logs/--no-pcap-logs", "-pcap/-npcap", help="Output network packet capture logs to file."
+        ),
+    ] = None,
+    output_to_terminal: Annotated[
+        bool, typer.Option("--output-to_terminal/--no-terminal", "-t/-nt", help="Output system logs to terminal.")
+    ] = None,
+):
+    """Configure the development tools and environment."""
+    config_dict = get_primaite_config_dict()
+
+    if config_dict is None:
+        return
+
+    if output_sys_logs is not None:
+        config_dict["developer_mode"]["output_sys_logs"] = output_sys_logs
+        print(f"PrimAITE dev-mode config updated {output_sys_logs=}")
+
+    if output_pcap_logs is not None:
+        config_dict["developer_mode"]["output_pcap_logs"] = output_pcap_logs
+        print(f"PrimAITE dev-mode config updated {output_pcap_logs=}")
+
+    if output_to_terminal is not None:
+        config_dict["developer_mode"]["output_to_terminal"] = output_to_terminal
+        print(f"PrimAITE dev-mode config updated {output_to_terminal=}")
+
+    # update application config
+    update_primaite_config(config_dict)
+
+
+config_typer = typer.Typer(callback=config_callback, name="config", invoke_without_command=True)
+dev.add_typer(config_typer)
+
+
+@config_typer.command()
+def path(
+    directory: Annotated[
+        str,
+        typer.Argument(
+            help="Directory where the system logs and PCAP logs will be output. By default, this will be where the"
+            "root of the PrimAITE repository is located.",
+            show_default=False,
+        ),
+    ] = None,
+    default: Annotated[
+        bool,
+        typer.Option(
+            "--default",
+            "-root",
+            help="Set PrimAITE to output system logs and pcap logs to the PrimAITE repository root.",
+        ),
+    ] = None,
+):
+    """Set the output directory for the PrimAITE system and PCAP logs."""
+    config_dict = get_primaite_config_dict()
+
+    if config_dict is None:
+        return
+
+    if default:
+        config_dict["developer_mode"]["output_dir"] = None
+        print(
+            f"PrimAITE dev-mode config updated output directory will be in "
+            f"{str(_PRIMAITE_ROOT.parent.parent / 'simulation_output')}"
+        )
+        # update application config
+        update_primaite_config(config_dict)
+        return
+
+    if directory:
+        config_dict["developer_mode"]["output_dir"] = directory
+        print(f"PrimAITE dev-mode config updated output_dir={directory}")
+        # update application config
+        update_primaite_config(config_dict)

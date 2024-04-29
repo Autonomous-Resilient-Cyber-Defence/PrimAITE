@@ -161,9 +161,9 @@ To set PrimAITE to run in development mode:
 .. code-block:: bash
     :caption: Unix
 
-    primaite mode --dev
+    primaite dev-mode enable
 
 .. code-block:: powershell
     :caption: Windows (Powershell)
 
-    primaite mode --dev
+    primaite dev-mode enable

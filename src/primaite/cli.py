@@ -9,9 +9,12 @@ import typer
 import yaml
 from typing_extensions import Annotated
 
-from primaite import PRIMAITE_PATHS
+from primaite import _PRIMAITE_ROOT, PRIMAITE_PATHS
+from primaite.utils.cli import dev_cli
+from primaite.utils.cli.primaite_config_utils import get_primaite_config_dict, update_primaite_config
 
 app = typer.Typer(no_args_is_help=True)
+app.add_typer(dev_cli.dev, name="dev-mode")
 
 
 @app.command()
@@ -113,48 +116,15 @@ def setup(overwrite_existing: bool = True) -> None:
     _LOGGER.info("Rebuilding the example notebooks...")
     reset_example_configs.run(overwrite_existing=True)
 
+    _LOGGER.info("Setting default simulation output")
+    config_dict = get_primaite_config_dict()
+
+    if config_dict is None:
+        return
+
+    config_dict["developer_mode"]["output_dir"] = str(_PRIMAITE_ROOT.parent.parent / "simulation_output")
+    print(f"PrimAITE dev-mode config updated  output_dir {config_dict['developer_mode']['output_dir']}")
+    # update application config
+    update_primaite_config(config_dict)
+
     _LOGGER.info("PrimAITE setup complete!")
-
-
-@app.command()
-def mode(
-    dev: Annotated[bool, typer.Option("--dev", help="Activates PrimAITE developer mode")] = None,
-    prod: Annotated[bool, typer.Option("--prod", help="Activates PrimAITE production mode")] = None,
-) -> None:
-    """
-    Switch PrimAITE between developer mode and production mode.
-
-    By default, PrimAITE will be in production mode.
-
-    To view the current mode, use: primaite mode
-
-    To set to development mode, use: primaite mode --dev
-
-    To return to production mode, use: primaite mode --prod
-    """
-    if PRIMAITE_PATHS.app_config_file_path.exists():
-        with open(PRIMAITE_PATHS.app_config_file_path, "r") as file:
-            primaite_config = yaml.safe_load(file)
-            if dev and prod:
-                print("Unable to activate developer and production modes concurrently.")
-                return
-
-            if (dev is None) and (prod is None):
-                is_dev_mode = primaite_config["developer_mode"]
-
-                if is_dev_mode:
-                    print("PrimAITE is running in developer mode.")
-                else:
-                    print("PrimAITE is running in production mode.")
-            if dev:
-                # activate dev mode
-                primaite_config["developer_mode"] = True
-                with open(PRIMAITE_PATHS.app_config_file_path, "w") as file:
-                    yaml.dump(primaite_config, file)
-                print("PrimAITE is running in developer mode.")
-            if prod:
-                # activate prod mode
-                primaite_config["developer_mode"] = False
-                with open(PRIMAITE_PATHS.app_config_file_path, "w") as file:
-                    yaml.dump(primaite_config, file)
-                print("PrimAITE is running in production mode.")
