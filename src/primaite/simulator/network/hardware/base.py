@@ -798,6 +798,11 @@ class Node(SimComponent):
             """Return whether the node is on or off."""
             return self.node.operating_state == NodeOperatingState.ON
 
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return f"Cannot perform request on node '{self.node.hostname}' because it is not turned on."
+
     def _init_request_manager(self) -> RequestManager:
         """
         Initialise the request manager.
