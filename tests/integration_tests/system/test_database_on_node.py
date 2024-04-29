@@ -8,7 +8,8 @@ from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.network.hardware.nodes.network.switch import Switch
+from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.service import ServiceOperatingState
@@ -56,11 +57,12 @@ def test_database_client_server_connection(peer_to_peer):
     db_service: DatabaseService = node_b.software_manager.software["DatabaseService"]
 
     db_client.connect()
-    assert len(db_client.connections) == 1
+
+    assert len(db_client.client_connections) == 1
     assert len(db_service.connections) == 1
 
     db_client.disconnect()
-    assert len(db_client.connections) == 0
+    assert len(db_client.client_connections) == 0
     assert len(db_service.connections) == 0
 
 
@@ -73,7 +75,7 @@ def test_database_client_server_correct_password(peer_to_peer_secure_db):
 
     db_client.configure(server_ip_address=IPv4Address("192.168.0.11"), server_password="12345")
     db_client.connect()
-    assert len(db_client.connections) == 1
+    assert len(db_client.client_connections) == 1
     assert len(db_service.connections) == 1
 
 
@@ -95,14 +97,24 @@ def test_database_client_server_incorrect_password(peer_to_peer_secure_db):
     assert len(db_service.connections) == 0
 
 
-def test_database_client_query(uc2_network):
+def test_database_client_native_connection_query(uc2_network):
     """Tests DB query across the network returns HTTP status 200 and date."""
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
     db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
-    db_client.connect()
 
-    assert db_client.query("SELECT")
-    assert db_client.query("INSERT")
+    assert db_client.query(sql="SELECT")
+    assert db_client.query(sql="INSERT")
+
+
+def test_database_client_connection_query(uc2_network):
+    """Tests DB query across the network returns HTTP status 200 and date."""
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+
+    db_connection: DatabaseClientConnection = db_client.get_new_connection()
+
+    assert db_connection.query(sql="SELECT")
+    assert db_connection.query(sql="INSERT")
 
 
 def test_create_database_backup(uc2_network):
@@ -172,7 +184,6 @@ def test_restore_backup_after_deleting_file_without_updating_scan(uc2_network):
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
     db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
 
-    # create a back up
     assert db_service.backup_database() is True
 
     db_service.db_file.corrupt()  # corrupt the db
@@ -211,10 +222,13 @@ def test_database_client_cannot_query_offline_database_server(uc2_network):
 
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
     db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
-    assert len(db_client.connections)
+    assert len(db_client.client_connections)
 
-    assert db_client.query("SELECT") is True
-    assert db_client.query("INSERT") is True
+    # Establish a new connection to the DatabaseService
+    db_connection: DatabaseClientConnection = db_client.get_new_connection()
+
+    assert db_connection.query("SELECT") is True
+    assert db_connection.query("INSERT") is True
     db_server.power_off()
 
     for i in range(db_server.shut_down_duration + 1):
@@ -223,5 +237,121 @@ def test_database_client_cannot_query_offline_database_server(uc2_network):
     assert db_server.operating_state is NodeOperatingState.OFF
     assert db_service.operating_state is ServiceOperatingState.STOPPED
 
-    assert db_client.query("SELECT") is False
-    assert db_client.query("INSERT") is False
+    assert db_connection.query("SELECT") is False
+    assert db_connection.query("INSERT") is False
+
+
+def test_database_client_uninstall_terminates_connections(peer_to_peer):
+    node_a, node_b = peer_to_peer
+
+    db_client: DatabaseClient = node_a.software_manager.software["DatabaseClient"]
+    db_service: DatabaseService = node_b.software_manager.software["DatabaseService"]  # noqa
+
+    db_connection: DatabaseClientConnection = db_client.get_new_connection()
+
+    # Check that all connection counters are correct and that the client connection can query the database
+    assert len(db_service.connections) == 1
+
+    assert len(db_client.client_connections) == 1
+
+    assert db_connection.is_active
+
+    assert db_connection.query("SELECT")
+
+    # Perform the DatabaseClient uninstall
+    node_a.software_manager.uninstall("DatabaseClient")
+
+    # Check that all connection counters are updated accordingly and client connection can no longer query the database
+    assert len(db_service.connections) == 0
+
+    assert len(db_client.client_connections) == 0
+
+    assert not db_connection.query("SELECT")
+
+    assert not db_connection.is_active
+
+
+def test_database_service_can_terminate_connection(peer_to_peer):
+    node_a, node_b = peer_to_peer
+
+    db_client: DatabaseClient = node_a.software_manager.software["DatabaseClient"]
+    db_service: DatabaseService = node_b.software_manager.software["DatabaseService"]  # noqa
+
+    db_connection: DatabaseClientConnection = db_client.get_new_connection()
+
+    # Check that all connection counters are correct and that the client connection can query the database
+    assert len(db_service.connections) == 1
+
+    assert len(db_client.client_connections) == 1
+
+    assert db_connection.is_active
+
+    assert db_connection.query("SELECT")
+
+    # Perform the server-led connection termination
+    connection_id = next(iter(db_service.connections.keys()))
+    db_service.terminate_connection(connection_id)
+
+    # Check that all connection counters are updated accordingly and client connection can no longer query the database
+    assert len(db_service.connections) == 0
+
+    assert len(db_client.client_connections) == 0
+
+    assert not db_connection.query("SELECT")
+
+    assert not db_connection.is_active
+
+
+def test_client_connection_terminate_does_not_terminate_another_clients_connection():
+    network = Network()
+
+    db_server = Server(
+        hostname="db_client", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0
+    )
+    db_server.power_on()
+
+    db_server.software_manager.install(DatabaseService)
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]  # noqa
+    db_service.start()
+
+    client_a = Computer(
+        hostname="client_a", ip_address="192.168.0.12", subnet_mask="255.255.255.0", start_up_duration=0
+    )
+    client_a.power_on()
+
+    client_a.software_manager.install(DatabaseClient)
+    client_a.software_manager.software["DatabaseClient"].configure(server_ip_address=IPv4Address("192.168.0.11"))
+    client_a.software_manager.software["DatabaseClient"].run()
+
+    client_b = Computer(
+        hostname="client_b", ip_address="192.168.0.13", subnet_mask="255.255.255.0", start_up_duration=0
+    )
+    client_b.power_on()
+
+    client_b.software_manager.install(DatabaseClient)
+    client_b.software_manager.software["DatabaseClient"].configure(server_ip_address=IPv4Address("192.168.0.11"))
+    client_b.software_manager.software["DatabaseClient"].run()
+
+    switch = Switch(hostname="switch", start_up_duration=0, num_ports=3)
+    switch.power_on()
+
+    network.connect(endpoint_a=switch.network_interface[1], endpoint_b=db_server.network_interface[1])
+    network.connect(endpoint_a=switch.network_interface[2], endpoint_b=client_a.network_interface[1])
+    network.connect(endpoint_a=switch.network_interface[3], endpoint_b=client_b.network_interface[1])
+
+    db_client_a: DatabaseClient = client_a.software_manager.software["DatabaseClient"]  # noqa
+    db_connection_a = db_client_a.get_new_connection()
+
+    assert db_connection_a.query("SELECT")
+    assert len(db_service.connections) == 1
+
+    db_client_b: DatabaseClient = client_b.software_manager.software["DatabaseClient"]  # noqa
+    db_connection_b = db_client_b.get_new_connection()
+
+    assert db_connection_b.query("SELECT")
+    assert len(db_service.connections) == 2
+
+    db_connection_a.disconnect()
+
+    assert db_connection_b.query("SELECT")
+    assert len(db_service.connections) == 1

@@ -10,7 +10,7 @@ from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
-from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
     DataManipulationAttackStage,
     DataManipulationBot,
@@ -141,8 +141,10 @@ def test_data_manipulation_disrupts_green_agent_connection(data_manipulation_db_
     server: Server = network.get_node_by_hostname("server_1")
     db_server_service: DatabaseService = server.software_manager.software.get("DatabaseService")
 
+    green_db_connection: DatabaseClientConnection = green_db_client.get_new_connection()
+
     assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.GOOD
-    assert green_db_client.query("SELECT")
+    assert green_db_connection.query("SELECT")
     assert green_db_client.last_query_response.get("status_code") == 200
 
     data_manipulation_bot.port_scan_p_of_success = 1
@@ -151,5 +153,5 @@ def test_data_manipulation_disrupts_green_agent_connection(data_manipulation_db_
     data_manipulation_bot.attack()
 
     assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.COMPROMISED
-    assert green_db_client.query("SELECT") is False
+    assert green_db_connection.query("SELECT") is False
     assert green_db_client.last_query_response.get("status_code") != 200

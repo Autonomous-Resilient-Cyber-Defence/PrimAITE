@@ -24,7 +24,7 @@ def test_io_settings():
     """Test that the io_settings are loaded correctly."""
     with open(BASIC_CONFIG, "r") as f:
         cfg = yaml.safe_load(f)
-        env = PrimaiteGymEnv(game_config=cfg)
+        env = PrimaiteGymEnv(env_config=cfg)
 
         assert env.io.settings is not None
 

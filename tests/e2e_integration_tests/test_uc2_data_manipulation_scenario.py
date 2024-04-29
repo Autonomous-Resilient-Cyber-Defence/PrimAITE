@@ -4,7 +4,7 @@ from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from tests import TEST_ASSETS_ROOT
@@ -20,23 +20,23 @@ def test_data_manipulation(uc2_network):
 
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
     db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
-
+    db_connection: DatabaseClientConnection = db_client.get_new_connection()
     db_service.backup_database()
 
     # First check that the DB client on the web_server can successfully query the users table on the database
-    assert db_client.query("SELECT")
+    assert db_connection.query("SELECT")
 
     # Now we run the DataManipulationBot
     db_manipulation_bot.attack()
 
     # Now check that the DB client on the web_server cannot query the users table on the database
-    assert not db_client.query("SELECT")
+    assert not db_connection.query("SELECT")
 
     # Now restore the database
     db_service.restore_backup()
 
     # Now check that the DB client on the web_server can successfully query the users table on the database
-    assert db_client.query("SELECT")
+    assert db_connection.query("SELECT")
 
 
 def test_application_install_uninstall_on_uc2():
@@ -44,7 +44,7 @@ def test_application_install_uninstall_on_uc2():
     with open(TEST_ASSETS_ROOT / "configs/test_application_install.yaml", "r") as f:
         cfg = yaml.safe_load(f)
 
-    env = PrimaiteGymEnv(game_config=cfg)
+    env = PrimaiteGymEnv(env_config=cfg)
     env.agent.flatten_obs = False
     env.reset()
 

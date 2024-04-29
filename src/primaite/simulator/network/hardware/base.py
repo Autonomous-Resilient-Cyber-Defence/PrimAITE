@@ -1299,7 +1299,6 @@ class Node(SimComponent):
         self.services.pop(service.uuid)
         service.parent = None
         self.sys_log.info(f"Uninstalled service {service.name}")
-        _LOGGER.info(f"Removed service {service.name} from node {self.hostname}")
         self._service_request_manager.remove_request(service.name)
 
     def install_application(self, application: Application) -> None:
@@ -1335,7 +1334,6 @@ class Node(SimComponent):
         self.applications.pop(application.uuid)
         application.parent = None
         self.sys_log.info(f"Uninstalled application {application.name}")
-        _LOGGER.info(f"Removed application {application.name} from node {self.hostname}")
         self._application_request_manager.remove_request(application.name)
 
     def application_install_action(self, application: Application, ip_address: Optional[str] = None) -> bool:

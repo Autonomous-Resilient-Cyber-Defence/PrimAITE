@@ -61,7 +61,7 @@ class FTPServer(FTPServiceABC):
             return payload
 
         if payload.ftp_command == FTPCommand.QUIT:
-            self.remove_connection(connection_id=session_id)
+            self.terminate_connection(connection_id=session_id)
             payload.status_code = FTPStatusCode.OK
             return payload
 

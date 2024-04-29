@@ -70,7 +70,7 @@ def test_dm_bot_perform_data_manipulation_success(dm_bot):
     dm_bot._perform_data_manipulation(p_of_success=1.0)
 
     assert dm_bot.attack_stage in (DataManipulationAttackStage.SUCCEEDED, DataManipulationAttackStage.FAILED)
-    assert len(dm_bot._host_db_client.connections)
+    assert len(dm_bot._host_db_client.client_connections)
 
 
 def test_dm_bot_fails_without_db_client(dm_client):
