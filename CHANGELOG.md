@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Order of service health state
 - Starting a node didn't start the services on it
 - Fixed an issue where the services were still able to run even though the node the service is installed on is turned off
-- Deprecated the use of NODE_FILE_CHECKHASH and NODE_FOLDER_CHECKHASH in the current release.
+- The use of NODE_FILE_CHECKHASH and NODE_FOLDER_CHECKHASH in the current release is marked as 'Not Implemented'.
 
 
 ### Added
