@@ -507,7 +507,7 @@ def test_firewall_acl_add_remove_rule_integration():
     with open(FIREWALL_ACTIONS_NETWORK, "r") as f:
         cfg = yaml.safe_load(f)
 
-    env = PrimaiteGymEnv(game_config=cfg)
+    env = PrimaiteGymEnv(env_config=cfg)
 
     # 1: Check that traffic is normal and acl starts off with 4 rules.
     firewall = env.game.simulation.network.get_node_by_hostname("firewall")
@@ -598,7 +598,7 @@ def test_firewall_port_disable_enable_integration():
     with open(FIREWALL_ACTIONS_NETWORK, "r") as f:
         cfg = yaml.safe_load(f)
 
-    env = PrimaiteGymEnv(game_config=cfg)
+    env = PrimaiteGymEnv(env_config=cfg)
     firewall = env.game.simulation.network.get_node_by_hostname("firewall")
 
     assert firewall.dmz_port.enabled == True

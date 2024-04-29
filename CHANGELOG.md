@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded pydantic to version 2.7.0
 - Upgraded Ray to version >= 2.9
 - Added ipywidgets to the dependencies
+- Added ability to define scenarios that change depending on the episode number.
+- Standardised Environment API by renaming the config parameter of `PrimaiteGymEnv` from `game_config` to `env_config`
 - Database Connection ID's are now created/issued by DatabaseService and not DatabaseClient
 - added ability to set PrimAITE between development and production modes via PrimAITE CLI ``mode`` command
 - Updated DatabaseClient so that it can now have a single native DatabaseClientConnection along with a collection of DatabaseClientConnection's.
