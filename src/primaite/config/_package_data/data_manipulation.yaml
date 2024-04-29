@@ -2,7 +2,8 @@ io_settings:
   save_agent_actions: true
   save_step_metadata: false
   save_pcap_logs: false
-  save_sys_logs: true
+  save_sys_logs: false
+  sys_log_level: WARNING
 
 
 game:

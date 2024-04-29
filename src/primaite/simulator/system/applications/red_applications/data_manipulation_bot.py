@@ -9,7 +9,7 @@ from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
-from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 
 _LOGGER = getLogger(__name__)
 
@@ -53,6 +53,7 @@ class DataManipulationBot(Application):
         kwargs["protocol"] = IPProtocol.NONE
 
         super().__init__(**kwargs)
+        self._db_connection: Optional[DatabaseClientConnection] = None
 
     def describe_state(self) -> Dict:
         """
@@ -71,7 +72,7 @@ class DataManipulationBot(Application):
         """Return the database client that is installed on the same machine as the DataManipulationBot."""
         db_client = self.software_manager.software.get("DatabaseClient")
         if db_client is None:
-            _LOGGER.info(f"{self.__class__.__name__} cannot find a database client on its host.")
+            self.sys_log.warning(f"{self.__class__.__name__} cannot find a database client on its host.")
         return db_client
 
     def _init_request_manager(self) -> RequestManager:
@@ -127,7 +128,7 @@ class DataManipulationBot(Application):
         """
         if self.attack_stage == DataManipulationAttackStage.NOT_STARTED:
             # Bypass this stage as we're not dealing with logon for now
-            self.sys_log.info(f"{self.name}: ")
+            self.sys_log.debug(f"{self.name}: ")
             self.attack_stage = DataManipulationAttackStage.LOGON
 
     def _perform_port_scan(self, p_of_success: Optional[float] = 0.1):
@@ -145,8 +146,13 @@ class DataManipulationBot(Application):
                 # perform the port scan
                 port_is_open = True  # Temporary; later we can implement NMAP port scan.
                 if port_is_open:
-                    self.sys_log.info(f"{self.name}: ")
+                    self.sys_log.debug(f"{self.name}: ")
                     self.attack_stage = DataManipulationAttackStage.PORT_SCAN
+
+    def _establish_db_connection(self) -> bool:
+        """Establish a db connection to the Database Server."""
+        self._db_connection = self._host_db_client.get_new_connection()
+        return True if self._db_connection else False
 
     def _perform_data_manipulation(self, p_of_success: Optional[float] = 0.1):
         """
@@ -167,17 +173,16 @@ class DataManipulationBot(Application):
             if simulate_trial(p_of_success):
                 self.sys_log.info(f"{self.name}: Performing data manipulation")
                 # perform the attack
-                if not len(self._host_db_client.connections):
-                    self._host_db_client.connect()
-                if len(self._host_db_client.connections):
-                    self._host_db_client.query(self.payload)
+                if not self._db_connection:
+                    self._establish_db_connection()
+                if self._db_connection:
+                    attack_successful = self._db_connection.query(self.payload)
                     self.sys_log.info(f"{self.name} payload delivered: {self.payload}")
-                    attack_successful = True
                     if attack_successful:
                         self.sys_log.info(f"{self.name}: Data manipulation successful")
                         self.attack_stage = DataManipulationAttackStage.SUCCEEDED
                     else:
-                        self.sys_log.info(f"{self.name}: Data manipulation failed")
+                        self.sys_log.warning(f"{self.name}: Data manipulation failed")
                         self.attack_stage = DataManipulationAttackStage.FAILED
 
     def run(self):
@@ -191,7 +196,9 @@ class DataManipulationBot(Application):
     def attack(self) -> bool:
         """Perform the attack steps after opening the application."""
         if not self._can_perform_action():
-            _LOGGER.debug("Data manipulation application attempted to execute but it cannot perform actions right now.")
+            self.sys_log.warning(
+                "Data manipulation application attempted to execute but it cannot perform actions right now."
+            )
             self.run()
 
         self.num_executions += 1
@@ -206,7 +213,7 @@ class DataManipulationBot(Application):
         if not self._can_perform_action():
             return False
         if self.server_ip_address and self.payload:
-            self.sys_log.info(f"{self.name}: Running")
+            self.sys_log.debug(f"{self.name}: Running")
             self._logon()
             self._perform_port_scan(p_of_success=self.port_scan_p_of_success)
             self._perform_data_manipulation(p_of_success=self.data_manipulation_p_of_success)
@@ -220,7 +227,7 @@ class DataManipulationBot(Application):
             return True
 
         else:
-            self.sys_log.error(f"{self.name}: Failed to start as it requires both a target_ip_address and payload.")
+            self.sys_log.warning(f"{self.name}: Failed to start as it requires both a target_ip_address and payload.")
             return False
 
     def apply_timestep(self, timestep: int) -> None:

@@ -82,7 +82,7 @@ class FTPClient(FTPServiceABC):
             else:
                 if is_reattempt:
                     # reattempt failed
-                    self.sys_log.info(
+                    self.sys_log.warning(
                         f"{self.name}: Unable to connect to FTP Server "
                         f"{dest_ip_address} via port {payload.ftp_command_args.value}"
                     )
@@ -93,7 +93,7 @@ class FTPClient(FTPServiceABC):
                         dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id, is_reattempt=True
                     )
         else:
-            self.sys_log.error(f"{self.name}: Unable to send FTPPacket")
+            self.sys_log.warning(f"{self.name}: Unable to send FTPPacket")
             return False
 
     def _disconnect_from_server(
@@ -158,7 +158,7 @@ class FTPClient(FTPServiceABC):
         # check if the file to transfer exists on the client
         file_to_transfer: File = self.file_system.get_file(folder_name=src_folder_name, file_name=src_file_name)
         if not file_to_transfer:
-            self.sys_log.error(f"Unable to send file that does not exist: {src_folder_name}/{src_file_name}")
+            self.sys_log.warning(f"Unable to send file that does not exist: {src_folder_name}/{src_file_name}")
             return False
 
         # check if FTP is currently connected to IP
@@ -253,7 +253,8 @@ class FTPClient(FTPServiceABC):
         :type: session_id: Optional[str]
         """
         if not isinstance(payload, FTPPacket):
-            self.sys_log.error(f"{payload} is not an FTP packet")
+            self.sys_log.warning(f"{self.name}: Payload is not an FTP packet")
+            self.sys_log.debug(f"{self.name}: {payload}")
             return False
 
         """
@@ -275,7 +276,7 @@ class FTPClient(FTPServiceABC):
 
         # if QUIT succeeded, remove the session from active connection list
         if payload.ftp_command is FTPCommand.QUIT and payload.status_code is FTPStatusCode.OK:
-            self.remove_connection(connection_id=session_id)
+            self.terminate_connection(connection_id=session_id)
 
         self.sys_log.info(f"{self.name}: Received FTP Response {payload.ftp_command.name} {payload.status_code.value}")
 

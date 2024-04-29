@@ -56,7 +56,11 @@ def test_connect_to_database_fails_on_reattempt(database_client_on_computer):
     database_client, computer = database_client_on_computer
 
     database_client.connected = False
-    assert database_client._connect(server_ip_address=IPv4Address("192.168.0.1"), is_reattempt=True) is False
+
+    database_connection = database_client._connect(
+        server_ip_address=IPv4Address("192.168.0.1"), connection_request_id="", is_reattempt=True
+    )
+    assert database_connection is None
 
 
 def test_disconnect_when_client_is_closed(database_client_on_computer):
@@ -79,21 +83,20 @@ def test_disconnect(database_client_on_computer):
     """Database client should remove the connection."""
     database_client, computer = database_client_on_computer
 
-    assert not database_client.connected
+    assert database_client.connected is False
 
     database_client.connect()
 
-    assert database_client.connected
+    assert database_client.connected is True
 
     database_client.disconnect()
 
-    assert not database_client.connected
+    assert database_client.connected is False
 
 
 def test_query_when_client_is_closed(database_client_on_computer):
     """Database client should return False when it is not running."""
     database_client, computer = database_client_on_computer
-
     database_client.close()
     assert database_client.operating_state is ApplicationOperatingState.CLOSED
 

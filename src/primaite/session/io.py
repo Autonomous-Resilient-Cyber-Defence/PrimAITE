@@ -6,7 +6,8 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger, PRIMAITE_PATHS
-from primaite.simulator import SIM_OUTPUT
+from primaite.simulator import LogLevel, SIM_OUTPUT
+from src.primaite.utils.primaite_config_utils import is_dev_mode
 
 _LOGGER = getLogger(__name__)
 
@@ -35,6 +36,8 @@ class PrimaiteIO:
         """Whether to save system logs."""
         write_sys_log_to_terminal: bool = False
         """Whether to write the sys log to the terminal."""
+        sys_log_level: LogLevel = LogLevel.INFO
+        """The level of log that should be included in the logfiles/logged into terminal."""
 
     def __init__(self, settings: Optional[Settings] = None) -> None:
         """
@@ -50,6 +53,7 @@ class PrimaiteIO:
         SIM_OUTPUT.save_pcap_logs = self.settings.save_pcap_logs
         SIM_OUTPUT.save_sys_logs = self.settings.save_sys_logs
         SIM_OUTPUT.write_sys_log_to_terminal = self.settings.write_sys_log_to_terminal
+        SIM_OUTPUT.sys_log_level = self.settings.sys_log_level
 
     def generate_session_path(self, timestamp: Optional[datetime] = None) -> Path:
         """Create a folder for the session and return the path to it."""
@@ -57,7 +61,14 @@ class PrimaiteIO:
             timestamp = datetime.now()
         date_str = timestamp.strftime("%Y-%m-%d")
         time_str = timestamp.strftime("%H-%M-%S")
-        session_path = PRIMAITE_PATHS.user_sessions_path / date_str / time_str
+
+        # check if running in dev mode
+        if is_dev_mode():
+            # if dev mode, simulation output will be the current working directory
+            session_path = Path.cwd() / "simulation_output" / date_str / time_str
+        else:
+            session_path = PRIMAITE_PATHS.user_sessions_path / date_str / time_str
+
         session_path.mkdir(exist_ok=True, parents=True)
         return session_path
 
@@ -96,6 +107,10 @@ class PrimaiteIO:
     def from_config(cls, config: Dict) -> "PrimaiteIO":
         """Create an instance of PrimaiteIO based on a configuration dict."""
         config = config or {}
+
+        if config.get("sys_log_level"):
+            config["sys_log_level"] = LogLevel[config["sys_log_level"].upper()]  # convert to enum
+
         new = cls(settings=cls.Settings(**config))
 
         return new

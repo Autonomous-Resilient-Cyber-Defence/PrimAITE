@@ -16,7 +16,7 @@ def test_sb3_compatibility():
     with open(data_manipulation_config_path(), "r") as f:
         cfg = yaml.safe_load(f)
 
-    gym = PrimaiteGymEnv(game_config=cfg)
+    gym = PrimaiteGymEnv(env_config=cfg)
     model = PPO("MlpPolicy", gym)
 
     model.learn(total_timesteps=1000)

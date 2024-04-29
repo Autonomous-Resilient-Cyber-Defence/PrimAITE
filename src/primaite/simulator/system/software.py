@@ -5,8 +5,10 @@ from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, Optional, TYPE_CHECKING, Union
 
+from prettytable import MARKDOWN, PrettyTable
+
 from primaite.interface.request import RequestResponse
-from primaite.simulator.core import _LOGGER, RequestManager, RequestType, SimComponent
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.network_layer import IPProtocol
@@ -287,7 +289,9 @@ class IOSoftware(Software):
         Returns true if the software can perform actions.
         """
         if self.software_manager and self.software_manager.node.operating_state != NodeOperatingState.ON:
-            _LOGGER.debug(f"{self.name} Error: {self.software_manager.node.hostname} is not online.")
+            self.software_manager.node.sys_log.error(
+                f"{self.name} Error: {self.software_manager.node.hostname} is not online."
+            )
             return False
         return True
 
@@ -296,7 +300,7 @@ class IOSoftware(Software):
         """Return the public version of connections."""
         return copy.copy(self._connections)
 
-    def add_connection(self, connection_id: str, session_id: Optional[str] = None) -> bool:
+    def add_connection(self, connection_id: Union[str, int], session_id: Optional[str] = None) -> bool:
         """
         Create a new connection to this service.
 
@@ -308,7 +312,7 @@ class IOSoftware(Software):
         # if over or at capacity, set to overwhelmed
         if len(self._connections) >= self.max_sessions:
             self.set_health_state(SoftwareHealthState.OVERWHELMED)
-            self.sys_log.error(f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity.")
+            self.sys_log.warning(f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity.")
             return False
         else:
             # if service was previously overwhelmed, set to good because there is enough space for connections
@@ -321,30 +325,53 @@ class IOSoftware(Software):
                 if session_id:
                     session_details = self._get_session_details(session_id)
                 self._connections[connection_id] = {
+                    "session_id": session_id,
                     "ip_address": session_details.with_ip_address if session_details else None,
                     "time": datetime.now(),
                 }
                 self.sys_log.info(f"{self.name}: Connect request for {connection_id=} authorised")
                 return True
             # connection with given id already exists
-            self.sys_log.error(
+            self.sys_log.warning(
                 f"{self.name}: Connect request for {connection_id=} declined. Connection already exists."
             )
             return False
 
-    def remove_connection(self, connection_id: str) -> bool:
+    def terminate_connection(self, connection_id: str, send_disconnect: bool = True) -> bool:
         """
-        Remove a connection from this service.
+        Terminates a connection from this service.
 
         Returns true if connection successfully removed
 
         :param: connection_id: UUID of the connection to create
+        :param send_disconnect: If True, sends a disconnect payload to the ip address of the associated session.
         :type: string
         """
         if self.connections.get(connection_id):
-            self._connections.pop(connection_id)
-            self.sys_log.info(f"{self.name}: Connection {connection_id=} closed.")
-            return True
+            connection_dict = self._connections.pop(connection_id)
+            if send_disconnect:
+                self.software_manager.send_payload_to_session_manager(
+                    payload={"type": "disconnect", "connection_id": connection_id},
+                    session_id=connection_dict["session_id"],
+                )
+                self.sys_log.info(f"{self.name}: Connection {connection_id=} terminated")
+                return True
+        return False
+
+    def show_connections(self, markdown: bool = False):
+        """
+        Display the connections in tabular format.
+
+        :param markdown: Whether to display the table in Markdown format or not. Default is `False`.
+        """
+        table = PrettyTable(["IP Address", "Connection ID", "Creation Timestamp"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.sys_log.hostname} {self.name} Connections"
+        for connection_id, data in self.connections.items():
+            table.add_row([data["ip_address"], connection_id, str(data["time"])])
+        print(table.get_string(sortby="Creation Timestamp"))
 
     def clear_connections(self):
         """Clears all the connections from the software."""

@@ -103,7 +103,7 @@ def test_shared_reward():
     with open(CFG_PATH, "r") as f:
         cfg = yaml.safe_load(f)
 
-    env = PrimaiteGymEnv(game_config=cfg)
+    env = PrimaiteGymEnv(env_config=cfg)
 
     env.reset()
 

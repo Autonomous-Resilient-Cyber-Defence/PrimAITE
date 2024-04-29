@@ -61,7 +61,7 @@ class FTPServer(FTPServiceABC):
             return payload
 
         if payload.ftp_command == FTPCommand.QUIT:
-            self.remove_connection(connection_id=session_id)
+            self.terminate_connection(connection_id=session_id)
             payload.status_code = FTPStatusCode.OK
             return payload
 
@@ -70,7 +70,8 @@ class FTPServer(FTPServiceABC):
     def receive(self, payload: Any, session_id: Optional[str] = None, **kwargs) -> bool:
         """Receives a payload from the SessionManager."""
         if not isinstance(payload, FTPPacket):
-            self.sys_log.error(f"{payload} is not an FTP packet")
+            self.sys_log.warning(f"{self.name}: Payload is not an FTP packet")
+            self.sys_log.debug(f"{self.name}: {payload}")
             return False
 
         if not super().receive(payload=payload, session_id=session_id, **kwargs):

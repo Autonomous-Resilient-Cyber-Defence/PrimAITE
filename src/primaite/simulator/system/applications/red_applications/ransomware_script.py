@@ -2,16 +2,13 @@ from enum import IntEnum
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
-from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
-from primaite.simulator.system.applications.database_client import DatabaseClient
-
-_LOGGER = getLogger(__name__)
+from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 
 
 class RansomwareAttackStage(IntEnum):
@@ -76,6 +73,7 @@ class RansomwareScript(Application):
         kwargs["protocol"] = IPProtocol.NONE
 
         super().__init__(**kwargs)
+        self._db_connection: Optional[DatabaseClientConnection] = None
 
     def describe_state(self) -> Dict:
         """
@@ -94,7 +92,7 @@ class RansomwareScript(Application):
         """Return the database client that is installed on the same machine as the Ransomware Script."""
         db_client = self.software_manager.software.get("DatabaseClient")
         if db_client is None:
-            _LOGGER.info(f"{self.__class__.__name__} cannot find a database client on its host.")
+            self.sys_log.warning(f"{self.__class__.__name__} cannot find a database client on its host.")
         return db_client
 
     def _init_request_manager(self) -> RequestManager:
@@ -158,7 +156,7 @@ class RansomwareScript(Application):
                 self.attack_stage = RansomwareAttackStage.NOT_STARTED
             return True
         else:
-            self.sys_log.error(f"{self.name}: Failed to start as it requires both a target_ip_address and payload.")
+            self.sys_log.warning(f"{self.name}: Failed to start as it requires both a target_ip_address and payload.")
             return False
 
     def configure(
@@ -254,10 +252,15 @@ class RansomwareScript(Application):
     def attack(self) -> bool:
         """Perform the attack steps after opening the application."""
         if not self._can_perform_action():
-            _LOGGER.debug("Ransomware application is unable to perform it's actions.")
+            self.sys_log.warning("Ransomware application is unable to perform it's actions.")
             self.run()
         self.num_executions += 1
         return self._application_loop()
+
+    def _establish_db_connection(self) -> bool:
+        """Establish a db connection to the Database Server."""
+        self._db_connection = self._host_db_client.get_new_connection()
+        return True if self._db_connection else False
 
     def _perform_ransomware_encrypt(self):
         """
@@ -276,12 +279,11 @@ class RansomwareScript(Application):
         if self.attack_stage == RansomwareAttackStage.COMMAND_AND_CONTROL:
             if simulate_trial(self.ransomware_encrypt_p_of_success):
                 self.sys_log.info(f"{self.name}: Attempting to launch payload")
-                if not len(self._host_db_client.connections):
-                    self._host_db_client.connect()
-                if len(self._host_db_client.connections):
-                    self._host_db_client.query(self.payload)
+                if not self._db_connection:
+                    self._establish_db_connection()
+                if self._db_connection:
+                    attack_successful = self._db_connection.query(self.payload)
                     self.sys_log.info(f"{self.name} Payload delivered: {self.payload}")
-                    attack_successful = True
                     if attack_successful:
                         self.sys_log.info(f"{self.name}: Payload Successful")
                         self.attack_stage = RansomwareAttackStage.SUCCEEDED
@@ -289,7 +291,7 @@ class RansomwareScript(Application):
                         self.sys_log.info(f"{self.name}: Payload failed")
                         self.attack_stage = RansomwareAttackStage.FAILED
         else:
-            self.sys_log.error("Attack Attempted to launch too quickly")
+            self.sys_log.warning("Attack Attempted to launch too quickly")
             self.attack_stage = RansomwareAttackStage.FAILED
 
     def _local_download(self):

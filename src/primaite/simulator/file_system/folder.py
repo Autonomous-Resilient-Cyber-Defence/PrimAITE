@@ -5,13 +5,10 @@ from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
 
-from primaite import getLogger
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.file_system.file import File
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC, FileSystemItemHealthStatus
-
-_LOGGER = getLogger(__name__)
 
 
 class Folder(FileSystemItemABC):
@@ -255,7 +252,7 @@ class Folder(FileSystemItemABC):
             file.delete()
             self.sys_log.info(f"Removed file {file.name} (id: {file.uuid})")
         else:
-            _LOGGER.debug(f"File with UUID {file.uuid} was not found.")
+            self.sys_log.error(f"File with UUID {file.uuid} was not found.")
 
     def remove_file_by_id(self, file_uuid: str):
         """

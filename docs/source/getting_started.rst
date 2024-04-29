@@ -141,3 +141,29 @@ of your choice:
     pip install -e .[dev]
 
 To view the complete list of packages installed during PrimAITE installation, go to the dependencies page (:ref:`Dependencies`).
+
+4. Set PrimAITE to run on development mode
+
+Running step 3 should have installed PrimAITE, verify this by running
+
+.. code-block:: bash
+    :caption: Unix
+
+    primaite setup
+
+.. code-block:: powershell
+    :caption: Windows (Powershell)
+
+    primaite setup
+
+To set PrimAITE to run in development mode:
+
+.. code-block:: bash
+    :caption: Unix
+
+    primaite mode --dev
+
+.. code-block:: powershell
+    :caption: Windows (Powershell)
+
+    primaite mode --dev
