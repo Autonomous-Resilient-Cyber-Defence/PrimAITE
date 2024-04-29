@@ -1,5 +1,6 @@
 # flake8: noqa
 """Core of the PrimAITE Simulator."""
+import warnings
 from abc import abstractmethod
 from typing import Callable, Dict, List, Literal, Optional, Union
 from uuid import uuid4
@@ -26,6 +27,12 @@ class RequestPermissionValidator(BaseModel):
         """Use the request and context parameters to decide whether the request should be permitted."""
         pass
 
+    @property
+    @abstractmethod
+    def fail_message(self) -> str:
+        """Message that is reported when a request is rejected by this validator."""
+        return "request rejected"
+
 
 class AllowAllValidator(RequestPermissionValidator):
     """Always allows the request."""
@@ -33,6 +40,16 @@ class AllowAllValidator(RequestPermissionValidator):
     def __call__(self, request: RequestFormat, context: Dict) -> bool:
         """Always allow the request."""
         return True
+
+    @property
+    def fail_message(self) -> str:
+        """
+        Message that is reported when a request is rejected by this validator.
+
+        This method should really never be called because this validator never rejects requests.
+        """
+        warnings.warn("Something went wrong - AllowAllValidator rejected a request.")
+        return super().fail_message
 
 
 class RequestType(BaseModel):
@@ -99,7 +116,7 @@ class RequestManager(BaseModel):
 
         if not request_type.validator(request_options, context):
             _LOGGER.debug(f"Request {request} was denied due to insufficient permissions")
-            return RequestResponse(status="failure", data={"reason": "request validation failed"})
+            return RequestResponse(status="failure", data={"reason": request_type.validator.fail_message})
 
         return request_type.func(request_options, context)
 
