@@ -14,7 +14,6 @@ from primaite.game.agent.scripted_agents.probabilistic_agent import Probabilisti
 from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
-from primaite.simulator.network.airspace import AIR_SPACE
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
@@ -222,7 +221,6 @@ class PrimaiteGame:
         :return: A PrimaiteGame object.
         :rtype: PrimaiteGame
         """
-        AIR_SPACE.clear()
         game = cls()
         game.options = PrimaiteGameOptions(**cfg["game"])
         game.save_step_metadata = cfg.get("io_settings", {}).get("save_step_metadata") or False
@@ -274,7 +272,7 @@ class PrimaiteGame:
             elif n_type == "firewall":
                 new_node = Firewall.from_config(node_cfg)
             elif n_type == "wireless_router":
-                new_node = WirelessRouter.from_config(node_cfg)
+                new_node = WirelessRouter.from_config(node_cfg, airspace=net.airspace)
             elif n_type == "printer":
                 new_node = Printer(
                     hostname=node_cfg["hostname"],

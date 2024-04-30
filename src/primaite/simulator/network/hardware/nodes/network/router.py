@@ -1546,7 +1546,7 @@ class Router(NetworkNode):
         print(table)
 
     @classmethod
-    def from_config(cls, cfg: dict) -> "Router":
+    def from_config(cls, cfg: dict, **kwargs) -> "Router":
         """Create a router based on a config dict.
 
         Schema:
