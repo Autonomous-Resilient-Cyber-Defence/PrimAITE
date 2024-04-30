@@ -3,9 +3,9 @@ import typer
 from rich import print
 from typing_extensions import Annotated
 
-from primaite import _PRIMAITE_ROOT
+from primaite import _PRIMAITE_ROOT, PRIMAITE_CONFIG
 from primaite.simulator import LogLevel
-from primaite.utils.cli.primaite_config_utils import get_primaite_config_dict, is_dev_mode, update_primaite_config
+from primaite.utils.cli.primaite_config_utils import is_dev_mode, update_primaite_application_config
 
 dev = typer.Typer()
 
@@ -45,28 +45,18 @@ def show():
 @dev.command()
 def enable():
     """Enable the development mode for PrimAITE."""
-    config_dict = get_primaite_config_dict()
-
-    if config_dict is None:
-        return
-
     # enable dev mode
-    config_dict["developer_mode"]["enabled"] = True
-    update_primaite_config(config_dict)
+    PRIMAITE_CONFIG["developer_mode"]["enabled"] = True
+    update_primaite_application_config()
     print(DEVELOPMENT_MODE_MESSAGE)
 
 
 @dev.command()
 def disable():
     """Disable the development mode for PrimAITE."""
-    config_dict = get_primaite_config_dict()
-
-    if config_dict is None:
-        return
-
     # disable dev mode
-    config_dict["developer_mode"]["enabled"] = False
-    update_primaite_config(config_dict)
+    PRIMAITE_CONFIG["developer_mode"]["enabled"] = False
+    update_primaite_application_config()
     print(PRODUCTION_MODE_MESSAGE)
 
 
@@ -105,29 +95,24 @@ def config_callback(
     ] = None,
 ):
     """Configure the development tools and environment."""
-    config_dict = get_primaite_config_dict()
-
-    if config_dict is None:
-        return
-
     if ctx.params.get("sys_log_level") is not None:
-        config_dict["developer_mode"]["sys_log_level"] = ctx.params.get("sys_log_level")
+        PRIMAITE_CONFIG["developer_mode"]["sys_log_level"] = ctx.params.get("sys_log_level")
         print(f"PrimAITE dev-mode config updated sys_log_level={ctx.params.get('sys_log_level')}")
 
     if output_sys_logs is not None:
-        config_dict["developer_mode"]["output_sys_logs"] = output_sys_logs
+        PRIMAITE_CONFIG["developer_mode"]["output_sys_logs"] = output_sys_logs
         print(f"PrimAITE dev-mode config updated {output_sys_logs=}")
 
     if output_pcap_logs is not None:
-        config_dict["developer_mode"]["output_pcap_logs"] = output_pcap_logs
+        PRIMAITE_CONFIG["developer_mode"]["output_pcap_logs"] = output_pcap_logs
         print(f"PrimAITE dev-mode config updated {output_pcap_logs=}")
 
     if output_to_terminal is not None:
-        config_dict["developer_mode"]["output_to_terminal"] = output_to_terminal
+        PRIMAITE_CONFIG["developer_mode"]["output_to_terminal"] = output_to_terminal
         print(f"PrimAITE dev-mode config updated {output_to_terminal=}")
 
     # update application config
-    update_primaite_config(config_dict)
+    update_primaite_application_config()
 
 
 config_typer = typer.Typer(
@@ -159,15 +144,10 @@ def path(
     ] = None,
 ):
     """Set the output directory for the PrimAITE system and PCAP logs."""
-    config_dict = get_primaite_config_dict()
-
-    if config_dict is None:
-        return
-
     if default:
-        config_dict["developer_mode"]["output_dir"] = None
+        PRIMAITE_CONFIG["developer_mode"]["output_dir"] = None
         # update application config
-        update_primaite_config(config_dict)
+        update_primaite_application_config()
         print(
             f"PrimAITE dev-mode output_dir [medium_turquoise]"
             f"{str(_PRIMAITE_ROOT.parent.parent / 'simulation_output')}"
@@ -176,7 +156,7 @@ def path(
         return
 
     if directory:
-        config_dict["developer_mode"]["output_dir"] = directory
+        PRIMAITE_CONFIG["developer_mode"]["output_dir"] = directory
         # update application config
-        update_primaite_config(config_dict)
+        update_primaite_application_config()
         print(f"PrimAITE dev-mode output_dir [medium_turquoise]{directory}[/medium_turquoise]")

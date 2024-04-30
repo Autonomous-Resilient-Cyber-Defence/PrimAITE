@@ -3,11 +3,11 @@ from datetime import datetime
 from enum import IntEnum
 from pathlib import Path
 
-from primaite import _PRIMAITE_ROOT
+from primaite import _PRIMAITE_ROOT, PRIMAITE_CONFIG
 
 __all__ = ["SIM_OUTPUT"]
 
-from primaite.utils.cli.primaite_config_utils import get_primaite_config_dict, is_dev_mode
+from primaite.utils.cli.primaite_config_utils import is_dev_mode
 
 
 class LogLevel(IntEnum):
@@ -47,7 +47,7 @@ class _SimOutput:
     @property
     def save_pcap_logs(self) -> bool:
         if is_dev_mode():
-            return get_primaite_config_dict().get("developer_mode").get("output_pcap_logs")
+            return PRIMAITE_CONFIG.get("developer_mode").get("output_pcap_logs")
         return self._save_pcap_logs
 
     @save_pcap_logs.setter
@@ -57,7 +57,7 @@ class _SimOutput:
     @property
     def save_sys_logs(self) -> bool:
         if is_dev_mode():
-            return get_primaite_config_dict().get("developer_mode").get("output_sys_logs")
+            return PRIMAITE_CONFIG.get("developer_mode").get("output_sys_logs")
         return self._save_sys_logs
 
     @save_sys_logs.setter
@@ -67,7 +67,7 @@ class _SimOutput:
     @property
     def write_sys_log_to_terminal(self) -> bool:
         if is_dev_mode():
-            return get_primaite_config_dict().get("developer_mode").get("output_to_terminal")
+            return PRIMAITE_CONFIG.get("developer_mode").get("output_to_terminal")
         return self._write_sys_log_to_terminal
 
     @write_sys_log_to_terminal.setter
@@ -77,7 +77,7 @@ class _SimOutput:
     @property
     def sys_log_level(self) -> LogLevel:
         if is_dev_mode():
-            return LogLevel[get_primaite_config_dict().get("developer_mode").get("sys_log_level")]
+            return LogLevel[PRIMAITE_CONFIG.get("developer_mode").get("sys_log_level")]
         return self._sys_log_level
 
     @sys_log_level.setter
