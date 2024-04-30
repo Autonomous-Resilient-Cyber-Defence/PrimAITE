@@ -2,9 +2,12 @@
 """Provides a CLI using Typer as an entry point."""
 import logging
 import os
+import shutil
 from enum import Enum
+from pathlib import Path
 from typing import Optional
 
+import pkg_resources
 import typer
 import yaml
 from typing_extensions import Annotated
@@ -91,7 +94,7 @@ def version() -> None:
 
 
 @app.command()
-def setup(overwrite_existing: bool = True) -> None:
+def setup(overwrite_existing: bool = False) -> None:
     """
     Perform the PrimAITE first-time setup.
 
@@ -104,10 +107,13 @@ def setup(overwrite_existing: bool = True) -> None:
 
     _LOGGER.info("Performing the PrimAITE first-time setup...")
 
-    _LOGGER.info("Building primaite_config.yaml...")
-
     _LOGGER.info("Building the PrimAITE app directories...")
     PRIMAITE_PATHS.mkdirs()
+
+    _LOGGER.info("Building primaite_config.yaml...")
+    if overwrite_existing:
+        pkg_config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
+        shutil.copy(pkg_config_path, PRIMAITE_PATHS.app_config_file_path)
 
     _LOGGER.info("Rebuilding the demo notebooks...")
     reset_demo_notebooks.run(overwrite_existing=True)

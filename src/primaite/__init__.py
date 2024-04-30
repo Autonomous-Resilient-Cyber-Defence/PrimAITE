@@ -123,8 +123,9 @@ PRIMAITE_PATHS: Final[_PrimaitePaths] = _PrimaitePaths()
 
 
 def _host_primaite_config() -> None:
-    pkg_config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
-    shutil.copy(pkg_config_path, PRIMAITE_PATHS.app_config_file_path)
+    if not PRIMAITE_PATHS.app_config_file_path.exists():
+        pkg_config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
+        shutil.copy2(pkg_config_path, PRIMAITE_PATHS.app_config_file_path)
 
 
 _host_primaite_config()

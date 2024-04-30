@@ -28,7 +28,7 @@ def get_primaite_config_dict(config_path: Optional[Path] = None) -> Dict:
 def is_dev_mode() -> bool:
     """Returns True if PrimAITE is currently running in developer mode."""
     config = get_primaite_config_dict()
-    return config["developer_mode"]["enabled"]
+    return config["developer_mode"]["enabled"] if config.get("developer_mode", {}).get("enabled") else False
 
 
 def update_primaite_config(config: Dict) -> None:

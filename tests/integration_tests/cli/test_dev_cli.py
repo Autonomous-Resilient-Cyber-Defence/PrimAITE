@@ -3,6 +3,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
+import pkg_resources
 import pytest
 
 from primaite import _PRIMAITE_ROOT, PRIMAITE_PATHS
@@ -19,9 +20,8 @@ def test_setup():
 
     temp_dir = tempfile.gettempdir()
     temp_config = Path(temp_dir) / "primaite_config.yaml"
-    shutil.copyfile(
-        _PRIMAITE_ROOT / "setup" / "_package_data" / "primaite_config.yaml", temp_config
-    )  # copy the default primaite config to temp directory
+    pkg_config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
+    shutil.copyfile(pkg_config_path, temp_config)  # copy the default primaite config to temp directory
     PRIMAITE_PATHS.app_config_file_path = temp_config  # use the copy for the test
     yield  # run test
     os.remove(temp_config)  # clean up temp file
