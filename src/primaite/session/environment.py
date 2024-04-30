@@ -58,6 +58,7 @@ class PrimaiteGymEnv(gymnasium.Env):
 
         next_obs = self._get_obs()  # this doesn't update observation, just gets the current observation
         reward = self.agent.reward_function.current_reward
+        _LOGGER.info(f"step: {self.game.step_counter}, Blue reward: {reward}")
         terminated = False
         truncated = self.game.calculate_truncated()
         info = {

@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 from primaite import getLogger, PRIMAITE_PATHS
 from primaite.simulator import LogLevel, SIM_OUTPUT
-from src.primaite.utils.primaite_config_utils import is_dev_mode
+from primaite.utils.primaite_config_utils import is_dev_mode
 
 _LOGGER = getLogger(__name__)
 
