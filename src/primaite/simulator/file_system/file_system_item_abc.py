@@ -156,7 +156,7 @@ class FileSystemItemABC(SimComponent):
     @abstractmethod
     def check_hash(self) -> bool:
         """
-        Checks the has of the file to detect any changes.
+        Checks the hash of the file to detect any changes.
 
         For current implementation, any change in file hash means it is compromised.
 
