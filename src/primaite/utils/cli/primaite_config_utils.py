@@ -6,9 +6,7 @@ import yaml
 from primaite import PRIMAITE_PATHS
 
 
-def get_primaite_config_dict(
-        config_path: Optional[Path] = None
-) -> Dict:
+def get_primaite_config_dict(config_path: Optional[Path] = None) -> Dict:
     """
     Returns a dict containing the PrimAITE application config.
 

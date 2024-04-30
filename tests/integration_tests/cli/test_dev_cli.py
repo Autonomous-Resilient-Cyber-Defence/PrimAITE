@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from primaite import PRIMAITE_PATHS, _PRIMAITE_ROOT
+from primaite import _PRIMAITE_ROOT, PRIMAITE_PATHS
 from primaite.utils.cli.primaite_config_utils import get_primaite_config_dict
 from tests.integration_tests.cli import cli
 
