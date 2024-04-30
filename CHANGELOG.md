@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the ability for a DatabaseService to terminate a connection.
 - Added active_connection to DatabaseClientConnection so that if the connection is terminated active_connection is set to False and the object can no longer be used.
 - Added additional show functions to enable connection inspection.
+- Updates to agent logging, to include the reward both per step and per episode.
 
 
 ## [Unreleased]
