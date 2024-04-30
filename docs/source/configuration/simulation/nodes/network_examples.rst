@@ -7,10 +7,10 @@
 ``Network Examples``
 ====================
 
-The below examples demonstrate how to configure different types of network in PrimAITE. They examples all have network
-topology diagrams. Each rectangle represents a single Node, with the hostname inside of the rectangle. Physical inks are
+The below examples demonstrate how to configure different types of network in PrimAITE. These examples all have network
+topology diagrams. Each rectangle represents a single Node, with the hostname inside of the rectangle. Physical links are
 represented by lines between two nodes. At each end of the line is the network interface number on the node the link is
-connected to. Where the network interface is alsoa  layer-3 device, the label also contains the ip address and subnet
+connected to. Where the network interface is also a  layer-3 device, the label also contains the ip address and subnet
 mask in CIDR format (``<ip address>/<no mask bits>``). All network diagrams on this page use the following node type
 colour key:
 
@@ -167,7 +167,7 @@ Finally, once the network is configured as expected, a connectivity test should 
     pc_1.ping("192.168.1.13)
 
 If SysLog capture is toggled on and the simulation log level is set to INFO, the `pc_1` the result of the ping should be
-captures in the `pc_1` SysLog:
+captured in the `pc_1` SysLog:
 
 .. code-block:: text
 
@@ -392,7 +392,7 @@ connections, but the ACL that allows the nodes in the LAN to communicate with th
 pc_1.sys_log.show()
 
 If SysLog capture is toggled on and the simulation log level is set to INFO, the `pc_1` the result of the ping should be
-captures in the `pc_1` SysLog:
+captured in the `pc_1` SysLog:
 
 .. code-block:: text
 
@@ -739,7 +739,7 @@ Each node is configured to ensure it meets the specific security and operational
                 10: # Permit all internal outbound traffic
                   action: PERMIT
               dmz_inbound_acl:
-                7: # Permit Database service on some_tech_db_srv to respong to some_tech_web_srv
+                7: # Permit Database service on some_tech_db_srv to respond to some_tech_web_srv
                   action: PERMIT
                   src_ip: 10.10.1.11
                   src_port: POSTGRES_SERVER

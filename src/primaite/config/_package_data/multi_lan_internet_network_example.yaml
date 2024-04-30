@@ -142,7 +142,7 @@ simulation:
             10: # Permit all internal outbound traffic
               action: PERMIT
           dmz_inbound_acl:
-            7: # Permit Database service on some_tech_db_srv to respong to some_tech_web_srv
+            7: # Permit Database service on some_tech_db_srv to respond to some_tech_web_srv
               action: PERMIT
               src_ip: 10.10.1.11
               src_port: POSTGRES_SERVER

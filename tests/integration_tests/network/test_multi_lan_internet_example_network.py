@@ -20,7 +20,7 @@ def test_all_with_configured_dns_server_ip_can_resolve_url():
             assert dns_client.check_domain_exists("sometech.ai")
 
 
-def test_external_pcs_can_access_sometect_website():
+def test_external_pcs_can_access_sometech_website():
     network = multi_lan_internet_network_example()
 
     pc_1_browser: WebBrowser = network.get_node_by_hostname("pc_1").software_manager.software["WebBrowser"]
@@ -161,7 +161,7 @@ def test_sometech_jnr_dev_cannot_access_ftp_on_sometech_storage_server():
     )
 
 
-def test_sometech_hr_pc_can_access_sometect_website():
+def test_sometech_hr_pc_can_access_sometech_website():
     network = multi_lan_internet_network_example()
 
     some_tech_hr_pc: Computer = network.get_node_by_hostname("some_tech_hr_1")
