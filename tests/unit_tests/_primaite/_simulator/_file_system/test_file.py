@@ -1,3 +1,7 @@
+import warnings
+
+import pytest
+
 from primaite.simulator.file_system.file import File
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.file_system.file_type import FileType
@@ -41,6 +45,7 @@ def test_file_reveal_to_red_scan(file_system):
     assert file.revealed_to_red is True
 
 
+@pytest.mark.skip(reason="NODE_FILE_CHECKHASH not implemented")
 def test_simulated_file_check_hash(file_system):
     file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
 
@@ -52,6 +57,7 @@ def test_simulated_file_check_hash(file_system):
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
 
 
+@pytest.mark.skip(reason="NODE_FILE_CHECKHASH not implemented")
 def test_real_file_check_hash(file_system):
     file: File = file_system.create_file(file_name="test_file.txt", real=True)
 
@@ -80,3 +86,14 @@ def test_file_corrupt_repair_restore(file_system):
 
     file.restore()
     assert file.health_status == FileSystemItemHealthStatus.GOOD
+
+
+def test_file_warning_triggered(file_system):
+    file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        file.check_hash()
+        # Check warning issued
+        assert len(w) == 1
+        assert "not implemented" in str(w[-1].message)

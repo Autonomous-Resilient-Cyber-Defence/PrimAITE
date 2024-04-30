@@ -41,6 +41,20 @@ Just like other aspects of SimComponent, the request types are not managed centr
 - ``context`` detail
     The context is not used by any of the currently implemented components or requests.
 
+- Request response
+    When the simulator receives a request, it returns a response with a success status. The possible statuses are:
+
+    * **success**: The request was received and successfully executed.
+        * For example, the agent tries to add an ACL rule and specifies correct parameters, and the ACL rule is added successfully.
+
+    * **failure**: The request was received, but it could not be executed, or it failed while executing.
+        * For example, the agent tries to execute the ``WebBrowser`` application, but the webpage wasn't retrieved because the DNS server is not setup on the node.
+
+    * **unreachable**: The request was sent to a simulation component that does not exist.
+        * For example, the agent tries to scan a file that has not been created yet.
+
+For more information, please refer to the ``Requests-and-Responses.ipynb`` jupyter notebook
+
 Technical Detail
 ================
 
@@ -64,9 +78,9 @@ A simple example without chaining can be seen in the :py:class:`primaite.simulat
         ...
         def _init_request_manager(self):
             ...
-            request_manager.add_request("scan", RequestType(func=lambda request, context: self.scan()))
-            request_manager.add_request("repair", RequestType(func=lambda request, context: self.repair()))
-            request_manager.add_request("restore", RequestType(func=lambda request, context: self.restore()))
+            request_manager.add_request("scan", RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan())))
+            request_manager.add_request("repair", RequestType(func=lambda request, context: RequestResponse.from_bool(self.repair())))
+            request_manager.add_request("restore", RequestType(func=lambda request, context: RequestResponse.from_bool(self.restore())))
 
 *ellipses (``...``) used to omit code impertinent to this explanation*
 
@@ -115,8 +129,8 @@ Requests that are specified without a validator automatically get assigned an ``
 Request Response
 ----------------
 
-The :py:class:`primaite.interface.request.RequestResponse<RequestResponse>` is a data transfer object that carries response data between the simulator and the game layer. The ``status`` field reports on the success or failure, and the ``data`` field is for any additional data. The most common way that this class is initiated is by its ``from_bool`` method. This way, given a True or False, a successful or failed request response is generated, respectively (with an empty data field).
+The :py:class:`primaite.interface.request.RequestResponse<RequestResponse>` carries response data between the simulator and the game layer. The ``status`` field reports on the success or failure, and the ``data`` field is for any additional data. The most common way that this class is used is by the ``from_bool`` method. This way, given a True or False, a successful or failed request response is generated, respectively (with an empty data field).
 
-For instance, the ``execute`` action on a :py:class:`primaite.simulator.system.applications.web_browser.WebBrowser<WebBrowser>` calls the ``get_webpage()`` method of the ``WebBrowser``. ``get_webpage()`` returns a True if the webpage was successfully retrieved, and False if unsuccessful for any reason, such as being blocked by an ACL, or if the database server is unresponsive. The boolean returned from ``get_webpage()`` is used to create the request response.
+For instance, the ``execute`` action on a :py:class:`primaite.simulator.system.applications.web_browser.WebBrowser<WebBrowser>` calls the ``get_webpage()`` method. ``get_webpage()`` returns a True if the webpage was successfully retrieved, and False if unsuccessful for any reason, such as being blocked by an ACL, or if the database server is unresponsive. The boolean returned from ``get_webpage()`` is used to create the request response with ``from_bool()``.
 
 Just as the requests themselves were passed from owner to component, the request response is bubbled back up from component to owner until it arrives at the game layer.

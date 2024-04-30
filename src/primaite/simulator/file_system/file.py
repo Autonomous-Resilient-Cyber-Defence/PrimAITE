@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os.path
+import warnings
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -145,6 +146,10 @@ class File(FileSystemItemABC):
 
         Return False if corruption is detected, otherwise True
         """
+        warnings.warn("NODE_FILE_CHECKHASH is currently not implemented.")
+        self.sys_log.warning("NODE_FILE_CHECKHASH is currently not implemented.")
+        return False
+
         if self.deleted:
             self.sys_log.error(f"Unable to check hash of deleted file {self.folder_name}/{self.name}")
             return False

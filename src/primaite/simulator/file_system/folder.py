@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
@@ -380,6 +381,10 @@ class Folder(FileSystemItemABC):
 
         Return False if corruption is detected, otherwise True
         """
+        warnings.warn("NODE_FOLDER_CHECKHASH is currently not implemented.")
+        self.sys_log.error("NODE_FOLDER_CHECKHASH is currently not implemented.")
+        return False
+
         if self.deleted:
             self.sys_log.error(f"Unable to check hash of deleted folder {self.name}")
             return False

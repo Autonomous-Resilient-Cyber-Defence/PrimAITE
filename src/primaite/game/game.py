@@ -244,7 +244,7 @@ class PrimaiteGame:
                     hostname=node_cfg["hostname"],
                     ip_address=node_cfg["ip_address"],
                     subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
-                    default_gateway=node_cfg["default_gateway"],
+                    default_gateway=node_cfg.get("default_gateway"),
                     dns_server=node_cfg.get("dns_server", None),
                     operating_state=NodeOperatingState.ON
                     if not (p := node_cfg.get("operating_state"))
@@ -255,7 +255,7 @@ class PrimaiteGame:
                     hostname=node_cfg["hostname"],
                     ip_address=node_cfg["ip_address"],
                     subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
-                    default_gateway=node_cfg["default_gateway"],
+                    default_gateway=node_cfg.get("default_gateway"),
                     dns_server=node_cfg.get("dns_server", None),
                     operating_state=NodeOperatingState.ON
                     if not (p := node_cfg.get("operating_state"))

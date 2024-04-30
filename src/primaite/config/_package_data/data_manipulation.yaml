@@ -313,7 +313,7 @@ agents:
               folder_id: 0
               file_id: 0
           10:
-            action: "NODE_FILE_SCAN" # CHECKHASH replaced by SCAN - but the behaviour is the same in this context.
+            action: "NODE_FILE_CHECKHASH" # CHECKHASH replaced by SCAN - but the behaviour is the same in this context.
             options:
               node_id: 2
               folder_id: 0
@@ -341,7 +341,7 @@ agents:
               node_id: 2
               folder_id: 0
           15:
-            action: "NODE_FOLDER_SCAN" # CHECKHASH replaced by SCAN - but the behaviour is the same in this context.
+            action: "NODE_FOLDER_CHECKHASH" # CHECKHASH replaced by SCAN - but the behaviour is the same in this context.
             options:
               node_id: 2
               folder_id: 0
