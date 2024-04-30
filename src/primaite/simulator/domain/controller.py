@@ -57,6 +57,11 @@ class GroupMembershipValidator(RequestPermissionValidator):
                 return True
         return False
 
+    @property
+    def fail_message(self) -> str:
+        """Message that is reported when a request is rejected by this validator."""
+        return "User does not belong to group"
+
 
 class DomainController(SimComponent):
     """Main object for controlling the domain."""
