@@ -48,7 +48,7 @@ class _SimOutput:
             return self._path
         if is_dev_mode():
             dev_config = get_primaite_config_dict().get("developer_mode")
-            return Path(dev_config["output_path"]) if dev_config["output_path"] else self._default_path
+            return Path(dev_config["output_dir"]) if dev_config["output_dir"] else self._default_path
 
     @path.setter
     def path(self, new_path: Path) -> None:

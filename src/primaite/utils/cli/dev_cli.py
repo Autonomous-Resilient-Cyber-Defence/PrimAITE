@@ -1,8 +1,12 @@
+from typing import List
+
+import click
 import typer
 from rich import print
 from typing_extensions import Annotated
 
 from primaite import _PRIMAITE_ROOT
+from primaite.simulator import LogLevel
 from primaite.utils.cli.primaite_config_utils import get_primaite_config_dict, is_dev_mode, update_primaite_config
 
 dev = typer.Typer()
@@ -69,25 +73,55 @@ def disable():
 
 
 def config_callback(
-    ctx: typer.Context,
-    output_sys_logs: Annotated[
-        bool, typer.Option("--output-sys-logs/--no-sys-logs", "-sys/-nsys", help="Output system logs to file.")
-    ] = None,
-    output_pcap_logs: Annotated[
-        bool,
-        typer.Option(
-            "--output-pcap-logs/--no-pcap-logs", "-pcap/-npcap", help="Output network packet capture logs to file."
-        ),
-    ] = None,
-    output_to_terminal: Annotated[
-        bool, typer.Option("--output-to_terminal/--no-terminal", "-t/-nt", help="Output system logs to terminal.")
-    ] = None,
+        ctx: typer.Context,
+        sys_log_level: Annotated[
+            LogLevel,
+            typer.Option(
+                "--sys-log-level",
+                "-level",
+                click_type=click.Choice(LogLevel._member_names_, case_sensitive=False),
+                help="The level of system logs to output.",
+                show_default=False
+            )
+        ] = None,
+        output_sys_logs: Annotated[
+            bool,
+            typer.Option(
+                "--output-sys-logs/--no-sys-logs",
+                "-sys/-nsys",
+                help="Output system logs to file.",
+                show_default=False
+            )
+        ] = None,
+        output_pcap_logs: Annotated[
+            bool,
+            typer.Option(
+                "--output-pcap-logs/--no-pcap-logs",
+                "-pcap/-npcap",
+                help="Output network packet capture logs to file.",
+                show_default=False
+            ),
+        ] = None,
+        output_to_terminal: Annotated[
+            bool,
+            typer.Option(
+                "--output-to-terminal/--no-terminal",
+                "-t/-nt",
+                help="Output system logs to terminal.",
+                show_default=False
+            )
+        ] = None,
 ):
     """Configure the development tools and environment."""
     config_dict = get_primaite_config_dict()
 
     if config_dict is None:
         return
+
+    if ctx.params.get("sys_log_level") is not None:
+        config_dict["developer_mode"]["sys_log_level"] = ctx.params.get("sys_log_level")
+        print(f"PrimAITE dev-mode config updated sys_log_level={ctx.params.get('sys_log_level')}")
+
 
     if output_sys_logs is not None:
         config_dict["developer_mode"]["output_sys_logs"] = output_sys_logs
@@ -105,28 +139,33 @@ def config_callback(
     update_primaite_config(config_dict)
 
 
-config_typer = typer.Typer(callback=config_callback, name="config", invoke_without_command=True)
+config_typer = typer.Typer(
+    callback=config_callback,
+    name="config",
+    no_args_is_help=True,
+    invoke_without_command=True,
+)
 dev.add_typer(config_typer)
 
 
 @config_typer.command()
 def path(
-    directory: Annotated[
-        str,
-        typer.Argument(
-            help="Directory where the system logs and PCAP logs will be output. By default, this will be where the"
-            "root of the PrimAITE repository is located.",
-            show_default=False,
-        ),
-    ] = None,
-    default: Annotated[
-        bool,
-        typer.Option(
-            "--default",
-            "-root",
-            help="Set PrimAITE to output system logs and pcap logs to the PrimAITE repository root.",
-        ),
-    ] = None,
+        directory: Annotated[
+            str,
+            typer.Argument(
+                help="Directory where the system logs and PCAP logs will be output. By default, this will be where the"
+                     "root of the PrimAITE repository is located.",
+                show_default=False,
+            ),
+        ] = None,
+        default: Annotated[
+            bool,
+            typer.Option(
+                "--default",
+                "-root",
+                help="Set PrimAITE to output system logs and pcap logs to the PrimAITE repository root.",
+            ),
+        ] = None,
 ):
     """Set the output directory for the PrimAITE system and PCAP logs."""
     config_dict = get_primaite_config_dict()
@@ -136,16 +175,15 @@ def path(
 
     if default:
         config_dict["developer_mode"]["output_dir"] = None
-        print(
-            f"PrimAITE dev-mode config updated output directory will be in "
-            f"{str(_PRIMAITE_ROOT.parent.parent / 'simulation_output')}"
-        )
         # update application config
         update_primaite_config(config_dict)
+        print(f"PrimAITE dev-mode output_dir [medium_turquoise]"
+              f"{str(_PRIMAITE_ROOT.parent.parent / 'simulation_output')}"
+              f"[/medium_turquoise]")
         return
 
     if directory:
         config_dict["developer_mode"]["output_dir"] = directory
-        print(f"PrimAITE dev-mode config updated output_dir={directory}")
         # update application config
         update_primaite_config(config_dict)
+        print(f"PrimAITE dev-mode output_dir [medium_turquoise]{directory}[/medium_turquoise]")

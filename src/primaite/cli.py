@@ -9,9 +9,8 @@ import typer
 import yaml
 from typing_extensions import Annotated
 
-from primaite import _PRIMAITE_ROOT, PRIMAITE_PATHS
+from primaite import PRIMAITE_PATHS
 from primaite.utils.cli import dev_cli
-from primaite.utils.cli.primaite_config_utils import get_primaite_config_dict, update_primaite_config
 
 app = typer.Typer(no_args_is_help=True)
 app.add_typer(dev_cli.dev, name="dev-mode")
@@ -115,16 +114,5 @@ def setup(overwrite_existing: bool = True) -> None:
 
     _LOGGER.info("Rebuilding the example notebooks...")
     reset_example_configs.run(overwrite_existing=True)
-
-    _LOGGER.info("Setting default simulation output")
-    config_dict = get_primaite_config_dict()
-
-    if config_dict is None:
-        return
-
-    config_dict["developer_mode"]["output_dir"] = str(_PRIMAITE_ROOT.parent.parent / "simulation_output")
-    print(f"PrimAITE dev-mode config updated  output_dir {config_dict['developer_mode']['output_dir']}")
-    # update application config
-    update_primaite_config(config_dict)
 
     _LOGGER.info("PrimAITE setup complete!")
