@@ -36,6 +36,14 @@ class _SimOutput:
             # if dev mode is enabled, if output dir is not set, print to primaite repo root
             path: Path = _PRIMAITE_ROOT.parent.parent / "sessions" / date_str / time_str / "simulation_output"
             # otherwise print to output dir
+            if PRIMAITE_CONFIG["developer_mode"]["output_dir"]:
+                path: Path = (
+                    Path(PRIMAITE_CONFIG["developer_mode"]["output_dir"])
+                    / "sessions"
+                    / date_str
+                    / time_str
+                    / "simulation_output"
+                )
 
         self._path = path
         self._save_pcap_logs: bool = False
