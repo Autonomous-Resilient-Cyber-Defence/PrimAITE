@@ -39,6 +39,7 @@ def show():
     """Show if PrimAITE is in development mode or production mode."""
     # print if dev mode is enabled
     print(DEVELOPER_MODE_MESSAGE if is_dev_mode() else PRODUCTION_MODE_MESSAGE)
+    print(f"Current Settings: {PRIMAITE_CONFIG['developer_mode']}")
     print("\nTo see available options, use [medium_turquoise]`primaite dev-mode --help`[/medium_turquoise]\n")
 
 

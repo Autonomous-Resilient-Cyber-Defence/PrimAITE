@@ -167,3 +167,5 @@ To set PrimAITE to run in development mode:
     :caption: Windows (Powershell)
 
     primaite dev-mode enable
+
+More information about :ref:`Developer Tools`
