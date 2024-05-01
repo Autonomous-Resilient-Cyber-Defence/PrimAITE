@@ -40,21 +40,6 @@ ACTION_SPACE_NODE_ACTION_VALUES = 1
 _LOGGER = getLogger(__name__)
 
 
-@pytest.fixture(scope="function", autouse=True)
-def set_syslog_output_to_true():
-    """Will be run before each test."""
-    monkeypatch = MonkeyPatch()
-    monkeypatch.setattr(
-        SIM_OUTPUT,
-        "path",
-        Path(TEST_ASSETS_ROOT.parent.parent / "simulation_output" / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")),
-    )
-    monkeypatch.setattr(SIM_OUTPUT, "save_pcap_logs", False)
-    monkeypatch.setattr(SIM_OUTPUT, "save_sys_logs", False)
-
-    yield
-
-
 class TestService(Service):
     """Test Service class"""
 

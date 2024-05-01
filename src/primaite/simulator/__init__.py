@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import IntEnum
 from pathlib import Path
 
-from primaite import _PRIMAITE_ROOT, PRIMAITE_CONFIG
+from primaite import _PRIMAITE_ROOT, PRIMAITE_CONFIG, PRIMAITE_PATHS
 
 __all__ = ["SIM_OUTPUT"]
 
@@ -27,9 +27,17 @@ class LogLevel(IntEnum):
 
 class _SimOutput:
     def __init__(self):
-        self._path: Path = (
-            _PRIMAITE_ROOT.parent.parent / "simulation_output" / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        )
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        time_str = datetime.now().strftime("%H-%M-%S")
+
+        path = PRIMAITE_PATHS.user_sessions_path / date_str / time_str
+
+        if is_dev_mode():
+            # if dev mode is enabled, if output dir is not set, print to primaite repo root
+            path: Path = _PRIMAITE_ROOT.parent.parent / "sessions" / date_str / time_str / "simulation_output"
+            # otherwise print to output dir
+
+        self._path = path
         self._save_pcap_logs: bool = False
         self._save_sys_logs: bool = False
         self._write_sys_log_to_terminal: bool = False

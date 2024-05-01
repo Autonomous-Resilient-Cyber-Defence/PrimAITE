@@ -151,6 +151,7 @@ docs/source/primaite-dependencies.rst
 # outputs
 src/primaite/outputs/
 simulation_output/
+sessions/
 
 # benchmark session outputs
 benchmark/output

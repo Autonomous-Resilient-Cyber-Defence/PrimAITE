@@ -5,11 +5,7 @@ from primaite import PRIMAITE_CONFIG, PRIMAITE_PATHS
 
 def is_dev_mode() -> bool:
     """Returns True if PrimAITE is currently running in developer mode."""
-    return (
-        PRIMAITE_CONFIG["developer_mode"]["enabled"]
-        if (PRIMAITE_CONFIG.get("developer_mode", {}).get("enabled"))
-        else False
-    )
+    return PRIMAITE_CONFIG["developer_mode"]["enabled"]
 
 
 def update_primaite_application_config() -> None:

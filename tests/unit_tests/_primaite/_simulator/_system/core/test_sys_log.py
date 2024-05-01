@@ -2,8 +2,18 @@ from uuid import uuid4
 
 import pytest
 
+from primaite import PRIMAITE_CONFIG
 from primaite.simulator import LogLevel, SIM_OUTPUT
 from primaite.simulator.system.core.sys_log import SysLog
+
+
+@pytest.fixture(autouse=True)
+def override_dev_mode_temporarily():
+    """Temporarily turn off dev mode for this test."""
+    primaite_dev_mode = PRIMAITE_CONFIG["developer_mode"]["enabled"]
+    PRIMAITE_CONFIG["developer_mode"]["enabled"] = False
+    yield  # run tests
+    PRIMAITE_CONFIG["developer_mode"]["enabled"] = primaite_dev_mode
 
 
 @pytest.fixture(scope="function")

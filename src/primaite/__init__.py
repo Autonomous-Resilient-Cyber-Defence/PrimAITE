@@ -122,20 +122,13 @@ class _PrimaitePaths:
 PRIMAITE_PATHS: Final[_PrimaitePaths] = _PrimaitePaths()
 
 
-def _host_primaite_config() -> None:
-    if not PRIMAITE_PATHS.app_config_file_path.exists():
-        pkg_config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
-        shutil.copy2(pkg_config_path, PRIMAITE_PATHS.app_config_file_path)
-
-
-_host_primaite_config()
-
-
 def _get_primaite_config() -> Dict:
     config_path = PRIMAITE_PATHS.app_config_file_path
     if not config_path.exists():
         # load from package if config does not exist
         config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
+        # generate app config
+        shutil.copy2(config_path, PRIMAITE_PATHS.app_config_file_path)
     with open(config_path, "r") as file:
         # load from config
         primaite_config = yaml.safe_load(file)

@@ -15,7 +15,7 @@ PRODUCTION_MODE_MESSAGE = (
     " :monkey_face::monkey_face::monkey_face: [/green]\n"
 )
 
-DEVELOPMENT_MODE_MESSAGE = (
+DEVELOPER_MODE_MESSAGE = (
     "\n[yellow] :construction::construction::construction: "
     " PrimAITE is running in Development mode "
     " :construction::construction::construction: [/yellow]\n"
@@ -38,7 +38,7 @@ def dev_mode():
 def show():
     """Show if PrimAITE is in development mode or production mode."""
     # print if dev mode is enabled
-    print(DEVELOPMENT_MODE_MESSAGE if is_dev_mode() else PRODUCTION_MODE_MESSAGE)
+    print(DEVELOPER_MODE_MESSAGE if is_dev_mode() else PRODUCTION_MODE_MESSAGE)
     print("\nTo see available options, use [medium_turquoise]`primaite dev-mode --help`[/medium_turquoise]\n")
 
 
@@ -48,7 +48,7 @@ def enable():
     # enable dev mode
     PRIMAITE_CONFIG["developer_mode"]["enabled"] = True
     update_primaite_application_config()
-    print(DEVELOPMENT_MODE_MESSAGE)
+    print(DEVELOPER_MODE_MESSAGE)
 
 
 @dev.command()
