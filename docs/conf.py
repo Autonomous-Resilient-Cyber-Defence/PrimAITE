@@ -30,8 +30,7 @@ release = version
 
 # set global variables
 rst_prolog = f"""
-.. |VERSION| replace::  {release}
-"""
+.. |VERSION| replace::  {release} """  # noqa
 
 html_title = f"{project} v{release} docs"
 
