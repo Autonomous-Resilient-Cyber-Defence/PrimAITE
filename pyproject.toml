@@ -7,7 +7,7 @@ name = "primaite"
 description = "PrimAITE (Primary-level AI Training Environment) is a simulation environment for training AI under the ARCD programme."
 authors = [{name="Defence Science and Technology Laboratory UK", email="oss@dstl.gov.uk"}]
 license = {file = "LICENSE"}
-requires-python = ">=3.8, <3.11"
+requires-python = ">=3.8, <3.12"
 dynamic = ["version", "readme"]
 classifiers = [
     "License :: OSI Approved :: MIT License",
