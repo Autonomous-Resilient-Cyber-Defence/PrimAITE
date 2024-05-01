@@ -81,7 +81,7 @@ class DNSClient(Service):
         # check if the domain is already in the DNS cache
         if target_domain in self.dns_cache:
             self.sys_log.info(
-                f"{self.name}: Domain lookup for {target_domain} successful,"
+                f"{self.name}: Domain lookup for {target_domain} successful, "
                 f"resolves to {self.dns_cache[target_domain]}"
             )
             return True

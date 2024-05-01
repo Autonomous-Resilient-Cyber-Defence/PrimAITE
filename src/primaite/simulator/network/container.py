@@ -248,7 +248,7 @@ class Network(SimComponent):
             hostname_b = node_b.hostname if node_b else None
             port_a = link.endpoint_a.port_num
             port_b = link.endpoint_b.port_num
-            link_key = f"{hostname_a}:eth-{port_a}<->{hostname_b}:eth-{port_b}"
+            link_key = f"{hostname_a}: eth-{port_a}<->{hostname_b}: eth-{port_b}"
             state["links"][link_key] = link.describe_state()
             state["links"][link_key]["hostname_a"] = hostname_a
             state["links"][link_key]["hostname_b"] = hostname_b

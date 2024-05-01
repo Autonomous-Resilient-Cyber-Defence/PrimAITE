@@ -147,7 +147,7 @@ class FTPServiceABC(Service, ABC):
             retrieved_file: File = self.file_system.get_file(folder_name=folder_name, file_name=file_name)
 
             # if file does not exist, return an error
-            if not retrieved_file:
+            if not retrieved_file:  # noqa
                 self.sys_log.error(
                     f"File  {payload.ftp_command_args['dest_folder_name']}/"
                     f"{payload.ftp_command_args['dest_file_name']} does not exist in {self.sys_log.hostname}"
