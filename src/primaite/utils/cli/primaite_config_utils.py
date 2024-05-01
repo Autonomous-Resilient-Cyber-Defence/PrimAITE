@@ -1,3 +1,5 @@
+from typing import Dict, Optional
+
 import yaml
 
 from primaite import PRIMAITE_CONFIG, PRIMAITE_PATHS
@@ -8,7 +10,13 @@ def is_dev_mode() -> bool:
     return PRIMAITE_CONFIG["developer_mode"]["enabled"]
 
 
-def update_primaite_application_config() -> None:
-    """Update the PrimAITE application config file."""
+def update_primaite_application_config(config: Optional[Dict] = None) -> None:
+    """
+    Update the PrimAITE application config file.
+
+    :params: config: Leave empty so that PRIMAITE_CONFIG is used - otherwise provide the Dict
+    """
     with open(PRIMAITE_PATHS.app_config_file_path, "w") as file:
-        yaml.dump(PRIMAITE_CONFIG, file)
+        if not config:
+            config = PRIMAITE_CONFIG
+        yaml.dump(config, file)
