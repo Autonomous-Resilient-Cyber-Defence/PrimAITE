@@ -56,7 +56,7 @@ def generate_mac_address(oui: Optional[str] = None) -> str:
     if oui:
         oui_pattern = re.compile(r"^([0-9A-Fa-f]{2}[:-]){2}[0-9A-Fa-f]{2}$")
         if not oui_pattern.match(oui):
-            msg = f"Invalid oui. The oui should be in the format xx:xx:xx, where x is a hexadecimal digit, got '{oui}'"  # noqa
+            msg = f"Invalid oui. The oui should be in the format xx:xx:xx, where x is a hexadecimal digit, got '{oui}'"
             _LOGGER.error(msg)
             raise ValueError(msg)
         oui_bytes = [int(chunk, 16) for chunk in oui.split(":")]
@@ -64,7 +64,7 @@ def generate_mac_address(oui: Optional[str] = None) -> str:
     else:
         mac = random_bytes
 
-    return ":".join(f"{b:02x}" for b in mac)  # noqa
+    return ":".join(f"{b:02x}" for b in mac)
 
 
 class NetworkInterface(SimComponent, ABC):
@@ -599,7 +599,7 @@ class Link(SimComponent):
     @property
     def current_load_percent(self) -> str:
         """Get the current load formatted as a percentage string."""
-        return f"{self.current_load / self.bandwidth:.5f}%"  # noqa
+        return f"{self.current_load / self.bandwidth:.5f}%"
 
     def endpoint_up(self):
         """Let the Link know and endpoint has been brought up."""
@@ -652,7 +652,7 @@ class Link(SimComponent):
             # Load the frame size on the link
             self.current_load += frame_size
             _LOGGER.debug(
-                f"Added {frame_size:.3f} Mbits to {self}, current load {self.current_load:.3f} Mbits "  # noqa
+                f"Added {frame_size:.3f} Mbits to {self}, current load {self.current_load:.3f} Mbits "
                 f"({self.current_load_percent})"
             )
             return True

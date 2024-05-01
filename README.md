@@ -51,7 +51,7 @@ primaite setup
 #### Unix
 
 **Prerequisites:**
-* Manual install of Python >= 3.8 < 3.11
+* Manual install of Python >= 3.8 < 3.12
 
 ``` bash
 sudo add-apt-repository ppa:deadsnakes/ppa

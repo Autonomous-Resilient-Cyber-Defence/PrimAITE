@@ -100,7 +100,7 @@ class ICMPPacket(BaseModel):
         icmp_type = info.data["icmp_type"]
         if get_icmp_type_code_description(icmp_type, v):
             return v
-        msg = f"No Matching ICMP code for type: {icmp_type.name}, code: {v}"
+        msg = f"No Matching ICMP code for type:{icmp_type.name}, code:{v}"
         _LOGGER.error(msg)
         raise ValueError(msg)
 
@@ -109,6 +109,6 @@ class ICMPPacket(BaseModel):
         description = get_icmp_type_code_description(self.icmp_type, self.icmp_code)
         if description:
             return description
-        msg = f"No Matching ICMP code for type: {self.icmp_type.name}, code: {self.icmp_code}"
+        msg = f"No Matching ICMP code for type:{self.icmp_type.name}, code:{self.icmp_code}"
         _LOGGER.error(msg)
         raise ValueError(msg)

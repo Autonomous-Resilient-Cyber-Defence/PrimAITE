@@ -60,7 +60,7 @@ class ICMP(Service):
         if target_ip_address.is_loopback:
             self.sys_log.info("Pinging loopback address")
             return any(network_interface.enabled for network_interface in self.network_interfaces.values())
-        self.sys_log.info(f"Pinging {target_ip_address}: ", to_terminal=True)
+        self.sys_log.info(f"Pinging {target_ip_address}:", to_terminal=True)
         sequence, identifier = 0, None
         while sequence < pings:
             sequence, identifier = self._send_icmp_echo_request(target_ip_address, sequence, identifier, pings)
