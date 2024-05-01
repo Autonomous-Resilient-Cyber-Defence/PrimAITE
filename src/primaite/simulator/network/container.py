@@ -5,9 +5,11 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from networkx import MultiGraph
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.simulator.network.airspace import AirSpace
 from primaite.simulator.network.hardware.base import Link, Node, WiredNetworkInterface
 from primaite.simulator.network.hardware.nodes.host.server import Printer
 from primaite.simulator.system.applications.application import Application
@@ -28,7 +30,9 @@ class Network(SimComponent):
     """
 
     nodes: Dict[str, Node] = {}
+
     links: Dict[str, Link] = {}
+    airspace: AirSpace = Field(default_factory=lambda: AirSpace())
     _node_id_map: Dict[int, Node] = {}
     _link_id_map: Dict[int, Node] = {}
 

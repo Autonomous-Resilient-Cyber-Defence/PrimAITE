@@ -1,16 +1,18 @@
 import pytest
+import yaml
 
-from primaite.simulator.network.airspace import AIR_SPACE, AirSpaceFrequency
+from primaite.game.game import PrimaiteGame
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
+from tests import TEST_ASSETS_ROOT
 
 
 @pytest.fixture(scope="function")
-def setup_network():
+def wireless_wan_network():
     network = Network()
 
     # Configure PC A
@@ -25,7 +27,7 @@ def setup_network():
     network.add_node(pc_a)
 
     # Configure Router 1
-    router_1 = WirelessRouter(hostname="router_1", start_up_duration=0)
+    router_1 = WirelessRouter(hostname="router_1", start_up_duration=0, airspace=network.airspace)
     router_1.power_on()
     network.add_node(router_1)
 
@@ -49,7 +51,7 @@ def setup_network():
     network.add_node(pc_b)
 
     # Configure Router 2
-    router_2 = WirelessRouter(hostname="router_2", start_up_duration=0)
+    router_2 = WirelessRouter(hostname="router_2", start_up_duration=0, airspace=network.airspace)
     router_2.power_on()
     network.add_node(router_2)
 
@@ -63,7 +65,7 @@ def setup_network():
     router_1.configure_wireless_access_point("192.168.1.1", "255.255.255.0")
     router_2.configure_wireless_access_point("192.168.1.2", "255.255.255.0")
 
-    AIR_SPACE.show()
+    network.airspace.show()
 
     router_1.route_table.add_route(
         address="192.168.2.0", subnet_mask="255.255.255.0", next_hop_ip_address="192.168.1.2"
@@ -77,9 +79,33 @@ def setup_network():
     return pc_a, pc_b, router_1, router_2
 
 
-def test_cross_router_connectivity(setup_network):
-    pc_a, pc_b, router_1, router_2 = setup_network
+@pytest.fixture(scope="function")
+def wireless_wan_network_from_config_yaml():
+    config_path = TEST_ASSETS_ROOT / "configs" / "wireless_wan_network_config.yaml"
+
+    with open(config_path, "r") as f:
+        config_dict = yaml.safe_load(f)
+    network = PrimaiteGame.from_config(cfg=config_dict).simulation.network
+
+    network.airspace.show()
+
+    return network
+
+
+def test_cross_wireless_wan_connectivity(wireless_wan_network):
+    pc_a, pc_b, router_1, router_2 = wireless_wan_network
     # Ensure that PCs can ping across routers before any frequency change
+    assert pc_a.ping(pc_a.default_gateway), "PC A should ping its default gateway successfully."
+    assert pc_b.ping(pc_b.default_gateway), "PC B should ping its default gateway successfully."
+
+    assert pc_a.ping(pc_b.network_interface[1].ip_address), "PC A should ping PC B across routers successfully."
+    assert pc_b.ping(pc_a.network_interface[1].ip_address), "PC B should ping PC A across routers successfully."
+
+
+def test_cross_wireless_wan_connectivity_from_yaml(wireless_wan_network_from_config_yaml):
+    pc_a = wireless_wan_network_from_config_yaml.get_node_by_hostname("pc_a")
+    pc_b = wireless_wan_network_from_config_yaml.get_node_by_hostname("pc_b")
+
     assert pc_a.ping(pc_a.default_gateway), "PC A should ping its default gateway successfully."
     assert pc_b.ping(pc_b.default_gateway), "PC B should ping its default gateway successfully."
 
