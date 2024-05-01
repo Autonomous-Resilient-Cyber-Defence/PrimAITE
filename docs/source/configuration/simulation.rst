@@ -31,7 +31,13 @@ To see the configuration for these nodes, refer to the following:
     :maxdepth: 1
     :glob:
 
-    simulation/nodes/*
+    simulation/nodes/computer
+    simulation/nodes/firewall
+    simulation/nodes/router
+    simulation/nodes/server
+    simulation/nodes/switch
+    simulation/nodes/wireless_router
+    simulation/nodes/network_examples
 
 ``links``
 ---------
@@ -54,15 +60,13 @@ this results in:
 .. code-block:: yaml
 
     links:
-        - ref: computer_1___switch
-        endpoint_a_ref: computer_1
+        - endpoint_a_hostname: computer_1
         endpoint_a_port: 1 # port 1 on computer_1
-        endpoint_b_ref: switch
+        endpoint_b_hostname: switch
         endpoint_b_port: 1 # port 1 on switch
-        - ref: computer_2___switch
-        endpoint_a_ref: computer_2
+        - endpoint_a_hostname: computer_2
         endpoint_a_port: 1 # port 1 on computer_2
-        endpoint_b_ref: switch
+        endpoint_b_hostname: switch
         endpoint_b_port: 2 # port 2 on switch
 
 ``ref``
@@ -70,7 +74,7 @@ this results in:
 
 The human readable name for the link. Not used in code, however is useful for a human to understand what the link is for.
 
-``endpoint_a_ref``
+``endpoint_a_hostname``
 ^^^^^^^^^^^^^^^^^^
 
 The ``hostname`` of the node which must be connected.
@@ -78,10 +82,10 @@ The ``hostname`` of the node which must be connected.
 ``endpoint_a_port``
 ^^^^^^^^^^^^^^^^^^^
 
-The port on ``endpoint_a_ref`` which is to be connected to ``endpoint_b_port``.
+The port on ``endpoint_a_hostname`` which is to be connected to ``endpoint_b_port``.
 This accepts an integer value e.g. if port 1 is to be connected, the configuration should be ``endpoint_a_port: 1``
 
-``endpoint_b_ref``
+``endpoint_b_hostname``
 ^^^^^^^^^^^^^^^^^^
 
 The ``hostname`` of the node which must be connected.
@@ -89,5 +93,5 @@ The ``hostname`` of the node which must be connected.
 ``endpoint_b_port``
 ^^^^^^^^^^^^^^^^^^^
 
-The port on ``endpoint_b_ref`` which is to be connected to ``endpoint_a_port``.
+The port on ``endpoint_b_hostname`` which is to be connected to ``endpoint_a_port``.
 This accepts an integer value e.g. if port 1 is to be connected, the configuration should be ``endpoint_b_port: 1``

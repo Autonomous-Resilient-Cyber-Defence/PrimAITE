@@ -1,0 +1,65 @@
+game:
+  ports:
+  - ARP
+  protocols:
+  - ICMP
+  - TCP
+  - UDP
+
+simulation:
+  network:
+    nodes:
+      - hostname: pc_1
+        type: computer
+        ip_address: 192.168.1.11
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.1.1
+
+      - hostname: pc_2
+        type: computer
+        ip_address: 192.168.1.12
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.1.1
+
+      - hostname: server_1
+        type: server
+        ip_address: 192.168.1.13
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.1.1
+
+      - hostname: switch_1
+        type: switch
+        num_ports: 4
+
+      - hostname: router_1
+        type: router
+        num_ports: 1
+        ports:
+          1:
+            ip_address: 192.168.1.1
+            subnet_mask: 255.255.255.0
+        acl:
+          10:
+            action: PERMIT
+            src_ip: 192.168.1.0
+            src_wildcard_mask: 0.0.0.255
+            dst_ip: 192.168.1.1
+            dst_wildcard_mask: 0.0.0.0
+
+    links:
+      - endpoint_a_hostname: pc_1
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 1
+      - endpoint_a_hostname: pc_2
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 2
+      - endpoint_a_hostname: server_1
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 3
+      - endpoint_a_hostname: router_1
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 4
