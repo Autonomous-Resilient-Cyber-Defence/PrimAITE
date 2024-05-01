@@ -3,7 +3,7 @@ from typing import Any, Dict, Union
 
 from pydantic import validate_call
 
-from primaite.simulator.network.airspace import AirSpaceFrequency, IPWirelessNetworkInterface
+from primaite.simulator.network.airspace import AirSpace, AirSpaceFrequency, IPWirelessNetworkInterface
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router, RouterInterface
 from primaite.simulator.network.transmission.data_link_layer import Frame
@@ -121,11 +121,14 @@ class WirelessRouter(Router):
 
     network_interfaces: Dict[str, Union[RouterInterface, WirelessAccessPoint]] = {}
     network_interface: Dict[int, Union[RouterInterface, WirelessAccessPoint]] = {}
+    airspace: AirSpace
 
-    def __init__(self, hostname: str, **kwargs):
-        super().__init__(hostname=hostname, num_ports=0, **kwargs)
+    def __init__(self, hostname: str, airspace: AirSpace, **kwargs):
+        super().__init__(hostname=hostname, num_ports=0, airspace=airspace, **kwargs)
 
-        self.connect_nic(WirelessAccessPoint(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0"))
+        self.connect_nic(
+            WirelessAccessPoint(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", airspace=airspace)
+        )
 
         self.connect_nic(RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0"))
 
@@ -215,7 +218,7 @@ class WirelessRouter(Router):
         )
 
     @classmethod
-    def from_config(cls, cfg: Dict) -> "WirelessRouter":
+    def from_config(cls, cfg: Dict, **kwargs) -> "WirelessRouter":
         """Generate the wireless router from config.
 
         Schema:
@@ -245,7 +248,7 @@ class WirelessRouter(Router):
         operating_state = (
             NodeOperatingState.ON if not (p := cfg.get("operating_state")) else NodeOperatingState[p.upper()]
         )
-        router = cls(hostname=cfg["hostname"], operating_state=operating_state)
+        router = cls(hostname=cfg["hostname"], operating_state=operating_state, airspace=kwargs["airspace"])
         if "router_interface" in cfg:
             ip_address = cfg["router_interface"]["ip_address"]
             subnet_mask = cfg["router_interface"]["subnet_mask"]

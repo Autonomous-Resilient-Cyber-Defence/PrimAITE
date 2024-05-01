@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced Developer CLI tools to assist with developing/debugging PrimAITE
   - Can be enabled via `primaite dev-mode enable`
   - Activating dev-mode will change the location where the sessions will be output - by default will output where the PrimAITE repository is located
+- Refactored all air-space usage to that a new instance of AirSpace is created for each instance of Network. This 1:1 relationship between network and airspace will allow parallelization.
 
 
 ## [Unreleased]
