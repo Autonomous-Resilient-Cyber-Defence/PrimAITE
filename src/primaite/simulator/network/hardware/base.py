@@ -652,7 +652,7 @@ class Link(SimComponent):
             # Load the frame size on the link
             self.current_load += frame_size
             _LOGGER.debug(
-                f"Added {frame_size:.3f} Mbits to {self}, current load {self.current_load:.3f} Mbits "
+                f"Added {frame_size:.3f} Mbits to {self}, current load {self.current_load:.3f} Mbits "  # noqa
                 f"({self.current_load_percent})"
             )
             return True
