@@ -7,7 +7,6 @@ extend-ignore =
     D104
     E203
     E712
-    E713
     D401
     F811
     ANN002
