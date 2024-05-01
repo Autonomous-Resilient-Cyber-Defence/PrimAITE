@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from primaite import _PRIMAITE_ROOT, getLogger, PRIMAITE_PATHS
+from primaite import _PRIMAITE_ROOT, getLogger, PRIMAITE_CONFIG, PRIMAITE_PATHS
 from primaite.simulator import LogLevel, SIM_OUTPUT
 from primaite.utils.cli.primaite_config_utils import is_dev_mode
 
@@ -66,8 +66,11 @@ class PrimaiteIO:
 
         # check if running in dev mode
         if is_dev_mode():
-            # check if there is an output directory set in config
             session_path = _PRIMAITE_ROOT.parent.parent / "sessions" / date_str / time_str
+
+            # check if there is an output directory set in config
+            if PRIMAITE_CONFIG["developer_mode"]["output_dir"]:
+                session_path = Path(PRIMAITE_CONFIG["developer_mode"]["output_dir"]) / "sessions" / date_str / time_str
 
         session_path.mkdir(exist_ok=True, parents=True)
         return session_path

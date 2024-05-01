@@ -32,7 +32,17 @@ class _SimOutput:
 
         path = PRIMAITE_PATHS.user_sessions_path / date_str / time_str
 
+        self._path = path
+        self._save_pcap_logs: bool = False
+        self._save_sys_logs: bool = False
+        self._write_sys_log_to_terminal: bool = False
+        self._sys_log_level: LogLevel = LogLevel.WARNING  # default log level is at WARNING
+
+    @property
+    def path(self) -> Path:
         if is_dev_mode():
+            date_str = datetime.now().strftime("%Y-%m-%d")
+            time_str = datetime.now().strftime("%H-%M-%S")
             # if dev mode is enabled, if output dir is not set, print to primaite repo root
             path: Path = _PRIMAITE_ROOT.parent.parent / "sessions" / date_str / time_str / "simulation_output"
             # otherwise print to output dir
@@ -44,15 +54,7 @@ class _SimOutput:
                     / time_str
                     / "simulation_output"
                 )
-
-        self._path = path
-        self._save_pcap_logs: bool = False
-        self._save_sys_logs: bool = False
-        self._write_sys_log_to_terminal: bool = False
-        self._sys_log_level: LogLevel = LogLevel.WARNING  # default log level is at WARNING
-
-    @property
-    def path(self) -> Path:
+            self._path = path
         return self._path
 
     @path.setter
