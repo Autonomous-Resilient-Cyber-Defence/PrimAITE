@@ -14,13 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added ability to define scenarios that change depending on the episode number.
 - Standardised Environment API by renaming the config parameter of `PrimaiteGymEnv` from `game_config` to `env_config`
 - Database Connection ID's are now created/issued by DatabaseService and not DatabaseClient
-- added ability to set PrimAITE between development and production modes via PrimAITE CLI ``mode`` command
 - Updated DatabaseClient so that it can now have a single native DatabaseClientConnection along with a collection of DatabaseClientConnection's.
 - Implemented the uninstall functionality for DatabaseClient so that all connections are terminated at the DatabaseService.
 - Added the ability for a DatabaseService to terminate a connection.
 - Added active_connection to DatabaseClientConnection so that if the connection is terminated active_connection is set to False and the object can no longer be used.
 - Added additional show functions to enable connection inspection.
 - Updates to agent logging, to include the reward both per step and per episode.
+- Introduced Developer CLI tools to assist with developing/debugging PrimAITE
+  - Can be enabled via `primaite dev-mode enable`
+  - Activating dev-mode will change the location where the sessions will be output - by default will output where the PrimAITE repository is located
 
 
 ## [Unreleased]
