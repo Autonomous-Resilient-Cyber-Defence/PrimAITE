@@ -1,6 +1,7 @@
 import click
 import typer
 from rich import print
+from rich.table import Table
 from typing_extensions import Annotated
 
 from primaite import _PRIMAITE_ROOT, PRIMAITE_CONFIG
@@ -10,9 +11,9 @@ from primaite.utils.cli.primaite_config_utils import is_dev_mode, update_primait
 dev = typer.Typer()
 
 PRODUCTION_MODE_MESSAGE = (
-    "\n[green]:monkey_face::monkey_face::monkey_face: "
+    "\n[green]:rocket::rocket::rocket: "
     " PrimAITE is running in Production mode "
-    " :monkey_face::monkey_face::monkey_face: [/green]\n"
+    " :rocket::rocket::rocket: [/green]\n"
 )
 
 DEVELOPER_MODE_MESSAGE = (
@@ -39,8 +40,15 @@ def show():
     """Show if PrimAITE is in development mode or production mode."""
     # print if dev mode is enabled
     print(DEVELOPER_MODE_MESSAGE if is_dev_mode() else PRODUCTION_MODE_MESSAGE)
-    print(f"Current Settings: {PRIMAITE_CONFIG['developer_mode']}")
-    print("\nTo see available options, use [medium_turquoise]`primaite dev-mode --help`[/medium_turquoise]\n")
+
+    table = Table(title="Current Dev-Mode Settings")
+    table.add_column("Setting", style="cyan")
+    table.add_column("Value", style="default")
+    for setting, value in PRIMAITE_CONFIG["developer_mode"].items():
+        table.add_row(setting, str(value))
+
+    print(table)
+    print("\nTo see available options, use [cyan]`primaite dev-mode --help`[/cyan]\n")
 
 
 @dev.command()
@@ -150,9 +158,9 @@ def path(
         # update application config
         update_primaite_application_config()
         print(
-            f"PrimAITE dev-mode output_dir [medium_turquoise]"
+            f"PrimAITE dev-mode output_dir [cyan]"
             f"{str(_PRIMAITE_ROOT.parent.parent / 'simulation_output')}"
-            f"[/medium_turquoise]"
+            f"[/cyan]"
         )
         return
 
@@ -160,4 +168,4 @@ def path(
         PRIMAITE_CONFIG["developer_mode"]["output_dir"] = directory
         # update application config
         update_primaite_application_config()
-        print(f"PrimAITE dev-mode output_dir [medium_turquoise]{directory}[/medium_turquoise]")
+        print(f"PrimAITE dev-mode output_dir [cyan]{directory}[/cyan]")
