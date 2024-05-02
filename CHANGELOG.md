@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the ability for a DatabaseService to terminate a connection.
 - Added active_connection to DatabaseClientConnection so that if the connection is terminated active_connection is set to False and the object can no longer be used.
 - Added additional show functions to enable connection inspection.
-
+- Added notebook to demonstrate use of SubprocVecEnv from SB3 to vectorise environments to speed up training.
 
 ## [Unreleased]
 - Made requests fail to reach their target if the node is off
