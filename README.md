@@ -33,7 +33,7 @@ Currently, the PrimAITE wheel can only be installed from GitHub. This may change
 #### Windows (PowerShell)
 
 **Prerequisites:**
-* Manual install of Python >= 3.8 < 3.11
+* Manual install of Python >= 3.8 < 3.12
 
 **Install:**
 
