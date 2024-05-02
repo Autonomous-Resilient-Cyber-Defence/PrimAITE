@@ -2,8 +2,9 @@
 from typing import Any, Dict, Tuple
 
 import pytest
+import yaml
 
-from primaite import getLogger
+from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent
 from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
