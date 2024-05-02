@@ -83,7 +83,7 @@ def test_sometech_webserver_cannot_access_ftp_on_sometech_storage_server():
     some_tech_storage_srv.file_system.create_file(file_name="test.png")
 
     web_server: Server = network.get_node_by_hostname("some_tech_web_srv")
-
+    web_server.software_manager.install(FTPClient)
     web_ftp_client: FTPClient = web_server.software_manager.software["FTPClient"]
 
     assert not web_ftp_client.request_file(

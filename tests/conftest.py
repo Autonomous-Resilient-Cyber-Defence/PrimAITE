@@ -86,7 +86,11 @@ class TestApplication(Application):
 
 @pytest.fixture(scope="function")
 def uc2_network() -> Network:
-    return arcd_uc2_network()
+    with open(PRIMAITE_PATHS.user_config_path / "example_config" / "data_manipulation.yaml") as f:
+        cfg = yaml.safe_load(f)
+    game = PrimaiteGame.from_config(cfg)
+    return game.simulation.network
+    # return arcd_uc2_network()
 
 
 @pytest.fixture(scope="function")

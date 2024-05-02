@@ -1,4 +1,7 @@
+from typing import ClassVar, Dict
+
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
+from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 
 
 class Computer(HostNode):
@@ -28,5 +31,7 @@ class Computer(HostNode):
     * Applications:
         * Web Browser
     """
+
+    SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "FTPClient": FTPClient}
 
     pass
