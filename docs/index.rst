@@ -116,6 +116,7 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    :caption: Developer information:
    :hidden:
 
+   source/developer_tools
    source/state_system
    source/request_system
    PrimAITE API <source/_autosummary/primaite>

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, Final, List, Optional
+from typing import Any, Dict, List, Optional
 
 from prettytable import PrettyTable
 
@@ -14,7 +14,7 @@ from primaite.simulator.system.core.packet_capture import PacketCapture
 
 _LOGGER = getLogger(__name__)
 
-__all__ = ["AIR_SPACE", "AirSpaceFrequency", "WirelessNetworkInterface", "IPWirelessNetworkInterface"]
+__all__ = ["AirSpaceFrequency", "WirelessNetworkInterface", "IPWirelessNetworkInterface"]
 
 
 class AirSpace:
@@ -100,18 +100,6 @@ class AirSpace:
                 wireless_interface.receive_frame(frame)
 
 
-AIR_SPACE: Final[AirSpace] = AirSpace()
-"""
-A singleton instance of the AirSpace class, representing the global wireless airspace.
-
-This instance acts as the central management point for all wireless communications within the simulated network
-environment. By default, there is only one airspace in the simulation, making this variable a singleton that
-manages the registration, removal, and transmission of wireless frames across all wireless network interfaces configured
-in the simulation. It ensures that wireless frames are appropriately transmitted to and received by wireless
-interfaces based on their operational status and frequency band.
-"""
-
-
 class AirSpaceFrequency(Enum):
     """Enumeration representing the operating frequencies for wireless communications."""
 
@@ -149,6 +137,7 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
     and may define additional properties and methods specific to wireless technology.
     """
 
+    airspace: AirSpace
     frequency: AirSpaceFrequency = AirSpaceFrequency.WIFI_2_4
 
     def enable(self):
@@ -171,7 +160,7 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
         self.pcap = PacketCapture(
             hostname=self._connected_node.hostname, port_num=self.port_num, port_name=self.port_name
         )
-        AIR_SPACE.add_wireless_interface(self)
+        self.airspace.add_wireless_interface(self)
 
     def disable(self):
         """Disable the network interface."""
@@ -182,7 +171,7 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
             self._connected_node.sys_log.info(f"Network Interface {self} disabled")
         else:
             _LOGGER.debug(f"Interface {self} disabled")
-        AIR_SPACE.remove_wireless_interface(self)
+        self.airspace.remove_wireless_interface(self)
 
     def send_frame(self, frame: Frame) -> bool:
         """
@@ -198,7 +187,7 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
         if self.enabled:
             frame.set_sent_timestamp()
             self.pcap.capture_outbound(frame)
-            AIR_SPACE.transmit(frame, self)
+            self.airspace.transmit(frame, self)
             return True
         # Cannot send Frame as the network interface is not enabled
         return False
