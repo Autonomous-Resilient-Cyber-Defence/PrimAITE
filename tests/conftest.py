@@ -70,7 +70,6 @@ def uc2_network() -> Network:
         cfg = yaml.safe_load(f)
     game = PrimaiteGame.from_config(cfg)
     return game.simulation.network
-    # return arcd_uc2_network()
 
 
 @pytest.fixture(scope="function")
