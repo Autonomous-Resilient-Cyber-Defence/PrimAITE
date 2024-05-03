@@ -26,6 +26,9 @@ def test_data_manipulation(uc2_network):
     # First check that the DB client on the web_server can successfully query the users table on the database
     assert db_connection.query("SELECT")
 
+    db_manipulation_bot.data_manipulation_p_of_success = 1.0
+    db_manipulation_bot.port_scan_p_of_success = 1.0
+
     # Now we run the DataManipulationBot
     db_manipulation_bot.attack()
 
