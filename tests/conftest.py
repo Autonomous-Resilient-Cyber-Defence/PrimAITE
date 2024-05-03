@@ -2,8 +2,9 @@
 from typing import Any, Dict, Tuple
 
 import pytest
+import yaml
 
-from primaite import getLogger
+from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent
 from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
@@ -65,7 +66,10 @@ class TestApplication(Application):
 
 @pytest.fixture(scope="function")
 def uc2_network() -> Network:
-    return arcd_uc2_network()
+    with open(PRIMAITE_PATHS.user_config_path / "example_config" / "data_manipulation.yaml") as f:
+        cfg = yaml.safe_load(f)
+    game = PrimaiteGame.from_config(cfg)
+    return game.simulation.network
 
 
 @pytest.fixture(scope="function")
