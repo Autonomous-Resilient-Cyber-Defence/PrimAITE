@@ -368,6 +368,7 @@ simulation:
         endpoint_a_port: 1
         endpoint_b_hostname: switch_1
         endpoint_b_port: 1
+        bandwidth: 200
       - endpoint_a_hostname: pc_2
         endpoint_a_port: 1
         endpoint_b_hostname: switch_1
