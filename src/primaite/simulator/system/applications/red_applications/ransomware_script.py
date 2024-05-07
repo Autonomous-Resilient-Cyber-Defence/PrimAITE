@@ -118,14 +118,6 @@ class RansomwareScript(Application):
             self.sys_log.info(f"{self.name}: Activated!")
             self.attack_stage = RansomwareAttackStage.ACTIVATE
 
-    def apply_timestep(self, timestep: int) -> None:
-        """
-        Apply a timestep to the bot, triggering the application loop.
-
-        :param timestep: The timestep value to update the bot's state.
-        """
-        pass
-
     def run(self) -> bool:
         """Calls the parent classes execute method before starting the application loop."""
         super().run()
