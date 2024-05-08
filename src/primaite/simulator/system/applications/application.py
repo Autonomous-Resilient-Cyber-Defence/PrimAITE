@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, Set
+from typing import Any, Dict, Optional, Set
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
@@ -33,6 +33,10 @@ class Application(IOSoftware):
     "The number of times the application has been executed. Default is 0."
     groups: Set[str] = set()
     "The set of groups to which the application belongs."
+    install_duration: int = 2
+    "How long it takes to install the application."
+    install_countdown: Optional[int] = None
+    "The countdown to the end of the installation process. None if not currently installing"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -76,6 +80,12 @@ class Application(IOSoftware):
         :param timestep: The current timestep of the simulation.
         """
         super().apply_timestep(timestep=timestep)
+        if self.operating_state is ApplicationOperatingState.INSTALLING:
+            self.install_countdown -= 1
+            if self.install_countdown <= 0:
+                self.operating_state = ApplicationOperatingState.RUNNING
+                self.health_state_actual = SoftwareHealthState.GOOD
+                self.install_countdown = None
 
     def pre_timestep(self, timestep: int) -> None:
         """Apply pre-timestep logic."""
@@ -129,6 +139,7 @@ class Application(IOSoftware):
         super().install()
         if self.operating_state == ApplicationOperatingState.CLOSED:
             self.operating_state = ApplicationOperatingState.INSTALLING
+            self.install_countdown = self.install_duration
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """

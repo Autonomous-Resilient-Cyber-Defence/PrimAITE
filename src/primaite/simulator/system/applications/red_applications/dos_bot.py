@@ -177,4 +177,5 @@ class DoSBot(DatabaseClient):
 
         :param timestep: The timestep value to update the bot's state.
         """
+        super().apply_timestep(timestep=timestep)
         self._application_loop()

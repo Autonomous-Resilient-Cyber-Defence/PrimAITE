@@ -62,6 +62,11 @@ def test_application_install_uninstall_on_uc2():
     _, _, _, _, info = env.step(78)
     assert "DoSBot" in domcon.software_manager.software
 
+    # installing takes 3 steps so let's wait for 3 steps
+    env.step(0)
+    env.step(0)
+    env.step(0)
+
     # Test we can now execute the DoSBot app
     _, _, _, _, info = env.step(81)
     assert info["agent_actions"]["defender"].response.status == "success"
