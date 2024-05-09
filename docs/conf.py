@@ -66,6 +66,33 @@ html_theme_options = {"globaltoc_collapse": True, "globaltoc_maxdepth": 2}
 html_copy_source = False
 
 
+def get_notebook_links() -> str:
+    """
+    Returns a string which will be added to the RST.
+
+    Allows for dynamic addition of notebooks to the documentation.
+    """
+    notebooks = os.listdir("_static/notebooks/html")
+
+    links = []
+    links.append("<ul>")
+    for notebook in notebooks:
+        if notebook == "notebook_links.html":
+            continue
+        notebook_link = (
+            f'<li><a href="../_static/notebooks/html/{notebook}" target="blank">'
+            f"{notebook.replace('.html', '')}"
+            f"</a></li>\n"
+        )
+        links.append(notebook_link)
+    links.append("<ul>")
+
+    with open("_static/notebooks/html/notebook_links.html", "w") as html_file:
+        html_file.write("".join(links))
+
+    return ":file: ../_static/notebooks/html/notebook_links.html"
+
+
 def replace_token(app: Any, docname: Any, source: Any):
     """Replaces a token from the list of tokens."""
     result = source[0]
@@ -74,7 +101,10 @@ def replace_token(app: Any, docname: Any, source: Any):
     source[0] = result
 
 
-tokens = {"{VERSION}": release}  # Token VERSION is replaced by the value of the PrimAITE version in the version file
+tokens = {
+    "{VERSION}": release,
+    "{NOTEBOOK_LINKS}": get_notebook_links(),
+}  # Token VERSION is replaced by the value of the PrimAITE version in the version file
 """Dict containing the tokens that need to be replaced in documentation."""
 
 

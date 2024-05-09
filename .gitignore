@@ -83,6 +83,7 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 PPO_UC2/
+docs/_static/notebooks/html/*.html
 
 # IPython
 profile_default/
@@ -152,6 +153,7 @@ docs/source/primaite-dependencies.rst
 src/primaite/outputs/
 simulation_output/
 sessions/
+PrimAITE-PPO-example-agent.zip
 
 # benchmark session outputs
 benchmark/output

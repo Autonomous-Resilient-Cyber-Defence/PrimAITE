@@ -75,7 +75,7 @@ this results in:
 The human readable name for the link. Not used in code, however is useful for a human to understand what the link is for.
 
 ``endpoint_a_hostname``
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``hostname`` of the node which must be connected.
 
@@ -86,7 +86,7 @@ The port on ``endpoint_a_hostname`` which is to be connected to ``endpoint_b_por
 This accepts an integer value e.g. if port 1 is to be connected, the configuration should be ``endpoint_a_port: 1``
 
 ``endpoint_b_hostname``
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``hostname`` of the node which must be connected.
 
