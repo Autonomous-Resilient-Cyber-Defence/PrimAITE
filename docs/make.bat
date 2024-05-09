@@ -58,6 +58,9 @@ IF EXIST %JUPYTEROUTPUTPATH% (
 REM run and print html of notebooks
 JUPYTER nbconvert --execute --to html --output-dir %JUPYTEROUTPUTPATH% "%cd%\..\src\primaite\**\*.ipynb"
 
+REM copy notebook image dependencies
+robocopy ..\src\primaite\notebooks\_package_data _static\notebooks\html\_package_data
+
 REM print the YT licenses
 set LICENSEBUILD=pip-licenses --format=rst --with-urls
 set DEPS="%cd%\source\primaite-dependencies.rst"
