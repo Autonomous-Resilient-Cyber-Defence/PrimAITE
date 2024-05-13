@@ -356,3 +356,8 @@ def test_client_connection_terminate_does_not_terminate_another_clients_connecti
 
     assert db_connection_b.query("SELECT")
     assert len(db_service.connections) == 1
+
+def test_database_server_install_ftp_client():
+    server = Server(hostname="db_server", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
+    server.software_manager.install(DatabaseService)
+    assert server.software_manager.software.get("FTPClient")
