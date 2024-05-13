@@ -406,15 +406,10 @@ class PrimaiteGame:
             new_node.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
 
         # 2. create links between nodes
-        # TODO: Pull from link_cfg the 'bandwidth' of that link
         for link_cfg in links_cfg:
             node_a = net.get_node_by_hostname(link_cfg["endpoint_a_hostname"])
             node_b = net.get_node_by_hostname(link_cfg["endpoint_b_hostname"])
-            print(link_cfg)
-            try:
-                bandwidth = link_cfg["bandwidth"]
-            except Exception:
-                bandwidth = 100
+            bandwidth = link_cfg.get("bandwidth", 100)  # default value if not configured
 
             if isinstance(node_a, Switch):
                 endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]

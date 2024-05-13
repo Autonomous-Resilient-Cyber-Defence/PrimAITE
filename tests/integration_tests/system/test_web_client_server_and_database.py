@@ -49,12 +49,12 @@ def web_client_web_server_database(example_network) -> Tuple[Network, Computer, 
     db_server_nic = db_server.network_interfaces[next(iter(db_server.network_interfaces))]
 
     # Connect Computer and Server
-    link_computer_server = Link(endpoint_a=computer_nic, endpoint_b=server_nic)
+    link_computer_server = Link(endpoint_a=computer_nic, endpoint_b=server_nic, bandwidth=100)
     # Should be linked
     assert link_computer_server.is_up
 
     # Connect database server and web server
-    link_server_db = Link(endpoint_a=server_nic, endpoint_b=db_server_nic)
+    link_server_db = Link(endpoint_a=server_nic, endpoint_b=db_server_nic, bandwidth=100)
     # Should be linked
     assert link_computer_server.is_up
     assert link_server_db.is_up

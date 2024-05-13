@@ -554,7 +554,7 @@ class Link(SimComponent):
     "The first WiredNetworkInterface connected to the Link."
     endpoint_b: WiredNetworkInterface
     "The second WiredNetworkInterface connected to the Link."
-    bandwidth: float = 100.0
+    bandwidth: float
     "The bandwidth of the Link in Mbps (default is 100 Mbps)."
     current_load: float = 0.0
     "The current load on the link in Mbps."
