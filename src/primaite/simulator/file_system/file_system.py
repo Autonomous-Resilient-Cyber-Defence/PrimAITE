@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -230,7 +229,6 @@ class FileSystem(SimComponent):
         size: Optional[int] = None,
         file_type: Optional[FileType] = None,
         folder_name: Optional[str] = None,
-        real: bool = False,
     ) -> File:
         """
         Creates a File and adds it to the list of files.
@@ -239,7 +237,6 @@ class FileSystem(SimComponent):
         :param size: The size the file takes on disk in bytes.
         :param file_type: The type of the file.
         :param folder_name: The folder to add the file to.
-        :param real: "Indicates whether the File is actually a real file in the Node sim fs output."
         """
         if folder_name:
             # check if file with name already exists
@@ -258,8 +255,6 @@ class FileSystem(SimComponent):
             file_type=file_type,
             folder_id=folder.uuid,
             folder_name=folder.name,
-            real=real,
-            sim_path=self.sim_root if real else None,
             sim_root=self.sim_root,
             sys_log=self.sys_log,
         )
@@ -368,11 +363,6 @@ class FileSystem(SimComponent):
             # add file to dst
             dst_folder.add_file(file)
             self.num_file_creations += 1
-            if file.real:
-                old_sim_path = file.sim_path
-                file.sim_path = file.sim_root / file.path
-                file.sim_path.parent.mkdir(exist_ok=True)
-                shutil.move(old_sim_path, file.sim_path)
 
     def copy_file(self, src_folder_name: str, src_file_name: str, dst_folder_name: str):
         """
@@ -401,9 +391,6 @@ class FileSystem(SimComponent):
 
             dst_folder.add_file(file_copy, force=True)
 
-            if file.real:
-                file_copy.sim_path.parent.mkdir(exist_ok=True)
-                shutil.copy2(file.sim_path, file_copy.sim_path)
         else:
             self.sys_log.error(f"Unable to copy file. {src_file_name} does not exist.")
 
