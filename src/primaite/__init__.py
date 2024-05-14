@@ -122,35 +122,20 @@ class _PrimaitePaths:
 PRIMAITE_PATHS: Final[_PrimaitePaths] = _PrimaitePaths()
 
 
-def _host_primaite_config() -> None:
-    if not PRIMAITE_PATHS.app_config_file_path.exists():
-        pkg_config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
-        shutil.copy2(pkg_config_path, PRIMAITE_PATHS.app_config_file_path)
-
-
-_host_primaite_config()
-
-
 def _get_primaite_config() -> Dict:
     config_path = PRIMAITE_PATHS.app_config_file_path
     if not config_path.exists():
+        # load from package if config does not exist
         config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
+        # generate app config
+        shutil.copy2(config_path, PRIMAITE_PATHS.app_config_file_path)
     with open(config_path, "r") as file:
+        # load from config
         primaite_config = yaml.safe_load(file)
-    log_level_map = {
-        "NOTSET": logging.NOTSET,
-        "DEBUG": logging.DEBUG,
-        "INFO": logging.INFO,
-        "WARN": logging.WARN,
-        "WARNING": logging.WARN,
-        "ERROR": logging.ERROR,
-        "CRITICAL": logging.CRITICAL,
-    }
-    primaite_config["log_level"] = log_level_map[primaite_config["logging"]["log_level"]]
-    return primaite_config
+        return primaite_config
 
 
-_PRIMAITE_CONFIG = _get_primaite_config()
+PRIMAITE_CONFIG = _get_primaite_config()
 
 
 class _LevelFormatter(Formatter):
@@ -177,11 +162,11 @@ class _LevelFormatter(Formatter):
 
 _LEVEL_FORMATTER: Final[_LevelFormatter] = _LevelFormatter(
     {
-        logging.DEBUG: _PRIMAITE_CONFIG["logging"]["logger_format"]["DEBUG"],
-        logging.INFO: _PRIMAITE_CONFIG["logging"]["logger_format"]["INFO"],
-        logging.WARNING: _PRIMAITE_CONFIG["logging"]["logger_format"]["WARNING"],
-        logging.ERROR: _PRIMAITE_CONFIG["logging"]["logger_format"]["ERROR"],
-        logging.CRITICAL: _PRIMAITE_CONFIG["logging"]["logger_format"]["CRITICAL"],
+        logging.DEBUG: PRIMAITE_CONFIG["logging"]["logger_format"]["DEBUG"],
+        logging.INFO: PRIMAITE_CONFIG["logging"]["logger_format"]["INFO"],
+        logging.WARNING: PRIMAITE_CONFIG["logging"]["logger_format"]["WARNING"],
+        logging.ERROR: PRIMAITE_CONFIG["logging"]["logger_format"]["ERROR"],
+        logging.CRITICAL: PRIMAITE_CONFIG["logging"]["logger_format"]["CRITICAL"],
     }
 )
 
@@ -193,10 +178,10 @@ _FILE_HANDLER: Final[RotatingFileHandler] = RotatingFileHandler(
     backupCount=9,  # Max 100MB of logs
     encoding="utf8",
 )
-_STREAM_HANDLER.setLevel(_PRIMAITE_CONFIG["logging"]["log_level"])
-_FILE_HANDLER.setLevel(_PRIMAITE_CONFIG["logging"]["log_level"])
+_STREAM_HANDLER.setLevel(PRIMAITE_CONFIG["logging"]["log_level"])
+_FILE_HANDLER.setLevel(PRIMAITE_CONFIG["logging"]["log_level"])
 
-_LOG_FORMAT_STR: Final[str] = _PRIMAITE_CONFIG["logging"]["logger_format"]
+_LOG_FORMAT_STR: Final[str] = PRIMAITE_CONFIG["logging"]["logger_format"]
 _STREAM_HANDLER.setFormatter(_LEVEL_FORMATTER)
 _FILE_HANDLER.setFormatter(_LEVEL_FORMATTER)
 
@@ -215,6 +200,6 @@ def getLogger(name: str) -> Logger:  # noqa
         logging config.
     """
     logger = logging.getLogger(name)
-    logger.setLevel(_PRIMAITE_CONFIG["log_level"])
+    logger.setLevel(PRIMAITE_CONFIG["logging"]["log_level"])
 
     return logger

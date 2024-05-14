@@ -191,7 +191,7 @@ def test_copy_file(file_system):
     file_system.create_folder(folder_name="src_folder")
     file_system.create_folder(folder_name="dst_folder")
 
-    file = file_system.create_file(file_name="test_file.txt", size=10, folder_name="src_folder", real=True)
+    file = file_system.create_file(file_name="test_file.txt", size=10, folder_name="src_folder")
     assert file_system.num_file_creations == 1
     original_uuid = file.uuid
 

@@ -192,7 +192,6 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
         # Cannot send Frame as the network interface is not enabled
         return False
 
-    @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
         """
         Receives a network frame on the network interface.
@@ -200,7 +199,13 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
         :param frame: The network frame being received.
         :return: A boolean indicating whether the frame was successfully received.
         """
-        pass
+        if self.enabled:
+            frame.set_sent_timestamp()
+            self.pcap.capture_inbound(frame)
+            self._connected_node.receive_frame(frame, self)
+            return True
+        # Cannot receive Frame as the network interface is not enabled
+        return False
 
 
 class IPWirelessNetworkInterface(WirelessNetworkInterface, Layer3Interface, ABC):

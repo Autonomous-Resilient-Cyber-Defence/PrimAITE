@@ -1378,7 +1378,7 @@ class Node(SimComponent):
                 application_instance.configure(server_ip_address=IPv4Address(ip_address))
             else:
                 pass
-
+        application_instance.install()
         if application_instance.name in self.software_manager.software:
             return True
         else:

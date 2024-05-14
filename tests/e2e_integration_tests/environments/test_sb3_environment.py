@@ -25,3 +25,4 @@ def test_sb3_compatibility():
     model.save(save_path)
 
     assert (save_path).exists()
+    save_path.unlink()  # clean up

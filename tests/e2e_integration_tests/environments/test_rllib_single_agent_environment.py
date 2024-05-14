@@ -38,3 +38,5 @@ def test_rllib_single_agent_compatibility():
     save_file = Path(tempfile.gettempdir()) / "ray/"
     algo.save(save_file)
     assert save_file.exists()
+
+    save_file.unlink()  # clean up

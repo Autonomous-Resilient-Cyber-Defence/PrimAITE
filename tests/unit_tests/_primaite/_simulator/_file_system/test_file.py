@@ -57,20 +57,6 @@ def test_simulated_file_check_hash(file_system):
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
 
 
-@pytest.mark.skip(reason="NODE_FILE_CHECKHASH not implemented")
-def test_real_file_check_hash(file_system):
-    file: File = file_system.create_file(file_name="test_file.txt", real=True)
-
-    file.check_hash()
-    assert file.health_status == FileSystemItemHealthStatus.GOOD
-    # change file content
-    with open(file.sim_path, "a") as f:
-        f.write("get hacked scrub lol xD\n")
-
-    file.check_hash()
-    assert file.health_status == FileSystemItemHealthStatus.CORRUPT
-
-
 def test_file_corrupt_repair_restore(file_system):
     """Test the ability to corrupt and repair files."""
     file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")

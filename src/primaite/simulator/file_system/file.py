@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os.path
 import warnings
-from pathlib import Path
 from typing import Dict, Optional
 
 from primaite import getLogger
@@ -21,8 +19,6 @@ class File(FileSystemItemABC):
     :ivar Folder folder: The folder in which the file resides.
     :ivar FileType file_type: The type of the file.
     :ivar Optional[int] sim_size: The simulated file size.
-    :ivar bool real: Indicates if the file is actually a real file in the Node sim fs output.
-    :ivar Optional[Path] sim_path: The path if the file is real.
     """
 
     folder_id: str
@@ -33,12 +29,6 @@ class File(FileSystemItemABC):
     "The type of File."
     sim_size: Optional[int] = None
     "The simulated file size."
-    real: bool = False
-    "Indicates whether the File is actually a real file in the Node sim fs output."
-    sim_path: Optional[Path] = None
-    "The Path if real is True."
-    sim_root: Optional[Path] = None
-    "Root path of the simulation."
     num_access: int = 0
     "Number of times the file was accessed in the current step."
 
@@ -67,13 +57,6 @@ class File(FileSystemItemABC):
         if not kwargs.get("sim_size"):
             kwargs["sim_size"] = kwargs["file_type"].default_size
         super().__init__(**kwargs)
-        if self.real:
-            self.sim_path = self.sim_root / self.path
-            if not self.sim_path.exists():
-                self.sim_path.parent.mkdir(exist_ok=True, parents=True)
-                with open(self.sim_path, mode="a"):
-                    pass
-
         self.sys_log.info(f"Created file /{self.path} (id: {self.uuid})")
 
     @property
@@ -92,8 +75,6 @@ class File(FileSystemItemABC):
 
         :return: The size of the file in bytes.
         """
-        if self.real:
-            return os.path.getsize(self.sim_path)
         return self.sim_size
 
     def apply_timestep(self, timestep: int) -> None:
@@ -127,7 +108,7 @@ class File(FileSystemItemABC):
 
         self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
-        self.sys_log.info(f"Scanning file {self.sim_path if self.sim_path else path}")
+        self.sys_log.info(f"Scanning file {path}")
         self.visible_health_status = self.health_status
         return True
 
@@ -155,17 +136,8 @@ class File(FileSystemItemABC):
             return False
         current_hash = None
 
-        # if file is real, read the file contents
-        if self.real:
-            with open(self.sim_path, "rb") as f:
-                file_hash = hashlib.blake2b()
-                while chunk := f.read(8192):
-                    file_hash.update(chunk)
-
-            current_hash = file_hash.hexdigest()
-        else:
-            # otherwise get describe_state dict and hash that
-            current_hash = hashlib.blake2b(json.dumps(self.describe_state(), sort_keys=True).encode()).hexdigest()
+        # otherwise get describe_state dict and hash that
+        current_hash = hashlib.blake2b(json.dumps(self.describe_state(), sort_keys=True).encode()).hexdigest()
 
         # if the previous hash is None, set the current hash to previous
         if self.previous_hash is None:
@@ -188,7 +160,7 @@ class File(FileSystemItemABC):
 
         self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
-        self.sys_log.info(f"Repaired file {self.sim_path if self.sim_path else path}")
+        self.sys_log.info(f"Repaired file {path}")
         return True
 
     def corrupt(self) -> bool:
@@ -203,7 +175,7 @@ class File(FileSystemItemABC):
 
         self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
-        self.sys_log.info(f"Corrupted file {self.sim_path if self.sim_path else path}")
+        self.sys_log.info(f"Corrupted file {path}")
         return True
 
     def restore(self) -> bool:
@@ -217,7 +189,7 @@ class File(FileSystemItemABC):
 
         self.num_access += 1  # file was accessed
         path = self.folder.name + "/" + self.name
-        self.sys_log.info(f"Restored file {self.sim_path if self.sim_path else path}")
+        self.sys_log.info(f"Restored file {path}")
         return True
 
     def delete(self) -> bool:

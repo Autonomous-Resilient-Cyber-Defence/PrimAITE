@@ -10,7 +10,6 @@ from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.arp.arp import ARP, ARPPacket
 from primaite.simulator.system.services.dns.dns_client import DNSClient
-from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.icmp.icmp import ICMP
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.utils.validators import IPV4Address
@@ -301,7 +300,6 @@ class HostNode(Node):
         "HostARP": HostARP,
         "ICMP": ICMP,
         "DNSClient": DNSClient,
-        "FTPClient": FTPClient,
         "NTPClient": NTPClient,
         "WebBrowser": WebBrowser,
     }

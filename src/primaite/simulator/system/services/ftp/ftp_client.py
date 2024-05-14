@@ -126,7 +126,6 @@ class FTPClient(FTPServiceABC):
         dest_file_name: str,
         dest_port: Optional[Port] = Port.FTP,
         session_id: Optional[str] = None,
-        real_file_path: Optional[str] = None,
     ) -> bool:
         """
         Send a file to a target IP address.

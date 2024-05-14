@@ -26,6 +26,9 @@ def test_data_manipulation(uc2_network):
     # First check that the DB client on the web_server can successfully query the users table on the database
     assert db_connection.query("SELECT")
 
+    db_manipulation_bot.data_manipulation_p_of_success = 1.0
+    db_manipulation_bot.port_scan_p_of_success = 1.0
+
     # Now we run the DataManipulationBot
     db_manipulation_bot.attack()
 
@@ -58,6 +61,11 @@ def test_application_install_uninstall_on_uc2():
     # Test we can Install the DoSBot app
     _, _, _, _, info = env.step(78)
     assert "DoSBot" in domcon.software_manager.software
+
+    # installing takes 3 steps so let's wait for 3 steps
+    env.step(0)
+    env.step(0)
+    env.step(0)
 
     # Test we can now execute the DoSBot app
     _, _, _, _, info = env.step(81)
