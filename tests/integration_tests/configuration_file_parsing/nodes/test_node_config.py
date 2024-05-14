@@ -43,3 +43,6 @@ def test_basic_config():
     # client 3 should not be online
     client_3: Computer = network.get_node_by_hostname("client_3")
     assert client_3.operating_state == NodeOperatingState.OFF
+
+    for link in network.links:
+        assert network.links[link].bandwidth == 200

@@ -321,7 +321,7 @@ class Network(SimComponent):
         :type endpoint_a: WiredNetworkInterface
         :param endpoint_b: The second endpoint to connect.
         :type endpoint_b: WiredNetworkInterface
-        :param bandwidth: bandwidth of new link
+        :param bandwidth: bandwidth of new link, default of 100mbps
         :type bandwidth: int
         :raises RuntimeError: If any validation or runtime checks fail.
         """

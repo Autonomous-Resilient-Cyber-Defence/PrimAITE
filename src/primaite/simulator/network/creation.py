@@ -50,6 +50,7 @@ def create_office_lan(
     num_pcs: int,
     network: Optional[Network] = None,
     include_router: bool = True,
+    bandwidth: int = 100,
 ) -> Network:
     """
     Creates a 2-Tier or 3-Tier office local area network (LAN).
@@ -109,9 +110,11 @@ def create_office_lan(
     switch.power_on()
     network.add_node(switch)
     if num_of_switches > 1:
-        network.connect(core_switch.network_interface[core_switch_port], switch.network_interface[24])
+        network.connect(
+            core_switch.network_interface[core_switch_port], switch.network_interface[24], bandwidth=bandwidth
+        )
     else:
-        network.connect(router.network_interface[1], switch.network_interface[24])
+        network.connect(router.network_interface[1], switch.network_interface[24], bandwidth=bandwidth)
 
     # Add PCs to the LAN and connect them to switches
     for i in range(1, num_pcs + 1):
@@ -125,9 +128,11 @@ def create_office_lan(
             # Connect the new switch to the router or core switch
             if num_of_switches > 1:
                 core_switch_port += 1
-                network.connect(core_switch.network_interface[core_switch_port], switch.network_interface[24])
+                network.connect(
+                    core_switch.network_interface[core_switch_port], switch.network_interface[24], bandwidth=bandwidth
+                )
             else:
-                network.connect(router.network_interface[1], switch.network_interface[24])
+                network.connect(router.network_interface[1], switch.network_interface[24], bandwidth=bandwidth)
 
         # Create and add a PC to the network
         pc = Computer(
@@ -142,7 +147,7 @@ def create_office_lan(
 
         # Connect the PC to the switch
         switch_port += 1
-        network.connect(switch.network_interface[switch_port], pc.network_interface[1])
+        network.connect(switch.network_interface[switch_port], pc.network_interface[1], bandwidth=bandwidth)
         switch.network_interface[switch_port].enable()
 
     return network

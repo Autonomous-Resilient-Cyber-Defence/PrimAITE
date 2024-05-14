@@ -547,7 +547,7 @@ class Link(SimComponent):
 
     :param endpoint_a: The first NIC or SwitchPort connected to the Link.
     :param endpoint_b: The second NIC or SwitchPort connected to the Link.
-    :param bandwidth: The bandwidth of the Link in Mbps (default is 100 Mbps).
+    :param bandwidth: The bandwidth of the Link in Mbps.
     """
 
     endpoint_a: WiredNetworkInterface
@@ -555,7 +555,7 @@ class Link(SimComponent):
     endpoint_b: WiredNetworkInterface
     "The second WiredNetworkInterface connected to the Link."
     bandwidth: float
-    "The bandwidth of the Link in Mbps (default is 100 Mbps)."
+    "The bandwidth of the Link in Mbps."
     current_load: float = 0.0
     "The current load on the link in Mbps."
 
