@@ -83,7 +83,7 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 PPO_UC2/
-docs/_static/notebooks/html/*.html
+docs/source/notebooks/*.ipynb
 
 # IPython
 profile_default/

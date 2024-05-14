@@ -115,7 +115,7 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    :hidden:
 
    source/example_notebooks
-   source/executed_notebooks
+   source/notebooks/executed_notebooks
 
 .. toctree::
    :caption: Developer information:

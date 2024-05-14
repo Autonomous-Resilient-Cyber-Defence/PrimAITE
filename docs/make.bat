@@ -9,9 +9,6 @@ REM Command file for Sphinx documentation
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )
-if "%JUPYTER%" == "" (
-	set JUPYTER=jupyter
-)
 set SOURCEDIR=.
 set BUILDDIR=_build
 
@@ -31,35 +28,14 @@ if errorlevel 9009 (
 	exit /b 1
 )
 
-%JUPYTER% >NUL 2>NUL
-if errorlevel 9009 (
-	echo.
-	echo.'jupyter' command was not found. Make sure you have Jupyter
-	echo.installed, then set the JUPYTER environment variable to point
-	echo.to the full path of the 'jupyter' executable.
-	exit /b 1
-)
-
 if "%1" == "" goto help
 
 REM delete autosummary if it exists
 
-IF EXIST %AUTOSUMMARYDIR% (
-    echo deleting %AUTOSUMMARYDIR%
-    RMDIR %AUTOSUMMARYDIR% /s /q
-)
-
-REM delete notebook if it exists
-IF EXIST %JUPYTEROUTPUTPATH% (
-    echo deleting %JUPYTEROUTPUTPATH%
-    RMDIR %JUPYTEROUTPUTPATH% /s /q
-)
-
-REM run and print html of notebooks
-JUPYTER nbconvert --execute --to html --output-dir %JUPYTEROUTPUTPATH% "%cd%\..\src\primaite\**\*.ipynb"
-
-REM copy notebook image dependencies
-robocopy ..\src\primaite\notebooks\_package_data _static\notebooks\html\_package_data
+@REM IF EXIST %AUTOSUMMARYDIR% (
+@REM     echo deleting %AUTOSUMMARYDIR%
+@REM     RMDIR %AUTOSUMMARYDIR% /s /q
+@REM )
 
 REM print the YT licenses
 set LICENSEBUILD=pip-licenses --format=rst --with-urls
@@ -74,15 +50,10 @@ goto end
 %SPHINXBUILD% -M help %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
 
 :clean
-IF EXIST %AUTOSUMMARYDIR% (
-    echo deleting %AUTOSUMMARYDIR%
-    RMDIR %AUTOSUMMARYDIR% /s /q
-)
-
-IF EXIST %JUPYTEROUTPUTPATH% (
-    echo deleting %JUPYTEROUTPUTPATH%
-    RMDIR %JUPYTEROUTPUTPATH% /s /q
-)
+@REM IF EXIST %AUTOSUMMARYDIR% (
+@REM     echo deleting %AUTOSUMMARYDIR%
+@REM     RMDIR %AUTOSUMMARYDIR% /s /q
+@REM )
 
 :end
 popd

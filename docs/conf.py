@@ -9,7 +9,9 @@ import datetime
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 import os
+import shutil
 import sys
+from pathlib import Path
 from typing import Any
 
 import furo  # noqa
@@ -43,11 +45,12 @@ html_title = f"{project} v{release} docs"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",  # Core Sphinx library for auto html doc generation from docstrings
-    "sphinx.ext.autosummary",  # Create summary tables for modules/classes/methods etc
+    # "sphinx.ext.autosummary",  # Create summary tables for modules/classes/methods etc
     "sphinx.ext.intersphinx",  # Link to other project's documentation (see mapping below)
     "sphinx.ext.viewcode",  # Add a link to the Python source code for classes, functions etc.
     "sphinx.ext.todo",
     "sphinx_copybutton",  # Adds a copy button to code blocks
+    "nbsphinx",
 ]
 
 templates_path = ["_templates"]
@@ -64,33 +67,7 @@ html_theme = "furo"
 html_static_path = ["_static"]
 html_theme_options = {"globaltoc_collapse": True, "globaltoc_maxdepth": 2}
 html_copy_source = False
-
-
-def get_notebook_links() -> str:
-    """
-    Returns a string which will be added to the RST.
-
-    Allows for dynamic addition of notebooks to the documentation.
-    """
-    notebooks = os.listdir("_static/notebooks/html")
-
-    links = []
-    links.append("<ul>")
-    for notebook in notebooks:
-        if notebook == "notebook_links.html":
-            continue
-        notebook_link = (
-            f'<li><a href="../_static/notebooks/html/{notebook}" target="blank">'
-            f"{notebook.replace('.html', '')}"
-            f"</a></li>\n"
-        )
-        links.append(notebook_link)
-    links.append("<ul>")
-
-    with open("_static/notebooks/html/notebook_links.html", "w") as html_file:
-        html_file.write("".join(links))
-
-    return ":file: ../_static/notebooks/html/notebook_links.html"
+nbsphinx_allow_errors = True
 
 
 def replace_token(app: Any, docname: Any, source: Any):
@@ -103,12 +80,26 @@ def replace_token(app: Any, docname: Any, source: Any):
 
 tokens = {
     "{VERSION}": release,
-    "{NOTEBOOK_LINKS}": get_notebook_links(),
 }  # Token VERSION is replaced by the value of the PrimAITE version in the version file
 """Dict containing the tokens that need to be replaced in documentation."""
+
+temp_ignored_notebooks = ["Training-an-RLLib-Agent.ipynb", "Training-an-RLLIB-MARL-System.ipynb"]
+
+
+def copy_notebooks_to_docs():
+    """Copies the notebooks to a directory within docs directory so that they can be included."""
+    for notebook in Path("../src/primaite").rglob("*.ipynb"):
+        if notebook.name not in temp_ignored_notebooks:
+            dest = Path("source") / "notebooks"
+            Path(dest).mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src=notebook, dst=dest)
+
+    # copy any images
+    # TODO
 
 
 def setup(app: Any):
     """Custom setup for sphinx."""
+    copy_notebooks_to_docs()
     app.add_config_value("tokens", {}, True)
     app.connect("source-read", replace_token)

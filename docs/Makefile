@@ -6,8 +6,6 @@ SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = _build
 
-JUPYTEROUTPUTPATH="_static\notebooks\html"
-
 # Remove command is different depending on OS
 ifdef OS
 	RM = IF exist $(AUTOSUMMARY) (  RMDIR $(AUTOSUMMARY) /s /q )
@@ -30,9 +28,5 @@ clean:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile | clean
 	pip-licenses --format=rst --with-urls --output-file=source/primaite-dependencies.rst
-
-    jupyter nbconvert --execute --to html --output-dir _static/notebooks/html ../src/primaite/**/*.ipynb
-
-    cp -r ../src/primaite/notebooks/_package_data _static/notebooks/html/_package_data _static/notebooks/html/_package_data
 
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

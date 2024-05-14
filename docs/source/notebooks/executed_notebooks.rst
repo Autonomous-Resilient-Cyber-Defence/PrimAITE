@@ -9,5 +9,8 @@ Executed Jupyter Notebooks
 
 Below is a list of available pre-executed notebooks.
 
-.. raw:: html
-    {NOTEBOOK_LINKS}
+.. toctree::
+    :maxdepth: 1
+    :glob:
+
+    *
