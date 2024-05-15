@@ -6,6 +6,8 @@ SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = _build
 
+AUTOSUMMARY="source/_autosummary"
+
 # Remove command is different depending on OS
 ifdef OS
 	RM = IF exist $(AUTOSUMMARY) (  RMDIR $(AUTOSUMMARY) /s /q )

@@ -13,7 +13,6 @@ set SOURCEDIR=.
 set BUILDDIR=_build
 
 set AUTOSUMMARYDIR="%cd%\source\_autosummary\"
-set JUPYTEROUTPUTPATH="%cd%\_static\notebooks\html"
 
 %SPHINXBUILD% >NUL 2>NUL
 if errorlevel 9009 (

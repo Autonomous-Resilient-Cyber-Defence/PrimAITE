@@ -13,4 +13,4 @@ Below is a list of available pre-executed notebooks.
     :maxdepth: 1
     :glob:
 
-    *
+    **/*

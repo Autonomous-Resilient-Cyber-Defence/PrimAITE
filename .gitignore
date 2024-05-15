@@ -83,7 +83,9 @@ target/
 # Jupyter Notebook
 .ipynb_checkpoints
 PPO_UC2/
-docs/source/notebooks/*.ipynb
+# ignore everything but the executed notebooks rst in the docs/source/notebooks directory
+!docs/source/notebooks/executed_notebooks.rst
+docs/source/notebooks/**/*
 
 # IPython
 profile_default/
