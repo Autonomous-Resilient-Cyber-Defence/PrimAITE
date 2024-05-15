@@ -31,10 +31,10 @@ if "%1" == "" goto help
 
 REM delete autosummary if it exists
 
-@REM IF EXIST %AUTOSUMMARYDIR% (
-@REM     echo deleting %AUTOSUMMARYDIR%
-@REM     RMDIR %AUTOSUMMARYDIR% /s /q
-@REM )
+IF EXIST %AUTOSUMMARYDIR% (
+    echo deleting %AUTOSUMMARYDIR%
+    RMDIR %AUTOSUMMARYDIR% /s /q
+)
 
 REM print the YT licenses
 set LICENSEBUILD=pip-licenses --format=rst --with-urls
@@ -49,10 +49,10 @@ goto end
 %SPHINXBUILD% -M help %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
 
 :clean
-@REM IF EXIST %AUTOSUMMARYDIR% (
-@REM     echo deleting %AUTOSUMMARYDIR%
-@REM     RMDIR %AUTOSUMMARYDIR% /s /q
-@REM )
+IF EXIST %AUTOSUMMARYDIR% (
+    echo deleting %AUTOSUMMARYDIR%
+    RMDIR %AUTOSUMMARYDIR% /s /q
+)
 
 :end
 popd
