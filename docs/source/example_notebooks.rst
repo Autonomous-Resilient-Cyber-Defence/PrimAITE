@@ -12,7 +12,7 @@ There are a few example notebooks included which help with the understanding of 
 
 The PrimAITE documentation includes a pre executed example of notebooks. See :ref:`Executed Notebooks`.
 
-The Jupyter notebooks can also be run interactively via the 2 examples below. These assume that the instructions to install PrimAITE from the :ref:`Getting Started <getting-started>` page is completed as a prerequisite.
+In order to run the notebooks interactively, :ref:`install PrimAITE <getting-started>` and follow these steps:
 
 Running Jupyter Notebooks
 -------------------------

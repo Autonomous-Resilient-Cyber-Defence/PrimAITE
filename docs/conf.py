@@ -68,6 +68,18 @@ html_static_path = ["_static"]
 html_theme_options = {"globaltoc_collapse": True, "globaltoc_maxdepth": 2}
 html_copy_source = False
 nbsphinx_allow_errors = False  # set to True to take shortcuts
+html_scaled_image_link = False
+
+# make some stuff easier to read
+nbsphinx_prolog = """
+.. raw:: html
+
+    <style>
+        .stderr {
+            color: #000 !important
+        }
+    </style>
+"""
 
 
 def replace_token(app: Any, docname: Any, source: Any):
