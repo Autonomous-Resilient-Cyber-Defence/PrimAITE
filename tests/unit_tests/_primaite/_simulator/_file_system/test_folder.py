@@ -132,21 +132,3 @@ def test_simulated_folder_check_hash(file_system):
     file.sim_size = 0
     folder.check_hash()
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-
-
-@pytest.mark.skip(reason="NODE_FILE_CHECKHASH not implemented")
-def test_real_folder_check_hash(file_system):
-    folder: Folder = file_system.create_folder(folder_name="test_folder")
-    file_system.create_file(file_name="test_file.txt", folder_name="test_folder", real=True)
-
-    folder.check_hash()
-    assert folder.health_status == FileSystemItemHealthStatus.GOOD
-    # change simulated file size
-    file = folder.get_file(file_name="test_file.txt")
-
-    # change file content
-    with open(file.sim_path, "a") as f:
-        f.write("get hacked scrub lol xD\n")
-
-    folder.check_hash()
-    assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
