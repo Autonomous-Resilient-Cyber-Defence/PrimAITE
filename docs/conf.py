@@ -166,8 +166,20 @@ def copy_notebooks_to_docs() -> Any:
         )
 
 
+def suppress_log_output():
+    """Sets the log level while building the documentation."""
+    from primaite import _FILE_HANDLER, _LOGGER, _STREAM_HANDLER
+
+    log_level = "WARN"
+
+    _LOGGER.setLevel(log_level)
+    _STREAM_HANDLER.setLevel(log_level)
+    _FILE_HANDLER.setLevel(log_level)
+
+
 def setup(app: Any):
     """Custom setup for sphinx."""
+    suppress_log_output()
     copy_notebooks_to_docs()
     app.add_config_value("tokens", {}, True)
     app.connect("source-read", replace_token)
