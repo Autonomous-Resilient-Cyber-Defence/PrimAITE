@@ -135,9 +135,6 @@ def copy_notebooks_to_docs() -> Any:
     This allows developers to create new notebooks without having to worry about updating documentation when
     a new notebook is included within PrimAITE.
     """
-    # temporarily ignore these notebooks because we love RLlib and its quirks
-    ignored_notebooks = ["Training-an-RLLib-Agent.ipynb", "Training-an-RLLIB-MARL-System.ipynb"]
-
     notebook_asset_types = [".ipynb", ".png"]
     notebook_directories = []
 
@@ -152,7 +149,7 @@ def copy_notebooks_to_docs() -> Any:
         shutil.copytree(
             src=notebook_parent,
             dst=Path("source") / "notebooks" / notebook_parent.name,
-            ignore=notebook_assets(ignored_files=ignored_notebooks, include_file_types=notebook_asset_types),
+            ignore=notebook_assets(include_file_types=notebook_asset_types),
             dirs_exist_ok=True,
         )
 
