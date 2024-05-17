@@ -15,6 +15,31 @@ from primaite.simulator.network.transmission.transport_layer import Port
 from tests.conftest import TestApplication, TestService
 
 
+def test_successful_node_file_system_creation_request(example_network):
+    """Tests that the file system requests."""
+    client_1 = example_network.get_node_by_hostname("client_1")
+    assert client_1.file_system.get_file(folder_name="root", file_name="test.txt") is None
+
+    response = example_network.apply_request(["node", "client_1", "file_system", "create", "file", "", "test.txt"])
+
+    assert response
+    assert client_1.file_system.get_file(folder_name="root", file_name="test.txt")
+
+    assert client_1.file_system.get_folder(folder_name="test_folder") is None
+
+    response = example_network.apply_request(["node", "client_1", "file_system", "create", "folder", "test_folder"])
+
+    assert response
+    assert client_1.file_system.get_folder(folder_name="test_folder")
+
+    assert client_1.file_system.get_file(folder_name="root", file_name="test.txt").num_access == 0
+
+    response = example_network.apply_request(["node", "client_1", "file_system", "access", "root", "test.txt"])
+
+    assert response
+    assert client_1.file_system.get_file(folder_name="root", file_name="test.txt").num_access == 1
+
+
 def test_successful_application_requests(example_network):
     net = example_network
 

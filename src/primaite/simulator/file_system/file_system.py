@@ -63,6 +63,37 @@ class FileSystem(SimComponent):
             request_type=RequestType(func=self._delete_manager),
         )
 
+        self._create_manager = RequestManager()
+        self._create_manager.add_request(
+            name="file",
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(
+                    bool(self.create_file(folder_name=request[0], file_name=request[1]))
+                )
+            ),
+        )
+        self._create_manager.add_request(
+            name="folder",
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(
+                    bool(self.create_folder(folder_name=request[0]))
+                )
+            ),
+        )
+        rm.add_request(
+            name="create",
+            request_type=RequestType(func=self._create_manager),
+        )
+
+        rm.add_request(
+            name="access",
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.access_file(folder_name=request[0], file_name=request[1])
+                )
+            ),
+        )
+
         self._restore_manager = RequestManager()
         self._restore_manager.add_request(
             name="file",
@@ -494,3 +525,28 @@ class FileSystem(SimComponent):
             return False
 
         return folder.restore_file(file_name=file_name)
+
+    def access_file(self, folder_name: str, file_name: str) -> bool:
+        """
+        Access a file.
+
+        Used by agents to simulate a file being accessed.
+
+        :param: folder_name: name of the folder where the file is stored
+        :type: folder_name: str
+
+        :param: file_name: name of the file to access
+        :type: file_name: str
+        """
+        folder = self.get_folder(folder_name=folder_name)
+
+        if folder:
+            file = folder.get_file(file_name=file_name)
+
+            if file:
+                file.num_access += 1
+                return True
+            else:
+                self.sys_log.error(f"Unable to access file that does not exist. (file name: {file_name})")
+
+        return False
