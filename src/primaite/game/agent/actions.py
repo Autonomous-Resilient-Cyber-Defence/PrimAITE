@@ -312,6 +312,7 @@ class NodeFolderRestoreAction(NodeFolderAbstractAction):
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
         self.verb: str = "restore"
 
+
 class NodeFolderFileCreateAction(NodeFolderAbstractAction):
     """Action which creates a new file in a given folder."""
 
