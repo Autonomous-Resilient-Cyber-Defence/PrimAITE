@@ -287,6 +287,16 @@ def arcd_uc2_network() -> Network:
     return network
 
 
+def network_simulator_demo_example() -> Network:
+    """Returns a lightly modified version of the ARCD UC2 Network."""
+    network = arcd_uc2_network()
+    network.get_node_by_hostname("router_1").route_table.add_route(
+        address="192.168.10.0", subnet_mask="255.255.255.0", next_hop_ip_address="192.168.1.2"
+    )
+
+    return network
+
+
 def _get_example_network(path: str) -> Network:
     try:
         with open(path, "r") as file:
@@ -308,7 +318,7 @@ def client_server_p2p_network_example() -> Network:
 
 def basic_lan_network_example() -> Network:
     """Get the basic LAN example network."""
-    path = PRIMAITE_PATHS.user_config_path / "example_config" / "basic_network_network_example.yaml"
+    path = PRIMAITE_PATHS.user_config_path / "example_config" / "basic_lan_network_example.yaml"
     return _get_example_network(path)
 
 
