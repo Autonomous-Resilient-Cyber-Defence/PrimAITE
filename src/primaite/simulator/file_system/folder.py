@@ -61,6 +61,12 @@ class Folder(FileSystemItemABC):
                 func=lambda request, context: RequestResponse.from_bool(self.remove_file_by_name(file_name=request[0]))
             ),
         )
+        rm.add_request(
+            name="create",
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.create_file(file_name=request[0]))
+            ),
+        ) 
         self._file_request_manager = RequestManager()
         rm.add_request(
             name="file",
