@@ -41,8 +41,7 @@ dependencies = [
     "typer[all]==0.9.0",
     "pydantic==2.7.0",
     "ray[rllib] >= 2.9, < 3",
-    "ipywidgets",
-    "nbsphinx==0.9.4"
+    "ipywidgets"
 ]
 
 [tool.setuptools.dynamic]
@@ -72,7 +71,8 @@ dev = [
     "setuptools==66",
     "Sphinx==7.1.2",
     "sphinx-copybutton==0.5.2",
-    "wheel==0.38.4"
+    "wheel==0.38.4",
+    "nbsphinx==0.9.4"
 ]
 
 [project.scripts]
