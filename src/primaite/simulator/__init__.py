@@ -27,10 +27,10 @@ class LogLevel(IntEnum):
 
 class _SimOutput:
     def __init__(self):
-        date_str = datetime.now().strftime("%Y-%m-%d")
-        time_str = datetime.now().strftime("%H-%M-%S")
+        self.date_str = datetime.now().strftime("%Y-%m-%d")
+        self.time_str = datetime.now().strftime("%H-%M-%S")
 
-        path = PRIMAITE_PATHS.user_sessions_path / date_str / time_str
+        path = PRIMAITE_PATHS.user_sessions_path / self.date_str / self.time_str
 
         self._path = path
         self._save_pcap_logs: bool = False
@@ -41,17 +41,15 @@ class _SimOutput:
     @property
     def path(self) -> Path:
         if is_dev_mode():
-            date_str = datetime.now().strftime("%Y-%m-%d")
-            time_str = datetime.now().strftime("%H-%M-%S")
             # if dev mode is enabled, if output dir is not set, print to primaite repo root
-            path: Path = _PRIMAITE_ROOT.parent.parent / "sessions" / date_str / time_str / "simulation_output"
+            path: Path = _PRIMAITE_ROOT.parent.parent / "sessions" / self.date_str / self.time_str / "simulation_output"
             # otherwise print to output dir
             if PRIMAITE_CONFIG["developer_mode"]["output_dir"]:
                 path: Path = (
                     Path(PRIMAITE_CONFIG["developer_mode"]["output_dir"])
                     / "sessions"
-                    / date_str
-                    / time_str
+                    / self.date_str
+                    / self.time_str
                     / "simulation_output"
                 )
             self._path = path
