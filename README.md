@@ -137,7 +137,22 @@ python -m jupyter notebook
 ```
 Then, click the URL provided by the jupyter command to open the jupyter application in your browser. You can also open notebooks in your IDE if supported.
 
-## 📚 Building documentation
+## 📚 Documentation
+
+### Pre requisites
+
+Building the documentation requires the installation of Pandoc
+
+##### Unix
+```bash
+sudo apt-get install pandoc
+```
+
+##### Other operating systems
+Follow the steps in https://pandoc.org/installing.html
+
+### Building the documentation
+
 The PrimAITE documentation can be built with the following commands:
 
 ##### Unix

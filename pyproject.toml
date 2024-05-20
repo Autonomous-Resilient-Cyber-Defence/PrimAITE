@@ -71,7 +71,8 @@ dev = [
     "setuptools==66",
     "Sphinx==7.1.2",
     "sphinx-copybutton==0.5.2",
-    "wheel==0.38.4"
+    "wheel==0.38.4",
+    "nbsphinx==0.9.4"
 ]
 
 [project.scripts]
