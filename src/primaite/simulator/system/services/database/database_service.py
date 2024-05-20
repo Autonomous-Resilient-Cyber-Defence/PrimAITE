@@ -49,9 +49,10 @@ class DatabaseService(Service):
         Installs an instance of FTPClient on the Node to enable database backup if it isn't installed already.
         """
         super().install()
-        if not self.software_manager.software.get("FTPClient"):
-            self.sys_log.info(f"{self.name}: Installing FTPClient to enable database backups")
-            self.software_manager.install(FTPClient)
+
+        if not self.parent.software_manager.software.get("FTPClient"):
+            self.parent.sys_log.info(f"{self.name}: Installing FTPClient to enable database backups")
+            self.parent.software_manager.install(FTPClient)
 
     def configure_backup(self, backup_server: IPv4Address):
         """
