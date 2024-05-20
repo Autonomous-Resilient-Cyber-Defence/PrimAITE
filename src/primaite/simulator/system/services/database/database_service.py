@@ -43,10 +43,16 @@ class DatabaseService(Service):
         self._create_db_file()
 
     def install(self):
+        """
+        Perform first-time setup of the DatabaseService.
+
+        Installs an instance of FTPClient on the Node to enable database backup if it isn't installed already.
+        """
         super().install()
         if not self.software_manager.software.get("FTPClient"):
             self.sys_log.info(f"{self.name}: Installing FTPClient to enable database backups")
             self.software_manager.install(FTPClient)
+
     def configure_backup(self, backup_server: IPv4Address):
         """
         Set up the database backup.
@@ -77,9 +83,7 @@ class DatabaseService(Service):
 
         # send backup copy of database file to FTP server
         if not self.db_file:
-            self.sys_log.error(
-                f"{self.name}: Attempted to backup database file but it doesn't exist."
-            )
+            self.sys_log.error(f"{self.name}: Attempted to backup database file but it doesn't exist.")
             return False
 
         response = ftp_client_service.send_file(
@@ -170,11 +174,11 @@ class DatabaseService(Service):
         return str(uuid4())
 
     def _process_connect(
-            self,
-            src_ip: IPv4Address,
-            connection_request_id: str,
-            password: Optional[str] = None,
-            session_id: Optional[str] = None,
+        self,
+        src_ip: IPv4Address,
+        connection_request_id: str,
+        password: Optional[str] = None,
+        session_id: Optional[str] = None,
     ) -> Dict[str, Union[int, Dict[str, bool]]]:
         """Process an incoming connection request.
 
@@ -215,10 +219,10 @@ class DatabaseService(Service):
         }
 
     def _process_sql(
-            self,
-            query: Literal["SELECT", "DELETE", "INSERT", "ENCRYPT"],
-            query_id: str,
-            connection_id: Optional[str] = None,
+        self,
+        query: Literal["SELECT", "DELETE", "INSERT", "ENCRYPT"],
+        query_id: str,
+        connection_id: Optional[str] = None,
     ) -> Dict[str, Union[int, List[Any]]]:
         """
         Executes the given SQL query and returns the result.
