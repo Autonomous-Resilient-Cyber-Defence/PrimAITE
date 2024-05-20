@@ -100,4 +100,4 @@ This accepts an integer value e.g. if port 1 is to be connected, the configurati
 
 ``bandwidth``
 
-This is an integer value specifying the allowed bandwidth across the connection.
+This is an integer value specifying the allowed bandwidth across the connection. Units are in Mbps.
