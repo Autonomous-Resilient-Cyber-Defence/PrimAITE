@@ -428,7 +428,7 @@ class NodeFileAccessAction(AbstractAction):
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
-        self.verb: str = "create"
+        self.verb: str = "access"
 
     def form_request(self, node_id: int, folder_name: str, file_name: str) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
