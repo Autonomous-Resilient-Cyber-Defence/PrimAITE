@@ -313,12 +313,34 @@ class NodeFolderRestoreAction(NodeFolderAbstractAction):
         self.verb: str = "restore"
 
 
-class NodeFolderFileCreateAction(NodeFolderAbstractAction):
+class NodeFileCreateAction(AbstractAction):
     """Action which creates a new file in a given folder."""
 
     def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
         self.verb: str = "create"
+
+    def form_request(self, node_id: int, folder_name: str, file_name: str) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None or folder_name is None or file_name is None:
+            return ["do_nothing"]
+        return ["network", "node", node_name, "file_system", "create", "file", folder_name, file_name]
+
+
+class NodeFolderCreateAction(AbstractAction):
+    """Action which creates a new folder."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
+        super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
+        self.verb: str = "create"
+
+    def form_request(self, node_id: int, folder_name: str) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None or folder_name is None:
+            return ["do_nothing"]
+        return ["network", "node", node_name, "file_system", "create", "folder", folder_name]
 
 
 class NodeFileAbstractAction(AbstractAction):
@@ -399,6 +421,21 @@ class NodeFileCorruptAction(NodeFileAbstractAction):
     def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, num_files: int, **kwargs) -> None:
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, num_files=num_files, **kwargs)
         self.verb: str = "corrupt"
+
+
+class NodeFileAccessAction(AbstractAction):
+    """Action which increases a file's access count."""
+
+    def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
+        super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
+        self.verb: str = "create"
+
+    def form_request(self, node_id: int, folder_name: str, file_name: str) -> List[str]:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None or folder_name is None or file_name is None:
+            return ["do_nothing"]
+        return ["network", "node", node_name, "file_system", "access", folder_name, file_name]
 
 
 class NodeAbstractAction(AbstractAction):
@@ -854,11 +891,14 @@ class ActionManager:
         "NODE_APPLICATION_INSTALL": NodeApplicationInstallAction,
         "NODE_APPLICATION_REMOVE": NodeApplicationRemoveAction,
         "NODE_FILE_SCAN": NodeFileScanAction,
+        "NODE_FILE_CREATE": NodeFileCreateAction,
         "NODE_FILE_CHECKHASH": NodeFileCheckhashAction,
         "NODE_FILE_DELETE": NodeFileDeleteAction,
         "NODE_FILE_REPAIR": NodeFileRepairAction,
         "NODE_FILE_RESTORE": NodeFileRestoreAction,
         "NODE_FILE_CORRUPT": NodeFileCorruptAction,
+        "NODE_FILE_ACCESS": NodeFileAccessAction,
+        "NODE_FOLDER_CREATE": NodeFolderCreateAction,
         "NODE_FOLDER_SCAN": NodeFolderScanAction,
         "NODE_FOLDER_CHECKHASH": NodeFolderCheckhashAction,
         "NODE_FOLDER_REPAIR": NodeFolderRepairAction,

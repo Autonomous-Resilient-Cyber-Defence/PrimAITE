@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from prettytable import MARKDOWN, PrettyTable
 
@@ -64,21 +64,35 @@ class FileSystem(SimComponent):
         )
 
         self._create_manager = RequestManager()
+
+        def _create_file_action(request: List[Any], context: Any) -> RequestResponse:
+            file = self.create_file(folder_name=request[0], file_name=request[1])
+            if not file:
+                return RequestResponse.from_bool(False)
+            return RequestResponse(
+                status="success",
+                data={
+                    "file_name": file.name,
+                    "folder_name": file.folder_name,
+                    "file_type": file.file_type,
+                    "file_size": file.size,
+                },
+            )
+
         self._create_manager.add_request(
             name="file",
-            request_type=RequestType(
-                func=lambda request, context: RequestResponse.from_bool(
-                    bool(self.create_file(folder_name=request[0], file_name=request[1]))
-                )
-            ),
+            request_type=RequestType(func=_create_file_action),
         )
+
+        def _create_folder_action(request: List[Any], context: Any) -> RequestResponse:
+            folder = self.create_folder(folder_name=request[0])
+            if not folder:
+                return RequestResponse.from_bool(False)
+            return RequestResponse(status="success", data={"folder_name": folder.name})
+
         self._create_manager.add_request(
             name="folder",
-            request_type=RequestType(
-                func=lambda request, context: RequestResponse.from_bool(
-                    bool(self.create_folder(folder_name=request[0]))
-                )
-            ),
+            request_type=RequestType(func=_create_folder_action),
         )
         rm.add_request(
             name="create",
