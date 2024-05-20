@@ -99,13 +99,27 @@ class FileSystem(SimComponent):
             request_type=RequestType(func=self._create_manager),
         )
 
+        def _access_file_action(request: List[Any], context: Any) -> RequestResponse:
+            file = self.get_file(folder_name=request[0], file_name=request[1])
+            if not file:
+                return RequestResponse.from_bool(False)
+
+            if self.access_file(folder_name=request[0], file_name=request[1]):
+                return RequestResponse(
+                    status="success",
+                    data={
+                        "file_name": file.name,
+                        "folder_name": file.folder_name,
+                        "file_type": file.file_type,
+                        "file_size": file.size,
+                        "file_status": file.health_status,
+                    },
+                )
+            return RequestResponse.from_bool(False)
+
         rm.add_request(
             name="access",
-            request_type=RequestType(
-                func=lambda request, context: RequestResponse.from_bool(
-                    self.access_file(folder_name=request[0], file_name=request[1])
-                )
-            ),
+            request_type=RequestType(func=_access_file_action),
         )
 
         self._restore_manager = RequestManager()
