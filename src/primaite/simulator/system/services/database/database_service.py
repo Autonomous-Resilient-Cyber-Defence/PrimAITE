@@ -42,6 +42,18 @@ class DatabaseService(Service):
         super().__init__(**kwargs)
         self._create_db_file()
 
+    def install(self):
+        """
+        Perform first-time setup of the DatabaseService.
+
+        Installs an instance of FTPClient on the Node to enable database backup if it isn't installed already.
+        """
+        super().install()
+
+        if not self.parent.software_manager.software.get("FTPClient"):
+            self.parent.sys_log.info(f"{self.name}: Installing FTPClient to enable database backups")
+            self.parent.software_manager.install(FTPClient)
+
     def configure_backup(self, backup_server: IPv4Address):
         """
         Set up the database backup.
@@ -64,9 +76,15 @@ class DatabaseService(Service):
         software_manager: SoftwareManager = self.software_manager
         ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
 
+        if not ftp_client_service:
+            self.sys_log.error(
+                f"{self.name}: Failed to perform database backup as the FTPClient software is not installed"
+            )
+            return False
+
         # send backup copy of database file to FTP server
         if not self.db_file:
-            self.sys_log.error("Attempted to backup database file but it doesn't exist.")
+            self.sys_log.error(f"{self.name}: Attempted to backup database file but it doesn't exist.")
             return False
 
         response = ftp_client_service.send_file(
@@ -91,6 +109,12 @@ class DatabaseService(Service):
 
         software_manager: SoftwareManager = self.software_manager
         ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
+
+        if not ftp_client_service:
+            self.sys_log.error(
+                f"{self.name}: Failed to restore database backup as the FTPClient software is not installed"
+            )
+            return False
 
         # retrieve backup file from backup server
         response = ftp_client_service.request_file(
