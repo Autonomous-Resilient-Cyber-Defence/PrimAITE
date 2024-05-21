@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from prettytable import MARKDOWN, PrettyTable
 
@@ -61,6 +61,65 @@ class FileSystem(SimComponent):
         rm.add_request(
             name="delete",
             request_type=RequestType(func=self._delete_manager),
+        )
+
+        self._create_manager = RequestManager()
+
+        def _create_file_action(request: List[Any], context: Any) -> RequestResponse:
+            file = self.create_file(folder_name=request[0], file_name=request[1])
+            if not file:
+                return RequestResponse.from_bool(False)
+            return RequestResponse(
+                status="success",
+                data={
+                    "file_name": file.name,
+                    "folder_name": file.folder_name,
+                    "file_type": file.file_type,
+                    "file_size": file.size,
+                },
+            )
+
+        self._create_manager.add_request(
+            name="file",
+            request_type=RequestType(func=_create_file_action),
+        )
+
+        def _create_folder_action(request: List[Any], context: Any) -> RequestResponse:
+            folder = self.create_folder(folder_name=request[0])
+            if not folder:
+                return RequestResponse.from_bool(False)
+            return RequestResponse(status="success", data={"folder_name": folder.name})
+
+        self._create_manager.add_request(
+            name="folder",
+            request_type=RequestType(func=_create_folder_action),
+        )
+        rm.add_request(
+            name="create",
+            request_type=RequestType(func=self._create_manager),
+        )
+
+        def _access_file_action(request: List[Any], context: Any) -> RequestResponse:
+            file = self.get_file(folder_name=request[0], file_name=request[1])
+            if not file:
+                return RequestResponse.from_bool(False)
+
+            if self.access_file(folder_name=request[0], file_name=request[1]):
+                return RequestResponse(
+                    status="success",
+                    data={
+                        "file_name": file.name,
+                        "folder_name": file.folder_name,
+                        "file_type": file.file_type,
+                        "file_size": file.size,
+                        "file_status": file.health_status,
+                    },
+                )
+            return RequestResponse.from_bool(False)
+
+        rm.add_request(
+            name="access",
+            request_type=RequestType(func=_access_file_action),
         )
 
         self._restore_manager = RequestManager()
@@ -494,3 +553,28 @@ class FileSystem(SimComponent):
             return False
 
         return folder.restore_file(file_name=file_name)
+
+    def access_file(self, folder_name: str, file_name: str) -> bool:
+        """
+        Access a file.
+
+        Used by agents to simulate a file being accessed.
+
+        :param: folder_name: name of the folder where the file is stored
+        :type: folder_name: str
+
+        :param: file_name: name of the file to access
+        :type: file_name: str
+        """
+        folder = self.get_folder(folder_name=folder_name)
+
+        if folder:
+            file = folder.get_file(file_name=file_name)
+
+            if file:
+                file.num_access += 1
+                return True
+            else:
+                self.sys_log.error(f"Unable to access file that does not exist. (file name: {file_name})")
+
+        return False

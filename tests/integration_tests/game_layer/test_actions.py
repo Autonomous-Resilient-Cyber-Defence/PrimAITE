@@ -329,6 +329,78 @@ def test_node_file_delete_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
     assert file.deleted
 
 
+def test_node_file_create(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that a file is created."""
+    game, agent = game_and_agent
+
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")  #
+
+    action = (
+        "NODE_FILE_CREATE",
+        {
+            "node_id": 0,
+            "folder_name": "test",
+            "file_name": "file.txt",
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    assert client_1.file_system.get_file(folder_name="test", file_name="file.txt")
+
+
+def test_node_file_access(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that the file access increments."""
+    game, agent = game_and_agent
+
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")  #
+
+    action = (
+        "NODE_FILE_CREATE",
+        {
+            "node_id": 0,
+            "folder_name": "test",
+            "file_name": "file.txt",
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    assert client_1.file_system.get_file(folder_name="test", file_name="file.txt").num_access == 0
+
+    action = (
+        "NODE_FILE_ACCESS",
+        {
+            "node_id": 0,
+            "folder_name": "test",
+            "file_name": "file.txt",
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    assert client_1.file_system.get_file(folder_name="test", file_name="file.txt").num_access == 1
+
+
+def test_node_folder_create(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
+    """Test that a folder is created."""
+    game, agent = game_and_agent
+
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")  #
+
+    action = (
+        "NODE_FOLDER_CREATE",
+        {
+            "node_id": 0,
+            "folder_name": "test",
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    assert client_1.file_system.get_folder(folder_name="test")
+
+
 def test_network_router_port_disable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     """Test that the NetworkPortDisableAction can form a request and that it is accepted by the simulation."""
     game, agent = game_and_agent
