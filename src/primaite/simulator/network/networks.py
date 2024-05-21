@@ -4,6 +4,7 @@ import yaml
 
 from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.game import PrimaiteGame
+from primaite.simulator import LogLevel, SIM_OUTPUT
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
@@ -287,6 +288,20 @@ def arcd_uc2_network() -> Network:
     return network
 
 
+def network_simulator_demo_example() -> Network:
+    """Returns a lightly modified version of the ARCD UC2 Network."""
+    # Ensure that sys_log will be viewable for demo
+    SIM_OUTPUT.sys_log_level = LogLevel.DEBUG
+    SIM_OUTPUT.save_sys_logs = True
+
+    network = arcd_uc2_network()
+    network.get_node_by_hostname("router_1").route_table.add_route(
+        address="192.168.10.0", subnet_mask="255.255.255.0", next_hop_ip_address="192.168.1.2"
+    )
+
+    return network
+
+
 def _get_example_network(path: str) -> Network:
     try:
         with open(path, "r") as file:
@@ -308,7 +323,7 @@ def client_server_p2p_network_example() -> Network:
 
 def basic_lan_network_example() -> Network:
     """Get the basic LAN example network."""
-    path = PRIMAITE_PATHS.user_config_path / "example_config" / "basic_network_network_example.yaml"
+    path = PRIMAITE_PATHS.user_config_path / "example_config" / "basic_lan_network_example.yaml"
     return _get_example_network(path)
 
 
