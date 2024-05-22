@@ -64,10 +64,12 @@ this results in:
         endpoint_a_port: 1 # port 1 on computer_1
         endpoint_b_hostname: switch
         endpoint_b_port: 1 # port 1 on switch
+        bandwidth: 100
         - endpoint_a_hostname: computer_2
         endpoint_a_port: 1 # port 1 on computer_2
         endpoint_b_hostname: switch
         endpoint_b_port: 2 # port 2 on switch
+        bandwidth: 100
 
 ``ref``
 ^^^^^^^
@@ -95,3 +97,7 @@ The ``hostname`` of the node which must be connected.
 
 The port on ``endpoint_b_hostname`` which is to be connected to ``endpoint_a_port``.
 This accepts an integer value e.g. if port 1 is to be connected, the configuration should be ``endpoint_b_port: 1``
+
+``bandwidth``
+
+This is an integer value specifying the allowed bandwidth across the connection. Units are in Mbps.

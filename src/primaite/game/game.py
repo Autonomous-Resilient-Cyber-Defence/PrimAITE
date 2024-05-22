@@ -409,6 +409,7 @@ class PrimaiteGame:
         for link_cfg in links_cfg:
             node_a = net.get_node_by_hostname(link_cfg["endpoint_a_hostname"])
             node_b = net.get_node_by_hostname(link_cfg["endpoint_b_hostname"])
+            bandwidth = link_cfg.get("bandwidth", 100)  # default value if not configured
 
             if isinstance(node_a, Switch):
                 endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]
@@ -418,7 +419,7 @@ class PrimaiteGame:
                 endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
             else:
                 endpoint_b = node_b.network_interface[link_cfg["endpoint_b_port"]]
-            net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b)
+            net.connect(endpoint_a=endpoint_a, endpoint_b=endpoint_b, bandwidth=bandwidth)
 
         # 3. create agents
         agents_cfg = cfg.get("agents", [])

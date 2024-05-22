@@ -234,7 +234,9 @@ simulation:
       endpoint_a_port: 1
       endpoint_b_hostname: client_1
       endpoint_b_port: 1
+      bandwidth: 200
     - endpoint_a_hostname: switch_1
       endpoint_a_port: 2
       endpoint_b_hostname: client_2
       endpoint_b_port: 1
+      bandwidth: 200

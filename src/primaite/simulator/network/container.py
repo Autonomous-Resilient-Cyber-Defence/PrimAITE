@@ -309,7 +309,9 @@ class Network(SimComponent):
         self._node_request_manager.remove_request(name=node.hostname)
         _LOGGER.info(f"Removed node {node.hostname} from network {self.uuid}")
 
-    def connect(self, endpoint_a: WiredNetworkInterface, endpoint_b: WiredNetworkInterface, **kwargs) -> Optional[Link]:
+    def connect(
+        self, endpoint_a: WiredNetworkInterface, endpoint_b: WiredNetworkInterface, bandwidth: int = 100, **kwargs
+    ) -> Optional[Link]:
         """
         Connect two endpoints on the network by creating a link between their NICs/SwitchPorts.
 
@@ -319,6 +321,8 @@ class Network(SimComponent):
         :type endpoint_a: WiredNetworkInterface
         :param endpoint_b: The second endpoint to connect.
         :type endpoint_b: WiredNetworkInterface
+        :param bandwidth: bandwidth of new link, default of 100mbps
+        :type bandwidth: int
         :raises RuntimeError: If any validation or runtime checks fail.
         """
         node_a: Node = endpoint_a.parent
@@ -330,7 +334,7 @@ class Network(SimComponent):
         if node_a is node_b:
             _LOGGER.warning(f"Cannot link endpoint {endpoint_a} to {endpoint_b} because they belong to the same node.")
             return
-        link = Link(endpoint_a=endpoint_a, endpoint_b=endpoint_b, **kwargs)
+        link = Link(endpoint_a=endpoint_a, endpoint_b=endpoint_b, bandwidth=bandwidth, **kwargs)
         self.links[link.uuid] = link
         self._link_id_map[len(self.links)] = link
         self._nx_graph.add_edge(endpoint_a.parent.hostname, endpoint_b.parent.hostname)
