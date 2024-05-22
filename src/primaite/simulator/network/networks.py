@@ -315,5 +315,4 @@ def basic_lan_network_example() -> Network:
 def multi_lan_internet_network_example() -> Network:
     """Get Multi-LAN with Internet example network."""
     path = PRIMAITE_PATHS.user_config_path / "example_config" / "multi_lan_internet_network_example.yaml"
-    print(path)
     return _get_example_network(path)
