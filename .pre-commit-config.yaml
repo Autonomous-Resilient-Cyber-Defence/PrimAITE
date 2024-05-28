@@ -3,7 +3,11 @@ repos:
     rev: v4.4.0
     hooks:
       - id: check-yaml
-        exclude: scenario_with_placeholders/
+        exclude: |
+          (?x)^(
+              .*/scenario_with_placeholders/.*|
+              .*/mini_scenario_with_simulation_variation/.*
+          )$
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-added-large-files
