@@ -10,7 +10,7 @@ NMAP
 Overview
 --------
 
-The `NMAP` is used to simulate network scanning activities. NMAP is a powerful tool that helps in discovering hosts and
+The NMAP is used to simulate network scanning activities. NMAP is a powerful tool that helps in discovering hosts and
 services on a network. It provides functionalities such as ping scans to discover active hosts and port scans to detect
 open ports on those hosts.
 
@@ -22,13 +22,15 @@ information about the target network.
 Scan Types
 ----------
 
-### Ping Scan
+Ping Scan
+^^^^^^^^^
 
 A ping scan is used to identify which hosts on a network are active and reachable. This is achieved by sending ICMP
 Echo Request packets (ping) to the target IP addresses. If a host responds with an ICMP Echo Reply, it is considered
 active. Ping scans are useful for quickly mapping out live hosts in a network.
 
-### Port Scan
+Port Scan
+^^^^^^^^^
 
 A port scan is used to detect open ports on a target host or range of hosts. Open ports can indicate running services
 that might be exploitable or require securing. Port scans help in understanding the services available on a network and
@@ -113,7 +115,8 @@ The network we use for these examples is defined below:
     pc_1_nmap: NMAP = pc_1.software_manager.software["NMAP"]
 
 
-**Ping Scan**
+Ping Scan
+^^^^^^^^^
 
 Perform a ping scan to find active hosts in the `192.168.1.0/24` subnet:
 
@@ -144,7 +147,8 @@ Perform a ping scan to find active hosts in the `192.168.1.0/24` subnet:
     | 192.168.1.12 | True     |
     +--------------+----------+
 
-**Horizontal Port Scan**
+Horizontal Port Scan
+^^^^^^^^^^^^^^^^^^^^
 
 Perform a horizontal port scan on port 5432 across multiple IP addresses:
 
@@ -178,7 +182,8 @@ Perform a horizontal port scan on port 5432 across multiple IP addresses:
    | 192.168.1.12 | 5432 | POSTGRES_SERVER | TCP      |
    +--------------+------+-----------------+----------+
 
-**Vertical Post Scan**
+Vertical Post Scan
+^^^^^^^^^^^^^^^^^^
 
 Perform a vertical port scan on multiple ports on a single IP address:
 
@@ -214,7 +219,8 @@ Perform a vertical port scan on multiple ports on a single IP address:
    | 192.168.1.12 | 80   | HTTP | TCP      |
    +--------------+------+------+----------+
 
-**Box Scan**
+Box Scan
+^^^^^^^^
 
 Perform a box scan on multiple ports across multiple IP addresses:
 
@@ -262,7 +268,8 @@ Perform a box scan on multiple ports across multiple IP addresses:
    | 192.168.1.13 | 80   | HTTP | TCP      |
    +--------------+------+------+----------+
 
-**Full Box Scan**
+Full Box Scan
+^^^^^^^^^^^^^
 
 Perform a full box scan on all ports, over both TCP and UDP, on a whole subnet:
 
@@ -321,7 +328,7 @@ Perform a full box scan on all ports, over both TCP and UDP, on a whole subnet:
    :caption: Box Port Scan Output
 
    +--------------------------------------------------+
-   |          pc_1 NMAP Port Scan (Vertical)          |
+   |          pc_1 NMAP Port Scan (Box)          |
    +--------------+------+-----------------+----------+
    | IP Address   | Port | Name            | Protocol |
    +--------------+------+-----------------+----------+
