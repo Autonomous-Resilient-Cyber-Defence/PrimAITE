@@ -1,7 +1,8 @@
 import pytest
 import yaml
 
-from primaite.session.environment import PrimaiteGymEnv, PrimaiteRayEnv, PrimaiteRayMARLEnv
+from primaite.session.environment import PrimaiteGymEnv
+from primaite.session.ray_envs import PrimaiteRayEnv, PrimaiteRayMARLEnv
 from tests.conftest import TEST_ASSETS_ROOT
 
 folder_path = TEST_ASSETS_ROOT / "configs" / "scenario_with_placeholders"

@@ -8,7 +8,7 @@ from ray.rllib.algorithms import ppo
 
 from primaite.config.load import data_manipulation_config_path
 from primaite.game.game import PrimaiteGame
-from primaite.session.environment import PrimaiteRayEnv
+from primaite.session.ray_envs import PrimaiteRayEnv
 
 
 @pytest.mark.skip(reason="Slow, reenable later")
