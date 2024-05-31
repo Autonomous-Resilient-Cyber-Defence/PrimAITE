@@ -4,7 +4,8 @@ import yaml
 from gymnasium.core import ObsType
 from numpy import ndarray
 
-from primaite.session.environment import PrimaiteGymEnv, PrimaiteRayMARLEnv
+from primaite.session.environment import PrimaiteGymEnv
+from primaite.session.ray_envs import PrimaiteRayMARLEnv
 from primaite.simulator.network.hardware.nodes.host.server import Printer
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from tests import TEST_ASSETS_ROOT
