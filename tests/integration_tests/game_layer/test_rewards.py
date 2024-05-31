@@ -1,6 +1,6 @@
 import yaml
 
-from primaite.game.agent.interface import AgentActionHistoryItem
+from primaite.game.agent.interface import AgentHistoryItem
 from primaite.game.agent.rewards import GreenAdminDatabaseUnreachablePenalty, WebpageUnavailablePenalty
 from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteGymEnv
@@ -75,7 +75,7 @@ def test_uc2_rewards(game_and_agent):
     state = game.get_sim_state()
     reward_value = comp.calculate(
         state,
-        last_action_response=AgentActionHistoryItem(
+        last_action_response=AgentHistoryItem(
             timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=["execute"], response=response
         ),
     )
@@ -91,7 +91,7 @@ def test_uc2_rewards(game_and_agent):
     state = game.get_sim_state()
     reward_value = comp.calculate(
         state,
-        last_action_response=AgentActionHistoryItem(
+        last_action_response=AgentHistoryItem(
             timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=["execute"], response=response
         ),
     )
