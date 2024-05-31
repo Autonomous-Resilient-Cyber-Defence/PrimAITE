@@ -125,7 +125,6 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    source/state_system
    source/request_system
    PrimAITE API <source/_autosummary/primaite>
-   PrimAITE Tests <source/_autosummary/tests>
 
 
 .. toctree::
