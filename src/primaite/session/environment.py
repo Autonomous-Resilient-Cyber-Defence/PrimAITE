@@ -82,7 +82,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         with open(path, "w") as file:
             json.dump(data, file)
 
-    def reset(self, seed: Optional[int] = None) -> Tuple[ObsType, Dict[str, Any]]:
+    def reset(self, seed: Optional[int] = None, options: Optional[Dict] = None) -> Tuple[ObsType, Dict[str, Any]]:
         """Reset the environment."""
         _LOGGER.info(
             f"Resetting environment, episode {self.episode_counter}, "
