@@ -3,7 +3,7 @@ import yaml
 from ray import air, tune
 from ray.rllib.algorithms.ppo import PPOConfig
 
-from primaite.session.environment import PrimaiteRayMARLEnv
+from primaite.session.ray_envs import PrimaiteRayMARLEnv
 from tests import TEST_ASSETS_ROOT
 
 MULTI_AGENT_PATH = TEST_ASSETS_ROOT / "configs/multi_agent_session.yaml"
