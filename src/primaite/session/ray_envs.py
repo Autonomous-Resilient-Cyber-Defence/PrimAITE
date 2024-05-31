@@ -11,6 +11,7 @@ from primaite.session.environment import _LOGGER, PrimaiteGymEnv
 from primaite.session.episode_schedule import build_scheduler, EpisodeScheduler
 from primaite.session.io import PrimaiteIO
 from primaite.simulator import SIM_OUTPUT
+from primaite.simulator.system.core.packet_capture import PacketCapture
 
 
 class PrimaiteRayMARLEnv(MultiAgentEnv):
@@ -45,7 +46,8 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         self.action_space = gymnasium.spaces.Dict(
             {name: agent.action_manager.space for name, agent in self.agents.items()}
         )
-
+        self._obs_space_in_preferred_format = True
+        self._action_space_in_preferred_format = True
         super().__init__()
 
     @property
@@ -59,10 +61,11 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         _LOGGER.info(f"Resetting environment, episode {self.episode_counter}, " f"avg. reward: {rewards}")
 
         if self.io.settings.save_agent_actions:
-            all_agent_actions = {name: agent.action_history for name, agent in self.game.agents.items()}
-            self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
+            all_agent_actions = {name: agent.history for name, agent in self.game.agents.items()}
+            self.io.write_agent_log(agent_actions=all_agent_actions, episode=self.episode_counter)
 
         self.episode_counter += 1
+        PacketCapture.clear()
         self.game: PrimaiteGame = PrimaiteGame.from_config(self.episode_scheduler(self.episode_counter))
         self.game.setup_for_episode(episode=self.episode_counter)
         state = self.game.get_sim_state()
@@ -138,8 +141,8 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
     def close(self):
         """Close the simulation."""
         if self.io.settings.save_agent_actions:
-            all_agent_actions = {name: agent.action_history for name, agent in self.game.agents.items()}
-            self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
+            all_agent_actions = {name: agent.history for name, agent in self.game.agents.items()}
+            self.io.write_agent_log(agent_actions=all_agent_actions, episode=self.episode_counter)
 
 
 class PrimaiteRayEnv(gymnasium.Env):
