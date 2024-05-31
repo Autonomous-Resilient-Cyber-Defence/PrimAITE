@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2023 - 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
 .. _NMAP:
 
@@ -323,12 +323,11 @@ Perform a full box scan on all ports, over both TCP and UDP, on a whole subnet:
       }
    }
 
-
 .. code-block:: text
    :caption: Box Port Scan Output
 
    +--------------------------------------------------+
-   |          pc_1 NMAP Port Scan (Box)          |
+   |          pc_1 NMAP Port Scan (Box)               |
    +--------------+------+-----------------+----------+
    | IP Address   | Port | Name            | Protocol |
    +--------------+------+-----------------+----------+

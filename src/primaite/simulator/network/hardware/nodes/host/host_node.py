@@ -315,7 +315,17 @@ class HostNode(Node):
 
     def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
         super().__init__(**kwargs)
-        self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))
+        self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))  #
+
+    @property
+    def nmap(self) -> Optional[NMAP]:
+        """
+        Return the NMAP application installed on the Node.
+
+        :return: NMAP application installed on the Node.
+        :rtype: Optional[NMAP]
+        """
+        return self.software_manager.software.get("NMAP")
 
     @property
     def arp(self) -> Optional[ARP]:

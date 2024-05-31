@@ -4,7 +4,8 @@ from typing import Any, Dict, Final, List, Optional, Tuple, Union
 from prettytable import PrettyTable
 from pydantic import validate_call
 
-from primaite.simulator.core import SimComponent
+from primaite.interface.request import RequestResponse
+from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
@@ -65,6 +66,56 @@ class NMAP(Application):
         kwargs["protocol"] = IPProtocol.NONE
         super().__init__(**kwargs)
 
+    def _init_request_manager(self) -> RequestManager:
+        def _ping_scan_action(request: List[Any], context: Any) -> RequestResponse:
+            results = self.ping_scan(target_ip_address=request[0]["target_ip_address"], json_serializable=True)
+            success = True
+            if not success:
+                return RequestResponse.from_bool(False)
+            return RequestResponse(
+                status="success",
+                data={"live_hosts": results},
+            )
+
+        def _port_scan_action(request: List[Any], context: Any) -> RequestResponse:
+            results = self.port_scan(**request[0], json_serializable=True)
+            success = True
+            if not success:
+                return RequestResponse.from_bool(False)
+            return RequestResponse(
+                status="success",
+                data=results,
+            )
+
+        def _network_service_recon_action(request: List[Any], context: Any) -> RequestResponse:
+            results = self.network_service_recon(**request[0], json_serializable=True)
+            success = True
+            if not success:
+                return RequestResponse.from_bool(False)
+            return RequestResponse(
+                status="success",
+                data=results,
+            )
+
+        rm = RequestManager()
+
+        rm.add_request(
+            name="ping_scan",
+            request_type=RequestType(func=_ping_scan_action),
+        )
+
+        rm.add_request(
+            name="port_scan",
+            request_type=RequestType(func=_port_scan_action),
+        )
+
+        rm.add_request(
+            name="network_service_recon",
+            request_type=RequestType(func=_network_service_recon_action),
+        )
+
+        return rm
+
     def describe_state(self) -> Dict:
         """
         Describe the state of the NMAP application.
@@ -80,7 +131,8 @@ class NMAP(Application):
         target_ip_address: Union[IPV4Address, List[IPV4Address], IPv4Network, List[IPv4Network]],
         show: bool = True,
         show_online_only: bool = True,
-    ) -> List[IPV4Address]:
+        json_serializable: bool = False,
+    ) -> Union[List[IPV4Address], List[str]]:
         """
         Perform a ping scan on the target IP address(es).
 
@@ -90,9 +142,12 @@ class NMAP(Application):
         :type show: bool
         :param show_online_only: Flag indicating whether to show only the online hosts. Defaults to True.
         :type show_online_only: bool
+        :param json_serializable: Flag indicating whether the return value should be json serializable. Defaults to
+            False.
+        :type json_serializable: bool
 
         :return: A list of active IP addresses that responded to the ping.
-        :rtype: List[IPV4Address]
+        :rtype: Union[List[IPV4Address], List[str]]
         """
         active_nodes = []
         if show:
@@ -112,9 +167,12 @@ class NMAP(Application):
             else:
                 ip_addresses.append(ip_address)
         for ip_address in set(ip_addresses):
+            # Prevent ping scan on this node
+            if self.software_manager.node.ip_is_network_interface(ip_address=ip_address):
+                continue
             can_ping = self.software_manager.icmp.ping(ip_address)
             if can_ping:
-                active_nodes.append(ip_address)
+                active_nodes.append(ip_address if not json_serializable else str(ip_address))
             if show and (can_ping or not show_online_only):
                 table.add_row([ip_address, can_ping])
         if show:
@@ -227,6 +285,7 @@ class NMAP(Application):
         target_protocol: Optional[Union[IPProtocol, List[IPProtocol]]] = None,
         target_port: Optional[Union[Port, List[Port]]] = None,
         show: bool = True,
+        json_serializable: bool = False,
     ) -> Dict[IPv4Address, Dict[IPProtocol, List[Port]]]:
         """
         Perform a port scan on the target IP address(es).
@@ -239,6 +298,9 @@ class NMAP(Application):
         :type target_port: Optional[Union[Port, List[Port]]]
         :param show: Flag indicating whether to display the scan results. Defaults to True.
         :type show: bool
+        :param json_serializable: Flag indicating whether the return value should be JSON serializable. Defaults to
+            False.
+        :type json_serializable: bool
 
         :return: A dictionary mapping IP addresses to protocols and lists of open ports.
         :rtype: Dict[IPv4Address, Dict[IPProtocol, List[Port]]]
@@ -274,23 +336,74 @@ class NMAP(Application):
             table.title = f"{self.software_manager.node.hostname} NMAP Port Scan ({scan_type})"
         self.sys_log.info(f"{self.name}: Starting port scan")
         for ip_address in set(ip_addresses):
+            # Prevent port scan on this node
+            if self.software_manager.node.ip_is_network_interface(ip_address=ip_address):
+                continue
             for protocol in target_protocol:
                 for port in set(target_port):
                     port_open = self._check_port_open_on_ip_address(ip_address=ip_address, port=port, protocol=protocol)
 
                     if port_open:
                         table.add_row([ip_address, port.value, port.name, protocol.name])
-
-                        if ip_address not in active_ports:
-                            active_ports[ip_address] = dict()
-                        if protocol not in active_ports[ip_address]:
-                            active_ports[ip_address][protocol] = []
-                        active_ports[ip_address][protocol].append(port)
+                        _ip_address = ip_address if not json_serializable else str(ip_address)
+                        _protocol = protocol if not json_serializable else protocol.value
+                        _port = port if not json_serializable else port.value
+                        if _ip_address not in active_ports:
+                            active_ports[_ip_address] = dict()
+                        if _protocol not in active_ports[_ip_address]:
+                            active_ports[_ip_address][_protocol] = []
+                        active_ports[_ip_address][_protocol].append(_port)
 
         if show:
             print(table.get_string(sortby="IP Address"))
 
         return active_ports
+
+    def network_service_recon(
+        self,
+        target_ip_address: Union[IPV4Address, List[IPV4Address], IPv4Network, List[IPv4Network]],
+        target_protocol: Optional[Union[IPProtocol, List[IPProtocol]]] = None,
+        target_port: Optional[Union[Port, List[Port]]] = None,
+        show: bool = True,
+        show_online_only: bool = True,
+        json_serializable: bool = False,
+    ) -> Dict[IPv4Address, Dict[IPProtocol, List[Port]]]:
+        """
+        Perform a network service reconnaissance which includes a ping scan followed by a port scan.
+
+        This method combines the functionalities of a ping scan and a port scan to provide a comprehensive
+        overview of the services on the network. It first identifies active hosts in the target IP range by performing
+        a ping scan. Once the active hosts are identified, it performs a port scan on these hosts to identify open
+        ports and running services. This two-step process ensures that the port scan is performed only on live hosts,
+        optimising the scanning process and providing accurate results.
+
+        :param target_ip_address: The target IP address(es) or network(s) for the port scan.
+        :type target_ip_address: Union[IPV4Address, List[IPV4Address], IPv4Network, List[IPv4Network]]
+        :param target_protocol: The protocol(s) to use for the port scan. Defaults to None, which includes TCP and UDP.
+        :type target_protocol: Optional[Union[IPProtocol, List[IPProtocol]]]
+        :param target_port: The port(s) to scan. Defaults to None, which includes all valid ports.
+        :type target_port: Optional[Union[Port, List[Port]]]
+        :param show: Flag indicating whether to display the scan results. Defaults to True.
+        :type show: bool
+        :param show_online_only: Flag indicating whether to show only the online hosts. Defaults to True.
+        :type show_online_only: bool
+        :param json_serializable: Flag indicating whether the return value should be JSON serializable. Defaults to
+            False.
+        :type json_serializable: bool
+
+        :return: A dictionary mapping IP addresses to protocols and lists of open ports.
+        :rtype: Dict[IPv4Address, Dict[IPProtocol, List[Port]]]
+        """
+        ping_scan_results = self.ping_scan(
+            target_ip_address=target_ip_address, show=show, show_online_only=show_online_only, json_serializable=False
+        )
+        return self.port_scan(
+            target_ip_address=ping_scan_results,
+            target_protocol=target_protocol,
+            target_port=target_port,
+            show=show,
+            json_serializable=json_serializable,
+        )
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         """
