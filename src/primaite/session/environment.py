@@ -11,6 +11,7 @@ from primaite.game.game import PrimaiteGame
 from primaite.session.episode_schedule import build_scheduler, EpisodeScheduler
 from primaite.session.io import PrimaiteIO
 from primaite.simulator import SIM_OUTPUT
+from primaite.simulator.system.core.packet_capture import PacketCapture
 
 _LOGGER = getLogger(__name__)
 
@@ -92,6 +93,7 @@ class PrimaiteGymEnv(gymnasium.Env):
             all_agent_actions = {name: agent.action_history for name, agent in self.game.agents.items()}
             self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
         self.episode_counter += 1
+        PacketCapture.clear()
         self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=self.episode_scheduler(self.episode_counter))
         self.game.setup_for_episode(episode=self.episode_counter)
         state = self.game.get_sim_state()
