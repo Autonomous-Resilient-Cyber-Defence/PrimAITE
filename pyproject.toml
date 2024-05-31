@@ -33,7 +33,7 @@ dependencies = [
     "numpy==1.23.5",
     "platformdirs==3.5.1",
     "plotly==5.15.0",
-    "polars==0.18.4",
+    "polars==0.20.30",
     "prettytable==3.8.0",
     "PyYAML==6.0",
     "stable-baselines3[extra]==2.1.0",

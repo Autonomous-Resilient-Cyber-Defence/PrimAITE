@@ -37,6 +37,8 @@ class PrimaiteGymEnv(gymnasium.Env):
         """Name of the RL agent. Since there should only be one RL agent we can just pull the first and only key."""
         self.episode_counter: int = 0
         """Current episode number."""
+        self.average_reward_per_episode: Dict[int, float] = {}
+        """Average rewards of agents per episode."""
 
     @property
     def agent(self) -> ProxyAgent:
@@ -89,6 +91,8 @@ class PrimaiteGymEnv(gymnasium.Env):
             f"Resetting environment, episode {self.episode_counter}, "
             f"avg. reward: {self.agent.reward_function.total_reward}"
         )
+        self.average_reward_per_episode[self.episode_counter] = self.agent.reward_function.total_reward
+
         if self.io.settings.save_agent_actions:
             all_agent_actions = {name: agent.action_history for name, agent in self.game.agents.items()}
             self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
