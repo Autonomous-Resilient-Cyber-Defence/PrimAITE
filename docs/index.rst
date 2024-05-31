@@ -55,23 +55,6 @@ PrimAITE provides a training and evaluation capability to AI agents in the conte
 
 Use of PrimAITE default scenarios within ARCD is supported by a “Use Case Profile” tailored to the scenario.
 
-AI Assessment Capability
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-PrimAITE includes the capability to support in-depth assessment of cyber defence AI by outputting logs of the environment state and AI behaviour throughout both training and evaluation sessions. These logs include the following data:
-
-- Timestamp;
-- Episode and step number;
-- Agent identifier;
-- Observation space;
-- Action taken (by defensive AI);
-- Reward value.
-
-Logs are available in CSV format and provide coverage of the above data for every step of every episode.
-
-
-
-
 What is PrimAITE built with
 ---------------------------
 
@@ -109,6 +92,7 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    source/config
    source/environment
    source/customising_scenarios
+   source/varying_config_files
 
 .. toctree::
    :caption: Notebooks:
@@ -126,13 +110,3 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    source/request_system
    PrimAITE API <source/_autosummary/primaite>
    PrimAITE Tests <source/_autosummary/tests>
-
-
-.. toctree::
-   :caption: Project Links:
-   :hidden:
-
-   Code <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE>
-   Issues <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/issues>
-   Pull Requests <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/pulls>
-   Discussions <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/discussions>
