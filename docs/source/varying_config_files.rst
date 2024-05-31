@@ -44,6 +44,6 @@ It takes the following format:
         - laydown_2.yaml
         - attack_2.yaml
 
-For more information please refer to the ``Using Episode Schedules`` notebook in either :ref:`Executed Notebooks` or run the notebook interactively in ``notebooks/example_notebooks/``. 
+For more information please refer to the ``Using Episode Schedules`` notebook in either :ref:`Executed Notebooks` or run the notebook interactively in ``notebooks/example_notebooks/``.
 
 For further information around notebooks in general refer to the :ref:`Example Jupyter Notebooks`.

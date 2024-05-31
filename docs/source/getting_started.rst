@@ -107,7 +107,7 @@ Clone & Install PrimAITE for Development
 To be able to extend PrimAITE further, or to build wheels manually before install, clone the repository to a location
 of your choice:
 
-1. Clone the repository. 
+1. Clone the repository.
 
 For example:
 
