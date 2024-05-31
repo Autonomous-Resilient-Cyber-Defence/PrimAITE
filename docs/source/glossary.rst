@@ -67,3 +67,6 @@ Glossary
 
     Gymnasium
         PrimAITE uses the Gymnasium reinforcement learning framework API to create a training environment and interface with RL agents. Gymnasium defines a common way of creating observations, actions, and rewards.
+
+    User app home
+        PrimAITE supports upgrading software version while retaining user data. The user data directory is where configs, notebooks, and results are stored, this location is `~/primaite<version>/` on linux/darwin and `C:\\Users\\<username>\\primaite<version>` on Windows.

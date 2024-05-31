@@ -82,7 +82,7 @@ Install PrimAITE
 .. code-block:: bash
     :caption: Unix
 
-    pip install path/to/your/primaite.whl
+    pip install path/to/your/primaite.whl[rl]
 
 .. code-block:: powershell
     :caption: Windows (Powershell)
@@ -135,12 +135,12 @@ For example:
 .. code-block:: bash
     :caption: Unix
 
-    pip install -e .[dev]
+    pip install -e .[dev,rl]
 
 .. code-block:: powershell
     :caption: Windows (Powershell)
 
-    pip install -e .[dev]
+    pip install -e .[dev,rl]
 
 To view the complete list of packages installed during PrimAITE installation, go to the dependencies page (:ref:`Dependencies`).
 
