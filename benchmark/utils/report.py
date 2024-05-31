@@ -26,30 +26,33 @@ PLOT_CONFIG = {
 
 
 def _build_benchmark_results_dict(start_datetime: datetime, metadata_dict: Dict, config: Dict) -> dict:
-    n = len(metadata_dict)
+    num_sessions = len(metadata_dict)  # number of sessions
 
     averaged_data = {
         "start_timestamp": start_datetime.isoformat(),
         "end_datetime": datetime.now().isoformat(),
         "primaite_version": primaite.__version__,
         "system_info": _get_system_info(),
-        "total_sessions": n,
+        "total_sessions": num_sessions,
         "total_episodes": sum(d["total_episodes"] for d in metadata_dict.values()),
         "total_time_steps": sum(d["total_time_steps"] for d in metadata_dict.values()),
-        "av_s_per_session": sum(d["total_s"] for d in metadata_dict.values()) / n,
-        "av_s_per_step": sum(d["s_per_step"] for d in metadata_dict.values()) / n,
-        "av_s_per_100_steps_10_nodes": sum(d["s_per_100_steps_10_nodes"] for d in metadata_dict.values()) / n,
+        "av_s_per_session": sum(d["total_s"] for d in metadata_dict.values()) / num_sessions,
+        "av_s_per_step": sum(d["s_per_step"] for d in metadata_dict.values()) / num_sessions,
+        "av_s_per_100_steps_10_nodes": sum(d["s_per_100_steps_10_nodes"] for d in metadata_dict.values())
+        / num_sessions,
         "combined_av_reward_per_episode": {},
         "session_av_reward_per_episode": {k: v["av_reward_per_episode"] for k, v in metadata_dict.items()},
         "config": config,
     }
 
-    episode_averages = [episode["av_reward_per_episode"] for episode in metadata_dict.values()]
+    # find the average of each episode across all sessions
+    episodes = metadata_dict[1]["av_reward_per_episode"].keys()
 
-    episode = 0
-    for episode_average in episode_averages:
-        episode += 1
-        averaged_data["combined_av_reward_per_episode"][str(episode)] = episode_average
+    for episode in episodes:
+        combined_av_reward = (
+            sum(metadata_dict[k]["av_reward_per_episode"][episode] for k in metadata_dict.keys()) / num_sessions
+        )
+        averaged_data["combined_av_reward_per_episode"][episode] = combined_av_reward
 
     return averaged_data
 
@@ -205,7 +208,7 @@ def build_benchmark_latex_report(
     this_version_plot_path = version_result_dir / f"{title}.png"
     fig.write_image(this_version_plot_path)
 
-    fig = _plot_all_benchmarks_combined_session_av()
+    fig = _plot_all_benchmarks_combined_session_av(results_directory=results_root_path)
 
     all_version_plot_path = results_root_path / "PrimAITE Versions Learning Benchmark.png"
     fig.write_image(all_version_plot_path)
@@ -223,8 +226,8 @@ def build_benchmark_latex_report(
     doc.append(Command("maketitle"))
 
     sessions = data["total_sessions"]
-    episodes = data["training_config"]["num_train_episodes"]
-    steps = data["training_config"]["num_train_steps"]
+    episodes = session_metadata[1]["total_episodes"] - 1
+    steps = data["config"]["game"]["max_episode_length"]
 
     # Body
     with doc.create(Section("Introduction")):
@@ -234,7 +237,7 @@ def build_benchmark_latex_report(
         )
         doc.append(
             f"\nThe benchmarking process consists of running {sessions} training session using the same "
-            f"training and lay down config files. Each session trains an agent for {episodes} episodes, "
+            f"config file. Each session trains an agent for {episodes} episodes, "
             f"with each episode consisting of {steps} steps."
         )
         doc.append(

@@ -62,7 +62,7 @@ class BenchmarkSession:
             batch_size=self.batch_size,
             n_steps=self.batch_size * self.num_episodes,
         )
-        model.learn(total_timesteps=self.batch_size * self.num_episodes)
+        model.learn(total_timesteps=self.num_episodes * self.gym_env.game.options.max_episode_length)
 
         # end timer for session
         self.end_time = datetime.now()
@@ -108,13 +108,15 @@ class BenchmarkSession:
         }
 
 
-def _get_benchmark_primaite_environment() -> BenchmarkPrimaiteGymEnv:
+def _get_benchmark_primaite_environment(num_timesteps: int) -> BenchmarkPrimaiteGymEnv:
     """
     Create an instance of the BenchmarkPrimaiteGymEnv.
 
     This environment will be used to train the agents on.
     """
-    return BenchmarkPrimaiteGymEnv(env_config=data_manipulation_config_path())
+    env = BenchmarkPrimaiteGymEnv(env_config=data_manipulation_config_path())
+    env.game.options.max_episode_length = num_timesteps
+    return env
 
 
 def _prepare_session_directory():
@@ -129,7 +131,9 @@ def _prepare_session_directory():
     primaite.PRIMAITE_PATHS.user_sessions_path.mkdir(exist_ok=True, parents=True)
 
 
-def run(number_of_sessions: int = 1, num_episodes: int = 3, batch_size: int = 128) -> None:  # 10  # 1000  # 256
+def run(
+    number_of_sessions: int = 3, num_episodes: int = 3, num_timesteps: int = 128, batch_size: int = 128
+) -> None:  # 10  # 1000  # 256
     """Run the PrimAITE benchmark."""
     benchmark_start_time = datetime.now()
 
@@ -141,7 +145,7 @@ def run(number_of_sessions: int = 1, num_episodes: int = 3, batch_size: int = 12
     for i in range(1, number_of_sessions + 1):
         print(f"Starting Benchmark Session: {i}")
 
-        with _get_benchmark_primaite_environment() as gym_env:
+        with _get_benchmark_primaite_environment(num_timesteps=num_timesteps) as gym_env:
             session = BenchmarkSession(gym_env=gym_env, num_episodes=num_episodes, batch_size=batch_size)
             session.train()
             session_metadata_dict[i] = session.session_metadata
