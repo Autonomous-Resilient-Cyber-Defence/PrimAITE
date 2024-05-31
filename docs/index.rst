@@ -11,66 +11,79 @@ What is PrimAITE?
 Overview
 ^^^^^^^^
 
-The ARCD Primary-level AI Training Environment (**PrimAITE**) provides an effective simulation capability for the purposes of training and evaluating AI in a cyber-defensive role. It incorporates the functionality required of a primary-level ARCD environment, which includes:
+The ARCD Primary-level AI Training Environment (**PrimAITE**) provides an effective simulation capability for training and evaluating AI in a cyber-defensive role. It incorporates the functionality required of a primary-level  ARCD environment:
 
-- The ability to model a relevant platform / system context;
+- The ability to model a relevant system context;
 - Modelling an adversarial agent that the defensive agent can be trained and evaluated against;
-- The ability to model key characteristics of a platform / system by representing connections, IP addresses, ports, operating systems, services and traffic loading on links;
-- Modelling background pattern-of-life;
-- Operates at machine-speed to enable fast training cycles.
+- The ability to model key characteristics of a system by representing hosts, servers, network devices, IP addresses, ports, operating systems, folders / files, applications, services and links;
+- Modelling background (green) pattern-of-life;
+- Operates at machine-speed to enable fast training cycles via Reinforcement Learning (RL).
 
 Features
 ^^^^^^^^
 
 PrimAITE incorporates the following features:
 
-- Highly configurable (via YAML files) to provide the means to model a variety of platform / system laydowns and adversarial attack scenarios;
-- A Reinforcement Learning (RL) reward function based on (a) the ability to counter the modelled adversarial cyber-attack, and (b) the ability to ensure success;
-- Provision of logging to support AI performance / effectiveness assessment;
-- Uses the concept of Information Exchange Requirements (IERs) to model background pattern of life and adversarial behaviour;
-- An Access Control List (ACL) function, mimicking the behaviour of a network firewall, is applied across the model, following standard ACL rule format (e.g. DENY/ALLOW, source IP address, destination IP address, protocol and port);
-- Application of traffic to the links of the platform / system laydown adheres to the ACL ruleset;
-- Presents both a Gymnasium and Ray RLLib interface to the environment, allowing integration with any compliant defensive agents;
-- Allows for the saving and loading of trained defensive agents;
-- Stochastic adversarial agent behaviour;
-- Full capture of discrete logs relating to agent training or evaluation (system state, agent actions taken, instantaneous and average reward for every step of every episode);
-- Distinct control over running a training and / or evaluation session;
-- NetworkX provides laydown visualisation capability.
+- Architected with a separate Simulation layer and Game layer. This separation of concerns defines a clear path towards transfer learning with environments of differing fidelity;
+- Ability to reconfigure an RL reward function based on (a) the ability to counter the modelled adversarial cyber-attack, and (b) the ability to ensure success for green agents;
+- Access Control List (ACL) functions for network devices (routers and firewalls), following standard ACL rule format (e.g., DENY / ALLOW, source / destination IP addresses, protocol and port);
+- Application of traffic to the links of the system laydown adheres to the ACL rulesets and routing tables contained within each network device;
+- Provides RL environments adherent to the Farama Foundation Gymnasium (Previously OpenAI Gym) API, allowing integration with any compliant RL Agent frameworks;
+- Provides RL environments adherent to Ray RLlib environment specifications for single-agent and multi-agent scenarios;
+- Assessed for compatibility with Stable-Baselines3 (SB3), Ray RLlib, and bespoke agents;
+- Persona-based adversarial (Red) agent behaviour; several out-the-box personas are provided, and more can be developed to suit the needs of the task. Stochastic variations in Red agent behaviour are also included as required;
+- A robust system logging tool, automatically enabled at the node level and featuring various log levels and terminal output options, enables PrimAITE users to conduct in-depth network simulations;
+- A PCAP service is seamlessly integrated within the simulation, automatically capturing and logging frames for both
+  inbound and outbound traffic at the network interface level. This automatic functionality, combined with the ability
+  to separate traffic directions, significantly enhances network analysis and troubleshooting capabilities;
+- Agent action logs provide a description of every action taken by each agent during the episode. This includes timestep, action, parameters, request and response, for all Blue agent activity, which is aligned with the Track 2 Common Action / Observation Space (CAOS) format. Action logs also details of all scripted / stochastic red / green agent actions;
+- Environment ground truth is provided at every timestep, providing a full description of the environment’s true state;
+- Alignment with CAOS provides the ability to transfer agents between CAOS compliant environments.
 
 Architecture
 ^^^^^^^^^^^^
 
-PrimAITE is a Python application and is therefore Operating System agnostic. The Gymnasium and Ray RLLib frameworks are employed to provide an interface and source for AI agents. Configuration of PrimAITE is achieved via included YAML files which support full control over the platform / system laydown being modelled, background pattern of life, adversarial (red agent) behaviour, and step and episode count. NetworkX based nodes and links host Python classes to present attributes and methods, and hence a more representative platform / system can be modelled within the simulation.
+PrimAITE is a Python application and will operate on multiple Operating Systems (Windows, Linux and Mac);
+a comprehensive installation and user guide is provided with each release to support its usage.
 
+Configuration of PrimAITE is achieved via included YAML files which support full control over the network / system laydown being modelled, background pattern of life, adversarial (red agent) behaviour, and step and episode count.
+A Simulation Controller layer manages the overall running of the simulation, keeping track of all low-level objects.
+
+It is agnostic to the number of agents, their action / observation spaces, and the RL library being used.
+
+It presents a public API providing a method for describing the current state of the simulation, a method that accepts action requests and provides responses, and a method that triggers a timestep advancement.
+The Game Layer converts the simulation into a playable game for the agent(s).
+
+it translates between simulation state and Gymnasium.Spaces to pass action / observation data between the agent(s) and the simulation. It is responsible for calculating rewards, managing Multi-Agent RL (MARL) action turns, and via a single agent interface can interact with Blue, Red and Green agents.
+
+Agents can either generate their own scripted behaviour or accept input behaviour from an RL agent.
+
+Finally, a Gymnasium / Ray RLlib Environment Layer forwards requests to the Game Layer as the agent sends them. This layer also manages most of the I/O, such as reading in the configuration files and saving agent logs.
+
+.. image:: ../../_static/primAITE_architecture.png
+    :width: 500
+    :align: center
 
 
 Training & Evaluation Capability
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-PrimAITE provides a training and evaluation capability to AI agents in the context of cyber-attack, via its Gymnasium and RLLib compliant interface. Scenarios can be constructed to reflect platform / system laydowns consisting of any configuration of nodes (e.g. PCs, servers, switches etc.) and network links between them. All nodes can be configured to model services (and their status) and the traffic loading between them over the network links. Traffic loading is broken down into a per service granularity, relating directly to a protocol (e.g. Service A would be configured as a TCP service, and TCP traffic then flows between instances of Service A under the direction of a tailored IER). Highlights of PrimAITE’s training and evaluation capability are:
+PrimAITE provides a training and evaluation capability to AI agents in the context of cyber-attack, via its Gymnasium / Ray RLlib compliant interface.
+
+Scenarios can be constructed to reflect network / system laydowns consisting of any configuration of nodes (e.g., PCs, servers etc.) and the networking equipment and links between them.
+
+All nodes can be configured to contain applications, services, folders and files (and their status).
+
+Traffic flows between services and applications as directed by an ‘execution definition,’ with the traffic flow on the network governed by the network equipment (switches, routers and firewalls) and the ACL rules and routing tables they employ.
+
+Highlights of PrimAITE’s training and evaluation capability are:
 
 - The scenario is not bound to a representation of any platform, system, or technology;
-- Fully configurable (network / system laydown, IERs, node pattern-of-life, ACL, number of episodes, steps per episode) and repeatable to suit the requirements of AI agents;
-- Can integrate with any Gymnasium or RLLib compliant AI agent.
-
-Use of PrimAITE default scenarios within ARCD is supported by a “Use Case Profile” tailored to the scenario.
-
-AI Assessment Capability
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-PrimAITE includes the capability to support in-depth assessment of cyber defence AI by outputting logs of the environment state and AI behaviour throughout both training and evaluation sessions. These logs include the following data:
-
-- Timestamp;
-- Episode and step number;
-- Agent identifier;
-- Observation space;
-- Action taken (by defensive AI);
-- Reward value.
-
-Logs are available in CSV format and provide coverage of the above data for every step of every episode.
+- Fully configurable (network / system laydown, green pattern-of-life, red personas, reward function, ACL rules for each device, number of episodes / steps, action / observation space) and repeatable to suit the requirements of AI agents;
+- Can integrate with any Gymnasium / Ray RLlib compliant AI agent .
 
 
-
+PrimAITE provides a number of use cases (network and red/green action configurations) by default which the user is able to extend and modify as required.
 
 What is PrimAITE built with
 ---------------------------
@@ -109,6 +122,7 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    source/config
    source/environment
    source/customising_scenarios
+   source/varying_config_files
 
 .. toctree::
    :caption: Notebooks:
@@ -126,13 +140,3 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    source/request_system
    PrimAITE API <source/_autosummary/primaite>
    PrimAITE Tests <source/_autosummary/tests>
-
-
-.. toctree::
-   :caption: Project Links:
-   :hidden:
-
-   Code <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE>
-   Issues <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/issues>
-   Pull Requests <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/pulls>
-   Discussions <https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/discussions>

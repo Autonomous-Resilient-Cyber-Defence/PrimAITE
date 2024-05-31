@@ -21,6 +21,8 @@ class PacketCapture:
     The PCAPs are logged to: <simulation output directory>/<hostname>/<hostname>_<ip address>_pcap.log
     """
 
+    _logger_instances: List[logging.Logger] = []
+
     def __init__(
         self,
         hostname: str,
@@ -65,10 +67,12 @@ class PacketCapture:
 
         if outbound:
             self.outbound_logger = logging.getLogger(self._get_logger_name(outbound))
+            PacketCapture._logger_instances.append(self.outbound_logger)
             logger = self.outbound_logger
         else:
             self.inbound_logger = logging.getLogger(self._get_logger_name(outbound))
             logger = self.inbound_logger
+            PacketCapture._logger_instances.append(self.inbound_logger)
 
         logger.setLevel(60)  # Custom log level > CRITICAL to prevent any unwanted standard DEBUG-CRITICAL logs
         logger.addHandler(file_handler)
@@ -122,3 +126,13 @@ class PacketCapture:
         if SIM_OUTPUT.save_pcap_logs:
             msg = frame.model_dump_json()
             self.outbound_logger.log(level=60, msg=msg)  # Log at custom log level > CRITICAL
+
+    @staticmethod
+    def clear():
+        """Close all open PCAP file handlers."""
+        for logger in PacketCapture._logger_instances:
+            handlers = logger.handlers[:]
+            for handler in handlers:
+                logger.removeHandler(handler)
+                handler.close()
+        PacketCapture._logger_instances = []

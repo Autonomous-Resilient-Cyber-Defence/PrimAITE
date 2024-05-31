@@ -43,7 +43,7 @@ cd ~\primaite
 python3 -m venv .venv
 attrib +h .venv /s /d # Hides the .venv directory
 .\.venv\Scripts\activate
-pip install https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/releases/download/v2.0.0/primaite-2.0.0-py3-none-any.whl
+pip install primaite-3.0.0-py3-none-any.whl[rl]
 primaite setup
 ```
 
@@ -66,7 +66,7 @@ mkdir ~/primaite
 cd ~/primaite
 python3 -m venv .venv
 source .venv/bin/activate
-pip install https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/releases/download/v2.0.0/primaite-2.0.0-py3-none-any.whl
+pip install primaite-3.0.0-py3-none-any.whl[rl]
 primaite setup
 ```
 
@@ -105,7 +105,7 @@ source venv/bin/activate
 #### 5. Install `primaite` with the dev extra into the venv along with all of it's dependencies
 
 ```bash
-python3 -m pip install -e .[dev]
+python3 -m pip install -e .[dev,rl]
 ```
 
 #### 6. Perform the PrimAITE setup:
@@ -113,6 +113,9 @@ python3 -m pip install -e .[dev]
 ```bash
 primaite setup
 ```
+
+#### Note
+*It is possible to install PrimAITE without Ray RLLib, StableBaselines3, or any deep learning libraries by omitting the `rl` flag in the pip install command.*
 
 ### Running PrimAITE
 

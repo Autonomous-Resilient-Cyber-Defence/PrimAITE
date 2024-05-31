@@ -48,7 +48,7 @@ jobs:
       - name: Install PrimAITE
         run: |
           PRIMAITE_WHEEL=$(ls ./dist/primaite*.whl)
-          python -m pip install $PRIMAITE_WHEEL[dev]
+          python -m pip install $PRIMAITE_WHEEL[dev,rl]
 
       - name: Perform PrimAITE Setup
         run: |

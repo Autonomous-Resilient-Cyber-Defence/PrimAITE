@@ -160,6 +160,7 @@ class PrimaiteGame:
             agent = self.agents[agent_name]
             if self.step_counter > 0:  # can't get reward before first action
                 agent.update_reward(state=state)
+                agent.save_reward_to_history()
             agent.update_observation(state=state)  # order of this doesn't matter so just use reward order
             agent.reward_function.total_reward += agent.reward_function.current_reward
 
