@@ -11,6 +11,7 @@ from primaite.session.environment import _LOGGER, PrimaiteGymEnv
 from primaite.session.episode_schedule import build_scheduler, EpisodeScheduler
 from primaite.session.io import PrimaiteIO
 from primaite.simulator import SIM_OUTPUT
+from primaite.simulator.system.core.packet_capture import PacketCapture
 
 
 class PrimaiteRayMARLEnv(MultiAgentEnv):
@@ -63,6 +64,7 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
             self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
 
         self.episode_counter += 1
+        PacketCapture.clear()
         self.game: PrimaiteGame = PrimaiteGame.from_config(self.episode_scheduler(self.episode_counter))
         self.game.setup_for_episode(episode=self.episode_counter)
         state = self.game.get_sim_state()
