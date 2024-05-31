@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     pass
 
 
-class AgentActionHistoryItem(BaseModel):
+class AgentHistoryItem(BaseModel):
     """One entry of an agent's action log - what the agent did and how the simulator responded in 1 step."""
 
     timestep: int
@@ -31,6 +31,8 @@ class AgentActionHistoryItem(BaseModel):
 
     response: RequestResponse
     """The response sent back by the simulator for this action."""
+
+    reward: Optional[float] = None
 
 
 class AgentStartSettings(BaseModel):
@@ -110,7 +112,7 @@ class AbstractAgent(ABC):
         self.observation_manager: Optional[ObservationManager] = observation_space
         self.reward_function: Optional[RewardFunction] = reward_function
         self.agent_settings = agent_settings or AgentSettings()
-        self.action_history: List[AgentActionHistoryItem] = []
+        self.history: List[AgentHistoryItem] = []
 
     def update_observation(self, state: Dict) -> ObsType:
         """
@@ -130,7 +132,7 @@ class AbstractAgent(ABC):
         :return: Reward from the state.
         :rtype: float
         """
-        return self.reward_function.update(state=state, last_action_response=self.action_history[-1])
+        return self.reward_function.update(state=state, last_action_response=self.history[-1])
 
     @abstractmethod
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
@@ -161,11 +163,15 @@ class AbstractAgent(ABC):
         self, timestep: int, action: str, parameters: Dict[str, Any], request: RequestFormat, response: RequestResponse
     ) -> None:
         """Process the response from the most recent action."""
-        self.action_history.append(
-            AgentActionHistoryItem(
+        self.history.append(
+            AgentHistoryItem(
                 timestep=timestep, action=action, parameters=parameters, request=request, response=response
             )
         )
+
+    def save_reward_to_history(self) -> None:
+        """Update the most recent history item with the reward value."""
+        self.history[-1].reward = self.reward_function.current_reward
 
 
 class AbstractScriptedAgent(AbstractAgent):

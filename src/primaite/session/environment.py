@@ -60,7 +60,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         terminated = False
         truncated = self.game.calculate_truncated()
         info = {
-            "agent_actions": {name: agent.action_history[-1] for name, agent in self.game.agents.items()}
+            "agent_actions": {name: agent.history[-1] for name, agent in self.game.agents.items()}
         }  # tell us what all the agents did for convenience.
         if self.game.save_step_metadata:
             self._write_step_metadata_json(step, action, state, reward)
@@ -89,8 +89,8 @@ class PrimaiteGymEnv(gymnasium.Env):
             f"avg. reward: {self.agent.reward_function.total_reward}"
         )
         if self.io.settings.save_agent_actions:
-            all_agent_actions = {name: agent.action_history for name, agent in self.game.agents.items()}
-            self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
+            all_agent_actions = {name: agent.history for name, agent in self.game.agents.items()}
+            self.io.write_agent_log(agent_actions=all_agent_actions, episode=self.episode_counter)
         self.episode_counter += 1
         self.game: PrimaiteGame = PrimaiteGame.from_config(cfg=self.episode_scheduler(self.episode_counter))
         self.game.setup_for_episode(episode=self.episode_counter)
@@ -125,5 +125,5 @@ class PrimaiteGymEnv(gymnasium.Env):
     def close(self):
         """Close the simulation."""
         if self.io.settings.save_agent_actions:
-            all_agent_actions = {name: agent.action_history for name, agent in self.game.agents.items()}
-            self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
+            all_agent_actions = {name: agent.history for name, agent in self.game.agents.items()}
+            self.io.write_agent_log(agent_actions=all_agent_actions, episode=self.episode_counter)

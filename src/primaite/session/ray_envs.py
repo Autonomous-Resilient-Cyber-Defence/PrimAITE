@@ -59,8 +59,8 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         _LOGGER.info(f"Resetting environment, episode {self.episode_counter}, " f"avg. reward: {rewards}")
 
         if self.io.settings.save_agent_actions:
-            all_agent_actions = {name: agent.action_history for name, agent in self.game.agents.items()}
-            self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
+            all_agent_actions = {name: agent.history for name, agent in self.game.agents.items()}
+            self.io.write_agent_log(agent_actions=all_agent_actions, episode=self.episode_counter)
 
         self.episode_counter += 1
         self.game: PrimaiteGame = PrimaiteGame.from_config(self.episode_scheduler(self.episode_counter))
@@ -138,8 +138,8 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
     def close(self):
         """Close the simulation."""
         if self.io.settings.save_agent_actions:
-            all_agent_actions = {name: agent.action_history for name, agent in self.game.agents.items()}
-            self.io.write_agent_actions(agent_actions=all_agent_actions, episode=self.episode_counter)
+            all_agent_actions = {name: agent.history for name, agent in self.game.agents.items()}
+            self.io.write_agent_log(agent_actions=all_agent_actions, episode=self.episode_counter)
 
 
 class PrimaiteRayEnv(gymnasium.Env):
