@@ -45,7 +45,8 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         self.action_space = gymnasium.spaces.Dict(
             {name: agent.action_manager.space for name, agent in self.agents.items()}
         )
-
+        self._obs_space_in_preferred_format = True
+        self._action_space_in_preferred_format = True
         super().__init__()
 
     @property
