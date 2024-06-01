@@ -166,4 +166,5 @@ sandbox/
 sandbox.ipynb
 
 # benchmarking
-**/benchmark_session/
+**/benchmark/sessions/
+**/benchmark/output/
