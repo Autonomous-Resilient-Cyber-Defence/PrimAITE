@@ -123,7 +123,6 @@ def test_repeating_ransomware_script_attack(ransomware_script_and_db_server):
 
     assert RansomwareScript.attack_stage == RansomwareAttackStage.SUCCEEDED
     assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.CORRUPT
-    assert computer.file_system.num_file_creations == 1
 
     computer.apply_timestep(timestep=1)
     computer.pre_timestep(timestep=1)
