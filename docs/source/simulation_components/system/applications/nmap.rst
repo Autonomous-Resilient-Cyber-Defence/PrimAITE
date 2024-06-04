@@ -10,9 +10,9 @@ NMAP
 Overview
 --------
 
-The NMAP is used to simulate network scanning activities. NMAP is a powerful tool that helps in discovering hosts and
-services on a network. It provides functionalities such as ping scans to discover active hosts and port scans to detect
-open ports on those hosts.
+The NMAP application is used to simulate network scanning activities. NMAP is a powerful tool that helps in discovering
+hosts and services on a network. It provides functionalities such as ping scans to discover active hosts and port scans
+to detect open ports on those hosts.
 
 The NMAP application is essential for network administrators and security professionals to map out a network's
 structure, identify active devices, and find potential vulnerabilities by discovering open ports and running services.

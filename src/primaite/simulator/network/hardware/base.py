@@ -109,6 +109,7 @@ class NetworkInterface(SimComponent, ABC):
     "A dict containing details of the number of malicious network events captured."
 
     traffic: Dict = Field(default_factory=lambda: {})
+    "A dict containing details of the inbound and outbound traffic by port and protocol."
 
     def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""

@@ -1,5 +1,5 @@
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, Dict, Final, List, Optional, Tuple, Union
+from typing import Any, Dict, Final, List, Optional, Set, Tuple, Union
 
 from prettytable import PrettyTable
 from pydantic import validate_call
@@ -19,6 +19,7 @@ class PortScanPayload(SimComponent):
     :ivar ip_address: The target IP address for the port scan.
     :ivar port: The target port for the port scan.
     :ivar protocol: The protocol used for the port scan.
+    :ivar request:Flag to indicate whether this is a request or not.
     """
 
     ip_address: IPV4Address
@@ -66,11 +67,27 @@ class NMAP(Application):
         kwargs["protocol"] = IPProtocol.NONE
         super().__init__(**kwargs)
 
+    def _can_perform_network_action(self) -> bool:
+        """
+        Checks if the NMAP application can perform outbound network actions.
+
+        This is done by checking the parent application can_per_action functionality. Then checking if there is an
+        enabled NIC that can be used for outbound traffic.
+
+        :return: True if outbound network actions can be performed, otherwise False.
+        """
+        if not super()._can_perform_action():
+            return False
+
+        for nic in self.software_manager.node.network_interface.values():
+            if nic.enabled:
+                return True
+        return False
+
     def _init_request_manager(self) -> RequestManager:
         def _ping_scan_action(request: List[Any], context: Any) -> RequestResponse:
             results = self.ping_scan(target_ip_address=request[0]["target_ip_address"], json_serializable=True)
-            success = True
-            if not success:
+            if not self._can_perform_network_action():
                 return RequestResponse.from_bool(False)
             return RequestResponse(
                 status="success",
@@ -79,8 +96,7 @@ class NMAP(Application):
 
         def _port_scan_action(request: List[Any], context: Any) -> RequestResponse:
             results = self.port_scan(**request[0], json_serializable=True)
-            success = True
-            if not success:
+            if not self._can_perform_network_action():
                 return RequestResponse.from_bool(False)
             return RequestResponse(
                 status="success",
@@ -89,8 +105,7 @@ class NMAP(Application):
 
         def _network_service_recon_action(request: List[Any], context: Any) -> RequestResponse:
             results = self.network_service_recon(**request[0], json_serializable=True)
-            success = True
-            if not success:
+            if not self._can_perform_network_action():
                 return RequestResponse.from_bool(False)
             return RequestResponse(
                 status="success",
@@ -125,6 +140,24 @@ class NMAP(Application):
         """
         return super().describe_state()
 
+    @staticmethod
+    def _explode_ip_address_network_array(
+        target_ip_address: Union[IPV4Address, List[IPV4Address], IPv4Network, List[IPv4Network]]
+    ) -> Set[IPv4Address]:
+        if isinstance(target_ip_address, IPv4Address) or isinstance(target_ip_address, IPv4Network):
+            target_ip_address = [target_ip_address]
+        ip_addresses: List[IPV4Address] = []
+        for ip_address in target_ip_address:
+            if isinstance(ip_address, IPv4Network):
+                ip_addresses += [
+                    ip
+                    for ip in ip_address.hosts()
+                    if not ip == ip_address.broadcast_address and not ip == ip_address.network_address
+                ]
+            else:
+                ip_addresses.append(ip_address)
+        return set(ip_addresses)
+
     @validate_call()
     def ping_scan(
         self,
@@ -154,19 +187,10 @@ class NMAP(Application):
             table = PrettyTable(["IP Address", "Can Ping"])
             table.align = "l"
             table.title = f"{self.software_manager.node.hostname} NMAP Ping Scan"
-        if isinstance(target_ip_address, IPv4Address) or isinstance(target_ip_address, IPv4Network):
-            target_ip_address = [target_ip_address]
-        ip_addresses = []
-        for ip_address in target_ip_address:
-            if isinstance(ip_address, IPv4Network):
-                ip_addresses += [
-                    ip
-                    for ip in ip_address.hosts()
-                    if not ip == ip_address.broadcast_address and not ip == ip_address.network_address
-                ]
-            else:
-                ip_addresses.append(ip_address)
-        for ip_address in set(ip_addresses):
+
+        ip_addresses = self._explode_ip_address_network_array(target_ip_address)
+
+        for ip_address in ip_addresses:
             # Prevent ping scan on this node
             if self.software_manager.node.ip_is_network_interface(ip_address=ip_address):
                 continue
@@ -305,18 +329,7 @@ class NMAP(Application):
         :return: A dictionary mapping IP addresses to protocols and lists of open ports.
         :rtype: Dict[IPv4Address, Dict[IPProtocol, List[Port]]]
         """
-        if isinstance(target_ip_address, IPv4Address) or isinstance(target_ip_address, IPv4Network):
-            target_ip_address = [target_ip_address]
-        ip_addresses = []
-        for ip_address in target_ip_address:
-            if isinstance(ip_address, IPv4Network):
-                ip_addresses += [
-                    ip
-                    for ip in ip_address.hosts()
-                    if not ip == ip_address.broadcast_address and not ip == ip_address.network_address
-                ]
-            else:
-                ip_addresses.append(ip_address)
+        ip_addresses = self._explode_ip_address_network_array(target_ip_address)
 
         if isinstance(target_port, Port):
             target_port = [target_port]
@@ -328,14 +341,14 @@ class NMAP(Application):
         elif target_protocol is None:
             target_protocol = [IPProtocol.TCP, IPProtocol.UDP]
 
-        scan_type = self._determine_port_scan_type(target_ip_address, target_port)
+        scan_type = self._determine_port_scan_type(list(ip_addresses), target_port)
         active_ports = {}
         if show:
             table = PrettyTable(["IP Address", "Port", "Name", "Protocol"])
             table.align = "l"
             table.title = f"{self.software_manager.node.hostname} NMAP Port Scan ({scan_type})"
         self.sys_log.info(f"{self.name}: Starting port scan")
-        for ip_address in set(ip_addresses):
+        for ip_address in ip_addresses:
             # Prevent port scan on this node
             if self.software_manager.node.ip_is_network_interface(ip_address=ip_address):
                 continue

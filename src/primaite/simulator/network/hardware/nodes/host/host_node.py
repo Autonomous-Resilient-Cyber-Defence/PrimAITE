@@ -315,7 +315,7 @@ class HostNode(Node):
 
     def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
         super().__init__(**kwargs)
-        self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))  #
+        self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))
 
     @property
     def nmap(self) -> Optional[NMAP]:
