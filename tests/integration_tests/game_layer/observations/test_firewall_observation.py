@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from primaite.game.agent.observations.firewall_observation import FirewallObservation
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState

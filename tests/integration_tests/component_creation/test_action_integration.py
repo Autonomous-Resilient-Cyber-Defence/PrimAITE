@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from primaite.simulator.core import RequestType
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server

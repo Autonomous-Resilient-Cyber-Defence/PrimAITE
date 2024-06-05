@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import os
 import shutil
 import tempfile

@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import secrets
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional, Tuple, Union

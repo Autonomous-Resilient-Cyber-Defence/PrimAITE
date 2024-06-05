@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from abc import abstractmethod
 from typing import Optional
 

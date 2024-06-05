@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import json
 from os import PathLike
 from typing import Any, Dict, Optional, SupportsFloat, Tuple, Union

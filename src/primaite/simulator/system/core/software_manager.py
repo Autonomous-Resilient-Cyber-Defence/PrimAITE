@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 

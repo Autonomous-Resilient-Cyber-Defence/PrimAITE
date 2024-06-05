@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 # flake8: noqa
 """Core of the PrimAITE Simulator."""
 import warnings

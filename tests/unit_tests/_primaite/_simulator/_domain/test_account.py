@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 """Test the account module of the simulator."""
 import pytest
 

@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from typing import Any, Dict, Hashable, Optional, Sequence
 
 NOT_PRESENT_IN_STATE = object()
