@@ -14,9 +14,9 @@ from pylatex import Command, Document
 from pylatex import Figure as LatexFigure
 from pylatex import Section, Subsection, Tabular
 from pylatex.utils import bold
+from utils import _get_system_info
 
 import primaite
-from benchmark.utils.utils import _get_system_info
 
 PLOT_CONFIG = {
     "size": {"auto_size": False, "width": 1500, "height": 900},

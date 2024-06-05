@@ -4,11 +4,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Final, Tuple
 
+from report import build_benchmark_latex_report
 from stable_baselines3 import PPO
 
 import primaite
-from benchmark.utils.benchmark import BenchmarkPrimaiteGymEnv
-from benchmark.utils.report import build_benchmark_latex_report
+from benchmark import BenchmarkPrimaiteGymEnv
 from primaite.config.load import data_manipulation_config_path
 
 _LOGGER = primaite.getLogger(__name__)
@@ -65,15 +65,12 @@ class BenchmarkSession:
         """Run the training session."""
         # start timer for session
         self.start_time = datetime.now()
-
-        model = PPO(
-            policy="MlpPolicy",
-            env=self.gym_env,
-            learning_rate=self.learning_rate,
-            n_steps=self.num_steps * self.num_episodes,
-            batch_size=self.num_steps * self.num_episodes,
-        )
-        model.learn(total_timesteps=self.num_episodes * self.num_steps)
+        # TODO check these parameters are correct
+        # EPISODE_LEN = 10
+        TOTAL_TIMESTEPS = 131072
+        LEARNING_RATE = 3e-4
+        model = PPO("MlpPolicy", self.gym_env, learning_rate=LEARNING_RATE, verbose=0, tensorboard_log="./PPO_UC2/")
+        model.learn(total_timesteps=TOTAL_TIMESTEPS)
 
         # end timer for session
         self.end_time = datetime.now()
@@ -142,10 +139,10 @@ def _prepare_session_directory():
 
 
 def run(
-    number_of_sessions: int = 10,
-    num_episodes: int = 1000,
+    number_of_sessions: int = 5,
+    num_episodes: int = 512,
     num_timesteps: int = 128,
-    batch_size: int = 1280,
+    batch_size: int = 128,
     learning_rate: float = 3e-4,
 ) -> None:  # 10  # 1000  # 256
     """Run the PrimAITE benchmark."""
