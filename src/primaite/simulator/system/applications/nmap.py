@@ -144,6 +144,18 @@ class NMAP(Application):
     def _explode_ip_address_network_array(
         target_ip_address: Union[IPV4Address, List[IPV4Address], IPv4Network, List[IPv4Network]]
     ) -> Set[IPv4Address]:
+        """
+        Explode a mixed array of IP addresses and networks into a set of individual IP addresses.
+
+        This method takes a combination of single and lists of IPv4 addresses and IPv4 networks, expands any networks
+        into their constituent subnet useable IP addresses, and returns a set of unique IP addresses. Broadcast and
+        network addresses are excluded from the result.
+
+        :param target_ip_address: A single IPv4 address, a list of IPv4 addresses, a single IPv4 network, or a list of IPv4 networks.
+        :type target_ip_address: Union[IPV4Address, List[IPV4Address], IPv4Network, List[IPv4Network]]
+        :return: A set of unique IPv4 addresses expanded from the input.
+        :rtype: Set[IPv4Address]
+        """
         if isinstance(target_ip_address, IPv4Address) or isinstance(target_ip_address, IPv4Network):
             target_ip_address = [target_ip_address]
         ip_addresses: List[IPV4Address] = []
