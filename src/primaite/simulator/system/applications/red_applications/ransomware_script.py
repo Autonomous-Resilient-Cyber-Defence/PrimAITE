@@ -97,8 +97,6 @@ class RansomwareScript(Application):
         :param server_ip_address: The IP address of the Node the DatabaseService is on.
         :param server_password: The password on the DatabaseService.
         :param payload: The attack stage query (Encrypt / Delete)
-        :param ransomware_encrypt_p_of_success: The probability of success for the ransomware 'attack' (encrypt) stage.
-        :param repeat: Whether to repeat attacking once finished.
         """
         if server_ip_address:
             self.server_ip_address = server_ip_address
