@@ -37,6 +37,7 @@ from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.processes.process import Process
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.software import IOSoftware
+from primaite.utils.converters import convert_dict_enum_keys_to_enum_values
 from primaite.utils.validators import IPV4Address
 
 IOSoftwareClass = TypeVar("IOSoftwareClass", bound=IOSoftware)
@@ -151,7 +152,7 @@ class NetworkInterface(SimComponent, ABC):
         )
         if CAPTURE_NMNE:
             state.update({"nmne": {k: v for k, v in self.nmne.items()}})
-        state.update({"traffic": self.traffic})
+        state.update({"traffic": convert_dict_enum_keys_to_enum_values(self.traffic)})
         return state
 
     @abstractmethod
