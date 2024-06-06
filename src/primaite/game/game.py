@@ -360,11 +360,6 @@ class PrimaiteGame:
                                 server_ip_address=IPv4Address(opt.get("server_ip")),
                                 server_password=opt.get("server_password"),
                                 payload=opt.get("payload", "ENCRYPT"),
-                                c2_beacon_p_of_success=float(opt.get("c2_beacon_p_of_success", "0.5")),
-                                target_scan_p_of_success=float(opt.get("target_scan_p_of_success", "0.1")),
-                                ransomware_encrypt_p_of_success=float(
-                                    opt.get("ransomware_encrypt_p_of_success", "0.1")
-                                ),
                             )
                     elif application_type == "DatabaseClient":
                         if "options" in application_cfg:
