@@ -28,6 +28,7 @@ from primaite.simulator.network.nmne import (
     NMNE_CAPTURE_KEYWORDS,
 )
 from primaite.simulator.network.transmission.data_link_layer import Frame
+from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.packet_capture import PacketCapture
 from primaite.simulator.system.core.session_manager import SessionManager
@@ -36,6 +37,7 @@ from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.processes.process import Process
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.software import IOSoftware
+from primaite.utils.converters import convert_dict_enum_keys_to_enum_values
 from primaite.utils.validators import IPV4Address
 
 IOSoftwareClass = TypeVar("IOSoftwareClass", bound=IOSoftware)
@@ -107,10 +109,14 @@ class NetworkInterface(SimComponent, ABC):
     nmne: Dict = Field(default_factory=lambda: {})
     "A dict containing details of the number of malicious network events captured."
 
+    traffic: Dict = Field(default_factory=lambda: {})
+    "A dict containing details of the inbound and outbound traffic by port and protocol."
+
     def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         super().setup_for_episode(episode=episode)
         self.nmne = {}
+        self.traffic = {}
         if episode and self.pcap and SIM_OUTPUT.save_pcap_logs:
             self.pcap.current_episode = episode
             self.pcap.setup_logger()
@@ -146,6 +152,7 @@ class NetworkInterface(SimComponent, ABC):
         )
         if CAPTURE_NMNE:
             state.update({"nmne": {k: v for k, v in self.nmne.items()}})
+        state.update({"traffic": convert_dict_enum_keys_to_enum_values(self.traffic)})
         return state
 
     @abstractmethod
@@ -236,6 +243,47 @@ class NetworkInterface(SimComponent, ABC):
                 # Increment a generic counter if keyword capturing is not enabled
                 keyword_level["*"] = keyword_level.get("*", 0) + 1
 
+    def _capture_traffic(self, frame: Frame, inbound: bool = True):
+        """
+        Capture traffic statistics at the Network Interface.
+
+        :param frame: The network frame containing the traffic data.
+        :type frame: Frame
+        :param inbound: Flag indicating if the traffic is inbound or outbound. Defaults to True.
+        :type inbound: bool
+        """
+        # Determine the direction of the traffic
+        direction = "inbound" if inbound else "outbound"
+
+        # Initialize protocol and port variables
+        protocol = None
+        port = None
+
+        # Identify the protocol and port from the frame
+        if frame.tcp:
+            protocol = IPProtocol.TCP
+            port = frame.tcp.dst_port
+        elif frame.udp:
+            protocol = IPProtocol.UDP
+            port = frame.udp.dst_port
+        elif frame.icmp:
+            protocol = IPProtocol.ICMP
+
+        # Ensure the protocol is in the capture dict
+        if protocol not in self.traffic:
+            self.traffic[protocol] = {}
+
+        # Handle non-ICMP protocols that use ports
+        if protocol != IPProtocol.ICMP:
+            if port not in self.traffic[protocol]:
+                self.traffic[protocol][port] = {"inbound": 0, "outbound": 0}
+            self.traffic[protocol][port][direction] += frame.size
+        else:
+            # Handle ICMP protocol separately (ICMP does not use ports)
+            if not self.traffic[protocol]:
+                self.traffic[protocol] = {"inbound": 0, "outbound": 0}
+            self.traffic[protocol][direction] += frame.size
+
     @abstractmethod
     def send_frame(self, frame: Frame) -> bool:
         """
@@ -245,6 +293,7 @@ class NetworkInterface(SimComponent, ABC):
         :return: A boolean indicating whether the frame was successfully sent.
         """
         self._capture_nmne(frame, inbound=False)
+        self._capture_traffic(frame, inbound=False)
 
     @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
@@ -255,6 +304,7 @@ class NetworkInterface(SimComponent, ABC):
         :return: A boolean indicating whether the frame was successfully received.
         """
         self._capture_nmne(frame, inbound=True)
+        self._capture_traffic(frame, inbound=True)
 
     def __str__(self) -> str:
         """
@@ -765,6 +815,24 @@ class Node(SimComponent):
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
         self._install_system_software()
+
+    def ip_is_network_interface(self, ip_address: IPv4Address, enabled_only: bool = False) -> bool:
+        """
+        Checks if a given IP address belongs to any of the nodes interfaces.
+
+        :param ip_address: The IP address to check.
+        :param enabled_only: If True, only considers enabled network interfaces.
+        :return: True if the IP address is assigned to one of the nodes interfaces; False otherwise.
+        """
+        for network_interface in self.network_interface.values():
+            if not hasattr(network_interface, "ip_address"):
+                continue
+            if network_interface.ip_address == ip_address:
+                if enabled_only:
+                    return network_interface.enabled
+                else:
+                    return True
+        return False
 
     def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
