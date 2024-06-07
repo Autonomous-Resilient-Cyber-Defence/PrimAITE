@@ -1,27 +1,27 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+import json
 import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Final, Tuple
 
+from report import build_benchmark_latex_report
 from stable_baselines3 import PPO
 
 import primaite
-from benchmark.utils.benchmark import BenchmarkPrimaiteGymEnv
-from benchmark.utils.report import build_benchmark_latex_report
+from benchmark import BenchmarkPrimaiteGymEnv
 from primaite.config.load import data_manipulation_config_path
 
 _LOGGER = primaite.getLogger(__name__)
 
-_BENCHMARK_ROOT = Path(__file__).parent
-_RESULTS_ROOT: Final[Path] = _BENCHMARK_ROOT / "results"
-_RESULTS_ROOT.mkdir(exist_ok=True, parents=True)
+_MAJOR_V = primaite.__version__.split(".")[0]
 
-_OUTPUT_ROOT: Final[Path] = _BENCHMARK_ROOT / "output"
-# Clear and recreate the output directory
-if _OUTPUT_ROOT.exists():
-    shutil.rmtree(_OUTPUT_ROOT)
-_OUTPUT_ROOT.mkdir()
+_BENCHMARK_ROOT = Path(__file__).parent
+_RESULTS_ROOT: Final[Path] = _BENCHMARK_ROOT / "results" / f"v{_MAJOR_V}"
+_VERSION_ROOT: Final[Path] = _RESULTS_ROOT / f"v{primaite.__version__}"
+_SESSION_METADATA_ROOT: Final[Path] = _VERSION_ROOT / "session_metadata"
+
+_SESSION_METADATA_ROOT.mkdir(parents=True, exist_ok=True)
 
 
 class BenchmarkSession:
@@ -33,7 +33,10 @@ class BenchmarkSession:
     num_episodes: int
     """Number of episodes to run the training session."""
 
-    num_steps: int
+    episode_len: int
+    """The number of steps per episode."""
+
+    total_steps: int
     """Number of steps to run the training session."""
 
     batch_size: int
@@ -48,16 +51,21 @@ class BenchmarkSession:
     end_time: datetime
     """End time for the session."""
 
-    session_metadata: Dict
-    """Dict containing the metadata for the session - used to generate benchmark report."""
-
     def __init__(
-        self, gym_env: BenchmarkPrimaiteGymEnv, num_episodes: int, num_steps: int, batch_size: int, learning_rate: float
+        self,
+        gym_env: BenchmarkPrimaiteGymEnv,
+        episode_len: int,
+        num_episodes: int,
+        n_steps: int,
+        batch_size: int,
+        learning_rate: float,
     ):
         """Initialise the BenchmarkSession."""
         self.gym_env = gym_env
+        self.episode_len = episode_len
+        self.n_steps = n_steps
         self.num_episodes = num_episodes
-        self.num_steps = num_steps
+        self.total_steps = self.num_episodes * self.episode_len
         self.batch_size = batch_size
         self.learning_rate = learning_rate
 
@@ -65,15 +73,16 @@ class BenchmarkSession:
         """Run the training session."""
         # start timer for session
         self.start_time = datetime.now()
-
         model = PPO(
             policy="MlpPolicy",
             env=self.gym_env,
             learning_rate=self.learning_rate,
-            n_steps=self.num_steps * self.num_episodes,
-            batch_size=self.num_steps * self.num_episodes,
+            n_steps=self.n_steps,
+            batch_size=self.batch_size,
+            verbose=0,
+            tensorboard_log="./PPO_UC2/",
         )
-        model.learn(total_timesteps=self.num_episodes * self.num_steps)
+        model.learn(total_timesteps=self.total_steps)
 
         # end timer for session
         self.end_time = datetime.now()
@@ -142,12 +151,13 @@ def _prepare_session_directory():
 
 
 def run(
-    number_of_sessions: int = 10,
-    num_episodes: int = 1000,
-    num_timesteps: int = 128,
-    batch_size: int = 1280,
+    number_of_sessions: int = 2,
+    num_episodes: int = 5,
+    episode_len: int = 128,
+    n_steps: int = 1280,
+    batch_size: int = 32,
     learning_rate: float = 3e-4,
-) -> None:  # 10  # 1000  # 256
+) -> None:
     """Run the PrimAITE benchmark."""
     benchmark_start_time = datetime.now()
 
@@ -163,13 +173,20 @@ def run(
             session = BenchmarkSession(
                 gym_env=gym_env,
                 num_episodes=num_episodes,
-                num_steps=num_timesteps,
+                n_steps=n_steps,
+                episode_len=episode_len,
                 batch_size=batch_size,
                 learning_rate=learning_rate,
             )
             session.train()
-            session_metadata_dict[i] = session.session_metadata
 
+            # Dump the session metadata so that we're not holding it in memory as it's large
+            with open(_SESSION_METADATA_ROOT / f"{i}.json", "w") as file:
+                json.dump(session.session_metadata, file, indent=4)
+
+    for i in range(1, number_of_sessions + 1):
+        with open(_SESSION_METADATA_ROOT / f"{i}.json", "r") as file:
+            session_metadata_dict[i] = json.load(file)
     # generate report
     build_benchmark_latex_report(
         benchmark_start_time=benchmark_start_time,
