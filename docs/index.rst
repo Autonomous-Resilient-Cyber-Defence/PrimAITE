@@ -54,7 +54,7 @@ It is agnostic to the number of agents, their action / observation spaces, and t
 It presents a public API providing a method for describing the current state of the simulation, a method that accepts action requests and provides responses, and a method that triggers a timestep advancement.
 The Game Layer converts the simulation into a playable game for the agent(s).
 
-it translates between simulation state and Gymnasium.Spaces to pass action / observation data between the agent(s) and the simulation. It is responsible for calculating rewards, managing Multi-Agent RL (MARL) action turns, and via a single agent interface can interact with Blue, Red and Green agents.
+It translates between simulation state and Gymnasium.Spaces to pass action / observation data between the agent(s) and the simulation. It is responsible for calculating rewards, managing Multi-Agent RL (MARL) action turns, and via a single agent interface can interact with Blue, Red and Green agents.
 
 Agents can either generate their own scripted behaviour or accept input behaviour from an RL agent.
 
