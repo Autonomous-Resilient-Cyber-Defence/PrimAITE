@@ -164,3 +164,7 @@ src/primaite/notebooks/scratch.py
 sandbox.py
 sandbox/
 sandbox.ipynb
+
+# benchmarking
+**/benchmark/sessions/
+**/benchmark/output/
