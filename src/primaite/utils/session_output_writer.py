@@ -26,9 +26,9 @@ class SessionOutputWriter:
     Is used to write session outputs to csv file.
     """
 
-    _AV_REWARD_PER_EPISODE_HEADER: Final[List[str]] = [
+    _TOTAL_REWARD_PER_EPISODE_HEADER: Final[List[str]] = [
         "Episode",
-        "Average Reward",
+        "Total Reward",
     ]
 
     def __init__(
@@ -43,7 +43,7 @@ class SessionOutputWriter:
         :param env: PrimAITE gym environment.
         :type env: Primaite
         :param transaction_writer: If `true`, this will output a full account of every transaction taken by the agent.
-            If `false` it will output the average reward per episode, defaults to False
+            If `false` it will output the total reward per episode, defaults to False
         :type transaction_writer: bool, optional
         :param learning_session: Set to `true` to indicate that the current session is a training session. This
             determines the name of the folder which contains the final output csv. Defaults to True
@@ -56,7 +56,7 @@ class SessionOutputWriter:
         if self.transaction_writer:
             fn = f"all_transactions_{self._env.timestamp_str}.csv"
         else:
-            fn = f"average_reward_per_episode_{self._env.timestamp_str}.csv"
+            fn = f"total_reward_per_episode_{self._env.timestamp_str}.csv"
 
         self._csv_file_path: "Path"
         if self.learning_session:
@@ -94,7 +94,7 @@ class SessionOutputWriter:
         if isinstance(data, Transaction):
             header, data = data.as_csv_data()
         else:
-            header = self._AV_REWARD_PER_EPISODE_HEADER
+            header = self._TOTAL_REWARD_PER_EPISODE_HEADER
 
         if self._first_write:
             self._init_csv_writer()
