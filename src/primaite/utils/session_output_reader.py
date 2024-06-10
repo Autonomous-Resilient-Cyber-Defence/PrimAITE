@@ -2,7 +2,7 @@
 raise DeprecationWarning(
     "Benchmarking depends on deprecated functionality and it has not been updated to primaite v3 yet."
 )
-# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from pathlib import Path
 from typing import Any, Dict, Tuple, Union
 
@@ -11,16 +11,16 @@ from typing import Any, Dict, Tuple, Union
 import polars as pl
 
 
-def av_rewards_dict(av_rewards_csv_file: Union[str, Path]) -> Dict[int, float]:
+def total_rewards_dict(total_rewards_csv_file: Union[str, Path]) -> Dict[int, float]:
     """
     Read an average rewards per episode csv file and return as a dict.
 
     The dictionary keys are the episode number, and the values are the mean reward that episode.
 
-    :param av_rewards_csv_file: The average rewards per episode csv file path.
+    :param total_rewards_csv_file: The average rewards per episode csv file path.
     :return: The average rewards per episode csv as a dict.
     """
-    df_dict = pl.read_csv(av_rewards_csv_file).to_dict()
+    df_dict = pl.read_csv(total_rewards_csv_file).to_dict()
 
     return {int(v): df_dict["Average Reward"][i] for i, v in enumerate(df_dict["Episode"])}
 
