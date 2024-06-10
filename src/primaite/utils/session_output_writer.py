@@ -2,7 +2,7 @@
 raise DeprecationWarning(
     "Benchmarking depends on deprecated functionality and it has not been updated to primaite v3 yet."
 )
-# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import csv
 from logging import Logger
 from typing import Final, List, Tuple, TYPE_CHECKING, Union
