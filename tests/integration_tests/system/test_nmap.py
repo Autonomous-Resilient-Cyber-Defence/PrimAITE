@@ -138,7 +138,7 @@ def test_ping_scan_red_agent():
 
     expected_result = ["192.168.1.1", "192.168.1.10", "192.168.1.14"]
 
-    action_history = game.agents["client_1_red_nmap"].action_history
+    action_history = game.agents["client_1_red_nmap"].history
     assert len(action_history) == 1
     actual_result = action_history[0].response.data["live_hosts"]
 
@@ -161,7 +161,7 @@ def test_port_scan_red_agent():
         },
     }
 
-    action_history = game.agents["client_1_red_nmap"].action_history
+    action_history = game.agents["client_1_red_nmap"].history
     assert len(action_history) == 1
     actual_result = action_history[0].response.data
 
@@ -178,7 +178,7 @@ def test_network_service_recon_red_agent():
 
     expected_result = {"192.168.10.22": {"tcp": [80]}}
 
-    action_history = game.agents["client_1_red_nmap"].action_history
+    action_history = game.agents["client_1_red_nmap"].history
     assert len(action_history) == 1
     actual_result = action_history[0].response.data
 
