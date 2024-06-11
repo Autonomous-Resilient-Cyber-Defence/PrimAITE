@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+import json
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -13,15 +14,14 @@ from primaite.config.load import data_manipulation_config_path
 
 _LOGGER = primaite.getLogger(__name__)
 
-_BENCHMARK_ROOT = Path(__file__).parent
-_RESULTS_ROOT: Final[Path] = _BENCHMARK_ROOT / "results"
-_RESULTS_ROOT.mkdir(exist_ok=True, parents=True)
+_MAJOR_V = primaite.__version__.split(".")[0]
 
-_OUTPUT_ROOT: Final[Path] = _BENCHMARK_ROOT / "output"
-# Clear and recreate the output directory
-if _OUTPUT_ROOT.exists():
-    shutil.rmtree(_OUTPUT_ROOT)
-_OUTPUT_ROOT.mkdir()
+_BENCHMARK_ROOT = Path(__file__).parent
+_RESULTS_ROOT: Final[Path] = _BENCHMARK_ROOT / "results" / f"v{_MAJOR_V}"
+_VERSION_ROOT: Final[Path] = _RESULTS_ROOT / f"v{primaite.__version__}"
+_SESSION_METADATA_ROOT: Final[Path] = _VERSION_ROOT / "session_metadata"
+
+_SESSION_METADATA_ROOT.mkdir(parents=True, exist_ok=True)
 
 
 class BenchmarkSession:
@@ -50,9 +50,6 @@ class BenchmarkSession:
 
     end_time: datetime
     """End time for the session."""
-
-    session_metadata: Dict
-    """Dict containing the metadata for the session - used to generate benchmark report."""
 
     def __init__(
         self,
@@ -182,8 +179,14 @@ def run(
                 learning_rate=learning_rate,
             )
             session.train()
-            session_metadata_dict[i] = session.session_metadata
 
+            # Dump the session metadata so that we're not holding it in memory as it's large
+            with open(_SESSION_METADATA_ROOT / f"{i}.json", "w") as file:
+                json.dump(session.session_metadata, file, indent=4)
+
+    for i in range(1, number_of_sessions + 1):
+        with open(_SESSION_METADATA_ROOT / f"{i}.json", "r") as file:
+            session_metadata_dict[i] = json.load(file)
     # generate report
     build_benchmark_latex_report(
         benchmark_start_time=benchmark_start_time,
