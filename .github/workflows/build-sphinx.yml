@@ -49,7 +49,7 @@ jobs:
       - name: Install PrimAITE for docs autosummary
         run: |
           set -x
-          python -m pip install -e .[dev]
+          python -m pip install -e .[dev,rl]
 
       - name: Run build script for Sphinx pages
         env:

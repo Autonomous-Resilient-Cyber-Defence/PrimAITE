@@ -9,12 +9,8 @@ from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
-from primaite.simulator.system.applications.red_applications.ransomware_script import (
-    RansomwareAttackStage,
-    RansomwareScript,
-)
+from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.software import SoftwareHealthState
 
@@ -85,54 +81,24 @@ def ransomware_script_db_server_green_client(example_network) -> Network:
     return network
 
 
-def test_repeating_ransomware_script_attack(ransomware_script_and_db_server):
+def test_ransomware_script_attack(ransomware_script_and_db_server):
     """Test a repeating data manipulation attack."""
     RansomwareScript, computer, db_server_service, server = ransomware_script_and_db_server
 
+    computer.apply_timestep(timestep=0)
+    server.apply_timestep(timestep=0)
     assert db_server_service.health_state_actual is SoftwareHealthState.GOOD
-    assert computer.file_system.num_file_creations == 0
+    assert server.file_system.num_file_creations == 1
 
-    RansomwareScript.target_scan_p_of_success = 1
-    RansomwareScript.c2_beacon_p_of_success = 1
-    RansomwareScript.ransomware_encrypt_p_of_success = 1
-    RansomwareScript.repeat = True
     RansomwareScript.attack()
 
-    assert RansomwareScript.attack_stage == RansomwareAttackStage.NOT_STARTED
-    assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.COMPROMISED
-    assert computer.file_system.num_file_creations == 1
+    assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.CORRUPT
+    assert server.file_system.num_file_creations == 2
 
     computer.apply_timestep(timestep=1)
     server.apply_timestep(timestep=1)
 
-    assert RansomwareScript.attack_stage == RansomwareAttackStage.NOT_STARTED
-    assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.COMPROMISED
-
-
-def test_repeating_ransomware_script_attack(ransomware_script_and_db_server):
-    """Test a repeating ransowmare script attack."""
-    RansomwareScript, computer, db_server_service, server = ransomware_script_and_db_server
-
-    assert db_server_service.health_state_actual is SoftwareHealthState.GOOD
-
-    RansomwareScript.target_scan_p_of_success = 1
-    RansomwareScript.c2_beacon_p_of_success = 1
-    RansomwareScript.ransomware_encrypt_p_of_success = 1
-    RansomwareScript.repeat = False
-    RansomwareScript.attack()
-
-    assert RansomwareScript.attack_stage == RansomwareAttackStage.SUCCEEDED
     assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.CORRUPT
-    assert computer.file_system.num_file_creations == 1
-
-    computer.apply_timestep(timestep=1)
-    computer.pre_timestep(timestep=1)
-    server.apply_timestep(timestep=1)
-    server.pre_timestep(timestep=1)
-
-    assert RansomwareScript.attack_stage == RansomwareAttackStage.SUCCEEDED
-    assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.CORRUPT
-    assert computer.file_system.num_file_creations == 0
 
 
 def test_ransomware_disrupts_green_agent_connection(ransomware_script_db_server_green_client):
@@ -153,10 +119,6 @@ def test_ransomware_disrupts_green_agent_connection(ransomware_script_db_server_
     assert green_db_client_connection.query("SELECT")
     assert green_db_client.last_query_response.get("status_code") == 200
 
-    ransomware_script_application.target_scan_p_of_success = 1
-    ransomware_script_application.ransomware_encrypt_p_of_success = 1
-    ransomware_script_application.c2_beacon_p_of_success = 1
-    ransomware_script_application.repeat = False
     ransomware_script_application.attack()
 
     assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.CORRUPT
