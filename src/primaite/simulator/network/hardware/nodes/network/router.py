@@ -18,6 +18,7 @@ from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.nmap import NMAP
 from primaite.simulator.system.core.session_manager import SessionManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.arp.arp import ARP
@@ -1238,6 +1239,7 @@ class Router(NetworkNode):
         icmp.router = self
         self.software_manager.install(RouterARP)
         self.arp.router = self
+        self.software_manager.install(NMAP)
 
     def _set_default_acl(self):
         """

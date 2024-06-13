@@ -1,0 +1,137 @@
+io_settings:
+  save_step_metadata: false
+  save_pcap_logs: true
+  save_sys_logs: true
+  sys_log_level: WARNING
+
+
+
+game:
+  max_episode_length: 256
+  ports:
+  - ARP
+  - DNS
+  - HTTP
+  - POSTGRES_SERVER
+  protocols:
+  - ICMP
+  - TCP
+  - UDP
+
+agents:
+  - ref: client_1_red_nmap
+    team: RED
+    type: ProbabilisticAgent
+    observation_space: null
+    action_space:
+      options:
+        nodes:
+        - node_name: client_1
+          applications:
+            - application_name: NMAP
+        max_folders_per_node: 1
+        max_files_per_folder: 1
+        max_services_per_node: 1
+        max_applications_per_node: 1
+      action_list:
+        - type: NODE_NMAP_NETWORK_SERVICE_RECON
+      action_map:
+        0:
+          action: NODE_NMAP_NETWORK_SERVICE_RECON
+          options:
+            source_node: client_1
+            target_ip_address: 192.168.10.0/24
+            target_port: 80
+            target_protocol: tcp
+
+    reward_function:
+      reward_components:
+        - type: DUMMY
+
+    agent_settings:
+      action_probabilities:
+        0: 1.0
+
+
+
+simulation:
+  network:
+    nodes:
+    - hostname: switch_1
+      num_ports: 8
+      type: switch
+
+    - hostname: switch_2
+      num_ports: 8
+      type: switch
+
+    - hostname: router_1
+      type: router
+      ports:
+        1:
+          ip_address: 192.168.1.1
+          subnet_mask: 255.255.255.0
+        2:
+          ip_address: 192.168.10.1
+          subnet_mask: 255.255.255.0
+      acl:
+        1:
+          action: PERMIT
+
+    - hostname: client_1
+      type: computer
+      ip_address: 192.168.10.21
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+
+    - hostname: client_2
+      type: computer
+      ip_address: 192.168.10.22
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+
+    - hostname: server_1
+      type: server
+      ip_address: 192.168.1.10
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.1.1
+
+    - hostname: server_2
+      type: server
+      ip_address: 192.168.1.14
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.1.1
+
+
+
+
+    links:
+    - endpoint_a_hostname: router_1
+      endpoint_a_port: 1
+      endpoint_b_hostname: switch_1
+      endpoint_b_port: 8
+
+    - endpoint_a_hostname: router_1
+      endpoint_a_port: 2
+      endpoint_b_hostname: switch_2
+      endpoint_b_port: 8
+
+    - endpoint_a_hostname: client_1
+      endpoint_a_port: 1
+      endpoint_b_hostname: switch_2
+      endpoint_b_port: 1
+
+    - endpoint_a_hostname: client_2
+      endpoint_a_port: 1
+      endpoint_b_hostname: switch_2
+      endpoint_b_port: 2
+
+    - endpoint_a_hostname: server_1
+      endpoint_a_port: 1
+      endpoint_b_hostname: switch_1
+      endpoint_b_port: 1
+
+    - endpoint_a_hostname: server_2
+      endpoint_a_port: 1
+      endpoint_b_hostname: switch_1
+      endpoint_b_port: 2

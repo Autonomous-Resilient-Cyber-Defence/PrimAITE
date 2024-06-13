@@ -19,4 +19,3 @@
    :recursive:
 
    primaite
-   tests

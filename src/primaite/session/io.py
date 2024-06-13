@@ -87,7 +87,7 @@ class PrimaiteIO:
         """Return the path where agent actions will be saved."""
         return self.session_path / "agent_actions" / f"episode_{episode}.json"
 
-    def write_agent_actions(self, agent_actions: Dict[str, List], episode: int) -> None:
+    def write_agent_log(self, agent_actions: Dict[str, List], episode: int) -> None:
         """Take the contents of the agent action log and write it to a file.
 
         :param episode: Episode number

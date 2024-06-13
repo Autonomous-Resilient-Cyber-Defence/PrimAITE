@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
 .. _getting-started:
 
@@ -82,7 +82,7 @@ Install PrimAITE
 .. code-block:: bash
     :caption: Unix
 
-    pip install path/to/your/primaite.whl
+    pip install path/to/your/primaite.whl[rl]
 
 .. code-block:: powershell
     :caption: Windows (Powershell)
@@ -107,7 +107,9 @@ Clone & Install PrimAITE for Development
 To be able to extend PrimAITE further, or to build wheels manually before install, clone the repository to a location
 of your choice:
 
-1. Clone the repository
+1. Clone the repository.
+
+For example:
 
 .. code-block:: bash
 
@@ -133,12 +135,12 @@ of your choice:
 .. code-block:: bash
     :caption: Unix
 
-    pip install -e .[dev]
+    pip install -e .[dev,rl]
 
 .. code-block:: powershell
     :caption: Windows (Powershell)
 
-    pip install -e .[dev]
+    pip install -e .[dev,rl]
 
 To view the complete list of packages installed during PrimAITE installation, go to the dependencies page (:ref:`Dependencies`).
 
