@@ -270,9 +270,16 @@ class DatabaseClient(Application):
 
         Calls disconnect on all client connections to ensure that both client and server connections are killed.
         """
-        while self.client_connections.values():
-            client_connection = self.client_connections[next(iter(self.client_connections.keys()))]
-            client_connection.disconnect()
+        while self.client_connections:
+            conn_key = next(iter(self.client_connections.keys()))
+            conn_obj: DatabaseClientConnection = self.client_connections[conn_key]
+            conn_obj.disconnect()
+            if conn_obj.is_active or conn_key in self.client_connections:
+                self.sys_log.error(
+                    "Attempted to uninstall database client but could not drop active connections. "
+                    "Forcing uninstall anyway."
+                )
+                self.client_connections.pop(conn_key, None)
         super().uninstall()
 
     def get_new_connection(self) -> Optional[DatabaseClientConnection]:
