@@ -277,12 +277,12 @@ class NetworkInterface(SimComponent, ABC):
         if protocol != IPProtocol.ICMP:
             if port not in self.traffic[protocol]:
                 self.traffic[protocol][port] = {"inbound": 0, "outbound": 0}
-            self.traffic[protocol][port][direction] += frame.size
+            self.traffic[protocol][port][direction] += frame.size_Mbits
         else:
             # Handle ICMP protocol separately (ICMP does not use ports)
             if not self.traffic[protocol]:
                 self.traffic[protocol] = {"inbound": 0, "outbound": 0}
-            self.traffic[protocol][direction] += frame.size
+            self.traffic[protocol][direction] += frame.size_Mbits
 
     @abstractmethod
     def send_frame(self, frame: Frame) -> bool:
@@ -324,6 +324,11 @@ class NetworkInterface(SimComponent, ABC):
         This just clears the nmne count back to 0.
         """
         super().apply_timestep(timestep=timestep)
+
+    def pre_timestep(self, timestep: int) -> None:
+        """Apply pre-timestep logic."""
+        super().pre_timestep(timestep)
+        self.traffic = {}
 
 
 class WiredNetworkInterface(NetworkInterface, ABC):

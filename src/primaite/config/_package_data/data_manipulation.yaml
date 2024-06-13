@@ -188,6 +188,11 @@ agents:
               num_nics: 2
               include_num_access: false
               include_nmne: true
+              monitored_traffic:
+                icmp:
+                    - NONE
+                tcp:
+                    - DNS
               routers:
                 - hostname: router_1
               num_ports: 0

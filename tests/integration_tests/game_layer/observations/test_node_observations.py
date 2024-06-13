@@ -32,6 +32,7 @@ def test_host_observation(simulation):
         num_services=1,
         include_num_access=False,
         include_nmne=False,
+        monitored_traffic=None,
         services=[],
         applications=[],
         folders=[],
