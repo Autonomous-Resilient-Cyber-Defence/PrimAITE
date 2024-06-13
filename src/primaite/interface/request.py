@@ -3,7 +3,7 @@ from typing import Dict, ForwardRef, List, Literal, Union
 
 from pydantic import BaseModel, ConfigDict, StrictBool, validate_call
 
-RequestFormat = List[Union[str, int, float]]
+RequestFormat = List[Union[str, int, float, Dict]]
 
 RequestResponse = ForwardRef("RequestResponse")
 """This makes it possible to type-hint RequestResponse.from_bool return type."""

@@ -8,6 +8,8 @@ from primaite import getLogger
 from primaite.simulator.network.hardware.base import IPWiredNetworkInterface, Link, Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.data_link_layer import Frame
+from primaite.simulator.system.applications.application import ApplicationOperatingState
+from primaite.simulator.system.applications.nmap import NMAP
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.arp.arp import ARP, ARPPacket
 from primaite.simulator.system.services.dns.dns_client import DNSClient
@@ -303,6 +305,7 @@ class HostNode(Node):
         "DNSClient": DNSClient,
         "NTPClient": NTPClient,
         "WebBrowser": WebBrowser,
+        "NMAP": NMAP,
     }
     """List of system software that is automatically installed on nodes."""
 
@@ -314,6 +317,16 @@ class HostNode(Node):
     def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
         super().__init__(**kwargs)
         self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))
+
+    @property
+    def nmap(self) -> Optional[NMAP]:
+        """
+        Return the NMAP application installed on the Node.
+
+        :return: NMAP application installed on the Node.
+        :rtype: Optional[NMAP]
+        """
+        return self.software_manager.software.get("NMAP")
 
     @property
     def arp(self) -> Optional[ARP]:
@@ -366,8 +379,15 @@ class HostNode(Node):
         elif frame.udp:
             dst_port = frame.udp.dst_port
 
+        can_accept_nmap = False
+        if self.software_manager.software.get("NMAP"):
+            if self.software_manager.software["NMAP"].operating_state == ApplicationOperatingState.RUNNING:
+                can_accept_nmap = True
+
+        accept_nmap = can_accept_nmap and frame.payload.__class__.__name__ == "PortScanPayload"
+
         accept_frame = False
-        if frame.icmp or dst_port in self.software_manager.get_open_ports():
+        if frame.icmp or dst_port in self.software_manager.get_open_ports() or accept_nmap:
             # accept the frame as the port is open or if it's an ICMP frame
             accept_frame = True
 

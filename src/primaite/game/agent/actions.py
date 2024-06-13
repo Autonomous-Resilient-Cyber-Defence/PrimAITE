@@ -11,7 +11,7 @@ AbstractAction. The ActionManager is responsible for:
 """
 import itertools
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 from gymnasium import spaces
 
@@ -871,6 +871,74 @@ class NetworkPortDisableAction(AbstractAction):
         return ["network", "node", target_nodename, "network_interface", port_id, "disable"]
 
 
+class NodeNMAPPingScanAction(AbstractAction):
+    """Action which performs an NMAP ping scan."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, source_node: str, target_ip_address: Union[str, List[str]]) -> List[str]:  # noqa
+        return [
+            "network",
+            "node",
+            source_node,
+            "application",
+            "NMAP",
+            "ping_scan",
+            {"target_ip_address": target_ip_address},
+        ]
+
+
+class NodeNMAPPortScanAction(AbstractAction):
+    """Action which performs an NMAP port scan."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(
+        self,
+        source_node: str,
+        target_ip_address: Union[str, List[str]],
+        target_protocol: Optional[Union[str, List[str]]] = None,
+        target_port: Optional[Union[str, List[str]]] = None,
+    ) -> List[str]:  # noqa
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        return [
+            "network",
+            "node",
+            source_node,
+            "application",
+            "NMAP",
+            "port_scan",
+            {"target_ip_address": target_ip_address, "target_port": target_port, "target_protocol": target_protocol},
+        ]
+
+
+class NodeNetworkServiceReconAction(AbstractAction):
+    """Action which performs an NMAP network service recon (ping scan followed by port scan)."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(
+        self,
+        source_node: str,
+        target_ip_address: Union[str, List[str]],
+        target_protocol: Optional[Union[str, List[str]]] = None,
+        target_port: Optional[Union[str, List[str]]] = None,
+    ) -> List[str]:  # noqa
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        return [
+            "network",
+            "node",
+            source_node,
+            "application",
+            "NMAP",
+            "network_service_recon",
+            {"target_ip_address": target_ip_address, "target_port": target_port, "target_protocol": target_protocol},
+        ]
+
+
 class ActionManager:
     """Class which manages the action space for an agent."""
 
@@ -916,6 +984,9 @@ class ActionManager:
         "HOST_NIC_DISABLE": HostNICDisableAction,
         "NETWORK_PORT_ENABLE": NetworkPortEnableAction,
         "NETWORK_PORT_DISABLE": NetworkPortDisableAction,
+        "NODE_NMAP_PING_SCAN": NodeNMAPPingScanAction,
+        "NODE_NMAP_PORT_SCAN": NodeNMAPPortScanAction,
+        "NODE_NMAP_NETWORK_SERVICE_RECON": NodeNetworkServiceReconAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 

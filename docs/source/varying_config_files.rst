@@ -24,7 +24,7 @@ For each variation that could be used in a placeholder, there is a separate yaml
 
 The data that fills the placeholder is defined as a YAML Anchor in a separate file, denoted by an ampersand ``&anchor``.
 
-Learn more about YAML Aliases and Anchors here.
+Learn more about YAML Aliases and Anchors `here <https://yaml.org/spec/1.2.2/#3222-anchors-and-aliases>`_.
 
 Schedule
 ********
