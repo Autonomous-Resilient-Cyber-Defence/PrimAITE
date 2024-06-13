@@ -148,21 +148,21 @@ def test_nic_monitored_traffic(simulation):
 
     simulation.pre_timestep(0)  # apply timestep to whole sim
     simulation.apply_timestep(0)  # apply timestep to whole sim
-    traffic_obs = nic_obs.observe(simulation.describe_state()).get("monitored_traffic")
+    traffic_obs = nic_obs.observe(simulation.describe_state()).get("TRAFFIC")
 
     assert traffic_obs["icmp"]["inbound"] == 0
     assert traffic_obs["icmp"]["outbound"] == 0
 
     # send a ping
     pc.ping(target_ip_address=pc2.network_interface[1].ip_address)
-    traffic_obs = nic_obs.observe(simulation.describe_state()).get("monitored_traffic")
+    traffic_obs = nic_obs.observe(simulation.describe_state()).get("TRAFFIC")
 
     assert traffic_obs["icmp"]["inbound"] == 1
     assert traffic_obs["icmp"]["outbound"] == 1
 
     simulation.pre_timestep(1)  # apply timestep to whole sim
     simulation.apply_timestep(1)  # apply timestep to whole sim
-    traffic_obs = nic_obs.observe(simulation.describe_state()).get("monitored_traffic")
+    traffic_obs = nic_obs.observe(simulation.describe_state()).get("TRAFFIC")
 
     assert traffic_obs["icmp"]["inbound"] == 0
     assert traffic_obs["icmp"]["outbound"] == 0
@@ -174,7 +174,7 @@ def test_nic_monitored_traffic(simulation):
     browser.target_url = f"http://arcd.com/"
     browser.get_webpage()
 
-    traffic_obs = nic_obs.observe(simulation.describe_state()).get("monitored_traffic")
+    traffic_obs = nic_obs.observe(simulation.describe_state()).get("TRAFFIC")
     assert traffic_obs["icmp"]["inbound"] == 0
     assert traffic_obs["icmp"]["outbound"] == 0
     assert traffic_obs["tcp"][53]["inbound"] == 0
@@ -182,7 +182,7 @@ def test_nic_monitored_traffic(simulation):
 
     simulation.pre_timestep(2)  # apply timestep to whole sim
     simulation.apply_timestep(2)  # apply timestep to whole sim
-    traffic_obs = nic_obs.observe(simulation.describe_state()).get("monitored_traffic")
+    traffic_obs = nic_obs.observe(simulation.describe_state()).get("TRAFFIC")
 
     assert traffic_obs["icmp"]["inbound"] == 0
     assert traffic_obs["icmp"]["outbound"] == 0
@@ -198,7 +198,7 @@ def test_nic_monitored_traffic_config():
     defender_agent: ProxyAgent = game.agents.get("defender")
     cur_obs = defender_agent.observation_manager.current_observation
 
-    assert cur_obs["NODES"]["HOST0"]["NICS"][1]["monitored_traffic"] == {
+    assert cur_obs["NODES"]["HOST0"]["NICS"][1]["TRAFFIC"] == {
         "icmp": {"inbound": 0, "outbound": 0},
         "tcp": {53: {"inbound": 0, "outbound": 0}},
     }
