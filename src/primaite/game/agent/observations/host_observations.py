@@ -43,6 +43,8 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         """Number of spaces for network interface observations on this host."""
         include_nmne: Optional[bool] = None
         """Whether network interface observations should include number of malicious network events."""
+        monitored_traffic: Optional[Dict] = None
+        """A dict containing which traffic types are to be included in the observation."""
         include_num_access: Optional[bool] = None
         """Whether to include the number of accesses to files observations on this host."""
 
@@ -59,6 +61,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         num_files: int,
         num_nics: int,
         include_nmne: bool,
+        monitored_traffic: Optional[Dict],
         include_num_access: bool,
     ) -> None:
         """
@@ -87,6 +90,8 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         :type num_nics: int
         :param include_nmne: Flag to include network metrics and errors.
         :type include_nmne: bool
+        :param monitored_traffic: Dict which contains the protocol and ports to observe
+        :type monitored_traffic: Dict
         :param include_num_access: Flag to include the number of accesses to files.
         :type include_num_access: bool
         """
@@ -123,7 +128,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
 
         self.nics: List[NICObservation] = network_interfaces
         while len(self.nics) < num_nics:
-            self.nics.append(NICObservation(where=None, include_nmne=include_nmne))
+            self.nics.append(NICObservation(where=None, include_nmne=include_nmne, monitored_traffic=monitored_traffic))
         while len(self.nics) > num_nics:
             truncated_nic = self.nics.pop()
             msg = f"Too many network_interfaces in Node observation space for node. Truncating {truncated_nic.where}"
@@ -231,7 +236,9 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         # monitor the first N interfaces. Network interface numbering starts at 1.
         count = 1
         while len(nics) < config.num_nics:
-            nic_config = NICObservation.ConfigSchema(nic_num=count, include_nmne=config.include_nmne)
+            nic_config = NICObservation.ConfigSchema(
+                nic_num=count, include_nmne=config.include_nmne, monitored_traffic=config.monitored_traffic
+            )
             nics.append(NICObservation.from_config(config=nic_config, parent_where=where))
             count += 1
 
@@ -247,5 +254,6 @@ class HostObservation(AbstractObservation, identifier="HOST"):
             num_files=config.num_files,
             num_nics=config.num_nics,
             include_nmne=config.include_nmne,
+            monitored_traffic=config.monitored_traffic,
             include_num_access=config.include_num_access,
         )
