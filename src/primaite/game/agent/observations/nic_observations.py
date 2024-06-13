@@ -201,7 +201,7 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
                             {"inbound": spaces.Discrete(11), "outbound": spaces.Discrete(11)}
                         )
 
-        return spaces.Dict(space)
+        return space
 
     @classmethod
     def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> NICObservation:
