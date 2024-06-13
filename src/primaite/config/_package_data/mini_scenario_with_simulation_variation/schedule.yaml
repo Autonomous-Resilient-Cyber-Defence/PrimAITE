@@ -1,0 +1,6 @@
+base_scenario: base_scenario.yaml
+schedule:
+  0:
+    - simulation_variant_1.yaml
+  1:
+    - simulation_variant_2.yaml
