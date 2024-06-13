@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import secrets
 from enum import Enum
 from typing import Union

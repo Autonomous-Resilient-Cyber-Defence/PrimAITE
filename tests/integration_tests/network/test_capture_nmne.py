@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.nmne import set_nmne_config

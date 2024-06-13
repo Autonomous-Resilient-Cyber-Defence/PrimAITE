@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
 

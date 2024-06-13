@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 """
 This module contains the ActionManager class which belongs to the Agent class.
 

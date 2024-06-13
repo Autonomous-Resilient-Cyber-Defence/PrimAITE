@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 # class RouterICMP(ICMP):
 #     """
 #     A class to represent a router's Internet Control Message Protocol (ICMP) handler.

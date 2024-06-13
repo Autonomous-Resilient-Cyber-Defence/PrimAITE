@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 """PrimAITE game - Encapsulates the simulation and agents."""
 from ipaddress import IPv4Address
 from typing import Dict, List, Optional

@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 def test_switched_network(client_switch_server):
     """Tests a node can ping another node via the switch."""
     computer, switch, server = client_switch_server
