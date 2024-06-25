@@ -367,7 +367,7 @@ class ActionPenalty(AbstractReward):
     Optional Configuration item therefore default value of 0 (?).
     """
 
-    def __init__(self, agent_name: str, penalty: float = 0):
+    def __init__(self, agent_name: str, penalty: float):
         """
         Initialise the reward.
 
@@ -382,14 +382,17 @@ class ActionPenalty(AbstractReward):
             # No penalty for doing nothing at present
             return 0
         else:
-            return -1
+            _LOGGER.info(
+                f"Blue agent has incurred a penalty of {self.penalty}, for action: {last_action_response.action}"
+            )
+            return self.penalty
 
     @classmethod
     def from_config(cls, config: Dict) -> "ActionPenalty":
         """Build the ActionPenalty object from config."""
         agent_name = config.get("agent_name")
-        # penalty_value = config.get("ACTION_PENALTY", 0)
-        return cls(agent_name=agent_name)
+        penalty_value = config.get("penalty_value", 0)  # default to 0 so that no adverse effects.
+        return cls(agent_name=agent_name, penalty=penalty_value)
 
 
 class RewardFunction:
