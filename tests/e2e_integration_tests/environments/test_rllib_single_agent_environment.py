@@ -41,3 +41,4 @@ def test_rllib_single_agent_compatibility():
     assert save_file.exists()
 
     save_file.unlink()  # clean up
+    ray.shutdown()

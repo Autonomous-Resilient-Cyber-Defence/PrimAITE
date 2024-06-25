@@ -203,3 +203,6 @@ def getLogger(name: str) -> Logger:  # noqa
     logger.setLevel(PRIMAITE_CONFIG["logging"]["log_level"])
 
     return logger
+
+
+DEFAULT_BANDWIDTH: Final[int] = 100

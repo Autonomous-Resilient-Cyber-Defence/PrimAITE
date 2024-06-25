@@ -123,7 +123,7 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     action = (
         "ROUTER_ACL_ADDRULE",
         {
-            "target_router_nodename": "router",
+            "target_router": "router",
             "position": 4,  # 4th rule
             "permission": 2,  # DENY
             "source_ip_id": 3,  # 10.0.1.2 (client_1)
@@ -150,7 +150,7 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     action = (
         "ROUTER_ACL_ADDRULE",
         {
-            "target_router_nodename": "router",
+            "target_router": "router",
             "position": 5,  # 5th rule
             "permission": 2,  # DENY
             "source_ip_id": 5,  # 10.0.2.2 (server_1)
@@ -188,7 +188,7 @@ def test_router_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, P
     action = (
         "ROUTER_ACL_REMOVERULE",
         {
-            "target_router_nodename": "router",
+            "target_router": "router",
             "position": 3,  # 4th rule
         },
     )

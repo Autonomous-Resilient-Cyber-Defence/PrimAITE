@@ -61,7 +61,7 @@ class ICMP(Service):
         if target_ip_address.is_loopback:
             self.sys_log.info("Pinging loopback address")
             return any(network_interface.enabled for network_interface in self.network_interfaces.values())
-        self.sys_log.info(f"Pinging {target_ip_address}:", to_terminal=True)
+        self.sys_log.info(f"Pinging {target_ip_address}:", to_terminal=False)
         sequence, identifier = 0, None
         while sequence < pings:
             sequence, identifier = self._send_icmp_echo_request(target_ip_address, sequence, identifier, pings)
@@ -77,7 +77,7 @@ class ICMP(Service):
             f"Received = {request_replies}, "
             f"Lost = {pings - request_replies} ({(pings - request_replies) / pings * 100}% loss)"
         )
-        self.sys_log.info(output, to_terminal=True)
+        self.sys_log.info(output, to_terminal=False)
 
         return passed
 
@@ -167,7 +167,7 @@ class ICMP(Service):
             f"bytes={len(frame.payload)}, "
             f"time={time_str}, "
             f"TTL={frame.ip.ttl}",
-            to_terminal=True,
+            to_terminal=False,
         )
         if not self.request_replies.get(frame.icmp.identifier):
             self.request_replies[frame.icmp.identifier] = 0

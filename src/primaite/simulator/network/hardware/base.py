@@ -11,6 +11,7 @@ from typing import Any, Dict, Optional, Type, TypeVar, Union
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel, Field
 
+import primaite.simulator.network.nmne
 from primaite import getLogger
 from primaite.exceptions import NetworkError
 from primaite.interface.request import RequestResponse
@@ -1049,7 +1050,7 @@ class Node(SimComponent):
 
     def show_nic(self, markdown: bool = False):
         """Prints a table of the NICs on the Node."""
-        table = PrettyTable(["Port", "Type", "MAC Address", "Address", "Speed", "Status"])
+        table = PrettyTable(["Port", "Type", "MAC Address", "Address", "Speed", "Status", "NMNE"])
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
@@ -1066,6 +1067,7 @@ class Node(SimComponent):
                     ip_address,
                     network_interface.speed,
                     "Enabled" if network_interface.enabled else "Disabled",
+                    network_interface.nmne if primaite.simulator.network.nmne.CAPTURE_NMNE else "Disabled",
                 ]
             )
         print(table)

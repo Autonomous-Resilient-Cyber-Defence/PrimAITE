@@ -39,3 +39,4 @@ def test_rllib_multi_agent_compatibility():
         ),
         param_space=config,
     ).fit()
+    ray.shutdown()

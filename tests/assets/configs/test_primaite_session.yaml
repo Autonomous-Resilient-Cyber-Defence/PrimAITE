@@ -307,7 +307,7 @@ agents:
           22: # "ACL: ADDRULE - Block outgoing traffic from client 1" (not supported in Primaite)
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 1
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -320,7 +320,7 @@ agents:
           23: # "ACL: ADDRULE - Block outgoing traffic from client 2" (not supported in Primaite)
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 2
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -333,7 +333,7 @@ agents:
           24: # block tcp traffic from client 1 to web app
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 3
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -346,7 +346,7 @@ agents:
           25: # block tcp traffic from client 2 to web app
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 4
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -359,7 +359,7 @@ agents:
           26:
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 5
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -372,7 +372,7 @@ agents:
           27:
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 6
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -385,52 +385,52 @@ agents:
           28:
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 0
           29:
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 1
           30:
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 2
           31:
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 3
           32:
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 4
           33:
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 5
           34:
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 6
           35:
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 7
           36:
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 8
           37:
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router_nodename: router_1
+                target_router: router_1
                 position: 9
           38:
             action: "HOST_NIC_DISABLE"

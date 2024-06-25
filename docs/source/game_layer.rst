@@ -85,7 +85,6 @@ blue_agent:
           weight: 1.0
           options:
             agent_name: client_2_green_user
-
 ```
 
 When defining agent reward sharing, users must be careful to avoid circular references, as that would lead to an infinite calculation loop. PrimAITE will prevent circular dependencies and provide a helpful error message if they are detected in the yaml.

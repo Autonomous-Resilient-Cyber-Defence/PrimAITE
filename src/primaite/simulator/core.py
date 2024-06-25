@@ -221,7 +221,7 @@ class SimComponent(BaseModel):
         }
         return state
 
-    @validate_call
+    # @validate_call # this slows down execution quite a bit.
     def apply_request(self, request: RequestFormat, context: Optional[Dict] = None) -> RequestResponse:
         """
         Apply a request to a simulation component. Request data is passed in as a 'namespaced' list of strings.

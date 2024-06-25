@@ -87,7 +87,9 @@ class NMAP(Application):
 
     def _init_request_manager(self) -> RequestManager:
         def _ping_scan_action(request: List[Any], context: Any) -> RequestResponse:
-            results = self.ping_scan(target_ip_address=request[0]["target_ip_address"], json_serializable=True)
+            results = self.ping_scan(
+                target_ip_address=request[0]["target_ip_address"], show=request[0]["show"], json_serializable=True
+            )
             if not self._can_perform_network_action():
                 return RequestResponse.from_bool(False)
             return RequestResponse(
@@ -311,7 +313,6 @@ class NMAP(Application):
             self.sys_log.info(
                 f"{self.name}: Responding to port scan request for port {payload.port.value} "
                 f"({payload.port.name}) over {payload.protocol.name}",
-                True,
             )
             self.software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
 
@@ -370,7 +371,8 @@ class NMAP(Application):
                     port_open = self._check_port_open_on_ip_address(ip_address=ip_address, port=port, protocol=protocol)
 
                     if port_open:
-                        table.add_row([ip_address, port.value, port.name, protocol.name])
+                        if show:
+                            table.add_row([ip_address, port.value, port.name, protocol.name])
                         _ip_address = ip_address if not json_serializable else str(ip_address)
                         _protocol = protocol if not json_serializable else protocol.value
                         _port = port if not json_serializable else port.value

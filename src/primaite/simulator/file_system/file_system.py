@@ -67,7 +67,7 @@ class FileSystem(SimComponent):
         self._create_manager = RequestManager()
 
         def _create_file_action(request: List[Any], context: Any) -> RequestResponse:
-            file = self.create_file(folder_name=request[0], file_name=request[1])
+            file = self.create_file(folder_name=request[0], file_name=request[1], force=request[2])
             if not file:
                 return RequestResponse.from_bool(False)
             return RequestResponse(
@@ -75,7 +75,7 @@ class FileSystem(SimComponent):
                 data={
                     "file_name": file.name,
                     "folder_name": file.folder_name,
-                    "file_type": file.file_type,
+                    "file_type": file.file_type.name,
                     "file_size": file.size,
                 },
             )
@@ -111,9 +111,9 @@ class FileSystem(SimComponent):
                     data={
                         "file_name": file.name,
                         "folder_name": file.folder_name,
-                        "file_type": file.file_type,
+                        "file_type": file.file_type.name,
                         "file_size": file.size,
-                        "file_status": file.health_status,
+                        "file_status": file.health_status.name,
                     },
                 )
             return RequestResponse.from_bool(False)
@@ -160,6 +160,21 @@ class FileSystem(SimComponent):
         """
         return sum(folder.size for folder in self.folders.values())
 
+    def show_num_files(self, markdown: bool = False):
+        """
+        Prints a table showing a host's number of file creations & deletions.
+
+        :param markdown: Flag indicating if output should be in markdown format.
+        """
+        headers = ["File creations", "File deletions"]
+        table = PrettyTable(headers)
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.sys_log.hostname} Number of Creations & Deletions"
+        table.add_row([self.num_file_creations, self.num_file_deletions])
+        print(table)
+
     def show(self, markdown: bool = False, full: bool = False):
         """
         Prints a table of the FileSystem, displaying either just folders or full files.
@@ -167,7 +182,7 @@ class FileSystem(SimComponent):
         :param markdown: Flag indicating if output should be in markdown format.
         :param full: Flag indicating if to show full files.
         """
-        headers = ["Folder", "Size", "Deleted"]
+        headers = ["Folder", "Size", "Health status", "Visible health status", "Deleted"]
         if full:
             headers[0] = "File Path"
         table = PrettyTable(headers)
@@ -178,14 +193,38 @@ class FileSystem(SimComponent):
         folders = {**self.folders, **self.deleted_folders}
         for folder in folders.values():
             if not full:
-                table.add_row([folder.name, folder.size_str, folder.deleted])
+                table.add_row(
+                    [
+                        folder.name,
+                        folder.size_str,
+                        folder.health_status.name,
+                        folder.visible_health_status.name,
+                        folder.deleted,
+                    ]
+                )
             else:
                 files = {**folder.files, **folder.deleted_files}
                 if not files:
-                    table.add_row([folder.name, folder.size_str, folder.deleted])
+                    table.add_row(
+                        [
+                            folder.name,
+                            folder.size_str,
+                            folder.health_status.name,
+                            folder.visible_health_status.name,
+                            folder.deleted,
+                        ]
+                    )
                 else:
                     for file in files.values():
-                        table.add_row([file.path, file.size_str, file.deleted])
+                        table.add_row(
+                            [
+                                file.path,
+                                file.size_str,
+                                file.health_status.name,
+                                file.visible_health_status.name,
+                                file.deleted,
+                            ]
+                        )
         if full:
             print(table.get_string(sortby="File Path"))
         else:
@@ -201,15 +240,15 @@ class FileSystem(SimComponent):
         :param folder_name: The name of the folder.
         """
         # check if folder with name already exists
-        if self.get_folder(folder_name):
-            raise Exception(f"Cannot create folder as it already exists: {folder_name}")
-
-        folder = Folder(name=folder_name, sys_log=self.sys_log)
-
+        folder = self.get_folder(folder_name)
+        if folder:
+            self.sys_log.info(f"Cannot create folder as it already exists: {folder_name}")
+        else:
+            folder = Folder(name=folder_name, sys_log=self.sys_log)
+            self._folder_request_manager.add_request(
+                name=folder.name, request_type=RequestType(func=folder._request_manager)
+            )
         self.folders[folder.uuid] = folder
-        self._folder_request_manager.add_request(
-            name=folder.name, request_type=RequestType(func=folder._request_manager)
-        )
         return folder
 
     def delete_folder(self, folder_name: str) -> bool:
@@ -289,6 +328,7 @@ class FileSystem(SimComponent):
         size: Optional[int] = None,
         file_type: Optional[FileType] = None,
         folder_name: Optional[str] = None,
+        force: Optional[bool] = False,
     ) -> File:
         """
         Creates a File and adds it to the list of files.
@@ -297,6 +337,7 @@ class FileSystem(SimComponent):
         :param size: The size the file takes on disk in bytes.
         :param file_type: The type of the file.
         :param folder_name: The folder to add the file to.
+        :param force: Replaces the file if it already exists.
         """
         if folder_name:
             # check if file with name already exists
@@ -308,17 +349,23 @@ class FileSystem(SimComponent):
             # Use root folder if folder_name not supplied
             folder = self.get_folder("root")
 
-        # Create the file and add it to the folder
-        file = File(
-            name=file_name,
-            sim_size=size,
-            file_type=file_type,
-            folder_id=folder.uuid,
-            folder_name=folder.name,
-            sim_root=self.sim_root,
-            sys_log=self.sys_log,
-        )
-        folder.add_file(file)
+        file = self.get_file(folder, file_name)
+        if file:
+            self.sys_log.info(f"Cannot create file {file_name} as it already exists.")
+            if force:
+                self.sys_log.info(f"Replacing {file_name}")
+        else:
+            # Create the file and add it to the folder
+            file = File(
+                name=file_name,
+                sim_size=size,
+                file_type=file_type,
+                folder_id=folder.uuid,
+                folder_name=folder.name,
+                sim_root=self.sim_root,
+                sys_log=self.sys_log,
+            )
+        folder.add_file(file, force=force)
         self._file_request_manager.add_request(name=file.name, request_type=RequestType(func=file._request_manager))
         # increment file creation
         self.num_file_creations += 1
