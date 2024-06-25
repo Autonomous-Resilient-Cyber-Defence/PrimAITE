@@ -9,10 +9,6 @@ import plotly.graph_objects as go
 import polars as pl
 import yaml
 from plotly.graph_objs import Figure
-from pylatex import Command, Document
-from pylatex import Figure as LatexFigure
-from pylatex import Section, Subsection, Tabular
-from pylatex.utils import bold
 from utils import _get_system_info
 
 import primaite
@@ -140,7 +136,7 @@ def _plot_all_benchmarks_combined_session_av(results_directory: Path) -> Figure:
     converted into a polars dataframe, and plotted as a scatter line in plotly.
     """
     major_v = primaite.__version__.split(".")[0]
-    title = f"Learning Benchmarking of All Released Versions under Major v{major_v}.*.*"
+    title = f"Learning Benchmarking of All Released Versions under Major v{major_v}.#.#"
     subtitle = "Rolling Av (Combined Session Av)"
     if title:
         if subtitle:
@@ -208,98 +204,77 @@ def build_benchmark_latex_report(
 
     fig = _plot_all_benchmarks_combined_session_av(results_directory=results_root_path)
 
-    all_version_plot_path = results_root_path / "PrimAITE Versions Learning Benchmark.png"
+    all_version_plot_path = version_result_dir / "PrimAITE Versions Learning Benchmark.png"
     fig.write_image(all_version_plot_path)
 
-    geometry_options = {"tmargin": "2.5cm", "rmargin": "2.5cm", "bmargin": "2.5cm", "lmargin": "2.5cm"}
     data = benchmark_metadata_dict
     primaite_version = data["primaite_version"]
 
-    # Create a new document
-    doc = Document("report", geometry_options=geometry_options)
-    # Title
-    doc.preamble.append(Command("title", f"PrimAITE {primaite_version} Learning Benchmark"))
-    doc.preamble.append(Command("author", "PrimAITE Dev Team"))
-    doc.preamble.append(Command("date", datetime.now().date()))
-    doc.append(Command("maketitle"))
+    with open(version_result_dir / f"PrimAITE v{primaite_version} Learning Benchmark.md", "w") as file:
+        # Title
+        file.write(f"# PrimAITE v{primaite_version} Learning Benchmark\n")
+        file.write("## PrimAITE Dev Team\n")
+        file.write(f"### {datetime.now().date()}\n")
+        file.write("\n---\n")
 
-    sessions = data["total_sessions"]
-    episodes = session_metadata[1]["total_episodes"] - 1
-    steps = data["config"]["game"]["max_episode_length"]
+        sessions = data["total_sessions"]
+        episodes = session_metadata[1]["total_episodes"] - 1
+        steps = data["config"]["game"]["max_episode_length"]
 
-    # Body
-    with doc.create(Section("Introduction")):
-        doc.append(
+        # Body
+        file.write("## 1 Introduction\n")
+        file.write(
             f"PrimAITE v{primaite_version} was benchmarked automatically upon release. Learning rate metrics "
-            f"were captured to be referenced during system-level testing and user acceptance testing (UAT)."
+            f"were captured to be referenced during system-level testing and user acceptance testing (UAT).\n"
         )
-        doc.append(
-            f"\nThe benchmarking process consists of running {sessions} training session using the same "
+        file.write(
+            f"The benchmarking process consists of running {sessions} training session using the same "
             f"config file. Each session trains an agent for {episodes} episodes, "
-            f"with each episode consisting of {steps} steps."
+            f"with each episode consisting of {steps} steps.\n"
         )
-        doc.append(
-            f"\nThe total reward per episode from each session is captured. This is then used to calculate an "
+        file.write(
+            f"The total reward per episode from each session is captured. This is then used to calculate an "
             f"caverage total reward per episode from the {sessions} individual sessions for smoothing. "
             f"Finally, a 25-widow rolling average of the average total reward per session is calculated for "
-            f"further smoothing."
+            f"further smoothing.\n"
         )
 
-    with doc.create(Section("System Information")):
-        with doc.create(Subsection("Python")):
-            with doc.create(Tabular("|l|l|")) as table:
-                table.add_hline()
-                table.add_row((bold("Version"), sys.version))
-                table.add_hline()
+        file.write("## 2 System Information\n")
+        i = 1
+        file.write(f"### 2.{i} Python\n")
+        file.write(f"**Version:** {sys.version}\n")
+
         for section, section_data in data["system_info"].items():
+            i += 1
             if section_data:
-                with doc.create(Subsection(section)):
-                    if isinstance(section_data, dict):
-                        with doc.create(Tabular("|l|l|")) as table:
-                            table.add_hline()
-                            for key, value in section_data.items():
-                                table.add_row((bold(key), value))
-                                table.add_hline()
-                    elif isinstance(section_data, list):
-                        headers = section_data[0].keys()
-                        tabs_str = "|".join(["l" for _ in range(len(headers))])
-                        tabs_str = f"|{tabs_str}|"
-                        with doc.create(Tabular(tabs_str)) as table:
-                            table.add_hline()
-                            table.add_row([bold(h) for h in headers])
-                            table.add_hline()
-                            for item in section_data:
-                                table.add_row(item.values())
-                                table.add_hline()
+                file.write(f"### 2.{i} {section}\n")
+                if isinstance(section_data, dict):
+                    for key, value in section_data.items():
+                        file.write(f"- **{key}:** {value}\n")
 
-    headers_map = {
-        "total_sessions": "Total Sessions",
-        "total_episodes": "Total Episodes",
-        "total_time_steps": "Total Steps",
-        "av_s_per_session": "Av Session Duration (s)",
-        "av_s_per_step": "Av Step Duration (s)",
-        "av_s_per_100_steps_10_nodes": "Av Duration per 100 Steps per 10 Nodes (s)",
-    }
-    with doc.create(Section("Stats")):
-        with doc.create(Subsection("Benchmark Results")):
-            with doc.create(Tabular("|l|l|")) as table:
-                table.add_hline()
-                for section, header in headers_map.items():
-                    if section.startswith("av_"):
-                        table.add_row((bold(header), f"{data[section]:.4f}"))
-                    else:
-                        table.add_row((bold(header), data[section]))
-                    table.add_hline()
+        headers_map = {
+            "total_sessions": "Total Sessions",
+            "total_episodes": "Total Episodes",
+            "total_time_steps": "Total Steps",
+            "av_s_per_session": "Av Session Duration (s)",
+            "av_s_per_step": "Av Step Duration (s)",
+            "av_s_per_100_steps_10_nodes": "Av Duration per 100 Steps per 10 Nodes (s)",
+        }
 
-    with doc.create(Section("Graphs")):
-        with doc.create(Subsection(f"v{primaite_version} Learning Benchmark Plot")):
-            with doc.create(LatexFigure(position="h!")) as pic:
-                pic.add_image(str(this_version_plot_path))
-                pic.add_caption(f"PrimAITE {primaite_version} Learning Benchmark Plot")
+        file.write("## 3 Stats\n")
+        for section, header in headers_map.items():
+            if section.startswith("av_"):
+                file.write(f"- **{header}:** {data[section]:.4f}\n")
+            else:
+                file.write(f"- **{header}:** {data[section]}\n")
 
-        with doc.create(Subsection(f"Learning Benchmarking of All Released Versions under Major v{major_v}.*.*")):
-            with doc.create(LatexFigure(position="h!")) as pic:
-                pic.add_image(str(all_version_plot_path))
-                pic.add_caption(f"Learning Benchmarking of All Released Versions under Major v{major_v}.*.*")
+        file.write("## 4 Graphs\n")
 
-    doc.generate_pdf(str(this_version_plot_path).replace(".png", ""), clean_tex=True)
+        file.write(f"### 4.1 v{primaite_version} Learning Benchmark Plot\n")
+        file.write(f"![PrimAITE {primaite_version} Learning Benchmark Plot]({this_version_plot_path.name})\n")
+
+        file.write(f"### 4.2 Learning Benchmarking of All Released Versions under Major v{major_v}.#.#\n")
+        file.write(
+            f"![Learning Benchmarking of All Released Versions under "
+            f"Major v{major_v}.#.#]({all_version_plot_path.name})\n"
+        )
