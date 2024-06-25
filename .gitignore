@@ -148,7 +148,7 @@ cython_debug/
 
 # IDE
 .idea/
-docs/source/primaite-dependencies.rst
+
 .vscode/
 
 # outputs

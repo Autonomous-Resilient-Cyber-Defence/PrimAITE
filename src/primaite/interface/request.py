@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from typing import Dict, ForwardRef, List, Literal, Union
 
-from pydantic import BaseModel, ConfigDict, StrictBool, validate_call
+from pydantic import BaseModel, ConfigDict, StrictBool  # , validate_call
 
 RequestFormat = List[Union[str, int, float, Dict]]
 
@@ -31,7 +31,7 @@ class RequestResponse(BaseModel):
     # much. However, in the future we might consider making them mandatory.
 
     @classmethod
-    @validate_call
+    # @validate_call # this slows down execution quite a bit.
     def from_bool(cls, status_bool: StrictBool) -> RequestResponse:
         """
         Construct a basic request response from a boolean.

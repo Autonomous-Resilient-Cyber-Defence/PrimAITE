@@ -6,6 +6,8 @@ import json
 import warnings
 from typing import Dict, Optional
 
+from prettytable import MARKDOWN, PrettyTable
+
 from primaite import getLogger
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC, FileSystemItemHealthStatus
 from primaite.simulator.file_system.file_type import FileType, get_file_type_from_extension
@@ -203,3 +205,18 @@ class File(FileSystemItemABC):
         self.deleted = True
         self.sys_log.info(f"File deleted {self.folder_name}/{self.name}")
         return True
+
+    def show(self, markdown: bool = False):
+        """
+        Prints a table of the file, displaying the file type, name and the file's access count.
+
+        :param markdown: Flag indicating if output should be in markdown format.
+        """
+        headers = ["File Name", "File Type", "Number of Accesses"]
+        table = PrettyTable(headers)
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.name}"
+        table.add_row([self.name, self.file_type.name, self.num_access])
+        print(table)

@@ -72,6 +72,10 @@ class Port(Enum):
     POSTGRES_SERVER = 5432
     "Postgres SQL Server."
 
+    def model_dump(self) -> str:
+        """Return a json-serialisable string."""
+        return self.name
+
 
 class UDPHeader(BaseModel):
     """

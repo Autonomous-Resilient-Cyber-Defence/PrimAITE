@@ -45,5 +45,7 @@ def test_basic_config():
     client_3: Computer = network.get_node_by_hostname("client_3")
     assert client_3.operating_state == NodeOperatingState.OFF
 
+    # Bandwidth should have non-default values
+
     for link in network.links:
         assert network.links[link].bandwidth == 200

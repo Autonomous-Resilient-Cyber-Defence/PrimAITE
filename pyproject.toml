@@ -7,17 +7,15 @@ name = "primaite"
 description = "PrimAITE (Primary-level AI Training Environment) is a simulation environment for training AI under the ARCD programme."
 authors = [{name="Defence Science and Technology Laboratory UK", email="oss@dstl.gov.uk"}]
 license = {file = "LICENSE"}
-requires-python = ">=3.8, <3.12"
+requires-python = ">=3.9, <3.12"
 dynamic = ["version", "readme"]
 classifiers = [
-    "License :: OSI Approved :: MIT License",
     "Development Status :: 5 - Production/Stable",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: MacOS",
     "Operating System :: POSIX :: Linux",
     "Operating System :: Unix",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -91,7 +89,7 @@ order_by_type = "False"
 line-length = 120
 
 [project.urls]
-Homepage = "https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE"
-Documentation = "https://Autonomous-Resilient-Cyber-Defence.github.io/PrimAITE/"
-Repository = "https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE"
-Changelog = "https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/blob/dev/CHANGELOG.md"
+Homepage = "https://github.com/{todo:fill in URL}/PrimAITE"
+Documentation = "https://{todo:fill in URL}.github.io/PrimAITE"
+Repository = "https://github.com/{todo:fill in URL}/PrimAITE"
+Changelog = "https://github.com/{todo:fill in URL}/PrimAITE/blob/main/CHANGELOG.md"

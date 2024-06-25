@@ -96,6 +96,20 @@ class FileType(Enum):
     DB = 32
     "Generic DB file. Used by sqlite3."
 
+    # Script file types
+    PS1 = 33
+    "A Powershell script. Used in Windows operating systems."
+    BAT = 34
+    "Windows batch file. Used in Windows operating systems."
+    SH = 35
+    "Linux shell script. Used in Unix based operating systems."
+
+    # Executable file types
+    PE = 36
+    "Portable Executable. Used in Windows operating systems."
+    ELF = 37
+    "Executable and Linkable Format. Used in Unix based operating systems."
+
     @classmethod
     def _missing_(cls, value: Any) -> FileType:
         return cls.UNKNOWN
@@ -116,8 +130,11 @@ class FileType(Enum):
 
         Returns 0 if a default size does not exist.
         """
-        size = file_type_sizes_bytes[self]
-        return size if size else 0
+        try:
+            size = file_type_sizes_bytes[self]
+            return size
+        except KeyError:
+            return 0
 
 
 def get_file_type_from_extension(file_type_extension: str) -> FileType:

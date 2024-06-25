@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from primaite import getLogger
+from primaite import DEFAULT_BANDWIDTH, getLogger
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
 from primaite.game.agent.observations.observation_manager import ObservationManager
@@ -406,7 +406,7 @@ class PrimaiteGame:
         for link_cfg in links_cfg:
             node_a = net.get_node_by_hostname(link_cfg["endpoint_a_hostname"])
             node_b = net.get_node_by_hostname(link_cfg["endpoint_b_hostname"])
-            bandwidth = link_cfg.get("bandwidth", 100)  # default value if not configured
+            bandwidth = link_cfg.get("bandwidth", DEFAULT_BANDWIDTH)  # default value if not configured
 
             if isinstance(node_a, Switch):
                 endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]

@@ -25,6 +25,10 @@ class IPProtocol(Enum):
     ICMP = "icmp"
     """Internet Control Message Protocol."""
 
+    def model_dump(self) -> str:
+        """Return as JSON-serialisable string."""
+        return self.name
+
 
 class Precedence(Enum):
     """

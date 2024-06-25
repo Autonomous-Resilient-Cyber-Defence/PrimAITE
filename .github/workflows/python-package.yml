@@ -5,13 +5,11 @@ on:
     branches:
       - main
       - dev
-      - dev-gui
       - 'release/**'
   pull_request:
     branches:
       - main
       - dev
-      - dev-gui
       - 'release/**'
 jobs:
   build:
@@ -19,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.9", "3.10", "3.11"]
 
     steps:
       - uses: actions/checkout@v3
@@ -53,13 +51,6 @@ jobs:
       - name: Perform PrimAITE Setup
         run: |
           primaite setup
-
-      - name: Lint with flake8
-        run: |
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings.
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
 
       - name: Run tests
         run: |
