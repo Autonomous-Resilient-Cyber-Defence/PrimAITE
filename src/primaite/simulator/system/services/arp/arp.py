@@ -143,7 +143,7 @@ class ARP(Service):
                 self.sys_log.info(f"Cannot send ARP request to a network address {str(target_ip_address)}")
                 return
             if target_ip_address == outbound_network_interface.ip_network.broadcast_address:
-                self.sys_log.info(f"Cannot send ARP request to a broadcast addresss {str(target_ip_address)}")
+                self.sys_log.info(f"Cannot send ARP request to a broadcast address {str(target_ip_address)}")
                 return
 
             self.sys_log.info(f"Sending ARP request from NIC {outbound_network_interface} for ip {target_ip_address}")
