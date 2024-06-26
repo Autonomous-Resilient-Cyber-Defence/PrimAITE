@@ -151,8 +151,8 @@ def _prepare_session_directory():
 
 
 def run(
-    number_of_sessions: int = 1,
-    num_episodes: int = 25,
+    number_of_sessions: int = 5,
+    num_episodes: int = 1000,
     episode_len: int = 128,
     n_steps: int = 1280,
     batch_size: int = 32,
