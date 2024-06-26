@@ -739,12 +739,6 @@ agents:
           options:
             agent_name: client_2_green_user
 
-        - type: ACTION_PENALTY
-          weight: 1.0
-          options:
-            agent_name: defender
-            penalty_value: -1
-
     agent_settings:
       flatten_obs: true
 
