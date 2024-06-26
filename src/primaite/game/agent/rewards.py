@@ -361,17 +361,14 @@ class SharedReward(AbstractReward):
 
 
 class ActionPenalty(AbstractReward):
-    """
-    Apply a negative reward when taking any action except DONOTHING.
-
-    Optional Configuration item therefore default value of 0 (?).
-    """
+    """Apply a negative reward when taking any action except DONOTHING."""
 
     def __init__(self, agent_name: str, penalty: float):
         """
         Initialise the reward.
 
-        Penalty will default to 0, as this is an optional param.
+        This negative reward should be applied when the agent in training chooses to take any
+        action that isn't DONOTHING.
         """
         self.agent_name = agent_name
         self.penalty = penalty
@@ -383,7 +380,7 @@ class ActionPenalty(AbstractReward):
             return 0
         else:
             _LOGGER.info(
-                f"Blue agent has incurred a penalty of {self.penalty}, for action: {last_action_response.action}"
+                f"Blue Agent has incurred a penalty of {self.penalty}, for action: {last_action_response.action}"
             )
             return self.penalty
 
@@ -391,7 +388,7 @@ class ActionPenalty(AbstractReward):
     def from_config(cls, config: Dict) -> "ActionPenalty":
         """Build the ActionPenalty object from config."""
         agent_name = config.get("agent_name")
-        penalty_value = config.get("penalty_value", 0)  # default to 0 so that no adverse effects.
+        penalty_value = config.get("penalty_value", 0)  # default to 0.
         return cls(agent_name=agent_name, penalty=penalty_value)
 
 
