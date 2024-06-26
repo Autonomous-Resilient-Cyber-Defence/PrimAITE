@@ -35,19 +35,19 @@ def _build_benchmark_results_dict(start_datetime: datetime, metadata_dict: Dict,
         "av_s_per_step": sum(d["s_per_step"] for d in metadata_dict.values()) / num_sessions,
         "av_s_per_100_steps_10_nodes": sum(d["s_per_100_steps_10_nodes"] for d in metadata_dict.values())
         / num_sessions,
-        "combined_av_reward_per_episode": {},
-        "session_av_reward_per_episode": {k: v["av_reward_per_episode"] for k, v in metadata_dict.items()},
+        "combined_total_reward_per_episode": {},
+        "session_total_reward_per_episode": {k: v["total_reward_per_episode"] for k, v in metadata_dict.items()},
         "config": config,
     }
 
     # find the average of each episode across all sessions
-    episodes = metadata_dict[1]["av_reward_per_episode"].keys()
+    episodes = metadata_dict[1]["total_reward_per_episode"].keys()
 
     for episode in episodes:
         combined_av_reward = (
-            sum(metadata_dict[k]["av_reward_per_episode"][episode] for k in metadata_dict.keys()) / num_sessions
+            sum(metadata_dict[k]["total_reward_per_episode"][episode] for k in metadata_dict.keys()) / num_sessions
         )
-        averaged_data["combined_av_reward_per_episode"][episode] = combined_av_reward
+        averaged_data["combined_total_reward_per_episode"][episode] = combined_av_reward
 
     return averaged_data
 
@@ -83,7 +83,7 @@ def _plot_benchmark_metadata(
     fig = go.Figure(layout=layout)
     fig.update_layout(template=PLOT_CONFIG["template"])
 
-    for session, av_reward_dict in benchmark_metadata_dict["session_av_reward_per_episode"].items():
+    for session, av_reward_dict in benchmark_metadata_dict["session_total_reward_per_episode"].items():
         df = _get_df_from_episode_av_reward_dict(av_reward_dict)
         fig.add_trace(
             go.Scatter(
@@ -96,7 +96,7 @@ def _plot_benchmark_metadata(
             )
         )
 
-    df = _get_df_from_episode_av_reward_dict(benchmark_metadata_dict["combined_av_reward_per_episode"])
+    df = _get_df_from_episode_av_reward_dict(benchmark_metadata_dict["combined_total_reward_per_episode"])
     fig.add_trace(
         go.Scatter(
             x=df["episode"], y=df["av_reward"], mode="lines", name="Combined Session Av", line={"color": "#FF0000"}
@@ -132,7 +132,7 @@ def _plot_all_benchmarks_combined_session_av(results_directory: Path) -> Figure:
 
     Does this by iterating over the ``benchmark/results`` directory and
     extracting the benchmark metadata json for each version that has been
-    benchmarked. The combined_av_reward_per_episode is extracted from each,
+    benchmarked. The combined_total_reward_per_episode is extracted from each,
     converted into a polars dataframe, and plotted as a scatter line in plotly.
     """
     major_v = primaite.__version__.split(".")[0]
@@ -158,7 +158,7 @@ def _plot_all_benchmarks_combined_session_av(results_directory: Path) -> Figure:
             metadata_file = dir / f"{dir.name}_benchmark_metadata.json"
             with open(metadata_file, "r") as file:
                 metadata_dict = json.load(file)
-            df = _get_df_from_episode_av_reward_dict(metadata_dict["combined_av_reward_per_episode"])
+            df = _get_df_from_episode_av_reward_dict(metadata_dict["combined_total_reward_per_episode"])
 
             fig.add_trace(go.Scatter(x=df["episode"], y=df["rolling_av_reward"], mode="lines", name=dir.name))
 

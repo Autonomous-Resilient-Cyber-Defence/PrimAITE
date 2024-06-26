@@ -124,7 +124,7 @@ class BenchmarkSession:
             "total_s": total_s,
             "s_per_step": s_per_step,
             "s_per_100_steps_10_nodes": s_per_100_steps_10_nodes,
-            "av_reward_per_episode": self.gym_env.total_reward_per_episode,
+            "total_reward_per_episode": self.gym_env.total_reward_per_episode,
         }
 
 
