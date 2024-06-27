@@ -117,14 +117,14 @@ class BenchmarkSession:
     def generate_learn_metadata_dict(self) -> Dict[str, Any]:
         """Metadata specific to the learning session."""
         total_s, s_per_step, s_per_100_steps_10_nodes = self._learn_benchmark_durations()
-        self.gym_env.average_reward_per_episode.pop(0)  # remove episode 0
+        self.gym_env.total_reward_per_episode.pop(0)  # remove episode 0
         return {
             "total_episodes": self.gym_env.episode_counter,
             "total_time_steps": self.gym_env.total_time_steps,
             "total_s": total_s,
             "s_per_step": s_per_step,
             "s_per_100_steps_10_nodes": s_per_100_steps_10_nodes,
-            "av_reward_per_episode": self.gym_env.average_reward_per_episode,
+            "total_reward_per_episode": self.gym_env.total_reward_per_episode,
         }
 
 
