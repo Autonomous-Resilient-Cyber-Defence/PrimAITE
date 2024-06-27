@@ -363,33 +363,33 @@ class SharedReward(AbstractReward):
 class ActionPenalty(AbstractReward):
     """Apply a negative reward when taking any action except DONOTHING."""
 
-    def __init__(self, agent_name: str, penalty: float):
+    def __init__(self, action_penalty: float, do_nothing_penalty: float) -> None:
         """
         Initialise the reward.
 
-        This negative reward should be applied when the agent in training chooses to take any
-        action that isn't DONOTHING.
+        Reward or penalise agents for doing nothing or taking actions.
+
+        :param action_penalty: Reward to give agents for taking any action except DONOTHING
+        :type action_penalty: float
+        :param do_nothing_penalty: Reward to give agent for taking the DONOTHING action
+        :type do_nothing_penalty: float
         """
-        self.agent_name = agent_name
-        self.penalty = penalty
+        self.action_penalty = action_penalty
+        self.do_nothing_penalty = do_nothing_penalty
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Calculate the penalty to be applied."""
         if last_action_response.action == "DONOTHING":
-            # No penalty for doing nothing at present
-            return 0
+            return self.do_nothing_penalty
         else:
-            _LOGGER.info(
-                f"Blue Agent has incurred a penalty of {self.penalty}, for action: {last_action_response.action}"
-            )
-            return self.penalty
+            return self.action_penalty
 
     @classmethod
     def from_config(cls, config: Dict) -> "ActionPenalty":
         """Build the ActionPenalty object from config."""
-        agent_name = config.get("agent_name")
-        penalty_value = config.get("penalty_value", 0)  # default to 0.
-        return cls(agent_name=agent_name, penalty=penalty_value)
+        action_penalty = config.get("action_penalty", -1.0)
+        do_nothing_penalty = config.get("do_nothing_penalty", 0.0)
+        return cls(action_penalty=action_penalty, do_nothing_penalty=do_nothing_penalty)
 
 
 class RewardFunction:

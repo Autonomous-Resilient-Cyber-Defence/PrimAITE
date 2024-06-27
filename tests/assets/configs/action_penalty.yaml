@@ -21,135 +21,6 @@ game:
       low: 0
 
 agents:
-  - ref: client_2_green_user
-    team: GREEN
-    type: ProbabilisticAgent
-    agent_settings:
-      action_probabilities:
-        0: 0.3
-        1: 0.6
-        2: 0.1
-    observation_space: null
-    action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
-      options:
-        nodes:
-        - node_name: client_2
-          applications:
-            - application_name: WebBrowser
-            - application_name: DatabaseClient
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-        max_applications_per_node: 2
-      action_map:
-        0:
-          action: DONOTHING
-          options: {}
-        1:
-          action: NODE_APPLICATION_EXECUTE
-          options:
-            node_id: 0
-            application_id: 0
-        2:
-          action: NODE_APPLICATION_EXECUTE
-          options:
-            node_id: 0
-            application_id: 1
-
-    reward_function:
-      reward_components:
-        - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.25
-          options:
-            node_hostname: client_2
-        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.05
-          options:
-            node_hostname: client_2
-
-  - ref: client_1_green_user
-    team: GREEN
-    type: ProbabilisticAgent
-    agent_settings:
-      action_probabilities:
-        0: 0.3
-        1: 0.6
-        2: 0.1
-    observation_space: null
-    action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
-      options:
-        nodes:
-          - node_name: client_1
-            applications:
-              - application_name: WebBrowser
-              - application_name: DatabaseClient
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-        max_applications_per_node: 2
-      action_map:
-        0:
-          action: DONOTHING
-          options: {}
-        1:
-          action: NODE_APPLICATION_EXECUTE
-          options:
-            node_id: 0
-            application_id: 0
-        2:
-          action: NODE_APPLICATION_EXECUTE
-          options:
-            node_id: 0
-            application_id: 1
-
-    reward_function:
-      reward_components:
-        - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.25
-          options:
-            node_hostname: client_1
-        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.05
-          options:
-            node_hostname: client_1
-
-  - ref: data_manipulation_attacker
-    team: RED
-    type: RedDatabaseCorruptingAgent
-
-    observation_space: null
-
-    action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
-      options:
-        nodes:
-        - node_name: client_1
-          applications:
-            - application_name: DataManipulationBot
-        - node_name: client_2
-          applications:
-            - application_name: DataManipulationBot
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-
-    reward_function:
-      reward_components:
-        - type: DUMMY
-
-    agent_settings: # options specific to this particular agent type, basically args of __init__(self)
-      start_settings:
-        start_step: 25
-        frequency: 20
-        variance: 5
 
   - ref: defender
     team: BLUE
@@ -712,19 +583,11 @@ agents:
 
     reward_function:
       reward_components:
-        - type: SHARED_REWARD
-          weight: 1.0
-          options:
-            agent_name: client_1_green_user
-        - type: SHARED_REWARD
-          weight: 1.0
-          options:
-            agent_name: client_2_green_user
         - type: ACTION_PENALTY
           weight: 1.0
           options:
-            agent_name: defender
-            penalty_value: -1
+            action_penalty: -0.75
+            do_nothing_penalty: 0.125
 
 
     agent_settings:
