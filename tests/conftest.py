@@ -51,7 +51,7 @@ class TestService(Service):
         pass
 
 
-class TestApplication(Application):
+class DummyApplication(Application, identifier="DummyApplication"):
     """Test Application class"""
 
     def __init__(self, **kwargs):
@@ -85,15 +85,15 @@ def service_class():
 
 
 @pytest.fixture(scope="function")
-def application(file_system) -> TestApplication:
-    return TestApplication(
+def application(file_system) -> DummyApplication:
+    return DummyApplication(
         name="TestApplication", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="test_application")
     )
 
 
 @pytest.fixture(scope="function")
 def application_class():
-    return TestApplication
+    return DummyApplication
 
 
 @pytest.fixture(scope="function")
