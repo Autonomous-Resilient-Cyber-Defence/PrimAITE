@@ -37,7 +37,9 @@ dependencies = [
     "typer[all]==0.9.0",
     "pydantic==2.7.0",
     "ipywidgets",
-    "deepdiff"
+    "deepdiff",
+    "nbmake==1.5.4",
+    "pytest-xdist==3.6.1"
 ]
 
 [tool.setuptools.dynamic]
