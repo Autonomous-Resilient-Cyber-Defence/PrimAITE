@@ -48,13 +48,13 @@ def test_successful_application_requests(example_network):
 
     client_1 = net.get_node_by_hostname("client_1")
     client_1.software_manager.install(DummyApplication)
-    client_1.software_manager.software.get("TestApplication").run()
+    client_1.software_manager.software.get("DummyApplication").run()
 
-    resp_1 = net.apply_request(["node", "client_1", "application", "TestApplication", "scan"])
+    resp_1 = net.apply_request(["node", "client_1", "application", "DummyApplication", "scan"])
     assert resp_1 == RequestResponse(status="success", data={})
-    resp_2 = net.apply_request(["node", "client_1", "application", "TestApplication", "fix"])
+    resp_2 = net.apply_request(["node", "client_1", "application", "DummyApplication", "fix"])
     assert resp_2 == RequestResponse(status="success", data={})
-    resp_3 = net.apply_request(["node", "client_1", "application", "TestApplication", "compromise"])
+    resp_3 = net.apply_request(["node", "client_1", "application", "DummyApplication", "compromise"])
     assert resp_3 == RequestResponse(status="success", data={})
 
 
