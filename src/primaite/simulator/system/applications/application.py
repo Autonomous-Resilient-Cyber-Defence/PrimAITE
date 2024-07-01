@@ -46,7 +46,7 @@ class Application(IOSoftware):
         """
         Register an application type.
 
-        :param identifier: Uniquely specifies an application class by name.
+        :param identifier: Uniquely specifies an application class by name. Used for finding items by config.
         :type identifier: str
         :raises ValueError: When attempting to register an application with a name that is already allocated.
         """
