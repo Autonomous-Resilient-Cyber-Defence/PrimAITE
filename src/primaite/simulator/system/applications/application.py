@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, Optional, Set
+from typing import Any, ClassVar, Dict, Optional, Set, Type
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
@@ -38,6 +38,22 @@ class Application(IOSoftware):
     "How long it takes to install the application."
     install_countdown: Optional[int] = None
     "The countdown to the end of the installation process. None if not currently installing"
+
+    _application_registry: ClassVar[Dict[str, Type["Application"]]] = {}
+    """Registry of application types. Automatically populated when subclasses are defined."""
+
+    def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
+        """
+        Register an application type.
+
+        :param identifier: Uniquely specifies an application class by name. Used for finding items by config.
+        :type identifier: str
+        :raises ValueError: When attempting to register an application with a name that is already allocated.
+        """
+        super().__init_subclass__(**kwargs)
+        if identifier in cls._application_registry:
+            raise ValueError(f"Tried to define new application {identifier}, but this name is already reserved.")
+        cls._application_registry[identifier] = cls
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

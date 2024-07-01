@@ -10,7 +10,7 @@ from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 
 
-class RansomwareScript(Application):
+class RansomwareScript(Application, identifier="RansomwareScript"):
     """Ransomware Kill Chain - Designed to be used by the TAP001 Agent on the example layout Network.
 
     :ivar payload: The attack stage query payload. (Default ENCRYPT)

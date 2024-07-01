@@ -9,9 +9,10 @@ from primaite.config.load import data_manipulation_config_path
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
 from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
-from primaite.game.game import APPLICATION_TYPES_MAPPING, PrimaiteGame, SERVICE_TYPES_MAPPING
+from primaite.game.game import PrimaiteGame, SERVICE_TYPES_MAPPING
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
 from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
@@ -85,7 +86,7 @@ def test_node_software_install():
         assert client_2.software_manager.software.get(software.__name__) is not None
 
     # check that applications have been installed on client 1
-    for applications in APPLICATION_TYPES_MAPPING:
+    for applications in Application._application_registry:
         assert client_1.software_manager.software.get(applications) is not None
 
     # check that services have been installed on client 1

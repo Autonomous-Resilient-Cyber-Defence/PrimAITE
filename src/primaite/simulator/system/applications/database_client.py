@@ -54,7 +54,7 @@ class DatabaseClientConnection(BaseModel):
             self.client._disconnect(self.connection_id)  # noqa
 
 
-class DatabaseClient(Application):
+class DatabaseClient(Application, identifier="DatabaseClient"):
     """
     A DatabaseClient application.
 
