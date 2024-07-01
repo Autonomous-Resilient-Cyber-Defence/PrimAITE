@@ -17,6 +17,7 @@ from gymnasium import spaces
 from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
 from primaite import getLogger
+from primaite.interface.request import RequestFormat
 
 _LOGGER = getLogger(__name__)
 
@@ -243,6 +244,27 @@ class NodeApplicationInstallAction(AbstractAction):
             application_name,
             ip_address,
         ]
+
+
+class ConfigureDatabaseClientAction(AbstractAction):
+    """Action which sets config parameters for a database client on a node."""
+
+    class _Opts(BaseModel):
+        """Schema for options that can be passed to this action."""
+
+        server_ip_address: Optional[str] = None
+        server_password: Optional[str] = None
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, options: Dict) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        ConfigureDatabaseClientAction._Opts.model_validate(options)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "DatabaseClient", "configure", options]
 
 
 class NodeApplicationRemoveAction(AbstractAction):
@@ -1045,6 +1067,7 @@ class ActionManager:
         "NODE_NMAP_PING_SCAN": NodeNMAPPingScanAction,
         "NODE_NMAP_PORT_SCAN": NodeNMAPPortScanAction,
         "NODE_NMAP_NETWORK_SERVICE_RECON": NodeNetworkServiceReconAction,
+        "CONFIGURE_DATABASE_CLIENT": ConfigureDatabaseClientAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 
