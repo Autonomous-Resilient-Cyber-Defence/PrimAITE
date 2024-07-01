@@ -1,13 +1,12 @@
 io_settings:
-  save_agent_actions: true
+  save_agent_actions: false
   save_step_metadata: false
   save_pcap_logs: false
   save_sys_logs: false
-  sys_log_level: WARNING
 
 
 game:
-  max_episode_length: 128
+  max_episode_length: 256
   ports:
   - HTTP
   - POSTGRES_SERVER
@@ -22,139 +21,6 @@ game:
       low: 0
 
 agents:
-  - ref: client_2_green_user
-    team: GREEN
-    type: ProbabilisticAgent
-    agent_settings:
-      action_probabilities:
-        0: 0.3
-        1: 0.6
-        2: 0.1
-    observation_space: null
-    action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
-      options:
-        nodes:
-        - node_name: client_2
-          applications:
-            - application_name: WebBrowser
-            - application_name: DatabaseClient
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-        max_applications_per_node: 2
-      action_map:
-        0:
-          action: DONOTHING
-          options: {}
-        1:
-          action: NODE_APPLICATION_EXECUTE
-          options:
-            node_id: 0
-            application_id: 0
-        2:
-          action: NODE_APPLICATION_EXECUTE
-          options:
-            node_id: 0
-            application_id: 1
-
-    reward_function:
-      reward_components:
-        - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.25
-          options:
-            node_hostname: client_2
-        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.05
-          options:
-            node_hostname: client_2
-
-  - ref: client_1_green_user
-    team: GREEN
-    type: ProbabilisticAgent
-    agent_settings:
-      action_probabilities:
-        0: 0.3
-        1: 0.6
-        2: 0.1
-    observation_space: null
-    action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
-      options:
-        nodes:
-          - node_name: client_1
-            applications:
-              - application_name: WebBrowser
-              - application_name: DatabaseClient
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-        max_applications_per_node: 2
-      action_map:
-        0:
-          action: DONOTHING
-          options: {}
-        1:
-          action: NODE_APPLICATION_EXECUTE
-          options:
-            node_id: 0
-            application_id: 0
-        2:
-          action: NODE_APPLICATION_EXECUTE
-          options:
-            node_id: 0
-            application_id: 1
-
-    reward_function:
-      reward_components:
-        - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.25
-          options:
-            node_hostname: client_1
-        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.05
-          options:
-            node_hostname: client_1
-
-
-
-
-
-  - ref: data_manipulation_attacker
-    team: RED
-    type: RedDatabaseCorruptingAgent
-
-    observation_space: null
-
-    action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
-      options:
-        nodes:
-        - node_name: client_1
-          applications:
-            - application_name: DataManipulationBot
-        - node_name: client_2
-          applications:
-            - application_name: DataManipulationBot
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-
-    reward_function:
-      reward_components:
-        - type: DUMMY
-
-    agent_settings: # options specific to this particular agent type, basically args of __init__(self)
-      start_settings:
-        start_step: 25
-        frequency: 20
-        variance: 5
 
   - ref: defender
     team: BLUE
@@ -188,11 +54,6 @@ agents:
               num_nics: 2
               include_num_access: false
               include_nmne: true
-              monitored_traffic:
-                icmp:
-                    - NONE
-                tcp:
-                    - DNS
               routers:
                 - hostname: router_1
               num_ports: 0
@@ -318,7 +179,7 @@ agents:
               folder_id: 0
               file_id: 0
           10:
-            action: "NODE_FILE_CHECKHASH" # CHECKHASH replaced by SCAN - but the behaviour is the same in this context.
+            action: "NODE_FILE_CHECKHASH"
             options:
               node_id: 2
               folder_id: 0
@@ -346,7 +207,7 @@ agents:
               node_id: 2
               folder_id: 0
           15:
-            action: "NODE_FOLDER_CHECKHASH" # CHECKHASH replaced by SCAN - but the behaviour is the same in this context.
+            action: "NODE_FOLDER_CHECKHASH"
             options:
               node_id: 2
               folder_id: 0
@@ -476,7 +337,7 @@ agents:
           46: # old action num: 22 # "ACL: ADDRULE - Block outgoing traffic from client 1"
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 1
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -489,7 +350,7 @@ agents:
           47: # old action num: 23 # "ACL: ADDRULE - Block outgoing traffic from client 2"
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 2
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -502,7 +363,7 @@ agents:
           48: # old action num: 24 # block tcp traffic from client 1 to web app
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 3
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -515,7 +376,7 @@ agents:
           49: # old action num: 25 # block tcp traffic from client 2 to web app
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 4
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -528,7 +389,7 @@ agents:
           50: # old action num: 26
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 5
                 permission: 2
                 source_ip_id: 7 # client 1
@@ -541,7 +402,7 @@ agents:
           51: # old action num: 27
             action: "ROUTER_ACL_ADDRULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 6
                 permission: 2
                 source_ip_id: 8 # client 2
@@ -554,52 +415,52 @@ agents:
           52: # old action num: 28
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 0
           53: # old action num: 29
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 1
           54: # old action num: 30
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 2
           55: # old action num: 31
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 3
           56: # old action num: 32
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 4
           57: # old action num: 33
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 5
           58: # old action num: 34
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 6
           59: # old action num: 35
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 7
           60: # old action num: 36
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 8
           61: # old action num: 37
             action: "ROUTER_ACL_REMOVERULE"
             options:
-                target_router: router_1
+                target_router_nodename: router_1
                 position: 9
           62: # old action num: 38
             action: "HOST_NIC_DISABLE"
@@ -722,27 +583,15 @@ agents:
 
     reward_function:
       reward_components:
-        - type: DATABASE_FILE_INTEGRITY
-          weight: 0.40
-          options:
-            node_hostname: database_server
-            folder_name: database
-            file_name: database.db
-
-        - type: SHARED_REWARD
+        - type: ACTION_PENALTY
           weight: 1.0
           options:
-            agent_name: client_1_green_user
+            action_penalty: -0.75
+            do_nothing_penalty: 0.125
 
-        - type: SHARED_REWARD
-          weight: 1.0
-          options:
-            agent_name: client_2_green_user
 
     agent_settings:
       flatten_obs: true
-
-
 
 
 
@@ -897,6 +746,8 @@ simulation:
           db_server_ip: 192.168.1.14
       services:
       - type: DNSClient
+
+
 
     links:
     - endpoint_a_hostname: router_1
