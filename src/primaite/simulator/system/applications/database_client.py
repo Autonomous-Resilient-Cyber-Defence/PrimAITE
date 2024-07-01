@@ -104,7 +104,7 @@ class DatabaseClient(Application):
             success = self.configure(server_ip_address=ip, server_password=pw)
             return RequestResponse.from_bool(success)
 
-        rm.add_request("configure", RequestType(func=lambda request, context: _configure(request, context)))
+        rm.add_request("configure", RequestType(func=_configure))
         return rm
 
     def execute(self) -> bool:

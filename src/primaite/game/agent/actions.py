@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Literal, Optional, Tuple, TYPE_CHECKING, Union
 
 from gymnasium import spaces
-from pydantic import BaseModel, Field, field_validator, ValidationInfo
+from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
 
 from primaite import getLogger
 from primaite.interface.request import RequestFormat
@@ -252,6 +252,7 @@ class ConfigureDatabaseClientAction(AbstractAction):
     class _Opts(BaseModel):
         """Schema for options that can be passed to this action."""
 
+        model_config = ConfigDict(extra="forbid")
         server_ip_address: Optional[str] = None
         server_password: Optional[str] = None
 
@@ -265,6 +266,29 @@ class ConfigureDatabaseClientAction(AbstractAction):
             return ["do_nothing"]
         ConfigureDatabaseClientAction._Opts.model_validate(options)  # check that options adhere to schema
         return ["network", "node", node_name, "application", "DatabaseClient", "configure", options]
+
+
+class ConfigureRansomwareScriptAction(AbstractAction):
+    """Action which sets config parameters for a ransomware script on a node."""
+
+    class _Opts(BaseModel):
+        """Schema for options that can be passed to this option."""
+
+        model_config = ConfigDict(extra="forbid")
+        server_ip_address: Optional[str] = None
+        server_password: Optional[str] = None
+        payload: Optional[str] = None
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, options: Dict) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        ConfigureRansomwareScriptAction._Opts.model_validate(options)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "RansomwareScript", "configure", options]
 
 
 class NodeApplicationRemoveAction(AbstractAction):
@@ -1068,6 +1092,7 @@ class ActionManager:
         "NODE_NMAP_PORT_SCAN": NodeNMAPPortScanAction,
         "NODE_NMAP_NETWORK_SERVICE_RECON": NodeNetworkServiceReconAction,
         "CONFIGURE_DATABASE_CLIENT": ConfigureDatabaseClientAction,
+        "CONFIGURE_RANSOMWARE_SCRIPT": ConfigureRansomwareScriptAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 

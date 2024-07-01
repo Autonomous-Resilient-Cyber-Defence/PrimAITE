@@ -2,7 +2,7 @@
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
-from primaite.interface.request import RequestResponse
+from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -62,6 +62,15 @@ class RansomwareScript(Application):
             name="execute",
             request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.attack())),
         )
+
+        def _configure(request: RequestFormat, context: Dict) -> RequestResponse:
+            ip = request[-1].get("server_ip_address")
+            ip = None if ip is None else IPv4Address(ip)
+            pw = request[-1].get("server_password")
+            payload = request[-1].get("payload")
+            return RequestResponse.from_bool(self.configure(ip, pw, payload))
+
+        rm.add_request("configure", request_type=RequestType(func=_configure))
         return rm
 
     def run(self) -> bool:
@@ -91,7 +100,7 @@ class RansomwareScript(Application):
         server_ip_address: IPv4Address,
         server_password: Optional[str] = None,
         payload: Optional[str] = None,
-    ):
+    ) -> bool:
         """
         Configure the Ransomware Script to communicate with a DatabaseService.
 
@@ -108,6 +117,7 @@ class RansomwareScript(Application):
         self.sys_log.info(
             f"{self.name}: Configured the {self.name} with {server_ip_address=}, {payload=}, {server_password=}."
         )
+        return True
 
     def attack(self) -> bool:
         """Perform the attack steps after opening the application."""
