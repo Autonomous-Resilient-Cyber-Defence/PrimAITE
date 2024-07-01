@@ -16,6 +16,7 @@ from primaite.simulator.system.services.database.database_service import Databas
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
+from primaite.simulator.system.software import SoftwareHealthState
 
 
 @pytest.fixture(scope="function")
@@ -106,6 +107,29 @@ def test_web_client_requests_users(web_client_web_server_database):
     _, computer, _, _ = web_client_web_server_database
 
     web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+
+    assert web_browser.get_webpage()
+
+
+def test_database_fix_disrupts_web_client(uc2_network):
+    """Tests that the database service being in fixed state disrupts the web client."""
+    computer: Computer = uc2_network.get_node_by_hostname("client_1")
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+
+    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+    database_service: DatabaseService = db_server.software_manager.software.get("DatabaseService")
+
+    # fix the database service
+    database_service.fix()
+
+    assert database_service.health_state_actual == SoftwareHealthState.FIXING
+
+    assert web_browser.get_webpage() is False
+
+    for i in range(database_service.fixing_duration + 1):
+        uc2_network.apply_timestep(i)
+
+    assert database_service.health_state_actual == SoftwareHealthState.GOOD
 
     assert web_browser.get_webpage()
 
