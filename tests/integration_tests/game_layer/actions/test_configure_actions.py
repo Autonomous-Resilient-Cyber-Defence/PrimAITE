@@ -4,8 +4,14 @@ from ipaddress import IPv4Address
 import pytest
 from pydantic import ValidationError
 
-from primaite.game.agent.actions import ConfigureDatabaseClientAction, ConfigureRansomwareScriptAction
+from primaite.game.agent.actions import (
+    ConfigureDatabaseClientAction,
+    ConfigureDoSBotAction,
+    ConfigureRansomwareScriptAction,
+)
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from tests.conftest import ControlledAgent
 
@@ -156,3 +162,40 @@ class TestConfigureRansomwareScriptAction:
         agent.store_action(action)
         with pytest.raises(ValidationError):
             game.step()
+
+
+class TestConfigureDoSBot:
+    def test_configure_DoSBot(self, game_and_agent):
+        game, agent = game_and_agent
+        agent: ControlledAgent
+        agent.action_manager.actions["CONFIGURE_DOSBOT"] = ConfigureDoSBotAction(agent.action_manager)
+
+        client_1 = game.simulation.network.get_node_by_hostname("client_1")
+        client_1.software_manager.install(DoSBot)
+        dos_bot: DoSBot = client_1.software_manager.software["DoSBot"]
+
+        action = (
+            "CONFIGURE_DOSBOT",
+            {
+                "node_id": 0,
+                "options": {
+                    "target_ip_address": "192.168.1.99",
+                    "target_port": "POSTGRES_SERVER",
+                    "payload": "HACC",
+                    "repeat": False,
+                    "port_scan_p_of_success": 0.875,
+                    "dos_intensity": 0.75,
+                    "max_sessions": 50,
+                },
+            },
+        )
+        agent.store_action(action)
+        game.step()
+
+        assert dos_bot.target_ip_address == IPv4Address("192.168.1.99")
+        assert dos_bot.target_port == Port.POSTGRES_SERVER
+        assert dos_bot.payload == "HACC"
+        assert not dos_bot.repeat
+        assert dos_bot.port_scan_p_of_success == 0.875
+        assert dos_bot.dos_intensity == 0.75
+        assert dos_bot.max_sessions == 50

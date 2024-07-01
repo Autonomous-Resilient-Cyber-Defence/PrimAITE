@@ -291,6 +291,33 @@ class ConfigureRansomwareScriptAction(AbstractAction):
         return ["network", "node", node_name, "application", "RansomwareScript", "configure", options]
 
 
+class ConfigureDoSBotAction(AbstractAction):
+    """Action which sets config parameters for a DoS bot on a node."""
+
+    class _Opts(BaseModel):
+        """Schema for options that can be passed to this option."""
+
+        model_config = ConfigDict(extra="forbid")
+        target_ip_address: Optional[str] = None
+        target_port: Optional[str] = None
+        payload: Optional[str] = None
+        repeat: Optional[bool] = None
+        port_scan_p_of_success: Optional[float] = None
+        dos_intensity: Optional[float] = None
+        max_sessions: Optional[int] = None
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, options: Dict) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        self._Opts.model_validate(options)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "DoSBot", "configure", options]
+
+
 class NodeApplicationRemoveAction(AbstractAction):
     """Action which removes/uninstalls an application."""
 
@@ -1093,6 +1120,7 @@ class ActionManager:
         "NODE_NMAP_NETWORK_SERVICE_RECON": NodeNetworkServiceReconAction,
         "CONFIGURE_DATABASE_CLIENT": ConfigureDatabaseClientAction,
         "CONFIGURE_RANSOMWARE_SCRIPT": ConfigureRansomwareScriptAction,
+        "CONFIGURE_DOSBOT": ConfigureDoSBotAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 

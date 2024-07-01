@@ -1,11 +1,11 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from enum import IntEnum
 from ipaddress import IPv4Address
-from typing import Optional
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.game.science import simulate_trial
-from primaite.interface.request import RequestResponse
+from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -71,6 +71,14 @@ class DoSBot(DatabaseClient):
             request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.run())),
         )
 
+        def _configure(request: RequestFormat, context: Dict) -> RequestResponse:
+            if "target_ip_address" in request[-1]:
+                request[-1]["target_ip_address"] = IPv4Address(request[-1]["target_ip_address"])
+            if "target_port" in request[-1]:
+                request[-1]["target_port"] = Port[request[-1]["target_port"]]
+            return RequestResponse.from_bool(self.configure(**request[-1]))
+
+        rm.add_request("configure", request_type=RequestType(func=_configure))
         return rm
 
     def configure(
@@ -82,7 +90,7 @@ class DoSBot(DatabaseClient):
         port_scan_p_of_success: float = 0.1,
         dos_intensity: float = 1.0,
         max_sessions: int = 1000,
-    ):
+    ) -> bool:
         """
         Configure the Denial of Service bot.
 
@@ -90,7 +98,7 @@ class DoSBot(DatabaseClient):
         :param: target_port: The port of the target service. Optional - Default is `Port.HTTP`
         :param: payload: The payload the DoS Bot will throw at the target service. Optional - Default is `None`
         :param: repeat: If True, the bot will maintain the attack. Optional - Default is `True`
-        :param: port_scan_p_of_success: The chance of the port scan being sucessful. Optional - Default is 0.1 (10%)
+        :param: port_scan_p_of_success: The chance of the port scan being successful. Optional - Default is 0.1 (10%)
         :param: dos_intensity: The intensity of the DoS attack.
             Multiplied with the application's max session - Default is 1.0
         :param: max_sessions: The maximum number of sessions the DoS bot will attack with. Optional - Default is 1000
@@ -106,6 +114,7 @@ class DoSBot(DatabaseClient):
             f"{self.name}: Configured the {self.name} with {target_ip_address=}, {target_port=}, {payload=}, "
             f"{repeat=}, {port_scan_p_of_success=}, {dos_intensity=}, {max_sessions=}."
         )
+        return True
 
     def run(self) -> bool:
         """Run the Denial of Service Bot."""
