@@ -41,7 +41,7 @@ class BroadcastService(Service):
         super().send(payload="broadcast", dest_ip_address=ip_network, dest_port=Port.HTTP, ip_protocol=self.protocol)
 
 
-class BroadcastClient(Application):
+class BroadcastClient(Application, identifier="BroadcastClient"):
     """A client application to receive broadcast and unicast messages."""
 
     payloads_received: List = []

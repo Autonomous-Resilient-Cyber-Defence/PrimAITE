@@ -3,9 +3,9 @@ from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.networks import multi_lan_internet_network_example
 from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
-from src.primaite.simulator.system.applications.web_browser import WebBrowser
 
 
 def test_all_with_configured_dns_server_ip_can_resolve_url():

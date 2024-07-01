@@ -23,7 +23,7 @@ from primaite.simulator.system.services.dns.dns_client import DNSClient
 _LOGGER = getLogger(__name__)
 
 
-class WebBrowser(Application):
+class WebBrowser(Application, identifier="WebBrowser"):
     """
     Represents a web browser in the simulation environment.
 
