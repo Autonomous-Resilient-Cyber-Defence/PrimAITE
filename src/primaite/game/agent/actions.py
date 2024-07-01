@@ -228,7 +228,7 @@ class NodeApplicationInstallAction(AbstractAction):
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes}
 
-    def form_request(self, node_id: int, application_name: str, ip_address: str) -> List[str]:
+    def form_request(self, node_id: int, application_name: str) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None:
@@ -241,7 +241,6 @@ class NodeApplicationInstallAction(AbstractAction):
             "application",
             "install",
             application_name,
-            ip_address,
         ]
 
 

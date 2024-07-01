@@ -683,7 +683,6 @@ agents:
             options:
               node_id: 0
               application_name: DoSBot
-              ip_address: 192.168.1.14
           79:
             action: NODE_APPLICATION_REMOVE
             options:
