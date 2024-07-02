@@ -313,7 +313,8 @@ class PrimaiteGame:
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
                             new_service.password = opt.get("db_password", None)
-                            new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
+                            if "backup_server_ip" in opt:
+                                new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
                     if service_type == "FTPServer":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]

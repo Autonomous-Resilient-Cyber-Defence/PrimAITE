@@ -8,13 +8,14 @@ from uuid import uuid4
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel
 
-from primaite.interface.request import RequestResponse
+from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.software_manager import SoftwareManager
+from primaite.utils.validators import IPV4Address
 
 
 class DatabaseClientConnection(BaseModel):
@@ -96,6 +97,14 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         """
         rm = super()._init_request_manager()
         rm.add_request("execute", RequestType(func=lambda request, context: RequestResponse.from_bool(self.execute())))
+
+        def _configure(request: RequestFormat, context: Dict) -> RequestResponse:
+            ip, pw = request[-1].get("server_ip_address"), request[-1].get("server_password")
+            ip = None if ip is None else IPV4Address(ip)
+            success = self.configure(server_ip_address=ip, server_password=pw)
+            return RequestResponse.from_bool(success)
+
+        rm.add_request("configure", RequestType(func=_configure))
         return rm
 
     def execute(self) -> bool:
@@ -141,16 +150,17 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
             table.add_row([connection_id, connection.is_active])
         print(table.get_string(sortby="Connection ID"))
 
-    def configure(self, server_ip_address: IPv4Address, server_password: Optional[str] = None):
+    def configure(self, server_ip_address: Optional[IPv4Address] = None, server_password: Optional[str] = None) -> bool:
         """
         Configure the DatabaseClient to communicate with a DatabaseService.
 
         :param server_ip_address: The IP address of the Node the DatabaseService is on.
         :param server_password: The password on the DatabaseService.
         """
-        self.server_ip_address = server_ip_address
-        self.server_password = server_password
+        self.server_ip_address = server_ip_address or self.server_ip_address
+        self.server_password = server_password or self.server_password
         self.sys_log.info(f"{self.name}: Configured the {self.name} with {server_ip_address=}, {server_password=}.")
+        return True
 
     def connect(self) -> bool:
         """Connect the native client connection."""
