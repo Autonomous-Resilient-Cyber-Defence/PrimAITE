@@ -297,6 +297,11 @@ class PrimaiteGame:
                         new_node.software_manager.install(SERVICE_TYPES_MAPPING[service_type])
                         new_service = new_node.software_manager.software[service_type]
 
+                        # fixing duration for the service
+                        fix_duration = service_cfg.get("options", {}).get("fix_duration", None)
+                        if fix_duration:
+                            new_service.fixing_duration = fix_duration
+
                         # start the service
                         new_service.start()
                     else:
@@ -336,6 +341,11 @@ class PrimaiteGame:
                     if application_type in APPLICATION_TYPES_MAPPING:
                         new_node.software_manager.install(APPLICATION_TYPES_MAPPING[application_type])
                         new_application = new_node.software_manager.software[application_type]
+
+                        # fixing duration for the application
+                        fix_duration = application_cfg.get("options", {}).get("fix_duration", None)
+                        if fix_duration:
+                            new_application.fixing_duration = fix_duration
                     else:
                         msg = f"Configuration contains an invalid application type: {application_type}"
                         _LOGGER.error(msg)
@@ -358,7 +368,7 @@ class PrimaiteGame:
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
                             new_application.configure(
-                                server_ip_address=IPv4Address(opt.get("server_ip")),
+                                server_ip_address=IPv4Address(opt.get("server_ip")) if opt.get("server_ip") else None,
                                 server_password=opt.get("server_password"),
                                 payload=opt.get("payload", "ENCRYPT"),
                             )
