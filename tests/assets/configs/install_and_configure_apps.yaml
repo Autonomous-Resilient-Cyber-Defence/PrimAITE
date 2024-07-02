@@ -1,0 +1,142 @@
+io_settings:
+  save_step_metadata: false
+  save_pcap_logs: false
+  save_sys_logs: false
+  save_agent_actions: false
+
+game:
+  max_episode_length: 256
+  ports:
+    - ARP
+    - DNS
+  protocols:
+    - ICMP
+    - TCP
+
+agents:
+  - ref: agent_1
+    team: BLUE
+    type: ProxyAgent
+
+    observation_space: null
+    action_space:
+      action_list:
+        - type: DONOTHING
+        - type: NODE_APPLICATION_INSTALL
+        - type: CONFIGURE_DATABASE_CLIENT
+        - type: CONFIGURE_DOSBOT
+        - type: CONFIGURE_RANSOMWARE_SCRIPT
+        - type: NODE_APPLICATION_REMOVE
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
+        1:
+          action: NODE_APPLICATION_INSTALL
+          options:
+            node_id: 0
+            application_name: DatabaseClient
+        2:
+          action: NODE_APPLICATION_INSTALL
+          options:
+            node_id: 1
+            application_name: RansomwareScript
+        3:
+          action: NODE_APPLICATION_INSTALL
+          options:
+            node_id: 2
+            application_name: DoSBot
+        4:
+          action: CONFIGURE_DATABASE_CLIENT
+          options:
+            node_id: 0
+            config:
+              server_ip_address: 10.0.0.5
+        5:
+          action: CONFIGURE_DATABASE_CLIENT
+          options:
+            node_id: 0
+            config:
+              server_password: correct_password
+        6:
+          action: CONFIGURE_RANSOMWARE_SCRIPT
+          options:
+            node_id: 1
+            config:
+              server_ip_address: 10.0.0.5
+              server_password: correct_password
+              payload: ENCRYPT
+        7:
+          action: CONFIGURE_DOSBOT
+          options:
+            node_id: 2
+            config:
+              target_ip_address: 10.0.0.5
+              target_port: POSTGRES_SERVER
+              payload: DELETE
+              repeat: true
+              port_scan_p_of_success: 1.0
+              dos_intensity: 1.0
+              max_sessions: 1000
+        8:
+          action: NODE_APPLICATION_INSTALL
+          options:
+            node_id: 1
+            application_name: DatabaseClient
+      options:
+        nodes:
+          - node_name: client_1
+          - node_name: client_2
+          - node_name: client_3
+        ip_list: []
+    reward_function:
+      reward_components:
+        - type: DUMMY
+
+simulation:
+  network:
+    nodes:
+      - type: computer
+        hostname: client_1
+        ip_address: 10.0.0.2
+        subnet_mask: 255.255.255.0
+        default_gateway: 10.0.0.1
+      - type: computer
+        hostname: client_2
+        ip_address: 10.0.0.3
+        subnet_mask: 255.255.255.0
+        default_gateway: 10.0.0.1
+      - type: computer
+        hostname: client_3
+        ip_address: 10.0.0.4
+        subnet_mask: 255.255.255.0
+        default_gateway: 10.0.0.1
+      - type: switch
+        hostname: switch_1
+        num_ports: 8
+      - type: server
+        hostname: server_1
+        ip_address: 10.0.0.5
+        subnet_mask: 255.255.255.0
+        default_gateway: 10.0.0.1
+        services:
+          - type: DatabaseService
+            options:
+              db_password: correct_password
+    links:
+      - endpoint_a_hostname: client_1
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 1
+      - endpoint_a_hostname: client_2
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 2
+      - endpoint_a_hostname: client_3
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 3
+      - endpoint_a_hostname: server_1
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 8

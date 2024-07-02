@@ -260,6 +260,7 @@ agents:
         - type: NODE_APPLICATION_INSTALL
         - type: NODE_APPLICATION_REMOVE
         - type: NODE_APPLICATION_EXECUTE
+        - type: CONFIGURE_DOSBOT
 
       action_map:
           0:
@@ -698,6 +699,14 @@ agents:
             options:
               node_id: 0
               application_id: 0
+          82:
+            action: CONFIGURE_DOSBOT
+            options:
+              node_id: 0
+              config:
+                target_ip_address: 192.168.1.14
+                target_port: POSTGRES_SERVER
+
 
 
 

@@ -135,7 +135,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
             self.sys_log.warning(
                 f"{self.name} is not properly configured. {self.target_ip_address=}, {self.target_port=}"
             )
-            return True
+            return False
 
         self.clear_connections()
         self._perform_port_scan(p_of_success=self.port_scan_p_of_success)

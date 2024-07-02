@@ -258,13 +258,13 @@ class ConfigureDatabaseClientAction(AbstractAction):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: int, options: Dict) -> RequestFormat:
+    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None:
             return ["do_nothing"]
-        ConfigureDatabaseClientAction._Opts.model_validate(options)  # check that options adhere to schema
-        return ["network", "node", node_name, "application", "DatabaseClient", "configure", options]
+        ConfigureDatabaseClientAction._Opts.model_validate(config)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "DatabaseClient", "configure", config]
 
 
 class ConfigureRansomwareScriptAction(AbstractAction):
@@ -281,13 +281,13 @@ class ConfigureRansomwareScriptAction(AbstractAction):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: int, options: Dict) -> RequestFormat:
+    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None:
             return ["do_nothing"]
-        ConfigureRansomwareScriptAction._Opts.model_validate(options)  # check that options adhere to schema
-        return ["network", "node", node_name, "application", "RansomwareScript", "configure", options]
+        ConfigureRansomwareScriptAction._Opts.model_validate(config)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "RansomwareScript", "configure", config]
 
 
 class ConfigureDoSBotAction(AbstractAction):
@@ -308,13 +308,13 @@ class ConfigureDoSBotAction(AbstractAction):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: int, options: Dict) -> RequestFormat:
+    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None:
             return ["do_nothing"]
-        self._Opts.model_validate(options)  # check that options adhere to schema
-        return ["network", "node", node_name, "application", "DoSBot", "configure", options]
+        self._Opts.model_validate(config)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "DoSBot", "configure", config]
 
 
 class NodeApplicationRemoveAction(AbstractAction):
