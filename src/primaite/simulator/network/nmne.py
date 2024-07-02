@@ -4,7 +4,7 @@ from typing import Dict, List
 
 
 @dataclass
-class nmne_data:
+class NmneData:
     """Store all the information to perform NMNE operations."""
 
     capture_nmne: bool = True
@@ -23,10 +23,9 @@ class nmne_data:
     """Captures should be filtered and categorised based on specific keywords."""
 
 
-def set_nmne_config(nmne_config: Dict) -> nmne_data:
+def store_nmne_config(nmne_config: Dict) -> NmneData:
     """
-    Sets the configuration for capturing Malicious Network Events (MNEs) based on a provided
-    dictionary.
+    Store configuration for capturing Malicious Network Events (MNEs).
 
     This function updates global settings related to NMNE capture, including whether to capture
     NMNEs and what keywords to use for identifying NMNEs.
@@ -41,7 +40,7 @@ def set_nmne_config(nmne_config: Dict) -> nmne_data:
         "nmne_capture_keywords" (list of strings) to specify keywords for NMNE identification.
     :rvar dataclass with data read from config file.
     """
-    nmne_capture_keywords = []
+    nmne_capture_keywords: List[str] = []
     # Update the NMNE capture flag, defaulting to False if not specified or if the type is incorrect
     capture_nmne = nmne_config.get("capture_nmne", False)
     if not isinstance(capture_nmne, bool):
@@ -52,4 +51,4 @@ def set_nmne_config(nmne_config: Dict) -> nmne_data:
     if not isinstance(nmne_capture_keywords, list):
         nmne_capture_keywords = []  # Reset to empty list if the provided value is not a list
 
-    return nmne_data(capture_nmne=capture_nmne, nmne_capture_keywords=nmne_capture_keywords)
+    return NmneData(capture_nmne=capture_nmne, nmne_capture_keywords=nmne_capture_keywords)

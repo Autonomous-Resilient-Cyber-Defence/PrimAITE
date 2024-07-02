@@ -23,7 +23,7 @@ from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
-from primaite.simulator.network.nmne import set_nmne_config
+from primaite.simulator.network.nmne import store_nmne_config, NmneData
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -112,6 +112,9 @@ class PrimaiteGame:
 
         self._reward_calculation_order: List[str] = [name for name in self.agents]
         """Agent order for reward evaluation, as some rewards can be dependent on other agents' rewards."""
+
+        self.nmne_config: NmneData = None
+        """ Config data from Number of Malicious Network Events."""
 
     def step(self):
         """
@@ -496,9 +499,10 @@ class PrimaiteGame:
         # Validate that if any agents are sharing rewards, they aren't forming an infinite loop.
         game.setup_reward_sharing()
 
-        # Set the NMNE capture config
-        set_nmne_config(network_config.get("nmne_config", {}))
         game.update_agents(game.get_sim_state())
+
+        # Set the NMNE capture config
+        game.nmne_config = store_nmne_config(network_config.get("nmne_config", {}))
 
         return game
 
@@ -539,3 +543,6 @@ class PrimaiteGame:
 
         # sort the agents so the rewards that depend on other rewards are always evaluated later
         self._reward_calculation_order = topological_sort(graph)
+
+    def get_nmne_config(self) -> NmneData:
+        return self.nmne_config
