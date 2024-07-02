@@ -60,11 +60,11 @@ class SSHConnectionMessage(IntEnum):
 class SSHPacket(DataPacket):
     """Represents an SSHPacket."""
 
-    transport_message: SSHTransportMessage
+    transport_message: SSHTransportMessage = None
 
-    connection_message: SSHConnectionMessage
+    connection_message: SSHConnectionMessage = None
 
-    ssh_command: Optional[any] = None  # This is the request string
+    ssh_command: Optional[str] = None  # This is the request string
 
     ssh_output: Optional[RequestResponse] = None  # The Request Manager's returned RequestResponse
 
