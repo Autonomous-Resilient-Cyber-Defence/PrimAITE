@@ -890,7 +890,11 @@ class Node(SimComponent):
             Allows agents to install applications to the node.
 
             :param request: list containing the application name as the only element
-            :type application: str
+            :type request: RequestFormat
+            :param context: additional context for resolving this action, currently unused
+            :type context: dict
+            :return: Request response with a success code if the application was installed.
+            :rtype: RequestResponse
             """
             application_name = request[0]
             if self.software_manager.software.get(application_name):
@@ -916,9 +920,12 @@ class Node(SimComponent):
 
             This method is useful for allowing agents to take this action.
 
-            :param application: Application object that is currently associated with this node.
-            :type application: Application
-            :return: True if the application is uninstalled successfully, otherwise False.
+            :param request: list containing the application name as the only element
+            :type request: RequestFormat
+            :param context: additional context for resolving this action, currently unused
+            :type context: dict
+            :return: Request response with a success code if the application was uninstalled.
+            :rtype: RequestResponse
             """
             application_name = request[0]
             if application_name not in self.software_manager.software:

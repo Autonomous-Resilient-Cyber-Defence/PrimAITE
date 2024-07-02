@@ -64,6 +64,16 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
         )
 
         def _configure(request: RequestFormat, context: Dict) -> RequestResponse:
+            """
+            Request for configuring the target database and payload.
+
+            :param request: Request with one element contianing a dict of parameters for the configure method.
+            :type request: RequestFormat
+            :param context: additional context for resolving this action, currently unused
+            :type context: dict
+            :return: RequestResponse object with a success code reflecting whether the configuration could be applied.
+            :rtype: RequestResponse
+            """
             ip = request[-1].get("server_ip_address")
             ip = None if ip is None else IPv4Address(ip)
             pw = request[-1].get("server_password")

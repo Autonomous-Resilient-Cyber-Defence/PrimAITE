@@ -72,6 +72,16 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
         )
 
         def _configure(request: RequestFormat, context: Dict) -> RequestResponse:
+            """
+            Configure the DoSBot.
+
+            :param request: List with one element that is a dict of options to pass to the configure method.
+            :type request: RequestFormat
+            :param context: additional context for resolving this action, currently unused
+            :type context: dict
+            :return: Request Response object with a success code determining if the configuration was successful.
+            :rtype: RequestResponse
+            """
             if "target_ip_address" in request[-1]:
                 request[-1]["target_ip_address"] = IPv4Address(request[-1]["target_ip_address"])
             if "target_port" in request[-1]:
@@ -102,6 +112,8 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
         :param: dos_intensity: The intensity of the DoS attack.
             Multiplied with the application's max session - Default is 1.0
         :param: max_sessions: The maximum number of sessions the DoS bot will attack with. Optional - Default is 1000
+        :return: Always returns True
+        :rtype: bool
         """
         self.target_ip_address = target_ip_address
         self.target_port = target_port
@@ -126,6 +138,9 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
         The main application loop for the Denial of Service bot.
 
         The loop goes through the stages of a DoS attack.
+
+        :return: True if the application loop could be executed, False otherwise.
+        :rtype: bool
         """
         if not self._can_perform_action():
             return False
