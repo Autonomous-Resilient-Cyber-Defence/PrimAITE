@@ -8,7 +8,7 @@
 
     applications/*
 
-More info :py:mod:`primaite.game.game.APPLICATION_TYPES_MAPPING`
+More info :py:mod:`primaite.simulator.system.applications.application.Application`
 
 .. include:: list_of_system_applications.rst
 

@@ -37,7 +37,7 @@ class DataManipulationAttackStage(IntEnum):
     "Signifies that the attack has failed."
 
 
-class DataManipulationBot(Application):
+class DataManipulationBot(Application, identifier="DataManipulationBot"):
     """A bot that simulates a script which performs a SQL injection attack."""
 
     payload: Optional[str] = None

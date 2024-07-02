@@ -69,6 +69,7 @@ def test_application_install_uninstall_on_uc2():
     env.step(0)
 
     # Test we can now execute the DoSBot app
+    env.step(82)  # configure dos bot with ip address and port
     _, _, _, _, info = env.step(81)
     assert info["agent_actions"]["defender"].response.status == "success"
 
