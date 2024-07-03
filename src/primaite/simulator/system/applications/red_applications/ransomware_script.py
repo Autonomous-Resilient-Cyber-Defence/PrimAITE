@@ -107,7 +107,7 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
 
     def configure(
         self,
-        server_ip_address: IPv4Address,
+        server_ip_address: Optional[IPv4Address] = None,
         server_password: Optional[str] = None,
         payload: Optional[str] = None,
     ) -> bool:
