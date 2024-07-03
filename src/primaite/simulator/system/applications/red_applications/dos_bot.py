@@ -1,11 +1,11 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from enum import IntEnum
 from ipaddress import IPv4Address
-from typing import Optional
+from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.game.science import simulate_trial
-from primaite.interface.request import RequestResponse
+from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -29,7 +29,7 @@ class DoSAttackStage(IntEnum):
     "Attack is completed."
 
 
-class DoSBot(DatabaseClient):
+class DoSBot(DatabaseClient, identifier="DoSBot"):
     """A bot that simulates a Denial of Service attack."""
 
     target_ip_address: Optional[IPv4Address] = None
@@ -71,6 +71,24 @@ class DoSBot(DatabaseClient):
             request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.run())),
         )
 
+        def _configure(request: RequestFormat, context: Dict) -> RequestResponse:
+            """
+            Configure the DoSBot.
+
+            :param request: List with one element that is a dict of options to pass to the configure method.
+            :type request: RequestFormat
+            :param context: additional context for resolving this action, currently unused
+            :type context: dict
+            :return: Request Response object with a success code determining if the configuration was successful.
+            :rtype: RequestResponse
+            """
+            if "target_ip_address" in request[-1]:
+                request[-1]["target_ip_address"] = IPv4Address(request[-1]["target_ip_address"])
+            if "target_port" in request[-1]:
+                request[-1]["target_port"] = Port[request[-1]["target_port"]]
+            return RequestResponse.from_bool(self.configure(**request[-1]))
+
+        rm.add_request("configure", request_type=RequestType(func=_configure))
         return rm
 
     def configure(
@@ -82,7 +100,7 @@ class DoSBot(DatabaseClient):
         port_scan_p_of_success: float = 0.1,
         dos_intensity: float = 1.0,
         max_sessions: int = 1000,
-    ):
+    ) -> bool:
         """
         Configure the Denial of Service bot.
 
@@ -90,10 +108,12 @@ class DoSBot(DatabaseClient):
         :param: target_port: The port of the target service. Optional - Default is `Port.HTTP`
         :param: payload: The payload the DoS Bot will throw at the target service. Optional - Default is `None`
         :param: repeat: If True, the bot will maintain the attack. Optional - Default is `True`
-        :param: port_scan_p_of_success: The chance of the port scan being sucessful. Optional - Default is 0.1 (10%)
+        :param: port_scan_p_of_success: The chance of the port scan being successful. Optional - Default is 0.1 (10%)
         :param: dos_intensity: The intensity of the DoS attack.
             Multiplied with the application's max session - Default is 1.0
         :param: max_sessions: The maximum number of sessions the DoS bot will attack with. Optional - Default is 1000
+        :return: Always returns True
+        :rtype: bool
         """
         self.target_ip_address = target_ip_address
         self.target_port = target_port
@@ -106,6 +126,7 @@ class DoSBot(DatabaseClient):
             f"{self.name}: Configured the {self.name} with {target_ip_address=}, {target_port=}, {payload=}, "
             f"{repeat=}, {port_scan_p_of_success=}, {dos_intensity=}, {max_sessions=}."
         )
+        return True
 
     def run(self) -> bool:
         """Run the Denial of Service Bot."""
@@ -117,6 +138,9 @@ class DoSBot(DatabaseClient):
         The main application loop for the Denial of Service bot.
 
         The loop goes through the stages of a DoS attack.
+
+        :return: True if the application loop could be executed, False otherwise.
+        :rtype: bool
         """
         if not self._can_perform_action():
             return False
@@ -126,7 +150,7 @@ class DoSBot(DatabaseClient):
             self.sys_log.warning(
                 f"{self.name} is not properly configured. {self.target_ip_address=}, {self.target_port=}"
             )
-            return True
+            return False
 
         self.clear_connections()
         self._perform_port_scan(p_of_success=self.port_scan_p_of_success)
