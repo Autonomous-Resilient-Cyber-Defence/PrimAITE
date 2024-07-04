@@ -108,7 +108,31 @@ This is an integer value specifying the allowed bandwidth across the connection.
 ``airspace``
 ------------
 
-This is where the airspace settings for wireless networks arte set.
+This section configures settings specific to the wireless network's virtual airspace. It defines how wireless interfaces within the simulation will interact and perform under various environmental conditions.
 
 ``airspace_environment_type``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This setting specifies the environmental conditions of the airspace which affect the propagation and interference characteristics of wireless signals. Changing this environment type impacts how signal noise and interference are calculated, thus affecting the overall network performance, including data transmission rates and signal quality.
+
+**Configurable Options**
+
+- **rural**: A rural environment offers clear channel conditions due to low population density and minimal electronic device presence.
+
+- **outdoor**: Outdoor environments like parks or fields have minimal electronic interference.
+
+- **suburban**: Suburban environments strike a balance with fewer electronic interferences than urban but more than rural.
+
+- **office**: Office environments have moderate interference from numerous electronic devices and overlapping networks.
+
+- **urban**: Urban environments are characterized by tall buildings and a high density of electronic devices, leading to significant interference.
+
+- **industrial**: Industrial areas face high interference from heavy machinery and numerous electronic devices.
+
+- **transport**: Environments such as subways and buses where metal structures and high mobility create complex interference patterns.
+
+- **dense_urban**: Dense urban areas like city centers have the highest level of signal interference due to the very high density of buildings and devices.
+
+- **jamming_zone**: A jamming zone environment where signals are actively interfered with, typically through the use of signal jammers or scrambling devices. This represents the environment with the highest level of interference.
+
+- **blocked**: A jamming zone environment with total levels of interference. Airspace is completely blocked.
