@@ -1,6 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
+from dataclasses import asdict
 import re
 import secrets
 from abc import ABC, abstractmethod
@@ -143,7 +144,7 @@ class NetworkInterface(SimComponent, ABC):
             }
         )
         if self.nmne_config and self.nmne_config.capture_nmne:
-            state.update({"nmne": {self.nmne_config.__dict__}})
+            state.update({"nmne": asdict(self.nmne_config)})
         state.update({"traffic": convert_dict_enum_keys_to_enum_values(self.traffic)})
         return state
 
