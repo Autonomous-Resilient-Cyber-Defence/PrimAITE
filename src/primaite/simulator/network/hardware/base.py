@@ -87,7 +87,7 @@ class NetworkInterface(SimComponent, ABC):
     mac_address: str = Field(default_factory=generate_mac_address)
     "The MAC address of the interface."
 
-    speed: int = 100
+    speed: float = 100.0
     "The speed of the interface in Mbps. Default is 100 Mbps."
 
     mtu: int = 1500
@@ -679,11 +679,20 @@ class Link(SimComponent):
         return self.endpoint_a.enabled and self.endpoint_b.enabled
 
     def _can_transmit(self, frame: Frame) -> bool:
+        """
+        Determines whether a frame can be transmitted considering the current Link load and the Link's bandwidth.
+
+        This method assesses if the transmission of a given frame is possible without exceeding the Link's total
+        bandwidth capacity. It checks if the current load of the Link plus the size of the frame (expressed in Mbps)
+        would remain within the defined bandwidth limits. The transmission is only feasible if the Link is active
+        ('up') and the total load including the new frame does not surpass the bandwidth limit.
+
+        :param frame: The frame intended for transmission, which contains its size in Mbps.
+        :return: True if the frame can be transmitted without exceeding the bandwidth limit, False otherwise.
+        """
         if self.is_up:
             frame_size_Mbits = frame.size_Mbits  # noqa - Leaving it as Mbits as this is how they're expressed
-            # return self.current_load + frame_size_Mbits <= self.bandwidth
-            # TODO: re add this check once packet size limiting and MTU checks are implemented
-            return True
+            return self.current_load + frame.size_Mbits <= self.bandwidth
         return False
 
     def transmit_frame(self, sender_nic: WiredNetworkInterface, frame: Frame) -> bool:

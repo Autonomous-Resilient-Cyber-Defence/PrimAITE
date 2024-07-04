@@ -7,7 +7,7 @@
 ==============
 In this section the network layout is defined. This part of the config follows a hierarchical structure. Almost every component defines a ``ref`` field which acts as a human-readable unique identifier, used by other parts of the config, such as agents.
 
-At the top level of the network are ``nodes`` and ``links``.
+At the top level of the network are ``nodes``, ``links`` and ``airspace``.
 
 e.g.
 
@@ -19,6 +19,9 @@ e.g.
             ...
             links:
             ...
+            airspace:
+            ...
+
 
 ``nodes``
 ---------
@@ -101,3 +104,11 @@ This accepts an integer value e.g. if port 1 is to be connected, the configurati
 ``bandwidth``
 
 This is an integer value specifying the allowed bandwidth across the connection. Units are in Mbps.
+
+``airspace``
+------------
+
+This is where the airspace settings for wireless networks arte set.
+
+``airspace_environment_type``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
