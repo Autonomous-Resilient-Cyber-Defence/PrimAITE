@@ -15,7 +15,7 @@ from primaite.game.agent.scripted_agents.probabilistic_agent import Probabilisti
 from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
-from primaite.simulator.network.hardware.base import NodeOperatingState
+from primaite.simulator.network.hardware.base import NetworkInterface, NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
@@ -23,7 +23,7 @@ from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
-from primaite.simulator.network.nmne import store_nmne_config, NmneData
+from primaite.simulator.network.nmne import NmneData, store_nmne_config
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
@@ -239,6 +239,8 @@ class PrimaiteGame:
 
         nodes_cfg = network_config.get("nodes", [])
         links_cfg = network_config.get("links", [])
+        # Set the NMNE capture config
+        NetworkInterface.nmne_config = store_nmne_config(network_config.get("nmne_config", {}))
 
         for node_cfg in nodes_cfg:
             n_type = node_cfg["type"]
@@ -500,10 +502,6 @@ class PrimaiteGame:
         game.setup_reward_sharing()
 
         game.update_agents(game.get_sim_state())
-
-        # Set the NMNE capture config
-        game.nmne_config = store_nmne_config(network_config.get("nmne_config", {}))
-
         return game
 
     def setup_reward_sharing(self):
@@ -543,6 +541,3 @@ class PrimaiteGame:
 
         # sort the agents so the rewards that depend on other rewards are always evaluated later
         self._reward_calculation_order = topological_sort(graph)
-
-    def get_nmne_config(self) -> NmneData:
-        return self.nmne_config
