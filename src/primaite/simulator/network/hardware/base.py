@@ -103,12 +103,16 @@ class NetworkInterface(SimComponent, ABC):
     nmne_config: ClassVar[NmneData] = None
     "A dataclass defining malicious network events to be captured."
 
+    nmne: Dict = Field(default_factory=lambda: {})
+    "A dict containing details of the number of malicious events captured."
+
     traffic: Dict = Field(default_factory=lambda: {})
     "A dict containing details of the inbound and outbound traffic by port and protocol."
 
     def setup_for_episode(self, episode: int):
         """Reset the original state of the SimComponent."""
         super().setup_for_episode(episode=episode)
+        self.nmne = {}
         self.traffic = {}
         if episode and self.pcap and SIM_OUTPUT.save_pcap_logs:
             self.pcap.current_episode = episode
@@ -144,7 +148,7 @@ class NetworkInterface(SimComponent, ABC):
             }
         )
         if self.nmne_config and self.nmne_config.capture_nmne:
-            state.update({"nmne": asdict(self.nmne_config)})
+            state.update({"nmne": self.nmne})
         state.update({"traffic": convert_dict_enum_keys_to_enum_values(self.traffic)})
         return state
 
@@ -200,7 +204,7 @@ class NetworkInterface(SimComponent, ABC):
         # Proceed only if any NMNE keyword is present in the frame payload
         if any(keyword in frame_str for keyword in self.nmne_config.nmne_capture_keywords):
             # Start with the root of the NMNE capture structure
-            current_level = self.nmne_config
+            current_level = self.nmne
 
             # Update NMNE structure based on enabled settings
             if self.nmne_config.capture_by_direction:
