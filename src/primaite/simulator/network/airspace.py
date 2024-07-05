@@ -720,17 +720,18 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
         :param frame: The network frame to be sent.
         :return: True if the frame is sent successfully, False if the network interface is disabled.
         """
-        if self.enabled:
-            frame.set_sent_timestamp()
-            self.pcap.capture_outbound(frame)
-            if self.airspace.can_transmit_frame(frame, self):
-                self.airspace.transmit(frame, self)
-                return True
-            else:
-                # Cannot send Frame as the frequency bandwidth is at capacity
-                return False
-        # Cannot send Frame as the network interface is not enabled
-        return False
+        if not self.enabled:
+            return False
+        if not self.airspace.can_transmit_frame(frame, self):
+            # Drop frame for now. Queuing will happen here (probably) if it's done in the future.
+            self._connected_node.sys_log.info(f"{self}: Frame dropped as Link is at capacity")
+            return False
+
+        super().send_frame(frame)
+        frame.set_sent_timestamp()
+        self.pcap.capture_outbound(frame)
+        self.airspace.transmit(frame, self)
+        return True
 
     def receive_frame(self, frame: Frame) -> bool:
         """

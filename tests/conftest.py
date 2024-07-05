@@ -252,8 +252,7 @@ def example_network() -> Network:
     server_2.power_on()
     network.connect(endpoint_b=server_2.network_interface[1], endpoint_a=switch_1.network_interface[2])
 
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
-    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, position=1)
 
     assert all(link.is_up for link in network.links.values())
 

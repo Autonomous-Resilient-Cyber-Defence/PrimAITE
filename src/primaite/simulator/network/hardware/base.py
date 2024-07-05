@@ -440,14 +440,17 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         :param frame: The network frame to be sent.
         :return: True if the frame is sent, False if the Network Interface is disabled or not connected to a link.
         """
+        if not self.enabled:
+            return False
+        if not self._connected_link.can_transmit_frame(frame):
+            # Drop frame for now. Queuing will happen here (probably) if it's done in the future.
+            self._connected_node.sys_log.info(f"{self}: Frame dropped as Link is at capacity")
+            return False
         super().send_frame(frame)
-        if self.enabled:
-            frame.set_sent_timestamp()
-            self.pcap.capture_outbound(frame)
-            self._connected_link.transmit_frame(sender_nic=self, frame=frame)
-            return True
-        # Cannot send Frame as the NIC is not enabled
-        return False
+        frame.set_sent_timestamp()
+        self.pcap.capture_outbound(frame)
+        self._connected_link.transmit_frame(sender_nic=self, frame=frame)
+        return True
 
     @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
@@ -678,7 +681,7 @@ class Link(SimComponent):
         """
         return self.endpoint_a.enabled and self.endpoint_b.enabled
 
-    def _can_transmit(self, frame: Frame) -> bool:
+    def can_transmit_frame(self, frame: Frame) -> bool:
         """
         Determines whether a frame can be transmitted considering the current Link load and the Link's bandwidth.
 
@@ -703,11 +706,6 @@ class Link(SimComponent):
         :param frame: The network frame to be sent.
         :return: True if the Frame can be sent, otherwise False.
         """
-        can_transmit = self._can_transmit(frame)
-        if not can_transmit:
-            _LOGGER.debug(f"Cannot transmit frame as {self} is at capacity")
-            return False
-
         receiver = self.endpoint_a
         if receiver == sender_nic:
             receiver = self.endpoint_b
