@@ -51,11 +51,11 @@ class TestService(Service):
         pass
 
 
-class DummyApplication(Application, identifier="DummyApplication"):
+class TestDummyApplication(Application, identifier="TestDummyApplication"):
     """Test Application class"""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DummyApplication"
+        kwargs["name"] = "TestDummyApplication"
         kwargs["port"] = Port.HTTP
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
@@ -85,15 +85,18 @@ def service_class():
 
 
 @pytest.fixture(scope="function")
-def application(file_system) -> DummyApplication:
-    return DummyApplication(
-        name="DummyApplication", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="dummy_application")
+def application(file_system) -> TestDummyApplication:
+    return TestDummyApplication(
+        name="TestDummyApplication",
+        port=Port.ARP,
+        file_system=file_system,
+        sys_log=SysLog(hostname="dummy_application"),
     )
 
 
 @pytest.fixture(scope="function")
 def application_class():
-    return DummyApplication
+    return TestDummyApplication
 
 
 @pytest.fixture(scope="function")
