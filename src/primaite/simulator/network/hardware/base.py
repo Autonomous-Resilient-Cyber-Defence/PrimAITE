@@ -1,7 +1,6 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from dataclasses import asdict
 import re
 import secrets
 from abc import ABC, abstractmethod
