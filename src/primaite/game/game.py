@@ -26,11 +26,14 @@ from primaite.simulator.network.hardware.nodes.network.wireless_router import Wi
 from primaite.simulator.network.nmne import NmneData, store_nmne_config
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
-from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
-from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
-from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
-from primaite.simulator.system.applications.web_browser import WebBrowser
+from primaite.simulator.system.applications.application import Application
+from primaite.simulator.system.applications.database_client import DatabaseClient  # noqa: F401
+from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (  # noqa: F401
+    DataManipulationBot,
+)
+from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot  # noqa: F401
+from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript  # noqa: F401
+from primaite.simulator.system.applications.web_browser import WebBrowser  # noqa: F401
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
@@ -41,15 +44,6 @@ from primaite.simulator.system.services.ntp.ntp_server import NTPServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
-
-APPLICATION_TYPES_MAPPING = {
-    "WebBrowser": WebBrowser,
-    "DatabaseClient": DatabaseClient,
-    "DataManipulationBot": DataManipulationBot,
-    "DoSBot": DoSBot,
-    "RansomwareScript": RansomwareScript,
-}
-"""List of available applications that can be installed on nodes in the PrimAITE Simulation."""
 
 SERVICE_TYPES_MAPPING = {
     "DNSClient": DNSClient,
@@ -302,6 +296,10 @@ class PrimaiteGame:
                         new_node.software_manager.install(SERVICE_TYPES_MAPPING[service_type])
                         new_service = new_node.software_manager.software[service_type]
 
+                        # fixing duration for the service
+                        if "fix_duration" in service_cfg.get("options", {}):
+                            new_service.fixing_duration = service_cfg["options"]["fix_duration"]
+
                         # start the service
                         new_service.start()
                     else:
@@ -324,7 +322,8 @@ class PrimaiteGame:
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
                             new_service.password = opt.get("db_password", None)
-                            new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
+                            if "backup_server_ip" in opt:
+                                new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
                     if service_type == "FTPServer":
                         if "options" in service_cfg:
                             opt = service_cfg["options"]
@@ -338,9 +337,13 @@ class PrimaiteGame:
                     new_application = None
                     application_type = application_cfg["type"]
 
-                    if application_type in APPLICATION_TYPES_MAPPING:
-                        new_node.software_manager.install(APPLICATION_TYPES_MAPPING[application_type])
-                        new_application = new_node.software_manager.software[application_type]
+                    if application_type in Application._application_registry:
+                        new_node.software_manager.install(Application._application_registry[application_type])
+                        new_application = new_node.software_manager.software[application_type]  # grab the instance
+
+                        # fixing duration for the application
+                        if "fix_duration" in application_cfg.get("options", {}):
+                            new_application.fixing_duration = application_cfg["options"]["fix_duration"]
                     else:
                         msg = f"Configuration contains an invalid application type: {application_type}"
                         _LOGGER.error(msg)
@@ -363,7 +366,7 @@ class PrimaiteGame:
                         if "options" in application_cfg:
                             opt = application_cfg["options"]
                             new_application.configure(
-                                server_ip_address=IPv4Address(opt.get("server_ip")),
+                                server_ip_address=IPv4Address(opt.get("server_ip")) if opt.get("server_ip") else None,
                                 server_password=opt.get("server_password"),
                                 payload=opt.get("payload", "ENCRYPT"),
                             )

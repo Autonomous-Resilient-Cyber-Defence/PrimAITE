@@ -55,7 +55,6 @@ class TAP001(AbstractScriptedAgent):
             return "NODE_APPLICATION_INSTALL", {
                 "node_id": self.starting_node_idx,
                 "application_name": "RansomwareScript",
-                "ip_address": self.ip_address,
             }
 
         return "NODE_APPLICATION_EXECUTE", {"node_id": self.starting_node_idx, "application_id": 0}

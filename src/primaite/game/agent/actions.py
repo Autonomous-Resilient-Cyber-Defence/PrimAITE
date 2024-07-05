@@ -14,9 +14,10 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Literal, Optional, Tuple, TYPE_CHECKING, Union
 
 from gymnasium import spaces
-from pydantic import BaseModel, Field, field_validator, ValidationInfo
+from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
 
 from primaite import getLogger
+from primaite.interface.request import RequestFormat
 
 _LOGGER = getLogger(__name__)
 
@@ -228,7 +229,7 @@ class NodeApplicationInstallAction(AbstractAction):
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes}
 
-    def form_request(self, node_id: int, application_name: str, ip_address: str) -> List[str]:
+    def form_request(self, node_id: int, application_name: str) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None:
@@ -241,8 +242,79 @@ class NodeApplicationInstallAction(AbstractAction):
             "application",
             "install",
             application_name,
-            ip_address,
         ]
+
+
+class ConfigureDatabaseClientAction(AbstractAction):
+    """Action which sets config parameters for a database client on a node."""
+
+    class _Opts(BaseModel):
+        """Schema for options that can be passed to this action."""
+
+        model_config = ConfigDict(extra="forbid")
+        server_ip_address: Optional[str] = None
+        server_password: Optional[str] = None
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        ConfigureDatabaseClientAction._Opts.model_validate(config)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "DatabaseClient", "configure", config]
+
+
+class ConfigureRansomwareScriptAction(AbstractAction):
+    """Action which sets config parameters for a ransomware script on a node."""
+
+    class _Opts(BaseModel):
+        """Schema for options that can be passed to this option."""
+
+        model_config = ConfigDict(extra="forbid")
+        server_ip_address: Optional[str] = None
+        server_password: Optional[str] = None
+        payload: Optional[str] = None
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        ConfigureRansomwareScriptAction._Opts.model_validate(config)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "RansomwareScript", "configure", config]
+
+
+class ConfigureDoSBotAction(AbstractAction):
+    """Action which sets config parameters for a DoS bot on a node."""
+
+    class _Opts(BaseModel):
+        """Schema for options that can be passed to this option."""
+
+        model_config = ConfigDict(extra="forbid")
+        target_ip_address: Optional[str] = None
+        target_port: Optional[str] = None
+        payload: Optional[str] = None
+        repeat: Optional[bool] = None
+        port_scan_p_of_success: Optional[float] = None
+        dos_intensity: Optional[float] = None
+        max_sessions: Optional[int] = None
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        self._Opts.model_validate(config)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "DoSBot", "configure", config]
 
 
 class NodeApplicationRemoveAction(AbstractAction):
@@ -1045,6 +1117,9 @@ class ActionManager:
         "NODE_NMAP_PING_SCAN": NodeNMAPPingScanAction,
         "NODE_NMAP_PORT_SCAN": NodeNMAPPortScanAction,
         "NODE_NMAP_NETWORK_SERVICE_RECON": NodeNetworkServiceReconAction,
+        "CONFIGURE_DATABASE_CLIENT": ConfigureDatabaseClientAction,
+        "CONFIGURE_RANSOMWARE_SCRIPT": ConfigureRansomwareScriptAction,
+        "CONFIGURE_DOSBOT": ConfigureDoSBotAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 

@@ -360,6 +360,38 @@ class SharedReward(AbstractReward):
         return cls(agent_name=agent_name)
 
 
+class ActionPenalty(AbstractReward):
+    """Apply a negative reward when taking any action except DONOTHING."""
+
+    def __init__(self, action_penalty: float, do_nothing_penalty: float) -> None:
+        """
+        Initialise the reward.
+
+        Reward or penalise agents for doing nothing or taking actions.
+
+        :param action_penalty: Reward to give agents for taking any action except DONOTHING
+        :type action_penalty: float
+        :param do_nothing_penalty: Reward to give agent for taking the DONOTHING action
+        :type do_nothing_penalty: float
+        """
+        self.action_penalty = action_penalty
+        self.do_nothing_penalty = do_nothing_penalty
+
+    def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
+        """Calculate the penalty to be applied."""
+        if last_action_response.action == "DONOTHING":
+            return self.do_nothing_penalty
+        else:
+            return self.action_penalty
+
+    @classmethod
+    def from_config(cls, config: Dict) -> "ActionPenalty":
+        """Build the ActionPenalty object from config."""
+        action_penalty = config.get("action_penalty", -1.0)
+        do_nothing_penalty = config.get("do_nothing_penalty", 0.0)
+        return cls(action_penalty=action_penalty, do_nothing_penalty=do_nothing_penalty)
+
+
 class RewardFunction:
     """Manages the reward function for the agent."""
 
@@ -370,6 +402,7 @@ class RewardFunction:
         "WEBPAGE_UNAVAILABLE_PENALTY": WebpageUnavailablePenalty,
         "GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY": GreenAdminDatabaseUnreachablePenalty,
         "SHARED_REWARD": SharedReward,
+        "ACTION_PENALTY": ActionPenalty,
     }
     """List of reward class identifiers."""
 

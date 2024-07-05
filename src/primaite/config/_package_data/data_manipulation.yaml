@@ -739,8 +739,6 @@ agents:
           options:
             agent_name: client_2_green_user
 
-
-
     agent_settings:
       flatten_obs: true
 

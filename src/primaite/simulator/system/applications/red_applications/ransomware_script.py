@@ -2,7 +2,7 @@
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
-from primaite.interface.request import RequestResponse
+from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -10,7 +10,7 @@ from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 
 
-class RansomwareScript(Application):
+class RansomwareScript(Application, identifier="RansomwareScript"):
     """Ransomware Kill Chain - Designed to be used by the TAP001 Agent on the example layout Network.
 
     :ivar payload: The attack stage query payload. (Default ENCRYPT)
@@ -62,6 +62,25 @@ class RansomwareScript(Application):
             name="execute",
             request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.attack())),
         )
+
+        def _configure(request: RequestFormat, context: Dict) -> RequestResponse:
+            """
+            Request for configuring the target database and payload.
+
+            :param request: Request with one element contianing a dict of parameters for the configure method.
+            :type request: RequestFormat
+            :param context: additional context for resolving this action, currently unused
+            :type context: dict
+            :return: RequestResponse object with a success code reflecting whether the configuration could be applied.
+            :rtype: RequestResponse
+            """
+            ip = request[-1].get("server_ip_address")
+            ip = None if ip is None else IPv4Address(ip)
+            pw = request[-1].get("server_password")
+            payload = request[-1].get("payload")
+            return RequestResponse.from_bool(self.configure(ip, pw, payload))
+
+        rm.add_request("configure", request_type=RequestType(func=_configure))
         return rm
 
     def run(self) -> bool:
@@ -88,10 +107,10 @@ class RansomwareScript(Application):
 
     def configure(
         self,
-        server_ip_address: IPv4Address,
+        server_ip_address: Optional[IPv4Address] = None,
         server_password: Optional[str] = None,
         payload: Optional[str] = None,
-    ):
+    ) -> bool:
         """
         Configure the Ransomware Script to communicate with a DatabaseService.
 
@@ -108,6 +127,7 @@ class RansomwareScript(Application):
         self.sys_log.info(
             f"{self.name}: Configured the {self.name} with {server_ip_address=}, {payload=}, {server_password=}."
         )
+        return True
 
     def attack(self) -> bool:
         """Perform the attack steps after opening the application."""

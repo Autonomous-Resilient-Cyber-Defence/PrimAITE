@@ -1,9 +1,11 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+import pytest
 import yaml
 
 from primaite.game.agent.interface import AgentHistoryItem
-from primaite.game.agent.rewards import GreenAdminDatabaseUnreachablePenalty, WebpageUnavailablePenalty
+from primaite.game.agent.rewards import ActionPenalty, GreenAdminDatabaseUnreachablePenalty, WebpageUnavailablePenalty
 from primaite.game.game import PrimaiteGame
+from primaite.interface.request import RequestResponse
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
@@ -119,3 +121,77 @@ def test_shared_reward():
         g2_reward = env.game.agents["client_2_green_user"].reward_function.current_reward
         blue_reward = env.game.agents["defender"].reward_function.current_reward
         assert blue_reward == g1_reward + g2_reward
+
+
+def test_action_penalty_loads_from_config():
+    """Test to ensure that action penalty is correctly loaded from config into PrimaiteGymEnv"""
+    CFG_PATH = TEST_ASSETS_ROOT / "configs/action_penalty.yaml"
+    with open(CFG_PATH, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    env = PrimaiteGymEnv(env_config=cfg)
+
+    env.reset()
+    defender = env.game.agents["defender"]
+    act_penalty_obj = None
+    for comp in defender.reward_function.reward_components:
+        if isinstance(comp[0], ActionPenalty):
+            act_penalty_obj = comp[0]
+    if act_penalty_obj is None:
+        pytest.fail("Action penalty reward component was not added to the agent from config.")
+    assert act_penalty_obj.action_penalty == -0.75
+    assert act_penalty_obj.do_nothing_penalty == 0.125
+
+
+def test_action_penalty():
+    """Test that the action penalty is correctly applied when agent performs any action"""
+
+    # Create an ActionPenalty Reward
+    Penalty = ActionPenalty(action_penalty=-0.75, do_nothing_penalty=0.125)
+
+    # Assert that penalty is applied if action isn't DONOTHING
+    reward_value = Penalty.calculate(
+        state={},
+        last_action_response=AgentHistoryItem(
+            timestep=0,
+            action="NODE_APPLICATION_EXECUTE",
+            parameters={"node_id": 0, "application_id": 1},
+            request=["execute"],
+            response=RequestResponse.from_bool(True),
+        ),
+    )
+
+    assert reward_value == -0.75
+
+    # Assert that no penalty applied for a DONOTHING action
+    reward_value = Penalty.calculate(
+        state={},
+        last_action_response=AgentHistoryItem(
+            timestep=0,
+            action="DONOTHING",
+            parameters={},
+            request=["do_nothing"],
+            response=RequestResponse.from_bool(True),
+        ),
+    )
+
+    assert reward_value == 0.125
+
+
+def test_action_penalty_e2e(game_and_agent):
+    """Test that we get the right reward for doing actions to fetch a website."""
+    game, agent = game_and_agent
+    agent: ControlledAgent
+    comp = ActionPenalty(action_penalty=-0.75, do_nothing_penalty=0.125)
+
+    agent.reward_function.register_component(comp, 1.0)
+
+    action = ("DONOTHING", {})
+    agent.store_action(action)
+    game.step()
+    assert agent.reward_function.current_reward == 0.125
+
+    action = ("NODE_FILE_SCAN", {"node_id": 0, "folder_id": 0, "file_id": 0})
+    agent.store_action(action)
+    game.step()
+    assert agent.reward_function.current_reward == -0.75
