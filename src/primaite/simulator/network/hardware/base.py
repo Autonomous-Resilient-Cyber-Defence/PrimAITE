@@ -6,7 +6,7 @@ import secrets
 from abc import ABC, abstractmethod
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, Optional, TypeVar, Union
+from typing import Any, ClassVar, Dict, Optional, TypeVar, Union
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel, Field
@@ -37,6 +37,8 @@ from primaite.simulator.system.core.session_manager import SessionManager
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.processes.process import Process
+from primaite.simulator.system.services.access.user_manager import UserManager
+from primaite.simulator.system.services.access.user_session_manager import UserSessionManager
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.software import IOSoftware
 from primaite.utils.converters import convert_dict_enum_keys_to_enum_values
@@ -821,7 +823,16 @@ class Node(SimComponent):
         super().__init__(**kwargs)
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
-        self._install_system_software()
+        self.software_manager.install(UserSessionManager)
+        self.software_manager.install(UserManager)
+
+    # @property
+    # def user_manager(self) -> UserManager:
+    #     return self.software_manager.software["UserManager"]  # noqa
+    #
+    # @property
+    # def _user_session_manager(self) -> UserSessionManager:
+    #     return self.software_manager.software["UserSessionManager"]  # noqa
 
     def ip_is_network_interface(self, ip_address: IPv4Address, enabled_only: bool = False) -> bool:
         """
@@ -876,7 +887,7 @@ class Node(SimComponent):
         @property
         def fail_message(self) -> str:
             """Message that is reported when a request is rejected by this validator."""
-            return f"Cannot perform request on node '{self.node.hostname}' because it is not turned on."
+            return f"Cannot perform request on node '{self.node.hostname}' because it is not powered on."
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -999,10 +1010,6 @@ class Node(SimComponent):
         self._application_manager.add_request(name="uninstall", request_type=RequestType(func=_uninstall_application))
 
         return rm
-
-    def _install_system_software(self):
-        """Install System Software - software that is usually provided with the OS."""
-        pass
 
     def describe_state(self) -> Dict:
         """
@@ -1184,6 +1191,7 @@ class Node(SimComponent):
     def pre_timestep(self, timestep: int) -> None:
         """Apply pre-timestep logic."""
         super().pre_timestep(timestep)
+        self._
         for network_interface in self.network_interfaces.values():
             network_interface.pre_timestep(timestep=timestep)
 
