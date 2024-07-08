@@ -26,7 +26,7 @@
     "av_s_per_session": 3205.6340542,
     "av_s_per_step": 0.10017606419375,
     "av_s_per_100_steps_10_nodes": 10.017606419375,
-    "combined_av_reward_per_episode": {
+    "combined_total_reward_per_episode": {
         "1": -53.42999999999999,
         "2": -25.18000000000001,
         "3": -42.00000000000002,
