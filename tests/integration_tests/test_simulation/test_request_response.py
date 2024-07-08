@@ -13,7 +13,7 @@ from primaite.simulator.network.hardware.node_operating_state import NodeOperati
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.transmission.transport_layer import Port
-from tests.conftest import TestDummyApplication, TestService
+from tests.conftest import DummyApplication, TestService
 
 
 def test_successful_node_file_system_creation_request(example_network):
@@ -47,14 +47,14 @@ def test_successful_application_requests(example_network):
     net = example_network
 
     client_1 = net.get_node_by_hostname("client_1")
-    client_1.software_manager.install(TestDummyApplication)
-    client_1.software_manager.software.get("TestDummyApplication").run()
+    client_1.software_manager.install(DummyApplication)
+    client_1.software_manager.software.get("DummyApplication").run()
 
-    resp_1 = net.apply_request(["node", "client_1", "application", "TestDummyApplication", "scan"])
+    resp_1 = net.apply_request(["node", "client_1", "application", "DummyApplication", "scan"])
     assert resp_1 == RequestResponse(status="success", data={})
-    resp_2 = net.apply_request(["node", "client_1", "application", "TestDummyApplication", "fix"])
+    resp_2 = net.apply_request(["node", "client_1", "application", "DummyApplication", "fix"])
     assert resp_2 == RequestResponse(status="success", data={})
-    resp_3 = net.apply_request(["node", "client_1", "application", "TestDummyApplication", "compromise"])
+    resp_3 = net.apply_request(["node", "client_1", "application", "DummyApplication", "compromise"])
     assert resp_3 == RequestResponse(status="success", data={})
 
 

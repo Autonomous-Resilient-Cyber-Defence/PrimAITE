@@ -14,7 +14,7 @@ from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.service import Service
 
 
-class TestBroadcastService(Service):
+class BroadcastTestService(Service):
     """A service for sending broadcast and unicast messages over a network."""
 
     def __init__(self, **kwargs):
@@ -41,14 +41,14 @@ class TestBroadcastService(Service):
         super().send(payload="broadcast", dest_ip_address=ip_network, dest_port=Port.HTTP, ip_protocol=self.protocol)
 
 
-class TestBroadcastClient(Application, identifier="TestBroadcastClient"):
+class BroadcastTestClient(Application, identifier="BroadcastTestClient"):
     """A client application to receive broadcast and unicast messages."""
 
     payloads_received: List = []
 
     def __init__(self, **kwargs):
         # Set default client properties
-        kwargs["name"] = "TestBroadcastClient"
+        kwargs["name"] = "BroadcastTestClient"
         kwargs["port"] = Port.HTTP
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
@@ -75,8 +75,8 @@ def broadcast_network() -> Network:
         start_up_duration=0,
     )
     client_1.power_on()
-    client_1.software_manager.install(TestBroadcastClient)
-    application_1 = client_1.software_manager.software["TestBroadcastClient"]
+    client_1.software_manager.install(BroadcastTestClient)
+    application_1 = client_1.software_manager.software["BroadcastTestClient"]
     application_1.run()
 
     client_2 = Computer(
@@ -87,8 +87,8 @@ def broadcast_network() -> Network:
         start_up_duration=0,
     )
     client_2.power_on()
-    client_2.software_manager.install(TestBroadcastClient)
-    application_2 = client_2.software_manager.software["TestBroadcastClient"]
+    client_2.software_manager.install(BroadcastTestClient)
+    application_2 = client_2.software_manager.software["BroadcastTestClient"]
     application_2.run()
 
     server_1 = Server(
@@ -100,8 +100,8 @@ def broadcast_network() -> Network:
     )
     server_1.power_on()
 
-    server_1.software_manager.install(TestBroadcastService)
-    service: TestBroadcastService = server_1.software_manager.software["BroadcastService"]
+    server_1.software_manager.install(BroadcastTestService)
+    service: BroadcastTestService = server_1.software_manager.software["BroadcastService"]
     service.start()
 
     switch_1 = Switch(hostname="switch_1", num_ports=6, start_up_duration=0)
@@ -117,14 +117,14 @@ def broadcast_network() -> Network:
 @pytest.fixture(scope="function")
 def broadcast_service_and_clients(
     broadcast_network,
-) -> Tuple[TestBroadcastService, TestBroadcastClient, TestBroadcastClient]:
-    client_1: TestBroadcastClient = broadcast_network.get_node_by_hostname("client_1").software_manager.software[
-        "TestBroadcastClient"
+) -> Tuple[BroadcastTestService, BroadcastTestClient, BroadcastTestClient]:
+    client_1: BroadcastTestClient = broadcast_network.get_node_by_hostname("client_1").software_manager.software[
+        "BroadcastTestClient"
     ]
-    client_2: TestBroadcastClient = broadcast_network.get_node_by_hostname("client_2").software_manager.software[
-        "TestBroadcastClient"
+    client_2: BroadcastTestClient = broadcast_network.get_node_by_hostname("client_2").software_manager.software[
+        "BroadcastTestClient"
     ]
-    service: TestBroadcastService = broadcast_network.get_node_by_hostname("server_1").software_manager.software[
+    service: BroadcastTestService = broadcast_network.get_node_by_hostname("server_1").software_manager.software[
         "BroadcastService"
     ]
 

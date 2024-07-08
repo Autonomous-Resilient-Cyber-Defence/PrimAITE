@@ -16,7 +16,7 @@ from tests import TEST_ASSETS_ROOT
 TEST_CONFIG = TEST_ASSETS_ROOT / "configs/software_fix_duration.yaml"
 ONE_ITEM_CONFIG = TEST_ASSETS_ROOT / "configs/fix_duration_one_item.yaml"
 
-TestApplications = ["TestDummyApplication", "TestBroadcastClient"]
+TestApplications = ["DummyApplication", "BroadcastTestClient"]
 
 
 def load_config(config_path: Union[str, Path]) -> PrimaiteGame:
