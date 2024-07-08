@@ -42,8 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made observation space flattening optional (on by default). To turn off for an agent, change the `agent_settings.flatten_obs` setting in the config.
 - Added support for SQL INSERT command.
 - Added ability to log each agent's action choices in each step to a JSON file.
-- Removal of Link bandwidth hardcoding. This can now be configured via the network configuraiton yaml. Will default to 100 if not present.
+- Removal of Link bandwidth hardcoding. This can now be configured via the network configuration yaml. Will default to 100 if not present.
 - Added NMAP application to all host and layer-3 network nodes.
+- Added Terminal Class for HostNode components
 
 ### Bug Fixes
 
