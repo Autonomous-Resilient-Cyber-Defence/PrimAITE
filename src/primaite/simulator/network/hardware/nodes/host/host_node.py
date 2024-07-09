@@ -293,6 +293,7 @@ class HostNode(Node):
         * DNS (Domain Name System) Client: Resolves domain names to IP addresses.
         * FTP (File Transfer Protocol) Client: Enables file transfers between the host and FTP servers.
         * NTP (Network Time Protocol) Client: Synchronizes the system clock with NTP servers.
+        * Terminal Client: Handles SSH requests between HostNode and external components.
 
     Applications:
     ------------
