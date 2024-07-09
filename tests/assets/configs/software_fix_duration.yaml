@@ -177,6 +177,9 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
+      - type: NMAP
+        options:
+          fix_duration: 1
       - type: RansomwareScript
         options:
           fix_duration: 1

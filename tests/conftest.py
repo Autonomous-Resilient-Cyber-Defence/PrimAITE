@@ -87,7 +87,10 @@ def service_class():
 @pytest.fixture(scope="function")
 def application(file_system) -> DummyApplication:
     return DummyApplication(
-        name="DummyApplication", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="dummy_application")
+        name="DummyApplication",
+        port=Port.ARP,
+        file_system=file_system,
+        sys_log=SysLog(hostname="dummy_application"),
     )
 
 

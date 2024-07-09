@@ -130,10 +130,25 @@ class NetworkInterface(SimComponent, ABC):
 
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
+        _is_network_interface_enabled = NetworkInterface._EnabledValidator(network_interface=self)
+        _is_network_interface_disabled = NetworkInterface._DisabledValidator(network_interface=self)
+
         rm = super()._init_request_manager()
 
-        rm.add_request("enable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.enable())))
-        rm.add_request("disable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.disable())))
+        rm.add_request(
+            "enable",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.enable()),
+                validator=_is_network_interface_disabled,
+            ),
+        )
+        rm.add_request(
+            "disable",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.disable()),
+                validator=_is_network_interface_enabled,
+            ),
+        )
 
         return rm
 
@@ -331,6 +346,50 @@ class NetworkInterface(SimComponent, ABC):
         """Apply pre-timestep logic."""
         super().pre_timestep(timestep)
         self.traffic = {}
+
+    class _EnabledValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the NetworkInterface is enabled.
+
+        This is useful because most actions should be being resolved if the NetworkInterface is disabled.
+        """
+
+        network_interface: NetworkInterface
+        """Save a reference to the node instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the NetworkInterface is enabled or not."""
+            return self.network_interface.enabled
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return (
+                f"Cannot perform request on NetworkInterface "
+                f"'{self.network_interface.mac_address}' because it is not enabled."
+            )
+
+    class _DisabledValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the NetworkInterface is disabled.
+
+        This is useful because some actions should be being resolved if the NetworkInterface is disabled.
+        """
+
+        network_interface: NetworkInterface
+        """Save a reference to the node instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the NetworkInterface is disabled or not."""
+            return not self.network_interface.enabled
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return (
+                f"Cannot perform request on NetworkInterface "
+                f"'{self.network_interface.mac_address}' because it is not disabled."
+            )
 
 
 class WiredNetworkInterface(NetworkInterface, ABC):
@@ -878,6 +937,25 @@ class Node(SimComponent):
             """Message that is reported when a request is rejected by this validator."""
             return f"Cannot perform request on node '{self.node.hostname}' because it is not turned on."
 
+    class _NodeIsOffValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the node is off.
+
+        This is useful because some actions require the node to be in an off state.
+        """
+
+        node: Node
+        """Save a reference to the node instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the node is on or off."""
+            return self.node.operating_state == NodeOperatingState.OFF
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return f"Cannot perform request on node '{self.node.hostname}' because it is not turned off."
+
     def _init_request_manager(self) -> RequestManager:
         """
         Initialise the request manager.
@@ -940,6 +1018,7 @@ class Node(SimComponent):
                 return RequestResponse.from_bool(False)
 
         _node_is_on = Node._NodeIsOnValidator(node=self)
+        _node_is_off = Node._NodeIsOffValidator(node=self)
 
         rm = super()._init_request_manager()
         # since there are potentially many services, create an request manager that can map service name
@@ -969,7 +1048,12 @@ class Node(SimComponent):
                 func=lambda request, context: RequestResponse.from_bool(self.power_off()), validator=_node_is_on
             ),
         )
-        rm.add_request("startup", RequestType(func=lambda request, context: RequestResponse.from_bool(self.power_on())))
+        rm.add_request(
+            "startup",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.power_on()), validator=_node_is_off
+            ),
+        )
         rm.add_request(
             "reset",
             RequestType(func=lambda request, context: RequestResponse.from_bool(self.reset()), validator=_node_is_on),
