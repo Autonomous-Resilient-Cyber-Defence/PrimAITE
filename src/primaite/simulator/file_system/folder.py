@@ -6,8 +6,8 @@ from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
 
-from primaite.interface.request import RequestResponse
-from primaite.simulator.core import RequestManager, RequestType
+from primaite.interface.request import RequestFormat, RequestResponse
+from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType
 from primaite.simulator.file_system.file import File
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemABC, FileSystemItemHealthStatus
 
@@ -55,6 +55,8 @@ class Folder(FileSystemItemABC):
 
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
+        self._file_exists = Folder._FileExistsValidator(folder=self)
+
         rm = super()._init_request_manager()
         rm.add_request(
             name="delete",
@@ -65,7 +67,7 @@ class Folder(FileSystemItemABC):
         self._file_request_manager = RequestManager()
         rm.add_request(
             name="file",
-            request_type=RequestType(func=self._file_request_manager),
+            request_type=RequestType(func=self._file_request_manager, validator=self._file_exists),
         )
         return rm
 
@@ -469,3 +471,25 @@ class Folder(FileSystemItemABC):
 
         self.deleted = True
         return True
+
+    class _FileExistsValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the File exists.
+
+        Actions cannot be performed on a non-existent file.
+        """
+
+        folder: Folder
+        """Save a reference to the Folder instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Returns True if file exists."""
+            return self.folder.get_file(file_name=request[0]) is not None
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return (
+                f"Cannot perform request on application '{self.application.name}' because it is not in the "
+                f"{self.state.name} state."
+            )

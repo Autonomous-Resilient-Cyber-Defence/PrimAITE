@@ -6,8 +6,6 @@ import pytest
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.system.services.service import ServiceOperatingState
 
 
 @pytest.fixture
