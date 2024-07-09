@@ -25,8 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Activating dev-mode will change the location where the sessions will be output - by default will output where the PrimAITE repository is located
 - Refactored all air-space usage to that a new instance of AirSpace is created for each instance of Network. This 1:1 relationship between network and airspace will allow parallelization.
 - Added notebook to demonstrate use of SubprocVecEnv from SB3 to vectorise environments to speed up training.
-
-
+- Added a new agent simulation log which are more human friendly than agent action logging. Includes timesteps so that the agent action log can be cross referenced. These Logs are found in simulation_output directory, similar to that of sys_logs and can be enabled in the I/O settings in a yaml configuration file.
 
 ## [Unreleased]
 - Made requests fail to reach their target if the node is off

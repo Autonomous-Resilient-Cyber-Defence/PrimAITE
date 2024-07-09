@@ -36,8 +36,11 @@ class _SimOutput:
         self._path = path
         self._save_pcap_logs: bool = False
         self._save_sys_logs: bool = False
+        self._save_agent_logs: bool = False
         self._write_sys_log_to_terminal: bool = False
+        self._write_agent_log_to_terminal: bool = False
         self._sys_log_level: LogLevel = LogLevel.WARNING  # default log level is at WARNING
+        self._agent_log_level: LogLevel = LogLevel.WARNING
 
     @property
     def path(self) -> Path:
@@ -82,6 +85,16 @@ class _SimOutput:
         self._save_sys_logs = save_sys_logs
 
     @property
+    def save_agent_logs(self) -> bool:
+        if is_dev_mode():
+            return PRIMAITE_CONFIG.get("developer_mode").get("output_agent_logs")
+        return self._save_agent_logs
+
+    @save_agent_logs.setter
+    def save_agent_logs(self, save_agent_logs: bool) -> None:
+        self._save_agent_logs = save_agent_logs
+
+    @property
     def write_sys_log_to_terminal(self) -> bool:
         if is_dev_mode():
             return PRIMAITE_CONFIG.get("developer_mode").get("output_to_terminal")
@@ -90,6 +103,17 @@ class _SimOutput:
     @write_sys_log_to_terminal.setter
     def write_sys_log_to_terminal(self, write_sys_log_to_terminal: bool) -> None:
         self._write_sys_log_to_terminal = write_sys_log_to_terminal
+
+    # Should this be separate from sys_log?
+    @property
+    def write_agent_log_to_terminal(self) -> bool:
+        if is_dev_mode():
+            return PRIMAITE_CONFIG.get("developer_mode").get("output_to_terminal")
+        return self._write_agent_log_to_terminal
+
+    @write_agent_log_to_terminal.setter
+    def write_agent_log_to_terminal(self, write_agent_log_to_terminal: bool) -> None:
+        self._write_agent_log_to_terminal = write_agent_log_to_terminal
 
     @property
     def sys_log_level(self) -> LogLevel:
@@ -100,6 +124,16 @@ class _SimOutput:
     @sys_log_level.setter
     def sys_log_level(self, sys_log_level: LogLevel) -> None:
         self._sys_log_level = sys_log_level
+
+    @property
+    def agent_log_level(self) -> LogLevel:
+        if is_dev_mode():
+            return LogLevel[PRIMAITE_CONFIG.get("developer_mode").get("agent_log_level")]
+        return self._agent_log_level
+
+    @agent_log_level.setter
+    def agent_log_level(self, agent_log_level: LogLevel) -> None:
+        self._agent_log_level = agent_log_level
 
 
 SIM_OUTPUT = _SimOutput()

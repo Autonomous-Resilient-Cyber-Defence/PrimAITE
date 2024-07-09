@@ -35,10 +35,16 @@ class PrimaiteIO:
         """Whether to save PCAP logs."""
         save_sys_logs: bool = True
         """Whether to save system logs."""
+        save_agent_logs: bool = True
+        """Whether to save agent logs."""
         write_sys_log_to_terminal: bool = False
         """Whether to write the sys log to the terminal."""
+        write_agent_log_to_terminal: bool = False
+        """Whether to write the agent log to the terminal."""
         sys_log_level: LogLevel = LogLevel.INFO
-        """The level of log that should be included in the logfiles/logged into terminal."""
+        """The level of sys logs that should be included in the logfiles/logged into terminal."""
+        agent_log_level: LogLevel = LogLevel.INFO
+        """The level of agent logs that should be included in the logfiles/logged into terminal."""
 
     def __init__(self, settings: Optional[Settings] = None) -> None:
         """
@@ -53,8 +59,11 @@ class PrimaiteIO:
         SIM_OUTPUT.path = self.session_path / "simulation_output"
         SIM_OUTPUT.save_pcap_logs = self.settings.save_pcap_logs
         SIM_OUTPUT.save_sys_logs = self.settings.save_sys_logs
+        SIM_OUTPUT.save_agent_logs = self.settings.save_agent_logs
+        SIM_OUTPUT.write_agent_log_to_terminal = self.settings.write_agent_log_to_terminal
         SIM_OUTPUT.write_sys_log_to_terminal = self.settings.write_sys_log_to_terminal
         SIM_OUTPUT.sys_log_level = self.settings.sys_log_level
+        SIM_OUTPUT.agent_log_level = self.settings.agent_log_level
 
     def generate_session_path(self, timestamp: Optional[datetime] = None) -> Path:
         """Create a folder for the session and return the path to it."""
@@ -114,6 +123,9 @@ class PrimaiteIO:
 
         if config.get("sys_log_level"):
             config["sys_log_level"] = LogLevel[config["sys_log_level"].upper()]  # convert to enum
+
+        if config.get("agent_log_level"):
+            config["agent_log_level"] = LogLevel[config["agent_log_level"].upper()]  # convert to enum
 
         new = cls(settings=cls.Settings(**config))
 
