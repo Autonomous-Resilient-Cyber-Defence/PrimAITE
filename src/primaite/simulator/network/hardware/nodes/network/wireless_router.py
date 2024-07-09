@@ -1,10 +1,10 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 from pydantic import validate_call
 
-from primaite.simulator.network.airspace import AirSpace, AirSpaceFrequency, IPWirelessNetworkInterface
+from primaite.simulator.network.airspace import AirSpace, AirSpaceFrequency, ChannelWidth, IPWirelessNetworkInterface
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router, RouterInterface
 from primaite.simulator.network.transmission.data_link_layer import Frame
@@ -153,7 +153,8 @@ class WirelessRouter(Router):
         self,
         ip_address: IPV4Address,
         subnet_mask: IPV4Address,
-        frequency: AirSpaceFrequency = AirSpaceFrequency.WIFI_2_4,
+        frequency: Optional[AirSpaceFrequency] = AirSpaceFrequency.WIFI_2_4,
+        channel_width: Optional[ChannelWidth] = ChannelWidth.WIDTH_40_MHZ,
     ):
         """
         Configures a wireless access point (WAP).
@@ -170,13 +171,23 @@ class WirelessRouter(Router):
             enum. This determines the frequency band (e.g., 2.4 GHz or 5 GHz) the access point will use for wireless
             communication. Default is AirSpaceFrequency.WIFI_2_4.
         """
+        if not frequency:
+            frequency = AirSpaceFrequency.WIFI_2_4
+        if not channel_width:
+            channel_width = ChannelWidth.WIDTH_40_MHZ
+        self.sys_log.info("Configuring wireless access point")
+
         self.wireless_access_point.disable()  # Temporarily disable the WAP for reconfiguration
+
         network_interface = self.network_interface[1]
+
         network_interface.ip_address = ip_address
         network_interface.subnet_mask = subnet_mask
-        self.sys_log.info(f"Configured WAP {network_interface}")
+
         self.wireless_access_point.frequency = frequency  # Set operating frequency
+        self.wireless_access_point.channel_width = channel_width
         self.wireless_access_point.enable()  # Re-enable the WAP with new settings
+        self.sys_log.info(f"Configured WAP {network_interface}")
 
     @property
     def router_interface(self) -> RouterInterface:
@@ -258,7 +269,12 @@ class WirelessRouter(Router):
             ip_address = cfg["wireless_access_point"]["ip_address"]
             subnet_mask = cfg["wireless_access_point"]["subnet_mask"]
             frequency = AirSpaceFrequency[cfg["wireless_access_point"]["frequency"]]
-            router.configure_wireless_access_point(ip_address=ip_address, subnet_mask=subnet_mask, frequency=frequency)
+            channel_width = cfg["wireless_access_point"].get("channel_width")
+            if channel_width:
+                channel_width = ChannelWidth(channel_width)
+            router.configure_wireless_access_point(
+                ip_address=ip_address, subnet_mask=subnet_mask, frequency=frequency, channel_width=channel_width
+            )
 
         if "acl" in cfg:
             for r_num, r_cfg in cfg["acl"].items():

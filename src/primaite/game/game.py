@@ -15,6 +15,7 @@ from primaite.game.agent.scripted_agents.probabilistic_agent import Probabilisti
 from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
+from primaite.simulator.network.airspace import AirspaceEnvironmentType
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
@@ -227,6 +228,11 @@ class PrimaiteGame:
 
         simulation_config = cfg.get("simulation", {})
         network_config = simulation_config.get("network", {})
+        airspace_cfg = network_config.get("airspace", {})
+        airspace_environment_type_str = airspace_cfg.get("airspace_environment_type", "urban")
+
+        airspace_environment_type: AirspaceEnvironmentType = AirspaceEnvironmentType(airspace_environment_type_str)
+        net.airspace.airspace_environment_type = airspace_environment_type
 
         nodes_cfg = network_config.get("nodes", [])
         links_cfg = network_config.get("links", [])
