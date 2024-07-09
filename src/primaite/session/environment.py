@@ -1,9 +1,10 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import json
 from os import PathLike
-from typing import Any, Dict, List, Optional, SupportsFloat, Tuple, Union
+from typing import Any, Dict, Optional, SupportsFloat, Tuple, Union
 
 import gymnasium
+import numpy as np
 from gymnasium.core import ActType, ObsType
 
 from primaite import getLogger
@@ -40,10 +41,8 @@ class PrimaiteGymEnv(gymnasium.Env):
         """Current episode number."""
         self.total_reward_per_episode: Dict[int, float] = {}
         """Average rewards of agents per episode."""
-        self.action_masking: bool = False
-        """Whether to use action masking."""
 
-    def action_masks(self) -> List[bool]:
+    def action_masks(self) -> np.ndarray:
         """
         Return the action mask for the agent.
 
@@ -54,13 +53,13 @@ class PrimaiteGymEnv(gymnasium.Env):
         :rtype: List[bool]
         """
         mask = [True] * len(self.agent.action_manager.action_map)
-        if not self.action_masking:
+        if not self.agent.action_masking:
             return mask
 
         for i, action in self.agent.action_manager.action_map.items():
             request = self.agent.action_manager.form_request(action_identifier=action[0], action_options=action[1])
             mask[i] = self.game.simulation._request_manager.check_valid(request, {})
-        return mask
+        return np.asarray(mask)
 
     @property
     def agent(self) -> ProxyAgent:
