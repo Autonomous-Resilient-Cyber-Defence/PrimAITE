@@ -3,6 +3,7 @@
 from ipaddress import IPv4Address
 from typing import Dict, List, Optional
 
+import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from primaite import DEFAULT_BANDWIDTH, getLogger
@@ -191,6 +192,23 @@ class PrimaiteGame:
         if current_step >= max_steps:
             return True
         return False
+
+    def action_mask(self, agent_name: str) -> np.ndarray:
+        """
+        Return the action mask for the agent.
+
+        This is a boolean list corresponding to the agent's action space. A False entry means this action cannot be
+        performed during this step.
+
+        :return: Action mask
+        :rtype: List[bool]
+        """
+        agent = self.agents[agent_name]
+        mask = [True] * len(agent.action_manager.action_map)
+        for i, action in agent.action_manager.action_map.items():
+            request = agent.action_manager.form_request(action_identifier=action[0], action_options=action[1])
+            mask[i] = self.simulation._request_manager.check_valid(request, {})
+        return np.asarray(mask)
 
     def close(self) -> None:
         """Close the game, this will close the simulation."""

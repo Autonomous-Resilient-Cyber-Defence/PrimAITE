@@ -733,6 +733,7 @@ agents:
 
     agent_settings:
       flatten_obs: true
+      action_masking: true
 
   - ref: defender_2
     team: BLUE
@@ -1316,6 +1317,7 @@ agents:
 
     agent_settings:
       flatten_obs: true
+      action_masking: true
 
 
 

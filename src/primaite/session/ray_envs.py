@@ -42,6 +42,15 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         self.observation_space = spaces.Dict(
             {name: spaces.flatten_space(agent.observation_manager.space) for name, agent in self.agents.items()}
         )
+        for agent_name in self._agent_ids:
+            agent = self.game.rl_agents[agent_name]
+            if agent.action_masking:
+                self.observation_space[agent_name] = spaces.Dict(
+                    {
+                        "action_mask": spaces.MultiBinary(agent.action_manager.space.n),
+                        "observations": self.observation_space[agent_name],
+                    }
+                )
         self.action_space = spaces.Dict({name: agent.action_manager.space for name, agent in self.agents.items()})
         self._obs_space_in_preferred_format = True
         self._action_space_in_preferred_format = True
@@ -127,13 +136,17 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
 
     def _get_obs(self) -> Dict[str, ObsType]:
         """Return the current observation."""
-        obs = {}
+        all_obs = {}
         for agent_name in self._agent_ids:
             agent = self.game.rl_agents[agent_name]
             unflat_space = agent.observation_manager.space
             unflat_obs = agent.observation_manager.current_observation
-            obs[agent_name] = gymnasium.spaces.flatten(unflat_space, unflat_obs)
-        return obs
+            obs = gymnasium.spaces.flatten(unflat_space, unflat_obs)
+            if agent.action_masking:
+                all_obs[agent_name] = {"action_mask": self.game.action_mask(agent_name), "observations": obs}
+            else:
+                all_obs[agent_name] = obs
+        return all_obs
 
     def close(self):
         """Close the simulation."""

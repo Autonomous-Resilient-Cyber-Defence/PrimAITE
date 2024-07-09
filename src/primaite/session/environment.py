@@ -52,14 +52,10 @@ class PrimaiteGymEnv(gymnasium.Env):
         :return: Action mask
         :rtype: List[bool]
         """
-        mask = [True] * len(self.agent.action_manager.action_map)
         if not self.agent.action_masking:
-            return mask
-
-        for i, action in self.agent.action_manager.action_map.items():
-            request = self.agent.action_manager.form_request(action_identifier=action[0], action_options=action[1])
-            mask[i] = self.game.simulation._request_manager.check_valid(request, {})
-        return np.asarray(mask)
+            return np.asarray([True] * len(self.agent.action_manager.action_map))
+        else:
+            return self.game.action_mask(self._agent_name)
 
     @property
     def agent(self) -> ProxyAgent:
