@@ -557,6 +557,7 @@ agents:
 
     agent_settings:
       flatten_obs: true
+      action_masking: true
 
 
 

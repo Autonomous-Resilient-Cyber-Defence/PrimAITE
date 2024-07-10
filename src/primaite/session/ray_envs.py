@@ -187,7 +187,7 @@ class PrimaiteRayEnv(gymnasium.Env):
         # if action masking is enabled, intercept the step method and add action mask to observation
         if self.env.agent.action_masking:
             obs, *_ = self.env.step(action)
-            new_obs = {"action_mask": self.env.action_masks(), "observations": obs}
+            new_obs = {"action_mask": self.game.action_mask(self.env._agent_name), "observations": obs}
             return new_obs, *_
         else:
             return self.env.step(action)

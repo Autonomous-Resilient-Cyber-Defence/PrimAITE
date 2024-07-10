@@ -208,7 +208,7 @@ class PrimaiteGame:
         for i, action in agent.action_manager.action_map.items():
             request = agent.action_manager.form_request(action_identifier=action[0], action_options=action[1])
             mask[i] = self.simulation._request_manager.check_valid(request, {})
-        return np.asarray(mask)
+        return np.asarray(mask, dtype=np.int8)
 
     def close(self) -> None:
         """Close the game, this will close the simulation."""
