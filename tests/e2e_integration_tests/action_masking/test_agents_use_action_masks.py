@@ -15,8 +15,6 @@ from primaite.session.environment import PrimaiteGymEnv
 from primaite.session.ray_envs import PrimaiteRayEnv, PrimaiteRayMARLEnv
 from tests import TEST_ASSETS_ROOT
 
-init(local_mode=True)
-
 CFG_PATH = TEST_ASSETS_ROOT / "configs/test_primaite_session.yaml"
 MARL_PATH = TEST_ASSETS_ROOT / "configs/multi_agent_session.yaml"
 

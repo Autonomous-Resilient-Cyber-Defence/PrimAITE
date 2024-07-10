@@ -92,6 +92,7 @@ class Service(IOSoftware):
         _is_service_running = Service._StateValidator(service=self, state=ServiceOperatingState.RUNNING)
         _is_service_stopped = Service._StateValidator(service=self, state=ServiceOperatingState.STOPPED)
         _is_service_paused = Service._StateValidator(service=self, state=ServiceOperatingState.PAUSED)
+        _is_service_disabled = Service._StateValidator(service=self, state=ServiceOperatingState.DISABLED)
 
         rm = super()._init_request_manager()
         rm.add_request(
@@ -131,7 +132,12 @@ class Service(IOSoftware):
             ),
         )
         rm.add_request("disable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.disable())))
-        rm.add_request("enable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.enable())))
+        rm.add_request(
+            "enable",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.enable()), validator=_is_service_disabled
+            ),
+        )
         rm.add_request(
             "fix",
             RequestType(

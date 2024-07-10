@@ -20,9 +20,6 @@ def test_rllib_single_agent_compatibility():
 
     game = PrimaiteGame.from_config(cfg)
 
-    ray.shutdown()
-    ray.init()
-
     env_config = {"game": game}
     config = {
         "env": PrimaiteRayEnv,
@@ -41,4 +38,3 @@ def test_rllib_single_agent_compatibility():
     assert save_file.exists()
 
     save_file.unlink()  # clean up
-    ray.shutdown()

@@ -65,25 +65,25 @@ class TestPrimaiteEnvironment:
             cfg = yaml.safe_load(f)
         env = PrimaiteRayMARLEnv(env_config=cfg)
 
-        assert set(env._agent_ids) == {"defender1", "defender2"}
+        assert set(env._agent_ids) == {"defender_1", "defender_2"}
 
         assert len(env.agents) == 2
-        defender1 = env.agents["defender1"]
-        defender2 = env.agents["defender2"]
-        assert (num_actions_1 := len(defender1.action_manager.action_map)) == 54
-        assert (num_actions_2 := len(defender2.action_manager.action_map)) == 38
+        defender_1 = env.agents["defender_1"]
+        defender_2 = env.agents["defender_2"]
+        assert (num_actions_1 := len(defender_1.action_manager.action_map)) == 74
+        assert (num_actions_2 := len(defender_2.action_manager.action_map)) == 74
 
         # ensure we can run all valid actions without error
         for act_1 in range(num_actions_1):
-            env.step({"defender1": act_1, "defender2": 0})
+            env.step({"defender_1": act_1, "defender_2": 0})
         for act_2 in range(num_actions_2):
-            env.step({"defender1": 0, "defender2": act_2})
+            env.step({"defender_1": 0, "defender_2": act_2})
 
         # ensure we get error when taking an invalid action
         with pytest.raises(KeyError):
-            env.step({"defender1": num_actions_1, "defender2": 0})
+            env.step({"defender_1": num_actions_1, "defender_2": 0})
         with pytest.raises(KeyError):
-            env.step({"defender1": 0, "defender2": num_actions_2})
+            env.step({"defender_1": 0, "defender_2": num_actions_2})
 
     def test_error_thrown_on_bad_configuration(self):
         """Make sure we throw an error when the config is bad."""

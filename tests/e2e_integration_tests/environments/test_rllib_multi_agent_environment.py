@@ -16,8 +16,6 @@ def test_rllib_multi_agent_compatibility():
     with open(MULTI_AGENT_PATH, "r") as f:
         cfg = yaml.safe_load(f)
 
-    ray.init()
-
     config = (
         PPOConfig()
         .environment(env=PrimaiteRayMARLEnv, env_config=cfg)
@@ -39,4 +37,3 @@ def test_rllib_multi_agent_compatibility():
         ),
         param_space=config,
     ).fit()
-    ray.shutdown()
