@@ -96,6 +96,8 @@ class Network(SimComponent):
         """Apply pre-timestep logic."""
         super().pre_timestep(timestep)
 
+        self.airspace.reset_bandwidth_load()
+
         for node in self.nodes.values():
             node.pre_timestep(timestep)
 
