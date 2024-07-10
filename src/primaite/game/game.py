@@ -15,8 +15,8 @@ from primaite.game.agent.scripted_agents.probabilistic_agent import Probabilisti
 from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
-from primaite.simulator.network.airspace import AirspaceEnvironmentType
 from primaite.simulator import SIM_OUTPUT
+from primaite.simulator.network.airspace import AirspaceEnvironmentType
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
