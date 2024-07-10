@@ -34,6 +34,7 @@ class _SimOutput:
         path = PRIMAITE_PATHS.user_sessions_path / self.date_str / self.time_str
 
         self._path = path
+        self._agent_behaviour_path = path
         self._save_pcap_logs: bool = False
         self._save_sys_logs: bool = False
         self._save_agent_logs: bool = False
@@ -63,6 +64,28 @@ class _SimOutput:
     def path(self, new_path: Path) -> None:
         self._path = new_path
         self._path.mkdir(exist_ok=True, parents=True)
+
+    @property
+    def agent_behaviour_path(self) -> Path:
+        if is_dev_mode():
+            # if dev mode is enabled, if output dir is not set, print to primaite repo root
+            path: Path = _PRIMAITE_ROOT.parent.parent / "sessions" / self.date_str / self.time_str / "agent_behaviour"
+            # otherwise print to output dir
+            if PRIMAITE_CONFIG["developer_mode"]["output_dir"]:
+                path: Path = (
+                    Path(PRIMAITE_CONFIG["developer_mode"]["output_dir"])
+                    / "sessions"
+                    / self.date_str
+                    / self.time_str
+                    / "agent_behaviour"
+                )
+            self._agent_behaviour_path = path
+        return self._agent_behaviour_path
+
+    @agent_behaviour_path.setter
+    def agent_behaviour_path(self, new_path: Path) -> None:
+        self._agent_behaviour_path = new_path
+        self._agent_behaviour_path.mkdir(exist_ok=True, parents=True)
 
     @property
     def save_pcap_logs(self) -> bool:

@@ -29,11 +29,11 @@ def test_debug_agent_log_level(agentlog, capsys):
 
     test_string = str(uuid4())
 
-    agentlog.debug(msg=test_string, time_step=0)
-    agentlog.info(msg=test_string, time_step=0)
-    agentlog.warning(msg=test_string, time_step=0)
-    agentlog.error(msg=test_string, time_step=0)
-    agentlog.critical(msg=test_string, time_step=0)
+    agentlog.debug(msg=test_string)
+    agentlog.info(msg=test_string)
+    agentlog.warning(msg=test_string)
+    agentlog.error(msg=test_string)
+    agentlog.critical(msg=test_string)
 
     captured = "".join(capsys.readouterr())
 
@@ -52,11 +52,11 @@ def test_info_agent_log_level(agentlog, capsys):
 
     test_string = str(uuid4())
 
-    agentlog.debug(msg=test_string, time_step=0)
-    agentlog.info(msg=test_string, time_step=0)
-    agentlog.warning(msg=test_string, time_step=0)
-    agentlog.error(msg=test_string, time_step=0)
-    agentlog.critical(msg=test_string, time_step=0)
+    agentlog.debug(msg=test_string)
+    agentlog.info(msg=test_string)
+    agentlog.warning(msg=test_string)
+    agentlog.error(msg=test_string)
+    agentlog.critical(msg=test_string)
 
     captured = "".join(capsys.readouterr())
 
@@ -75,11 +75,11 @@ def test_warning_agent_log_level(agentlog, capsys):
 
     test_string = str(uuid4())
 
-    agentlog.debug(msg=test_string, time_step=0)
-    agentlog.info(msg=test_string, time_step=0)
-    agentlog.warning(msg=test_string, time_step=0)
-    agentlog.error(msg=test_string, time_step=0)
-    agentlog.critical(msg=test_string, time_step=0)
+    agentlog.debug(msg=test_string)
+    agentlog.info(msg=test_string)
+    agentlog.warning(msg=test_string)
+    agentlog.error(msg=test_string)
+    agentlog.critical(msg=test_string)
 
     captured = "".join(capsys.readouterr())
 
@@ -98,11 +98,11 @@ def test_error_agent_log_level(agentlog, capsys):
 
     test_string = str(uuid4())
 
-    agentlog.debug(msg=test_string, time_step=0)
-    agentlog.info(msg=test_string, time_step=0)
-    agentlog.warning(msg=test_string, time_step=0)
-    agentlog.error(msg=test_string, time_step=0)
-    agentlog.critical(msg=test_string, time_step=0)
+    agentlog.debug(msg=test_string)
+    agentlog.info(msg=test_string)
+    agentlog.warning(msg=test_string)
+    agentlog.error(msg=test_string)
+    agentlog.critical(msg=test_string)
 
     captured = "".join(capsys.readouterr())
 
@@ -121,11 +121,11 @@ def test_critical_agent_log_level(agentlog, capsys):
 
     test_string = str(uuid4())
 
-    agentlog.debug(msg=test_string, time_step=0)
-    agentlog.info(msg=test_string, time_step=0)
-    agentlog.warning(msg=test_string, time_step=0)
-    agentlog.error(msg=test_string, time_step=0)
-    agentlog.critical(msg=test_string, time_step=0)
+    agentlog.debug(msg=test_string)
+    agentlog.info(msg=test_string)
+    agentlog.warning(msg=test_string)
+    agentlog.error(msg=test_string)
+    agentlog.critical(msg=test_string)
 
     captured = "".join(capsys.readouterr())
 

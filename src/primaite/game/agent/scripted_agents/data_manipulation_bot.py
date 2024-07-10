@@ -38,11 +38,11 @@ class DataManipulationAgent(AbstractScriptedAgent):
         :rtype: Tuple[str, Dict]
         """
         if timestep < self.next_execution_timestep:
-            self.logger.debug(msg="Performing do NOTHING", time_step=timestep)
+            self.logger.debug(msg="Performing do NOTHING")
             return "DONOTHING", {}
 
         self._set_next_execution_timestep(timestep + self.agent_settings.start_settings.frequency)
-        self.logger.info(msg="Performing a data manipulation attack!", time_step=timestep)
+        self.logger.info(msg="Performing a data manipulation attack!")
         return "NODE_APPLICATION_EXECUTE", {"node_id": self.starting_node_idx, "application_id": 0}
 
     def setup_agent(self) -> None:
@@ -55,4 +55,4 @@ class DataManipulationAgent(AbstractScriptedAgent):
         # we are assuming that every node in the node manager has a data manipulation application at idx 0
         num_nodes = len(self.action_manager.node_names)
         self.starting_node_idx = random.randint(0, num_nodes - 1)
-        self.logger.debug(msg=f"Select Start Node ID: {self.starting_node_idx}", time_step=0)
+        self.logger.debug(msg=f"Select Start Node ID: {self.starting_node_idx}")

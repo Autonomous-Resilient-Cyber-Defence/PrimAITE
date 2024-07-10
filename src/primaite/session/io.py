@@ -57,6 +57,7 @@ class PrimaiteIO:
         self.session_path: Path = self.generate_session_path()
         # set global SIM_OUTPUT path
         SIM_OUTPUT.path = self.session_path / "simulation_output"
+        SIM_OUTPUT.agent_behaviour_path = self.session_path / "agent_behaviour"
         SIM_OUTPUT.save_pcap_logs = self.settings.save_pcap_logs
         SIM_OUTPUT.save_sys_logs = self.settings.save_sys_logs
         SIM_OUTPUT.save_agent_logs = self.settings.save_agent_logs
@@ -67,20 +68,20 @@ class PrimaiteIO:
 
     def generate_session_path(self, timestamp: Optional[datetime] = None) -> Path:
         """Create a folder for the session and return the path to it."""
-        if timestamp is None:
-            timestamp = datetime.now()
-        date_str = timestamp.strftime("%Y-%m-%d")
-        time_str = timestamp.strftime("%H-%M-%S")
-
-        session_path = PRIMAITE_PATHS.user_sessions_path / date_str / time_str
+        session_path = PRIMAITE_PATHS.user_sessions_path / SIM_OUTPUT.date_str / SIM_OUTPUT.time_str
 
         # check if running in dev mode
         if is_dev_mode():
-            session_path = _PRIMAITE_ROOT.parent.parent / "sessions" / date_str / time_str
+            session_path = _PRIMAITE_ROOT.parent.parent / "sessions" / SIM_OUTPUT.date_str / SIM_OUTPUT.time_str
 
             # check if there is an output directory set in config
             if PRIMAITE_CONFIG["developer_mode"]["output_dir"]:
-                session_path = Path(PRIMAITE_CONFIG["developer_mode"]["output_dir"]) / "sessions" / date_str / time_str
+                session_path = (
+                    Path(PRIMAITE_CONFIG["developer_mode"]["output_dir"])
+                    / "sessions"
+                    / SIM_OUTPUT.date_str
+                    / SIM_OUTPUT.time_str
+                )
 
         session_path.mkdir(exist_ok=True, parents=True)
         return session_path

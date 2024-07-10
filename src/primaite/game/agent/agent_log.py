@@ -22,7 +22,7 @@ class AgentLog:
     """
     A Agent Log class is a simple logger dedicated to managing and writing logging updates and information for an agent.
 
-    Each log message is written to a file located at: <simulation output directory>/agent/agent_name.log
+    Each log message is written to a file located at: <simulation output directory>/agent_name/agent_name.log
     """
 
     def __init__(self, agent_name: str):
@@ -33,7 +33,27 @@ class AgentLog:
         """
         self.agent_name = agent_name
         self.current_episode: int = 1
+        self.current_timestep: int = 0
         self.setup_logger()
+
+    @property
+    def timestep(self) -> int:
+        """Returns the current timestep. Used for log indexing.
+
+        :return: The current timestep as an Int.
+        """
+        return self.current_timestep
+
+    def update_timestep(self, new_timestep: int):
+        """
+        Updates the self.current_timestep attribute with the given parameter.
+
+        This method is called within .step() to ensure that all instances of Agent Logs
+        are in sync with one another.
+
+        :param new_timestep: The new timestep.
+        """
+        self.current_timestep = new_timestep
 
     def setup_logger(self):
         """
@@ -60,19 +80,19 @@ class AgentLog:
 
     def _get_log_path(self) -> Path:
         """
-        Constructs the path for the log file based on the hostname.
+        Constructs the path for the log file based on the agent name.
 
         :return: Path object representing the location of the log file.
         """
-        root = SIM_OUTPUT.path / f"episode_{self.current_episode}" / "agent_logs" / self.agent_name
+        root = SIM_OUTPUT.agent_behaviour_path / f"episode_{self.current_episode}" / self.agent_name
         root.mkdir(exist_ok=True, parents=True)
         return root / f"{self.agent_name}.log"
 
-    def _write_to_terminal(self, msg: str, timestep: int, level: str, to_terminal: bool = False):
+    def _write_to_terminal(self, msg: str, level: str, to_terminal: bool = False):
         if to_terminal or SIM_OUTPUT.write_agent_log_to_terminal:
-            print(f"{self.agent_name}: ({timestep}) ({level}) {msg}")
+            print(f"{self.agent_name}: ({ self.timestep}) ({level}) {msg}")
 
-    def debug(self, msg: str, time_step: int, to_terminal: bool = False):
+    def debug(self, msg: str, to_terminal: bool = False):
         """
         Logs a message with the DEBUG level.
 
@@ -83,10 +103,10 @@ class AgentLog:
             return
 
         if SIM_OUTPUT.save_agent_logs:
-            self.logger.debug(msg, extra={"timestep": time_step})
+            self.logger.debug(msg, extra={"timestep": self.timestep})
         self._write_to_terminal(msg, "DEBUG", to_terminal)
 
-    def info(self, msg: str, time_step: int, to_terminal: bool = False):
+    def info(self, msg: str, to_terminal: bool = False):
         """
         Logs a message with the INFO level.
 
@@ -98,10 +118,10 @@ class AgentLog:
             return
 
         if SIM_OUTPUT.save_agent_logs:
-            self.logger.info(msg, extra={"timestep": time_step})
+            self.logger.info(msg, extra={"timestep": self.timestep})
         self._write_to_terminal(msg, "INFO", to_terminal)
 
-    def warning(self, msg: str, time_step: int, to_terminal: bool = False):
+    def warning(self, msg: str, to_terminal: bool = False):
         """
         Logs a message with the WARNING level.
 
@@ -113,10 +133,10 @@ class AgentLog:
             return
 
         if SIM_OUTPUT.save_agent_logs:
-            self.logger.warning(msg, extra={"timestep": time_step})
+            self.logger.warning(msg, extra={"timestep": self.timestep})
         self._write_to_terminal(msg, "WARNING", to_terminal)
 
-    def error(self, msg: str, time_step: int, to_terminal: bool = False):
+    def error(self, msg: str, to_terminal: bool = False):
         """
         Logs a message with the ERROR level.
 
@@ -128,10 +148,10 @@ class AgentLog:
             return
 
         if SIM_OUTPUT.save_agent_logs:
-            self.logger.error(msg, extra={"timestep": time_step})
+            self.logger.error(msg, extra={"timestep": self.timestep})
         self._write_to_terminal(msg, "ERROR", to_terminal)
 
-    def critical(self, msg: str, time_step: int, to_terminal: bool = False):
+    def critical(self, msg: str, to_terminal: bool = False):
         """
         Logs a message with the CRITICAL level.
 
@@ -143,7 +163,7 @@ class AgentLog:
             return
 
         if SIM_OUTPUT.save_agent_logs:
-            self.logger.critical(msg, extra={"timestep": time_step})
+            self.logger.critical(msg, extra={"timestep": self.timestep})
         self._write_to_terminal(msg, "CRITICAL", to_terminal)
 
     def show(self, last_n: int = 10, markdown: bool = False):

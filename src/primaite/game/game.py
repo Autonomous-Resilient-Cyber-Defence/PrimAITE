@@ -15,6 +15,7 @@ from primaite.game.agent.scripted_agents.probabilistic_agent import Probabilisti
 from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
+from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
@@ -164,6 +165,8 @@ class PrimaiteGame:
         for _, agent in self.agents.items():
             obs = agent.observation_manager.current_observation
             action_choice, parameters = agent.get_action(obs, timestep=self.step_counter)
+            if SIM_OUTPUT.save_agent_logs:
+                agent.logger.debug(f"Chosen Action: {action_choice}")
             request = agent.format_request(action_choice, parameters)
             response = self.simulation.apply_request(request)
             agent.process_action_response(
@@ -182,7 +185,13 @@ class PrimaiteGame:
         """Advance timestep."""
         self.step_counter += 1
         _LOGGER.debug(f"Advancing timestep to {self.step_counter} ")
+        self.update_agent_loggers()
         self.simulation.apply_timestep(self.step_counter)
+
+    def update_agent_loggers(self) -> None:
+        """Updates Agent Loggers with new timestep."""
+        for agent in self.agents.values():
+            agent.logger.update_timestep(self.step_counter)
 
     def calculate_truncated(self) -> bool:
         """Calculate whether the episode is truncated."""
