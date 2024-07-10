@@ -56,6 +56,8 @@ class SSHConnectionMessage(IntEnum):
     SSH_MSG_CHANNEL_CLOSE = 87
     """Closes the channel."""
 
+    SSH_LOGOFF_ACK = 89
+    """Logoff confirmation acknowledgement"""
 
 class SSHPacket(DataPacket):
     """Represents an SSHPacket."""
