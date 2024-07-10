@@ -693,7 +693,4 @@ class FileSystem(SimComponent):
         @property
         def fail_message(self) -> str:
             """Message that is reported when a request is rejected by this validator."""
-            return (
-                f"Cannot perform request on application '{self.application.name}' because it is not in the "
-                f"{self.state.name} state."
-            )
+            return "Cannot perform request on file that does not exist."
