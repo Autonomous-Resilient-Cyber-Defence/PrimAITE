@@ -35,3 +35,7 @@ def test_io_settings():
         assert env.io.settings.save_step_metadata is False
 
         assert env.io.settings.write_sys_log_to_terminal is False  # false by default
+
+        assert env.io.settings.save_agent_logs is True
+        assert env.io.settings.agent_log_level is LogLevel.INFO
+        assert env.io.settings.write_agent_log_to_terminal is True  # Set to True by the config file.

@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from primaite.simulator.system.services.service import ServiceOperatingState
+from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
 
 
@@ -92,3 +92,21 @@ def test_service_fix(service):
     assert service.health_state_actual == SoftwareHealthState.FIXING
     service.apply_timestep(2)
     assert service.health_state_actual == SoftwareHealthState.GOOD
+
+
+def test_service_state_validator(service):
+    """Test the service state validator."""
+    validator = Service._StateValidator(service=service, state=ServiceOperatingState.STOPPED)
+    assert validator(request=[], context={})  # service is stopped
+    service.start()
+    assert validator(request=[], context={}) is False  # service is running - expecting stopped
+
+    validator = Service._StateValidator(service=service, state=ServiceOperatingState.RUNNING)
+    assert validator(request=[], context={})  # service is running
+    service.pause()
+    assert validator(request=[], context={}) is False  # service is paused - expecting running
+
+    validator = Service._StateValidator(service=service, state=ServiceOperatingState.PAUSED)
+    assert validator(request=[], context={})  # service is paused
+    service.resume()
+    assert validator(request=[], context={}) is False  # service is running - expecting paused

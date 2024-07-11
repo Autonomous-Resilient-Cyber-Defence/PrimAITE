@@ -35,6 +35,20 @@ class RequestPermissionValidator(BaseModel):
         """Message that is reported when a request is rejected by this validator."""
         return "request rejected"
 
+    def __add__(self, other: "RequestPermissionValidator") -> "_CombinedValidator":
+        return _CombinedValidator(validators=[self, other])
+
+
+class _CombinedValidator(RequestPermissionValidator):
+    validators: List[RequestPermissionValidator] = []
+
+    def __call__(self, request, context) -> bool:
+        return all(x(request, context) for x in self.validators)
+
+    @property
+    def fail_message(self):
+        return f"One of the following conditions are not met: {[v.fail_message for v in self.validators]}"
+
 
 class AllowAllValidator(RequestPermissionValidator):
     """Always allows the request."""

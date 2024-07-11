@@ -7,6 +7,7 @@ from gymnasium.core import ActType, ObsType
 from pydantic import BaseModel, model_validator
 
 from primaite.game.agent.actions import ActionManager
+from primaite.game.agent.agent_log import AgentLog
 from primaite.game.agent.observations.observation_manager import ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.interface.request import RequestFormat, RequestResponse
@@ -118,6 +119,7 @@ class AbstractAgent(ABC):
         self.reward_function: Optional[RewardFunction] = reward_function
         self.agent_settings = agent_settings or AgentSettings()
         self.history: List[AgentHistoryItem] = []
+        self.logger = AgentLog(agent_name)
 
     def update_observation(self, state: Dict) -> ObsType:
         """
