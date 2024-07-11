@@ -123,6 +123,7 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    source/environment
    source/customising_scenarios
    source/varying_config_files
+   source/action_masking
 
 .. toctree::
    :caption: Notebooks:
