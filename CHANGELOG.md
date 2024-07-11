@@ -8,17 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 
--   **AirSpaceEnvironmentType Enum Class**: Introduced in `airspace.py` to define different environmental settings affecting wireless network behavior.
--   **ChannelWidth Enum Class**: Added in `airspace.py` to specify channel width options for wireless network interfaces.
--   **Channel Width Attribute**: Incorporated into the `WirelessNetworkInterface` class to allow dynamic setting based on `AirSpaceFrequency` and `AirSpaceEnvironmentType`.
--   **SNR and Capacity Calculation Functions**: Functions `estimate_snr` and `calculate_total_channel_capacity` added to `airspace.py` for computing signal-to-noise ratio and capacity based on frequency and channel width.
--   **Dynamic Speed Setting**: WirelessInterface speed attribute now dynamically adjusts based on the operational environment, frequency, and channel width.
--   **airspace_key Attribute**: Added to `WirelessNetworkInterface` as a tuple of frequency and channel width, serving as a key for bandwidth/channel management.
--   **airspace_environment_type Attribute**: Determines the environmental type for the airspace, influencing data rate calculations and capacity sharing.
--   **show_bandwidth_load Function**: Displays current bandwidth load for each frequency and channel width in the airspace.
--   **Configuration Schema Update**: The `simulation.network` config file now includes settings for the `airspace_environment_type`.
--   **Bandwidth Tracking**: Tracks data transmission across each frequency/channel width pairing.
--   **Configuration Support for Wireless Routers**: `channel_width` can now be configured in the config file under `wireless_access_point`.
+-   **show_bandwidth_load Function**: Displays current bandwidth load for each frequency in the airspace.
+-   **Bandwidth Tracking**: Tracks data transmission across each frequency.
 -   **New Tests**: Added to validate the respect of bandwidth capacities and the correct parsing of airspace configurations from YAML files.
 -   **New Logging**: Added a new agent behaviour log which are more human friendly than agent history. These Logs are found in session log directory and can be enabled in the I/O settings in a yaml configuration file.
 
@@ -27,9 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **NetworkInterface Speed Type**: The `speed` attribute of `NetworkInterface` has been changed from `int` to `float`.
 -   **Transmission Feasibility Check**: Updated `_can_transmit` function in `Link` to account for current load and total bandwidth capacity, ensuring transmissions do not exceed limits.
 -   **Frame Size Details**: Frame `size` attribute now includes both core size and payload size in bytes.
--   **WirelessRouter Configuration Function**: `configure_wireless_access_point` function now accepts `channel_width` as a parameter.
--   **Interface Grouping**: `WirelessNetworkInterfaces` are now grouped by both `AirSpaceFrequency` and `ChannelWidth`.
--   **Interface Frequency/Channel Width Adjustment**: Changing an interface's settings now involves removal from the airspace, recalculation of its data rate, and re-addition under new settings.
 -   **Transmission Blocking**: Enhanced `AirSpace` logic to block transmissions that would exceed the available capacity.
 
 ### Fixed

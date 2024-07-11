@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional, Union
 
 from pydantic import validate_call
 
-from primaite.simulator.network.airspace import AirSpace, AirSpaceFrequency, ChannelWidth, IPWirelessNetworkInterface
+from primaite.simulator.network.airspace import AirSpace, AirSpaceFrequency, IPWirelessNetworkInterface
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router, RouterInterface
 from primaite.simulator.network.transmission.data_link_layer import Frame
@@ -154,7 +154,6 @@ class WirelessRouter(Router):
         ip_address: IPV4Address,
         subnet_mask: IPV4Address,
         frequency: Optional[AirSpaceFrequency] = AirSpaceFrequency.WIFI_2_4,
-        channel_width: Optional[ChannelWidth] = ChannelWidth.WIDTH_40_MHZ,
     ):
         """
         Configures a wireless access point (WAP).
@@ -173,8 +172,6 @@ class WirelessRouter(Router):
         """
         if not frequency:
             frequency = AirSpaceFrequency.WIFI_2_4
-        if not channel_width:
-            channel_width = ChannelWidth.WIDTH_40_MHZ
         self.sys_log.info("Configuring wireless access point")
 
         self.wireless_access_point.disable()  # Temporarily disable the WAP for reconfiguration
@@ -185,7 +182,6 @@ class WirelessRouter(Router):
         network_interface.subnet_mask = subnet_mask
 
         self.wireless_access_point.frequency = frequency  # Set operating frequency
-        self.wireless_access_point.channel_width = channel_width
         self.wireless_access_point.enable()  # Re-enable the WAP with new settings
         self.sys_log.info(f"Configured WAP {network_interface}")
 
@@ -269,11 +265,8 @@ class WirelessRouter(Router):
             ip_address = cfg["wireless_access_point"]["ip_address"]
             subnet_mask = cfg["wireless_access_point"]["subnet_mask"]
             frequency = AirSpaceFrequency[cfg["wireless_access_point"]["frequency"]]
-            channel_width = cfg["wireless_access_point"].get("channel_width")
-            if channel_width:
-                channel_width = ChannelWidth(channel_width)
             router.configure_wireless_access_point(
-                ip_address=ip_address, subnet_mask=subnet_mask, frequency=frequency, channel_width=channel_width
+                ip_address=ip_address, subnet_mask=subnet_mask, frequency=frequency
             )
 
         if "acl" in cfg:

@@ -38,7 +38,6 @@ simulation:
           ip_address: 192.168.1.1
           subnet_mask: 255.255.255.0
           frequency: WIFI_5
-          channel_width: 80
         acl:
           1:
             action: PERMIT
@@ -60,7 +59,6 @@ simulation:
           ip_address: 192.168.1.2
           subnet_mask: 255.255.255.0
           frequency: WIFI_5
-          channel_width: 80
         acl:
           1:
             action: PERMIT
