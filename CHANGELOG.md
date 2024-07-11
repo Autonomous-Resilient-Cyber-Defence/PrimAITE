@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Bandwidth Tracking**: Tracks data transmission across each frequency/channel width pairing.
 -   **Configuration Support for Wireless Routers**: `channel_width` can now be configured in the config file under `wireless_access_point`.
 -   **New Tests**: Added to validate the respect of bandwidth capacities and the correct parsing of airspace configurations from YAML files.
+-   **New Logging**: Added a new agent behaviour log which are more human friendly than agent history. These Logs are found in session log directory and can be enabled in the I/O settings in a yaml configuration file.
 
 ### Changed
 
@@ -58,8 +59,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Activating dev-mode will change the location where the sessions will be output - by default will output where the PrimAITE repository is located
 - Refactored all air-space usage to that a new instance of AirSpace is created for each instance of Network. This 1:1 relationship between network and airspace will allow parallelization.
 - Added notebook to demonstrate use of SubprocVecEnv from SB3 to vectorise environments to speed up training.
-
-
 
 ## [Unreleased]
 - Made requests fail to reach their target if the node is off
