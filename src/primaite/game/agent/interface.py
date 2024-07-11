@@ -69,7 +69,7 @@ class AgentSettings(BaseModel):
     "Configuration for when an agent begins performing it's actions"
     flatten_obs: bool = True
     "Whether to flatten the observation space before passing it to the agent. True by default."
-    action_masking: bool = True
+    action_masking: bool = False
     "Whether to return action masks at each step."
 
     @classmethod

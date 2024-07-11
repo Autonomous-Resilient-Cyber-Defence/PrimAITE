@@ -174,6 +174,7 @@ class RequestManager(BaseModel):
         return requests
 
     def show(self) -> None:
+        """Display all currently available requests and whether they are valid."""
         table = PrettyTable(["request", "valid"])
         table.align = "l"
         table.add_rows(self.get_request_types_recursively())
