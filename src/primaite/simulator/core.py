@@ -165,7 +165,7 @@ class RequestManager(BaseModel):
 
         self.request_types.pop(name)
 
-    def get_request_types_recursively(self, _parent_valid: bool = True) -> List[Tuple[RequestFormat, bool]]:
+    def get_request_types_recursively(self) -> List[RequestFormat]:
         """
         Recursively generate request tree for this component.
 
@@ -178,18 +178,17 @@ class RequestManager(BaseModel):
         """
         requests = []
         for req_name, req in self.request_types.items():
-            valid = req.validator([], {}) and _parent_valid  # if parent is invalid, all children are invalid
             if isinstance(req.func, RequestManager):
-                sub_requests = req.func.get_request_types_recursively(valid)  # recurse
-                sub_requests = [([req_name] + a, valid) for a, valid in sub_requests]  # prepend parent request to leaf
+                sub_requests = req.func.get_request_types_recursively()  # recurse
+                sub_requests = [([req_name] + a) for a in sub_requests]  # prepend parent request to leaf
                 requests.extend(sub_requests)
             else:  # leaf node found
-                requests.append(([req_name], valid))
+                requests.append(req_name)
         return requests
 
     def show(self) -> None:
         """Display all currently available requests and whether they are valid."""
-        table = PrettyTable(["request", "valid"])
+        table = PrettyTable(["request"])
         table.align = "l"
         table.add_rows(self.get_request_types_recursively())
         print(table)

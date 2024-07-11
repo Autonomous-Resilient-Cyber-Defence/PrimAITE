@@ -646,6 +646,8 @@ simulation:
       dns_server: 192.168.1.10
       services:
       - type: DatabaseService
+        options:
+          backup_server_ip: 192.168.1.16
 
     - type: server
       hostname: backup_server

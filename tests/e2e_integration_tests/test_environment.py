@@ -70,8 +70,8 @@ class TestPrimaiteEnvironment:
         assert len(env.agents) == 2
         defender_1 = env.agents["defender_1"]
         defender_2 = env.agents["defender_2"]
-        assert (num_actions_1 := len(defender_1.action_manager.action_map)) == 74
-        assert (num_actions_2 := len(defender_2.action_manager.action_map)) == 74
+        assert (num_actions_1 := len(defender_1.action_manager.action_map)) == 78
+        assert (num_actions_2 := len(defender_2.action_manager.action_map)) == 78
 
         # ensure we can run all valid actions without error
         for act_1 in range(num_actions_1):
