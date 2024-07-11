@@ -43,7 +43,7 @@ class FileSystem(SimComponent):
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
         self._folder_exists = FileSystem._FolderExistsValidator(file_system=self)
-        self._folder_deleted = FileSystem._FolderNotDeletedValidator(file_system=self)
+        self._folder_not_deleted = FileSystem._FolderNotDeletedValidator(file_system=self)
         self._file_exists = FileSystem._FileExistsValidator(file_system=self)
 
         rm = super()._init_request_manager()
@@ -152,7 +152,7 @@ class FileSystem(SimComponent):
         self._folder_request_manager = RequestManager()
         rm.add_request(
             "folder",
-            RequestType(func=self._folder_request_manager, validator=self._folder_exists + self._folder_deleted),
+            RequestType(func=self._folder_request_manager, validator=self._folder_exists + self._folder_not_deleted),
         )
 
         self._file_request_manager = RequestManager()
