@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel, Field
@@ -59,6 +59,15 @@ class AirSpaceFrequency(Enum):
 
     @property
     def maximum_data_rate_bps(self) -> float:
+        """
+        Retrieves the maximum data transmission rate in bits per second (bps) for the frequency.
+
+        The maximum rates are predefined for known frequencies:
+            - For WIFI_2_4, it returns 100,000,000 bps (100 Mbps).
+            - For WIFI_5, it returns 500,000,000 bps (500 Mbps).
+
+        :return: The maximum data rate in bits per second. If the frequency is not recognized, returns 0.0.
+        """
         if self == AirSpaceFrequency.WIFI_2_4:
             return 100_000_000.0  # 100 Megabits per second
         if self == AirSpaceFrequency.WIFI_5:
@@ -67,6 +76,14 @@ class AirSpaceFrequency(Enum):
 
     @property
     def maximum_data_rate_mbps(self) -> float:
+        """
+        Retrieves the maximum data transmission rate in megabits per second (Mbps).
+
+        This is derived by converting the maximum data rate from bits per second, as defined
+        in `maximum_data_rate_bps`, to megabits per second.
+
+        :return: The maximum data rate in megabits per second.
+        """
         return self.maximum_data_rate_bps / 1_000_000.0
 
 
@@ -84,28 +101,33 @@ class AirSpace(BaseModel):
         default_factory=lambda: {}
     )
     bandwidth_load: Dict[AirSpaceFrequency, float] = Field(default_factory=lambda: {})
-    frequency_max_capacity_mbps: Dict[AirSpaceFrequency, float] = Field(default_factory=lambda: {})
+    frequency_max_capacity_mbps_: Dict[AirSpaceFrequency, float] = Field(default_factory=lambda: {})
 
-    def model_post_init(self, __context: Any) -> None:
+    def get_frequency_max_capacity_mbps(self, frequency: AirSpaceFrequency) -> float:
         """
-        Initialize the airspace metadata after instantiation.
+        Retrieves the maximum data transmission capacity for a specified frequency.
 
-        This method is called to set up initial configurations like the maximum capacity of each frequency.
+        This method checks a dictionary holding custom maximum capacities. If the frequency is found, it returns the
+        custom set maximum capacity. If the frequency is not found in the dictionary, it defaults to the standard
+        maximum data rate associated with that frequency.
 
-        :param __context: Contextual data or settings, typically used for further initializations beyond
-                          the basic constructor.
-        """
-        self.set_frequency_max_capacity_mbps()
+        :param frequency: The frequency for which the maximum capacity is queried.
 
-    def set_frequency_max_capacity_mbps(self, capacity_config: Optional[Dict[AirSpaceFrequency, float]] = None):
+        :return: The maximum capacity in Mbps for the specified frequency.
         """
-        Set the maximum channel capacity in Mbps for each frequency.
+        if frequency in self.frequency_max_capacity_mbps_:
+            return self.frequency_max_capacity_mbps_[frequency]
+        return frequency.maximum_data_rate_mbps
+
+    def set_frequency_max_capacity_mbps(self, cfg: Dict[AirSpaceFrequency, float]):
         """
-        if capacity_config is None:
-            capacity_config = {}
-        for frequency in AirSpaceFrequency:
-            max_capacity = capacity_config.get(frequency, frequency.maximum_data_rate_mbps)
-            self.frequency_max_capacity_mbps[frequency] = max_capacity
+        Sets custom maximum data transmission capacities for multiple frequencies.
+
+        :param cfg: A dictionary mapping frequencies to their new maximum capacities in Mbps.
+        """
+        self.frequency_max_capacity_mbps_ = cfg
+        for freq, mbps in cfg.items():
+            print(f"Overriding {freq} max capacity as {mbps:.3f} mbps")
 
     def show_bandwidth_load(self, markdown: bool = False):
         """
@@ -117,8 +139,6 @@ class AirSpace(BaseModel):
 
         :param markdown: Flag indicating if output should be in markdown format.
         """
-        if not self.frequency_max_capacity_mbps:
-            self.set_frequency_max_capacity_mbps()
         headers = ["Frequency", "Current Capacity (%)", "Maximum Capacity (Mbit)"]
         table = PrettyTable(headers)
         if markdown:
@@ -126,8 +146,8 @@ class AirSpace(BaseModel):
         table.align = "l"
         table.title = "Airspace Frequency Channel Loads"
         for frequency, load in self.bandwidth_load.items():
-            maximum_capacity = self.frequency_max_capacity_mbps[frequency]
-            load_percent = load / maximum_capacity
+            maximum_capacity = self.get_frequency_max_capacity_mbps(frequency)
+            load_percent = load / maximum_capacity if maximum_capacity > 0 else 0.0
             if load_percent > 1.0:
                 load_percent = 1.0
             table.add_row([format_hertz(frequency.value), f"{load_percent:.0%}", f"{maximum_capacity:.3f}"])
@@ -152,7 +172,7 @@ class AirSpace(BaseModel):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"Devices on Air Space"
+        table.title = "Devices on Air Space"
 
         for interface in self.wireless_interfaces.values():
             status = "Enabled" if interface.enabled else "Disabled"
@@ -235,14 +255,11 @@ class AirSpace(BaseModel):
              relevant frequency and its current bandwidth load.
         :return: True if the frame can be transmitted within the bandwidth limit, False if it would exceed the limit.
         """
-        if not self.frequency_max_capacity_mbps:
-            self.set_frequency_max_capacity_mbps()
         if sender_network_interface.frequency not in self.bandwidth_load:
             self.bandwidth_load[sender_network_interface.frequency] = 0.0
-        return (
-            self.bandwidth_load[sender_network_interface.frequency] + frame.size_Mbits
-            <= self.frequency_max_capacity_mbps[sender_network_interface.frequency]
-        )
+        return self.bandwidth_load[
+            sender_network_interface.frequency
+        ] + frame.size_Mbits <= self.get_frequency_max_capacity_mbps(sender_network_interface.frequency)
 
     def transmit(self, frame: Frame, sender_network_interface: WirelessNetworkInterface):
         """
@@ -255,9 +272,7 @@ class AirSpace(BaseModel):
             excluded from the list of receivers to prevent it from receiving its own transmission.
         """
         self.bandwidth_load[sender_network_interface.frequency] += frame.size_Mbits
-        for wireless_interface in self.wireless_interfaces_by_frequency.get(
-            sender_network_interface.frequency, []
-        ):
+        for wireless_interface in self.wireless_interfaces_by_frequency.get(sender_network_interface.frequency, []):
             if wireless_interface != sender_network_interface and wireless_interface.enabled:
                 wireless_interface.receive_frame(frame)
 

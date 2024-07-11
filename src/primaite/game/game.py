@@ -16,6 +16,7 @@ from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
+from primaite.simulator.network.airspace import AirSpaceFrequency
 from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
@@ -237,6 +238,11 @@ class PrimaiteGame:
         simulation_config = cfg.get("simulation", {})
         network_config = simulation_config.get("network", {})
         airspace_cfg = network_config.get("airspace", {})
+        frequency_max_capacity_mbps_cfg = airspace_cfg.get("frequency_max_capacity_mbps", {})
+
+        frequency_max_capacity_mbps_cfg = {AirSpaceFrequency[k]: v for k, v in frequency_max_capacity_mbps_cfg.items()}
+
+        net.airspace.frequency_max_capacity_mbps_ = frequency_max_capacity_mbps_cfg
 
         nodes_cfg = network_config.get("nodes", [])
         links_cfg = network_config.get("links", [])

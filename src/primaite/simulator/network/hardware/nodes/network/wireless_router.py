@@ -265,9 +265,7 @@ class WirelessRouter(Router):
             ip_address = cfg["wireless_access_point"]["ip_address"]
             subnet_mask = cfg["wireless_access_point"]["subnet_mask"]
             frequency = AirSpaceFrequency[cfg["wireless_access_point"]["frequency"]]
-            router.configure_wireless_access_point(
-                ip_address=ip_address, subnet_mask=subnet_mask, frequency=frequency
-            )
+            router.configure_wireless_access_point(ip_address=ip_address, subnet_mask=subnet_mask, frequency=frequency)
 
         if "acl" in cfg:
             for r_num, r_cfg in cfg["acl"].items():
