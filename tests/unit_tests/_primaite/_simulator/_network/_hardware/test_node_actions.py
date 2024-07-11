@@ -155,3 +155,39 @@ def test_reset_node(node):
             assert node.operating_state == NodeOperatingState.BOOTING
 
     assert node.operating_state == NodeOperatingState.ON
+
+
+def test_node_is_on_validator(node):
+    """Test that the node is on validator."""
+    node.power_on()
+
+    for i in range(node.start_up_duration + 1):
+        node.apply_timestep(i)
+
+    validator = Node._NodeIsOnValidator(node=node)
+
+    assert validator(request=[], context={})
+
+    node.power_off()
+    for i in range(node.shut_down_duration + 1):
+        node.apply_timestep(i)
+
+    assert validator(request=[], context={}) is False
+
+
+def test_node_is_off_validator(node):
+    """Test that the node is on validator."""
+    node.power_on()
+
+    for i in range(node.start_up_duration + 1):
+        node.apply_timestep(i)
+
+    validator = Node._NodeIsOffValidator(node=node)
+
+    assert validator(request=[], context={}) is False
+
+    node.power_off()
+    for i in range(node.shut_down_duration + 1):
+        node.apply_timestep(i)
+
+    assert validator(request=[], context={})

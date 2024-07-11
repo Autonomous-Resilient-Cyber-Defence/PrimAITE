@@ -178,3 +178,28 @@ def test_deleted_folder_and_its_files_cannot_be_interacted_with(populated_file_s
     deleted_file = deleted_folder.deleted_files.get(file.uuid)
 
     assert deleted_file.health_status is not FileSystemItemHealthStatus.GOOD
+
+
+def test_file_exists_request_validator(populated_file_system):
+    """Tests that the _FolderExistsValidator works as intended."""
+    fs, folder, file = populated_file_system
+    validator = Folder._FileExistsValidator(folder=folder)
+
+    assert validator(request=["test_file.txt"], context={})  # test_file.txt exists
+    assert validator(request=["fake_file.txt"], context={}) is False  # fake_file.txt does not exist
+
+    assert validator.fail_message == "Cannot perform request on a file that does not exist."
+
+
+def test_file_not_deleted_request_validator(populated_file_system):
+    """Tests that the _FolderExistsValidator works as intended."""
+    fs, folder, file = populated_file_system
+    validator = Folder._FileNotDeletedValidator(folder=folder)
+
+    assert validator(request=["test_file.txt"], context={})  # test_file.txt is not deleted
+
+    fs.delete_file(folder_name="test_folder", file_name="test_file.txt")
+
+    assert validator(request=["fake_file.txt"], context={}) is False  # test_file.txt is deleted
+
+    assert validator.fail_message == "Cannot perform request on a file that is deleted."

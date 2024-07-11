@@ -56,6 +56,7 @@ class Folder(FileSystemItemABC):
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
         self._file_exists = Folder._FileExistsValidator(folder=self)
+        self._file_not_deleted = Folder._FileNotDeletedValidator(folder=self)
 
         rm = super()._init_request_manager()
         rm.add_request(
@@ -67,7 +68,9 @@ class Folder(FileSystemItemABC):
         self._file_request_manager = RequestManager()
         rm.add_request(
             name="file",
-            request_type=RequestType(func=self._file_request_manager, validator=self._file_exists),
+            request_type=RequestType(
+                func=self._file_request_manager, validator=self._file_exists + self._file_not_deleted
+            ),
         )
         return rm
 
@@ -489,4 +492,24 @@ class Folder(FileSystemItemABC):
         @property
         def fail_message(self) -> str:
             """Message that is reported when a request is rejected by this validator."""
-            return "Cannot perform request on file that does not exist."
+            return "Cannot perform request on a file that does not exist."
+
+    class _FileNotDeletedValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the File is not deleted.
+
+        Actions cannot be performed on a deleted file.
+        """
+
+        folder: Folder
+        """Save a reference to the Folder instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Returns True if file exists and is not deleted."""
+            file = self.folder.get_file(file_name=request[0])
+            return file is not None and not file.deleted
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return "Cannot perform request on a file that is deleted."

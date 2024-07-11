@@ -155,7 +155,7 @@ def test_nic_monitored_traffic(simulation):
     assert traffic_obs["icmp"]["outbound"] == 0
 
     # send a ping
-    pc.ping(target_ip_address=pc2.network_interface[1].ip_address)
+    assert pc.ping(target_ip_address=pc2.network_interface[1].ip_address)
     traffic_obs = nic_obs.observe(simulation.describe_state()).get("TRAFFIC")
 
     assert traffic_obs["icmp"]["inbound"] == 1
@@ -178,7 +178,7 @@ def test_nic_monitored_traffic(simulation):
     traffic_obs = nic_obs.observe(simulation.describe_state()).get("TRAFFIC")
     assert traffic_obs["icmp"]["inbound"] == 0
     assert traffic_obs["icmp"]["outbound"] == 0
-    assert traffic_obs["tcp"][53]["inbound"] == 0
+    assert traffic_obs["tcp"][53]["inbound"] == 1
     assert traffic_obs["tcp"][53]["outbound"] == 1  # getting a webpage sent a dns request out
 
     simulation.pre_timestep(2)  # apply timestep to whole sim

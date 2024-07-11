@@ -653,7 +653,7 @@ class FileSystem(SimComponent):
         @property
         def fail_message(self) -> str:
             """Message that is reported when a request is rejected by this validator."""
-            return "Cannot perform request on folder because it does not exist"
+            return "Cannot perform request on folder because it does not exist."
 
     class _FolderNotDeletedValidator(RequestPermissionValidator):
         """
@@ -693,4 +693,4 @@ class FileSystem(SimComponent):
         @property
         def fail_message(self) -> str:
             """Message that is reported when a request is rejected by this validator."""
-            return "Cannot perform request on file that does not exist."
+            return "Cannot perform request on a file that does not exist."
