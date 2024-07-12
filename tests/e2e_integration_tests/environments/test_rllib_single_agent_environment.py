@@ -3,7 +3,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-import ray
 import yaml
 from ray.rllib.algorithms import ppo
 
