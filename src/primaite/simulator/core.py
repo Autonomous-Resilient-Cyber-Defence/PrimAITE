@@ -179,18 +179,18 @@ class RequestManager(BaseModel):
         requests = []
         for req_name, req in self.request_types.items():
             if isinstance(req.func, RequestManager):
-                sub_requests = req.func.get_request_types_recursively()  # recurse
-                sub_requests = [([req_name] + a) for a in sub_requests]  # prepend parent request to leaf
+                sub_requests = req.func.get_request_types_recursively()
+                sub_requests = [[req_name] + a for a in sub_requests]
                 requests.extend(sub_requests)
-            else:  # leaf node found
-                requests.append(req_name)
+            else:
+                requests.append([req_name])
         return requests
 
     def show(self) -> None:
-        """Display all currently available requests and whether they are valid."""
-        table = PrettyTable(["request"])
+        """Display all currently available requests."""
+        table = PrettyTable(["requests"])
         table.align = "l"
-        table.add_rows(self.get_request_types_recursively())
+        table.add_rows([[x] for x in self.get_request_types_recursively()])
         print(table)
 
     def check_valid(self, request: RequestFormat, context: Dict) -> bool:

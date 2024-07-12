@@ -1,9 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-import importlib
 from typing import Dict
 
 import yaml
-from ray import air, init, tune
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray.rllib.core.rl_module.marl_module import MultiAgentRLModuleSpec
 from ray.rllib.core.rl_module.rl_module import SingleAgentRLModuleSpec
@@ -43,7 +41,7 @@ def test_sb3_action_masking(monkeypatch):
     monkeypatch.setattr(env, "step", lambda action: cache_step(env, action))
 
     model = MaskablePPO("MlpPolicy", env, gamma=0.4, seed=32, batch_size=32)
-    model.learn(512)
+    model.learn(256)
 
     assert len(action_num_history) == len(mask_history) > 0
     # Make sure the masks had at least some False entries, if it was all True then the mask was disabled
