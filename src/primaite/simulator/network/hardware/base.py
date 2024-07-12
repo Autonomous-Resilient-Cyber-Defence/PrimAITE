@@ -89,7 +89,7 @@ class NetworkInterface(SimComponent, ABC):
     mac_address: str = Field(default_factory=generate_mac_address)
     "The MAC address of the interface."
 
-    speed: int = 100
+    speed: float = 100.0
     "The speed of the interface in Mbps. Default is 100 Mbps."
 
     mtu: int = 1500
@@ -132,10 +132,25 @@ class NetworkInterface(SimComponent, ABC):
 
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
+        _is_network_interface_enabled = NetworkInterface._EnabledValidator(network_interface=self)
+        _is_network_interface_disabled = NetworkInterface._DisabledValidator(network_interface=self)
+
         rm = super()._init_request_manager()
 
-        rm.add_request("enable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.enable())))
-        rm.add_request("disable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.disable())))
+        rm.add_request(
+            "enable",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.enable()),
+                validator=_is_network_interface_disabled,
+            ),
+        )
+        rm.add_request(
+            "disable",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.disable()),
+                validator=_is_network_interface_enabled,
+            ),
+        )
 
         return rm
 
@@ -334,6 +349,50 @@ class NetworkInterface(SimComponent, ABC):
         super().pre_timestep(timestep)
         self.traffic = {}
 
+    class _EnabledValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the NetworkInterface is enabled.
+
+        This is useful because most actions should be being resolved if the NetworkInterface is disabled.
+        """
+
+        network_interface: NetworkInterface
+        """Save a reference to the node instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the NetworkInterface is enabled or not."""
+            return self.network_interface.enabled
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return (
+                f"Cannot perform request on NetworkInterface "
+                f"'{self.network_interface.mac_address}' because it is not enabled."
+            )
+
+    class _DisabledValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the NetworkInterface is disabled.
+
+        This is useful because some actions should be being resolved if the NetworkInterface is disabled.
+        """
+
+        network_interface: NetworkInterface
+        """Save a reference to the node instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the NetworkInterface is disabled or not."""
+            return not self.network_interface.enabled
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return (
+                f"Cannot perform request on NetworkInterface "
+                f"'{self.network_interface.mac_address}' because it is not disabled."
+            )
+
 
 class WiredNetworkInterface(NetworkInterface, ABC):
     """
@@ -442,14 +501,17 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         :param frame: The network frame to be sent.
         :return: True if the frame is sent, False if the Network Interface is disabled or not connected to a link.
         """
+        if not self.enabled:
+            return False
+        if not self._connected_link.can_transmit_frame(frame):
+            # Drop frame for now. Queuing will happen here (probably) if it's done in the future.
+            self._connected_node.sys_log.info(f"{self}: Frame dropped as Link is at capacity")
+            return False
         super().send_frame(frame)
-        if self.enabled:
-            frame.set_sent_timestamp()
-            self.pcap.capture_outbound(frame)
-            self._connected_link.transmit_frame(sender_nic=self, frame=frame)
-            return True
-        # Cannot send Frame as the NIC is not enabled
-        return False
+        frame.set_sent_timestamp()
+        self.pcap.capture_outbound(frame)
+        self._connected_link.transmit_frame(sender_nic=self, frame=frame)
+        return True
 
     @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
@@ -680,12 +742,21 @@ class Link(SimComponent):
         """
         return self.endpoint_a.enabled and self.endpoint_b.enabled
 
-    def _can_transmit(self, frame: Frame) -> bool:
+    def can_transmit_frame(self, frame: Frame) -> bool:
+        """
+        Determines whether a frame can be transmitted considering the current Link load and the Link's bandwidth.
+
+        This method assesses if the transmission of a given frame is possible without exceeding the Link's total
+        bandwidth capacity. It checks if the current load of the Link plus the size of the frame (expressed in Mbps)
+        would remain within the defined bandwidth limits. The transmission is only feasible if the Link is active
+        ('up') and the total load including the new frame does not surpass the bandwidth limit.
+
+        :param frame: The frame intended for transmission, which contains its size in Mbps.
+        :return: True if the frame can be transmitted without exceeding the bandwidth limit, False otherwise.
+        """
         if self.is_up:
             frame_size_Mbits = frame.size_Mbits  # noqa - Leaving it as Mbits as this is how they're expressed
-            # return self.current_load + frame_size_Mbits <= self.bandwidth
-            # TODO: re add this check once packet size limiting and MTU checks are implemented
-            return True
+            return self.current_load + frame.size_Mbits <= self.bandwidth
         return False
 
     def transmit_frame(self, sender_nic: WiredNetworkInterface, frame: Frame) -> bool:
@@ -696,11 +767,6 @@ class Link(SimComponent):
         :param frame: The network frame to be sent.
         :return: True if the Frame can be sent, otherwise False.
         """
-        can_transmit = self._can_transmit(frame)
-        if not can_transmit:
-            _LOGGER.debug(f"Cannot transmit frame as {self} is at capacity")
-            return False
-
         receiver = self.endpoint_a
         if receiver == sender_nic:
             receiver = self.endpoint_b
@@ -889,6 +955,25 @@ class Node(SimComponent):
             """Message that is reported when a request is rejected by this validator."""
             return f"Cannot perform request on node '{self.node.hostname}' because it is not powered on."
 
+    class _NodeIsOffValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the node is off.
+
+        This is useful because some actions require the node to be in an off state.
+        """
+
+        node: Node
+        """Save a reference to the node instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the node is on or off."""
+            return self.node.operating_state == NodeOperatingState.OFF
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return f"Cannot perform request on node '{self.node.hostname}' because it is not turned off."
+
     def _init_request_manager(self) -> RequestManager:
         """
         Initialise the request manager.
@@ -951,6 +1036,7 @@ class Node(SimComponent):
                 return RequestResponse.from_bool(False)
 
         _node_is_on = Node._NodeIsOnValidator(node=self)
+        _node_is_off = Node._NodeIsOffValidator(node=self)
 
         rm = super()._init_request_manager()
         # since there are potentially many services, create an request manager that can map service name
@@ -980,7 +1066,12 @@ class Node(SimComponent):
                 func=lambda request, context: RequestResponse.from_bool(self.power_off()), validator=_node_is_on
             ),
         )
-        rm.add_request("startup", RequestType(func=lambda request, context: RequestResponse.from_bool(self.power_on())))
+        rm.add_request(
+            "startup",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.power_on()), validator=_node_is_off
+            ),
+        )
         rm.add_request(
             "reset",
             RequestType(func=lambda request, context: RequestResponse.from_bool(self.reset()), validator=_node_is_on),

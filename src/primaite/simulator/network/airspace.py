@@ -3,9 +3,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from prettytable import PrettyTable
+from prettytable import MARKDOWN, PrettyTable
+from pydantic import BaseModel, Field
 
 from primaite import getLogger
 from primaite.simulator.network.hardware.base import Layer3Interface, NetworkInterface, WiredNetworkInterface
@@ -15,90 +16,29 @@ from primaite.simulator.system.core.packet_capture import PacketCapture
 
 _LOGGER = getLogger(__name__)
 
-__all__ = ["AirSpaceFrequency", "WirelessNetworkInterface", "IPWirelessNetworkInterface"]
 
+def format_hertz(hertz: float, format_terahertz: bool = False, decimals: int = 3) -> str:
+    """
+    Convert a frequency in Hertz to a formatted string using the most appropriate unit.
 
-class AirSpace:
-    """Represents a wireless airspace, managing wireless network interfaces and handling wireless transmission."""
+    Optionally includes formatting for Terahertz.
 
-    def __init__(self):
-        self._wireless_interfaces: Dict[str, WirelessNetworkInterface] = {}
-        self._wireless_interfaces_by_frequency: Dict[AirSpaceFrequency, List[WirelessNetworkInterface]] = {}
-
-    def show(self, frequency: Optional[AirSpaceFrequency] = None):
-        """
-        Displays a summary of wireless interfaces in the airspace, optionally filtered by a specific frequency.
-
-        :param frequency: The frequency band to filter devices by. If None, devices for all frequencies are shown.
-        """
-        table = PrettyTable()
-        table.field_names = ["Connected Node", "MAC Address", "IP Address", "Subnet Mask", "Frequency", "Status"]
-
-        # If a specific frequency is provided, filter by it; otherwise, use all frequencies.
-        frequencies_to_show = [frequency] if frequency else self._wireless_interfaces_by_frequency.keys()
-
-        for freq in frequencies_to_show:
-            interfaces = self._wireless_interfaces_by_frequency.get(freq, [])
-            for interface in interfaces:
-                status = "Enabled" if interface.enabled else "Disabled"
-                table.add_row(
-                    [
-                        interface._connected_node.hostname,  # noqa
-                        interface.mac_address,
-                        interface.ip_address if hasattr(interface, "ip_address") else None,
-                        interface.subnet_mask if hasattr(interface, "subnet_mask") else None,
-                        str(freq),
-                        status,
-                    ]
-                )
-
-        print(table)
-
-    def add_wireless_interface(self, wireless_interface: WirelessNetworkInterface):
-        """
-        Adds a wireless network interface to the airspace if it's not already present.
-
-        :param wireless_interface: The wireless network interface to be added.
-        """
-        if wireless_interface.mac_address not in self._wireless_interfaces:
-            self._wireless_interfaces[wireless_interface.mac_address] = wireless_interface
-            if wireless_interface.frequency not in self._wireless_interfaces_by_frequency:
-                self._wireless_interfaces_by_frequency[wireless_interface.frequency] = []
-            self._wireless_interfaces_by_frequency[wireless_interface.frequency].append(wireless_interface)
-
-    def remove_wireless_interface(self, wireless_interface: WirelessNetworkInterface):
-        """
-        Removes a wireless network interface from the airspace if it's present.
-
-        :param wireless_interface: The wireless network interface to be removed.
-        """
-        if wireless_interface.mac_address in self._wireless_interfaces:
-            self._wireless_interfaces.pop(wireless_interface.mac_address)
-            self._wireless_interfaces_by_frequency[wireless_interface.frequency].remove(wireless_interface)
-
-    def clear(self):
-        """
-        Clears all wireless network interfaces and their frequency associations from the airspace.
-
-        After calling this method, the airspace will contain no wireless network interfaces, and transmissions cannot
-        occur until new interfaces are added again.
-        """
-        self._wireless_interfaces.clear()
-        self._wireless_interfaces_by_frequency.clear()
-
-    def transmit(self, frame: Frame, sender_network_interface: WirelessNetworkInterface):
-        """
-        Transmits a frame to all enabled wireless network interfaces on a specific frequency within the airspace.
-
-        This ensures that a wireless interface does not receive its own transmission.
-
-        :param frame: The frame to be transmitted.
-        :param sender_network_interface: The wireless network interface sending the frame. This interface will be
-            excluded from the list of receivers to prevent it from receiving its own transmission.
-        """
-        for wireless_interface in self._wireless_interfaces_by_frequency.get(sender_network_interface.frequency, []):
-            if wireless_interface != sender_network_interface and wireless_interface.enabled:
-                wireless_interface.receive_frame(frame)
+    :param hertz: Frequency in Hertz.
+    :param format_terahertz: Whether to format frequency in Terahertz, default is False.
+    :param decimals: Number of decimal places to round to, default is 3.
+    :returns: Formatted string with the frequency in the most suitable unit.
+    """
+    format_str = f"{{:.{decimals}f}}"
+    if format_terahertz and hertz >= 1e12:  # Terahertz
+        return format_str.format(hertz / 1e12) + " THz"
+    elif hertz >= 1e9:  # Gigahertz
+        return format_str.format(hertz / 1e9) + " GHz"
+    elif hertz >= 1e6:  # Megahertz
+        return format_str.format(hertz / 1e6) + " MHz"
+    elif hertz >= 1e3:  # Kilohertz
+        return format_str.format(hertz / 1e3) + " kHz"
+    else:  # Hertz
+        return format_str.format(hertz) + " Hz"
 
 
 class AirSpaceFrequency(Enum):
@@ -110,12 +50,231 @@ class AirSpaceFrequency(Enum):
     """WiFi 5 GHz. Known for its higher data transmission speeds and reduced interference from other devices."""
 
     def __str__(self) -> str:
+        hertz_str = format_hertz(hertz=self.value)
         if self == AirSpaceFrequency.WIFI_2_4:
-            return "WiFi 2.4 GHz"
-        elif self == AirSpaceFrequency.WIFI_5:
-            return "WiFi 5 GHz"
-        else:
-            return "Unknown Frequency"
+            return f"WiFi {hertz_str}"
+        if self == AirSpaceFrequency.WIFI_5:
+            return f"WiFi {hertz_str}"
+        return "Unknown Frequency"
+
+    @property
+    def maximum_data_rate_bps(self) -> float:
+        """
+        Retrieves the maximum data transmission rate in bits per second (bps) for the frequency.
+
+        The maximum rates are predefined for known frequencies:
+            - For WIFI_2_4, it returns 100,000,000 bps (100 Mbps).
+            - For WIFI_5, it returns 500,000,000 bps (500 Mbps).
+
+        :return: The maximum data rate in bits per second. If the frequency is not recognized, returns 0.0.
+        """
+        if self == AirSpaceFrequency.WIFI_2_4:
+            return 100_000_000.0  # 100 Megabits per second
+        if self == AirSpaceFrequency.WIFI_5:
+            return 500_000_000.0  # 500 Megabits per second
+        return 0.0
+
+    @property
+    def maximum_data_rate_mbps(self) -> float:
+        """
+        Retrieves the maximum data transmission rate in megabits per second (Mbps).
+
+        This is derived by converting the maximum data rate from bits per second, as defined
+        in `maximum_data_rate_bps`, to megabits per second.
+
+        :return: The maximum data rate in megabits per second.
+        """
+        return self.maximum_data_rate_bps / 1_000_000.0
+
+
+class AirSpace(BaseModel):
+    """
+    Represents a wireless airspace, managing wireless network interfaces and handling wireless transmission.
+
+    This class provides functionalities to manage a collection of wireless network interfaces, each associated with
+    specific frequencies. It includes methods to add and remove wireless interfaces, and handle data transmission
+    across these interfaces.
+    """
+
+    wireless_interfaces: Dict[str, WirelessNetworkInterface] = Field(default_factory=lambda: {})
+    wireless_interfaces_by_frequency: Dict[AirSpaceFrequency, List[WirelessNetworkInterface]] = Field(
+        default_factory=lambda: {}
+    )
+    bandwidth_load: Dict[AirSpaceFrequency, float] = Field(default_factory=lambda: {})
+    frequency_max_capacity_mbps_: Dict[AirSpaceFrequency, float] = Field(default_factory=lambda: {})
+
+    def get_frequency_max_capacity_mbps(self, frequency: AirSpaceFrequency) -> float:
+        """
+        Retrieves the maximum data transmission capacity for a specified frequency.
+
+        This method checks a dictionary holding custom maximum capacities. If the frequency is found, it returns the
+        custom set maximum capacity. If the frequency is not found in the dictionary, it defaults to the standard
+        maximum data rate associated with that frequency.
+
+        :param frequency: The frequency for which the maximum capacity is queried.
+
+        :return: The maximum capacity in Mbps for the specified frequency.
+        """
+        if frequency in self.frequency_max_capacity_mbps_:
+            return self.frequency_max_capacity_mbps_[frequency]
+        return frequency.maximum_data_rate_mbps
+
+    def set_frequency_max_capacity_mbps(self, cfg: Dict[AirSpaceFrequency, float]):
+        """
+        Sets custom maximum data transmission capacities for multiple frequencies.
+
+        :param cfg: A dictionary mapping frequencies to their new maximum capacities in Mbps.
+        """
+        self.frequency_max_capacity_mbps_ = cfg
+        for freq, mbps in cfg.items():
+            print(f"Overriding {freq} max capacity as {mbps:.3f} mbps")
+
+    def show_bandwidth_load(self, markdown: bool = False):
+        """
+        Prints a table of the current bandwidth load for each frequency on the airspace.
+
+        This method prints a tabulated view showing the utilisation of available bandwidth capacities for all
+        frequencies. The table includes the current capacity usage as a percentage of the maximum capacity, alongside
+        the absolute maximum capacity values in Mbps.
+
+        :param markdown: Flag indicating if output should be in markdown format.
+        """
+        headers = ["Frequency", "Current Capacity (%)", "Maximum Capacity (Mbit)"]
+        table = PrettyTable(headers)
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = "Airspace Frequency Channel Loads"
+        for frequency, load in self.bandwidth_load.items():
+            maximum_capacity = self.get_frequency_max_capacity_mbps(frequency)
+            load_percent = load / maximum_capacity if maximum_capacity > 0 else 0.0
+            if load_percent > 1.0:
+                load_percent = 1.0
+            table.add_row([format_hertz(frequency.value), f"{load_percent:.0%}", f"{maximum_capacity:.3f}"])
+        print(table)
+
+    def show_wireless_interfaces(self, markdown: bool = False):
+        """
+        Prints a table of wireless interfaces in the airspace.
+
+        :param markdown: Flag indicating if output should be in markdown format.
+        """
+        headers = [
+            "Connected Node",
+            "MAC Address",
+            "IP Address",
+            "Subnet Mask",
+            "Frequency",
+            "Speed (Mbps)",
+            "Status",
+        ]
+        table = PrettyTable(headers)
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = "Devices on Air Space"
+
+        for interface in self.wireless_interfaces.values():
+            status = "Enabled" if interface.enabled else "Disabled"
+            table.add_row(
+                [
+                    interface._connected_node.hostname,  # noqa
+                    interface.mac_address,
+                    interface.ip_address if hasattr(interface, "ip_address") else None,
+                    interface.subnet_mask if hasattr(interface, "subnet_mask") else None,
+                    format_hertz(interface.frequency.value),
+                    f"{interface.speed:.3f}",
+                    status,
+                ]
+            )
+        print(table.get_string(sortby="Frequency"))
+
+    def show(self, markdown: bool = False):
+        """
+        Prints a summary of the current state of the airspace, including both wireless interfaces and bandwidth loads.
+
+        This method is a convenient wrapper that calls two separate methods to display detailed tables: one for
+        wireless interfaces and another for bandwidth load across all frequencies managed within the airspace. It
+        provides a holistic view of the operational status and performance metrics of the airspace.
+
+        :param markdown: Flag indicating if output should be in markdown format.
+        """
+        self.show_wireless_interfaces(markdown)
+        self.show_bandwidth_load(markdown)
+
+    def add_wireless_interface(self, wireless_interface: WirelessNetworkInterface):
+        """
+        Adds a wireless network interface to the airspace if it's not already present.
+
+        :param wireless_interface: The wireless network interface to be added.
+        """
+        if wireless_interface.mac_address not in self.wireless_interfaces:
+            self.wireless_interfaces[wireless_interface.mac_address] = wireless_interface
+            if wireless_interface.frequency not in self.wireless_interfaces_by_frequency:
+                self.wireless_interfaces_by_frequency[wireless_interface.frequency] = []
+            self.wireless_interfaces_by_frequency[wireless_interface.frequency].append(wireless_interface)
+
+    def remove_wireless_interface(self, wireless_interface: WirelessNetworkInterface):
+        """
+        Removes a wireless network interface from the airspace if it's present.
+
+        :param wireless_interface: The wireless network interface to be removed.
+        """
+        if wireless_interface.mac_address in self.wireless_interfaces:
+            self.wireless_interfaces.pop(wireless_interface.mac_address)
+            self.wireless_interfaces_by_frequency[wireless_interface.frequency].remove(wireless_interface)
+
+    def clear(self):
+        """
+        Clears all wireless network interfaces and their frequency associations from the airspace.
+
+        After calling this method, the airspace will contain no wireless network interfaces, and transmissions cannot
+        occur until new interfaces are added again.
+        """
+        self.wireless_interfaces.clear()
+        self.wireless_interfaces_by_frequency.clear()
+
+    def reset_bandwidth_load(self):
+        """
+        Resets the bandwidth load tracking for all frequencies in the airspace.
+
+        This method clears the current load metrics for all operating frequencies, effectively setting the load to zero.
+        """
+        self.bandwidth_load = {}
+
+    def can_transmit_frame(self, frame: Frame, sender_network_interface: WirelessNetworkInterface) -> bool:
+        """
+        Determines if a frame can be transmitted by the sender network interface based on the current bandwidth load.
+
+        This method checks if adding the size of the frame to the current bandwidth load of the frequency used by the
+        sender network interface would exceed the maximum allowed bandwidth for that frequency. It returns True if the
+        frame can be transmitted without exceeding the limit, and False otherwise.
+
+        :param frame: The frame to be transmitted, used to check its size against the frequency's bandwidth limit.
+        :param sender_network_interface: The network interface attempting to transmit the frame, used to determine the
+             relevant frequency and its current bandwidth load.
+        :return: True if the frame can be transmitted within the bandwidth limit, False if it would exceed the limit.
+        """
+        if sender_network_interface.frequency not in self.bandwidth_load:
+            self.bandwidth_load[sender_network_interface.frequency] = 0.0
+        return self.bandwidth_load[
+            sender_network_interface.frequency
+        ] + frame.size_Mbits <= self.get_frequency_max_capacity_mbps(sender_network_interface.frequency)
+
+    def transmit(self, frame: Frame, sender_network_interface: WirelessNetworkInterface):
+        """
+        Transmits a frame to all enabled wireless network interfaces on a specific frequency within the airspace.
+
+        This ensures that a wireless interface does not receive its own transmission.
+
+        :param frame: The frame to be transmitted.
+        :param sender_network_interface: The wireless network interface sending the frame. This interface will be
+            excluded from the list of receivers to prevent it from receiving its own transmission.
+        """
+        self.bandwidth_load[sender_network_interface.frequency] += frame.size_Mbits
+        for wireless_interface in self.wireless_interfaces_by_frequency.get(sender_network_interface.frequency, []):
+            if wireless_interface != sender_network_interface and wireless_interface.enabled:
+                wireless_interface.receive_frame(frame)
 
 
 class WirelessNetworkInterface(NetworkInterface, ABC):
@@ -185,13 +344,18 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
         :param frame: The network frame to be sent.
         :return: True if the frame is sent successfully, False if the network interface is disabled.
         """
-        if self.enabled:
-            frame.set_sent_timestamp()
-            self.pcap.capture_outbound(frame)
-            self.airspace.transmit(frame, self)
-            return True
-        # Cannot send Frame as the network interface is not enabled
-        return False
+        if not self.enabled:
+            return False
+        if not self.airspace.can_transmit_frame(frame, self):
+            # Drop frame for now. Queuing will happen here (probably) if it's done in the future.
+            self._connected_node.sys_log.info(f"{self}: Frame dropped as Link is at capacity")
+            return False
+
+        super().send_frame(frame)
+        frame.set_sent_timestamp()
+        self.pcap.capture_outbound(frame)
+        self.airspace.transmit(frame, self)
+        return True
 
     def receive_frame(self, frame: Frame) -> bool:
         """
