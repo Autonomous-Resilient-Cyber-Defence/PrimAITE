@@ -9,8 +9,6 @@ game:
 
 simulation:
   network:
-    airspace:
-      airspace_environment_type: urban
     nodes:
       - type: computer
         hostname: pc_a

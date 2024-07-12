@@ -40,30 +40,6 @@ def test_wireless_link_loading(wireless_wan_network):
     client.network_interface[1]._connected_link.pre_timestep(1)
     server.network_interface[1]._connected_link.pre_timestep(1)
 
-    assert ftp_client.send_file(
-        src_file_name="mixtape.mp3",
-        src_folder_name="music",
-        dest_ip_address=server.network_interface[1].ip_address,
-        dest_file_name="mixtape1.mp3",
-        dest_folder_name="music",
-    )
-
-    # Reset the physical links between the host nodes and the routers
-    client.network_interface[1]._connected_link.pre_timestep(1)
-    server.network_interface[1]._connected_link.pre_timestep(1)
-
-    assert ftp_client.send_file(
-        src_file_name="mixtape.mp3",
-        src_folder_name="music",
-        dest_ip_address=server.network_interface[1].ip_address,
-        dest_file_name="mixtape2.mp3",
-        dest_folder_name="music",
-    )
-
-    # Reset the physical links between the host nodes and the routers
-    client.network_interface[1]._connected_link.pre_timestep(1)
-    server.network_interface[1]._connected_link.pre_timestep(1)
-
     assert not ftp_client.send_file(
         src_file_name="mixtape.mp3",
         src_folder_name="music",

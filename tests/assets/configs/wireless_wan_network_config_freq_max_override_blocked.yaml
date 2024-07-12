@@ -10,7 +10,9 @@ game:
 simulation:
   network:
     airspace:
-      airspace_environment_type: urban
+      frequency_max_capacity_mbps:
+        WIFI_2_4: 0.0
+        WIFI_5: 0.0
     nodes:
       - type: computer
         hostname: pc_a
@@ -37,8 +39,7 @@ simulation:
         wireless_access_point:
           ip_address: 192.168.1.1
           subnet_mask: 255.255.255.0
-          frequency: WIFI_5
-          channel_width: 80
+          frequency: WIFI_2_4
         acl:
           1:
             action: PERMIT
@@ -59,8 +60,7 @@ simulation:
         wireless_access_point:
           ip_address: 192.168.1.2
           subnet_mask: 255.255.255.0
-          frequency: WIFI_5
-          channel_width: 80
+          frequency: WIFI_2_4
         acl:
           1:
             action: PERMIT

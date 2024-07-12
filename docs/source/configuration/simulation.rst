@@ -108,31 +108,23 @@ This is an integer value specifying the allowed bandwidth across the connection.
 ``airspace``
 ------------
 
-This section configures settings specific to the wireless network's virtual airspace. It defines how wireless interfaces within the simulation will interact and perform under various environmental conditions.
+This section configures settings specific to the wireless network's virtual airspace.
 
-``airspace_environment_type``
+``frequency_max_capacity_mbps``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This setting specifies the environmental conditions of the airspace which affect the propagation and interference characteristics of wireless signals. Changing this environment type impacts how signal noise and interference are calculated, thus affecting the overall network performance, including data transmission rates and signal quality.
+This setting allows the user to override the default maximum bandwidth capacity set for each frequency. The key should
+be the AirSpaceFrequency name and the value be the desired maximum bandwidth capacity in mbps (megabits per second) for
+a single timestep.
 
-**Configurable Options**
+The below example would permit 123.45 megabits to be transmit across the WiFi 2.4 GHz frequency in a single timestep.
+Setting a frequencies max capacity to 0.0 blocks that frequency on the airspace.
 
-- **rural**: A rural environment offers clear channel conditions due to low population density and minimal electronic device presence.
+.. code-block:: yaml
 
-- **outdoor**: Outdoor environments like parks or fields have minimal electronic interference.
-
-- **suburban**: Suburban environments strike a balance with fewer electronic interferences than urban but more than rural.
-
-- **office**: Office environments have moderate interference from numerous electronic devices and overlapping networks.
-
-- **urban**: Urban environments are characterized by tall buildings and a high density of electronic devices, leading to significant interference.
-
-- **industrial**: Industrial areas face high interference from heavy machinery and numerous electronic devices.
-
-- **transport**: Environments such as subways and buses where metal structures and high mobility create complex interference patterns.
-
-- **dense_urban**: Dense urban areas like city centers have the highest level of signal interference due to the very high density of buildings and devices.
-
-- **jamming_zone**: A jamming zone environment where signals are actively interfered with, typically through the use of signal jammers or scrambling devices. This represents the environment with the highest level of interference.
-
-- **blocked**: A jamming zone environment with total levels of interference. Airspace is completely blocked.
+    simulation:
+      network:
+        airspace:
+          frequency_max_capacity_mbps:
+            WIFI_2_4: 123.45
+            WIFI_5: 0.0
