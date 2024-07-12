@@ -50,7 +50,6 @@ additional steps to configure wireless settings:
         port=1, ip_address="192.168.2.1",
         subnet_mask="255.255.255.0",
         frequency=AirSpaceFrequency.WIFI_2_4,
-        channel_width=ChannelWidth.ChannelWidth.WIDTH_40_MHZ
     )
 
 
@@ -132,14 +131,12 @@ ICMP traffic, ensuring basic network connectivity and ping functionality.
         ip_address="192.168.1.1",
         subnet_mask="255.255.255.0",
         frequency=AirSpaceFrequency.WIFI_2_4,
-        channel_width=ChannelWidth.ChannelWidth.WIDTH_40_MHZ
     )
     router_2.configure_wireless_access_point(
         port=1,
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
         frequency=AirSpaceFrequency.WIFI_2_4,
-        channel_width=ChannelWidth.ChannelWidth.WIDTH_40_MHZ
     )
 
     # Configure routes for inter-router communication
