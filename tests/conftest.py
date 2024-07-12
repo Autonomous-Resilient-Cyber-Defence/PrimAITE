@@ -2,6 +2,7 @@
 from typing import Any, Dict, Tuple
 
 import pytest
+import ray
 import yaml
 
 from primaite import getLogger, PRIMAITE_PATHS
@@ -29,6 +30,7 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from tests import TEST_ASSETS_ROOT
 
+ray.init(local_mode=True)
 ACTION_SPACE_NODE_VALUES = 1
 ACTION_SPACE_NODE_ACTION_VALUES = 1
 

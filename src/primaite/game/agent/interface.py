@@ -70,6 +70,8 @@ class AgentSettings(BaseModel):
     "Configuration for when an agent begins performing it's actions"
     flatten_obs: bool = True
     "Whether to flatten the observation space before passing it to the agent. True by default."
+    action_masking: bool = False
+    "Whether to return action masks at each step."
 
     @classmethod
     def from_config(cls, config: Optional[Dict]) -> "AgentSettings":
@@ -207,6 +209,7 @@ class ProxyAgent(AbstractAgent):
         )
         self.most_recent_action: ActType
         self.flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False
+        self.action_masking: bool = agent_settings.action_masking if agent_settings else False
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
