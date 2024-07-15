@@ -117,14 +117,13 @@ class Terminal(Service):
 
     def login(self, dest_ip_address: IPv4Address, **kwargs) -> bool:
         """Process User request to login to Terminal.
-        
-        :param dest_ip_address: The IP address of the node we want to connect to. 
+
+        :param dest_ip_address: The IP address of the node we want to connect to.
         :return: True if successful, False otherwise.
         """
         if self.operating_state != ServiceOperatingState.RUNNING:
             self.sys_log.warning("Cannot process login as service is not running")
             return False
-        user_account = f"Username: placeholder, Password: placeholder"
         if self.connection_uuid in self.user_connections:
             self.sys_log.debug("User authentication passed")
             return True
@@ -133,9 +132,9 @@ class Terminal(Service):
             # TODO: Refactor with UserManager changes to provide correct credentials and validate.
             transport_message = SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST
             connection_message = SSHConnectionMessage.SSH_MSG_CHANNEL_OPEN
-            payload: SSHPacket = SSHPacket(payload="login", 
-                                           transport_message=transport_message,
-                                           connection_message=connection_message)
+            payload: SSHPacket = SSHPacket(
+                payload="login", transport_message=transport_message, connection_message=connection_message
+            )
 
             self.sys_log.debug(f"Sending login request to {dest_ip_address}")
             self.send(payload=payload, dest_ip_address=dest_ip_address)
@@ -158,8 +157,11 @@ class Terminal(Service):
                 self.sys_log.info(f"{self.name}: Connect request for ID: {self.connection_uuid} authorised")
                 transport_message = SSHTransportMessage.SSH_MSG_USERAUTH_SUCCESS
                 connection_message = SSHConnectionMessage.SSH_MSG_CHANNEL_OPEN_CONFIRMATION
-                new_connection = TerminalClientConnection(parent_node = self.software_manager.node,
-                                                          connection_id=self.connection_uuid, dest_ip_address=dest_ip_address)
+                new_connection = TerminalClientConnection(
+                    parent_node=self.software_manager.node,
+                    connection_id=self.connection_uuid,
+                    dest_ip_address=dest_ip_address,
+                )
                 self.user_connections[self.connection_uuid] = new_connection
                 self.is_connected = True
 
@@ -170,7 +172,7 @@ class Terminal(Service):
 
     def _ssh_process_logoff(self, session_id: str, *args, **kwargs) -> bool:
         """Process the logoff attempt. Return a bool if succesful or unsuccessful."""
-        # TODO: Should remove 
+        # TODO: Should remove
 
     def receive(self, payload: SSHPacket, session_id: str, **kwargs) -> bool:
         """Receive Payload and process for a response."""
@@ -178,7 +180,7 @@ class Terminal(Service):
             return False
 
         if self.operating_state != ServiceOperatingState.RUNNING:
-            self.sys_log.warning(f"Cannot process message as not running")
+            self.sys_log.warning("Cannot process message as not running")
             return False
 
         self.sys_log.debug(f"Received payload: {payload} from session: {session_id}")
@@ -212,7 +214,7 @@ class Terminal(Service):
         """Remote login to terminal via SSH."""
         if not user_account:
             # TODO: Generic hardcoded info, will need to be updated with UserManager.
-            user_account = f"Username: placeholder, Password: placeholder"
+            user_account = "Username: placeholder, Password: placeholder"
             # something like self.user_manager.get_user_details ?
 
         # Implement SSHPacket class
@@ -242,8 +244,8 @@ class Terminal(Service):
             return False
 
     def disconnect(self, dest_ip_address: IPv4Address) -> bool:
-        """Disconnect from remote connection. 
-        
+        """Disconnect from remote connection.
+
         :param dest_ip_address: The IP address fo the connection we are terminating.
         :return: True if successful, False otherwise.
         """
@@ -263,15 +265,13 @@ class Terminal(Service):
         software_manager.send_payload_to_session_manager(
             payload={"type": "disconnect", "connection_id": self.connection_uuid},
             dest_ip_address=dest_ip_address,
-            dest_port=self.port
+            dest_port=self.port,
         )
         connection = self.user_connections.pop(self.connection_uuid)
 
         connection.is_active = False
 
-        self.sys_log.info(
-            f"{self.name}: Disconnected {self.connection_uuid}"
-        )
+        self.sys_log.info(f"{self.name}: Disconnected {self.connection_uuid}")
         return True
 
     def send(
@@ -289,6 +289,4 @@ class Terminal(Service):
             self.sys_log.warning(f"Cannot send commands when Operating state is {self.operating_state}!")
             return False
         self.sys_log.debug(f"Sending payload: {payload}")
-        return super().send(
-            payload=payload, dest_ip_address=dest_ip_address, dest_port=self.port
-        )
+        return super().send(payload=payload, dest_ip_address=dest_ip_address, dest_port=self.port)
