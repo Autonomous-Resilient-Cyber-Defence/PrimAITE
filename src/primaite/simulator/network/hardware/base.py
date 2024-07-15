@@ -256,7 +256,6 @@ class NetworkInterface(SimComponent, ABC):
         """
         # Determine the direction of the traffic
         direction = "inbound" if inbound else "outbound"
-
         # Initialize protocol and port variables
         protocol = None
         port = None

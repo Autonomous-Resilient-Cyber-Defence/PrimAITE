@@ -59,6 +59,7 @@ class SSHConnectionMessage(IntEnum):
     SSH_LOGOFF_ACK = 89
     """Logoff confirmation acknowledgement"""
 
+
 class SSHPacket(DataPacket):
     """Represents an SSHPacket."""
 

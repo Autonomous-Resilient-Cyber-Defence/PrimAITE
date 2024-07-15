@@ -19,7 +19,7 @@ _LOGGER = getLogger(__name__)
 
 class DatabaseService(Service):
     """
-    A class for simulating a generic SQL Server service.
+A class for simulating a generic SQL Server service.
 
     This class inherits from the `Service` class and provides methods to simulate a SQL database.
     """
