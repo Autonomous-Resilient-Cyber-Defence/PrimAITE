@@ -41,6 +41,12 @@ agents:
           options:
             source_node: client_1
             target_ip_address: 192.168.10.0/24
+            target_port:
+              - 21
+              - 53
+              - 80
+              - 123
+              - 219
 
     reward_function:
       reward_components:

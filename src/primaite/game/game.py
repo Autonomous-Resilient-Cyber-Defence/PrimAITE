@@ -3,6 +3,7 @@
 from ipaddress import IPv4Address
 from typing import Dict, List, Optional
 
+import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from primaite import DEFAULT_BANDWIDTH, getLogger
@@ -15,7 +16,9 @@ from primaite.game.agent.scripted_agents.probabilistic_agent import Probabilisti
 from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
-from primaite.simulator.network.hardware.base import NetworkInterface, NodeOperatingState
+from primaite.simulator import SIM_OUTPUT
+from primaite.simulator.network.airspace import AirSpaceFrequency
+from primaite.simulator.network.hardware.base import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
@@ -167,6 +170,8 @@ class PrimaiteGame:
         for _, agent in self.agents.items():
             obs = agent.observation_manager.current_observation
             action_choice, parameters = agent.get_action(obs, timestep=self.step_counter)
+            if SIM_OUTPUT.save_agent_logs:
+                agent.logger.debug(f"Chosen Action: {action_choice}")
             request = agent.format_request(action_choice, parameters)
             response = self.simulation.apply_request(request)
             agent.process_action_response(
@@ -185,7 +190,13 @@ class PrimaiteGame:
         """Advance timestep."""
         self.step_counter += 1
         _LOGGER.debug(f"Advancing timestep to {self.step_counter} ")
+        self.update_agent_loggers()
         self.simulation.apply_timestep(self.step_counter)
+
+    def update_agent_loggers(self) -> None:
+        """Updates Agent Loggers with new timestep."""
+        for agent in self.agents.values():
+            agent.logger.update_timestep(self.step_counter)
 
     def calculate_truncated(self) -> bool:
         """Calculate whether the episode is truncated."""
@@ -194,6 +205,23 @@ class PrimaiteGame:
         if current_step >= max_steps:
             return True
         return False
+
+    def action_mask(self, agent_name: str) -> np.ndarray:
+        """
+        Return the action mask for the agent.
+
+        This is a boolean list corresponding to the agent's action space. A False entry means this action cannot be
+        performed during this step.
+
+        :return: Action mask
+        :rtype: List[bool]
+        """
+        agent = self.agents[agent_name]
+        mask = [True] * len(agent.action_manager.action_map)
+        for i, action in agent.action_manager.action_map.items():
+            request = agent.action_manager.form_request(action_identifier=action[0], action_options=action[1])
+            mask[i] = self.simulation._request_manager.check_valid(request, {})
+        return np.asarray(mask, dtype=np.int8)
 
     def close(self) -> None:
         """Close the game, this will close the simulation."""
@@ -230,6 +258,12 @@ class PrimaiteGame:
 
         simulation_config = cfg.get("simulation", {})
         network_config = simulation_config.get("network", {})
+        airspace_cfg = network_config.get("airspace", {})
+        frequency_max_capacity_mbps_cfg = airspace_cfg.get("frequency_max_capacity_mbps", {})
+
+        frequency_max_capacity_mbps_cfg = {AirSpaceFrequency[k]: v for k, v in frequency_max_capacity_mbps_cfg.items()}
+
+        net.airspace.frequency_max_capacity_mbps_ = frequency_max_capacity_mbps_cfg
 
         nodes_cfg = network_config.get("nodes", [])
         links_cfg = network_config.get("links", [])

@@ -1,11 +1,13 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+from __future__ import annotations
+
 from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, Optional
 
 from primaite import getLogger
-from primaite.interface.request import RequestResponse
-from primaite.simulator.core import RequestManager, RequestType
+from primaite.interface.request import RequestFormat, RequestResponse
+from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType
 from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 _LOGGER = getLogger(__name__)
@@ -40,6 +42,7 @@ class Service(IOSoftware):
 
     restart_duration: int = 5
     "How many timesteps does it take to restart this service."
+
     restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
 
@@ -86,15 +89,61 @@ class Service(IOSoftware):
 
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
+        _is_service_running = Service._StateValidator(service=self, state=ServiceOperatingState.RUNNING)
+        _is_service_stopped = Service._StateValidator(service=self, state=ServiceOperatingState.STOPPED)
+        _is_service_paused = Service._StateValidator(service=self, state=ServiceOperatingState.PAUSED)
+        _is_service_disabled = Service._StateValidator(service=self, state=ServiceOperatingState.DISABLED)
+
         rm = super()._init_request_manager()
-        rm.add_request("scan", RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan())))
-        rm.add_request("stop", RequestType(func=lambda request, context: RequestResponse.from_bool(self.stop())))
-        rm.add_request("start", RequestType(func=lambda request, context: RequestResponse.from_bool(self.start())))
-        rm.add_request("pause", RequestType(func=lambda request, context: RequestResponse.from_bool(self.pause())))
-        rm.add_request("resume", RequestType(func=lambda request, context: RequestResponse.from_bool(self.resume())))
-        rm.add_request("restart", RequestType(func=lambda request, context: RequestResponse.from_bool(self.restart())))
+        rm.add_request(
+            "scan",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.scan()), validator=_is_service_running
+            ),
+        )
+        rm.add_request(
+            "stop",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.stop()), validator=_is_service_running
+            ),
+        )
+        rm.add_request(
+            "start",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.start()), validator=_is_service_stopped
+            ),
+        )
+        rm.add_request(
+            "pause",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.pause()), validator=_is_service_running
+            ),
+        )
+        rm.add_request(
+            "resume",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.resume()), validator=_is_service_paused
+            ),
+        )
+        rm.add_request(
+            "restart",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.restart()), validator=_is_service_running
+            ),
+        )
         rm.add_request("disable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.disable())))
-        rm.add_request("enable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.enable())))
+        rm.add_request(
+            "enable",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.enable()), validator=_is_service_disabled
+            ),
+        )
+        rm.add_request(
+            "fix",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.fix()), validator=_is_service_running
+            ),
+        )
         return rm
 
     @abstractmethod
@@ -191,3 +240,28 @@ class Service(IOSoftware):
                 self.sys_log.debug(f"Restarting finished for service {self.name}")
                 self.operating_state = ServiceOperatingState.RUNNING
             self.restart_countdown -= 1
+
+    class _StateValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the service is in the correct state.
+
+        This is useful because most actions require the service to be in a specific state.
+        """
+
+        service: Service
+        """Save a reference to the service instance."""
+
+        state: ServiceOperatingState
+        """The state of the service to validate."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the service is in the state we are validating for."""
+            return self.service.operating_state == self.state
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return (
+                f"Cannot perform request on service '{self.service.name}' because it is not in the "
+                f"{self.state.name} state."
+            )

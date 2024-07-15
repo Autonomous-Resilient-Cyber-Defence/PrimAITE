@@ -6,8 +6,8 @@ from typing import Any, Dict, List, Optional
 
 from prettytable import MARKDOWN, PrettyTable
 
-from primaite.interface.request import RequestResponse
-from primaite.simulator.core import RequestManager, RequestType, SimComponent
+from primaite.interface.request import RequestFormat, RequestResponse
+from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType, SimComponent
 from primaite.simulator.file_system.file import File
 from primaite.simulator.file_system.file_type import FileType
 from primaite.simulator.file_system.folder import Folder
@@ -42,6 +42,10 @@ class FileSystem(SimComponent):
 
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
+        self._folder_exists = FileSystem._FolderExistsValidator(file_system=self)
+        self._folder_not_deleted = FileSystem._FolderNotDeletedValidator(file_system=self)
+        self._file_exists = FileSystem._FileExistsValidator(file_system=self)
+
         rm = super()._init_request_manager()
 
         self._delete_manager = RequestManager()
@@ -50,13 +54,15 @@ class FileSystem(SimComponent):
             request_type=RequestType(
                 func=lambda request, context: RequestResponse.from_bool(
                     self.delete_file(folder_name=request[0], file_name=request[1])
-                )
+                ),
+                validator=self._file_exists,
             ),
         )
         self._delete_manager.add_request(
             name="folder",
             request_type=RequestType(
-                func=lambda request, context: RequestResponse.from_bool(self.delete_folder(folder_name=request[0]))
+                func=lambda request, context: RequestResponse.from_bool(self.delete_folder(folder_name=request[0])),
+                validator=self._folder_exists,
             ),
         )
         rm.add_request(
@@ -144,10 +150,13 @@ class FileSystem(SimComponent):
         )
 
         self._folder_request_manager = RequestManager()
-        rm.add_request("folder", RequestType(func=self._folder_request_manager))
+        rm.add_request(
+            "folder",
+            RequestType(func=self._folder_request_manager, validator=self._folder_exists + self._folder_not_deleted),
+        )
 
         self._file_request_manager = RequestManager()
-        rm.add_request("file", RequestType(func=self._file_request_manager))
+        rm.add_request("file", RequestType(func=self._file_request_manager, validator=self._file_exists))
 
         return rm
 
@@ -626,3 +635,62 @@ class FileSystem(SimComponent):
                 self.sys_log.error(f"Unable to access file that does not exist. (file name: {file_name})")
 
         return False
+
+    class _FolderExistsValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the Folder exists.
+
+        Actions cannot be performed on a non-existent folder.
+        """
+
+        file_system: FileSystem
+        """Save a reference to the FileSystem instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Returns True if folder exists."""
+            return self.file_system.get_folder(folder_name=request[0]) is not None
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return "Cannot perform request on folder because it does not exist."
+
+    class _FolderNotDeletedValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the Folder has not been deleted.
+
+        Actions cannot be performed on a deleted folder.
+        """
+
+        file_system: FileSystem
+        """Save a reference to the FileSystem instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Returns True if folder exists and is not deleted."""
+            # get folder
+            folder = self.file_system.get_folder(folder_name=request[0], include_deleted=True)
+            return folder is not None and not folder.deleted
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return "Cannot perform request on folder because it is deleted."
+
+    class _FileExistsValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the File exists.
+
+        Actions cannot be performed on a non-existent file.
+        """
+
+        file_system: FileSystem
+        """Save a reference to the FileSystem instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Returns True if file exists."""
+            return self.file_system.get_file(folder_name=request[0], file_name=request[1]) is not None
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return "Cannot perform request on a file that does not exist."

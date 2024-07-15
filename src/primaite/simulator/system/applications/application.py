@@ -1,10 +1,12 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+from __future__ import annotations
+
 from abc import abstractmethod
 from enum import Enum
 from typing import Any, ClassVar, Dict, Optional, Set, Type
 
-from primaite.interface.request import RequestResponse
-from primaite.simulator.core import RequestManager, RequestType
+from primaite.interface.request import RequestFormat, RequestResponse
+from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType
 from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
 
 
@@ -64,9 +66,27 @@ class Application(IOSoftware):
 
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
-        rm = super()._init_request_manager()
+        _is_application_running = Application._StateValidator(application=self, state=ApplicationOperatingState.RUNNING)
 
-        rm.add_request("close", RequestType(func=lambda request, context: RequestResponse.from_bool(self.close())))
+        rm = super()._init_request_manager()
+        rm.add_request(
+            "scan",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.scan()), validator=_is_application_running
+            ),
+        )
+        rm.add_request(
+            "close",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.close()), validator=_is_application_running
+            ),
+        )
+        rm.add_request(
+            "fix",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.fix()), validator=_is_application_running
+            ),
+        )
         return rm
 
     @abstractmethod
@@ -169,3 +189,28 @@ class Application(IOSoftware):
         :return: True if successful, False otherwise.
         """
         return super().receive(payload=payload, session_id=session_id, **kwargs)
+
+    class _StateValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the application is in the correct state.
+
+        This is useful because most actions require the application to be in a specific state.
+        """
+
+        application: Application
+        """Save a reference to the application instance."""
+
+        state: ApplicationOperatingState
+        """The state of the application to validate."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the application is in the state we are validating for."""
+            return self.application.operating_state == self.state
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return (
+                f"Cannot perform request on application '{self.application.name}' because it is not in the "
+                f"{self.state.name} state."
+            )

@@ -49,7 +49,7 @@ class AbstractAction(ABC):
         objects."""
 
     @abstractmethod
-    def form_request(self) -> List[str]:
+    def form_request(self) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return []
 
@@ -67,7 +67,7 @@ class DoNothingAction(AbstractAction):
         # i.e. a choice between one option. To make enumerating this action easier, we are adding a 'dummy' paramter
         # with one option. This just aids the Action Manager to enumerate all possibilities.
 
-    def form_request(self, **kwargs) -> List[str]:
+    def form_request(self, **kwargs) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return ["do_nothing"]
 
@@ -86,7 +86,7 @@ class NodeServiceAbstractAction(AbstractAction):
         self.shape: Dict[str, int] = {"node_id": num_nodes, "service_id": num_services}
         self.verb: str  # define but don't initialise: defends against children classes not defining this
 
-    def form_request(self, node_id: int, service_id: int) -> List[str]:
+    def form_request(self, node_id: int, service_id: int) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         service_name = self.manager.get_service_name_by_idx(node_id, service_id)
@@ -181,7 +181,7 @@ class NodeApplicationAbstractAction(AbstractAction):
         self.shape: Dict[str, int] = {"node_id": num_nodes, "application_id": num_applications}
         self.verb: str  # define but don't initialise: defends against children classes not defining this
 
-    def form_request(self, node_id: int, application_id: int) -> List[str]:
+    def form_request(self, node_id: int, application_id: int) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         application_name = self.manager.get_application_name_by_idx(node_id, application_id)
@@ -229,7 +229,7 @@ class NodeApplicationInstallAction(AbstractAction):
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes}
 
-    def form_request(self, node_id: int, application_name: str) -> List[str]:
+    def form_request(self, node_id: int, application_name: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None:
@@ -324,7 +324,7 @@ class NodeApplicationRemoveAction(AbstractAction):
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"node_id": num_nodes}
 
-    def form_request(self, node_id: int, application_name: str) -> List[str]:
+    def form_request(self, node_id: int, application_name: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None:
@@ -346,7 +346,7 @@ class NodeFolderAbstractAction(AbstractAction):
         self.shape: Dict[str, int] = {"node_id": num_nodes, "folder_id": num_folders}
         self.verb: str  # define but don't initialise: defends against children classes not defining this
 
-    def form_request(self, node_id: int, folder_id: int) -> List[str]:
+    def form_request(self, node_id: int, folder_id: int) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         folder_name = self.manager.get_folder_name_by_idx(node_idx=node_id, folder_idx=folder_id)
@@ -394,7 +394,9 @@ class NodeFileCreateAction(AbstractAction):
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
         self.verb: str = "create"
 
-    def form_request(self, node_id: int, folder_name: str, file_name: str, force: Optional[bool] = False) -> List[str]:
+    def form_request(
+        self, node_id: int, folder_name: str, file_name: str, force: Optional[bool] = False
+    ) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None or folder_name is None or file_name is None:
@@ -409,7 +411,7 @@ class NodeFolderCreateAction(AbstractAction):
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
         self.verb: str = "create"
 
-    def form_request(self, node_id: int, folder_name: str) -> List[str]:
+    def form_request(self, node_id: int, folder_name: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None or folder_name is None:
@@ -430,7 +432,7 @@ class NodeFileAbstractAction(AbstractAction):
         self.shape: Dict[str, int] = {"node_id": num_nodes, "folder_id": num_folders, "file_id": num_files}
         self.verb: str  # define but don't initialise: defends against children classes not defining this
 
-    def form_request(self, node_id: int, folder_id: int, file_id: int) -> List[str]:
+    def form_request(self, node_id: int, folder_id: int, file_id: int) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         folder_name = self.manager.get_folder_name_by_idx(node_idx=node_id, folder_idx=folder_id)
@@ -463,7 +465,7 @@ class NodeFileDeleteAction(NodeFileAbstractAction):
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, num_files=num_files, **kwargs)
         self.verb: str = "delete"
 
-    def form_request(self, node_id: int, folder_id: int, file_id: int) -> List[str]:
+    def form_request(self, node_id: int, folder_id: int, file_id: int) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         folder_name = self.manager.get_folder_name_by_idx(node_idx=node_id, folder_idx=folder_id)
@@ -504,7 +506,7 @@ class NodeFileAccessAction(AbstractAction):
         super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
         self.verb: str = "access"
 
-    def form_request(self, node_id: int, folder_name: str, file_name: str) -> List[str]:
+    def form_request(self, node_id: int, folder_name: str, file_name: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None or folder_name is None or file_name is None:
@@ -525,7 +527,7 @@ class NodeAbstractAction(AbstractAction):
         self.shape: Dict[str, int] = {"node_id": num_nodes}
         self.verb: str  # define but don't initialise: defends against children classes not defining this
 
-    def form_request(self, node_id: int) -> List[str]:
+    def form_request(self, node_id: int) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         return ["network", "node", node_name, self.verb]
@@ -740,7 +742,7 @@ class RouterACLRemoveRuleAction(AbstractAction):
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"position": max_acl_rules}
 
-    def form_request(self, target_router: str, position: int) -> List[str]:
+    def form_request(self, target_router: str, position: int) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return ["network", "node", target_router, "acl", "remove_rule", position]
 
@@ -923,7 +925,7 @@ class HostNICAbstractAction(AbstractAction):
         self.shape: Dict[str, int] = {"node_id": num_nodes, "nic_id": max_nics_per_node}
         self.verb: str  # define but don't initialise: defends against children classes not defining this
 
-    def form_request(self, node_id: int, nic_id: int) -> List[str]:
+    def form_request(self, node_id: int, nic_id: int) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_idx=node_id)
         nic_num = self.manager.get_nic_num_by_idx(node_idx=node_id, nic_idx=nic_id)
@@ -960,7 +962,7 @@ class NetworkPortEnableAction(AbstractAction):
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"port_id": max_nics_per_node}
 
-    def form_request(self, target_nodename: str, port_id: int) -> List[str]:
+    def form_request(self, target_nodename: str, port_id: int) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if target_nodename is None or port_id is None:
             return ["do_nothing"]
@@ -979,7 +981,7 @@ class NetworkPortDisableAction(AbstractAction):
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"port_id": max_nics_per_node}
 
-    def form_request(self, target_nodename: str, port_id: int) -> List[str]:
+    def form_request(self, target_nodename: str, port_id: int) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if target_nodename is None or port_id is None:
             return ["do_nothing"]
@@ -1315,7 +1317,7 @@ class ActionManager:
         act_identifier, act_options = self.action_map[action]
         return act_identifier, act_options
 
-    def form_request(self, action_identifier: str, action_options: Dict) -> List[str]:
+    def form_request(self, action_identifier: str, action_options: Dict) -> RequestFormat:
         """Take action in CAOS format and use the execution definition to change it into PrimAITE request format."""
         act_obj = self.actions[action_identifier]
         return act_obj.form_request(**action_options)

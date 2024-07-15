@@ -1,34 +1,22 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import copy
-from ipaddress import IPv4Address
 from pathlib import Path
 from typing import Union
 
 import yaml
 
-from primaite.config.load import data_manipulation_config_path
-from primaite.game.agent.interface import ProxyAgent
-from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
-from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
-from primaite.game.game import APPLICATION_TYPES_MAPPING, PrimaiteGame, SERVICE_TYPES_MAPPING
-from primaite.simulator.network.container import Network
+from primaite.game.game import PrimaiteGame, SERVICE_TYPES_MAPPING
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
-from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
-from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_client import DNSClient
-from primaite.simulator.system.services.dns.dns_server import DNSServer
-from primaite.simulator.system.services.ftp.ftp_client import FTPClient
-from primaite.simulator.system.services.ftp.ftp_server import FTPServer
-from primaite.simulator.system.services.ntp.ntp_client import NTPClient
-from primaite.simulator.system.services.ntp.ntp_server import NTPServer
-from primaite.simulator.system.services.web_server.web_server import WebServer
 from tests import TEST_ASSETS_ROOT
 
 TEST_CONFIG = TEST_ASSETS_ROOT / "configs/software_fix_duration.yaml"
 ONE_ITEM_CONFIG = TEST_ASSETS_ROOT / "configs/fix_duration_one_item.yaml"
+
+TestApplications = ["DummyApplication", "BroadcastTestClient"]
 
 
 def load_config(config_path: Union[str, Path]) -> PrimaiteGame:
@@ -62,9 +50,12 @@ def test_fix_duration_set_from_config():
         assert client_1.software_manager.software.get(service).fixing_duration == 3
 
     # in config - applications take 1 timestep to fix
-    for applications in APPLICATION_TYPES_MAPPING:
-        assert client_1.software_manager.software.get(applications) is not None
-        assert client_1.software_manager.software.get(applications).fixing_duration == 1
+    # remove test applications from list
+    applications = set(Application._application_registry) - set(TestApplications)
+
+    for application in applications:
+        assert client_1.software_manager.software.get(application) is not None
+        assert client_1.software_manager.software.get(application).fixing_duration == 1
 
 
 def test_fix_duration_for_one_item():
@@ -80,8 +71,9 @@ def test_fix_duration_for_one_item():
         assert client_1.software_manager.software.get(service).fixing_duration == 2
 
     # in config - applications take 1 timestep to fix
-    applications = copy.copy(APPLICATION_TYPES_MAPPING)
-    applications.pop("DatabaseClient")
+    # remove test applications from list
+    applications = set(Application._application_registry) - set(TestApplications)
+    applications.remove("DatabaseClient")
     for applications in applications:
         assert client_1.software_manager.software.get(applications) is not None
         assert client_1.software_manager.software.get(applications).fixing_duration == 2

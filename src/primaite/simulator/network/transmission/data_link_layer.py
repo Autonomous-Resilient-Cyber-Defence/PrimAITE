@@ -133,10 +133,11 @@ class Frame(BaseModel):
     def size(self) -> float:  # noqa - Keep it as MBits as this is how they're expressed
         """The size of the Frame in Bytes."""
         # get the payload size if it is a data packet
+        payload_size = 0.0
         if isinstance(self.payload, DataPacket):
-            return self.payload.get_packet_size()
+            payload_size = self.payload.get_packet_size()
 
-        return float(len(self.model_dump_json().encode("utf-8")))
+        return float(len(self.model_dump_json().encode("utf-8"))) + payload_size
 
     @property
     def size_Mbits(self) -> float:  # noqa - Keep it as MBits as this is how they're expressed

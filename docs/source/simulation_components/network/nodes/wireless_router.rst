@@ -37,7 +37,7 @@ additional steps to configure wireless settings:
 .. code-block:: python
 
     from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
-    from primaite.simulator.network.airspace import AirSpaceFrequency
+    from primaite.simulator.network.airspace import AirSpaceFrequency, ChannelWidth
 
     # Instantiate the WirelessRouter
     wireless_router = WirelessRouter(hostname="MyWirelessRouter")
@@ -49,7 +49,7 @@ additional steps to configure wireless settings:
     wireless_router.configure_wireless_access_point(
         port=1, ip_address="192.168.2.1",
         subnet_mask="255.255.255.0",
-        frequency=AirSpaceFrequency.WIFI_2_4
+        frequency=AirSpaceFrequency.WIFI_2_4,
     )
 
 
@@ -71,7 +71,7 @@ ICMP traffic, ensuring basic network connectivity and ping functionality.
 
 .. code-block:: python
 
-    from primaite.simulator.network.airspace import AIR_SPACE, AirSpaceFrequency
+    from primaite.simulator.network.airspace import AirSpaceFrequency, ChannelWidth
     from primaite.simulator.network.container import Network
     from primaite.simulator.network.hardware.nodes.host.computer import Computer
     from primaite.simulator.network.hardware.nodes.network.router import ACLAction
@@ -130,13 +130,13 @@ ICMP traffic, ensuring basic network connectivity and ping functionality.
         port=1,
         ip_address="192.168.1.1",
         subnet_mask="255.255.255.0",
-        frequency=AirSpaceFrequency.WIFI_2_4
+        frequency=AirSpaceFrequency.WIFI_2_4,
     )
     router_2.configure_wireless_access_point(
         port=1,
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
-        frequency=AirSpaceFrequency.WIFI_2_4
+        frequency=AirSpaceFrequency.WIFI_2_4,
     )
 
     # Configure routes for inter-router communication
