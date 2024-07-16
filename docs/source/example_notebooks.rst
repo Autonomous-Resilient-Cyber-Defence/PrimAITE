@@ -2,6 +2,8 @@
 
     © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
+.. _example jupyter notebooks:
+
 Example Jupyter Notebooks
 =========================
 
@@ -18,6 +20,7 @@ Running Jupyter Notebooks
 -------------------------
 
 1. Navigate to the PrimAITE directory
+"""""""""""""""""""""""""""""""""""""
 
 .. code-block:: bash
     :caption: Unix
@@ -29,7 +32,10 @@ Running Jupyter Notebooks
 
     cd ~\primaite\{VERSION}
 
-2. Run jupyter notebook (the python environment to which you installed PrimAITE must be active)
+2. Run jupyter notebook
+"""""""""""""""""""""""
+
+**Please note that the python environment to which you installed PrimAITE must be active.**
 
 .. code-block:: bash
     :caption: Unix
@@ -42,11 +48,13 @@ Running Jupyter Notebooks
     jupyter notebook
 
 3. Opening the jupyter webpage (optional)
+"""""""""""""""""""""""""""""""""""""""""
 
 The default web browser may automatically open the webpage. However, if that is not the case, click the link shown in your command prompt output. It should look like this: ``http://localhost:8888/?token=0123456798abc0123456789abc``
 
 
 4. Navigate to the list of notebooks
+"""""""""""""""""""""""""""""""""""""""""
 
 The example notebooks are located in ``notebooks/example_notebooks/``. The file system shown in the jupyter webpage is relative to the location in which the ``jupyter notebook`` command was used.
 

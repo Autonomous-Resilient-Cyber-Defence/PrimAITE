@@ -111,7 +111,7 @@ This is an integer value specifying the allowed bandwidth across the connection.
 This section configures settings specific to the wireless network's virtual airspace.
 
 ``frequency_max_capacity_mbps``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This setting allows the user to override the default maximum bandwidth capacity set for each frequency. The key should
 be the AirSpaceFrequency name and the value be the desired maximum bandwidth capacity in mbps (megabits per second) for

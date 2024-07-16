@@ -117,12 +117,12 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
    :hidden:
 
    source/getting_started
-   source/simulation
    source/game_layer
+   source/simulation
    source/config
-   source/environment
    source/customising_scenarios
    source/varying_config_files
+   source/environment
    source/action_masking
 
 .. toctree::

@@ -18,52 +18,101 @@ Masking Logic
 =============
 The following logic is applied:
 
-* **DONOTHING** : Always possible
-* **NODE_HOST_SERVICE_SCAN** : Node is on. Service is running.
-* **NODE_HOST_SERVICE_STOP** : Node is on. Service is running.
-* **NODE_HOST_SERVICE_START** : Node is on. Service is stopped.
-* **NODE_HOST_SERVICE_PAUSE** : Node is on. Service is running.
-* **NODE_HOST_SERVICE_RESUME** : Node is on. Service is paused.
-* **NODE_HOST_SERVICE_RESTART** : Node is on. Service is running.
-* **NODE_HOST_SERVICE_DISABLE** : Node is on.
-* **NODE_HOST_SERVICE_ENABLE** : Node is on. Service is disabled.
-* **NODE_HOST_SERVICE_FIX** : Node is on. Service is running.
-* **NODE_HOST_APPLICATION_EXECUTE** : Node is on.
-* **NODE_HOST_APPLICATION_SCAN** : Node is on. Application is running.
-* **NODE_HOST_APPLICATION_CLOSE** : Node is on. Application is running.
-* **NODE_HOST_APPLICATION_FIX** : Node is on. Application is running.
-* **NODE_HOST_APPLICATION_INSTALL** : Node is on.
-* **NODE_HOST_APPLICATION_REMOVE** : Node is on.
-* **NODE_HOST_FILE_SCAN** : Node is on. File exists. File not deleted.
-* **NODE_HOST_FILE_CREATE** : Node is on.
-* **NODE_HOST_FILE_CHECKHASH** : Node is on. File exists. File not deleted.
-* **NODE_HOST_FILE_DELETE** : Node is on. File exists.
-* **NODE_HOST_FILE_REPAIR** : Node is on. File exists. File not deleted.
-* **NODE_HOST_FILE_RESTORE** : Node is on. File exists. File is deleted.
-* **NODE_HOST_FILE_CORRUPT** : Node is on. File exists. File not deleted.
-* **NODE_HOST_FILE_ACCESS** : Node is on. File exists. File not deleted.
-* **NODE_HOST_FOLDER_CREATE** : Node is on.
-* **NODE_HOST_FOLDER_SCAN** : Node is on. Folder exists. Folder not deleted.
-* **NODE_HOST_FOLDER_CHECKHASH** : Node is on. Folder exists. Folder not deleted.
-* **NODE_HOST_FOLDER_REPAIR** : Node is on. Folder exists. Folder not deleted.
-* **NODE_HOST_FOLDER_RESTORE** : Node is on. Folder exists. Folder is deleted.
-* **NODE_HOST_OS_SCAN** : Node is on.
-* **NODE_HOST_NIC_ENABLE** : NIC is disabled. Node is on.
-* **NODE_HOST_NIC_DISABLE** : NIC is enabled. Node is on.
-* **NODE_HOST_SHUTDOWN** : Node is on.
-* **NODE_HOST_STARTUP** : Node is off.
-* **NODE_HOST_RESET** : Node is on.
-* **NODE_HOST_NMAP_PING_SCAN** : Node is on.
-* **NODE_HOST_NMAP_PORT_SCAN** : Node is on.
-* **NODE_HOST_NMAP_NETWORK_SERVICE_RECON** : Node is on.
-* **NODE_ROUTER_PORT_ENABLE** : Router is on.
-* **NODE_ROUTER_PORT_DISABLE** : Router is on.
-* **NODE_ROUTER_ACL_ADDRULE** : Router is on.
-* **NODE_ROUTER_ACL_REMOVERULE** : Router is on.
-* **NODE_FIREWALL_PORT_ENABLE** : Firewall is on.
-* **NODE_FIREWALL_PORT_DISABLE** : Firewall is on.
-* **NODE_FIREWALL_ACL_ADDRULE** : Firewall is on.
-* **NODE_FIREWALL_ACL_REMOVERULE** : Firewall is on.
++------------------------------------------+---------------------------------------------------------------------+
+| Action                                   | Action Mask Logic                                                   |
++==========================================+=====================================================================+
+| **DONOTHING**                            | Always Possible.                                                    |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_SERVICE_SCAN**               | Node is on. Service is running.                                     |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_SERVICE_STOP**               | Node is on. Service is running.                                     |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_SERVICE_START**              | Node is on. Service is stopped.                                     |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_SERVICE_PAUSE**              | Node is on. Service is running.                                     |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_SERVICE_RESUME**             | Node is on. Service is paused.                                      |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_SERVICE_RESTART**            | Node is on. Service is running.                                     |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_SERVICE_DISABLE**            | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_SERVICE_ENABLE**             | Node is on. Service is disabled.                                    |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_SERVICE_FIX**                | Node is on. Service is running.                                     |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_APPLICATION_EXECUTE**        | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_APPLICATION_SCAN**           | Node is on. Application is running.                                 |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_APPLICATION_CLOSE**          | Node is on. Application is running.                                 |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_APPLICATION_FIX**            | Node is on. Application is running.                                 |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_APPLICATION_INSTALL**        | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_APPLICATION_REMOVE**         | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FILE_SCAN**                  | Node is on. File exists. File not deleted.                          |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FILE_CREATE**                | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FILE_CHECKHASH**             | Node is on. File exists. File not deleted.                          |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FILE_DELETE**                | Node is on. File exists.                                            |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FILE_REPAIR**                | Node is on. File exists. File not deleted.                          |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FILE_RESTORE**               | Node is on. File exists. File is deleted.                           |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FILE_CORRUPT**               | Node is on. File exists. File not deleted.                          |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FILE_ACCESS**                | Node is on. File exists. File not deleted.                          |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FOLDER_CREATE**              | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FOLDER_SCAN**                | Node is on. Folder exists. Folder not deleted.                      |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FOLDER_CHECKHASH**           | Node is on. Folder exists. Folder not deleted.                      |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FOLDER_REPAIR**              | Node is on. Folder exists. Folder not deleted.                      |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_FOLDER_RESTORE**             | Node is on. Folder exists. Folder is deleted.                       |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_OS_SCAN**                    | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_NIC_ENABLE**                 | NIC is disabled. Node is on.                                        |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_NIC_DISABLE**                | NIC is enabled. Node is on.                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_SHUTDOWN**                   | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_STARTUP**                    | Node is off.                                                        |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_RESET**                      | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_NMAP_PING_SCAN**             | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_NMAP_PORT_SCAN**             | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_HOST_NMAP_NETWORK_SERVICE_RECON** | Node is on.                                                         |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_ROUTER_PORT_ENABLE**              | Router is on.                                                       |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_ROUTER_PORT_DISABLE**             | Router is on.                                                       |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_ROUTER_ACL_ADDRULE**              | Router is on.                                                       |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_ROUTER_ACL_REMOVERULE**           | Router is on.                                                       |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_FIREWALL_PORT_ENABLE**            | Firewall is on.                                                     |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_FIREWALL_PORT_DISABLE**           | Firewall is on.                                                     |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_FIREWALL_ACL_ADDRULE**            | Firewall is on.                                                     |
++------------------------------------------+---------------------------------------------------------------------+
+| **NODE_FIREWALL_ACL_REMOVERULE**         | Firewall is on.                                                     |
++------------------------------------------+---------------------------------------------------------------------+
 
 
 Mechanism

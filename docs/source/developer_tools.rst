@@ -50,13 +50,27 @@ dev-mode configuration
 The following configures some specific items that the dev-mode overrides, if enabled.
 
 `--sys-log-level` or `-level`
-----------------------------
+-----------------------------
 
 The level of system logs can be overridden by dev-mode.
 
 By default, this is set to DEBUG
 
-The available options are [DEBUG|INFO|WARNING|ERROR|CRITICAL]
+The available options for both system and agent logs are:
+
++-------------------+
+| Log Level         |
++===================+
+| DEBUG             |
++-------------------+
+| INFO              |
++-------------------+
+| WARNING           |
++-------------------+
+| ERROR             |
++-------------------+
+| CRITICAL          |
++-------------------+
 
 .. code-block::
 
@@ -67,6 +81,19 @@ or
 .. code-block::
 
     primaite dev-mode config --sys-log-level INFO
+
+
+`--agent-log-level`
+-------------------
+
+The level of agent logs can be overridden by dev-mode.
+
+By default, this is set to DEBUG.
+
+.. code-block::
+
+    primaite dev-mode config --agent-log-level INFO
+
 
 `--output-sys-logs` or `-sys`
 -----------------------------
@@ -104,6 +131,36 @@ or
 .. code-block::
 
     primaite dev-mode config -nsys
+
+Enabling agent logs
+""""""""""""""""""""
+
+To enable outputting of system logs
+
+.. code-block::
+
+    primaite dev-mode config --output-agent-logs
+
+or
+
+.. code-block::
+
+    primaite dev-mode config -agent
+
+Disabling system logs
+"""""""""""""""""""""
+
+To disable outputting of system logs
+
+.. code-block::
+
+    primaite dev-mode config --no-agent-logs
+
+or
+
+.. code-block::
+
+    primaite dev-mode config -nagent
 
 `--output-pcap-logs` or `-pcap`
 -------------------------------
