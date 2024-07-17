@@ -7,14 +7,14 @@
 RansomwareScript
 ###################
 
-The RansomwareScript class provides functionality to connect to a :ref:`DatabaseService` and set a database's database.db into an ``CORRUPTED`` state.
+The RansomwareScript class provides functionality to connect to a :ref:`DatabaseService` and set a database's database.db into a ``CORRUPTED`` state.
 
 Overview
 ========
 
 The ransomware script intends to simulate a generic implementation of ransomware.
 
-Currently, due to simulation restraints, the ransomware script is unable to attack a hosts without an active database service.
+Currently, due to simulation restraints, the ransomware script is unable to attack a host without an active database service.
 
 The ransomware script is similar to that of the data_manipulation_bot but does not have any separate stages or configurable probabilities.
 
