@@ -49,7 +49,7 @@ dev-mode configuration
 
 The following configures some specific items that the dev-mode overrides, if enabled.
 
-`--sys-log-level` or `-level`
+`--sys-log-level` or `-slevel`
 -----------------------------
 
 The level of system logs can be overridden by dev-mode.
@@ -74,17 +74,17 @@ The available options for both system and agent logs are:
 
 .. code-block::
 
-    primaite dev-mode config -level INFO
+    primaite dev-mode config --sys-log-level INFO
 
 or
 
 .. code-block::
 
-    primaite dev-mode config --sys-log-level INFO
+    primaite dev-mode config -slevel INFO
 
 
-`--agent-log-level`
--------------------
+`--agent-log-level` or `-alevel`
+--------------------------------
 
 The level of agent logs can be overridden by dev-mode.
 
@@ -94,6 +94,11 @@ By default, this is set to DEBUG.
 
     primaite dev-mode config --agent-log-level INFO
 
+or
+
+.. code-block::
+
+    primaite dev-mode config -alevel INFO
 
 `--output-sys-logs` or `-sys`
 -----------------------------
