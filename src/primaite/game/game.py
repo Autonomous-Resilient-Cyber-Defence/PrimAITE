@@ -26,7 +26,7 @@ from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
-from primaite.simulator.network.nmne import NmneData, store_nmne_config
+from primaite.simulator.network.nmne import store_nmne_config
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
@@ -109,9 +109,6 @@ class PrimaiteGame:
 
         self._reward_calculation_order: List[str] = [name for name in self.agents]
         """Agent order for reward evaluation, as some rewards can be dependent on other agents' rewards."""
-
-        self.nmne_config: NmneData = None
-        """ Config data from Number of Malicious Network Events."""
 
     def step(self):
         """

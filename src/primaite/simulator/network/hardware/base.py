@@ -19,7 +19,7 @@ from primaite.simulator.core import RequestFormat, RequestManager, RequestPermis
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.nmne import NmneData
+from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.system.applications.application import Application
@@ -99,7 +99,7 @@ class NetworkInterface(SimComponent, ABC):
     pcap: Optional[PacketCapture] = None
     "A PacketCapture instance for capturing and analysing packets passing through this interface."
 
-    nmne_config: ClassVar[NmneData] = None
+    nmne_config: ClassVar[NMNEConfig] = None
     "A dataclass defining malicious network events to be captured."
 
     nmne: Dict = Field(default_factory=lambda: {})

@@ -1,15 +1,14 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from dataclasses import dataclass, field
+from pydantic import BaseModel
 from typing import Dict, List
 
 
-@dataclass
-class NmneData:
+class NMNEConfig(BaseModel):
     """Store all the information to perform NMNE operations."""
 
     capture_nmne: bool = True
     """Indicates whether Malicious Network Events (MNEs) should be captured."""
-    nmne_capture_keywords: List[str] = field(default_factory=list)
+    nmne_capture_keywords: List[str] = []
     """List of keywords to identify malicious network events."""
     capture_by_direction: bool = True
     """Captures should be organized by traffic direction (inbound/outbound)."""
@@ -23,7 +22,7 @@ class NmneData:
     """Captures should be filtered and categorised based on specific keywords."""
 
 
-def store_nmne_config(nmne_config: Dict) -> NmneData:
+def store_nmne_config(nmne_config: Dict) -> NMNEConfig:
     """
     Store configuration for capturing Malicious Network Events (MNEs).
 
@@ -51,4 +50,4 @@ def store_nmne_config(nmne_config: Dict) -> NmneData:
     if not isinstance(nmne_capture_keywords, list):
         nmne_capture_keywords = []  # Reset to empty list if the provided value is not a list
 
-    return NmneData(capture_nmne=capture_nmne, nmne_capture_keywords=nmne_capture_keywords)
+    return NMNEConfig(capture_nmne=capture_nmne, nmne_capture_keywords=nmne_capture_keywords)
