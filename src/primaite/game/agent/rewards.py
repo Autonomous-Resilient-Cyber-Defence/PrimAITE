@@ -8,6 +8,7 @@ weighed sum of the components.
 
 The reward function is typically specified using a config yaml file or a config dictionary. The following example shows
 the structure:
+
 ```yaml
     reward_function:
         reward_components:
