@@ -7,7 +7,7 @@
 About PrimAITE
 ==============
 
-The ARCD Primary-level AI Training Environment (**PrimAITE**) provides an effective simulation capability for training and evaluating AI in a cyber-defensive role. It incorporates the functionality required of a primary-level  ARCD environment:
+The ARCD Primary-level AI Training Environment (**PrimAITE**) provides an effective simulation capability for training and evaluating AI in a cyber-defensive role. It incorporates the functionality required of a primary-level ARCD environment:
 
 - The ability to model a relevant system context;
 - Modelling an adversarial agent that the defensive agent can be trained and evaluated against;
@@ -39,7 +39,7 @@ PrimAITE incorporates the following features:
 Architecture
 ^^^^^^^^^^^^
 
-PrimAITE is a Python application and will operate on multiple Operating Systems (Windows, Linux and Mac);
+PrimAITE is a Python application and will operate on multiple Operating Systems (Windows, Linux and macOS);
 a comprehensive installation and user guide is provided with each release to support its usage.
 
 Configuration of PrimAITE is achieved via included YAML files which support full control over the network / system laydown being modelled, background pattern of life, adversarial (red agent) behaviour, and step and episode count.
@@ -66,17 +66,17 @@ Training & Evaluation Capability
 
 PrimAITE provides a training and evaluation capability to AI agents in the context of cyber-attack, via its Gymnasium / Ray RLlib compliant interface.
 
-Scenarios can be constructed to reflect network / system laydowns consisting of any configuration of nodes (e.g., PCs, servers etc.) and the networking equipment and links between them.
+Scenarios can be constructed to reflect network / system laydowns consisting of any configuration of nodes (e.g. PCs, servers etc.) and the networking equipment and links between them.
 
 All nodes can be configured to contain applications, services, folders and files (and their status).
 
-Traffic flows between services and applications as directed by an ‘execution definition,’ with the traffic flow on the network governed by the network equipment (switches, routers and firewalls) and the ACL rules and routing tables they employ.
+Traffic flows between services and applications as directed by an ‘execution definition’ with the traffic flow on the network governed by the network equipment (switches, routers and firewalls) and the ACL rules and routing tables they employ.
 
 Highlights of PrimAITE’s training and evaluation capability are:
 
 - The scenario is not bound to a representation of any platform, system, or technology;
 - Fully configurable (network / system laydown, green pattern-of-life, red personas, reward function, ACL rules for each device, number of episodes / steps, action / observation space) and repeatable to suit the requirements of AI agents;
-- Can integrate with any Gymnasium / Ray RLlib compliant AI agent .
+- Can integrate with any Gymnasium / Ray RLlib compliant AI agent.
 
 
 PrimAITE provides a number of use cases (network and red/green action configurations) by default which the user is able to extend and modify as required.

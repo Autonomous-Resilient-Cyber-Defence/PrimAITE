@@ -25,8 +25,8 @@ When a request is resolved, it returns a success status, and optional additional
 
 ``data`` can be a dictionary with any arbitrary JSON-like data to describe the outcome of the request.
 
-Request Syntax:
-"""""""""""""""
+Requests:
+"""""""""
 
 Request Syntax
 ---------------

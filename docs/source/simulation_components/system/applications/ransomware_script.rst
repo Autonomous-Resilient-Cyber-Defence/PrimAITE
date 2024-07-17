@@ -7,18 +7,18 @@
 RansomwareScript
 ###################
 
-The ``DataManipulationBot`` class provides functionality to connect to a :ref:`DatabaseService` and set a database's database.db into an ``CORRUPTED`` state.
+The RansomwareScript class provides functionality to connect to a :ref:`DatabaseService` and set a database's database.db into an ``CORRUPTED`` state.
 
 Overview
 ========
 
 The ransomware script intends to simulate a generic implementation of ransomware.
 
-Currently, due to simulation restraints, the ransomware script is unable to attack a host's without active database service.
+Currently, due to simulation restraints, the ransomware script is unable to attack a hosts without an active database service.
 
 The ransomware script is similar to that of the data_manipulation_bot but does not have any separate stages or configurable probabilities.
 
-Additionally, similarly to the data_manipulation_bot, the ransomware script must be installed on a host with a pre-existing :ref:`DatabaseClient` application installed.
+Additionally, similar to the data_manipulation_bot, the ransomware script must be installed on a host with a pre-existing :ref:`DatabaseClient` application installed.
 
 Usage
 =====
@@ -28,12 +28,12 @@ Usage
     - Database password (if needed)
 - Call ``Execute`` to connect and execute the ransomware script.
 
-This application handles connection to the database server and the encryption but it does not handle disconnections.
+This application handles connections to the database server and the connection made to encrypt the database but it does not handle disconnections.
 
 Implementation
 ==============
 
-At current, the ransomware script connects to a :ref:`DatabaseClient` and leverages its connectivity. The host running ``RansomwareScript`` must also have a :ref:`DatabaseClient` installed on it.
+Currently, the ransomware script connects to a :ref:`DatabaseClient` and leverages its connectivity. The host running ``RansomwareScript`` must also have a :ref:`DatabaseClient` installed on it.
 
 - Uses the Application base class for lifecycle management.
 - Target IP and other options set via ``configure``.
@@ -70,7 +70,7 @@ Python
 Configuration
 =============
 
-The RansomwareScript inherits configuration options such as ``fix_duration`` from it's parent class. However, for the ``RansomwareScript`` the most relevant option is ``server_ip``.
+The RansomwareScript inherits configuration options such as ``fix_duration`` from its parent class. However, for the ``RansomwareScript`` the most relevant option is ``server_ip``.
 
 .. include:: ../common/common_configuration.rst
 
