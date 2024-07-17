@@ -18,7 +18,7 @@ from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.airspace import AirSpaceFrequency
-from primaite.simulator.network.hardware.base import NodeOperatingState, NetworkInterface
+from primaite.simulator.network.hardware.base import NetworkInterface, NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
