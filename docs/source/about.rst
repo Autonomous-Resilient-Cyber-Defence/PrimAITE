@@ -7,39 +7,10 @@
 About PrimAITE
 ==============
 
-The ARCD Primary-level AI Training Environment (**PrimAITE**) provides an effective simulation capability for training and evaluating AI in a cyber-defensive role. It incorporates the functionality required of a primary-level ARCD environment:
-
-- The ability to model a relevant system context;
-- Modelling an adversarial agent that the defensive agent can be trained and evaluated against;
-- The ability to model key characteristics of a system by representing hosts, servers, network devices, IP addresses, ports, operating systems, folders / files, applications, services and links;
-- Modelling background (green) pattern-of-life;
-- Operates at machine-speed to enable fast training cycles via Reinforcement Learning (RL).
-
-Features
-^^^^^^^^
-
-PrimAITE incorporates the following features:
-
-- Architected with a separate Simulation layer and Game layer. This separation of concerns defines a clear path towards transfer learning with environments of differing fidelity;
-- Ability to reconfigure an RL reward function based on (a) the ability to counter the modelled adversarial cyber-attack, and (b) the ability to ensure success for green agents;
-- Access Control List (ACL) functions for network devices (routers and firewalls), following standard ACL rule format (e.g., DENY / ALLOW, source / destination IP addresses, protocol and port);
-- Application of traffic to the links of the system laydown adheres to the ACL rulesets and routing tables contained within each network device;
-- Provides RL environments adherent to the Farama Foundation Gymnasium (Previously OpenAI Gym) API, allowing integration with any compliant RL Agent frameworks;
-- Provides RL environments adherent to Ray RLlib environment specifications for single-agent and multi-agent scenarios;
-- Assessed for compatibility with Stable-Baselines3 (SB3), Ray RLlib, and bespoke agents;
-- Persona-based adversarial (Red) agent behaviour; several out-the-box personas are provided, and more can be developed to suit the needs of the task. Stochastic variations in Red agent behaviour are also included as required;
-- A robust system logging tool, automatically enabled at the node level and featuring various log levels and terminal output options, enables PrimAITE users to conduct in-depth network simulations;
-- A PCAP service is seamlessly integrated within the simulation, automatically capturing and logging frames for both
-  inbound and outbound traffic at the network interface level. This automatic functionality, combined with the ability
-  to separate traffic directions, significantly enhances network analysis and troubleshooting capabilities;
-- Agent action logs provide a description of every action taken by each agent during the episode. This includes timestep, action, parameters, request and response, for all Blue agent activity, which is aligned with the Track 2 Common Action / Observation Space (CAOS) format. Action logs also details of all scripted / stochastic red / green agent actions;
-- Environment ground truth is provided at every timestep, providing a full description of the environment’s true state;
-- Alignment with CAOS provides the ability to transfer agents between CAOS compliant environments.
-
 Architecture
 ^^^^^^^^^^^^
 
-PrimAITE is a Python application and will operate on multiple Operating Systems (Windows, Linux and macOS);
+PrimAITE is a Python application and will operate on multiple Operating Systems (Windows, Linux and Mac);
 a comprehensive installation and user guide is provided with each release to support its usage.
 
 Configuration of PrimAITE is achieved via included YAML files which support full control over the network / system laydown being modelled, background pattern of life, adversarial (red agent) behaviour, and step and episode count.
@@ -66,17 +37,17 @@ Training & Evaluation Capability
 
 PrimAITE provides a training and evaluation capability to AI agents in the context of cyber-attack, via its Gymnasium / Ray RLlib compliant interface.
 
-Scenarios can be constructed to reflect network / system laydowns consisting of any configuration of nodes (e.g. PCs, servers etc.) and the networking equipment and links between them.
+Scenarios can be constructed to reflect network / system laydowns consisting of any configuration of nodes (e.g., PCs, servers etc.) and the networking equipment and links between them.
 
 All nodes can be configured to contain applications, services, folders and files (and their status).
 
-Traffic flows between services and applications as directed by an ‘execution definition’ with the traffic flow on the network governed by the network equipment (switches, routers and firewalls) and the ACL rules and routing tables they employ.
+Traffic flows between services and applications as directed by an ‘execution definition,’ with the traffic flow on the network governed by the network equipment (switches, routers and firewalls) and the ACL rules and routing tables they employ.
 
 Highlights of PrimAITE’s training and evaluation capability are:
 
 - The scenario is not bound to a representation of any platform, system, or technology;
 - Fully configurable (network / system laydown, green pattern-of-life, red personas, reward function, ACL rules for each device, number of episodes / steps, action / observation space) and repeatable to suit the requirements of AI agents;
-- Can integrate with any Gymnasium / Ray RLlib compliant AI agent.
+- Can integrate with any Gymnasium / Ray RLlib compliant AI agent .
 
 
 PrimAITE provides a number of use cases (network and red/green action configurations) by default which the user is able to extend and modify as required.
@@ -98,6 +69,46 @@ Getting Started with PrimAITE
 -----------------------------
 
 Head over to the :ref:`getting-started` page to install and setup PrimAITE!
+
+.. toctree::
+   :maxdepth: 8
+   :caption: About PrimAITE:
+   :hidden:
+
+   source/about
+   source/dependencies
+   source/glossary
+
+.. toctree::
+   :caption: Usage:
+   :hidden:
+
+   source/getting_started
+   source/game_layer
+   source/simulation
+   source/config
+   source/customising_scenarios
+   source/varying_config_files
+   source/environment
+   source/action_masking
+
+.. toctree::
+   :caption: Notebooks:
+   :hidden:
+
+   source/example_notebooks
+   source/notebooks/executed_notebooks
+
+.. toctree::
+   :caption: Developer information:
+   :hidden:
+
+   source/developer_tools
+   source/state_system
+   source/request_system
+   PrimAITE API <source/_autosummary/primaite>
+   PrimAITE Tests <source/_autosummary/tests>
+
 
 ..
   Architecture - Nodes and Links
