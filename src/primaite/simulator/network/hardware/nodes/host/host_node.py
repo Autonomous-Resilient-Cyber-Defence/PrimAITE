@@ -11,8 +11,6 @@ from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.nmap import NMAP
 from primaite.simulator.system.applications.web_browser import WebBrowser
-from primaite.simulator.system.services.access.user_manager import UserManager
-from primaite.simulator.system.services.access.user_session_manager import UserSessionManager
 from primaite.simulator.system.services.arp.arp import ARP, ARPPacket
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.icmp.icmp import ICMP
@@ -318,10 +316,9 @@ class HostNode(Node):
     network_interface: Dict[int, NIC] = {}
     "The NICs on the node by port id."
 
-    def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, username: str, password: str, **kwargs):
+    def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
         super().__init__(**kwargs)
         self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))
-        self.user_manager.add_user(username=username, password=password, is_admin=True, bypass_can_perform_action=True)
 
     @property
     def nmap(self) -> Optional[NMAP]:

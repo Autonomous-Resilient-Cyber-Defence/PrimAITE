@@ -46,7 +46,7 @@ class Service(IOSoftware):
     restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
 
-    def __init__(self, **kwargs):c
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def _can_perform_action(self) -> bool:
