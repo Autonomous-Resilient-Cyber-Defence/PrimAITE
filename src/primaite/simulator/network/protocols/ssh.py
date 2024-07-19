@@ -56,6 +56,7 @@ class SSHConnectionMessage(IntEnum):
     SSH_MSG_CHANNEL_CLOSE = 87
     """Closes the channel."""
 
+
 class SSHUserCredentials(DataPacket):
     """Hold Username and Password in SSH Packets"""
 

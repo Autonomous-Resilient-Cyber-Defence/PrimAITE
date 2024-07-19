@@ -100,7 +100,12 @@ class Terminal(Service):
         _login_valid = Terminal._LoginValidator(terminal=self)
 
         rm = super()._init_request_manager()
-        rm.add_request("login", request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self._validate_login()), validator=_login_valid))
+        rm.add_request(
+            "login",
+            request_type=RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self._validate_login()), validator=_login_valid
+            ),
+        )
         return rm
 
     def _validate_login(self, user_account: Optional[str]) -> bool:
@@ -127,12 +132,11 @@ class Terminal(Service):
         def __call__(self, request: RequestFormat, context: Dict) -> bool:
             """Return whether the Terminal has valid login credentials"""
             return self.terminal.login_status
-        
+
         @property
         def fail_message(self) -> str:
             """Message that is reported when a request is rejected by this validator"""
-            return ("Cannot perform request on terminal as not logged in.")
-
+            return "Cannot perform request on terminal as not logged in."
 
     # %% Inbound
 
