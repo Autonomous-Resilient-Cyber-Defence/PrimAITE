@@ -70,46 +70,6 @@ Getting Started with PrimAITE
 
 Head over to the :ref:`getting-started` page to install and setup PrimAITE!
 
-.. toctree::
-   :maxdepth: 8
-   :caption: About PrimAITE:
-   :hidden:
-
-   source/about
-   source/dependencies
-   source/glossary
-
-.. toctree::
-   :caption: Usage:
-   :hidden:
-
-   source/getting_started
-   source/game_layer
-   source/simulation
-   source/config
-   source/customising_scenarios
-   source/varying_config_files
-   source/environment
-   source/action_masking
-
-.. toctree::
-   :caption: Notebooks:
-   :hidden:
-
-   source/example_notebooks
-   source/notebooks/executed_notebooks
-
-.. toctree::
-   :caption: Developer information:
-   :hidden:
-
-   source/developer_tools
-   source/state_system
-   source/request_system
-   PrimAITE API <source/_autosummary/primaite>
-   PrimAITE Tests <source/_autosummary/tests>
-
-
 ..
   Architecture - Nodes and Links
   ******************************

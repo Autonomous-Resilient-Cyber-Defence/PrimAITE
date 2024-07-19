@@ -5,10 +5,10 @@
 .. _NMAP:
 
 NMAP
-====
+####
 
 Overview
---------
+========
 
 The NMAP application is used to simulate network scanning activities. NMAP is a powerful tool that helps in discovering
 hosts and services on a network. It provides functionalities such as ping scans to discover active hosts and port scans
@@ -19,8 +19,8 @@ structure, identify active devices, and find potential vulnerabilities by discov
 However, it is also a tool frequently used by attackers during the reconnaissance stage of a cyber attack to gather
 information about the target network.
 
-Scan Types
-----------
+Scan Type
+=========
 
 Ping Scan
 ^^^^^^^^^
@@ -46,7 +46,7 @@ identifying potential entry points for attacks. There are three types of port sc
   It gives a comprehensive view of the network's service landscape.
 
 Example Usage
--------------
+^^^^^^^^^^^^^
 
 The network we use for these examples is defined below:
 
