@@ -14,12 +14,12 @@ from pydantic import BaseModel, Field
 from primaite import getLogger
 from primaite.exceptions import NetworkError
 from primaite.interface.request import RequestResponse
+from primaite.session.io import NMNEConfig
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.core import RequestFormat, RequestManager, RequestPermissionValidator, RequestType, SimComponent
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.system.applications.application import Application

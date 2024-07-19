@@ -9,11 +9,11 @@ from gymnasium import spaces
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.game.game import PrimaiteGame
+from primaite.session.io import store_nmne_config
 from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.network.nmne import store_nmne_config
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.web_browser import WebBrowser

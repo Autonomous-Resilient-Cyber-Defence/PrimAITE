@@ -1,9 +1,9 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from primaite.game.agent.observations.nic_observations import NICObservation
+from primaite.session.io import store_nmne_config
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.network.nmne import store_nmne_config
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 
