@@ -3,7 +3,6 @@ import tempfile
 from pathlib import Path
 
 import pytest
-import ray
 import yaml
 from ray.rllib.algorithms import ppo
 
@@ -19,9 +18,6 @@ def test_rllib_single_agent_compatibility():
         cfg = yaml.safe_load(f)
 
     game = PrimaiteGame.from_config(cfg)
-
-    ray.shutdown()
-    ray.init()
 
     env_config = {"game": game}
     config = {
@@ -41,4 +37,3 @@ def test_rllib_single_agent_compatibility():
     assert save_file.exists()
 
     save_file.unlink()  # clean up
-    ray.shutdown()

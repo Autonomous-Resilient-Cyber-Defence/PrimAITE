@@ -4,6 +4,7 @@ from os import PathLike
 from typing import Any, Dict, Optional, SupportsFloat, Tuple, Union
 
 import gymnasium
+import numpy as np
 from gymnasium.core import ActType, ObsType
 
 from primaite import getLogger
@@ -40,6 +41,21 @@ class PrimaiteGymEnv(gymnasium.Env):
         """Current episode number."""
         self.total_reward_per_episode: Dict[int, float] = {}
         """Average rewards of agents per episode."""
+
+    def action_masks(self) -> np.ndarray:
+        """
+        Return the action mask for the agent.
+
+        This is a boolean list corresponding to the agent's action space. A False entry means this action cannot be
+        performed during this step.
+
+        :return: Action mask
+        :rtype: List[bool]
+        """
+        if not self.agent.action_masking:
+            return np.asarray([True] * len(self.agent.action_manager.action_map))
+        else:
+            return self.game.action_mask(self._agent_name)
 
     @property
     def agent(self) -> ProxyAgent:

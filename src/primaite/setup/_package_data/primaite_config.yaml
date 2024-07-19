@@ -3,6 +3,8 @@
 developer_mode:
   enabled: False  # not enabled by default
   sys_log_level: DEBUG # level of output for system logs, DEBUG by default
+  agent_log_level: DEBUG # level of output for agent logs, DEBUG by default
+  output_agent_logs: False # level of output for system logs, DEBUG by default
   output_sys_logs: False  # system logs not output by default
   output_pcap_logs: False  # pcap logs not output by default
   output_to_terminal: False  # do not output to terminal by default

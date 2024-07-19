@@ -52,6 +52,8 @@ class GroupMembershipValidator(RequestPermissionValidator):
     def __call__(self, request: List[str], context: Dict) -> bool:
         """Permit the action if the request comes from an account which belongs to the right group."""
         # if context request source is part of any groups mentioned in self.allow_groups, return true, otherwise false
+        if not context:
+            return False
         requestor_groups: List[str] = context["request_source"]["groups"]
         for allowed_group in self.allowed_groups:
             if allowed_group.name in requestor_groups:

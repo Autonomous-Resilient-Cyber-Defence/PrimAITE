@@ -3,6 +3,7 @@ import json
 from typing import Dict, SupportsFloat, Tuple
 
 import gymnasium
+from gymnasium import spaces
 from gymnasium.core import ActType, ObsType
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
@@ -38,15 +39,19 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
 
         self.terminateds = set()
         self.truncateds = set()
-        self.observation_space = gymnasium.spaces.Dict(
-            {
-                name: gymnasium.spaces.flatten_space(agent.observation_manager.space)
-                for name, agent in self.agents.items()
-            }
+        self.observation_space = spaces.Dict(
+            {name: spaces.flatten_space(agent.observation_manager.space) for name, agent in self.agents.items()}
         )
-        self.action_space = gymnasium.spaces.Dict(
-            {name: agent.action_manager.space for name, agent in self.agents.items()}
-        )
+        for agent_name in self._agent_ids:
+            agent = self.game.rl_agents[agent_name]
+            if agent.action_masking:
+                self.observation_space[agent_name] = spaces.Dict(
+                    {
+                        "action_mask": spaces.MultiBinary(agent.action_manager.space.n),
+                        "observations": self.observation_space[agent_name],
+                    }
+                )
+        self.action_space = spaces.Dict({name: agent.action_manager.space for name, agent in self.agents.items()})
         self._obs_space_in_preferred_format = True
         self._action_space_in_preferred_format = True
         super().__init__()
@@ -131,13 +136,17 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
 
     def _get_obs(self) -> Dict[str, ObsType]:
         """Return the current observation."""
-        obs = {}
+        all_obs = {}
         for agent_name in self._agent_ids:
             agent = self.game.rl_agents[agent_name]
             unflat_space = agent.observation_manager.space
             unflat_obs = agent.observation_manager.current_observation
-            obs[agent_name] = gymnasium.spaces.flatten(unflat_space, unflat_obs)
-        return obs
+            obs = gymnasium.spaces.flatten(unflat_space, unflat_obs)
+            if agent.action_masking:
+                all_obs[agent_name] = {"action_mask": self.game.action_mask(agent_name), "observations": obs}
+            else:
+                all_obs[agent_name] = obs
+        return all_obs
 
     def close(self):
         """Close the simulation."""
@@ -158,15 +167,30 @@ class PrimaiteRayEnv(gymnasium.Env):
         self.env = PrimaiteGymEnv(env_config=env_config)
         # self.env.episode_counter -= 1
         self.action_space = self.env.action_space
-        self.observation_space = self.env.observation_space
+        if self.env.agent.action_masking:
+            self.observation_space = spaces.Dict(
+                {"action_mask": spaces.MultiBinary(self.env.action_space.n), "observations": self.env.observation_space}
+            )
+        else:
+            self.observation_space = self.env.observation_space
 
     def reset(self, *, seed: int = None, options: dict = None) -> Tuple[ObsType, Dict]:
         """Reset the environment."""
+        if self.env.agent.action_masking:
+            obs, *_ = self.env.reset(seed=seed)
+            new_obs = {"action_mask": self.env.action_masks(), "observations": obs}
+            return new_obs, *_
         return self.env.reset(seed=seed)
 
     def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, Dict]:
         """Perform a step in the environment."""
-        return self.env.step(action)
+        # if action masking is enabled, intercept the step method and add action mask to observation
+        if self.env.agent.action_masking:
+            obs, *_ = self.env.step(action)
+            new_obs = {"action_mask": self.game.action_mask(self.env._agent_name), "observations": obs}
+            return new_obs, *_
+        else:
+            return self.env.step(action)
 
     def close(self):
         """Close the simulation."""
