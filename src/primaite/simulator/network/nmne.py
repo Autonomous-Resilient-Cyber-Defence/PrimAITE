@@ -6,7 +6,7 @@ from typing import Dict, List
 class NMNEConfig(BaseModel):
     """Store all the information to perform NMNE operations."""
 
-    capture_nmne: bool = True
+    capture_nmne: bool = False
     """Indicates whether Malicious Network Events (MNEs) should be captured."""
     nmne_capture_keywords: List[str] = []
     """List of keywords to identify malicious network events."""
@@ -42,12 +42,8 @@ def store_nmne_config(nmne_config: Dict) -> NMNEConfig:
     nmne_capture_keywords: List[str] = []
     # Update the NMNE capture flag, defaulting to False if not specified or if the type is incorrect
     capture_nmne = nmne_config.get("capture_nmne", False)
-    if not isinstance(capture_nmne, bool):
-        capture_nmne = True  # Revert to default True if the provided value is not a boolean
 
     # Update the NMNE capture keywords, appending new keywords if provided
     nmne_capture_keywords += nmne_config.get("nmne_capture_keywords", [])
-    if not isinstance(nmne_capture_keywords, list):
-        nmne_capture_keywords = []  # Reset to empty list if the provided value is not a list
 
     return NMNEConfig(capture_nmne=capture_nmne, nmne_capture_keywords=nmne_capture_keywords)
