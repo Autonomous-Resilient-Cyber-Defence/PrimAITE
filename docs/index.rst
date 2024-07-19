@@ -76,6 +76,6 @@ PrimAITE incorporates the following features:
 - A PCAP service is seamlessly integrated within the simulation, automatically capturing and logging frames for both
   inbound and outbound traffic at the network interface level. This automatic functionality, combined with the ability
   to separate traffic directions, significantly enhances network analysis and troubleshooting capabilities;
-- Agent action logs provide a description of every action taken by each agent during the episode. This includes timestep, action, parameters, request and response, for all Blue agent activity, which is aligned with the Track 2 Common Action / Observation Space (CAOS) format. Action logs also details of all scripted / stochastic red / green agent actions;
+- Agent action logs provide a description of every action taken by each agent during the episode. This includes timestep, action, parameters, request and response, for all Blue agent activity, which is aligned with the Track 2 Common Action / Observation Space (CAOS) format. Action logs also detail all scripted / stochastic red / green agent actions;
 - Environment ground truth is provided at every timestep, providing a full description of the environment’s true state;
 - Alignment with CAOS provides the ability to transfer agents between CAOS compliant environments.
