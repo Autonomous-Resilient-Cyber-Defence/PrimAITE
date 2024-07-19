@@ -7,8 +7,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel
 
-from primaite.interface.request import RequestResponse
-from primaite.simulator.core import RequestManager
+from primaite.interface.request import RequestFormat, RequestResponse
+from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.protocols.ssh import SSHConnectionMessage, SSHPacket, SSHTransportMessage
 from primaite.simulator.network.transmission.network_layer import IPProtocol
@@ -96,7 +96,11 @@ class Terminal(Service):
     def _init_request_manager(self) -> RequestManager:
         """Initialise Request manager."""
         # TODO: Expand with a login validator?
+
+        _login_valid = Terminal._LoginValidator(terminal=self)
+
         rm = super()._init_request_manager()
+        rm.add_request("login", request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self._validate_login()), validator=_login_valid))
         return rm
 
     def _validate_login(self, user_account: Optional[str]) -> bool:
@@ -109,10 +113,32 @@ class Terminal(Service):
         else:
             return True
 
+    class _LoginValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only allow them through if the
+        User is logged into the Terminal.
+
+        Login is required before making use of the Terminal.
+        """
+
+        terminal: Terminal
+        """Save a reference to the Terminal instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the Terminal has valid login credentials"""
+            return self.terminal.login_status
+        
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator"""
+            return ("Cannot perform request on terminal as not logged in.")
+
+
     # %% Inbound
 
     def _generate_connection_uuid(self) -> str:
         """Generate a unique connection ID."""
+        # This might not be needed given user_manager.login() returns a UUID.
         return str(uuid4())
 
     def login(self, dest_ip_address: IPv4Address, **kwargs) -> bool:
@@ -136,7 +162,7 @@ class Terminal(Service):
                 payload="login", transport_message=transport_message, connection_message=connection_message
             )
 
-            self.sys_log.debug(f"Sending login request to {dest_ip_address}")
+            self.sys_log.info(f"Sending login request to {dest_ip_address}")
             self.send(payload=payload, dest_ip_address=dest_ip_address)
 
     def _ssh_process_login(self, dest_ip_address: IPv4Address, user_account: dict, **kwargs) -> bool:

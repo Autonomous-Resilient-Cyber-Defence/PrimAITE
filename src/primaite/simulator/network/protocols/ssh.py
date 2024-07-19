@@ -56,6 +56,15 @@ class SSHConnectionMessage(IntEnum):
     SSH_MSG_CHANNEL_CLOSE = 87
     """Closes the channel."""
 
+class SSHUserCredentials(DataPacket):
+    """Hold Username and Password in SSH Packets"""
+
+    username: str = None
+    """Username for login"""
+
+    password: str = None
+    """Password for login"""
+
 
 class SSHPacket(DataPacket):
     """Represents an SSHPacket."""
@@ -64,8 +73,8 @@ class SSHPacket(DataPacket):
 
     connection_message: SSHConnectionMessage = None
 
-    ssh_command: Optional[str] = None  # This is the request string
+    connection_uuid: Optional[str] = None  # The connection uuid used to validate the session
 
     ssh_output: Optional[RequestResponse] = None  # The Request Manager's returned RequestResponse
 
-    user_account: Optional[Dict] = None  # The user account we will use to login if we do not have a current connection.
+    ssh_command: Optional[str] = None  # This is the request string
