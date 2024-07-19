@@ -156,18 +156,17 @@ def store_nmne_config(nmne_config: Dict) -> NMNEConfig:
     """
     Store configuration for capturing Malicious Network Events (MNEs).
 
-    This function updates global settings related to NMNE capture, including whether to capture
-    NMNEs and what keywords to use for identifying NMNEs.
+    This function updates settings related to NMNE capture, stored in NMNEConfig including whether
+    to capture NMNEs and the keywords to use for identifying NMNEs.
 
     The function ensures that the settings are updated only if they are provided in the
-    `nmne_config` dictionary, and maintains type integrity by checking the types of the provided
-    values.
+    `nmne_config` dictionary, and maintains type integrity by relying on pydantic validators.
 
     :param nmne_config: A dictionary containing the NMNE configuration settings. Possible keys
     include:
         "capture_nmne" (bool) to indicate whether NMNEs should be captured;
         "nmne_capture_keywords" (list of strings) to specify keywords for NMNE identification.
-    :rvar dataclass with data read from config file.
+    :rvar class with data read from config file.
     """
     nmne_capture_keywords: List[str] = []
     # Update the NMNE capture flag, defaulting to False if not specified or if the type is incorrect
