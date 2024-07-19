@@ -41,7 +41,7 @@ Scenarios can be constructed to reflect network / system laydowns consisting of 
 
 All nodes can be configured to contain applications, services, folders and files (and their status).
 
-Traffic flows between services and applications as directed by an ‘execution definition’ with the traffic flow on the network governed by the network equipment (switches, routers and firewalls) and the ACL rules and routing tables they employ.
+Traffic flows between services and applications as directed by an ‘execution definition’, with the traffic flow on the network governed by the network equipment (switches, routers and firewalls) and the ACL rules and routing tables they employ.
 
 Highlights of PrimAITE’s training and evaluation capability are:
 
