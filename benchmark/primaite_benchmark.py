@@ -1,11 +1,11 @@
-# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import json
 import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Final, Tuple
 
-from report import build_benchmark_latex_report
+from report import build_benchmark_md_report
 from stable_baselines3 import PPO
 
 import primaite
@@ -117,14 +117,14 @@ class BenchmarkSession:
     def generate_learn_metadata_dict(self) -> Dict[str, Any]:
         """Metadata specific to the learning session."""
         total_s, s_per_step, s_per_100_steps_10_nodes = self._learn_benchmark_durations()
-        self.gym_env.average_reward_per_episode.pop(0)  # remove episode 0
+        self.gym_env.total_reward_per_episode.pop(0)  # remove episode 0
         return {
             "total_episodes": self.gym_env.episode_counter,
             "total_time_steps": self.gym_env.total_time_steps,
             "total_s": total_s,
             "s_per_step": s_per_step,
             "s_per_100_steps_10_nodes": s_per_100_steps_10_nodes,
-            "av_reward_per_episode": self.gym_env.average_reward_per_episode,
+            "total_reward_per_episode": self.gym_env.total_reward_per_episode,
         }
 
 
@@ -151,8 +151,8 @@ def _prepare_session_directory():
 
 
 def run(
-    number_of_sessions: int = 2,
-    num_episodes: int = 5,
+    number_of_sessions: int = 5,
+    num_episodes: int = 1000,
     episode_len: int = 128,
     n_steps: int = 1280,
     batch_size: int = 32,
@@ -188,7 +188,7 @@ def run(
         with open(_SESSION_METADATA_ROOT / f"{i}.json", "r") as file:
             session_metadata_dict[i] = json.load(file)
     # generate report
-    build_benchmark_latex_report(
+    build_benchmark_md_report(
         benchmark_start_time=benchmark_start_time,
         session_metadata=session_metadata_dict,
         config_path=data_manipulation_config_path(),
