@@ -17,10 +17,20 @@ PLOT_CONFIG = {
     "size": {"auto_size": False, "width": 1500, "height": 900},
     "template": "plotly_white",
     "range_slider": False,
+    "av_s_per_100_steps_10_nodes_benchmark_threshold": 5,
+    "benchmark_line_color": "grey",
 }
 
 
 def _build_benchmark_results_dict(start_datetime: datetime, metadata_dict: Dict, config: Dict) -> dict:
+    """
+    Constructs a dictionary aggregating benchmark results from multiple sessions.
+
+    :param start_datetime: The datetime when the benchmarking started.
+    :param metadata_dict: Dictionary containing metadata for each session.
+    :param config: Configuration settings used during the benchmarking.
+    :return: A dictionary containing aggregated data and metadata from the benchmarking sessions.
+    """
     num_sessions = len(metadata_dict)  # number of sessions
 
     averaged_data = {
@@ -53,6 +63,12 @@ def _build_benchmark_results_dict(start_datetime: datetime, metadata_dict: Dict,
 
 
 def _get_df_from_episode_av_reward_dict(data: Dict) -> pl.DataFrame:
+    """
+    Converts a dictionary of episode average rewards into a Polars DataFrame.
+
+    :param data: Dictionary with episodes as keys and average rewards as values.
+    :return: Polars DataFrame with episodes and average rewards, including a rolling average.
+    """
     data: Dict = {"episode": data.keys(), "av_reward": data.values()}
 
     return (
@@ -67,6 +83,14 @@ def _plot_benchmark_metadata(
     title: Optional[str] = None,
     subtitle: Optional[str] = None,
 ) -> Figure:
+    """
+    Plots benchmark metadata as a line graph using Plotly.
+
+    :param benchmark_metadata_dict: Dictionary containing the total reward per episode and session.
+    :param title: Optional title for the graph.
+    :param subtitle: Optional subtitle for the graph.
+    :return: Plotly figure object representing the benchmark metadata plot.
+    """
     if title:
         if subtitle:
             title = f"{title} <br>{subtitle}</sup>"
@@ -136,7 +160,7 @@ def _plot_all_benchmarks_combined_session_av(results_directory: Path) -> Figure:
     converted into a polars dataframe, and plotted as a scatter line in plotly.
     """
     major_v = primaite.__version__.split(".")[0]
-    title = f"Learning Benchmarking of All Released Versions under Major v{major_v}.#.#"
+    title = f"Learning Benchmark of Minor and Bugfix Releases for Major Version {major_v}"
     subtitle = "Rolling Av (Combined Session Av)"
     if title:
         if subtitle:
@@ -176,10 +200,118 @@ def _plot_all_benchmarks_combined_session_av(results_directory: Path) -> Figure:
     return fig
 
 
-def build_benchmark_latex_report(
+def _get_performance_benchmark_for_all_version_dict(results_directory: Path) -> Dict[str, float]:
+    """
+    Gathers performance benchmarks for all versions of the software stored in a specified directory.
+
+    This function iterates through each directory within the specified results directory,
+    extracts the av_s_per_100_steps_10_nodes from the benchmark_metadata.json files, and aggregates it into a
+    dictionary.
+
+    :param results_directory: The directory containing subdirectories for each version's benchmark data.
+    :return: A dictionary with version numbers as keys and their corresponding average performance benchmark
+        (average time per 100 steps on 10 nodes) as values.
+    """
+    performance_benchmark_dict = {}
+    for dir in results_directory.iterdir():
+        if dir.is_dir():
+            metadata_file = dir / f"{dir.name}_benchmark_metadata.json"
+            with open(metadata_file, "r") as file:
+                metadata_dict = json.load(file)
+                version = metadata_dict["primaite_version"]
+                performance_benchmark_dict[version] = metadata_dict["av_s_per_100_steps_10_nodes"]
+    return performance_benchmark_dict
+
+
+def _plot_av_s_per_100_steps_10_nodes(
+    version_times_dict: Dict[str, float],
+) -> Figure:
+    """
+    Creates a bar chart visualising the performance of each version of PrimAITE.
+
+    Performance is based on the average training time per 100 steps on 10 nodes. The function also includes a benchmark
+    line indicating the target maximum time.
+
+    Versions that perform under this time are marked in green, and those over are marked in red.
+
+    :param version_times_dict: A dictionary with software versions as keys and average times as values.
+    :return: A Plotly figure object representing the bar chart of the performance metrics.
+    """
+    major_v = primaite.__version__.split(".")[0]
+    title = f"Performance of Minor and Bugfix Releases for Major Version {major_v}"
+    subtitle = (
+        f"Average Training Time per 100 Steps on 10 Nodes "
+        f"(target: <= {PLOT_CONFIG['av_s_per_100_steps_10_nodes_benchmark_threshold']} seconds)"
+    )
+    title = f"{title} <br><sub>{subtitle}</sub>"
+
+    layout = go.Layout(
+        autosize=PLOT_CONFIG["size"]["auto_size"],
+        width=PLOT_CONFIG["size"]["width"],
+        height=PLOT_CONFIG["size"]["height"],
+    )
+    fig = go.Figure(layout=layout)
+    fig.update_layout(template=PLOT_CONFIG["template"])
+
+    versions = sorted(list(version_times_dict.keys()))
+    times = [version_times_dict[version] for version in versions]
+    av_s_per_100_steps_10_nodes_benchmark_threshold = PLOT_CONFIG["av_s_per_100_steps_10_nodes_benchmark_threshold"]
+    benchmark_line_color = PLOT_CONFIG["benchmark_line_color"]
+
+    # Calculate the appropriate maximum y-axis value
+    max_y_axis_value = max(max(times), av_s_per_100_steps_10_nodes_benchmark_threshold) + 1
+
+    fig.add_trace(
+        go.Bar(
+            x=versions,
+            y=times,
+            marker_color=[
+                "green" if time < av_s_per_100_steps_10_nodes_benchmark_threshold else "red" for time in times
+            ],
+            text=times,
+            textposition="auto",
+        )
+    )
+
+    # Add a horizontal line for the benchmark
+    fig.add_shape(
+        type="line",
+        x0=-0.5,  # start slightly before the first bar
+        x1=len(versions) - 0.5,  # end slightly after the last bar
+        y0=av_s_per_100_steps_10_nodes_benchmark_threshold,
+        y1=av_s_per_100_steps_10_nodes_benchmark_threshold,
+        line=dict(
+            color=benchmark_line_color,
+            width=2,
+            dash="dot",
+        ),
+    )
+
+    fig.update_layout(
+        xaxis_title="PrimAITE Version",
+        yaxis_title="Avg Time per 100 Steps on 10 Nodes (seconds)",
+        yaxis=dict(range=[0, max_y_axis_value]),
+        title=title,
+    )
+
+    return fig
+
+
+def build_benchmark_md_report(
     benchmark_start_time: datetime, session_metadata: Dict, config_path: Path, results_root_path: Path
 ) -> None:
-    """Generates a latex report of the benchmark run."""
+    """
+    Generates a Markdown report for a benchmarking session, documenting performance metrics and graphs.
+
+    This function orchestrates the creation of several graphs depicting various performance benchmarks and aggregates
+    them into a markdown document that includes comprehensive system and benchmark information.
+
+    :param benchmark_start_time: The datetime object representing when the benchmarking process was initiated.
+    :param session_metadata: A dictionary containing metadata for each benchmarking session.
+    :param config_path: A pathlib.Path object pointing to the configuration file used for the benchmark sessions.
+    :param results_root_path: A pathlib.Path object pointing to the directory where the results and graphs should be
+        saved.
+    """
     # generate report folder
     v_str = f"v{primaite.__version__}"
 
@@ -204,13 +336,21 @@ def build_benchmark_latex_report(
 
     fig = _plot_all_benchmarks_combined_session_av(results_directory=results_root_path)
 
-    all_version_plot_path = version_result_dir / "PrimAITE Versions Learning Benchmark.png"
+    filename = f"PrimAITE Learning Benchmark of Minor and Bugfix Releases for Major Version {major_v}.png"
+
+    all_version_plot_path = version_result_dir / filename
     fig.write_image(all_version_plot_path)
+
+    performance_benchmark_dict = _get_performance_benchmark_for_all_version_dict(results_directory=results_root_path)
+    fig = _plot_av_s_per_100_steps_10_nodes(performance_benchmark_dict)
+    filename = f"PrimAITE Performance of Minor and Bugfix Releases for Major Version {major_v}.png"
+    performance_benchmark_plot_path = version_result_dir / filename
+    fig.write_image(performance_benchmark_plot_path)
 
     data = benchmark_metadata_dict
     primaite_version = data["primaite_version"]
 
-    with open(version_result_dir / f"PrimAITE v{primaite_version} Learning Benchmark.md", "w") as file:
+    with open(version_result_dir / f"PrimAITE v{primaite_version} Benchmark Report.md", "w") as file:
         # Title
         file.write(f"# PrimAITE v{primaite_version} Learning Benchmark\n")
         file.write("## PrimAITE Dev Team\n")
@@ -273,8 +413,14 @@ def build_benchmark_latex_report(
         file.write(f"### 4.1 v{primaite_version} Learning Benchmark Plot\n")
         file.write(f"![PrimAITE {primaite_version} Learning Benchmark Plot]({this_version_plot_path.name})\n")
 
-        file.write(f"### 4.2 Learning Benchmarking of All Released Versions under Major v{major_v}.#.#\n")
+        file.write(f"### 4.2 Learning Benchmark of Minor and Bugfix Releases for Major Version {major_v}\n")
         file.write(
-            f"![Learning Benchmarking of All Released Versions under "
-            f"Major v{major_v}.#.#]({all_version_plot_path.name})\n"
+            f"![Learning Benchmark of Minor and Bugfix Releases for Major Version {major_v}]"
+            f"({all_version_plot_path.name})\n"
+        )
+
+        file.write(f"### 4.3 Performance of Minor and Bugfix Releases for Major Version {major_v}\n")
+        file.write(
+            f"![Performance of Minor and Bugfix Releases for Major Version {major_v}]"
+            f"({performance_benchmark_plot_path.name})\n"
         )
