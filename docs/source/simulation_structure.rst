@@ -15,7 +15,7 @@ when a component's ``describe_state()`` method is called, it will include the st
 ``apply_request()`` method can be used to act on a component or one of its descendants. The diagram below shows the
 relationship between components.
 
-.. image:: ../../_static/component_relationship.png
+.. image:: ../_static/component_relationship.png
     :width: 500
     :align: center
     :alt: ::    The top level simulation object owns a NetworkContainer and a DomainController. The DomainController has a

@@ -17,8 +17,6 @@ PLOT_CONFIG = {
     "size": {"auto_size": False, "width": 1500, "height": 900},
     "template": "plotly_white",
     "range_slider": False,
-    "av_s_per_100_steps_10_nodes_benchmark_threshold": 5,
-    "benchmark_line_color": "grey",
 }
 
 
@@ -229,10 +227,7 @@ def _plot_av_s_per_100_steps_10_nodes(
     """
     Creates a bar chart visualising the performance of each version of PrimAITE.
 
-    Performance is based on the average training time per 100 steps on 10 nodes. The function also includes a benchmark
-    line indicating the target maximum time.
-
-    Versions that perform under this time are marked in green, and those over are marked in red.
+    Performance is based on the average training time per 100 steps on 10 nodes.
 
     :param version_times_dict: A dictionary with software versions as keys and average times as values.
     :return: A Plotly figure object representing the bar chart of the performance metrics.
@@ -256,7 +251,6 @@ def _plot_av_s_per_100_steps_10_nodes(
     versions = sorted(list(version_times_dict.keys()))
     times = [version_times_dict[version] for version in versions]
     av_s_per_100_steps_10_nodes_benchmark_threshold = PLOT_CONFIG["av_s_per_100_steps_10_nodes_benchmark_threshold"]
-    benchmark_line_color = PLOT_CONFIG["benchmark_line_color"]
 
     # Calculate the appropriate maximum y-axis value
     max_y_axis_value = max(max(times), av_s_per_100_steps_10_nodes_benchmark_threshold) + 1
@@ -265,26 +259,9 @@ def _plot_av_s_per_100_steps_10_nodes(
         go.Bar(
             x=versions,
             y=times,
-            marker_color=[
-                "green" if time < av_s_per_100_steps_10_nodes_benchmark_threshold else "red" for time in times
-            ],
             text=times,
             textposition="auto",
         )
-    )
-
-    # Add a horizontal line for the benchmark
-    fig.add_shape(
-        type="line",
-        x0=-0.5,  # start slightly before the first bar
-        x1=len(versions) - 0.5,  # end slightly after the last bar
-        y0=av_s_per_100_steps_10_nodes_benchmark_threshold,
-        y1=av_s_per_100_steps_10_nodes_benchmark_threshold,
-        line=dict(
-            color=benchmark_line_color,
-            width=2,
-            dash="dot",
-        ),
     )
 
     fig.update_layout(

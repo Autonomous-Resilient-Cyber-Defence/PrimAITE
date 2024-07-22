@@ -87,5 +87,3 @@ Configuration
 
 .. |SOFTWARE_NAME| replace:: FTPClient
 .. |SOFTWARE_NAME_BACKTICK| replace:: ``FTPClient``
-
-**FTPClient has no configuration options**
