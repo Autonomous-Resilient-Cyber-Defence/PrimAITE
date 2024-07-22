@@ -1,0 +1,276 @@
+#                Network with DMZ
+#
+#   An example network configuration with an internal network, a DMZ network and a couple of external networks.
+#
+#   ............................................................................
+#   .                                                                          .
+#   .  Internal Network                                                        .
+#   .                                                                          .
+#   .      --------------      --------------        --------------            .
+#   .      |  client_1  |------|  switch_1  |--------|  router_1  |            .
+#   .      --------------      --------------        --------------            .
+#   .        (Computer)                                     |                  .
+#   ........................................................|...................
+#                                                           |
+#                                                           |
+#   ........................................................|...................
+#   .                                                       |                  .
+#   .  DMZ Network                                          |                  .
+#   .                                                       |                  .
+#   .      ----------------      --------------      --------------            .
+#   .      |  dmz_server  |------|  switch_2  |------|  firewall  |            .
+#   .      ----------------      --------------      --------------            .
+#   .        (Server)                                       |                  .
+#   ........................................................|...................
+#                                                           |
+#    External Network                                       |
+#                                                           |
+#                                                           |
+#                        -----------------------      --------------      ---------------------
+#                        |  external_computer  |------|  switch_3  |------|  external_server  |
+#                        -----------------------      --------------      ---------------------
+#
+io_settings:
+  save_step_metadata: false
+  save_pcap_logs: true
+  save_sys_logs: true
+
+
+game:
+  max_episode_length: 256
+  ports:
+    - ARP
+    - DNS
+    - HTTP
+    - POSTGRES_SERVER
+  protocols:
+    - ICMP
+    - TCP
+    - UDP
+
+agents:
+  - ref: client_1_green_user
+    team: GREEN
+    type: ProbabilisticAgent
+    observation_space: null
+    action_space:
+      action_list:
+        - type: DONOTHING
+        - type: NODE_APPLICATION_EXECUTE
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
+        1:
+          action: NODE_APPLICATION_EXECUTE
+          options:
+            node_id: 0
+            application_id: 0
+      options:
+        nodes:
+          - node_name: client_1
+            applications:
+              - application_name: WebBrowser
+        max_folders_per_node: 1
+        max_files_per_folder: 1
+        max_services_per_node: 1
+        max_applications_per_node: 1
+
+    reward_function:
+      reward_components:
+        - type: DUMMY
+
+    agent_settings:
+      start_settings:
+        start_step: 5
+        frequency: 4
+        variance: 3
+
+
+simulation:
+  network:
+    nodes:
+      - type: computer
+        hostname: client_1
+        ip_address: 192.168.0.10
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.0.1
+        dns_server: 192.168.20.11
+        start_up_duration: 0
+        shut_down_duration: 0
+
+      - type: switch
+        hostname: switch_1
+        num_ports: 8
+        start_up_duration: 0
+        shut_down_duration: 0
+
+      - type: router
+        hostname: router_1
+        num_ports: 5
+        start_up_duration: 0
+        shut_down_duration: 0
+        ports:
+          1:
+            ip_address: 192.168.0.1
+            subnet_mask: 255.255.255.0
+          2:
+            ip_address: 192.168.1.1
+            subnet_mask: 255.255.255.0
+        acl:
+          22:
+            action: PERMIT
+            src_port: ARP
+            dst_port: ARP
+          23:
+            action: PERMIT
+            protocol: ICMP
+        routes:
+          - address: 192.168.10.10 # route to dmz_server
+            subnet_mask: 255.255.255.0
+            next_hop_ip_address: 192.168.1.2
+            metric: 0
+          - address: 192.168.20.10 # route to external_computer
+            subnet_mask: 255.255.255.0
+            next_hop_ip_address: 192.168.1.2
+            metric: 0
+          - address: 192.168.20.11 # route to external_server
+            subnet_mask: 255.255.255.0
+            next_hop_ip_address: 192.168.1.2
+            metric: 0
+
+      - type: server
+        hostname: dmz_server
+        ip_address: 192.168.10.10
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.10.1
+        dns_server: 192.168.20.11
+        start_up_duration: 0
+        shut_down_duration: 0
+
+      - type: switch
+        hostname: switch_2
+        num_ports: 8
+        start_up_duration: 0
+        shut_down_duration: 0
+
+      - type: firewall
+        hostname: firewall
+        start_up_duration: 0
+        shut_down_duration: 0
+        ports:
+          external_port: # port 1
+            ip_address: 192.168.20.1
+            subnet_mask: 255.255.255.0
+          internal_port: # port 2
+            ip_address: 192.168.1.2
+            subnet_mask: 255.255.255.0
+          dmz_port: # port 3
+            ip_address: 192.168.10.1
+            subnet_mask: 255.255.255.0
+        acl:
+          internal_inbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          internal_outbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          dmz_inbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          dmz_outbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            23:
+              action: PERMIT
+              protocol: ICMP
+          external_inbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+          external_outbound_acl:
+            22:
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+        routes:
+          - address: 192.168.0.10 # route to client_1
+            subnet_mask: 255.255.255.0
+            next_hop_ip_address: 192.168.1.1
+            metric: 0
+
+      - type: switch
+        hostname: switch_3
+        num_ports: 8
+        start_up_duration: 0
+        shut_down_duration: 0
+
+      - type: computer
+        hostname: external_computer
+        ip_address: 192.168.20.10
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.20.1
+        dns_server: 192.168.20.11
+        start_up_duration: 0
+        shut_down_duration: 0
+
+      - type: server
+        hostname: external_server
+        ip_address: 192.168.20.11
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.20.1
+        start_up_duration: 0
+        shut_down_duration: 0
+        services:
+          -     type: DNSServer
+    links:
+      - endpoint_a_hostname: client_1
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 1
+      - endpoint_a_hostname: router_1
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 8
+      - endpoint_a_hostname: firewall
+        endpoint_a_port: 2 # internal firewall port
+        endpoint_b_hostname: router_1
+        endpoint_b_port: 2
+      - endpoint_a_hostname: firewall
+        endpoint_a_port: 3 # dmz firewall port
+        endpoint_b_hostname: switch_2
+        endpoint_b_port: 8
+      - endpoint_a_hostname: dmz_server
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_2
+        endpoint_b_port: 1
+      - endpoint_a_hostname: firewall
+        endpoint_a_port: 1 # external firewall port
+        endpoint_b_hostname: switch_3
+        endpoint_b_port: 8
+      - endpoint_a_hostname: external_computer
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_3
+        endpoint_b_port: 1
+      - endpoint_a_hostname: external_server
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_3
+        endpoint_b_port: 2

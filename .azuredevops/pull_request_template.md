@@ -5,8 +5,12 @@
 *How have you tested this (if applicable)?*
 
 ## Checklist
-- [ ] This PR is linked to a **work item**
-- [ ] I have performed **self-review** of the code
-- [ ] I have written **tests** for any new functionality added with this PR
-- [ ] I have updated the **documentation** if this PR changes or adds functionality
-- [ ] I have run **pre-commit** checks for code style
+- [ ] PR is linked to a **work item**
+- [ ] **acceptance criteria** of linked ticket are met
+- [ ] performed **self-review** of the code
+- [ ] written **tests** for any new functionality added with this PR
+- [ ] updated the **documentation** if this PR changes or adds functionality
+- [ ] written/updated **design docs** if this PR implements new functionality
+- [ ] updated the **change log**
+- [ ] ran **pre-commit** checks for code style
+- [ ] attended to any **TO-DOs** left in the code

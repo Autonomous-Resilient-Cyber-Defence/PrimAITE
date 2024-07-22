@@ -1,0 +1,168 @@
+io_settings:
+  save_agent_actions: true
+  save_step_metadata: false
+  save_pcap_logs: false
+  save_sys_logs: false
+
+
+game:
+  max_episode_length: 128
+  ports:
+  - HTTP
+  - POSTGRES_SERVER
+  protocols:
+  - ICMP
+  - TCP
+  - UDP
+  thresholds:
+    nmne:
+      high: 10
+      medium: 5
+      low: 0
+
+agents:
+  - *greens
+  - *reds
+
+  - ref: defender
+    team: BLUE
+    type: ProxyAgent
+    observation_space:
+      type: CUSTOM
+      options:
+        components:
+          - type: NODES
+            label: NODES
+            options:
+              routers: []
+              hosts:
+                - hostname: client
+                - hostname: server
+              num_services: 1
+              num_applications: 1
+              num_folders: 1
+              num_files: 1
+              num_nics: 1
+              include_num_access: false
+              include_nmne: true
+
+          - type: LINKS
+            label: LINKS
+            options:
+              link_references:
+                - client:eth-1<->switch_1:eth-1
+                - server:eth-1<->switch_1:eth-2
+
+    action_space:
+      action_list:
+        - type: DONOTHING
+        - type: NODE_SHUTDOWN
+        - type: NODE_STARTUP
+        - type: HOST_NIC_ENABLE
+        - type: HOST_NIC_DISABLE
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
+        1:
+          action: NODE_SHUTDOWN
+          options:
+            node_id: 0
+        2:
+          action: NODE_SHUTDOWN
+          options:
+            node_id: 1
+        3:
+          action: NODE_STARTUP
+          options:
+            node_id: 0
+        4:
+          action: NODE_STARTUP
+          options:
+            node_id: 1
+        5:
+          action: HOST_NIC_DISABLE
+          options:
+            node_id: 0
+            nic_id: 0
+        6:
+          action: HOST_NIC_DISABLE
+          options:
+            node_id: 1
+            nic_id: 0
+        7:
+          action: HOST_NIC_ENABLE
+          options:
+            node_id: 0
+            nic_id: 0
+        8:
+          action: HOST_NIC_ENABLE
+          options:
+            node_id: 1
+            nic_id: 0
+      options:
+        nodes:
+        - node_name: client
+        - node_name: server
+
+        max_folders_per_node: 0
+        max_files_per_folder: 0
+        max_services_per_node: 0
+        max_nics_per_node: 1
+        max_acl_rules: 0
+        ip_list:
+          - 192.168.1.2
+          - 192.168.1.3
+
+    reward_function:
+      reward_components:
+        - type: DATABASE_FILE_INTEGRITY
+          weight: 0.40
+          options:
+            node_hostname: database_server
+            folder_name: database
+            file_name: database.db
+
+    agent_settings:
+      flatten_obs: false
+
+
+simulation:
+  network:
+    nodes:
+    - hostname: client
+      type: computer
+      ip_address: 192.168.1.2
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.1.1
+      applications:
+        - type: DatabaseClient
+          options:
+            db_server_ip: 192.168.1.3
+        - type: DataManipulationBot
+          options:
+            server_ip: 192.168.1.3
+            payload: "DELETE"
+
+    - hostname: switch_1
+      type: switch
+      num_ports: 2
+
+    - hostname: server
+      type: server
+      ip_address: 192.168.1.3
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.1.1
+      services:
+        - type: DatabaseService
+
+    links:
+    - endpoint_a_hostname: client
+      endpoint_a_port: 1
+      endpoint_b_hostname: switch_1
+      endpoint_b_port: 1
+
+    - endpoint_a_hostname: server
+      endpoint_a_port: 1
+      endpoint_b_hostname: switch_1
+      endpoint_b_port: 2

@@ -5,7 +5,157 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 3.0.0b9
+- Removed deprecated `PrimaiteSession` class.
+- Added ability to set log levels via configuration.
+- Upgraded pydantic to version 2.7.0
+- Upgraded Ray to version >= 2.9
+- Added ipywidgets to the dependencies
+- Added ability to define scenarios that change depending on the episode number.
+- Standardised Environment API by renaming the config parameter of `PrimaiteGymEnv` from `game_config` to `env_config`
+- Database Connection ID's are now created/issued by DatabaseService and not DatabaseClient
+- Updated DatabaseClient so that it can now have a single native DatabaseClientConnection along with a collection of DatabaseClientConnection's.
+- Implemented the uninstall functionality for DatabaseClient so that all connections are terminated at the DatabaseService.
+- Added the ability for a DatabaseService to terminate a connection.
+- Added active_connection to DatabaseClientConnection so that if the connection is terminated active_connection is set to False and the object can no longer be used.
+- Added additional show functions to enable connection inspection.
+- Updates to agent logging, to include the reward both per step and per episode.
+- Introduced Developer CLI tools to assist with developing/debugging PrimAITE
+  - Can be enabled via `primaite dev-mode enable`
+  - Activating dev-mode will change the location where the sessions will be output - by default will output where the PrimAITE repository is located
+- Refactored all air-space usage to that a new instance of AirSpace is created for each instance of Network. This 1:1 relationship between network and airspace will allow parallelization.
+- Added notebook to demonstrate use of SubprocVecEnv from SB3 to vectorise environments to speed up training.
+
+
+
 ## [Unreleased]
+- Made requests fail to reach their target if the node is off
+- Added responses to requests
+- Made environment reset completely recreate the game object.
+- Changed the red agent in the data manipulation scenario to randomly choose client 1 or client 2 to start its attack.
+- Changed the data manipulation scenario to include a second green agent on client 1.
+- Refactored actions and observations to be configurable via object name, instead of UUID.
+- Made database patch correctly take 2 timesteps instead of being immediate
+- Made database patch only possible when the software is compromised or good, it's no longer possible when the software is OFF or RESETTING
+- Added a notebook which explains Data manipulation scenario, demonstrates the attack, and shows off blue agent's action space, observation space, and reward function.
+- Made packet capture and system logging optional (off by default). To turn on, change the io_settings.save_pcap_logs and io_settings.save_sys_logs settings in the config.
+- Made observation space flattening optional (on by default). To turn off for an agent, change the `agent_settings.flatten_obs` setting in the config.
+- Added support for SQL INSERT command.
+- Added ability to log each agent's action choices in each step to a JSON file.
+- Removal of Link bandwidth hardcoding. This can now be configured via the network configuraiton yaml. Will default to 100 if not present.
+
+### Bug Fixes
+
+- ACL rules were not resetting on episode reset.
+- ACLs were not showing up correctly in the observation space.
+- Blue agent's ACL actions were being applied against the wrong IP addresses
+- Deleted files and folders did not reset correctly on episode reset.
+- Service health status was using the actual health state instead of the visible health state
+- Database file health status was using the incorrect value for negative rewards
+- Preventing file actions from reaching their intended file
+- The data manipulation attack was triggered at episode start.
+- FTP STOR stored an additional copy on the client machine's filesystem
+- The red agent acted to early
+- Order of service health state
+- Starting a node didn't start the services on it
+- Fixed an issue where the services were still able to run even though the node the service is installed on is turned off
+- The use of NODE_FILE_CHECKHASH and NODE_FOLDER_CHECKHASH in the current release is marked as 'Not Implemented'.
+
+
+### Added
+- Network Hardware - Added base hardware module with NIC, SwitchPort, Node, and Link. Nodes have
+fundamental services like ARP, ICMP, and PCAP running them by default.
+- Network Transmission - Modelled OSI Model layers 1 through to 5 with various classes for creating network frames and
+transmitting them from a Service/Application, down through the layers, over the wire, and back up through the layers to
+a Service/Application another machine.
+- Introduced `Router` and `Switch` classes to manage networking routes more effectively.
+  - Added `ACLRule` and `RouteTableEntry` classes as part of the `Router`.
+- New `.show()` methods in all network component classes to inspect the state in either plain text or markdown formats.
+- Added `Computer` and `Server` class to better differentiate types of network nodes.
+- Integrated a new Use Case 2 network into the system.
+- New unit tests to verify routing between different subnets using `.ping()`.
+- system - Added the core structure of Application, Services, and Components. Also added a SoftwareManager and
+SessionManager.
+- Permission System - each action can define criteria that will be used to permit or deny agent actions.
+- File System - ability to emulate a node's file system during a simulation
+- Example notebooks - There are 5 jupyter notebook which walk through using PrimAITE
+  1. Training a Stable Baselines 3 agent
+  2. Training a single agent system using Ray RLLib
+  3. Training a multi-agent system Ray RLLib
+  4. Data manipulation end to end demonstration
+  5. Data manipulation scenario with customised red agents
+- Database:
+  - `DatabaseClient` and `DatabaseService` created to allow emulation of database actions
+  - Ability for `DatabaseService` to backup its data to another server via FTP and restore data from backup
+- Red Agent Services:
+  - Data Manipulator Bot - A red agent service which sends a payload to a target machine. (By default this payload is a SQL query that breaks a database). The attack runs in stages with a random, configurable probability of succeeding.
+  - `DataManipulationAgent` runs the Data Manipulator Bot according to a configured start step, frequency and variance.
+- DNS Services: `DNSClient` and `DNSServer`
+- FTP Services: `FTPClient` and `FTPServer`
+- HTTP Services: `WebBrowser` to simulate a web client and `WebServer`
+- NTP Services: `NTPClient` and `NTPServer`
+- **RouterNIC Class**: Introduced a new class `RouterNIC`, extending the standard `NIC` functionality. This class is specifically designed for router operations, optimizing the processing and routing of network traffic.
+  - **Custom Layer-3 Processing**: The `RouterNIC` class includes custom handling for network frames, bypassing standard Node NIC's Layer 3 broadcast/unicast checks. This allows for more efficient routing behavior in network scenarios where router-specific frame processing is required.
+  - **Enhanced Frame Reception**: The `receive_frame` method in `RouterNIC` is tailored to handle frames based on Layer 2 (Ethernet) checks, focusing on MAC address-based routing and broadcast frame acceptance.
+- **Subnet-Wide Broadcasting for Services and Applications**: Implemented the ability for services and applications to conduct broadcasts across an entire IPv4 subnet within the network simulation framework.
+- Introduced the `NetworkInterface` abstract class to provide a common interface for all network interfaces. Subclasses are divided into two main categories: `WiredNetworkInterface` and `WirelessNetworkInterface`, each serving as an abstract base class (ABC) for more specific interface types. Under `WiredNetworkInterface`, the subclasses `NIC` and `SwitchPort` were added. For wireless interfaces, `WirelessNIC` and `WirelessAccessPoint` are the subclasses under `WirelessNetworkInterface`.
+- Added `Layer3Interface` as an abstract base class for networking functionalities at layer 3, including IP addressing and routing capabilities. This class is inherited by `NIC`, `WirelessNIC`, and `WirelessAccessPoint` to provide them with layer 3 capabilities, facilitating their role in both wired and wireless networking contexts with IP-based communication.
+- Created the `ARP` and `ICMP` service classes to handle Address Resolution Protocol operations and Internet Control Message Protocol messages, respectively, with `RouterARP` and `RouterICMP` for router-specific implementations.
+- Created `HostNode` as a subclass of `Node`, extending its functionality with host-specific services and applications. This class is designed to represent end-user devices like computers or servers that can initiate and respond to network communications.
+- Introduced a new `IPV4Address` type in the Pydantic model for enhanced validation and auto-conversion of IPv4 addresses from strings using an `ipv4_validator`.
+- Comprehensive documentation for the Node and its network interfaces, detailing the operational workflow from frame reception to application-level processing.
+- Detailed descriptions of the Session Manager and Software Manager functionalities, including their roles in managing sessions, software services, and applications within the simulation.
+- Documentation for the Packet Capture (PCAP) service and SysLog functionality, highlighting their importance in logging network frames and system events, respectively.
+- Expanded documentation on network devices such as Routers, Switches, Computers, and Switch Nodes, explaining their specific processing logic and protocol support.
+- **Firewall Node**: Introduced the `Firewall` class extending the functionality of the existing `Router` class. The `Firewall` class incorporates advanced features to scrutinize, direct, and filter traffic between various network zones, guided by predefined security rules and policies. Key functionalities include:
+    - Access Control Lists (ACLs) for traffic filtering based on IP addresses, protocols, and port numbers.
+    - Network zone segmentation for managing traffic across external, internal, and DMZ (De-Militarized Zone) networks.
+    - Interface configuration to establish connectivity and define network parameters for external, internal, and DMZ interfaces.
+    - Protocol and service management to oversee traffic and enforce security policies.
+    - Dynamic traffic processing and filtering to ensure network security and integrity.
+- `AirSpace` class to simulate wireless communications, managing wireless interfaces and facilitating the transmission of frames within specified frequencies.
+- `AirSpaceFrequency` enum for defining standard wireless frequencies, including 2.4 GHz and 5 GHz bands, to support realistic wireless network simulations.
+- `WirelessRouter` class, extending the `Router` class, to incorporate wireless networking capabilities alongside traditional wired connections. This class allows the configuration of wireless access points with specific IP settings and operating frequencies.
+- Documentation Updates:
+    - Examples include how to set up PrimAITE session via config
+    - Examples include how to create nodes and install software via config
+    - Examples include how to set up PrimAITE session via Python
+    - Examples include how to create nodes and install software via Python
+    - Added missing ``DoSBot`` documentation page
+    - Added diagrams where needed to make understanding some things easier
+    - Templated parts of the documentation to prevent unnecessary repetition and for easier maintaining of documentation
+    - Separated documentation pages of some items i.e. client and server software were on the same pages - which may make things confusing
+    - Configuration section at the bottom of the software pages specifying the configuration options available (and which ones are optional)
+- Ability to add ``Firewall`` node via config
+- Ability to add ``Router`` routes via config
+- Ability to add ``Router``/``Firewall`` ``ACLRule`` via config
+- NMNE capturing capabilities to `NetworkInterface` class for detecting and logging Malicious Network Events.
+- New `nmne_config` settings in the simulation configuration to enable NMNE capturing and specify keywords such as "DELETE".
+- Router-specific SessionManager Implementation: Introduced a specialized version of the SessionManager tailored for router operations. This enhancement enables the SessionManager to determine the routing path by consulting the route table.
+
+### Changed
+- Integrated the RouteTable into the Routers frame processing.
+- Frames are now dropped when their TTL reaches 0
+- **NIC Functionality Update**: Updated the Network Interface Card (`NIC`) functionality to support Layer 3 (L3) broadcasts.
+  - **Layer 3 Broadcast Handling**: Enhanced the existing `NIC` classes to correctly process and handle Layer 3 broadcasts. This update allows devices using standard NICs to effectively participate in network activities that involve L3 broadcasting.
+  - **Improved Frame Reception Logic**: The `receive_frame` method of the `NIC` class has been updated to include additional checks and handling for L3 broadcasts, ensuring proper frame processing in a wider range of network scenarios.
+- Standardised the way network interfaces are accessed across all `Node` subclasses (`HostNode`, `Router`, `Switch`) by maintaining a comprehensive `network_interface` attribute. This attribute captures all network interfaces by their port number, streamlining the management and interaction with network interfaces across different types of nodes.
+- Refactored all tests to utilise new `Node` subclasses (`Computer`, `Server`, `Router`, `Switch`) instead of creating generic `Node` instances and manually adding network interfaces. This change aligns test setups more closely with the intended use cases and hierarchies within the network simulation framework.
+- Updated all tests to employ the `Network()` class for managing nodes and their connections, ensuring a consistent and structured approach to setting up network topologies in testing scenarios.
+- **ACLRule Wildcard Masking**: Updated the `ACLRule` class to support IP ranges using wildcard masking. This enhancement allows for more flexible and granular control over traffic filtering, enabling the specification of broader or more specific IP address ranges in ACL rules.
+- Updated `NetworkInterface` documentation to reflect the new NMNE capturing features and how to use them.
+- Integration of NMNE capturing functionality within the `NICObservation` class.
+- Changed blue action set to enable applying node scan, reset, start, and shutdown to every host in data manipulation scenario
+
+### Removed
+- Removed legacy simulation modules: `acl`, `common`, `environment`, `links`, `nodes`, `pol`
+- Removed legacy training modules
+- Removed tests for legacy code
+
+### Fixed
+- Addressed network transmission issues that previously allowed ARP requests to be incorrectly routed and repeated across different subnets. This fix ensures ARP requests are correctly managed and confined to their appropriate network segments.
+- Resolved problems in `Node` and its subclasses where the default gateway configuration was not properly utilized for communications across different subnets. This correction ensures that nodes effectively use their configured default gateways for outbound communications to other network segments, thereby enhancing the network's routing functionality and reliability.
+- Network Interface Port name/num being set properly for sys log and PCAP output.
 
 ## [2.0.0] - 2023-07-26
 

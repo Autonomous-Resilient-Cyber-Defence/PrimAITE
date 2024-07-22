@@ -1,0 +1,60 @@
+name: build-sphinx-to-github-pages
+
+env:
+  GITHUB_ACTOR: Autonomous-Resilient-Cyber-Defence
+  GITHUB_REPOSITORY: Autonomous-Resilient-Cyber-Defence/PrimAITE
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
+
+on:
+  push:
+    branches: [main]
+
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install python dev
+        run: |
+          set -x
+          sudo apt-get update
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+          sudo apt install python${{ matrix.python-version}}-dev -y
+
+      - name: Install Git
+        run: |
+          set -x
+          sudo apt-get install -y git
+        shell: bash
+
+      - name: Set pip, wheel, setuptools versions
+        run: |
+          python -m pip install --upgrade pip==23.0.1
+          pip install wheel==0.38.4 --upgrade
+          pip install setuptools==66 --upgrade
+          pip install build
+
+      - name: Install PrimAITE for docs autosummary
+        run: |
+          set -x
+          python -m pip install -e .[dev,rl]
+
+      - name: Run build script for Sphinx pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        run: |
+          set -x
+          bash $PWD/docs/build-sphinx-docs-to-github-pages.sh

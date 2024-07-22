@@ -1,0 +1,440 @@
+game:
+  ports:
+  - ARP
+  - DNS
+  - HTTP
+  - POSTGRES_SERVER
+  protocols:
+  - ICMP
+  - TCP
+  - UDP
+
+simulation:
+  network:
+    nodes:
+      # Home/Office Network
+      - hostname: pc_1
+        type: computer
+        ip_address: 192.168.1.11
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.1.1
+        dns_server: 8.8.8.2
+        applications:
+          - type: DatabaseClient
+            options:
+              db_server_ip: 10.10.1.11
+          - type: WebBrowser
+            options:
+              target_url: http://sometech.ai
+
+      - hostname: pc_2
+        type: computer
+        ip_address: 192.168.1.12
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.1.1
+        dns_server: 8.8.8.2
+        applications:
+          - type: DatabaseClient
+            options:
+              db_server_ip: 10.10.1.11
+          - type: WebBrowser
+            options:
+              target_url: http://sometech.ai
+
+      - hostname: server_1
+        type: server
+        ip_address: 192.168.1.13
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.1.1
+        dns_server: 8.8.8.2
+
+      - hostname: switch_1
+        type: switch
+        num_ports: 4
+
+      - hostname: router_1
+        type: router
+        num_ports: 2
+        ports:
+          1:
+            ip_address: 192.168.1.1
+            subnet_mask: 255.255.255.0
+          2:
+            ip_address: 43.35.240.2
+            subnet_mask: 255.255.255.252
+        acl:
+          10:
+            action: PERMIT
+        default_route: # Default route to all external networks
+          next_hop_ip_address: 43.35.240.1 # NI 1 on icp_router
+
+      # ISP Network
+      - hostname: isp_rt
+        type: router
+        num_ports: 3
+        ports:
+          1:
+            ip_address: 43.35.240.1
+            subnet_mask: 255.255.255.252
+          2:
+            ip_address: 94.10.180.1
+            subnet_mask: 255.255.255.252
+          3:
+            ip_address: 8.8.8.1
+            subnet_mask: 255.255.255.252
+        acl:
+          10:
+            action: PERMIT
+        routes:
+          - address: 192.168.1.0 # Route to the Home/Office LAN
+            subnet_mask: 255.255.255.0
+            next_hop_ip_address: 43.35.240.2 # NI 2 on router_1
+          - address: 10.10.0.0 # Route to the SomeTech internal network
+            subnet_mask: 255.255.0.0
+            next_hop_ip_address: 94.10.180.2 # NI ext on some_tech_fw
+          - address: 94.10.180.6 # Route to the Web Server in the SomeTech DMZ
+            subnet_mask: 255.255.255.255
+            next_hop_ip_address: 94.10.180.2 # NI ext on some_tech_fw
+
+      - hostname: isp_dns_srv
+        type: server
+        ip_address: 8.8.8.2
+        subnet_mask: 255.255.255.252
+        default_gateway: 8.8.8.1
+        services:
+          - ref: dns_server
+            type: DNSServer
+            options:
+              domain_mapping:
+                sometech.ai: 94.10.180.6
+
+      # SomeTech Network
+      - hostname: some_tech_fw
+        type: firewall
+        ports:
+          external_port: # port 1
+            ip_address: 94.10.180.2
+            subnet_mask: 255.255.255.252
+          internal_port: # port 2
+            ip_address: 10.10.4.2
+            subnet_mask: 255.255.255.252
+          dmz_port: # port 3
+            ip_address: 94.10.180.5
+            subnet_mask: 255.255.255.252
+        acl:
+          internal_inbound_acl:
+            8: # Permit some_tech_web_srv to connect to Database service on some_tech_db_srv
+              action: PERMIT
+              src_ip: 94.10.180.6
+              src_wildcard_mask: 0.0.0.0
+              src_port: POSTGRES_SERVER
+              dst_ip: 10.10.1.11
+              dst_wildcard_mask: 0.0.0.0
+              dst_port: POSTGRES_SERVER
+            9: # Permit SomeTech to use HTTP
+              action: PERMIT
+              src_port: HTTP
+            10: # Permit SomeTech to use DNS
+              action: PERMIT
+              src_port: DNS
+              dst_port: DNS
+          internal_outbound_acl:
+            10: # Permit all internal outbound traffic
+              action: PERMIT
+          dmz_inbound_acl:
+            7: # Permit Database service on some_tech_db_srv to respond to some_tech_web_srv
+              action: PERMIT
+              src_ip: 10.10.1.11
+              src_port: POSTGRES_SERVER
+              src_wildcard_mask: 0.0.0.0
+              dst_ip: 94.10.180.6
+              dst_port: POSTGRES_SERVER
+              dst_wildcard_mask: 0.0.0.0
+            8: # Permit SomeTech DMZ to use ARP
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            9: # Permit SomeTech DMZ to use DNS
+              action: PERMIT
+              src_port: DNS
+              dst_port: DNS
+            10: # Permit all inbound HTTP requests
+              action: PERMIT
+              dst_port: HTTP
+          dmz_outbound_acl:
+            7: # Permit some_tech_web_srv to connect to Database service on some_tech_db_srv
+              action: PERMIT
+              src_ip: 94.10.180.6
+              src_port: POSTGRES_SERVER
+              src_wildcard_mask: 0.0.0.0
+              dst_ip: 10.10.1.11
+              dst_port: POSTGRES_SERVER
+              dst_wildcard_mask: 0.0.0.0
+            8: # Permit SomeTech DMZ to use ARP
+              action: PERMIT
+              src_port: ARP
+              dst_port: ARP
+            9: # Permit SomeTech DMZ to use DNS
+              action: PERMIT
+              src_port: DNS
+              dst_port: DNS
+            10: # Permit all outbound HTTP requests
+              action: PERMIT
+              src_port: HTTP
+        default_route: # Default route to all external networks
+          next_hop_ip_address: 94.10.180.1 # NI 2 on isp_rt
+        routes:
+          - address: 10.10.0.0 # Route to the SomeTech internal LAN
+            subnet_mask: 255.255.0.0
+            next_hop_ip_address: 10.10.4.1 # NI 1 on some_tech_rt
+
+
+      - hostname: some_tech_web_srv
+        type: server
+        ip_address: 94.10.180.6
+        subnet_mask: 255.255.255.252
+        default_gateway: 94.10.180.5
+        dns_server: 8.8.8.2
+        services:
+          - ref: web_server
+            type: WebServer
+        applications:
+          - type: DatabaseClient
+            options:
+              db_server_ip: 10.10.1.11
+
+      - hostname: some_tech_rt
+        type: router
+        num_ports: 4
+        ports:
+          1:
+            ip_address: 10.10.1.1
+            subnet_mask: 255.255.255.0
+          2:
+            ip_address: 10.10.4.1
+            subnet_mask: 255.255.255.252
+          3:
+            ip_address: 10.10.3.1
+            subnet_mask: 255.255.255.0
+          4:
+            ip_address: 10.10.2.1
+            subnet_mask: 255.255.255.0
+
+        acl:
+          2: # Allow the some_tech_web_srv to connect to the Database Service on some_tech_db_srv
+            action: PERMIT
+            src_ip: 94.10.180.6
+            src_wildcard_mask: 0.0.0.0
+            src_port: POSTGRES_SERVER
+            dst_ip: 10.10.1.11
+            dst_wildcard_mask: 0.0.0.0
+            dst_port: POSTGRES_SERVER
+          3: # Allow the Database Service on some_tech_db_srv to respond to some_tech_web_srv
+            action: PERMIT
+            src_ip: 10.10.1.11
+            src_wildcard_mask: 0.0.0.0
+            src_port: POSTGRES_SERVER
+            dst_ip: 94.10.180.6
+            dst_wildcard_mask: 0.0.0.0
+            dst_port: POSTGRES_SERVER
+          4: # Prevent the Junior engineer from downloading files from the some_tech_storage_srv over FTP
+            action: DENY
+            src_ip: 10.10.2.12
+            src_wildcard_mask: 0.0.0.0
+            src_port: FTP
+            dst_ip: 10.10.1.12
+            dst_wildcard_mask: 0.0.0.0
+            dst_port: FTP
+          5: # Allow communication between Engineering and the DB & Storage subnet
+            action: PERMIT
+            src_ip: 10.10.2.0
+            src_wildcard_mask: 0.0.0.255
+            dst_ip: 10.10.1.0
+            dst_wildcard_mask: 0.0.0.255
+          6: # Allow communication between the DB & Storage subnet and Engineering
+            action: PERMIT
+            src_ip: 10.10.1.0
+            src_wildcard_mask: 0.0.0.255
+            dst_ip: 10.10.2.0
+            dst_wildcard_mask: 0.0.0.255
+          7: # Allow the SomeTech network to use HTTP
+            action: PERMIT
+            src_port: HTTP
+            dst_port: HTTP
+          8: # Allow the SomeTech internal network to use ARP
+            action: PERMIT
+            src_ip: 10.10.0.0
+            src_wildcard_mask: 0.0.255.255
+            src_port: ARP
+          9: # Allow the SomeTech internal network to use ICMP
+            action: PERMIT
+            src_ip: 10.10.0.0
+            src_wildcard_mask: 0.0.255.255
+            protocol: ICMP
+          10:
+            action: PERMIT
+            src_ip: 94.10.180.6
+            src_wildcard_mask: 0.0.0.0
+            src_port: HTTP
+            dst_ip: 10.10.0.0
+            dst_wildcard_mask: 0.0.255.255
+            dst_port: HTTP
+          11: # Permit SomeTech to use DNS
+            action: PERMIT
+            src_port: DNS
+            dst_port: DNS
+        default_route: # Default route to all external networks
+          next_hop_ip_address: 10.10.4.2 # NI int on some_tech_fw
+
+
+      - hostname: some_tech_data_sw
+        type: switch
+        num_ports: 3
+
+      - hostname: some_tech_hr_sw
+        type: switch
+        num_ports: 2
+
+      - hostname: some_tech_eng_sw
+        type: switch
+        num_ports: 3
+
+      - hostname: some_tech_db_srv
+        type: server
+        ip_address: 10.10.1.11
+        subnet_mask: 255.255.255.0
+        default_gateway: 10.10.1.1
+        dns_server: 8.8.8.2
+        services:
+          - type: DatabaseService
+            options:
+              backup_server_ip: 10.10.1.12 # The some_tech_storage_srv server
+          - type: FTPClient
+
+      - hostname: some_tech_storage_srv
+        type: server
+        ip_address: 10.10.1.12
+        subnet_mask: 255.255.255.0
+        default_gateway: 10.10.1.1
+        dns_server: 8.8.8.2
+        services:
+          - type: FTPServer
+
+      - hostname: some_tech_hr_1
+        type: computer
+        ip_address: 10.10.3.11
+        subnet_mask: 255.255.255.0
+        default_gateway: 10.10.3.1
+        dns_server: 8.8.8.2
+        applications:
+          - type: DatabaseClient
+            options:
+              db_server_ip: 10.10.1.11
+          - type: WebBrowser
+            options:
+              target_url: http://sometech.ai
+
+      - hostname: some_tech_snr_dev_pc
+        type: computer
+        ip_address: 10.10.2.11
+        subnet_mask: 255.255.255.0
+        default_gateway: 10.10.2.1
+        dns_server: 8.8.8.2
+        applications:
+          - type: DatabaseClient
+            options:
+              db_server_ip: 10.10.1.11
+          - type: WebBrowser
+            options:
+              target_url: http://sometech.ai
+
+      - hostname: some_tech_jnr_dev_pc
+        type: computer
+        ip_address: 10.10.2.12
+        subnet_mask: 255.255.255.0
+        default_gateway: 10.10.2.1
+        dns_server: 8.8.8.2
+        applications:
+          - type: DatabaseClient
+            options:
+              db_server_ip: 10.10.1.11
+          - type: WebBrowser
+            options:
+              target_url: http://sometech.ai
+
+    links:
+      # Home/Office Lan Links
+      - endpoint_a_hostname: pc_1
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 1
+        bandwidth: 200
+      - endpoint_a_hostname: pc_2
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 2
+      - endpoint_a_hostname: server_1
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 3
+      - endpoint_a_hostname: router_1
+        endpoint_a_port: 1
+        endpoint_b_hostname: switch_1
+        endpoint_b_port: 4
+
+      # ISP Links
+      - endpoint_a_hostname: isp_rt
+        endpoint_a_port: 1
+        endpoint_b_hostname: router_1
+        endpoint_b_port: 2
+      - endpoint_a_hostname: isp_rt
+        endpoint_a_port: 2
+        endpoint_b_hostname: some_tech_fw
+        endpoint_b_port: 1
+      - endpoint_a_hostname: isp_rt
+        endpoint_a_port: 3
+        endpoint_b_hostname: isp_dns_srv
+        endpoint_b_port: 1
+
+
+      # SomeTech LAN Links
+      - endpoint_a_hostname: some_tech_fw
+        endpoint_a_port: 3
+        endpoint_b_hostname: some_tech_web_srv
+        endpoint_b_port: 1
+      - endpoint_a_hostname: some_tech_fw
+        endpoint_a_port: 2
+        endpoint_b_hostname: some_tech_rt
+        endpoint_b_port: 2
+      - endpoint_a_hostname: some_tech_rt
+        endpoint_a_port: 1
+        endpoint_b_hostname: some_tech_data_sw
+        endpoint_b_port: 3
+      - endpoint_a_hostname: some_tech_rt
+        endpoint_a_port: 3
+        endpoint_b_hostname: some_tech_hr_sw
+        endpoint_b_port: 2
+      - endpoint_a_hostname: some_tech_rt
+        endpoint_a_port: 4
+        endpoint_b_hostname: some_tech_eng_sw
+        endpoint_b_port: 3
+      - endpoint_a_hostname: some_tech_data_sw
+        endpoint_a_port: 1
+        endpoint_b_hostname: some_tech_db_srv
+        endpoint_b_port: 1
+      - endpoint_a_hostname: some_tech_data_sw
+        endpoint_a_port: 2
+        endpoint_b_hostname: some_tech_storage_srv
+        endpoint_b_port: 1
+      - endpoint_a_hostname: some_tech_hr_sw
+        endpoint_a_port: 1
+        endpoint_b_hostname: some_tech_hr_1
+        endpoint_b_port: 1
+      - endpoint_a_hostname: some_tech_eng_sw
+        endpoint_a_port: 1
+        endpoint_b_hostname: some_tech_snr_dev_pc
+        endpoint_b_port: 1
+      - endpoint_a_hostname: some_tech_eng_sw
+        endpoint_a_port: 2
+        endpoint_b_hostname: some_tech_jnr_dev_pc
+        endpoint_b_port: 1

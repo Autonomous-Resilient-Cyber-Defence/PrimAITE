@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+import datetime as datetime
 import logging
 import logging.config
 import shutil
@@ -16,6 +17,9 @@ from platformdirs import PlatformDirs
 with open(Path(__file__).parent.resolve() / "VERSION", "r") as file:
     __version__ = file.readline().strip()
 
+_PRIMAITE_ROOT: Path = Path(__file__).parent
+# TODO: Remove once we integrate the simulation into PrimAITE and it uses the primaite session path
+
 
 class _PrimaitePaths:
     """
@@ -24,14 +28,24 @@ class _PrimaitePaths:
     The PlatformDirs appname is 'primaite' and the version is ``primaite.__version__`.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._dirs: Final[PlatformDirs] = PlatformDirs(appname="primaite", version=__version__)
+        self.user_home_path = self.generate_user_home_path()
+        self.user_sessions_path = self.generate_user_sessions_path()
+        self.user_config_path = self.generate_user_config_path()
+        self.user_notebooks_path = self.generate_user_notebooks_path()
+        self.app_home_path = self.generate_app_home_path()
+        self.app_config_dir_path = self.generate_app_config_dir_path()
+        self.app_config_file_path = self.generate_app_config_file_path()
+        self.app_log_dir_path = self.generate_app_log_dir_path()
+        self.app_log_file_path = self.generate_app_log_file_path()
+        self.episode_log_file_path = self.generate_episode_log_file_path()
 
     def _get_dirs_properties(self) -> List[str]:
         class_items = self.__class__.__dict__.items()
         return [k for k, v in class_items if isinstance(v, property)]
 
-    def mkdirs(self):
+    def mkdirs(self) -> None:
         """
         Creates all Primaite directories.
 
@@ -40,55 +54,47 @@ class _PrimaitePaths:
         for p in self._get_dirs_properties():
             getattr(self, p)
 
-    @property
-    def user_home_path(self) -> Path:
+    def generate_user_home_path(self) -> Path:
         """The PrimAITE user home path."""
         path = Path.home() / "primaite" / __version__
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def user_sessions_path(self) -> Path:
+    def generate_user_sessions_path(self) -> Path:
         """The PrimAITE user sessions path."""
         path = self.user_home_path / "sessions"
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def user_config_path(self) -> Path:
+    def generate_user_config_path(self) -> Path:
         """The PrimAITE user config path."""
         path = self.user_home_path / "config"
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def user_notebooks_path(self) -> Path:
+    def generate_user_notebooks_path(self) -> Path:
         """The PrimAITE user notebooks path."""
         path = self.user_home_path / "notebooks"
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def app_home_path(self) -> Path:
+    def generate_app_home_path(self) -> Path:
         """The PrimAITE app home path."""
         path = self._dirs.user_data_path
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def app_config_dir_path(self) -> Path:
+    def generate_app_config_dir_path(self) -> Path:
         """The PrimAITE app config directory path."""
         path = self._dirs.user_config_path
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def app_config_file_path(self) -> Path:
+    def generate_app_config_file_path(self) -> Path:
         """The PrimAITE app config file path."""
         return self.app_config_dir_path / "primaite_config.yaml"
 
-    @property
-    def app_log_dir_path(self) -> Path:
+    def generate_app_log_dir_path(self) -> Path:
         """The PrimAITE app log directory path."""
         if sys.platform == "win32":
             path = self.app_home_path / "logs"
@@ -97,12 +103,18 @@ class _PrimaitePaths:
         path.mkdir(exist_ok=True, parents=True)
         return path
 
-    @property
-    def app_log_file_path(self) -> Path:
+    def generate_app_log_file_path(self) -> Path:
         """The PrimAITE app log file path."""
         return self.app_log_dir_path / "primaite.log"
 
-    def __repr__(self):
+    def generate_episode_log_file_path(self) -> Path:
+        """The PrimAITE app episode step log file path."""
+        date_string = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+        self.episode_log_dir_path = self.app_log_dir_path / date_string
+        self.episode_log_dir_path.mkdir(exist_ok=True, parents=True)
+        return self.episode_log_dir_path / "episode.log"
+
+    def __repr__(self) -> str:
         properties_str = ", ".join([f"{p}='{getattr(self, p)}'" for p in self._get_dirs_properties()])
         return f"{self.__class__.__name__}({properties_str})"
 
@@ -110,34 +122,20 @@ class _PrimaitePaths:
 PRIMAITE_PATHS: Final[_PrimaitePaths] = _PrimaitePaths()
 
 
-def _host_primaite_config():
-    if not PRIMAITE_PATHS.app_config_file_path.exists():
-        pkg_config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
-        shutil.copy2(pkg_config_path, PRIMAITE_PATHS.app_config_file_path)
-
-
-_host_primaite_config()
-
-
 def _get_primaite_config() -> Dict:
     config_path = PRIMAITE_PATHS.app_config_file_path
     if not config_path.exists():
+        # load from package if config does not exist
         config_path = Path(pkg_resources.resource_filename("primaite", "setup/_package_data/primaite_config.yaml"))
+        # generate app config
+        shutil.copy2(config_path, PRIMAITE_PATHS.app_config_file_path)
     with open(config_path, "r") as file:
+        # load from config
         primaite_config = yaml.safe_load(file)
-    log_level_map = {
-        "NOTSET": logging.NOTSET,
-        "DEBUG": logging.DEBUG,
-        "INFO": logging.INFO,
-        "WARN": logging.WARN,
-        "ERROR": logging.ERROR,
-        "CRITICAL": logging.CRITICAL,
-    }
-    primaite_config["log_level"] = log_level_map[primaite_config["logging"]["log_level"]]
-    return primaite_config
+        return primaite_config
 
 
-_PRIMAITE_CONFIG = _get_primaite_config()
+PRIMAITE_CONFIG = _get_primaite_config()
 
 
 class _LevelFormatter(Formatter):
@@ -164,11 +162,11 @@ class _LevelFormatter(Formatter):
 
 _LEVEL_FORMATTER: Final[_LevelFormatter] = _LevelFormatter(
     {
-        logging.DEBUG: _PRIMAITE_CONFIG["logging"]["logger_format"]["DEBUG"],
-        logging.INFO: _PRIMAITE_CONFIG["logging"]["logger_format"]["INFO"],
-        logging.WARNING: _PRIMAITE_CONFIG["logging"]["logger_format"]["WARNING"],
-        logging.ERROR: _PRIMAITE_CONFIG["logging"]["logger_format"]["ERROR"],
-        logging.CRITICAL: _PRIMAITE_CONFIG["logging"]["logger_format"]["CRITICAL"],
+        logging.DEBUG: PRIMAITE_CONFIG["logging"]["logger_format"]["DEBUG"],
+        logging.INFO: PRIMAITE_CONFIG["logging"]["logger_format"]["INFO"],
+        logging.WARNING: PRIMAITE_CONFIG["logging"]["logger_format"]["WARNING"],
+        logging.ERROR: PRIMAITE_CONFIG["logging"]["logger_format"]["ERROR"],
+        logging.CRITICAL: PRIMAITE_CONFIG["logging"]["logger_format"]["CRITICAL"],
     }
 )
 
@@ -180,10 +178,10 @@ _FILE_HANDLER: Final[RotatingFileHandler] = RotatingFileHandler(
     backupCount=9,  # Max 100MB of logs
     encoding="utf8",
 )
-_STREAM_HANDLER.setLevel(_PRIMAITE_CONFIG["logging"]["log_level"])
-_FILE_HANDLER.setLevel(_PRIMAITE_CONFIG["logging"]["log_level"])
+_STREAM_HANDLER.setLevel(PRIMAITE_CONFIG["logging"]["log_level"])
+_FILE_HANDLER.setLevel(PRIMAITE_CONFIG["logging"]["log_level"])
 
-_LOG_FORMAT_STR: Final[str] = _PRIMAITE_CONFIG["logging"]["logger_format"]
+_LOG_FORMAT_STR: Final[str] = PRIMAITE_CONFIG["logging"]["logger_format"]
 _STREAM_HANDLER.setFormatter(_LEVEL_FORMATTER)
 _FILE_HANDLER.setFormatter(_LEVEL_FORMATTER)
 
@@ -202,6 +200,6 @@ def getLogger(name: str) -> Logger:  # noqa
         logging config.
     """
     logger = logging.getLogger(name)
-    logger.setLevel(_PRIMAITE_CONFIG["log_level"])
+    logger.setLevel(PRIMAITE_CONFIG["logging"]["log_level"])
 
     return logger

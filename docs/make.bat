@@ -36,11 +36,6 @@ IF EXIST %AUTOSUMMARYDIR% (
     RMDIR %AUTOSUMMARYDIR% /s /q
 )
 
-REM print the YT licenses
-set LICENSEBUILD=pip-licenses --format=rst --with-urls
-set DEPS="%cd%\source\primaite-dependencies.rst"
-
-%LICENSEBUILD% --output-file=%DEPS%
 
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%
 goto end

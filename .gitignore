@@ -37,6 +37,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+junit/
 htmlcov/
 .tox/
 .nox/
@@ -81,6 +82,10 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+PPO_UC2/
+# ignore everything but the executed notebooks rst in the docs/source/notebooks directory
+!docs/source/notebooks/executed_notebooks.rst
+docs/source/notebooks/**/*
 
 # IPython
 profile_default/
@@ -144,9 +149,22 @@ cython_debug/
 # IDE
 .idea/
 docs/source/primaite-dependencies.rst
+.vscode/
 
 # outputs
 src/primaite/outputs/
+simulation_output/
+sessions/
+PrimAITE-PPO-example-agent.zip
 
 # benchmark session outputs
 benchmark/output
+# src/primaite/notebooks/scratch.ipynb
+src/primaite/notebooks/scratch.py
+sandbox.py
+sandbox/
+sandbox.ipynb
+
+# benchmarking
+**/benchmark/sessions/
+**/benchmark/output/
