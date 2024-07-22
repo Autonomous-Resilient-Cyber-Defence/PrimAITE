@@ -185,5 +185,5 @@ file_type_sizes_bytes = {
     FileType.ZIP: 1024000,
     FileType.TAR: 1024000,
     FileType.GZ: 819200,
-    FileType.DB: 15360000,
+    FileType.DB: 5_000_000,
 }

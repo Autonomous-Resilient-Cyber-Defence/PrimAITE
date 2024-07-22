@@ -3,6 +3,7 @@ from typing import Any, Dict, Tuple
 
 import pytest
 import yaml
+from ray import init as rayinit
 
 from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.agent.actions import ActionManager
@@ -29,6 +30,7 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from tests import TEST_ASSETS_ROOT
 
+rayinit(local_mode=True)
 ACTION_SPACE_NODE_VALUES = 1
 ACTION_SPACE_NODE_ACTION_VALUES = 1
 
@@ -51,11 +53,11 @@ class TestService(Service):
         pass
 
 
-class TestApplication(Application):
+class DummyApplication(Application, identifier="DummyApplication"):
     """Test Application class"""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "TestApplication"
+        kwargs["name"] = "DummyApplication"
         kwargs["port"] = Port.HTTP
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
@@ -85,15 +87,18 @@ def service_class():
 
 
 @pytest.fixture(scope="function")
-def application(file_system) -> TestApplication:
-    return TestApplication(
-        name="TestApplication", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="test_application")
+def application(file_system) -> DummyApplication:
+    return DummyApplication(
+        name="DummyApplication",
+        port=Port.ARP,
+        file_system=file_system,
+        sys_log=SysLog(hostname="dummy_application"),
     )
 
 
 @pytest.fixture(scope="function")
 def application_class():
-    return TestApplication
+    return DummyApplication
 
 
 @pytest.fixture(scope="function")
@@ -252,8 +257,7 @@ def example_network() -> Network:
     server_2.power_on()
     network.connect(endpoint_b=server_2.network_interface[1], endpoint_a=switch_1.network_interface[2])
 
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
-    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, position=1)
 
     assert all(link.is_up for link in network.links.values())
 

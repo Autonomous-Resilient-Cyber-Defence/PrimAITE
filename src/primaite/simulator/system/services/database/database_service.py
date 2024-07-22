@@ -197,7 +197,11 @@ class DatabaseService(Service):
             status_code = 503  # service unavailable
             if self.health_state_actual == SoftwareHealthState.OVERWHELMED:
                 self.sys_log.error(f"{self.name}: Connect request for {src_ip=} declined. Service is at capacity.")
-            if self.health_state_actual == SoftwareHealthState.GOOD:
+            if self.health_state_actual in [
+                SoftwareHealthState.GOOD,
+                SoftwareHealthState.FIXING,
+                SoftwareHealthState.COMPROMISED,
+            ]:
                 if self.password == password:
                     status_code = 200  # ok
                     connection_id = self._generate_connection_id()
@@ -243,6 +247,10 @@ class DatabaseService(Service):
         if not self.db_file:
             self.sys_log.error(f"{self.name}: Failed to run {query} because the database file is missing.")
             return {"status_code": 404, "type": "sql", "data": False}
+
+        if self.health_state_actual is not SoftwareHealthState.GOOD:
+            self.sys_log.error(f"{self.name}: Failed to run {query} because the database service is unavailable.")
+            return {"status_code": 500, "type": "sql", "data": False}
 
         if query == "SELECT":
             if self.db_file.health_status == FileSystemItemHealthStatus.CORRUPT:

@@ -42,49 +42,50 @@ An agent's reward function is managed by the ``RewardManager``. It calculates re
 Reward Components
 -----------------
 
-Currently implemented are reward components tailored to the data manipulation scenario. View the full API and description of how they work here: :py:module:`primaite.game.agent.reward`.
+Currently implemented are reward components tailored to the data manipulation scenario. View the full API and description of how they work here: :py:modules:`primaite.game.agent.rewards`.
 
 Reward Sharing
 --------------
 
 An agent's reward can be based on rewards of other agents. This is particularly useful for modelling a situation where the blue agent's job is to protect the ability of green agents to perform their pattern-of-life. This can be configured in the YAML file this way:
 
-```yaml
-green_agent_1: # this agent sometimes tries to access the webpage, and sometimes the database
-    # actions, observations, and agent settings go here
-    reward_function:
-      reward_components:
+.. code-block:: yaml
 
-        # When the webpage loads, the reward goes up by 0.25 when it fails to load, it goes down to -0.25
-        - type: WEBPAGE_UNAVAILABLE_PENALTY
-          weight: 0.25
-          options:
-            node_hostname: client_2
+  green_agent_1: # this agent sometimes tries to access the webpage, and sometimes the database
+      # actions, observations, and agent settings go here
+      reward_function:
+        reward_components:
 
-        # When the database is reachable, the reward goes up by 0.05, when it is unreachable it goes down to -0.05
-        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
-          weight: 0.05
-          options:
-            node_hostname: client_2
+          # When the webpage loads, the reward goes up by 0.25 when it fails to load, it goes down to -0.25
+          - type: WEBPAGE_UNAVAILABLE_PENALTY
+            weight: 0.25
+            options:
+              node_hostname: client_2
 
-blue_agent:
-    # actions, observations, and agent settings go here
-    reward_function:
-      reward_components:
+          # When the database is reachable, the reward goes up by 0.05, when it is unreachable it goes down to -0.05
+          - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
+            weight: 0.05
+            options:
+              node_hostname: client_2
 
-        # When the database file is in a good state, blue's reward is 0.4, when it's in a corrupted state the reward is -0.4
-        - type: DATABASE_FILE_INTEGRITY
-          weight: 0.40
-          options:
-            node_hostname: database_server
-            folder_name: database
-            file_name: database.db
+  blue_agent:
+      # actions, observations, and agent settings go here
+      reward_function:
+        reward_components:
 
-        # The green's reward is added onto the blue's reward.
-        - type: SHARED_REWARD
-          weight: 1.0
-          options:
-            agent_name: client_2_green_user
-```
+          # When the database file is in a good state, blue's reward is 0.4, when it's in a corrupted state the reward is -0.4
+          - type: DATABASE_FILE_INTEGRITY
+            weight: 0.40
+            options:
+              node_hostname: database_server
+              folder_name: database
+              file_name: database.db
+
+          # The green's reward is added onto the blue's reward.
+          - type: SHARED_REWARD
+            weight: 1.0
+            options:
+              agent_name: client_2_green_user
+
 
 When defining agent reward sharing, users must be careful to avoid circular references, as that would lead to an infinite calculation loop. PrimAITE will prevent circular dependencies and provide a helpful error message if they are detected in the yaml.

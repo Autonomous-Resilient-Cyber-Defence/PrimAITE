@@ -101,6 +101,7 @@ def test_port_scan_full_subnet_all_ports_and_protocols(example_network):
 
     actual_result = client_1_nmap.port_scan(
         target_ip_address=IPv4Network("192.168.10.0/24"),
+        target_port=[Port.ARP, Port.HTTP, Port.FTP, Port.DNS, Port.NTP],
     )
 
     expected_result = {

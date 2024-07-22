@@ -3,9 +3,10 @@
 """Core of the PrimAITE Simulator."""
 import warnings
 from abc import abstractmethod
-from typing import Callable, Dict, List, Literal, Optional, Union
+from typing import Callable, Dict, Iterable, List, Literal, Optional, Tuple, Union
 from uuid import uuid4
 
+from prettytable import PrettyTable
 from pydantic import BaseModel, ConfigDict, Field, validate_call
 
 from primaite import getLogger
@@ -33,6 +34,20 @@ class RequestPermissionValidator(BaseModel):
     def fail_message(self) -> str:
         """Message that is reported when a request is rejected by this validator."""
         return "request rejected"
+
+    def __add__(self, other: "RequestPermissionValidator") -> "_CombinedValidator":
+        return _CombinedValidator(validators=[self, other])
+
+
+class _CombinedValidator(RequestPermissionValidator):
+    validators: List[RequestPermissionValidator] = []
+
+    def __call__(self, request, context) -> bool:
+        return all(x(request, context) for x in self.validators)
+
+    @property
+    def fail_message(self):
+        return f"One of the following conditions are not met: {[v.fail_message for v in self.validators]}"
 
 
 class AllowAllValidator(RequestPermissionValidator):
@@ -150,8 +165,17 @@ class RequestManager(BaseModel):
 
         self.request_types.pop(name)
 
-    def get_request_types_recursively(self) -> List[List[str]]:
-        """Recursively generate request tree for this component."""
+    def get_request_types_recursively(self) -> List[RequestFormat]:
+        """
+        Recursively generate request tree for this component.
+
+        :param parent_valid: Whether this sub-request's parent request was valid. This value should not be specified by
+                             users, it is used by the recursive call.
+        :type parent_valid: bool
+        :returns: A list of tuples where the first tuple element is the request string and the second is whether that
+                  request is currently possible to execute.
+        :rtype: List[Tuple[RequestFormat, bool]]
+        """
         requests = []
         for req_name, req in self.request_types.items():
             if isinstance(req.func, RequestManager):
@@ -161,6 +185,30 @@ class RequestManager(BaseModel):
             else:
                 requests.append([req_name])
         return requests
+
+    def show(self) -> None:
+        """Display all currently available requests."""
+        table = PrettyTable(["requests"])
+        table.align = "l"
+        table.add_rows([[x] for x in self.get_request_types_recursively()])
+        print(table)
+
+    def check_valid(self, request: RequestFormat, context: Dict) -> bool:
+        """Check if this request would be valid in the current state of the simulation without invoking it."""
+
+        request_key = request[0]
+        request_options = request[1:]
+
+        if request_key not in self.request_types:
+            return False
+
+        request_type = self.request_types[request_key]
+
+        # recurse if we are not at a leaf node
+        if isinstance(request_type.func, RequestManager):
+            return request_type.func.check_valid(request_options, context)
+
+        return request_type.validator(request_options, context)
 
 
 class SimComponent(BaseModel):
@@ -196,7 +244,7 @@ class SimComponent(BaseModel):
 
         ..code::python
 
-            class WebBrowser(Application):
+            class WebBrowser(Application, identifier="WebBrowser"):
             def _init_request_manager(self) -> RequestManager:
                 rm = super()._init_request_manager() # all requests generic to any Application get initialised
                 rm.add_request(...) # initialise any requests specific to the web browser

@@ -7,7 +7,7 @@
 ==============
 In this section the network layout is defined. This part of the config follows a hierarchical structure. Almost every component defines a ``ref`` field which acts as a human-readable unique identifier, used by other parts of the config, such as agents.
 
-At the top level of the network are ``nodes`` and ``links``.
+At the top level of the network are ``nodes``, ``links`` and ``airspace``.
 
 e.g.
 
@@ -19,6 +19,9 @@ e.g.
             ...
             links:
             ...
+            airspace:
+            ...
+
 
 ``nodes``
 ---------
@@ -101,3 +104,27 @@ This accepts an integer value e.g. if port 1 is to be connected, the configurati
 ``bandwidth``
 
 This is an integer value specifying the allowed bandwidth across the connection. Units are in Mbps.
+
+``airspace``
+------------
+
+This section configures settings specific to the wireless network's virtual airspace.
+
+``frequency_max_capacity_mbps``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This setting allows the user to override the default maximum bandwidth capacity set for each frequency. The key should
+be the AirSpaceFrequency name and the value be the desired maximum bandwidth capacity in mbps (megabits per second) for
+a single timestep.
+
+The below example would permit 123.45 megabits to be transmit across the WiFi 2.4 GHz frequency in a single timestep.
+Setting a frequencies max capacity to 0.0 blocks that frequency on the airspace.
+
+.. code-block:: yaml
+
+    simulation:
+      network:
+        airspace:
+          frequency_max_capacity_mbps:
+            WIFI_2_4: 123.45
+            WIFI_5: 0.0

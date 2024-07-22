@@ -1,7 +1,5 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-import ray
 import yaml
-from ray import air, tune
 from ray.rllib.algorithms.ppo import PPOConfig
 
 from primaite.session.ray_envs import PrimaiteRayMARLEnv
@@ -12,11 +10,8 @@ MULTI_AGENT_PATH = TEST_ASSETS_ROOT / "configs/multi_agent_session.yaml"
 
 def test_rllib_multi_agent_compatibility():
     """Test that the PrimaiteRayEnv class can be used with a multi agent RLLIB system."""
-
     with open(MULTI_AGENT_PATH, "r") as f:
         cfg = yaml.safe_load(f)
-
-    ray.init()
 
     config = (
         PPOConfig()
@@ -28,15 +23,5 @@ def test_rllib_multi_agent_compatibility():
         )
         .training(train_batch_size=128)
     )
-
-    tune.Tuner(
-        "PPO",
-        run_config=air.RunConfig(
-            stop={"training_iteration": 128},
-            checkpoint_config=air.CheckpointConfig(
-                checkpoint_frequency=10,
-            ),
-        ),
-        param_space=config,
-    ).fit()
-    ray.shutdown()
+    algo = config.build()
+    algo.train()

@@ -44,3 +44,18 @@ def data_manipulation_config_path() -> Path:
         _LOGGER.error(msg)
         raise FileNotFoundError(msg)
     return path
+
+
+def data_manipulation_marl_config_path() -> Path:
+    """
+    Get the path to the MARL example config.
+
+    :return: Path to yaml config file for the MARL scenario.
+    :rtype: Path
+    """
+    path = _EXAMPLE_CFG / "data_manipulation_marl.yaml"
+    if not path.exists():
+        msg = f"Example config does not exist: {path}. Have you run `primaite setup`?"
+        _LOGGER.error(msg)
+        raise FileNotFoundError(msg)
+    return path

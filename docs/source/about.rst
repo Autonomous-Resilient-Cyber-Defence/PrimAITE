@@ -7,27 +7,68 @@
 About PrimAITE
 ==============
 
-PrimAITE is a simulation environment for training agents to protect a computer network from cyber attacks.
+Architecture
+^^^^^^^^^^^^
 
-Features
-********
+PrimAITE is a Python application and will operate on multiple Operating Systems (Windows, Linux and Mac);
+a comprehensive installation and user guide is provided with each release to support its usage.
 
-PrimAITE provides the following features:
+Configuration of PrimAITE is achieved via included YAML files which support full control over the network / system laydown being modelled, background pattern of life, adversarial (red agent) behaviour, and step and episode count.
+A Simulation Controller layer manages the overall running of the simulation, keeping track of all low-level objects.
 
-* A flexible system for defining network layouts and host configurations
-* Highly configurable network hosts, including definition of software, file system, and network interfaces,
-* Realistic network traffic simulation, including address and sending packets via internet protocols like TCP, UDP, ICMP, etc.
-* Routers with traffic routing and firewall capabilities
-* Simulation of customisable deterministic agents
-* Support for multiple agents, each having their own customisable observation space, action space, and reward function definition.
+It is agnostic to the number of agents, their action / observation spaces, and the RL library being used.
+
+It presents a public API providing a method for describing the current state of the simulation, a method that accepts action requests and provides responses, and a method that triggers a timestep advancement.
+The Game Layer converts the simulation into a playable game for the agent(s).
+
+It translates between simulation state and Gymnasium.Spaces to pass action / observation data between the agent(s) and the simulation. It is responsible for calculating rewards, managing Multi-Agent RL (MARL) action turns, and via a single agent interface can interact with Blue, Red and Green agents.
+
+Agents can either generate their own scripted behaviour or accept input behaviour from an RL agent.
+
+Finally, a Gymnasium / Ray RLlib Environment Layer forwards requests to the Game Layer as the agent sends them. This layer also manages most of the I/O, such as reading in the configuration files and saving agent logs.
+
+.. image:: ../../_static/primAITE_architecture.png
+    :width: 500
+    :align: center
 
 
-Structure
-*********
+Training & Evaluation Capability
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-PrimAITE consists of a simulator and a 'game' layer that allows agents to interact with the simulator. The simulator is built in a modular way where each component such as network hosts, links, networking devices, softwares, etc. are implemented as instances of a base class, meaning they all support the same interface. This allows for standardised configuration using either the Python API or YAML files.
-The game layer is built on top of the simulator and it consumes the simulation action/state interface to allow agents to interact with the simulator. The game layer is also responsible for defining the reward function and observation space for the agents.
+PrimAITE provides a training and evaluation capability to AI agents in the context of cyber-attack, via its Gymnasium / Ray RLlib compliant interface.
 
+Scenarios can be constructed to reflect network / system laydowns consisting of any configuration of nodes (e.g., PCs, servers etc.) and the networking equipment and links between them.
+
+All nodes can be configured to contain applications, services, folders and files (and their status).
+
+Traffic flows between services and applications as directed by an ‘execution definition’, with the traffic flow on the network governed by the network equipment (switches, routers and firewalls) and the ACL rules and routing tables they employ.
+
+Highlights of PrimAITE’s training and evaluation capability are:
+
+- The scenario is not bound to a representation of any platform, system, or technology;
+- Fully configurable (network / system laydown, green pattern-of-life, red personas, reward function, ACL rules for each device, number of episodes / steps, action / observation space) and repeatable to suit the requirements of AI agents;
+- Can integrate with any Gymnasium / Ray RLlib compliant AI agent.
+
+
+PrimAITE provides a number of use cases (network and red/green action configurations) by default which the user is able to extend and modify as required.
+
+What is PrimAITE built with
+---------------------------
+
+* `Gymnasium <https://gymnasium.farama.org/>`_ is used as the basis for AI blue agent interaction with the PrimAITE environment
+* `Networkx <https://github.com/networkx/networkx>`_ is used as the underlying data structure used for the PrimAITE environment
+* `Stable Baselines 3 <https://github.com/DLR-RM/stable-baselines3>`_ is used as a default source of RL algorithms (although PrimAITE is not limited to SB3 agents)
+* `Ray RLlib <https://github.com/ray-project/ray>`_ is used as an additional source of RL algorithms
+* `Typer <https://github.com/tiangolo/typer>`_ is used for building CLIs (Command Line Interface applications)
+* `Jupyterlab <https://github.com/jupyterlab/jupyterlab>`_ is used as an extensible environment for interactive and reproducible computing, based on the Jupyter Notebook Architecture
+* `Platformdirs <https://github.com/platformdirs/platformdirs>`_ is used for finding the right location to store user data and configuration but varies per platform
+* `Plotly <https://github.com/plotly/plotly.py>`_ is used for building high level charts
+
+
+Getting Started with PrimAITE
+-----------------------------
+
+Head over to the :ref:`getting-started` page to install and setup PrimAITE!
 
 ..
   Architecture - Nodes and Links

@@ -49,36 +49,68 @@ dev-mode configuration
 
 The following configures some specific items that the dev-mode overrides, if enabled.
 
-`--sys-log-level` or `-level`
-----------------------------
+`--sys-log-level` or `-slevel`
+-----------------------------
 
 The level of system logs can be overridden by dev-mode.
 
 By default, this is set to DEBUG
 
-The available options are [DEBUG|INFO|WARNING|ERROR|CRITICAL]
+The available options for both system and agent logs are:
 
-.. code-block::
-
-    primaite dev-mode config -level INFO
-
-or
++-------------------+
+| Log Level         |
++===================+
+| DEBUG             |
++-------------------+
+| INFO              |
++-------------------+
+| WARNING           |
++-------------------+
+| ERROR             |
++-------------------+
+| CRITICAL          |
++-------------------+
 
 .. code-block::
 
     primaite dev-mode config --sys-log-level INFO
 
+or
+
+.. code-block::
+
+    primaite dev-mode config -slevel INFO
+
+
+`--agent-log-level` or `-alevel`
+--------------------------------
+
+The level of agent logs can be overridden by dev-mode.
+
+By default, this is set to DEBUG.
+
+.. code-block::
+
+    primaite dev-mode config --agent-log-level INFO
+
+or
+
+.. code-block::
+
+    primaite dev-mode config -alevel INFO
+
 `--output-sys-logs` or `-sys`
 -----------------------------
 
-The outputting of system logs can be overridden by dev-mode.
+The output of system logs can be overridden by dev-mode.
 
 By default, this is set to False
 
 Enabling system logs
 """"""""""""""""""""
 
-To enable outputting of system logs
+To enable output of system logs
 
 .. code-block::
 
@@ -93,7 +125,7 @@ or
 Disabling system logs
 """""""""""""""""""""
 
-To disable outputting of system logs
+To disable output of system logs
 
 .. code-block::
 
@@ -105,17 +137,47 @@ or
 
     primaite dev-mode config -nsys
 
+Enabling agent logs
+""""""""""""""""""""
+
+To enable output of system logs
+
+.. code-block::
+
+    primaite dev-mode config --output-agent-logs
+
+or
+
+.. code-block::
+
+    primaite dev-mode config -agent
+
+Disabling system logs
+"""""""""""""""""""""
+
+To disable output of system logs
+
+.. code-block::
+
+    primaite dev-mode config --no-agent-logs
+
+or
+
+.. code-block::
+
+    primaite dev-mode config -nagent
+
 `--output-pcap-logs` or `-pcap`
 -------------------------------
 
-The outputting of packet capture logs can be overridden by dev-mode.
+The output of packet capture logs can be overridden by dev-mode.
 
 By default, this is set to False
 
 Enabling PCAP logs
 """"""""""""""""""
 
-To enable outputting of packet capture logs
+To enable output of packet capture logs
 
 .. code-block::
 
@@ -130,7 +192,7 @@ or
 Disabling PCAP logs
 """""""""""""""""""
 
-To disable outputting of packet capture logs
+To disable output of packet capture logs
 
 .. code-block::
 
@@ -145,14 +207,14 @@ or
 `--output-to-terminal` or `-t`
 ------------------------------
 
-The outputting of system logs to the terminal can be overridden by dev-mode.
+The output of system logs to the terminal can be overridden by dev-mode.
 
 By default, this is set to False
 
 Enabling system log output to terminal
 """"""""""""""""""""""""""""""""""""""
 
-To enable outputting of system logs to terminal
+To enable output of system logs to terminal
 
 .. code-block::
 
@@ -167,7 +229,7 @@ or
 Disabling system log output to terminal
 """""""""""""""""""""""""""""""""""""""
 
-To disable outputting of system logs to terminal
+To disable output of system logs to terminal
 
 .. code-block::
 

@@ -6,7 +6,7 @@ import secrets
 from abc import ABC, abstractmethod
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Optional, TypeVar, Union
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel, Field
@@ -87,7 +87,7 @@ class NetworkInterface(SimComponent, ABC):
     mac_address: str = Field(default_factory=generate_mac_address)
     "The MAC address of the interface."
 
-    speed: int = 100
+    speed: float = 100.0
     "The speed of the interface in Mbps. Default is 100 Mbps."
 
     mtu: int = 1500
@@ -130,10 +130,25 @@ class NetworkInterface(SimComponent, ABC):
 
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
+        _is_network_interface_enabled = NetworkInterface._EnabledValidator(network_interface=self)
+        _is_network_interface_disabled = NetworkInterface._DisabledValidator(network_interface=self)
+
         rm = super()._init_request_manager()
 
-        rm.add_request("enable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.enable())))
-        rm.add_request("disable", RequestType(func=lambda request, context: RequestResponse.from_bool(self.disable())))
+        rm.add_request(
+            "enable",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.enable()),
+                validator=_is_network_interface_disabled,
+            ),
+        )
+        rm.add_request(
+            "disable",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.disable()),
+                validator=_is_network_interface_enabled,
+            ),
+        )
 
         return rm
 
@@ -332,6 +347,50 @@ class NetworkInterface(SimComponent, ABC):
         super().pre_timestep(timestep)
         self.traffic = {}
 
+    class _EnabledValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the NetworkInterface is enabled.
+
+        This is useful because most actions should be being resolved if the NetworkInterface is disabled.
+        """
+
+        network_interface: NetworkInterface
+        """Save a reference to the node instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the NetworkInterface is enabled or not."""
+            return self.network_interface.enabled
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return (
+                f"Cannot perform request on NetworkInterface "
+                f"'{self.network_interface.mac_address}' because it is not enabled."
+            )
+
+    class _DisabledValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the NetworkInterface is disabled.
+
+        This is useful because some actions should be being resolved if the NetworkInterface is disabled.
+        """
+
+        network_interface: NetworkInterface
+        """Save a reference to the node instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the NetworkInterface is disabled or not."""
+            return not self.network_interface.enabled
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return (
+                f"Cannot perform request on NetworkInterface "
+                f"'{self.network_interface.mac_address}' because it is not disabled."
+            )
+
 
 class WiredNetworkInterface(NetworkInterface, ABC):
     """
@@ -440,14 +499,17 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         :param frame: The network frame to be sent.
         :return: True if the frame is sent, False if the Network Interface is disabled or not connected to a link.
         """
+        if not self.enabled:
+            return False
+        if not self._connected_link.can_transmit_frame(frame):
+            # Drop frame for now. Queuing will happen here (probably) if it's done in the future.
+            self._connected_node.sys_log.info(f"{self}: Frame dropped as Link is at capacity")
+            return False
         super().send_frame(frame)
-        if self.enabled:
-            frame.set_sent_timestamp()
-            self.pcap.capture_outbound(frame)
-            self._connected_link.transmit_frame(sender_nic=self, frame=frame)
-            return True
-        # Cannot send Frame as the NIC is not enabled
-        return False
+        frame.set_sent_timestamp()
+        self.pcap.capture_outbound(frame)
+        self._connected_link.transmit_frame(sender_nic=self, frame=frame)
+        return True
 
     @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:
@@ -678,12 +740,21 @@ class Link(SimComponent):
         """
         return self.endpoint_a.enabled and self.endpoint_b.enabled
 
-    def _can_transmit(self, frame: Frame) -> bool:
+    def can_transmit_frame(self, frame: Frame) -> bool:
+        """
+        Determines whether a frame can be transmitted considering the current Link load and the Link's bandwidth.
+
+        This method assesses if the transmission of a given frame is possible without exceeding the Link's total
+        bandwidth capacity. It checks if the current load of the Link plus the size of the frame (expressed in Mbps)
+        would remain within the defined bandwidth limits. The transmission is only feasible if the Link is active
+        ('up') and the total load including the new frame does not surpass the bandwidth limit.
+
+        :param frame: The frame intended for transmission, which contains its size in Mbps.
+        :return: True if the frame can be transmitted without exceeding the bandwidth limit, False otherwise.
+        """
         if self.is_up:
             frame_size_Mbits = frame.size_Mbits  # noqa - Leaving it as Mbits as this is how they're expressed
-            # return self.current_load + frame_size_Mbits <= self.bandwidth
-            # TODO: re add this check once packet size limiting and MTU checks are implemented
-            return True
+            return self.current_load + frame.size_Mbits <= self.bandwidth
         return False
 
     def transmit_frame(self, sender_nic: WiredNetworkInterface, frame: Frame) -> bool:
@@ -694,11 +765,6 @@ class Link(SimComponent):
         :param frame: The network frame to be sent.
         :return: True if the Frame can be sent, otherwise False.
         """
-        can_transmit = self._can_transmit(frame)
-        if not can_transmit:
-            _LOGGER.debug(f"Cannot transmit frame as {self} is at capacity")
-            return False
-
         receiver = self.endpoint_a
         if receiver == sender_nic:
             receiver = self.endpoint_b
@@ -878,13 +944,88 @@ class Node(SimComponent):
             """Message that is reported when a request is rejected by this validator."""
             return f"Cannot perform request on node '{self.node.hostname}' because it is not turned on."
 
+    class _NodeIsOffValidator(RequestPermissionValidator):
+        """
+        When requests come in, this validator will only let them through if the node is off.
+
+        This is useful because some actions require the node to be in an off state.
+        """
+
+        node: Node
+        """Save a reference to the node instance."""
+
+        def __call__(self, request: RequestFormat, context: Dict) -> bool:
+            """Return whether the node is on or off."""
+            return self.node.operating_state == NodeOperatingState.OFF
+
+        @property
+        def fail_message(self) -> str:
+            """Message that is reported when a request is rejected by this validator."""
+            return f"Cannot perform request on node '{self.node.hostname}' because it is not turned off."
+
     def _init_request_manager(self) -> RequestManager:
         """
         Initialise the request manager.
 
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
+
+        def _install_application(request: RequestFormat, context: Dict) -> RequestResponse:
+            """
+            Allows agents to install applications to the node.
+
+            :param request: list containing the application name as the only element
+            :type request: RequestFormat
+            :param context: additional context for resolving this action, currently unused
+            :type context: dict
+            :return: Request response with a success code if the application was installed.
+            :rtype: RequestResponse
+            """
+            application_name = request[0]
+            if self.software_manager.software.get(application_name):
+                self.sys_log.warning(f"Can't install {application_name}. It's already installed.")
+                return RequestResponse.from_bool(False)
+            application_class = Application._application_registry[application_name]
+            self.software_manager.install(application_class)
+            application_instance = self.software_manager.software.get(application_name)
+            self.applications[application_instance.uuid] = application_instance
+            _LOGGER.debug(f"Added application {application_instance.name} to node {self.hostname}")
+            self._application_request_manager.add_request(
+                application_name, RequestType(func=application_instance._request_manager)
+            )
+            application_instance.install()
+            if application_name in self.software_manager.software:
+                return RequestResponse.from_bool(True)
+            else:
+                return RequestResponse.from_bool(False)
+
+        def _uninstall_application(request: RequestFormat, context: Dict) -> RequestResponse:
+            """
+            Uninstall and completely remove application from this node.
+
+            This method is useful for allowing agents to take this action.
+
+            :param request: list containing the application name as the only element
+            :type request: RequestFormat
+            :param context: additional context for resolving this action, currently unused
+            :type context: dict
+            :return: Request response with a success code if the application was uninstalled.
+            :rtype: RequestResponse
+            """
+            application_name = request[0]
+            if application_name not in self.software_manager.software:
+                self.sys_log.warning(f"Can't uninstall {application_name}. It's not installed.")
+                return RequestResponse.from_bool(False)
+
+            application_instance = self.software_manager.software.get(application_name)
+            self.software_manager.uninstall(application_instance.name)
+            if application_instance.name not in self.software_manager.software:
+                return RequestResponse.from_bool(True)
+            else:
+                return RequestResponse.from_bool(False)
+
         _node_is_on = Node._NodeIsOnValidator(node=self)
+        _node_is_off = Node._NodeIsOffValidator(node=self)
 
         rm = super()._init_request_manager()
         # since there are potentially many services, create an request manager that can map service name
@@ -914,7 +1055,12 @@ class Node(SimComponent):
                 func=lambda request, context: RequestResponse.from_bool(self.power_off()), validator=_node_is_on
             ),
         )
-        rm.add_request("startup", RequestType(func=lambda request, context: RequestResponse.from_bool(self.power_on())))
+        rm.add_request(
+            "startup",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.power_on()), validator=_node_is_off
+            ),
+        )
         rm.add_request(
             "reset",
             RequestType(func=lambda request, context: RequestResponse.from_bool(self.reset()), validator=_node_is_on),
@@ -940,54 +1086,14 @@ class Node(SimComponent):
             name="application", request_type=RequestType(func=self._application_manager)
         )
 
-        self._application_manager.add_request(
-            name="install",
-            request_type=RequestType(
-                func=lambda request, context: RequestResponse.from_bool(
-                    self.application_install_action(
-                        application=self._read_application_type(request[0]), ip_address=request[1]
-                    )
-                )
-            ),
-        )
-
-        self._application_manager.add_request(
-            name="uninstall",
-            request_type=RequestType(
-                func=lambda request, context: RequestResponse.from_bool(
-                    self.application_uninstall_action(application=self._read_application_type(request[0]))
-                )
-            ),
-        )
+        self._application_manager.add_request(name="install", request_type=RequestType(func=_install_application))
+        self._application_manager.add_request(name="uninstall", request_type=RequestType(func=_uninstall_application))
 
         return rm
 
     def _install_system_software(self):
         """Install System Software - software that is usually provided with the OS."""
         pass
-
-    def _read_application_type(self, application_class_str: str) -> Type[IOSoftwareClass]:
-        """Wrapper that converts the string from the request manager into the appropriate class for the application."""
-        if application_class_str == "DoSBot":
-            from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
-
-            return DoSBot
-        elif application_class_str == "DataManipulationBot":
-            from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
-                DataManipulationBot,
-            )
-
-            return DataManipulationBot
-        elif application_class_str == "WebBrowser":
-            from primaite.simulator.system.applications.web_browser import WebBrowser
-
-            return WebBrowser
-        elif application_class_str == "RansomwareScript":
-            from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
-
-            return RansomwareScript
-        else:
-            return 0
 
     def describe_state(self) -> Dict:
         """
@@ -1416,76 +1522,6 @@ class Node(SimComponent):
         application.parent = None
         self.sys_log.info(f"Uninstalled application {application.name}")
         self._application_request_manager.remove_request(application.name)
-
-    def application_install_action(self, application: Application, ip_address: Optional[str] = None) -> bool:
-        """
-        Install an application on this node and configure it.
-
-        This method is useful for allowing agents to take this action.
-
-        :param application: Application object that has not been installed on any node yet.
-        :type application: Application
-        :param ip_address: IP address used to configure the application
-        (target IP for the DoSBot or server IP for the DataManipulationBot)
-        :type ip_address: str
-        :return: True if the application is installed successfully, otherwise False.
-        """
-        if application in self:
-            _LOGGER.warning(
-                f"Can't add application {application.__name__}" + f"to node {self.hostname}. It's already installed."
-            )
-            return True
-
-        self.software_manager.install(application)
-        application_instance = self.software_manager.software.get(str(application.__name__))
-        self.applications[application_instance.uuid] = application_instance
-        _LOGGER.debug(f"Added application {application_instance.name} to node {self.hostname}")
-        self._application_request_manager.add_request(
-            application_instance.name, RequestType(func=application_instance._request_manager)
-        )
-
-        # Configure application if additional parameters are given
-        if ip_address:
-            if application_instance.name == "DoSBot":
-                application_instance.configure(target_ip_address=IPv4Address(ip_address))
-            elif application_instance.name == "DataManipulationBot":
-                application_instance.configure(server_ip_address=IPv4Address(ip_address))
-            elif application_instance.name == "RansomwareScript":
-                application_instance.configure(server_ip_address=IPv4Address(ip_address))
-            else:
-                pass
-        application_instance.install()
-        if application_instance.name in self.software_manager.software:
-            return True
-        else:
-            return False
-
-    def application_uninstall_action(self, application: Application) -> bool:
-        """
-        Uninstall and completely remove application from this node.
-
-        This method is useful for allowing agents to take this action.
-
-        :param application: Application object that is currently associated with this node.
-        :type application: Application
-        :return: True if the application is uninstalled successfully, otherwise False.
-        """
-        if application.__name__ not in self.software_manager.software:
-            _LOGGER.warning(
-                f"Can't remove application {application.__name__}" + f"from node {self.hostname}. It's not installed."
-            )
-            return True
-
-        application_instance = self.software_manager.software.get(
-            str(application.__name__)
-        )  # This works because we can't have two applications with the same name on the same node
-        # self.uninstall_application(application_instance)
-        self.software_manager.uninstall(application_instance.name)
-
-        if application_instance.name not in self.software_manager.software:
-            return True
-        else:
-            return False
 
     def _shut_down_actions(self):
         """Actions to perform when the node is shut down."""

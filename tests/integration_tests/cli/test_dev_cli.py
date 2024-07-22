@@ -67,7 +67,7 @@ def test_dev_mode_config_sys_log_level():
     # check defaults
     assert PRIMAITE_CONFIG["developer_mode"]["sys_log_level"] == "DEBUG"  # DEBUG by default
 
-    result = cli(["dev-mode", "config", "-level", "WARNING"])
+    result = cli(["dev-mode", "config", "-slevel", "WARNING"])
 
     assert "sys_log_level=WARNING" in result.output  # should print correct value
 
@@ -78,8 +78,28 @@ def test_dev_mode_config_sys_log_level():
 
     assert "sys_log_level=INFO" in result.output  # should print correct value
 
-    # config should reflect that log level is WARNING
+    # config should reflect that log level is INFO
     assert PRIMAITE_CONFIG["developer_mode"]["sys_log_level"] == "INFO"
+
+
+def test_dev_mode_config_agent_log_level():
+    """Check that the agent log level can be changed via CLI."""
+    # check defaults
+    assert PRIMAITE_CONFIG["developer_mode"]["agent_log_level"] == "DEBUG"  # DEBUG by default
+
+    result = cli(["dev-mode", "config", "-alevel", "WARNING"])
+
+    assert "agent_log_level=WARNING" in result.output  # should print correct value
+
+    # config should reflect that log level is WARNING
+    assert PRIMAITE_CONFIG["developer_mode"]["agent_log_level"] == "WARNING"
+
+    result = cli(["dev-mode", "config", "--agent-log-level", "INFO"])
+
+    assert "agent_log_level=INFO" in result.output  # should print correct value
+
+    # config should reflect that log level is INFO
+    assert PRIMAITE_CONFIG["developer_mode"]["agent_log_level"] == "INFO"
 
 
 def test_dev_mode_config_sys_logs_enable_disable():
@@ -110,6 +130,36 @@ def test_dev_mode_config_sys_logs_enable_disable():
 
     # config should reflect that output_sys_logs is True
     assert PRIMAITE_CONFIG["developer_mode"]["output_sys_logs"] is False
+
+
+def test_dev_mode_config_agent_logs_enable_disable():
+    """Test that the agent logs output can be enabled or disabled."""
+    # check defaults
+    assert PRIMAITE_CONFIG["developer_mode"]["output_agent_logs"] is False  # False by default
+
+    result = cli(["dev-mode", "config", "--output-agent-logs"])
+    assert "output_agent_logs=True" in result.output  # should print correct value
+
+    # config should reflect that output_agent_logs is True
+    assert PRIMAITE_CONFIG["developer_mode"]["output_agent_logs"]
+
+    result = cli(["dev-mode", "config", "--no-agent-logs"])
+    assert "output_agent_logs=False" in result.output  # should print correct value
+
+    # config should reflect that output_agent_logs is True
+    assert PRIMAITE_CONFIG["developer_mode"]["output_agent_logs"] is False
+
+    result = cli(["dev-mode", "config", "-agent"])
+    assert "output_agent_logs=True" in result.output  # should print correct value
+
+    # config should reflect that output_agent_logs is True
+    assert PRIMAITE_CONFIG["developer_mode"]["output_agent_logs"]
+
+    result = cli(["dev-mode", "config", "-nagent"])
+    assert "output_agent_logs=False" in result.output  # should print correct value
+
+    # config should reflect that output_agent_logs is True
+    assert PRIMAITE_CONFIG["developer_mode"]["output_agent_logs"] is False
 
 
 def test_dev_mode_config_pcap_logs_enable_disable():

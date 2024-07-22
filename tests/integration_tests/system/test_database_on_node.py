@@ -14,6 +14,7 @@ from primaite.simulator.system.applications.database_client import DatabaseClien
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.service import ServiceOperatingState
+from primaite.simulator.system.software import SoftwareHealthState
 
 
 @pytest.fixture(scope="function")
@@ -211,6 +212,110 @@ def test_restore_backup_after_deleting_file_without_updating_scan(uc2_network):
 
     db_service.db_file.scan()  # scan the db file
     assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.GOOD  # now looks good
+
+
+def test_database_service_fix(uc2_network):
+    """Test that the software fix applies to database service."""
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+
+    assert db_service.backup_database() is True
+
+    # delete database locally
+    db_service.file_system.delete_file(folder_name="database", file_name="database.db")
+
+    # db file is gone, reduced to atoms
+    assert db_service.db_file is None
+
+    db_service.fix()  # fix the database service
+
+    assert db_service.health_state_actual == SoftwareHealthState.FIXING
+
+    # apply timestep until the fix is applied
+    for i in range(db_service.fixing_duration + 1):
+        uc2_network.apply_timestep(i)
+
+    assert db_service.db_file.health_status == FileSystemItemHealthStatus.GOOD
+    assert db_service.health_state_actual == SoftwareHealthState.GOOD
+
+
+def test_database_cannot_be_queried_while_fixing(uc2_network):
+    """Tests that the database service cannot be queried if the service is being fixed."""
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+
+    web_server: Server = uc2_network.get_node_by_hostname("web_server")
+    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+
+    db_connection: DatabaseClientConnection = db_client.get_new_connection()
+
+    assert db_connection.query(sql="SELECT")
+
+    assert db_service.backup_database() is True
+
+    # delete database locally
+    db_service.file_system.delete_file(folder_name="database", file_name="database.db")
+
+    # db file is gone, reduced to atoms
+    assert db_service.db_file is None
+
+    db_service.fix()  # fix the database service
+    assert db_service.health_state_actual == SoftwareHealthState.FIXING
+
+    # fails to query because database is in FIXING state
+    assert db_connection.query(sql="SELECT") is False
+
+    # apply timestep until the fix is applied
+    for i in range(db_service.fixing_duration + 1):
+        uc2_network.apply_timestep(i)
+
+    assert db_service.health_state_actual == SoftwareHealthState.GOOD
+
+    assert db_service.db_file.health_status == FileSystemItemHealthStatus.GOOD
+
+    assert db_connection.query(sql="SELECT")
+
+
+def test_database_can_create_connection_while_fixing(uc2_network):
+    """Tests that connections cannot be created while the database is being fixed."""
+    db_server: Server = uc2_network.get_node_by_hostname("database_server")
+    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+
+    client_2: Server = uc2_network.get_node_by_hostname("client_2")
+    db_client: DatabaseClient = client_2.software_manager.software["DatabaseClient"]
+
+    db_connection: DatabaseClientConnection = db_client.get_new_connection()
+
+    assert db_connection.query(sql="SELECT")
+
+    assert db_service.backup_database() is True
+
+    # delete database locally
+    db_service.file_system.delete_file(folder_name="database", file_name="database.db")
+
+    # db file is gone, reduced to atoms
+    assert db_service.db_file is None
+
+    db_service.fix()  # fix the database service
+    assert db_service.health_state_actual == SoftwareHealthState.FIXING
+
+    # fails to query because database is in FIXING state
+    assert db_connection.query(sql="SELECT") is False
+
+    # should be able to create a new connection
+    new_db_connection: DatabaseClientConnection = db_client.get_new_connection()
+    assert new_db_connection is not None
+    assert new_db_connection.query(sql="SELECT") is False  # still should fail to query because FIXING
+
+    # apply timestep until the fix is applied
+    for i in range(db_service.fixing_duration + 1):
+        uc2_network.apply_timestep(i)
+
+    assert db_service.health_state_actual == SoftwareHealthState.GOOD
+    assert db_service.db_file.health_status == FileSystemItemHealthStatus.GOOD
+
+    assert db_connection.query(sql="SELECT")
+    assert new_db_connection.query(sql="SELECT")
 
 
 def test_database_client_cannot_query_offline_database_server(uc2_network):

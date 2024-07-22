@@ -54,6 +54,7 @@ cover/
 tests/assets/**/*.png
 tests/assets/**/tensorboard_logs/
 tests/assets/**/checkpoints/
+notebook-tests/*.xml
 
 # Translations
 *.mo
