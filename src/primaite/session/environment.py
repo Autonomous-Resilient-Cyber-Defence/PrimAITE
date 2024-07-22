@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import json
 from os import PathLike
 from typing import Any, Dict, Optional, SupportsFloat, Tuple, Union
@@ -59,7 +60,7 @@ class PrimaiteGymEnv(gymnasium.Env):
 
         next_obs = self._get_obs()  # this doesn't update observation, just gets the current observation
         reward = self.agent.reward_function.current_reward
-        _LOGGER.info(f"step: {self.game.step_counter}, Blue reward: {reward}")
+        _LOGGER.debug(f"step: {self.game.step_counter}, Blue reward: {reward}")
         terminated = False
         truncated = self.game.calculate_truncated()
         info = {

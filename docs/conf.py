@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -147,7 +147,7 @@ def copy_notebooks_to_docs() -> Any:
     This allows developers to create new notebooks without having to worry about updating documentation when
     a new notebook is included within PrimAITE.
     """
-    notebook_asset_types = [".ipynb", ".png"]
+    notebook_asset_types = [".ipynb", ".png", ".svg"]
     notebook_directories = []
 
     # find paths where notebooks are contained

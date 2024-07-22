@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from typing import Dict, List, Optional
@@ -39,6 +40,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         """Number of network interface cards (NICs)."""
         include_nmne: Optional[bool] = None
         """Flag to include nmne."""
+        monitored_traffic: Optional[Dict] = None
+        """A dict containing which traffic types are to be included in the observation."""
         include_num_access: Optional[bool] = None
         """Flag to include the number of accesses."""
         num_ports: Optional[int] = None
@@ -180,6 +183,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 host_config.num_nics = config.num_nics
             if host_config.include_nmne is None:
                 host_config.include_nmne = config.include_nmne
+            if host_config.monitored_traffic is None:
+                host_config.monitored_traffic = config.monitored_traffic
             if host_config.include_num_access is None:
                 host_config.include_num_access = config.include_num_access
 

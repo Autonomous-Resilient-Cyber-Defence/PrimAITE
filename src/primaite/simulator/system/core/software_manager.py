@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
@@ -78,6 +79,31 @@ class SoftwareManager:
                 open_ports.append(software.port)
         return open_ports
 
+    def check_port_is_open(self, port: Port, protocol: IPProtocol) -> bool:
+        """
+        Check if a specific port is open and running a service using the specified protocol.
+
+        This method iterates through all installed software on the node and checks if any of them
+        are using the specified port and protocol and are currently in a running state. It returns True if any software
+        is found running on the specified port and protocol, otherwise False.
+
+
+        :param port: The port to check.
+        :type port: Port
+        :param protocol: The protocol to check (e.g., TCP, UDP).
+        :type protocol: IPProtocol
+        :return: True if the port is open and a service is running on it using the specified protocol, False otherwise.
+        :rtype: bool
+        """
+        for software in self.software.values():
+            if (
+                software.port == port
+                and software.protocol == protocol
+                and software.operating_state in {ApplicationOperatingState.RUNNING, ServiceOperatingState.RUNNING}
+            ):
+                return True
+        return False
+
     def install(self, software_class: Type[IOSoftwareClass]):
         """
         Install an Application or Service.
@@ -150,6 +176,7 @@ class SoftwareManager:
         self,
         payload: Any,
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
+        src_port: Optional[Port] = None,
         dest_port: Optional[Port] = None,
         ip_protocol: IPProtocol = IPProtocol.TCP,
         session_id: Optional[str] = None,
@@ -170,6 +197,7 @@ class SoftwareManager:
         return self.session_manager.receive_payload_from_software_manager(
             payload=payload,
             dst_ip_address=dest_ip_address,
+            src_port=src_port,
             dst_port=dest_port,
             ip_protocol=ip_protocol,
             session_id=session_id,
@@ -190,6 +218,9 @@ class SoftwareManager:
         :param payload: The payload being received.
         :param session: The transport session the payload originates from.
         """
+        if payload.__class__.__name__ == "PortScanPayload":
+            self.software.get("NMAP").receive(payload=payload, session_id=session_id)
+            return
         receiver: Optional[Union[Service, Application]] = self.port_protocol_mapping.get((port, protocol), None)
         if receiver:
             receiver.receive(

@@ -1,10 +1,11 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 """PrimAITE game - Encapsulates the simulation and agents."""
 from ipaddress import IPv4Address
 from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from primaite import getLogger
+from primaite import DEFAULT_BANDWIDTH, getLogger
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
 from primaite.game.agent.observations.observation_manager import ObservationManager
@@ -360,11 +361,6 @@ class PrimaiteGame:
                                 server_ip_address=IPv4Address(opt.get("server_ip")),
                                 server_password=opt.get("server_password"),
                                 payload=opt.get("payload", "ENCRYPT"),
-                                c2_beacon_p_of_success=float(opt.get("c2_beacon_p_of_success", "0.5")),
-                                target_scan_p_of_success=float(opt.get("target_scan_p_of_success", "0.1")),
-                                ransomware_encrypt_p_of_success=float(
-                                    opt.get("ransomware_encrypt_p_of_success", "0.1")
-                                ),
                             )
                     elif application_type == "DatabaseClient":
                         if "options" in application_cfg:
@@ -410,7 +406,7 @@ class PrimaiteGame:
         for link_cfg in links_cfg:
             node_a = net.get_node_by_hostname(link_cfg["endpoint_a_hostname"])
             node_b = net.get_node_by_hostname(link_cfg["endpoint_b_hostname"])
-            bandwidth = link_cfg.get("bandwidth", 100)  # default value if not configured
+            bandwidth = link_cfg.get("bandwidth", DEFAULT_BANDWIDTH)  # default value if not configured
 
             if isinstance(node_a, Switch):
                 endpoint_a = node_a.network_interface[link_cfg["endpoint_a_port"]]

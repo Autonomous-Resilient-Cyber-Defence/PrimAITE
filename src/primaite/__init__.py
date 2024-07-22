@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import datetime as datetime
 import logging
 import logging.config
@@ -203,3 +203,6 @@ def getLogger(name: str) -> Logger:  # noqa
     logger.setLevel(PRIMAITE_CONFIG["logging"]["log_level"])
 
     return logger
+
+
+DEFAULT_BANDWIDTH: Final[int] = 100

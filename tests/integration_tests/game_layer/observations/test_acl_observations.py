@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import pytest
 
 from primaite.game.agent.observations.acl_observation import ACLObservation

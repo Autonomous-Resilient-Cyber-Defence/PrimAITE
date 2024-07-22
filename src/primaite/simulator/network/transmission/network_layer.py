@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from enum import Enum
 
 from pydantic import BaseModel
@@ -23,6 +24,10 @@ class IPProtocol(Enum):
     """User Datagram Protocol."""
     ICMP = "icmp"
     """Internet Control Message Protocol."""
+
+    def model_dump(self) -> str:
+        """Return as JSON-serialisable string."""
+        return self.name
 
 
 class Precedence(Enum):

@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import copy
 from abc import ABC, abstractmethod
 from itertools import chain

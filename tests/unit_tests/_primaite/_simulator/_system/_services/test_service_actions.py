@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from primaite.simulator.system.services.service import ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
 

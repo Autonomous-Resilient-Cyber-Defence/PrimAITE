@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import ray
 import yaml
 from ray import air, tune
@@ -38,3 +39,4 @@ def test_rllib_multi_agent_compatibility():
         ),
         param_space=config,
     ).fit()
+    ray.shutdown()

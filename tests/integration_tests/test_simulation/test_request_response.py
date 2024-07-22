@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 # some test cases:
 # 0. test that sending a request to a valid target results in a success
 # 1. test that sending a request to a component that doesn't exist results in a failure
@@ -20,7 +21,9 @@ def test_successful_node_file_system_creation_request(example_network):
     client_1 = example_network.get_node_by_hostname("client_1")
     assert client_1.file_system.get_file(folder_name="root", file_name="test.txt") is None
 
-    response = example_network.apply_request(["node", "client_1", "file_system", "create", "file", "", "test.txt"])
+    response = example_network.apply_request(
+        ["node", "client_1", "file_system", "create", "file", "", "test.txt", "false"]
+    )
 
     assert response
     assert client_1.file_system.get_file(folder_name="root", file_name="test.txt")

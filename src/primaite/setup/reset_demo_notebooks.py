@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2023, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import filecmp
 import shutil
 from logging import Logger
@@ -45,11 +45,7 @@ def run(overwrite_existing: bool = True) -> None:
             shutil.copy2(src_fp, dst_fp)
             _LOGGER.info(f"Reset example notebook: {dst_fp}")
 
-    for src_fp in primaite_root.glob("notebooks/_package_data/*"):
-        dst_fp = example_notebooks_user_dir / "_package_data" / src_fp.name
-        if should_copy_file(src_fp, dst_fp, overwrite_existing):
-            if not Path.exists(example_notebooks_user_dir / "_package_data/"):
-                Path.mkdir(example_notebooks_user_dir / "_package_data/")
-            print(dst_fp)
-            shutil.copy2(src_fp, dst_fp)
-            _LOGGER.info(f"Copied notebook resource to: {dst_fp}")
+    src = primaite_root / "notebooks/_package_data/"
+    dst = example_notebooks_user_dir / "_package_data/"
+
+    shutil.copytree(src, dst, dirs_exist_ok=True)

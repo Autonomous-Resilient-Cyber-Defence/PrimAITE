@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import pytest
 
 from primaite.simulator.file_system.file import File
@@ -107,8 +108,9 @@ def test_create_duplicate_folder(file_system):
     file_system.create_folder(folder_name="test_folder")
 
     assert len(file_system.folders) is 2
-    with pytest.raises(Exception):
-        file_system.create_folder(folder_name="test_folder")
+    # We no longer through exceptions on making duplicate folders.
+    # with pytest.raises(Exception):
+    #    file_system.create_folder(folder_name="test_folder")
 
     assert len(file_system.folders) is 2
 

@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from primaite.config.load import data_manipulation_config_path
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
@@ -43,6 +44,8 @@ def test_basic_config():
     # client 3 should not be online
     client_3: Computer = network.get_node_by_hostname("client_3")
     assert client_3.operating_state == NodeOperatingState.OFF
+
+    # Bandwidth should have non-default values
 
     for link in network.links:
         assert network.links[link].bandwidth == 200

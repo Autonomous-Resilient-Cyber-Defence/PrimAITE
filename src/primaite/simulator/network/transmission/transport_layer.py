@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from enum import Enum
 from typing import List, Union
 
@@ -70,6 +71,10 @@ class Port(Enum):
     "Alternative port for HTTPS (HTTPS_ALT) - Used in some configurations for secure web traffic."
     POSTGRES_SERVER = 5432
     "Postgres SQL Server."
+
+    def model_dump(self) -> str:
+        """Return a json-serialisable string."""
+        return self.name
 
 
 class UDPHeader(BaseModel):

@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 """Interface for agents."""
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
@@ -106,6 +107,8 @@ class AbstractAgent(ABC):
         :type observation_space: Optional[ObservationSpace]
         :param reward_function: Reward function for the agent.
         :type reward_function: Optional[RewardFunction]
+        :param agent_settings: Configurable Options for Abstracted Agents
+        :type agent_settings: Optional[AgentSettings]
         """
         self.agent_name: str = agent_name or "unnamed_agent"
         self.action_manager: Optional[ActionManager] = action_space

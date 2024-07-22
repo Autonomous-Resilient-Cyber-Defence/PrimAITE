@@ -33,7 +33,7 @@ Currently, the PrimAITE wheel can only be installed from GitHub. This may change
 #### Windows (PowerShell)
 
 **Prerequisites:**
-* Manual install of Python >= 3.8 < 3.12
+* Manual install of Python >= 3.9 < 3.12
 
 **Install:**
 
@@ -43,7 +43,7 @@ cd ~\primaite
 python3 -m venv .venv
 attrib +h .venv /s /d # Hides the .venv directory
 .\.venv\Scripts\activate
-pip install primaite-3.0.0-py3-none-any.whl[rl]
+pip install primaite-{VERSION}-py3-none-any.whl[rl]
 primaite setup
 ```
 
@@ -66,7 +66,7 @@ mkdir ~/primaite
 cd ~/primaite
 python3 -m venv .venv
 source .venv/bin/activate
-pip install primaite-3.0.0-py3-none-any.whl[rl]
+pip install primaite-{VERSION}-py3-none-any.whl[rl]
 primaite setup
 ```
 
@@ -77,7 +77,7 @@ To make your own changes to PrimAITE, perform the install from source (developer
 
 #### 1. Clone the PrimAITE repository
 ``` unix
-git clone git@github.com:Autonomous-Resilient-Cyber-Defence/PrimAITE.git
+git clone git@github.com:{todo:fill in URL}/PrimAITE.git
 ```
 
 #### 2. CD into the repo directory

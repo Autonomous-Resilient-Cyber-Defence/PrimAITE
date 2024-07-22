@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from primaite.simulator.network.utils import convert_bytes_to_megabits, convert_megabits_to_bytes
 
 

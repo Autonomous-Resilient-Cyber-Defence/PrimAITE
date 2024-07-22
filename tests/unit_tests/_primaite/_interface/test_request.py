@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import pytest
 from pydantic import ValidationError
 
@@ -24,6 +25,10 @@ def test_creating_response_from_boolean():
     r2 = RequestResponse.from_bool(False)
     assert r2.status == "failure"
 
+
+@pytest.mark.skip("Disable validation due to performance hit.")
+def test_response_from_invalid_options():
+    """Test that we get a validation error if a non-boolean is passed."""
     with pytest.raises(ValidationError):
         r3 = RequestResponse.from_bool(1)
     with pytest.raises(ValidationError):

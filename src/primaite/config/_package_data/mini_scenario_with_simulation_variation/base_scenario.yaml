@@ -1,0 +1,86 @@
+game:
+  max_episode_length: 128
+  ports: []
+  protocols: []
+
+agents:
+  - ref: RL_Agent
+    type: ProxyAgent
+    observation_space: null
+    action_space:
+      action_list:
+        - type: DONOTHING
+        - type: NODE_SHUTDOWN
+        - type: NODE_STARTUP
+        - type: HOST_NIC_ENABLE
+        - type: HOST_NIC_DISABLE
+      action_map:
+        0:
+          action: DONOTHING
+          options: {}
+        1:
+          action: NODE_SHUTDOWN
+          options:
+            node_id: 0
+        2:
+          action: NODE_SHUTDOWN
+          options:
+            node_id: 1
+        3:
+          action: NODE_STARTUP
+          options:
+            node_id: 0
+        4:
+          action: NODE_STARTUP
+          options:
+            node_id: 1
+        5:
+          action: HOST_NIC_DISABLE
+          options:
+            node_id: 0
+            nic_id: 0
+        6:
+          action: HOST_NIC_DISABLE
+          options:
+            node_id: 1
+            nic_id: 0
+        7:
+          action: HOST_NIC_ENABLE
+          options:
+            node_id: 0
+            nic_id: 0
+        8:
+          action: HOST_NIC_ENABLE
+          options:
+            node_id: 1
+            nic_id: 0
+      options:
+        nodes:
+        - node_name: client_1
+        - node_name: server
+        max_folders_per_node: 0
+        max_files_per_folder: 0
+        max_services_per_node: 0
+        max_nics_per_node: 1
+        max_acl_rules: 0
+        ip_list:
+          - 192.168.1.2
+          - 192.168.1.3
+    reward_function:
+      reward_components: []
+
+simulation:
+  network:
+    nodes:
+      - hostname: server
+        type: server
+        ip_address: 192.168.1.2
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.1.1
+        services: *server_services
+      - hostname: client_1
+        type: computer
+        ip_address: 192.168.1.3
+        subnet_mask: 255.255.255.0
+        default_gateway: 192.168.1.1
+        applications: *client_applications

@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -137,6 +138,14 @@ class ARP(Service):
             target_ip_address
         )
         if outbound_network_interface:
+            # ensure we are not attempting to find the network address or broadcast address (not useable IPs)
+            if target_ip_address == outbound_network_interface.ip_network.network_address:
+                self.sys_log.info(f"Cannot send ARP request to a network address {str(target_ip_address)}")
+                return
+            if target_ip_address == outbound_network_interface.ip_network.broadcast_address:
+                self.sys_log.info(f"Cannot send ARP request to a broadcast address {str(target_ip_address)}")
+                return
+
             self.sys_log.info(f"Sending ARP request from NIC {outbound_network_interface} for ip {target_ip_address}")
             arp_packet = ARPPacket(
                 sender_ip_address=outbound_network_interface.ip_address,

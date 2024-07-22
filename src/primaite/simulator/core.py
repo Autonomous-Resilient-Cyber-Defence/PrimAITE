@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 # flake8: noqa
 """Core of the PrimAITE Simulator."""
 import warnings
@@ -220,8 +221,8 @@ class SimComponent(BaseModel):
         }
         return state
 
-    @validate_call
-    def apply_request(self, request: RequestFormat, context: Dict = {}) -> RequestResponse:
+    # @validate_call # this slows down execution quite a bit.
+    def apply_request(self, request: RequestFormat, context: Optional[Dict] = None) -> RequestResponse:
         """
         Apply a request to a simulation component. Request data is passed in as a 'namespaced' list of strings.
 
@@ -239,6 +240,8 @@ class SimComponent(BaseModel):
         :param: context: Dict containing context for requests
         :type context: Dict
         """
+        if not context:
+            context = None
         if self._request_manager is None:
             return
         return self._request_manager(request, context)

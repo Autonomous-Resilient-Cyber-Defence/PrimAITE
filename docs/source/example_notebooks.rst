@@ -77,6 +77,6 @@ The following extensions should now be installed
     :width: 300
     :align: center
 
-VSCode will then ask for a Python environment version to use. PrimAITE is compatible with Python versions 3.8 - 3.11
+VSCode will then ask for a Python environment version to use. PrimAITE is compatible with Python versions 3.9 - 3.11
 
 You should now be able to interact with the notebook.

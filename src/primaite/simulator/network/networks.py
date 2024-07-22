@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 
 import yaml
@@ -184,7 +185,10 @@ def arcd_uc2_network() -> Network:
     db_client_2.run()
     web_browser_2 = client_2.software_manager.software.get("WebBrowser")
     web_browser_2.target_url = "http://arcd.com/users/"
-    network.connect(endpoint_b=client_2.network_interface[1], endpoint_a=switch_2.network_interface[2])
+    network.connect(
+        endpoint_b=client_2.network_interface[1],
+        endpoint_a=switch_2.network_interface[2],
+    )
 
     # Domain Controller
     domain_controller = Server(

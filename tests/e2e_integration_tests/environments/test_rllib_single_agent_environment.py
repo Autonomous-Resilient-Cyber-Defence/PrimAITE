@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import tempfile
 from pathlib import Path
 
@@ -40,3 +41,4 @@ def test_rllib_single_agent_compatibility():
     assert save_file.exists()
 
     save_file.unlink()  # clean up
+    ray.shutdown()

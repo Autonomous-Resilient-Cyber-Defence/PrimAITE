@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import yaml
 
 from primaite.game.agent.interface import AgentHistoryItem
