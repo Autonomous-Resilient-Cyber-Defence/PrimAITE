@@ -80,7 +80,7 @@ def test_terminal_fail_when_closed(basic_network):
 
     terminal.operating_state = ServiceOperatingState.STOPPED
 
-    assert terminal.login(dest_ip_address="192.168.0.11") is False
+    assert terminal.login(ip_address="192.168.0.11") is False
 
 
 def test_terminal_disconnect(basic_network):
@@ -91,7 +91,7 @@ def test_terminal_disconnect(basic_network):
 
     assert terminal.is_connected is False
 
-    terminal.login(dest_ip_address="192.168.0.11")
+    terminal.login(ip_address="192.168.0.11")
 
     assert terminal.is_connected is True
 
@@ -108,7 +108,7 @@ def test_terminal_ignores_when_off(basic_network):
 
     computer_b: Computer = network.get_node_by_hostname("node_b")
 
-    terminal_a.login(dest_ip_address="192.168.0.11")  # login to computer_b
+    terminal_a.login(ip_address="192.168.0.11")  # login to computer_b
 
     assert terminal_a.is_connected is True
 
