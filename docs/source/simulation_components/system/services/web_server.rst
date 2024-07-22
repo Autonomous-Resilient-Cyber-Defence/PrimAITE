@@ -82,5 +82,3 @@ Configuration
 
 .. |SOFTWARE_NAME| replace:: WebServer
 .. |SOFTWARE_NAME_BACKTICK| replace:: ``WebServer``
-
-**WebServer has no configuration options**

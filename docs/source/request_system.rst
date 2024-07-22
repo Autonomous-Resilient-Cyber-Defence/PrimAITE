@@ -9,49 +9,55 @@ Request System
 
 Just like other aspects of SimComponent, the request types are not managed centrally for the whole simulation, but instead they are dynamically created and updated based on the nodes, links, and other components that currently exist in the simulation. This is achieved in the following way:
 
-- API
-    When requesting an action within the simulation, these two arguments must be provided:
+When requesting an action within the simulation, these two arguments must be provided:
 
-    1. ``request`` - selects which action you want to take on this ``SimComponent``. This is formatted as a list of strings such as ``['network', 'node', '<node-name>', 'service', '<service-name>', 'restart']``.
-    2. ``context`` - optional extra information that can be used to decide how to process the request. This is formatted as a dictionary. For example, if the request requires authentication, the context can include information about the user that initiated the request to decide if their permissions are sufficient.
+1. ``request`` - selects which action you want to take on this ``SimComponent``. This is formatted as a list of strings such as ``['network', 'node', '<node-name>', 'service', '<service-name>', 'restart']``.
+2. ``context`` - optional extra information that can be used to decide how to process the request. This is formatted as a dictionary. For example, if the request requires authentication, the context can include information about the user that initiated the request to decide if their permissions are sufficient.
 
-    When a request is resolved, it returns a success status, and optional additional data about the request.
+When a request is resolved, it returns a success status, and optional additional data about the request.
 
-    ``status`` can be one of:
+``status`` can be one of:
 
-    * ``success``: the request was executed
-    * ``failure``: the request could not be executed
-    * ``unreachable``: the target for the request was not found
-    * ``pending``: the request was initiated, but has not finished during this step
+* ``success``: the request was executed
+* ``failure``: the request could not be executed
+* ``unreachable``: the target for the request was not found
+* ``pending``: the request was initiated, but has not finished during this step
 
-    ``data`` can be a dictionary with any arbitrary JSON-like data to describe the outcome of the request.
+``data`` can be a dictionary with any arbitrary JSON-like data to describe the outcome of the request.
 
-- ``request`` detail
-    The request is a list of strings which help specify who should handle the request. The strings in the request list help RequestManagers traverse the 'ownership tree' of SimComponent. The example given above would be handled in the following way:
+Requests:
+"""""""""
 
-    1. ``Simulation`` receives ``['network', 'node', 'computer_1', 'service', 'DNSService', 'restart']``.
-        The first element of the request is ``network``, therefore it passes the request down to its network.
-    2. ``Network`` receives ``['node', 'computer_1', 'service', 'DNSService', 'restart']``.
-        The first element of the request is ``node``, therefore the network looks at the node name and passes the request down to the node with that name.
-    3. ``computer_1`` receives ``['service', 'DNSService', 'restart']``.
-        The first element of the request is ``service``, therefore the node looks at the service name and passes the rest of the request to the service with that name.
-    4. ``DNSService`` receives ``['restart']``.
-        Since ``restart`` is a defined request type in the service's own RequestManager, the service performs a restart.
+Request Syntax
+---------------
 
-- ``context`` detail
+The request is a list of strings which help specify who should handle the request. The strings in the request list help RequestManagers traverse the 'ownership tree' of SimComponent. The example given above would be handled in the following way:
+
+1. ``Simulation`` receives ``['network', 'node', 'computer_1', 'service', 'DNSService', 'restart']``.
+    The first element of the request is ``network``, therefore it passes the request down to its network.
+2. ``Network`` receives ``['node', 'computer_1', 'service', 'DNSService', 'restart']``.
+    The first element of the request is ``node``, therefore the network looks at the node name and passes the request down to the node with that name.
+3. ``computer_1`` receives ``['service', 'DNSService', 'restart']``.
+    The first element of the request is ``service``, therefore the node looks at the service name and passes the rest of the request to the service with that name.
+4. ``DNSService`` receives ``['restart']``.
+    Since ``restart`` is a defined request type in the service's own RequestManager, the service performs a restart.
+
+- ``context``
     The context is not used by any of the currently implemented components or requests.
 
-- Request response
-    When the simulator receives a request, it returns a response with a success status. The possible statuses are:
+Request responses
+-----------------
 
-    * **success**: The request was received and successfully executed.
-        * For example, the agent tries to add an ACL rule and specifies correct parameters, and the ACL rule is added successfully.
+When the simulator receives a request, it returns a response with a success status. The possible statuses are:
 
-    * **failure**: The request was received, but it could not be executed, or it failed while executing.
-        * For example, the agent tries to execute the ``WebBrowser`` application, but the webpage wasn't retrieved because the DNS server is not setup on the node.
+* **success**: The request was received and successfully executed.
+    * For example, the agent tries to add an ACL rule and specifies correct parameters, and the ACL rule is added successfully.
 
-    * **unreachable**: The request was sent to a simulation component that does not exist.
-        * For example, the agent tries to scan a file that has not been created yet.
+* **failure**: The request was received, but it could not be executed, or it failed while executing.
+    * For example, the agent tries to execute the ``WebBrowser`` application, but the webpage wasn't retrieved because the DNS server is not setup on the node.
+
+* **unreachable**: The request was sent to a simulation component that does not exist.
+    * For example, the agent tries to scan a file that has not been created yet.
 
 For more information, please refer to the ``Requests-and-Responses.ipynb`` jupyter notebook
 

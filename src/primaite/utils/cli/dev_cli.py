@@ -76,7 +76,7 @@ def config_callback(
         LogLevel,
         typer.Option(
             "--sys-log-level",
-            "-level",
+            "-slevel",
             click_type=click.Choice(LogLevel._member_names_, case_sensitive=False),
             help="The level of system logs to output.",
             show_default=False,
@@ -86,7 +86,7 @@ def config_callback(
         LogLevel,
         typer.Option(
             "--agent-log-level",
-            "-level",
+            "-alevel",
             click_type=click.Choice(LogLevel._member_names_, case_sensitive=False),
             help="The level of agent behaviour logs to output.",
             show_default=False,
