@@ -5,9 +5,16 @@
 .. _Terminal:
 
 Terminal
-########
+========
 
-The ``Terminal`` provides a generic terminal simulation, by extending the base Service class
+The ``Terminal.py`` class provides a generic terminal simulation, by extending the base Service class within PrimAITE. The aim of this is to act as the primary entrypoint for Nodes within the environment.
+
+
+Overview
+--------
+
+The Terminal service uses Secure Socket (SSH) as the communication method between terminals. They operate on port 22, and are part of the services automatically
+installed on Nodes when they are instantiated.
 
 Key capabilities
 ================
@@ -17,21 +24,22 @@ Key capabilities
  - Simulates common Terminal commands
  - Leverages the Service base class for install/uninstall, status tracking etc.
 
-
 Usage
 =====
 
- - Install on a node via the ``SoftwareManager`` to start the Terminal
- - Terminal Clients connect, execute commands and disconnect.
+ - Pre-Installs on any `HostNode` component. See the below code example of how to access the terminal.
+ - Terminal Clients connect, execute commands and disconnect from remote components.
+ - Ensures that users are logged in to the component before executing any commands.
  - Service runs on SSH port 22 by default.
 
 Implementation
 ==============
 
-- Manages SSH commands
-- Ensures User login before sending commands
-- Processes SSH commands
-- Returns results in a  *<TBD>* format.
+The terminal takes inspiration from the `Database Client` and `Database Service` classes, and leverages the `UserSessionManager`
+to provide User Credential authentication when receiving/processing commands.
+
+Terminal acts as the interface between the user/component and both the Session and Requests Managers, facilitating
+the passing of requests to both.
 
 
 Python
