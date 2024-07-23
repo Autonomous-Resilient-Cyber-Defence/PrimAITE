@@ -67,7 +67,7 @@ def test_dev_mode_config_sys_log_level():
     # check defaults
     assert PRIMAITE_CONFIG["developer_mode"]["sys_log_level"] == "DEBUG"  # DEBUG by default
 
-    result = cli(["dev-mode", "config", "--sys-log-level", "WARNING"])
+    result = cli(["dev-mode", "config", "-slevel", "WARNING"])
 
     assert "sys_log_level=WARNING" in result.output  # should print correct value
 
@@ -87,7 +87,7 @@ def test_dev_mode_config_agent_log_level():
     # check defaults
     assert PRIMAITE_CONFIG["developer_mode"]["agent_log_level"] == "DEBUG"  # DEBUG by default
 
-    result = cli(["dev-mode", "config", "-level", "WARNING"])
+    result = cli(["dev-mode", "config", "-alevel", "WARNING"])
 
     assert "agent_log_level=WARNING" in result.output  # should print correct value
 

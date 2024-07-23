@@ -7,7 +7,10 @@
 DoSBot
 ######
 
-The ``DoSBot`` is an implementation of a Denial of Service attack within the PrimAITE simulation. This specifically simulates a `Slow Loris attack <https://en.wikipedia.org/wiki/Slowloris_(computer_security)>`.
+The ``DoSBot`` is an implementation of a Denial of Service attack within the PrimAITE simulation.
+This specifically simulates a `Slow Loris attack`_.
+
+.. _Slow Loris Attack: https://en.wikipedia.org/wiki/Slowloris_(computer_security)
 
 Key features
 ============

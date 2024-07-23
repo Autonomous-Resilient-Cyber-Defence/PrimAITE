@@ -82,5 +82,3 @@ Configuration
 
 .. |SOFTWARE_NAME| replace:: NTPServer
 .. |SOFTWARE_NAME_BACKTICK| replace:: ``NTPServer``
-
-**NTPServer has no configuration options**
