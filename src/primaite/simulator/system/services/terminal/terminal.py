@@ -101,9 +101,9 @@ class Terminal(Service):
 
         rm = super()._init_request_manager()
         rm.add_request(
-            "login",
+            "send",
             request_type=RequestType(
-                func=lambda request, context: RequestResponse.from_bool(self._validate_login()), validator=_login_valid
+                func=lambda request, context: RequestResponse.from_bool(self.send()), validator=_login_valid
             ),
         )
         return rm
@@ -124,7 +124,7 @@ class Terminal(Service):
         """Save a reference to the Terminal instance."""
 
         def __call__(self, request: RequestFormat, context: Dict) -> bool:
-            """Return whether the Terminal has valid login credentials."""
+            """Return whether the Terminal is connected."""
             return self.terminal.is_connected
 
         @property
