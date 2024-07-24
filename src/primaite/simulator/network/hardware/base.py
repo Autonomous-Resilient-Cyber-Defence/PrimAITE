@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Optional, TypeVar, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validate_call
 
 import primaite.simulator.network.nmne
 from primaite import getLogger
@@ -989,6 +989,12 @@ class RemoteUserSession(UserSession):
     remote_ip_address: IPV4Address
     local: bool = False
 
+    @classmethod
+    def create(cls, user: User, timestep: int, remote_ip_address: IPV4Address) -> RemoteUserSession:  # noqa
+        return RemoteUserSession(
+            user=user, start_step=timestep, last_active_step=timestep, remote_ip_address=remote_ip_address
+        )
+
     def describe_state(self) -> Dict:
         state = super().describe_state()
         state["remote_ip_address"] = str(self.remote_ip_address)
@@ -1066,7 +1072,9 @@ class UserSessionManager(Service):
         print(table.get_string(sortby="Step Last Active", reversesort=True))
 
     def describe_state(self) -> Dict:
-        return super().describe_state()
+        state = super().describe_state()
+        state["active_remote_logins"] = len(self.remote_sessions)
+        return state
 
     @property
     def _user_manager(self) -> UserManager:
@@ -1092,27 +1100,78 @@ class UserSessionManager(Service):
 
         self.sys_log.info(f"{self.name}: {session_type} {session_identity} session timeout due to inactivity")
 
-    def login(self, username: str, password: str) -> Optional[str]:
+    @property
+    def remote_session_limit_reached(self) -> bool:
+        return len(self.remote_sessions) >= self.max_remote_sessions
+
+    def validate_remote_session_uuid(self, remote_session_id: str) -> bool:
+        return remote_session_id in self.remote_sessions
+
+    def _login(
+            self, username: str, password: str, local: bool = True, remote_ip_address: Optional[IPv4Address] = None
+    ) -> Optional[str]:
         if not self._can_perform_action():
             return None
-        user = self._user_manager.authenticate_user(username=username, password=password)
-        if user:
-            self.logout()
-            self.local_session = UserSession.create(user=user, timestep=self.current_timestep)
-            self.sys_log.info(f"{self.name}: User {user.username} logged in")
-            return self.local_session.uuid
-        else:
-            self.sys_log.info(f"{self.name}: Incorrect username or password")
 
-    def logout(self):
+        user = self._user_manager.authenticate_user(username=username, password=password)
+
+        if not user:
+            self.sys_log.info(f"{self.name}: Incorrect username or password")
+            return None
+
+        session_id = None
+        if local:
+            create_new_session = True
+            if self.local_session:
+                if self.local_session.user != user:
+                    # logout the current user
+                    self.local_logout()
+                else:
+                    # not required as existing logged-in user attempting to re-login
+                    create_new_session = False
+
+            if create_new_session:
+                self.local_session = UserSession.create(user=user, timestep=self.current_timestep)
+
+            session_id = self.local_session.uuid
+        else:
+            if not self.remote_session_limit_reached:
+                remote_session = RemoteUserSession.create(
+                    user=user, timestep=self.current_timestep, remote_ip_address=remote_ip_address
+                )
+                session_id = remote_session.uuid
+                self.remote_sessions[session_id] = remote_session
+        self.sys_log.info(f"{self.name}: User {user.username} logged in")
+        return session_id
+
+    def local_login(self, username: str, password: str) -> Optional[str]:
+        return self._login(username=username, password=password, local=True)
+
+    @validate_call()
+    def remote_login(self, username: str, password: str, remote_ip_address: IPV4Address) -> Optional[str]:
+        return self._login(username=username, password=password, local=False, remote_ip_address=remote_ip_address)
+
+    def _logout(self, local: bool = True, remote_session_id: Optional[str] = None):
         if not self._can_perform_action():
             return False
-        if self.local_session:
+        session = None
+        if local and self.local_session:
             session = self.local_session
             session.end_step = self.current_timestep
-            self.historic_sessions.append(session)
             self.local_session = None
+
+        if not local and remote_session_id:
+            session = self.remote_sessions.pop(remote_session_id)
+        if session:
+            self.historic_sessions.append(session)
             self.sys_log.info(f"{self.name}: User {session.user.username} logged out")
+        return
+
+    def local_logout(self):
+        self._logout(local=True)
+
+    def remote_logout(self, remote_session_id: str):
+        self._logout(local=False, remote_session_id=remote_session_id)
 
     @property
     def local_user_logged_in(self):
@@ -1225,8 +1284,8 @@ class Node(SimComponent):
     def user_session_manager(self) -> UserSessionManager:
         return self.software_manager.software["UserSessionManager"]  # noqa
 
-    def login(self, username: str, password: str) -> Optional[str]:
-        return self.user_session_manager.login(username, password)
+    def local_login(self, username: str, password: str) -> Optional[str]:
+        return self.user_session_manager.local_login(username, password)
 
     def logout(self):
         return self.user_session_manager.logout()
@@ -1765,14 +1824,10 @@ class Node(SimComponent):
         :param pings: The number of pings to attempt, default is 4.
         :return: True if the ping is successful, otherwise False.
         """
-        if not self.user_session_manager.local_user_logged_in:
-            return False
         if not isinstance(target_ip_address, IPv4Address):
             target_ip_address = IPv4Address(target_ip_address)
         if self.software_manager.icmp:
-            print("yes")
             return self.software_manager.icmp.ping(target_ip_address, pings)
-        print("no icmp")
         return False
 
     @abstractmethod
