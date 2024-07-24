@@ -23,7 +23,7 @@ Usage
 =====
 
 - Install on a Node via the ``SoftwareManager`` to start the ``WebBrowser``.
-- Service runs on HTTP port 80 by default. (TODO: HTTPS)
+- Service runs on HTTP port 80 by default.
 - Execute sending an HTTP GET request with ``get_webpage``
 
 Implementation

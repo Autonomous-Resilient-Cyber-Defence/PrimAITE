@@ -243,25 +243,25 @@ agents:
             action: "NODE_FILE_SCAN"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
                 file_id: 0
           10:
             action: "NODE_FILE_CHECKHASH"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
                 file_id: 0
           11:
             action: "NODE_FILE_DELETE"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
                 file_id: 0
           12:
             action: "NODE_FILE_REPAIR"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
                 file_id: 0
           13:
             action: "NODE_SERVICE_FIX"
@@ -272,22 +272,22 @@ agents:
             action: "NODE_FOLDER_SCAN"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
           15:
             action: "NODE_FOLDER_CHECKHASH"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
           16:
             action: "NODE_FOLDER_REPAIR"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
           17:
             action: "NODE_FOLDER_RESTORE"
             options:
                 node_id: 2
-                folder_id: 1
+                folder_id: 0
           18:
             action: "NODE_OS_SCAN"
             options:
@@ -518,11 +518,22 @@ agents:
         nodes:
         - node_name: domain_controller
         - node_name: web_server
+          applications:
+          - application_name: DatabaseClient
+          services:
+          - service_name: WebServer
         - node_name: database_server
+          folders:
+          - folder_name: database
+            files:
+            - file_name: database.db
+          services:
+          - service_name: DatabaseService
         - node_name: backup_server
         - node_name: security_suite
         - node_name: client_1
         - node_name: client_2
+
         max_folders_per_node: 2
         max_files_per_folder: 2
         max_services_per_node: 2
@@ -557,6 +568,7 @@ agents:
 
     agent_settings:
       flatten_obs: true
+      action_masking: true
 
 
 
@@ -634,6 +646,8 @@ simulation:
       dns_server: 192.168.1.10
       services:
       - type: DatabaseService
+        options:
+          backup_server_ip: 192.168.1.16
 
     - type: server
       hostname: backup_server

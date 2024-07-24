@@ -99,7 +99,7 @@ class TestConfigureDatabaseAction:
         game.step()
 
         assert db_client.server_ip_address == old_ip
-        assert db_client.server_password is "admin123"
+        assert db_client.server_password == "admin123"
 
 
 class TestConfigureRansomwareScriptAction:

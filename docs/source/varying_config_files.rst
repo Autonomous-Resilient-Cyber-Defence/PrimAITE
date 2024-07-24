@@ -3,7 +3,7 @@
     © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
 Defining variations in the config files
-================
+=======================================
 
 PrimAITE supports the ability to use different variations on a scenario at different episodes. This can be used to increase domain randomisation to prevent overfitting, or to set up curriculum learning to train agents to perform more complicated tasks.
 
@@ -15,7 +15,7 @@ Base scenario
 
 The base scenario is essentially the same as a fixed YAML configuration, but it can contain placeholders that are populated with episode-specific data at runtime. The base scenario contains any network, agent, or settings that remain fixed for the entire training/evaluation session.
 
-The placeholders are defined as YAML Aliases and they are denoted by an asterisk (*placeholder).
+The placeholders are defined as YAML Aliases and they are denoted by an asterisk (* *placeholder*)
 
 Variations
 **********
@@ -46,4 +46,4 @@ It takes the following format:
 
 For more information please refer to the ``Using Episode Schedules`` notebook in either :ref:`Executed Notebooks` or run the notebook interactively in ``notebooks/example_notebooks/``.
 
-For further information around notebooks in general refer to the :ref:`Example Jupyter Notebooks`.
+For further information around notebooks in general refer to the :ref:`example_notebooks` page.

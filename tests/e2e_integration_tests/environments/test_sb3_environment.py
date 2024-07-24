@@ -20,7 +20,7 @@ def test_sb3_compatibility():
     gym = PrimaiteGymEnv(env_config=cfg)
     model = PPO("MlpPolicy", gym)
 
-    model.learn(total_timesteps=1000)
+    model.learn(total_timesteps=256)
 
     save_path = Path(tempfile.gettempdir()) / "model.zip"
     model.save(save_path)

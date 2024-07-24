@@ -1,6 +1,6 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 from pydantic import validate_call
 
@@ -153,7 +153,7 @@ class WirelessRouter(Router):
         self,
         ip_address: IPV4Address,
         subnet_mask: IPV4Address,
-        frequency: AirSpaceFrequency = AirSpaceFrequency.WIFI_2_4,
+        frequency: Optional[AirSpaceFrequency] = AirSpaceFrequency.WIFI_2_4,
     ):
         """
         Configures a wireless access point (WAP).
@@ -170,13 +170,20 @@ class WirelessRouter(Router):
             enum. This determines the frequency band (e.g., 2.4 GHz or 5 GHz) the access point will use for wireless
             communication. Default is AirSpaceFrequency.WIFI_2_4.
         """
+        if not frequency:
+            frequency = AirSpaceFrequency.WIFI_2_4
+        self.sys_log.info("Configuring wireless access point")
+
         self.wireless_access_point.disable()  # Temporarily disable the WAP for reconfiguration
+
         network_interface = self.network_interface[1]
+
         network_interface.ip_address = ip_address
         network_interface.subnet_mask = subnet_mask
-        self.sys_log.info(f"Configured WAP {network_interface}")
+
         self.wireless_access_point.frequency = frequency  # Set operating frequency
         self.wireless_access_point.enable()  # Re-enable the WAP with new settings
+        self.sys_log.info(f"Configured WAP {network_interface}")
 
     @property
     def router_interface(self) -> RouterInterface:

@@ -18,8 +18,11 @@ This section configures how PrimAITE saves data during simulation and training.
         save_step_metadata: False
         save_pcap_logs: False
         save_sys_logs: False
+        save_agent_logs: False
         write_sys_log_to_terminal: False
+        write_agent_log_to_terminal: False
         sys_log_level: WARNING
+        agent_log_level: INFO
 
 
 ``save_logs``
@@ -57,6 +60,12 @@ Optional. Default value is ``False``.
 
 If ``True``, then the log files which contain all node actions during the simulation will be saved.
 
+``save_agent_logs``
+-----------------
+
+Optional. Default value is ``False``.
+
+If ``True``, then the log files which contain all human readable agent behaviour during the simulation will be saved.
 
 ``write_sys_log_to_terminal``
 -----------------------------
@@ -65,15 +74,24 @@ Optional. Default value is ``False``.
 
 If ``True``, PrimAITE will print sys log to the terminal.
 
+``write_agent_log_to_terminal``
+-----------------------------
 
-``sys_log_level``
--------------
+Optional. Default value is ``False``.
+
+If ``True``, PrimAITE will print all human readable agent behaviour logs to the terminal.
+
+
+``sys_log_level & agent_log_level``
+---------------------------------
 
 Optional. Default value is ``WARNING``.
 
-The level of logging that should be visible in the sys logs or the logs output to the terminal.
+The level of logging that should be visible in the syslog, agent logs or the logs output to the terminal.
 
 ``save_sys_logs`` or ``write_sys_log_to_terminal`` has to be set to ``True`` for this setting to be used.
+
+This is also true for agent behaviour logging.
 
 Available options are:
 

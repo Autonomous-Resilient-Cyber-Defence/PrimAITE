@@ -76,9 +76,19 @@ def config_callback(
         LogLevel,
         typer.Option(
             "--sys-log-level",
-            "-level",
+            "-slevel",
             click_type=click.Choice(LogLevel._member_names_, case_sensitive=False),
             help="The level of system logs to output.",
+            show_default=False,
+        ),
+    ] = None,
+    agent_log_level: Annotated[
+        LogLevel,
+        typer.Option(
+            "--agent-log-level",
+            "-alevel",
+            click_type=click.Choice(LogLevel._member_names_, case_sensitive=False),
+            help="The level of agent behaviour logs to output.",
             show_default=False,
         ),
     ] = None,
@@ -86,6 +96,15 @@ def config_callback(
         bool,
         typer.Option(
             "--output-sys-logs/--no-sys-logs", "-sys/-nsys", help="Output system logs to file.", show_default=False
+        ),
+    ] = None,
+    output_agent_logs: Annotated[
+        bool,
+        typer.Option(
+            "--output-agent-logs/--no-agent-logs",
+            "-agent/-nagent",
+            help="Output agent logs to file.",
+            show_default=False,
         ),
     ] = None,
     output_pcap_logs: Annotated[
@@ -109,9 +128,17 @@ def config_callback(
         PRIMAITE_CONFIG["developer_mode"]["sys_log_level"] = ctx.params.get("sys_log_level")
         print(f"PrimAITE dev-mode config updated sys_log_level={ctx.params.get('sys_log_level')}")
 
+    if ctx.params.get("agent_log_level") is not None:
+        PRIMAITE_CONFIG["developer_mode"]["agent_log_level"] = ctx.params.get("agent_log_level")
+        print(f"PrimAITE dev-mode config updated agent_log_level={ctx.params.get('agent_log_level')}")
+
     if output_sys_logs is not None:
         PRIMAITE_CONFIG["developer_mode"]["output_sys_logs"] = output_sys_logs
         print(f"PrimAITE dev-mode config updated {output_sys_logs=}")
+
+    if output_agent_logs is not None:
+        PRIMAITE_CONFIG["developer_mode"]["output_agent_logs"] = output_agent_logs
+        print(f"PrimAITE dev-mode config updated {output_agent_logs=}")
 
     if output_pcap_logs is not None:
         PRIMAITE_CONFIG["developer_mode"]["output_pcap_logs"] = output_pcap_logs

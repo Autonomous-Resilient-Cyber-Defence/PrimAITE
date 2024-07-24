@@ -2,8 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+### Added
+
+-   **show_bandwidth_load Function**: Displays current bandwidth load for each frequency in the airspace.
+-   **Bandwidth Tracking**: Tracks data transmission across each frequency.
+-   **New Tests**: Added to validate the respect of bandwidth capacities and the correct parsing of airspace configurations from YAML files.
+-   **New Logging**: Added a new agent behaviour log which are more human friendly than agent history. These Logs are found in session log directory and can be enabled in the I/O settings in a yaml configuration file.
+
+### Changed
+
+-   **NetworkInterface Speed Type**: The `speed` attribute of `NetworkInterface` has been changed from `int` to `float`.
+-   **Transmission Feasibility Check**: Updated `_can_transmit` function in `Link` to account for current load and total bandwidth capacity, ensuring transmissions do not exceed limits.
+-   **Frame Size Details**: Frame `size` attribute now includes both core size and payload size in bytes.
+-   **Transmission Blocking**: Enhanced `AirSpace` logic to block transmissions that would exceed the available capacity.
+
+### Fixed
+
+-   **Transmission Permission Logic**: Corrected the logic in `can_transmit_frame` to accurately prevent overloads by checking if the transmission of a frame stays within allowable bandwidth limits after considering current load.
+
+
+[//]: # (This file needs tidying up between 2.0.0 and this line as it hasn't been segmented into 3.0.0 and 3.1.0 and isn't compliant with https://keepachangelog.com/en/1.1.0/)
 
 ## 3.0.0b9
 - Removed deprecated `PrimaiteSession` class.
@@ -25,8 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Activating dev-mode will change the location where the sessions will be output - by default will output where the PrimAITE repository is located
 - Refactored all air-space usage to that a new instance of AirSpace is created for each instance of Network. This 1:1 relationship between network and airspace will allow parallelization.
 - Added notebook to demonstrate use of SubprocVecEnv from SB3 to vectorise environments to speed up training.
-
-
 
 ## [Unreleased]
 - Made requests fail to reach their target if the node is off

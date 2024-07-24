@@ -85,4 +85,5 @@ class ProbabilisticAgent(AbstractScriptedAgent):
         :rtype: Tuple[str, Dict]
         """
         choice = self.rng.choice(len(self.action_manager.action_map), p=self.probabilities)
+        self.logger.info(f"Performing Action: {choice}")
         return self.action_manager.get_action(choice)

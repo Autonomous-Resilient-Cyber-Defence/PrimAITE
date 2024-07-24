@@ -9,6 +9,9 @@ io_settings:
   save_pcap_logs: true
   save_sys_logs: true
   sys_log_level: WARNING
+  agent_log_level: INFO
+  save_agent_logs: true
+  write_agent_log_to_terminal: True
 
 
 game:

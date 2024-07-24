@@ -58,12 +58,16 @@ class SwitchPort(WiredNetworkInterface):
         :param frame: The network frame to be sent.
         :return: A boolean indicating whether the frame was successfully sent.
         """
-        if self.enabled:
-            self.pcap.capture_outbound(frame)
-            self._connected_link.transmit_frame(sender_nic=self, frame=frame)
-            return True
-        # Cannot send Frame as the SwitchPort is not enabled
-        return False
+        if not self.enabled:
+            return False
+        if not self._connected_link.can_transmit_frame(frame):
+            # Drop frame for now. Queuing will happen here (probably) if it's done in the future.
+            self._connected_node.sys_log.info(f"{self}: Frame dropped as Link is at capacity")
+            return False
+
+        self.pcap.capture_outbound(frame)
+        self._connected_link.transmit_frame(sender_nic=self, frame=frame)
+        return True
 
     def receive_frame(self, frame: Frame) -> bool:
         """
