@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from ipaddress import IPv4Address
 from typing import Dict, List, Optional
+from uuid import uuid4
 
 from pydantic import BaseModel
 
@@ -21,7 +22,6 @@ from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 
 
-# TODO: This might not be needed now?
 class TerminalClientConnection(BaseModel):
     """
     TerminalClientConnection Class.
@@ -69,7 +69,7 @@ class Terminal(Service):
     operating_state: ServiceOperatingState = ServiceOperatingState.RUNNING
     """Initial Operating State"""
 
-    remote_connection: TerminalClientConnection = None
+    remote_connection: Dict[str, TerminalClientConnection] = {}
 
     def __init__(self, **kwargs):
         kwargs["name"] = "Terminal"
@@ -110,7 +110,8 @@ class Terminal(Service):
 
     def _validate_login(self) -> bool:
         """Validate login credentials are valid."""
-        return self.parent.UserSessionManager.validate_remote_session_uuid(self.connection_uuid)
+        # return self.parent.UserSessionManager.validate_remote_session_uuid(self.connection_uuid)
+        return True
 
     class _LoginValidator(RequestPermissionValidator):
         """
@@ -153,7 +154,8 @@ class Terminal(Service):
 
     def _process_local_login(self, username: str, password: str) -> bool:
         """Local session login to terminal."""
-        self.connection_uuid = self.parent.UserSessionManager.login(username=username, password=password)
+        # self.connection_uuid = self.parent.UserSessionManager.login(username=username, password=password)
+        self.connection_uuid = str(uuid4())
         if self.connection_uuid:
             self.sys_log.info(f"Login request authorised, connection uuid: {self.connection_uuid}")
             return True
@@ -182,10 +184,11 @@ class Terminal(Service):
         """Processes a remote terminal requesting to login to this terminal."""
         username: str = payload.user_account.username
         password: str = payload.user_account.password
-        self.connection_uuid = self.parent.UserSessionManager.remote_login(username=username, password=password)
         self.sys_log.info(f"Sending UserAuth request to UserSessionManager, username={username}, password={password}")
+        # connection_uuid = self.parent.UserSessionManager.remote_login(username=username, password=password)
+        connection_uuid = str(uuid4())
 
-        if self.connection_uuid:
+        if connection_uuid:
             # Send uuid to remote
             self.sys_log.info(
                 f"Remote login authorised, connection ID {self.connection_uuid} for "
@@ -196,11 +199,18 @@ class Terminal(Service):
             return_payload = SSHPacket(
                 transport_message=transport_message,
                 connection_message=connection_message,
-                connection_uuid=self.connection_uuid,
+                connection_uuid=connection_uuid,
                 sender_ip_address=self.parent.network_interface[1].ip_address,
                 target_ip_address=payload.sender_ip_address,
             )
             self.send(payload=return_payload, dest_ip_address=return_payload.target_ip_address)
+
+            self.remote_connection[connection_uuid] = TerminalClientConnection(
+                parent_node=self.software_manager.node,
+                _dest_ip_address=payload.sender_ip_address,
+                connection_uuid=connection_uuid,
+            )
+
             return True
         else:
             # UserSessionManager has returned None
