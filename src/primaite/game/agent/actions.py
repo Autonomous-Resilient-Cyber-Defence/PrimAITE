@@ -1071,6 +1071,39 @@ class NodeNetworkServiceReconAction(AbstractAction):
         ]
 
 
+class NodeAccountsChangePasswordAction(AbstractAction):
+    """Action which changes the password for a user."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        pass
+
+
+class NodeSessionsRemoteLoginAction(AbstractAction):
+    """Action which performs a remote session login."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        pass
+
+    def form_request(self, node_id: str) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        return ["network", "node", node_id, "remote_logon"]
+
+
+class NodeSessionsRemoteLogoutAction(AbstractAction):
+    """Action which performs a remote session logout."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        pass
+
+    def form_request(self, node_id: str) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        return ["network", "node", node_id, "remote_logoff"]
+
+
 class ActionManager:
     """Class which manages the action space for an agent."""
 
@@ -1122,6 +1155,9 @@ class ActionManager:
         "CONFIGURE_DATABASE_CLIENT": ConfigureDatabaseClientAction,
         "CONFIGURE_RANSOMWARE_SCRIPT": ConfigureRansomwareScriptAction,
         "CONFIGURE_DOSBOT": ConfigureDoSBotAction,
+        "NODE_ACCOUNTS_CHANGEPASSWORD": NodeAccountsChangePasswordAction,
+        "NODE_SESSIONS_REMOTE_LOGIN": NodeSessionsRemoteLoginAction,
+        "NODE_SESSIONS_REMOTE_LOGOUT": NodeSessionsRemoteLogoutAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 
