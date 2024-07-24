@@ -1,7 +1,8 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
 from enum import IntEnum
-from typing import Dict, Optional
+from ipaddress import IPv4Address
+from typing import Optional
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.network.protocols.packet import DataPacket
@@ -57,15 +58,36 @@ class SSHConnectionMessage(IntEnum):
     """Closes the channel."""
 
 
+class SSHUserCredentials(DataPacket):
+    """Hold Username and Password in SSH Packets."""
+
+    username: str
+    """Username for login"""
+
+    password: str
+    """Password for login"""
+
+
 class SSHPacket(DataPacket):
     """Represents an SSHPacket."""
 
-    transport_message: SSHTransportMessage = None
+    sender_ip_address: IPv4Address
+    """Sender IP Address"""
 
-    connection_message: SSHConnectionMessage = None
+    target_ip_address: IPv4Address
+    """Target IP Address"""
 
-    ssh_command: Optional[str] = None  # This is the request string
+    transport_message: SSHTransportMessage
+    """Message Transport Type"""
+
+    connection_message: SSHConnectionMessage
+    """Message Connection Status"""
+
+    user_account: Optional[SSHUserCredentials] = None
+    """User Account Credentials if passed"""
+
+    connection_uuid: Optional[str] = None  # The connection uuid used to validate the session
 
     ssh_output: Optional[RequestResponse] = None  # The Request Manager's returned RequestResponse
 
-    user_account: Optional[Dict] = None  # The user account we will use to login if we do not have a current connection.
+    ssh_command: Optional[str] = None  # This is the request string

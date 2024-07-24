@@ -62,14 +62,17 @@ def test_terminal_send(basic_network):
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
     terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    computer_b: Computer = network.get_node_by_hostname("node_b")
 
     payload: SSHPacket = SSHPacket(
         payload="Test_Payload",
         transport_message=SSHTransportMessage.SSH_MSG_SERVICE_REQUEST,
         connection_message=SSHConnectionMessage.SSH_MSG_CHANNEL_OPEN,
+        sender_ip_address=computer_a.network_interface[1].ip_address,
+        target_ip_address=computer_b.network_interface[1].ip_address,
     )
 
-    assert terminal_a.send(payload=payload, dest_ip_address="192.168.0.11")
+    assert terminal_a.send(payload=payload, dest_ip_address=computer_b.network_interface[1].ip_address)
 
 
 def test_terminal_fail_when_closed(basic_network):
@@ -77,27 +80,33 @@ def test_terminal_fail_when_closed(basic_network):
     network: Network = basic_network
     computer: Computer = network.get_node_by_hostname("node_a")
     terminal: Terminal = computer.software_manager.software.get("Terminal")
+    computer_b: Computer = network.get_node_by_hostname("node_b")
 
     terminal.operating_state = ServiceOperatingState.STOPPED
 
-    assert terminal.login(dest_ip_address="192.168.0.11") is False
+    assert (
+        terminal.login(username="admin", password="Admin123!", ip_address=computer_b.network_interface[1].ip_address)
+        is False
+    )
 
 
 def test_terminal_disconnect(basic_network):
     """Terminal should set is_connected to false on disconnect"""
     network: Network = basic_network
-    computer: Computer = network.get_node_by_hostname("node_a")
-    terminal: Terminal = computer.software_manager.software.get("Terminal")
+    computer_a: Computer = network.get_node_by_hostname("node_a")
+    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    computer_b: Computer = network.get_node_by_hostname("node_b")
+    terminal_b: Terminal = computer_b.software_manager.software.get("Terminal")
 
-    assert terminal.is_connected is False
+    assert terminal_a.is_connected is False
 
-    terminal.login(dest_ip_address="192.168.0.11")
+    terminal_a.login(username="admin", password="Admin123!", ip_address=computer_b.network_interface[1].ip_address)
 
-    assert terminal.is_connected is True
+    assert terminal_a.is_connected is True
 
-    terminal.disconnect(dest_ip_address="192.168.0.11")
+    terminal_a.disconnect(dest_ip_address=computer_b.network_interface[1].ip_address)
 
-    assert terminal.is_connected is False
+    assert terminal_a.is_connected is False
 
 
 def test_terminal_ignores_when_off(basic_network):
@@ -108,7 +117,7 @@ def test_terminal_ignores_when_off(basic_network):
 
     computer_b: Computer = network.get_node_by_hostname("node_b")
 
-    terminal_a.login(dest_ip_address="192.168.0.11")  # login to computer_b
+    terminal_a.login(ip_address="192.168.0.11")  # login to computer_b
 
     assert terminal_a.is_connected is True
 
