@@ -71,9 +71,6 @@ class Terminal(Service):
 
     remote_connection: TerminalClientConnection = None
 
-    parent: Node
-    """Parent component the terminal service is installed on."""
-
     def __init__(self, **kwargs):
         kwargs["name"] = "Terminal"
         kwargs["port"] = Port.SSH
@@ -196,14 +193,14 @@ class Terminal(Service):
             )
             transport_message: SSHTransportMessage = SSHTransportMessage.SSH_MSG_USERAUTH_SUCCESS
             connection_message: SSHConnectionMessage = SSHConnectionMessage.SSH_MSG_CHANNEL_DATA
-            payload = SSHPacket(
+            return_payload = SSHPacket(
                 transport_message=transport_message,
                 connection_message=connection_message,
                 connection_uuid=self.connection_uuid,
                 sender_ip_address=self.parent.network_interface[1].ip_address,
                 target_ip_address=payload.sender_ip_address,
             )
-            self.send(payload=payload, dest_ip_address=payload.target_ip_address)
+            self.send(payload=return_payload, dest_ip_address=return_payload.target_ip_address)
             return True
         else:
             # UserSessionManager has returned None
@@ -232,7 +229,6 @@ class Terminal(Service):
         elif payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST:
             """Login Request Received."""
             self._process_remote_login(payload=payload)
-            self.sys_log.info("User Auth Success!")
 
         elif payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_SUCCESS:
             self.sys_log.info(f"Login Successful, connection ID is {payload.connection_uuid}")

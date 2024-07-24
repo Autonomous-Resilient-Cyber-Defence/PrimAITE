@@ -21,7 +21,7 @@ Key capabilities
 
  - Authenticates User connection by maintaining an active User account.
  - Ensures packets are matched to an existing session
- - Simulates common Terminal commands
+ - Simulates common Terminal processes/commands.
  - Leverages the Service base class for install/uninstall, status tracking etc.
 
 Usage
