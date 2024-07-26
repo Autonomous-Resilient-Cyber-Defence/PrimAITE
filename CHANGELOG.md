@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added ability to log each agent's action choices in each step to a JSON file.
 - Removal of Link bandwidth hardcoding. This can now be configured via the network configuration yaml. Will default to 100 if not present.
 - Added NMAP application to all host and layer-3 network nodes.
-- Added Terminal Class for HostNode components
+- Added Terminal Class for HostNode components.
 
 ### Bug Fixes
 
