@@ -306,14 +306,9 @@ class Terminal(Service):
 
         return True
 
-    def execute(self, command: List[Any]) -> bool:
+    def execute(self, command: List[Any]) -> RequestResponse:
         """Execute a passed ssh command via the request manager."""
-        # TODO: Expand as necessary, as new functionalilty is needed.
-        if command[0] == "install":
-            self.parent.software_manager.software.install(command[1])
-            return True
-        else:
-            return False
+        return self.parent.apply_request(command)
 
     def _disconnect(self, dest_ip_address: IPv4Address) -> bool:
         """Disconnect from the remote."""
