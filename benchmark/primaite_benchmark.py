@@ -5,12 +5,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Final, Tuple
 
+from report import build_benchmark_md_report
 from stable_baselines3 import PPO
 
 import primaite
 from benchmark import BenchmarkPrimaiteGymEnv
 from primaite.config.load import data_manipulation_config_path
-from report import build_benchmark_md_report
 
 _LOGGER = primaite.getLogger(__name__)
 
