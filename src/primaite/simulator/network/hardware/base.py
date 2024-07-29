@@ -850,7 +850,28 @@ class UserManager(Service):
         kwargs["port"] = Port.NONE
         kwargs["protocol"] = IPProtocol.NONE
         super().__init__(**kwargs)
+        self._request_manager = None
+
         self.start()
+
+    def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
+        rm = super()._init_request_manager()
+
+        # todo add doc about requeest schemas
+        rm.add_request(
+            "change_password",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.change_user_password(username=request[0], current_password=request[1], new_password=request[2])
+                )
+            ),
+        )
+        return rm
 
     def describe_state(self) -> Dict:
         """
@@ -1116,6 +1137,34 @@ class UserSessionManager(Service):
         kwargs["protocol"] = IPProtocol.NONE
         super().__init__(**kwargs)
         self.start()
+
+    def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
+        rm = super()._init_request_manager()
+
+        # todo add doc about requeest schemas
+        rm.add_request(
+            "remote_login",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.remote_login(username=request[0], password=request[1], remote_ip_address=request[2])
+                )
+            ),
+        )
+
+        rm.add_request(
+            "remote_logout",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.remote_logout(remote_session_id=request[0])
+                )
+            ),
+        )
+        return rm
 
     def show(self, markdown: bool = False, include_session_id: bool = False, include_historic: bool = False):
         """
@@ -1686,6 +1735,10 @@ class Node(SimComponent):
         self._application_manager.add_request(name="install", request_type=RequestType(func=_install_application))
         self._application_manager.add_request(name="uninstall", request_type=RequestType(func=_uninstall_application))
 
+        rm.add_request("accounts", RequestType(func=self.user_manager._request_manager))  # noqa
+
+        rm.add_request("sessions", RequestType(func=self.user_session_manager._request_manager))  # noqa
+
         return rm
 
     def describe_state(self) -> Dict:
@@ -1868,7 +1921,6 @@ class Node(SimComponent):
     def pre_timestep(self, timestep: int) -> None:
         """Apply pre-timestep logic."""
         super().pre_timestep(timestep)
-        self._
         for network_interface in self.network_interfaces.values():
             network_interface.pre_timestep(timestep=timestep)
 
