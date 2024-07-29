@@ -5,12 +5,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Final, Tuple
 
-from report import build_benchmark_latex_report
 from stable_baselines3 import PPO
 
 import primaite
 from benchmark import BenchmarkPrimaiteGymEnv
 from primaite.config.load import data_manipulation_config_path
+from report import build_benchmark_md_report
 
 _LOGGER = primaite.getLogger(__name__)
 
@@ -188,7 +188,7 @@ def run(
         with open(_SESSION_METADATA_ROOT / f"{i}.json", "r") as file:
             session_metadata_dict[i] = json.load(file)
     # generate report
-    build_benchmark_latex_report(
+    build_benchmark_md_report(
         benchmark_start_time=benchmark_start_time,
         session_metadata=session_metadata_dict,
         config_path=data_manipulation_config_path(),
