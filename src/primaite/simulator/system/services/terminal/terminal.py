@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional
-from uuid import uuid4
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel
@@ -157,10 +156,10 @@ class Terminal(Service):
 
         rm.add_request(
             "Execute",
-            request_type=RequestType(func=_execute),
+            request_type=RequestType(func=_execute, validator=_login_valid),
         )
 
-        rm.add_request("Logoff", request_type=RequestType(func=_logoff))
+        rm.add_request("Logoff", request_type=RequestType(func=_logoff, validator=_login_valid))
 
         return rm
 
@@ -205,8 +204,7 @@ class Terminal(Service):
 
     def _process_local_login(self, username: str, password: str) -> bool:
         """Local session login to terminal."""
-        # self.connection_uuid = self.parent.UserSessionManager.login(username=username, password=password)
-        self.connection_uuid = str(uuid4())  # TODO: Remove following merging of UserSessionManager.
+        self.connection_uuid = self.parent.UserSessionManager.login(username=username, password=password)
         self.is_connected = True
         if self.connection_uuid:
             self.sys_log.info(f"Login request authorised, connection uuid: {self.connection_uuid}")
@@ -233,12 +231,15 @@ class Terminal(Service):
         return self.send(payload=payload, dest_ip_address=ip_address)
 
     def _process_remote_login(self, payload: SSHPacket) -> bool:
-        """Processes a remote terminal requesting to login to this terminal."""
+        """Processes a remote terminal requesting to login to this terminal.
+
+        :param payload: The SSH Payload Packet.
+        :return: True if successful, else False.
+        """
         username: str = payload.user_account.username
         password: str = payload.user_account.password
         self.sys_log.info(f"Sending UserAuth request to UserSessionManager, username={username}, password={password}")
-        # connection_uuid = self.parent.UserSessionManager.remote_login(username=username, password=password)
-        connection_uuid = str(uuid4())
+        connection_uuid = self.parent.UserSessionManager.remote_login(username=username, password=password)
         self.is_connected = True
         if connection_uuid:
             # Send uuid to remote
@@ -270,7 +271,11 @@ class Terminal(Service):
             return False
 
     def receive(self, payload: SSHPacket, **kwargs) -> bool:
-        """Receive Payload and process for a response."""
+        """Receive Payload and process for a response.
+
+        :param payload: The message contents received.
+        :return: True if successfull, else False.
+        """
         self.sys_log.debug(f"Received payload: {payload}")
 
         if not isinstance(payload, SSHPacket):
@@ -286,11 +291,9 @@ class Terminal(Service):
             dest_ip_address = kwargs["dest_ip_address"]
             self.disconnect(dest_ip_address=dest_ip_address)
             self.sys_log.debug(f"Disconnecting {connection_id}")
-            # We need to close on the other machine as well
 
         elif payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST:
-            """Login Request Received."""
-            self._process_remote_login(payload=payload)
+            return self._process_remote_login(payload=payload)
 
         elif payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_SUCCESS:
             self.sys_log.info(f"Login Successful, connection ID is {payload.connection_uuid}")
@@ -311,11 +314,12 @@ class Terminal(Service):
 
     def execute(self, command: List[Any]) -> bool:
         """Execute a passed ssh command via the request manager."""
+        # TODO: Expand as necessary, as new functionalilty is needed.
         if command[0] == "install":
             self.parent.software_manager.software.install(command[1])
-
-        return True
-        # TODO: Expand as necessary
+            return True
+        else:
+            return False
 
     def _disconnect(self, dest_ip_address: IPv4Address) -> bool:
         """Disconnect from the remote."""
