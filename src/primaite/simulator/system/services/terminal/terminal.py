@@ -72,8 +72,6 @@ class Terminal(Service):
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
 
-    # %% Util
-
     def describe_state(self) -> Dict:
         """
         Produce a dictionary describing the current state of this object.
@@ -181,8 +179,6 @@ class Terminal(Service):
         def fail_message(self) -> str:
             """Message that is reported when a request is rejected by this validator."""
             return "Cannot perform request on terminal as not logged in."
-
-    # %% Inbound
 
     def login(self, username: str, password: str, ip_address: Optional[IPv4Address] = None) -> bool:
         """Process User request to login to Terminal.
@@ -309,8 +305,6 @@ class Terminal(Service):
             return False
 
         return True
-
-    # %% Outbound
 
     def execute(self, command: List[Any]) -> bool:
         """Execute a passed ssh command via the request manager."""

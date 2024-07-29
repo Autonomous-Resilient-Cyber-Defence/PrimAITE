@@ -17,7 +17,6 @@ from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.service import ServiceOperatingState
 from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.services.web_server.web_server import WebServer
-from primaite.simulator.system.software import SoftwareHealthState
 
 
 @pytest.fixture(scope="function")
@@ -194,6 +193,14 @@ def test_network_simulation(basic_network):
         endpoint_b=switch_1.network_interface[1],
     )
 
+    client_2 = Computer(
+        hostname="client_2",
+        ip_address="10.0.2.2",
+        subnet_mask="255.255.255.0",
+    )
+    client_2.power_on()
+    network.connect(endpoint_a=client_2.network_interface[1], endpoint_b=switch_2.network_interface[1])
+
     # 1.4: Create and connect servers
     server_1 = Server(
         hostname="server_1",
@@ -233,7 +240,7 @@ def test_network_simulation(basic_network):
 
     terminal_1: Terminal = client_1.software_manager.software.get("Terminal")
 
-    assert terminal_1.login(username="admin", password="Admin123!", ip_address="192.168.0.11") is False
+    assert terminal_1.login(username="admin", password="Admin123!", ip_address="10.0.2.2") is False
 
 
 def test_terminal_receives_requests(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
