@@ -850,7 +850,6 @@ class UserManager(Service):
         kwargs["port"] = Port.NONE
         kwargs["protocol"] = IPProtocol.NONE
         super().__init__(**kwargs)
-        self._request_manager = None
 
         self.start()
 
@@ -1499,20 +1498,28 @@ class Node(SimComponent):
         super().__init__(**kwargs)
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
+
         self.software_manager.install(UserSessionManager, node=self)
+        self._request_manager.add_request(
+            "sessions", RequestType(func=self.user_session_manager._request_manager)
+        )  # noqa
+
         self.software_manager.install(UserManager)
+        self._request_manager.add_request("accounts", RequestType(func=self.user_manager._request_manager))  # noqa
+
         self.user_manager.add_user(username="admin", password="admin", is_admin=True, bypass_can_perform_action=True)
+
         self._install_system_software()
 
     @property
     def user_manager(self) -> UserManager:
         """The Nodes User Manager."""
-        return self.software_manager.software["UserManager"]  # noqa
+        return self.software_manager.software.get("UserManager")  # noqa
 
     @property
     def user_session_manager(self) -> UserSessionManager:
         """The Nodes User Session Manager."""
-        return self.software_manager.software["UserSessionManager"]  # noqa
+        return self.software_manager.software.get("UserSessionManager")  # noqa
 
     def local_login(self, username: str, password: str) -> Optional[str]:
         """
@@ -1734,10 +1741,6 @@ class Node(SimComponent):
 
         self._application_manager.add_request(name="install", request_type=RequestType(func=_install_application))
         self._application_manager.add_request(name="uninstall", request_type=RequestType(func=_uninstall_application))
-
-        rm.add_request("accounts", RequestType(func=self.user_manager._request_manager))  # noqa
-
-        rm.add_request("sessions", RequestType(func=self.user_session_manager._request_manager))  # noqa
 
         return rm
 
