@@ -1071,18 +1071,6 @@ class Node(SimComponent):
         rm.add_request(
             "logoff", RequestType(func=lambda request, context: RequestResponse.from_bool(False), validator=_node_is_on)
         )  # TODO implement logoff request
-        rm.add_request(
-            "change_password",
-            RequestType(func=lambda request, context: RequestResponse.from_bool(False), validator=_node_is_on),
-        )  # TODO implement change_password request
-        rm.add_request(
-            "remote_logon",
-            RequestType(func=lambda request, context: RequestResponse.from_bool(False), validator=_node_is_on),
-        )  # TODO implement remote_logon request
-        rm.add_request(
-            "remote_logoff",
-            RequestType(func=lambda request, context: RequestResponse.from_bool(False), validator=_node_is_on),
-        )  # TODO implement remote_logoff request
 
         self._os_request_manager = RequestManager()
         self._os_request_manager.add_request(

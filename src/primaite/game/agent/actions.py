@@ -1077,9 +1077,9 @@ class NodeAccountsChangePasswordAction(AbstractAction):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: str) -> RequestFormat:
+    def form_request(self, node_id: str, username: str, current_password: str, new_password: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["network", "node", node_id, "change_password"]
+        return ["network", "node", node_id, "accounts", "change_password", username, current_password, new_password]
 
 
 class NodeSessionsRemoteLoginAction(AbstractAction):
@@ -1088,9 +1088,9 @@ class NodeSessionsRemoteLoginAction(AbstractAction):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: str) -> RequestFormat:
+    def form_request(self, node_id: str, username: str, password: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["network", "node", node_id, "remote_logon"]
+        return ["network", "node", node_id, "sessions", "remote_login", username, password]
 
 
 class NodeSessionsRemoteLogoutAction(AbstractAction):
@@ -1099,9 +1099,9 @@ class NodeSessionsRemoteLogoutAction(AbstractAction):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: str) -> RequestFormat:
+    def form_request(self, node_id: str, remote_session_id: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["network", "node", node_id, "remote_logoff"]
+        return ["network", "node", node_id, "sessions", "remote_logout", remote_session_id]
 
 
 class ActionManager:
