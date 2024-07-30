@@ -11,6 +11,13 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 
+# TODO:
+# Complete C2 Server and C2 Beacon TODOs
+# Create test that leverage all the functionality needed for the different TAPs
+# Create a .RST doc
+# Potentially? A notebook which demonstrates a custom red agent using the c2 server for various means.
+
+
 class C2Command(Enum):
     """
     Enumerations representing the different commands the C2 suite currently supports.

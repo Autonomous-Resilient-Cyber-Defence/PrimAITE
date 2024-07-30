@@ -4,7 +4,10 @@ from primaite.simulator.network.protocols.masquerade import C2Payload, Masquerad
 
 
 class C2Server(AbstractC2):
+    # TODO:
+    # Implement the request manager and agent actions.
+    # Implement the output handling methods. (These need to interface with the actions)
     
     def _handle_command_output(payload):
-        """Abstract Method: Used in C2 server to prase and receive the output of commands sent to the c2 beacon."""
+        """Abstract Method: Used in C2 server to parse and receive the output of commands sent to the c2 beacon."""
         pass

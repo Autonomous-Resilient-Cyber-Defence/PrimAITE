@@ -29,8 +29,11 @@ class C2Beacon(AbstractC2):
     keep_alive_frequency: int = 5
     "The frequency at which ``Keep Alive`` packets are sent to the C2 Server from the C2 Beacon."
 
-
-    # Uncomment the Import and this Property after terminal PR
+    # TODO:
+    # Implement the placeholder command methods
+    # Implement the keep alive frequency.
+    # Implement a command output method that sends the RequestResponse to the C2 server.
+    # Uncomment the terminal Import and the terminal property after terminal PR
 
     #@property
     #def _host_db_client(self) -> Terminal:
