@@ -161,8 +161,10 @@ class AbstractC2(Application):
         Returns False if a keep alive was unable to be sent.
         Returns True if a keep alive was successfully sent or already has been sent this timestep.
         """
+        self.sys_log.info(f"{self.name}: Keep Alive Received from {self.c2_remote_connection}")
         # Using this guard clause to prevent packet storms and recognise that we've achieved a connection.
         if self.keep_alive_sent:
+            self.sys_log.info(f"{self.name}: Connection successfully established with {self.c2_remote_connection}")
             self.c2_connection_active = True  # Sets the connection to active
             self.keep_alive_inactivity = 0  # Sets the keep alive inactivity to zero
 
@@ -174,14 +176,11 @@ class AbstractC2(Application):
 
         # If this method returns true then we have sent successfully sent a keep alive.
         if self._send_keep_alive(self):
-            # debugging/info logging that we successfully sent a keep alive
-
-            # Now when the returning keep_alive comes back we won't send another keep alive
-            self.keep_alive_sent = True
+            self.keep_alive_sent = True # Setting the guard clause to true (prevents packet storms.)
             return True
 
+        # Return false if we're unable to send handle the keep alive correctly.
         else:
-            # debugging/info logging that we unsuccessfully sent a keep alive.
             return False
 
     def receive(self, payload: MasqueradePacket, session_id: Optional[str] = None) -> bool:
