@@ -7,9 +7,6 @@ from typing import Optional
 from primaite.interface.request import RequestResponse
 from primaite.simulator.network.protocols.packet import DataPacket
 
-# TODO: Elaborate / Confirm / Validate -  See 2709.
-#       Placeholder implementation for Terminal Class implementation.
-
 
 class SSHTransportMessage(IntEnum):
     """

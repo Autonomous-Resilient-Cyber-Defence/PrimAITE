@@ -117,7 +117,7 @@ class Terminal(Service):
 
         def _login(request: List[Any], context: Any) -> RequestResponse:
             login = self._process_local_login(username=request[0], password=request[1])
-            if login == True:
+            if login:
                 return RequestResponse(status="success", data={})
             else:
                 return RequestResponse(status="failure", data={})
@@ -140,7 +140,7 @@ class Terminal(Service):
             self.parent.UserSessionManager.logoff(self.connection_uuid)
             self.disconnect(self.connection_uuid)
 
-            return RequestResponse(status="success")
+            return RequestResponse(status="success", data={})
 
         rm.add_request(
             "Login",
