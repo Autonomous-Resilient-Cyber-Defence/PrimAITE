@@ -1767,6 +1767,8 @@ class Node(SimComponent):
                 "services": {svc.name: svc.describe_state() for svc in self.services.values()},
                 "process": {proc.name: proc.describe_state() for proc in self.processes.values()},
                 "revealed_to_red": self.revealed_to_red,
+                "user_manager": self.user_manager.describe_state(),
+                "user_session_manager": self.user_session_manager.describe_state(),
             }
         )
         return state
