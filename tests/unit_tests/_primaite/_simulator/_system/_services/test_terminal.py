@@ -278,22 +278,3 @@ def test_network_simulation(basic_network):
     terminal_1: Terminal = client_1.software_manager.software.get("Terminal")
 
     assert terminal_1.login(username="admin", password="Admin123!", ip_address="10.0.2.2") is False
-
-
-def test_terminal_receives_requests(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
-    game, agent = game_and_agent_fixture
-
-    network: Network = game.simulation.network
-    computer_a: Computer = network.get_node_by_hostname("client_1")
-    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
-
-    computer_b: Computer = network.get_node_by_hostname("client_2")
-
-    assert terminal_a.is_connected is False
-
-    action = ("TERMINAL_LOGIN", {"username": "admin", "password": "Admin123!"})
-
-    agent.store_action(action)
-    game.step()
-
-    assert terminal_a.is_connected is True

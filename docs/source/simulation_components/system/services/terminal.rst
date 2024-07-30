@@ -41,6 +41,7 @@ to provide User Credential authentication when receiving/processing commands.
 Terminal acts as the interface between the user/component and both the Session and Requests Managers, facilitating
 the passing of requests to both.
 
+A more detailed example of how to use the Terminal class can be found in the Terminal-Processing jupyter notebook.
 
 Python
 """"""
