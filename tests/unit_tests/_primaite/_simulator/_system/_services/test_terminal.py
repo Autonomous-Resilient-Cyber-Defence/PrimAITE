@@ -13,6 +13,7 @@ from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.protocols.ssh import SSHConnectionMessage, SSHPacket, SSHTransportMessage
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.service import ServiceOperatingState
 from primaite.simulator.system.services.terminal.terminal import Terminal
@@ -102,6 +103,26 @@ def test_terminal_receive(basic_network):
 
     # Assert that the Folder has been correctly created
     assert computer_b.file_system.get_folder(folder_name)
+
+
+def test_terminal_install(basic_network):
+    """Test that Terminal can successfully process an INSTALL request"""
+    network: Network = basic_network
+    computer_a: Computer = network.get_node_by_hostname("node_a")
+    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    computer_b: Computer = network.get_node_by_hostname("node_b")
+
+    payload: SSHPacket = SSHPacket(
+        payload=["software_manager", "application", "install", "RansomwareScript"],
+        transport_message=SSHTransportMessage.SSH_MSG_SERVICE_REQUEST,
+        connection_message=SSHConnectionMessage.SSH_MSG_CHANNEL_OPEN,
+        sender_ip_address=computer_a.network_interface[1].ip_address,
+        target_ip_address=computer_b.network_interface[1].ip_address,
+    )
+
+    terminal_a.send(payload=payload, dest_ip_address=computer_b.network_interface[1].ip_address)
+
+    assert computer_b.software_manager.software.get("RansomwareScript")
 
 
 def test_terminal_fail_when_closed(basic_network):
