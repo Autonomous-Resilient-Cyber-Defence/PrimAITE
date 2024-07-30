@@ -45,6 +45,17 @@ def basic_network() -> Network:
     return network
 
 
+@pytest.fixture
+def game_and_agent_fixture(game_and_agent):
+    """Create a game with a simple agent that can be controlled by the tests."""
+    game, agent = game_and_agent
+
+    client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
+    client_1.start_up_duration = 3
+
+    return (game, agent)
+
+
 def test_terminal_creation(terminal_on_computer):
     terminal, computer = terminal_on_computer
     terminal.describe_state()
@@ -273,10 +284,10 @@ def test_terminal_receives_requests(game_and_agent_fixture: Tuple[PrimaiteGame, 
     game, agent = game_and_agent_fixture
 
     network: Network = game.simulation.network
-    computer_a: Computer = network.get_node_by_hostname("node_a")
+    computer_a: Computer = network.get_node_by_hostname("client_1")
     terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
 
-    computer_b: Computer = network.get_node_by_hostname("node_b")
+    computer_b: Computer = network.get_node_by_hostname("client_2")
 
     assert terminal_a.is_connected is False
 

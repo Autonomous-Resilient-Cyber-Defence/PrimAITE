@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel
@@ -88,10 +89,6 @@ class Terminal(Service):
         state = super().describe_state()
         return state
 
-    def apply_request(self, request: List[str | int | float | Dict], context: Dict | None = None) -> RequestResponse:
-        """Apply Terminal Request."""
-        return super().apply_request(request, context)
-
     def show(self, markdown: bool = False):
         """
         Display the remote connections to this terminal instance in tabular format.
@@ -141,7 +138,8 @@ class Terminal(Service):
 
         def _logoff() -> RequestResponse:
             """Logoff from connection."""
-            self.parent.UserSessionManager.logoff(self.connection_uuid)
+            # TODO: Uncomment this when UserSessionManager merged.
+            # self.parent.UserSessionManager.logoff(self.connection_uuid)
             self.disconnect(self.connection_uuid)
 
             return RequestResponse(status="success", data={})
@@ -204,7 +202,9 @@ class Terminal(Service):
 
     def _process_local_login(self, username: str, password: str) -> bool:
         """Local session login to terminal."""
-        self.connection_uuid = self.parent.UserSessionManager.login(username=username, password=password)
+        # TODO: Un-comment this when UserSessionManager is merged.
+        # self.connection_uuid = self.parent.UserSessionManager.login(username=username, password=password)
+        self.connection_uuid = str(uuid4())
         self.is_connected = True
         if self.connection_uuid:
             self.sys_log.info(f"Login request authorised, connection uuid: {self.connection_uuid}")
@@ -239,7 +239,9 @@ class Terminal(Service):
         username: str = payload.user_account.username
         password: str = payload.user_account.password
         self.sys_log.info(f"Sending UserAuth request to UserSessionManager, username={username}, password={password}")
-        connection_uuid = self.parent.UserSessionManager.remote_login(username=username, password=password)
+        # TODO: Un-comment this when UserSessionManager is merged.
+        # connection_uuid = self.parent.UserSessionManager.remote_login(username=username, password=password)
+        connection_uuid = str(uuid4())
         self.is_connected = True
         if connection_uuid:
             # Send uuid to remote
