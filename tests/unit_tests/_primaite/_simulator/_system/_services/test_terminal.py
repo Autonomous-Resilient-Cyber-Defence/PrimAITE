@@ -65,7 +65,7 @@ def test_terminal_not_on_switch():
 
 
 def test_terminal_send(basic_network):
-    """Check that Terminal can send"""
+    """Test that Terminal can send valid commands."""
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
     terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
@@ -80,6 +80,28 @@ def test_terminal_send(basic_network):
     )
 
     assert terminal_a.send(payload=payload, dest_ip_address=computer_b.network_interface[1].ip_address)
+
+
+def test_terminal_receive(basic_network):
+    """Test that terminal can receive and process commands"""
+    network: Network = basic_network
+    computer_a: Computer = network.get_node_by_hostname("node_a")
+    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    computer_b: Computer = network.get_node_by_hostname("node_b")
+    folder_name = "Downloads"
+
+    payload: SSHPacket = SSHPacket(
+        payload=["file_system", "create", "folder", folder_name],
+        transport_message=SSHTransportMessage.SSH_MSG_SERVICE_REQUEST,
+        connection_message=SSHConnectionMessage.SSH_MSG_CHANNEL_OPEN,
+        sender_ip_address=computer_a.network_interface[1].ip_address,
+        target_ip_address=computer_b.network_interface[1].ip_address,
+    )
+
+    assert terminal_a.send(payload=payload, dest_ip_address=computer_b.network_interface[1].ip_address)
+
+    # Assert that the Folder has been correctly created
+    assert computer_b.file_system.get_folder(folder_name)
 
 
 def test_terminal_fail_when_closed(basic_network):
@@ -254,7 +276,7 @@ def test_terminal_receives_requests(game_and_agent_fixture: Tuple[PrimaiteGame, 
 
     assert terminal_a.is_connected is False
 
-    action = ("TERMINAL_LOGIN", {"username": "admin", "password": "Admin123!"})  # TODO: Add Action to ActionManager ?
+    action = ("TERMINAL_LOGIN", {"username": "admin", "password": "Admin123!"})
 
     agent.store_action(action)
     game.step()
