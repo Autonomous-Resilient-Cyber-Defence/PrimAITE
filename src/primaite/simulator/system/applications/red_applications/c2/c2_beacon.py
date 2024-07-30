@@ -9,6 +9,8 @@ from ipaddress import IPv4Address
 from typing import Dict,Optional
 from primaite.simulator.network.transmission.transport_layer import Port
 from enum import Enum
+from primaite.simulator.system.software import SoftwareHealthState
+from primaite.simulator.system.applications.application import ApplicationOperatingState
 
 class C2Beacon(AbstractC2):
     """
@@ -36,12 +38,12 @@ class C2Beacon(AbstractC2):
     # Uncomment the terminal Import and the terminal property after terminal PR
 
     #@property
-    #def _host_db_client(self) -> Terminal:
-    #    """Return the database client that is installed on the same machine as the Ransomware Script."""
-    #    db_client: DatabaseClient = self.software_manager.software.get("DatabaseClient")
-    #    if db_client is None:
-    #        self.sys_log.warning(f"{self.__class__.__name__} cannot find a database client on its host.")
-    #    return db_client
+    #def _host_terminal(self) -> Terminal:
+    #    """Return the Terminal that is installed on the same machine as the C2 Beacon."""
+    #    host_terminal: Terminal = self.software_manager.software.get("Terminal")
+    #    if host_terminal: is None:
+    #        self.sys_log.warning(f"{self.__class__.__name__} cannot find a terminal on its host.")
+    #    return host_terminal
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -122,18 +124,18 @@ class C2Beacon(AbstractC2):
         return True
 
 
+    # I THINK that once the application is running it can respond to incoming traffic but I'll need to test this later.
     def establish(self) -> bool:
         """Establishes connection to the C2 server via a send alive. Must be called after the C2 Beacon is configured."""
-        # I THINK that once the application is running it can respond to incoming traffic but I'll need to test this later.
         self.run()
         self._send_keep_alive()
         self.num_executions += 1
         
 
-    def _handle_command_input(self, payload: MasqueradePacket) -> RequestResponse:
+    def _handle_command_input(self, payload: MasqueradePacket) -> bool:
         """
-        Handles C2 Commands and executes them via the terminal service.
-        
+        Handles the parsing of C2 Commands from C2 Traffic (Masquerade Packets)
+        as well as then calling the relevant method dependant on the C2 Command.
         
         :param payload: The INPUT C2 Payload 
         :type payload: MasqueradePacket
@@ -143,29 +145,127 @@ class C2Beacon(AbstractC2):
         command = payload.payload_type
         if command != C2Payload:
             self.sys_log.warning(f"{self.name}: Received unexpected C2 command. Unable to resolve command")
-            return RequestResponse(status="failure", data={"Received unexpected C2Command. Unable to resolve command."})
+            return self._return_command_output(RequestResponse(status="failure", data={"Received unexpected C2Command. Unable to resolve command."}))
 
         if command == C2Command.RANSOMWARE_CONFIGURE:
             self.sys_log.info(f"{self.name}: Received a ransomware configuration C2 command.")
-            return self._command_ransomware_config(payload)
+            return self._return_command_output(self._command_ransomware_config(payload))
 
         elif command == C2Command.RANSOMWARE_LAUNCH:
             self.sys_log.info(f"{self.name}: Received a ransomware launch C2 command.")
-            return self._command_ransomware_launch(payload)
+            return self._return_command_output(self._command_ransomware_launch(payload))
 
         elif payload.payload_type == C2Command.TERMINAL:
-            self.sys_log.info(f"{self.name} Received a terminal C2 command.")
-            return self._command_terminal(payload)
+            self.sys_log.info(f"{self.name}: Received a terminal C2 command.")
+            return self._return_command_output(self._command_terminal(payload))
 
         else:
-            self.sys_log.error(f"{self.name} received an C2 command: {command} but was unable to resolve command.")
-            return RequestResponse(status="failure", data={"Unexpected Behaviour. Unable to resolve command."})
+            self.sys_log.error(f"{self.name}: Received an C2 command: {command} but was unable to resolve command.")
+            return self._return_command_output(RequestResponse(status="failure", data={"Unexpected Behaviour. Unable to resolve command."}))
 
-    def _command_ransomware_config(self, payload: MasqueradePacket):
-        pass
 
-    def _command_ransomware_launch(self, payload: MasqueradePacket):
-        pass
+    def _return_command_output(self, command_output: RequestResponse) -> bool:
+        """Responsible for responding to the C2 Server with the output of the given command."""
+        output_packet = MasqueradePacket(
+            masquerade_protocol=self.current_masquerade_protocol,
+            masquerade_port=self.current_masquerade_port,
+            payload_type=C2Payload.OUTPUT,
+            payload=command_output
+        )
+        if self.send(
+            self,
+            payload=output_packet,
+            dest_ip_address=self.c2_remote_connection,
+            port=self.current_masquerade_port,
+            protocol=self.current_masquerade_protocol,
+        ):
+            self.sys_log.info(f"{self.name}: Command output sent to {self.c2_remote_connection}")
+            self.sys_log.debug(f"{self.name}: on {self.current_masquerade_port} via {self.current_masquerade_protocol}")
+            return True
+        else:
+            self.sys_log.warning(
+                f"{self.name}: failed to send a output packet. The node may be unable to access the network."
+            )
+            return False
 
-    def _command_terminal(self, payload: MasqueradePacket):
+    def _command_ransomware_config(self, payload: MasqueradePacket) -> RequestResponse:
+        """
+        C2 Command: Ransomware Configuration
+
+        Creates a request that configures the ransomware based off the configuration options given.
+        This request is then sent to the terminal service in order to be executed.
+
+        :return: Returns the Request Response returned by the Terminal execute method.
+        :rtype: Request Response
+        """
         pass
+        #return self._host_terminal.execute(command)
+
+    def _command_ransomware_launch(self, payload: MasqueradePacket) -> RequestResponse:
+        """
+        C2 Command: Ransomware Execute
+
+        Creates a request that executes the ransomware script.
+        This request is then sent to the terminal service in order to be executed.
+
+        :return: Returns the Request Response returned by the Terminal execute method.
+        :rtype: Request Response
+        
+        Creates a Request that launches the ransomware.
+        """
+        pass
+        #return self._host_terminal.execute(command)
+
+    def _command_terminal(self, payload: MasqueradePacket) -> RequestResponse:
+        """
+        C2 Command: Ransomware Execute
+
+        Creates a request that executes the ransomware script.
+        This request is then sent to the terminal service in order to be executed.
+
+        :return: Returns the Request Response returned by the Terminal execute method.
+        :rtype: Request Response
+        
+        Creates a Request that launches the ransomware.
+        """
+        pass
+        #return self._host_terminal.execute(command)
+
+
+    # Not entirely sure if this actually works.
+    def apply_timestep(self, timestep: int) -> None:
+        """
+        Apply a timestep to the c2_beacon. 
+        Used to keep track of when the c2 beacon should send another keep alive.
+
+        The following logic is applied:
+
+        1. Each timestep the keep_alive_inactivity is increased.
+
+        2. If the keep alive inactivity eclipses that of the keep alive frequency then another keep alive is sent.
+
+        3. If the c2 beacon receives a keep alive response packet then the ``keep_alive_inactivity`` attribute is set to 0
+        
+        Therefore, if ``keep_alive_inactivity`` attribute is not 0, then the connection is considered severed and c2 beacon will shut down.
+        
+        :param timestep: The current timestep of the simulation.
+        """
+        super().apply_timestep(timestep=timestep)
+        if self.operating_state is ApplicationOperatingState.RUNNING and self.health_state_actual is SoftwareHealthState.GOOD:
+            self.keep_alive_inactivity += 1
+            if not self._check_c2_connection(timestep):
+                self.sys_log.error(f"{self.name}: Connection Severed - Application Closing.")
+                self.clear_connections()
+                self.close()
+        return
+
+
+    def _check_c2_connection(self, timestep) -> bool:
+        """Checks the C2 Server connection. If a connection cannot be confirmed then the c2 beacon will halt and close."""
+        if self.keep_alive_inactivity > self.keep_alive_frequency:
+            self.sys_log.info(f"{self.name}: Keep Alive sent to {self.c2_remote_connection} at timestep {timestep}.")
+            self._send_keep_alive()
+            if self.keep_alive_inactivity != 0:
+                self.sys_log.warning(f"{self.name}: Did not receive keep alive from c2 Server. Connection considered severed.")
+                return False
+        return True
