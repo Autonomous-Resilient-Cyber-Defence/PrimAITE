@@ -20,6 +20,7 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
+from primaite.simulator.system.software import SoftwareHealthState
 
 
 class TerminalClientConnection(BaseModel):
@@ -62,7 +63,10 @@ class Terminal(Service):
     "Uuid for connection requests"
 
     operating_state: ServiceOperatingState = ServiceOperatingState.RUNNING
-    """Initial Operating State"""
+    "Initial Operating State"
+
+    health_state_actual: SoftwareHealthState = SoftwareHealthState.GOOD
+    "Service Health State"
 
     remote_connection: Dict[str, TerminalClientConnection] = {}
 
