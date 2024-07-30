@@ -11,16 +11,34 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 
+class C2Command(Enum):
+    """
+    Enumerations representing the different commands the C2 suite currently supports.
+    """
+
+    RANSOMWARE_CONFIGURE = "Ransomware Configure"
+    "Instructs the c2 beacon to configure the ransomware with the provided options."
+
+    RANSOMWARE_LAUNCH = "Ransomware Launch"
+    "Instructs the c2 beacon to execute the installed ransomware."
+
+    TERMINAL = "Terminal"
+    "Instructs the c2 beacon to execute the provided terminal command."
+
+    # The terminal command should also be able to pass a session which can be used for remote connections.
+
 
 class AbstractC2(Application):
     """
     An abstract command and control (c2) application.
 
-    Extends the Application class to provide base functionality for c2 suite applications
-    such as c2 beacons and c2 servers.
+    Extends the application class to provide base functionality for c2 suite applications
+    such as c2 beacons and c2 servers. 
 
     Provides the base methods for handling ``Keep Alive`` connections, configuring masquerade ports and protocols
     as well as providing the abstract methods for sending, receiving and parsing commands.
+
+    Defaults to masquerading as HTTP (Port 80) via TCP.
     """
 
     c2_connection_active: bool = False
@@ -43,13 +61,8 @@ class AbstractC2(Application):
     current_masquerade_protocol: Enum = IPProtocol.TCP
     """The currently chosen protocol that the C2 traffic is masquerading as. Defaults as TCP."""
 
-    current_masquerade_port: Enum = Port.FTP
-    """The currently chosen port that the C2 traffic is masquerading as. Defaults at FTP."""
-
-    def __init__(self, **kwargs):
-        kwargs["name"] = "C2"
-        kwargs["port"] = self.current_masquerade_port
-        kwargs["protocol"] = self.current_masquerade_protocol
+    current_masquerade_port: Enum = Port.HTTP
+    """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
 
     # TODO: Move this duplicate method from NMAP class into 'Application' to adhere to DRY principle.
     def _can_perform_network_action(self) -> bool:
@@ -176,6 +189,9 @@ class AbstractC2(Application):
         """Sends a C2 keep alive payload to the self.remote_connection IPv4 Address."""
         # Checking that the c2 application is capable of performing both actions and has an enabled NIC
         # (Using NOT to improve code readability)
+        if self.c2_remote_connection == None:
+            self.sys_log.error(f"{self.name}: Unable to Establish connection as the C2 Server's IP Address has not been given.")
+        
         if not self._can_perform_network_action():
             self.sys_log.warning(f"{self.name}: Unable to perform network actions.")
             return False
@@ -206,20 +222,4 @@ class AbstractC2(Application):
             )
             return False
 
-    @abstractmethod
-    def configure(
-        self,
-        c2_server_ip_address: Optional[IPv4Address] = None,
-        keep_alive_frequency: Optional[int] = 5,
-        masquerade_protocol: Optional[Enum] = IPProtocol.TCP,
-        masquerade_port: Optional[Enum] = Port.FTP,
-    ) -> bool:
-        """
-        Configures the C2 beacon to communicate with the C2 server with following additional parameters.
 
-        :param c2_server_ip_address: The IP Address of the C2 Server. Used to establish connection.
-        :param keep_alive_frequency: The frequency (timesteps) at which the C2 beacon will send keep alives.
-        :param masquerade_protocol: The Protocol that C2 Traffic will masquerade as. Defaults as TCP.
-        :param masquerade_port: The Port that the C2 Traffic will masquerade as. Defaults to FTP.
-        """
-        pass
