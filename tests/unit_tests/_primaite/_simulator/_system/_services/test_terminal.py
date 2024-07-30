@@ -184,23 +184,6 @@ def test_terminal_ignores_when_off(basic_network):
     assert not terminal_a.send(payload=payload, dest_ip_address="192.168.0.11")
 
 
-def test_terminal_acknowledges_acl_rules(basic_network):
-    """Test that Terminal messages"""
-
-    network: Network = basic_network
-    computer_a: Computer = network.get_node_by_hostname("node_a")
-    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
-
-    terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")
-
-    router = Router(hostname="router", num_ports=3, start_up_duration=0)
-    router.power_on()
-    router.configure_port(port=1, ip_address="10.0.1.1", subnet_mask="255.255.255.0")
-    router.configure_port(port=2, ip_address="10.0.2.1", subnet_mask="255.255.255.0")
-
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port.SSH, dst_port=Port.SSH, position=22)
-
-
 def test_network_simulation(basic_network):
     # 0: Pull out the network
     network = basic_network
