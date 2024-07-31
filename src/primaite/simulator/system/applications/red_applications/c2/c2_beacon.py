@@ -155,7 +155,7 @@ class C2Beacon(AbstractC2):
             self.sys_log.info(f"{self.name}: Received a ransomware launch C2 command.")
             return self._return_command_output(self._command_ransomware_launch(payload))
 
-        elif payload.payload_type == C2Command.TERMINAL:
+        elif command == C2Command.TERMINAL:
             self.sys_log.info(f"{self.name}: Received a terminal C2 command.")
             return self._return_command_output(self._command_terminal(payload))
 

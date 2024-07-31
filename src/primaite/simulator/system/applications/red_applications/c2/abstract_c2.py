@@ -100,7 +100,7 @@ class AbstractC2(Application):
 
     # Validate call ensures we are only handling Masquerade Packets.
     @validate_call
-    def _handle_c2_payload(self, payload: MasqueradePacket) -> bool:
+    def _handle_c2_payload(self, payload: MasqueradePacket, session_id: Optional[str] = None) -> bool:
         """Handles masquerade payloads for both c2 beacons and c2 servers.
 
         Currently, the C2 application suite can handle the following payloads:
@@ -121,18 +121,19 @@ class AbstractC2(Application):
 
         :param payload: The C2 Payload to be parsed and handled.
         :return: True if the c2 payload was handled successfully, False otherwise.
+        :rtype: Bool
         """
         if payload.payload_type == C2Payload.KEEP_ALIVE:
-            self.sys_log.info(f"{self.name} received a KEEP ALIVE!")
-            return self._handle_keep_alive(payload)
+            self.sys_log.info(f"{self.name} received a KEEP ALIVE payload.")
+            return self._handle_keep_alive(payload, session_id)
 
         elif payload.payload_type == C2Payload.INPUT:
-            self.sys_log.info(f"{self.name} received an INPUT COMMAND!")
-            return self._handle_command_input(payload)
+            self.sys_log.info(f"{self.name} received an INPUT COMMAND payload.")
+            return self._handle_command_input(payload, session_id)
 
         elif payload.payload_type == C2Payload.OUTPUT:
-            self.sys_log.info(f"{self.name} received an OUTPUT COMMAND!")
-            return self._handle_command_input(payload)
+            self.sys_log.info(f"{self.name} received an OUTPUT COMMAND payload.")
+            return self._handle_command_input(payload, session_id)
 
         else:
             self.sys_log.warning(
@@ -154,12 +155,15 @@ class AbstractC2(Application):
         """Abstract Method: Used in C2 beacon to parse and handle commands received from the c2 server."""
         pass
 
-    def _handle_keep_alive(self) -> bool:
+    def _handle_keep_alive(self, payload: MasqueradePacket, session_id: Optional[str]) -> bool:
         """
         Handles receiving and sending keep alive payloads. This method is only called if we receive a keep alive.
 
         Returns False if a keep alive was unable to be sent.
         Returns True if a keep alive was successfully sent or already has been sent this timestep.
+
+        :return: True if successfully handled, false otherwise.
+        :rtype: Bool
         """
         self.sys_log.info(f"{self.name}: Keep Alive Received from {self.c2_remote_connection}")
         # Using this guard clause to prevent packet storms and recognise that we've achieved a connection.
@@ -173,9 +177,12 @@ class AbstractC2(Application):
             return True
 
         # If we've reached this part of the method then we've received a keep alive but haven't sent a reply.
+        # Therefore we also need to configure the masquerade attributes based off the keep alive sent.
+        if not self._resolve_keep_alive(self, payload):
+            return False
 
         # If this method returns true then we have sent successfully sent a keep alive.
-        if self._send_keep_alive(self):
+        if self._send_keep_alive(self, session_id):
             self.keep_alive_sent = True # Setting the guard clause to true (prevents packet storms.)
             return True
 
@@ -230,3 +237,28 @@ class AbstractC2(Application):
             return False
 
 
+    def _resolve_keep_alive(self, payload: MasqueradePacket) -> bool:
+        """
+        Parses the Masquerade Port/Protocol within the received Keep Alive packet.
+
+        Used to dynamically set the Masquerade Port and Protocol based on incoming traffic.
+
+        Returns True on successfully extracting and configuring the masquerade port/protocols.
+        Returns False otherwise.
+        
+        :param payload: The Keep Alive payload received.
+        :type payload: MasqueradePacket
+        :return: True on successful configuration, false otherwise.
+        :rtype: bool
+        """
+        # Validating that they are valid Enums.
+        if payload.masquerade_port or payload.masquerade_protocol != Enum:
+            self.sys_log.warning(f"{self.name}: Received invalid Masquerade type. Port: {type(payload.masquerade_port)} Protocol: {type(payload.masquerade_protocol)}")
+            return False
+        # TODO: Validation on Ports (E.g only allow HTTP, FTP etc)
+        # Potentially compare to IPProtocol & Port children (Same way that abstract TAP does it with kill chains)
+        
+        # Setting the Ports
+        self.current_masquerade_port = payload.masquerade_port
+        self.current_masquerade_protocol = payload.masquerade_protocol
+        return True
