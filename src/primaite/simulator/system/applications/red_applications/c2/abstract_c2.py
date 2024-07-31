@@ -191,7 +191,7 @@ class AbstractC2(Application):
         """
         return self._handle_c2_payload(payload, session_id)
 
-    def _send_keep_alive(self) -> bool:
+    def _send_keep_alive(self, session_id: Optional[str]) -> bool:
         """Sends a C2 keep alive payload to the self.remote_connection IPv4 Address."""
         # Checking that the c2 application is capable of performing both actions and has an enabled NIC
         # (Using NOT to improve code readability)
@@ -217,6 +217,7 @@ class AbstractC2(Application):
             dest_ip_address=self.c2_remote_connection,
             port=self.current_masquerade_port,
             protocol=self.current_masquerade_protocol,
+            session_id=session_id,
         ):
             self.sys_log.info(f"{self.name}: Keep Alive sent to {self.c2_remote_connection}")
             self.sys_log.debug(f"{self.name}: on {self.current_masquerade_port} via {self.current_masquerade_protocol}")

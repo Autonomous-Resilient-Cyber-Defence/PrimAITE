@@ -261,7 +261,7 @@ class C2Beacon(AbstractC2):
 
 
     def _check_c2_connection(self, timestep) -> bool:
-        """Checks the C2 Server connection. If a connection cannot be confirmed then the c2 beacon will halt and close."""
+        """Checks the C2 Server connection. If a connection cannot be confirmed then this method will return false otherwise true."""
         if self.keep_alive_inactivity > self.keep_alive_frequency:
             self.sys_log.info(f"{self.name}: Keep Alive sent to {self.c2_remote_connection} at timestep {timestep}.")
             self._send_keep_alive()

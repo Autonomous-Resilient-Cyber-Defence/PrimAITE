@@ -11,3 +11,4 @@ class C2Server(AbstractC2):
     def _handle_command_output(payload):
         """Abstract Method: Used in C2 server to parse and receive the output of commands sent to the c2 beacon."""
         pass
+    
