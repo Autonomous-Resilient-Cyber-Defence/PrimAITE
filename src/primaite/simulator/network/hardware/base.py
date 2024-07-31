@@ -99,7 +99,7 @@ class NetworkInterface(SimComponent, ABC):
     pcap: Optional[PacketCapture] = None
     "A PacketCapture instance for capturing and analysing packets passing through this interface."
 
-    nmne_config: ClassVar[NMNEConfig] = None
+    nmne_config: ClassVar[NMNEConfig] = NMNEConfig()
     "A dataclass defining malicious network events to be captured."
 
     nmne: Dict = Field(default_factory=lambda: {})
@@ -1167,7 +1167,7 @@ class Node(SimComponent):
                     ip_address,
                     network_interface.speed,
                     "Enabled" if network_interface.enabled else "Disabled",
-                    network_interface.nmne if self.nmne_config.capture_nmne else "Disabled",
+                    network_interface.nmne if network_interface.nmne_config.capture_nmne else "Disabled",
                 ]
             )
         print(table)
