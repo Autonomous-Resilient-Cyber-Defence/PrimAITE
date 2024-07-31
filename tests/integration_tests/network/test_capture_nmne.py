@@ -1,9 +1,9 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from primaite.game.agent.observations.nic_observations import NICObservation
-from primaite.session.io import store_nmne_config
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 
@@ -35,7 +35,7 @@ def test_capture_nmne(uc2_network: Network):
     }
 
     # Apply the NMNE configuration settings
-    NIC.nmne_config = store_nmne_config(nmne_config)
+    NIC.nmne_config = NMNEConfig(**nmne_config)
 
     # Assert that initially, there are no captured MNEs on both web and database servers
     assert web_server_nic.nmne == {}
@@ -112,7 +112,7 @@ def test_describe_state_nmne(uc2_network: Network):
     }
 
     # Apply the NMNE configuration settings
-    NIC.nmne_config = store_nmne_config(nmne_config)
+    NIC.nmne_config = NMNEConfig(**nmne_config)
 
     # Assert that initially, there are no captured MNEs on both web and database servers
     web_server_nic_state = web_server_nic.describe_state()
@@ -221,7 +221,7 @@ def test_capture_nmne_observations(uc2_network: Network):
     }
 
     # Apply the NMNE configuration settings
-    NIC.nmne_config = store_nmne_config(nmne_config)
+    NIC.nmne_config = NMNEConfig(**nmne_config)
 
     # Define observations for the NICs  of the database and web servers
     db_server_nic_obs = NICObservation(where=["network", "nodes", "database_server", "NICs", 1], include_nmne=True)
