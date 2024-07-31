@@ -124,13 +124,13 @@ class Terminal(Service):
                 return RequestResponse(status="failure", data={})
 
         def _remote_login(request: List[Any], context: Any) -> RequestResponse:
-            self._process_remote_login(username=request[0], password=request[1], ip_address=request[2])
-            if self.is_connected:
+            login = self._process_remote_login(username=request[0], password=request[1], ip_address=request[2])
+            if login:
                 return RequestResponse(status="success", data={})
             else:
                 return RequestResponse(status="failure", data={})
 
-        def _execute(request: List[Any], context: Any) -> RequestResponse:
+        def _execute_request(request: List[Any], context: Any) -> RequestResponse:
             """Execute an instruction."""
             command: str = request[0]
             self.execute(command)
@@ -156,7 +156,7 @@ class Terminal(Service):
 
         rm.add_request(
             "Execute",
-            request_type=RequestType(func=_execute, validator=_login_valid),
+            request_type=RequestType(func=_execute_request, validator=_login_valid),
         )
 
         rm.add_request("Logoff", request_type=RequestType(func=_logoff, validator=_login_valid))
