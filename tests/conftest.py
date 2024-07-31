@@ -37,14 +37,14 @@ ACTION_SPACE_NODE_ACTION_VALUES = 1
 _LOGGER = getLogger(__name__)
 
 
-class TestService(Service):
+class DummyService(Service):
     """Test Service class"""
 
     def describe_state(self) -> Dict:
         return super().describe_state()
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "TestService"
+        kwargs["name"] = "DummyService"
         kwargs["port"] = Port.HTTP
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
@@ -75,15 +75,15 @@ def uc2_network() -> Network:
 
 
 @pytest.fixture(scope="function")
-def service(file_system) -> TestService:
-    return TestService(
-        name="TestService", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="test_service")
+def service(file_system) -> DummyService:
+    return DummyService(
+        name="DummyService", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="dummy_service")
     )
 
 
 @pytest.fixture(scope="function")
 def service_class():
-    return TestService
+    return DummyService
 
 
 @pytest.fixture(scope="function")

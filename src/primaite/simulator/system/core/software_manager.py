@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
 
+from primaite.simulator.core import RequestType
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
@@ -20,9 +21,7 @@ if TYPE_CHECKING:
     from primaite.simulator.system.services.arp.arp import ARP
     from primaite.simulator.system.services.icmp.icmp import ICMP
 
-from typing import Type, TypeVar
-
-IOSoftwareClass = TypeVar("IOSoftwareClass", bound=IOSoftware)
+from typing import Type
 
 
 class SoftwareManager:
@@ -51,7 +50,7 @@ class SoftwareManager:
         self.node = parent_node
         self.session_manager = session_manager
         self.software: Dict[str, Union[Service, Application]] = {}
-        self._software_class_to_name_map: Dict[Type[IOSoftwareClass], str] = {}
+        self._software_class_to_name_map: Dict[Type[IOSoftware], str] = {}
         self.port_protocol_mapping: Dict[Tuple[Port, IPProtocol], Union[Service, Application]] = {}
         self.sys_log: SysLog = sys_log
         self.file_system: FileSystem = file_system
@@ -104,33 +103,34 @@ class SoftwareManager:
                 return True
         return False
 
-    def install(self, software_class: Type[IOSoftwareClass]):
+    def install(self, software_class: Type[IOSoftware]):
         """
         Install an Application or Service.
 
         :param software_class: The software class.
         """
-        # TODO: Software manager and node itself both have an install method. Need to refactor to have more logical
-        # separation of concerns.
         if software_class in self._software_class_to_name_map:
             self.sys_log.warning(f"Cannot install {software_class} as it is already installed")
             return
         software = software_class(
             software_manager=self, sys_log=self.sys_log, file_system=self.file_system, dns_server=self.dns_server
         )
+        software.parent = self.node
         if isinstance(software, Application):
-            software.install()
+            self.node.applications[software.uuid] = software
+            self.node._application_request_manager.add_request(
+                software.name, RequestType(func=software._request_manager)
+            )
+        elif isinstance(software, Service):
+            self.node.services[software.uuid] = software
+            self.node._service_request_manager.add_request(software.name, RequestType(func=software._request_manager))
+        software.install()
         software.software_manager = self
         self.software[software.name] = software
         self.port_protocol_mapping[(software.port, software.protocol)] = software
         if isinstance(software, Application):
             software.operating_state = ApplicationOperatingState.CLOSED
-
-        # add the software to the node's registry after it has been fully initialized
-        if isinstance(software, Service):
-            self.node.install_service(software)
-        elif isinstance(software, Application):
-            self.node.install_application(software)
+        self.node.sys_log.info(f"Installed {software.name}")
 
     def uninstall(self, software_name: str):
         """
@@ -138,25 +138,31 @@ class SoftwareManager:
 
         :param software_name: The software name.
         """
-        if software_name in self.software:
-            self.software[software_name].uninstall()
-            software = self.software.pop(software_name)  # noqa
-            if isinstance(software, Application):
-                self.node.uninstall_application(software)
-            elif isinstance(software, Service):
-                self.node.uninstall_service(software)
-            for key, value in self.port_protocol_mapping.items():
-                if value.name == software_name:
-                    self.port_protocol_mapping.pop(key)
-                    break
-            for key, value in self._software_class_to_name_map.items():
-                if value == software_name:
-                    self._software_class_to_name_map.pop(key)
-                    break
-            del software
-            self.sys_log.info(f"Uninstalled {software_name}")
+        if software_name not in self.software:
+            self.sys_log.error(f"Cannot uninstall {software_name} as it is not installed")
             return
-        self.sys_log.error(f"Cannot uninstall {software_name} as it is not installed")
+
+        self.software[software_name].uninstall()
+        software = self.software.pop(software_name)  # noqa
+        if isinstance(software, Application):
+            self.node.applications.pop(software.uuid)
+            self.node._application_request_manager.remove_request(software.name)
+        elif isinstance(software, Service):
+            self.node.services.pop(software.uuid)
+            software.uninstall()
+            self.node._service_request_manager.remove_request(software.name)
+        software.parent = None
+        for key, value in self.port_protocol_mapping.items():
+            if value.name == software_name:
+                self.port_protocol_mapping.pop(key)
+                break
+        for key, value in self._software_class_to_name_map.items():
+            if value == software_name:
+                self._software_class_to_name_map.pop(key)
+                break
+        del software
+        self.sys_log.info(f"Uninstalled {software_name}")
+        return
 
     def send_internal_payload(self, target_software: str, payload: Any):
         """

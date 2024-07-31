@@ -13,7 +13,7 @@ from primaite.simulator.network.hardware.node_operating_state import NodeOperati
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.transmission.transport_layer import Port
-from tests.conftest import DummyApplication, TestService
+from tests.conftest import DummyApplication, DummyService
 
 
 def test_successful_node_file_system_creation_request(example_network):
@@ -61,7 +61,7 @@ def test_successful_application_requests(example_network):
 def test_successful_service_requests(example_network):
     net = example_network
     server_1 = net.get_node_by_hostname("server_1")
-    server_1.software_manager.install(TestService)
+    server_1.software_manager.install(DummyService)
 
     # Careful: the order here is important, for example we cannot run "stop" unless we run "start" first
     for verb in [
@@ -77,7 +77,7 @@ def test_successful_service_requests(example_network):
         "scan",
         "fix",
     ]:
-        resp_1 = net.apply_request(["node", "server_1", "service", "TestService", verb])
+        resp_1 = net.apply_request(["node", "server_1", "service", "DummyService", verb])
         assert resp_1 == RequestResponse(status="success", data={})
         server_1.apply_timestep(timestep=1)
         server_1.apply_timestep(timestep=1)
