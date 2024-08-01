@@ -22,7 +22,7 @@ class SSHTransportMessage(IntEnum):
     """Indicates User Authentication failed."""
 
     SSH_MSG_USERAUTH_SUCCESS = 52
-    """Indicates User Authentication failed was successful."""
+    """Indicates User Authentication was successful."""
 
     SSH_MSG_SERVICE_REQUEST = 24
     """Requests a service - such as executing a command."""
