@@ -1,6 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command
 #from primaite.simulator.system.services.terminal.terminal import Terminal
+from prettytable import MARKDOWN, PrettyTable
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.network.protocols.masquerade import C2Payload, MasqueradePacket
@@ -12,7 +13,7 @@ from enum import Enum
 from primaite.simulator.system.software import SoftwareHealthState
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 
-class C2Beacon(AbstractC2, identifier="C2Beacon"):
+class C2Beacon(AbstractC2, identifier="C2 Beacon"):
     """
     C2 Beacon Application.
 
@@ -128,11 +129,10 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     def establish(self) -> bool:
         """Establishes connection to the C2 server via a send alive. Must be called after the C2 Beacon is configured."""
         self.run()
-        self._send_keep_alive()
         self.num_executions += 1
-        
+        return self._send_keep_alive(session_id=None)
 
-    def _handle_command_input(self, payload: MasqueradePacket) -> bool:
+    def _handle_command_input(self, payload: MasqueradePacket, session_id: Optional[str]) -> bool:
         """
         Handles the parsing of C2 Commands from C2 Traffic (Masquerade Packets)
         as well as then calling the relevant method dependant on the C2 Command.
@@ -149,22 +149,22 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
 
         if command == C2Command.RANSOMWARE_CONFIGURE:
             self.sys_log.info(f"{self.name}: Received a ransomware configuration C2 command.")
-            return self._return_command_output(self._command_ransomware_config(payload))
+            return self._return_command_output(command_output=self._command_ransomware_config(payload), session_id=session_id)
 
         elif command == C2Command.RANSOMWARE_LAUNCH:
             self.sys_log.info(f"{self.name}: Received a ransomware launch C2 command.")
-            return self._return_command_output(self._command_ransomware_launch(payload))
+            return self._return_command_output(command_output=self._command_ransomware_launch(payload), session_id=session_id)
 
         elif command == C2Command.TERMINAL:
             self.sys_log.info(f"{self.name}: Received a terminal C2 command.")
-            return self._return_command_output(self._command_terminal(payload))
+            return self._return_command_output(command_output=self._command_terminal(payload), session_id=session_id)
 
         else:
             self.sys_log.error(f"{self.name}: Received an C2 command: {command} but was unable to resolve command.")
             return self._return_command_output(RequestResponse(status="failure", data={"Unexpected Behaviour. Unable to resolve command."}))
 
 
-    def _return_command_output(self, command_output: RequestResponse) -> bool:
+    def _return_command_output(self, command_output: RequestResponse, session_id) -> bool:
         """Responsible for responding to the C2 Server with the output of the given command."""
         output_packet = MasqueradePacket(
             masquerade_protocol=self.current_masquerade_protocol,
@@ -173,11 +173,10 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             payload=command_output
         )
         if self.send(
-            self,
             payload=output_packet,
             dest_ip_address=self.c2_remote_connection,
-            port=self.current_masquerade_port,
-            protocol=self.current_masquerade_protocol,
+            dest_port=self.current_masquerade_port,
+            ip_protocol=self.current_masquerade_protocol,
         ):
             self.sys_log.info(f"{self.name}: Command output sent to {self.c2_remote_connection}")
             self.sys_log.debug(f"{self.name}: on {self.current_masquerade_port} via {self.current_masquerade_protocol}")
@@ -256,15 +255,16 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             if not self._check_c2_connection(timestep):
                 self.sys_log.error(f"{self.name}: Connection Severed - Application Closing.")
                 self.clear_connections()
+                # TODO: Shouldn't this close() method also set the health state to 'UNUSED'?
                 self.close()
         return
 
 
     def _check_c2_connection(self, timestep) -> bool:
         """Checks the C2 Server connection. If a connection cannot be confirmed then this method will return false otherwise true."""
-        if self.keep_alive_inactivity > self.keep_alive_frequency:
-            self.sys_log.info(f"{self.name}: Keep Alive sent to {self.c2_remote_connection} at timestep {timestep}.")
-            self._send_keep_alive()
+        if self.keep_alive_inactivity == self.keep_alive_frequency:
+            self.sys_log.info(f"{self.name}: Attempting to Send Keep Alive to {self.c2_remote_connection} at timestep {timestep}.")
+            self._send_keep_alive(session_id=self.current_c2_session.uuid)
             if self.keep_alive_inactivity != 0:
                 self.sys_log.warning(f"{self.name}: Did not receive keep alive from c2 Server. Connection considered severed.")
                 return False
@@ -274,6 +274,19 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     # Defining this abstract method from Abstract C2
     def _handle_command_output(self, payload):
         """C2 Beacons currently do not need to handle output commands coming from the C2 Servers."""
-        self.sys_log.warning(f"{self.name}: C2 Beacon received an unexpected OUTPUT payload: {payload}")
+        self.sys_log.warning(f"{self.name}: C2 Beacon received an unexpected OUTPUT payload: {payload}.")
         pass
     
+    def show(self, markdown: bool = False):
+        """
+        Prints a table of the current C2 attributes on a C2 Beacon.
+
+        :param markdown: If True, outputs the table in markdown format. Default is False.
+        """
+        table = PrettyTable(["C2 Connection Active", "C2 Remote Connection",  "Keep Alive Inactivity", "Keep Alive Frequency"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.name} Running Status"
+        table.add_row([self.c2_connection_active, self.c2_remote_connection, self.keep_alive_inactivity, self.keep_alive_frequency])
+        print(table)

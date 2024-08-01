@@ -3,6 +3,7 @@ from primaite.simulator.system.applications.red_applications.c2.abstract_c2 impo
 from primaite.simulator.network.protocols.masquerade import C2Payload, MasqueradePacket
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.interface.request import RequestFormat, RequestResponse
+from prettytable import MARKDOWN, PrettyTable
 from typing import Dict,Optional
 
 class C2Server(AbstractC2, identifier="C2 Server"):
@@ -94,6 +95,7 @@ class C2Server(AbstractC2, identifier="C2 Server"):
             return RequestResponse(status="failure", data={"Received unexpected C2 Response."})
         return command_output
     
+
     def _send_command(self, given_command: C2Command, command_options: Dict) -> RequestResponse:
         """
         Sends a command to the C2 Beacon.
@@ -115,8 +117,12 @@ class C2Server(AbstractC2, identifier="C2 Server"):
         command_packet = self._craft_packet(given_command=given_command, command_options=command_options)
 
         # Need to investigate if this is correct.
-        if self.send(self, payload=command_packet,dest_ip_address=self.c2_remote_connection,
-            port=self.current_masquerade_port, protocol=self.current_masquerade_protocol,session_id=None):
+        if self.send(payload=command_packet,            
+            dest_ip_address=self.c2_remote_connection,
+            src_port=self.current_masquerade_port,
+            dst_port=self.current_masquerade_port, 
+            ip_protocol=self.current_masquerade_protocol,
+            session_id=None):
             self.sys_log.info(f"{self.name}: Successfully sent {given_command}.")
             self.sys_log.info(f"{self.name}: Awaiting command response {given_command}.")
             return self._handle_command_output(command_packet)
@@ -150,3 +156,18 @@ class C2Server(AbstractC2, identifier="C2 Server"):
         """C2 Servers currently do not receive input commands coming from the C2 Beacons."""
         self.sys_log.warning(f"{self.name}: C2 Server received an unexpected INPUT payload: {payload}")
         pass
+
+
+    def show(self, markdown: bool = False):
+        """
+        Prints a table of the current C2 attributes on a C2 Server.
+
+        :param markdown: If True, outputs the table in markdown format. Default is False.
+        """
+        table = PrettyTable(["C2 Connection Active", "C2 Remote Connection", "Keep Alive Inactivity"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.name} Running Status"
+        table.add_row([self.c2_connection_active, self.c2_remote_connection, self.keep_alive_inactivity])
+        print(table)

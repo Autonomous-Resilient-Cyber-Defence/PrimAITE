@@ -10,6 +10,7 @@ from primaite.simulator.network.protocols.masquerade import C2Payload, Masquerad
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
+from primaite.simulator.system.core.session_manager import Session
 
 # TODO:
 # Complete C2 Server and C2 Beacon TODOs
@@ -52,7 +53,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
     """Indicates if the c2 server and c2 beacon are currently connected."""
 
     c2_remote_connection: IPv4Address = None
-    """The IPv4 Address of the remote c2 connection. (Either the IP of the beacon or the server)"""
+    """The IPv4 Address of the remote c2 connection. (Either the IP of the beacon or the server)."""
 
     keep_alive_sent: bool = False
     """Indicates if a keep alive has been sent this timestep. Used to prevent packet storms."""
@@ -65,11 +66,17 @@ class AbstractC2(Application, identifier="AbstractC2"):
     # The c2 server parses the keep alive and sets these accordingly.
     # The c2 beacon will set this attributes upon installation and configuration
 
-    current_masquerade_protocol: Enum = IPProtocol.TCP
+    current_masquerade_protocol: IPProtocol = IPProtocol.TCP
     """The currently chosen protocol that the C2 traffic is masquerading as. Defaults as TCP."""
 
-    current_masquerade_port: Enum = Port.HTTP
+    current_masquerade_port: Port = Port.HTTP
     """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
+
+    current_c2_session: Session = None
+    """The currently active session that the C2 Traffic is using. Set after establishing connection."""
+
+    # TODO: Create a attribute call 'LISTENER' which indicates whenever the c2 application should listen for incoming connections or establish connections.
+    # This in order to simulate a blind shell (the current implementation is more akin to a reverse shell)
 
     # TODO: Move this duplicate method from NMAP class into 'Application' to adhere to DRY principle.
     def _can_perform_network_action(self) -> bool:
@@ -99,8 +106,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
         return super().describe_state()
     
     def __init__(self, **kwargs):
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.NONE
+        kwargs["port"] = Port.HTTP # TODO: Update this post application/services requiring to listen to multiple ports
+        kwargs["protocol"] = IPProtocol.TCP # Update this as well
         super().__init__(**kwargs)
 
     # Validate call ensures we are only handling Masquerade Packets.
@@ -147,7 +154,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
             return False
 
     # Abstract method
-    # Used in C2 server to prase and receive the output of commands sent to the c2 beacon.
+    # Used in C2 server to parse and receive the output of commands sent to the c2 beacon.
     @abstractmethod
     def _handle_command_output(payload):
         """Abstract Method: Used in C2 server to prase and receive the output of commands sent to the c2 beacon."""
@@ -170,32 +177,35 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :return: True if successfully handled, false otherwise.
         :rtype: Bool
         """
-        self.sys_log.info(f"{self.name}: Keep Alive Received from {self.c2_remote_connection}")
-        # Using this guard clause to prevent packet storms and recognise that we've achieved a connection.
-        if self.keep_alive_sent:
-            self.sys_log.info(f"{self.name}: Connection successfully established with {self.c2_remote_connection}")
-            self.c2_connection_active = True  # Sets the connection to active
-            self.keep_alive_inactivity = 0  # Sets the keep alive inactivity to zero
+        self.sys_log.info(f"{self.name}: Keep Alive Received from {self.c2_remote_connection}.")
+         
+        self.c2_connection_active = True  # Sets the connection to active
+        self.keep_alive_inactivity = 0  # Sets the keep alive inactivity to zero
+        self.current_c2_session = self.software_manager.session_manager.sessions_by_uuid[session_id]
 
+
+        # Using this guard clause to prevent packet storms and recognise that we've achieved a connection.
+        # This guard clause triggers on the c2 suite that establishes connection.
+        if self.keep_alive_sent == True:
             # Return early without sending another keep alive and then setting keep alive_sent false for next timestep.
             self.keep_alive_sent = False
             return True
 
         # If we've reached this part of the method then we've received a keep alive but haven't sent a reply.
         # Therefore we also need to configure the masquerade attributes based off the keep alive sent.
-        if not self._resolve_keep_alive(self, payload):
+        if self._resolve_keep_alive(payload, session_id) == False:
+            self.sys_log.warning(f"{self.name}: Keep Alive Could not be resolved correctly. Refusing Keep Alive.")
             return False
 
         # If this method returns true then we have sent successfully sent a keep alive.
-        if self._send_keep_alive(self, session_id):
-            self.keep_alive_sent = True # Setting the guard clause to true (prevents packet storms.)
-            return True
 
-        # Return false if we're unable to send handle the keep alive correctly.
-        else:
-            return False
+        self.sys_log.info(f"{self.name}: Connection successfully established with {self.c2_remote_connection}.")
+                
+        return self._send_keep_alive(session_id)
 
-    def receive(self, payload: MasqueradePacket, session_id: Optional[str] = None) -> bool:
+
+    # from_network_interface=from_network_interface
+    def receive(self, payload: MasqueradePacket, session_id: Optional[str] = None, **kwargs) -> bool:
         """Receives masquerade packets. Used by both c2 server and c2 client.
 
         :param payload: The Masquerade Packet to be received.
@@ -220,20 +230,20 @@ class AbstractC2(Application, identifier="AbstractC2"):
             masquerade_protocol=self.current_masquerade_protocol,
             masquerade_port=self.current_masquerade_port,
             payload_type=C2Payload.KEEP_ALIVE,
+            command=None
         )
-
-        # C2 Server will need to c2_remote_connection after it receives it's first keep alive.
+        # We need to set this guard clause to true before sending the keep alive (prevents packet storms.)
+        self.keep_alive_sent = True 
+        # C2 Server will need to configure c2_remote_connection after it receives it's first keep alive.
         if self.send(
-            self,
             payload=keep_alive_packet,
             dest_ip_address=self.c2_remote_connection,
-            port=self.current_masquerade_port,
-            protocol=self.current_masquerade_protocol,
+            dest_port=self.current_masquerade_port,
+            ip_protocol=self.current_masquerade_protocol,
             session_id=session_id,
         ):
             self.sys_log.info(f"{self.name}: Keep Alive sent to {self.c2_remote_connection}")
             self.sys_log.debug(f"{self.name}: on {self.current_masquerade_port} via {self.current_masquerade_protocol}")
-            self.receive(payload=keep_alive_packet)
             return True
         else:
             self.sys_log.warning(
@@ -242,7 +252,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
             return False
 
 
-    def _resolve_keep_alive(self, payload: MasqueradePacket) -> bool:
+    def _resolve_keep_alive(self, payload: MasqueradePacket, session_id: Optional[str]) -> bool:
         """
         Parses the Masquerade Port/Protocol within the received Keep Alive packet.
 
@@ -257,8 +267,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :rtype: bool
         """
         # Validating that they are valid Enums.
-        if payload.masquerade_port or payload.masquerade_protocol != Enum:
-            self.sys_log.warning(f"{self.name}: Received invalid Masquerade type. Port: {type(payload.masquerade_port)} Protocol: {type(payload.masquerade_protocol)}")
+        if not isinstance(payload.masquerade_port, Port) or not isinstance(payload.masquerade_protocol, IPProtocol):
+            self.sys_log.warning(f"{self.name}: Received invalid Masquerade type. Port: {type(payload.masquerade_port)} Protocol: {type(payload.masquerade_protocol)}.")
             return False
         # TODO: Validation on Ports (E.g only allow HTTP, FTP etc)
         # Potentially compare to IPProtocol & Port children (Same way that abstract TAP does it with kill chains)
@@ -266,4 +276,14 @@ class AbstractC2(Application, identifier="AbstractC2"):
         # Setting the Ports
         self.current_masquerade_port = payload.masquerade_port
         self.current_masquerade_protocol = payload.masquerade_protocol
+
+        # This statement is intended to catch on the C2 Application that is listening for connection. (C2 Beacon)
+        if self.c2_remote_connection == None:
+            self.sys_log.debug(f"{self.name}: Attempting to configure remote C2 connection based off received output.")
+            self.c2_remote_connection = self.current_c2_session.with_ip_address
+            
+        self.c2_connection_active = True  # Sets the connection to active
+        self.keep_alive_inactivity = 0  # Sets the keep alive inactivity to zeroW
+        
         return True
+    

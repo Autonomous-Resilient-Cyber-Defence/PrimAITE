@@ -48,19 +48,25 @@ def basic_network() -> Network:
     node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
     node_a.power_on()
     node_a.software_manager.get_open_ports()
-    
+    node_a.software_manager.install(software_class=C2Server)
 
     node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b.software_manager.install(software_class=C2Beacon)
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
     return network
 
 def test_c2_suite_setup_receive(basic_network):
-    """Test that C2 Beacon can successfully establish connection with the c2 Server"""
+    """Test that C2 Beacon can successfully establish connection with the c2 Server."""
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
     c2_server: C2Server = computer_a.software_manager.software.get("C2Server")
 
     computer_b: Computer = network.get_node_by_hostname("node_b")
-    c2_beacon: C2Server = computer_a.software_manager.software.get("C2Beacon")
+    c2_beacon: C2Beacon = computer_b.software_manager.software.get("C2Beacon")
+
+    c2_beacon.configure(c2_server_ip_address="192.168.0.10")
+    c2_beacon.establish()
+    
+    c2_beacon.sys_log.show()
