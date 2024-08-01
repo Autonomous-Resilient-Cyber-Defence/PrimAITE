@@ -185,9 +185,11 @@ class Terminal(Service):
     def login(self, username: str, password: str, ip_address: Optional[IPv4Address] = None) -> bool:
         """Process User request to login to Terminal.
 
-        :param dest_ip_address: The IP address of the node we want to connect to.
+        If ip_address is passed, login will attempt a remote login to the terminal
+
         :param username: The username credential.
         :param password: The user password component of credentials.
+        :param dest_ip_address: The IP address of the node we want to connect to.
         :return: True if successful, False otherwise.
         """
         if self.operating_state != ServiceOperatingState.RUNNING:
@@ -196,6 +198,8 @@ class Terminal(Service):
 
         if ip_address:
             # if ip_address has been provided, we assume we are logging in to a remote terminal.
+            if ip_address == self.parent.network_interface[1].ip_address:
+                return self._process_local_login(username=username, password=password)
             return self._send_remote_login(username=username, password=password, ip_address=ip_address)
 
         return self._process_local_login(username=username, password=password)
