@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+-   Removed the install/uninstall methods in the node class and made the software manager install/uninstall handle all of their functionality.
+
 
 ## [3.2.0] - 2024-07-18
 
@@ -27,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Frame `size` attribute now includes both core size and payload size in bytes
 -   The `speed` attribute of `NetworkInterface` has been changed from `int` to `float`
 -   Tidied up CHANGELOG
+-   Enhanced `AirSpace` logic to block transmissions that would exceed the available capacity.
+-   Updated `_can_transmit` function in `Link` to account for current load and total bandwidth capacity, ensuring transmissions do not exceed limits.
 
 ### Fixed
 -   Links and airspaces can no longer transmit data if this would exceed their bandwidth
