@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Transmission Feasibility Check**: Updated `_can_transmit` function in `Link` to account for current load and total bandwidth capacity, ensuring transmissions do not exceed limits.
 -   **Frame Size Details**: Frame `size` attribute now includes both core size and payload size in bytes.
 -   **Transmission Blocking**: Enhanced `AirSpace` logic to block transmissions that would exceed the available capacity.
+-   **Software (un)install refactored**: Removed the install/uninstall methods in the node class and made the software manager install/uninstall handle all of their functionality.
 
 ### Fixed
 

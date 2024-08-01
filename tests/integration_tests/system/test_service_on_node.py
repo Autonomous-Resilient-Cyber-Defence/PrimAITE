@@ -23,7 +23,7 @@ def populated_node(
     server.power_on()
     server.software_manager.install(service_class)
 
-    service = server.software_manager.software.get("TestService")
+    service = server.software_manager.software.get("DummyService")
     service.start()
 
     return server, service
@@ -42,7 +42,7 @@ def test_service_on_offline_node(service_class):
     computer.power_on()
     computer.software_manager.install(service_class)
 
-    service: Service = computer.software_manager.software.get("TestService")
+    service: Service = computer.software_manager.software.get("DummyService")
 
     computer.power_off()
 

@@ -6,7 +6,7 @@ import secrets
 from abc import ABC, abstractmethod
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypeVar, Union
+from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar, Union
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel, Field, validate_call
@@ -39,7 +39,7 @@ from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.processes.process import Process
 from primaite.simulator.system.services.service import Service
-from primaite.simulator.system.software import IOSoftware
+from primaite.simulator.system.software import IOSoftware, Software
 from primaite.utils.converters import convert_dict_enum_keys_to_enum_values
 from primaite.utils.validators import IPV4Address
 
@@ -850,7 +850,6 @@ class UserManager(Service):
         kwargs["port"] = Port.NONE
         kwargs["protocol"] = IPProtocol.NONE
         super().__init__(**kwargs)
-        self._request_manager = None
 
         self.start()
 
@@ -897,6 +896,10 @@ class UserManager(Service):
         for user in self.users.values():
             table.add_row([user.username, user.is_admin, user.disabled])
         print(table.get_string(sortby="Username"))
+
+    def install(self) -> None:
+        """Setup default user during first-time installation."""
+        self.add_user(username="admin", password="admin", is_admin=True, bypass_can_perform_action=True)
 
     def _is_last_admin(self, username: str) -> bool:
         return username in self.admins and len(self.admins) == 1
@@ -1101,9 +1104,6 @@ class UserSessionManager(Service):
     This class handles authentication, session management, and session timeouts for users interacting with the Node.
     """
 
-    node: Node
-    """The node associated with this UserSessionManager."""
-
     local_session: Optional[UserSession] = None
     """The current local user session, if any."""
 
@@ -1184,7 +1184,7 @@ class UserSessionManager(Service):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.node.hostname} User Sessions"
+        table.title = f"{self.parent.hostname} User Sessions"
 
         def _add_session_to_table(user_session: UserSession):
             """
@@ -1473,6 +1473,9 @@ class Node(SimComponent):
     red_scan_countdown: int = 0
     "Time steps until reveal to red scan is complete."
 
+    SYSTEM_SOFTWARE: ClassVar[Dict[str, Type[Software]]] = {}
+    "Base system software that must be preinstalled."
+
     def __init__(self, **kwargs):
         """
         Initialize the Node with various components and managers.
@@ -1497,22 +1500,19 @@ class Node(SimComponent):
                 dns_server=kwargs.get("dns_server"),
             )
         super().__init__(**kwargs)
+        self._install_system_software()
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
-        self.software_manager.install(UserSessionManager, node=self)
-        self.software_manager.install(UserManager)
-        self.user_manager.add_user(username="admin", password="admin", is_admin=True, bypass_can_perform_action=True)
-        self._install_system_software()
 
     @property
     def user_manager(self) -> UserManager:
         """The Nodes User Manager."""
-        return self.software_manager.software["UserManager"]  # noqa
+        return self.software_manager.software.get("UserManager")  # noqa
 
     @property
     def user_session_manager(self) -> UserSessionManager:
         """The Nodes User Session Manager."""
-        return self.software_manager.software["UserSessionManager"]  # noqa
+        return self.software_manager.software.get("UserSessionManager")  # noqa
 
     def local_login(self, username: str, password: str) -> Optional[str]:
         """
@@ -1734,10 +1734,6 @@ class Node(SimComponent):
 
         self._application_manager.add_request(name="install", request_type=RequestType(func=_install_application))
         self._application_manager.add_request(name="uninstall", request_type=RequestType(func=_uninstall_application))
-
-        rm.add_request("accounts", RequestType(func=self.user_manager._request_manager))  # noqa
-
-        rm.add_request("sessions", RequestType(func=self.user_session_manager._request_manager))  # noqa
 
         return rm
 
@@ -2101,74 +2097,6 @@ class Node(SimComponent):
         else:
             return
 
-    def install_service(self, service: Service) -> None:
-        """
-        Install a service on this node.
-
-        :param service: Service instance that has not been installed on any node yet.
-        :type service: Service
-        """
-        if service in self:
-            _LOGGER.warning(f"Can't add service {service.name} to node {self.hostname}. It's already installed.")
-            return
-        self.services[service.uuid] = service
-        service.parent = self
-        service.install()  # Perform any additional setup, such as creating files for this service on the node.
-        self.sys_log.info(f"Installed service {service.name}")
-        _LOGGER.debug(f"Added service {service.name} to node {self.hostname}")
-        self._service_request_manager.add_request(service.name, RequestType(func=service._request_manager))
-
-    def uninstall_service(self, service: Service) -> None:
-        """
-        Uninstall and completely remove service from this node.
-
-        :param service: Service object that is currently associated with this node.
-        :type service: Service
-        """
-        if service not in self:
-            _LOGGER.warning(f"Can't remove service {service.name} from node {self.hostname}. It's not installed.")
-            return
-        service.uninstall()  # Perform additional teardown, such as removing files or restarting the machine.
-        self.services.pop(service.uuid)
-        service.parent = None
-        self.sys_log.info(f"Uninstalled service {service.name}")
-        self._service_request_manager.remove_request(service.name)
-
-    def install_application(self, application: Application) -> None:
-        """
-        Install an application on this node.
-
-        :param application: Application instance that has not been installed on any node yet.
-        :type application: Application
-        """
-        if application in self:
-            _LOGGER.warning(
-                f"Can't add application {application.name} to node {self.hostname}. It's already installed."
-            )
-            return
-        self.applications[application.uuid] = application
-        application.parent = self
-        self.sys_log.info(f"Installed application {application.name}")
-        _LOGGER.debug(f"Added application {application.name} to node {self.hostname}")
-        self._application_request_manager.add_request(application.name, RequestType(func=application._request_manager))
-
-    def uninstall_application(self, application: Application) -> None:
-        """
-        Uninstall and completely remove application from this node.
-
-        :param application: Application object that is currently associated with this node.
-        :type application: Application
-        """
-        if application not in self:
-            _LOGGER.warning(
-                f"Can't remove application {application.name} from node {self.hostname}. It's not installed."
-            )
-            return
-        self.applications.pop(application.uuid)
-        application.parent = None
-        self.sys_log.info(f"Uninstalled application {application.name}")
-        self._application_request_manager.remove_request(application.name)
-
     def _shut_down_actions(self):
         """Actions to perform when the node is shut down."""
         # Turn off all the services in the node
@@ -2196,6 +2124,11 @@ class Node(SimComponent):
         # Turn off all processes in the node
         # for process_id in self.processes:
         #     self.processes[process_id]
+
+    def _install_system_software(self) -> None:
+        """Preinstall required software."""
+        for _, software_class in self.SYSTEM_SOFTWARE.items():
+            self.software_manager.install(software_class)
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Service):
