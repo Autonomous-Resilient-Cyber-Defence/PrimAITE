@@ -6,7 +6,7 @@ import secrets
 from abc import ABC, abstractmethod
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypeVar, Union
+from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar, Union
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel, Field, validate_call
@@ -39,7 +39,7 @@ from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.processes.process import Process
 from primaite.simulator.system.services.service import Service
-from primaite.simulator.system.software import IOSoftware
+from primaite.simulator.system.software import IOSoftware, Software
 from primaite.utils.converters import convert_dict_enum_keys_to_enum_values
 from primaite.utils.validators import IPV4Address
 
@@ -897,6 +897,10 @@ class UserManager(Service):
             table.add_row([user.username, user.is_admin, user.disabled])
         print(table.get_string(sortby="Username"))
 
+    def install(self) -> None:
+        """Setup default user during first-time installation."""
+        self.add_user(username="admin", password="admin", is_admin=True, bypass_can_perform_action=True)
+
     def _is_last_admin(self, username: str) -> bool:
         return username in self.admins and len(self.admins) == 1
 
@@ -1100,9 +1104,6 @@ class UserSessionManager(Service):
     This class handles authentication, session management, and session timeouts for users interacting with the Node.
     """
 
-    node: Node
-    """The node associated with this UserSessionManager."""
-
     local_session: Optional[UserSession] = None
     """The current local user session, if any."""
 
@@ -1183,7 +1184,7 @@ class UserSessionManager(Service):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.node.hostname} User Sessions"
+        table.title = f"{self.parent.hostname} User Sessions"
 
         def _add_session_to_table(user_session: UserSession):
             """
@@ -1472,6 +1473,9 @@ class Node(SimComponent):
     red_scan_countdown: int = 0
     "Time steps until reveal to red scan is complete."
 
+    SYSTEM_SOFTWARE: ClassVar[Dict[str, Type[Software]]] = {}
+    "Base system software that must be preinstalled."
+
     def __init__(self, **kwargs):
         """
         Initialize the Node with various components and managers.
@@ -1496,20 +1500,9 @@ class Node(SimComponent):
                 dns_server=kwargs.get("dns_server"),
             )
         super().__init__(**kwargs)
+        self._install_system_software()
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
-
-        self.software_manager.install(UserSessionManager, node=self)
-        self._request_manager.add_request(
-            "sessions", RequestType(func=self.user_session_manager._request_manager)
-        )  # noqa
-
-        self.software_manager.install(UserManager)
-        self._request_manager.add_request("accounts", RequestType(func=self.user_manager._request_manager))  # noqa
-
-        self.user_manager.add_user(username="admin", password="admin", is_admin=True, bypass_can_perform_action=True)
-
-        self._install_system_software()
 
     @property
     def user_manager(self) -> UserManager:
@@ -1767,8 +1760,6 @@ class Node(SimComponent):
                 "services": {svc.name: svc.describe_state() for svc in self.services.values()},
                 "process": {proc.name: proc.describe_state() for proc in self.processes.values()},
                 "revealed_to_red": self.revealed_to_red,
-                "user_manager": self.user_manager.describe_state(),
-                "user_session_manager": self.user_session_manager.describe_state(),
             }
         )
         return state
@@ -2133,6 +2124,11 @@ class Node(SimComponent):
         # Turn off all processes in the node
         # for process_id in self.processes:
         #     self.processes[process_id]
+
+    def _install_system_software(self) -> None:
+        """Preinstall required software."""
+        for _, software_class in self.SYSTEM_SOFTWARE.items():
+            self.software_manager.install(software_class)
 
     def __contains__(self, item: Any) -> bool:
         if isinstance(item, Service):
