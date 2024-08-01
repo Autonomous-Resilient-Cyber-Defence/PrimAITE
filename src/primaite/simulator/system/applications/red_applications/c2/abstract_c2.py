@@ -35,7 +35,7 @@ class C2Command(Enum):
     # The terminal command should also be able to pass a session which can be used for remote connections.
 
 
-class AbstractC2(Application):
+class AbstractC2(Application, identifier="AbstractC2"):
     """
     An abstract command and control (c2) application.
 
@@ -97,6 +97,11 @@ class AbstractC2(Application):
         :rtype: Dict
         """
         return super().describe_state()
+    
+    def __init__(self, **kwargs):
+        kwargs["port"] = Port.NONE
+        kwargs["protocol"] = IPProtocol.NONE
+        super().__init__(**kwargs)
 
     # Validate call ensures we are only handling Masquerade Packets.
     @validate_call

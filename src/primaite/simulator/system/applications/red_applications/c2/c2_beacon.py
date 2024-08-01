@@ -12,7 +12,7 @@ from enum import Enum
 from primaite.simulator.system.software import SoftwareHealthState
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 
-class C2Beacon(AbstractC2):
+class C2Beacon(AbstractC2, identifier="C2Beacon"):
     """
     C2 Beacon Application.
 
@@ -86,8 +86,8 @@ class C2Beacon(AbstractC2):
         return rm
     
     def __init__(self, **kwargs):
-        self.name = "C2Beacon"
-        super.__init__(**kwargs)
+        kwargs["name"] = "C2Beacon"
+        super().__init__(**kwargs)
     
     def configure(
         self,
@@ -269,3 +269,11 @@ class C2Beacon(AbstractC2):
                 self.sys_log.warning(f"{self.name}: Did not receive keep alive from c2 Server. Connection considered severed.")
                 return False
         return True
+    
+
+    # Defining this abstract method from Abstract C2
+    def _handle_command_output(self, payload):
+        """C2 Beacons currently do not need to handle output commands coming from the C2 Servers."""
+        self.sys_log.warning(f"{self.name}: C2 Beacon received an unexpected OUTPUT payload: {payload}")
+        pass
+    

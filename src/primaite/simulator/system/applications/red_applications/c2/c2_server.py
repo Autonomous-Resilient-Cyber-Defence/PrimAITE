@@ -5,7 +5,7 @@ from primaite.simulator.core import RequestManager, RequestType
 from primaite.interface.request import RequestFormat, RequestResponse
 from typing import Dict,Optional
 
-class C2Server(AbstractC2):
+class C2Server(AbstractC2, identifier="C2 Server"):
     # TODO:
     # Implement the request manager and agent actions.
     # Implement the output handling methods. (These need to interface with the actions)
@@ -16,18 +16,6 @@ class C2Server(AbstractC2):
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
         rm = super()._init_request_manager()
-        rm.add_request(
-            name="c2_ransomware_configure",
-            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(_configure_ransomware_action())),
-        )
-        rm.add_request(
-            name="c2_ransomware_launch",
-            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(_launch_ransomware_action())),
-        )
-        rm.add_request(
-            name="c2_terminal_command",
-            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(_remote_terminal_action())),
-        )
 
         def _configure_ransomware_action(request: RequestFormat, context: Dict) -> RequestResponse:
             """Requests - Sends a RANSOMWARE_CONFIGURE C2Command to the C2 Beacon with the given parameters.
@@ -71,6 +59,23 @@ class C2Server(AbstractC2):
             placeholder: dict = {}
             return self._send_command(given_command=C2Command.RANSOMWARE_LAUNCH, command_options=placeholder)
 
+        rm.add_request(
+            name="c2_ransomware_configure",
+            request_type=RequestType(func=_configure_ransomware_action),
+        )
+        rm.add_request(
+            name="c2_ransomware_launch",
+            request_type=RequestType(func=_launch_ransomware_action),
+        )
+        rm.add_request(
+            name="c2_terminal_command",
+            request_type=RequestType(func=_remote_terminal_action),
+        )
+        return rm
+
+    def __init__(self, **kwargs):
+        kwargs["name"] = "C2Server"
+        super().__init__(**kwargs)
 
     def _handle_command_output(self, payload: MasqueradePacket) -> RequestResponse:
         """
@@ -125,7 +130,7 @@ class C2Server(AbstractC2):
         
         :param given_command: The C2 command to be sent to the C2 Beacon.
         :type given_command: C2Command.
-        :param command_options: The relevant C2 Beacon parameters.
+        :param command_options: The relevant C2 Beacon parameters.F
         :type command_options: Dict
         :return: Returns the construct MasqueradePacket
         :rtype: MasqueradePacket
@@ -140,3 +145,8 @@ class C2Server(AbstractC2):
         )
         return constructed_packet
         
+    # Defining this abstract method
+    def _handle_command_input(self, payload):
+        """C2 Servers currently do not receive input commands coming from the C2 Beacons."""
+        self.sys_log.warning(f"{self.name}: C2 Server received an unexpected INPUT payload: {payload}")
+        pass
