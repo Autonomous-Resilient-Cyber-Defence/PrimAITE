@@ -70,6 +70,8 @@ class PrimaiteGameOptions(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    seed: int = None
+    """Random number seed for RNGs."""
     max_episode_length: int = 256
     """Maximum number of episodes for the PrimAITE game."""
     ports: List[str]
