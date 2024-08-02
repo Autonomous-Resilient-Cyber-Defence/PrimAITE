@@ -5,6 +5,7 @@ from uuid import uuid4
 import pytest
 
 from primaite.simulator.network.container import Network
+from primaite.simulator.network.hardware.base import User
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 
@@ -44,6 +45,29 @@ def test_local_login_success(client_server_network):
     client.user_session_manager.local_login(username="admin", password="admin")
 
     assert client.user_session_manager.local_user_logged_in
+
+
+def test_login_count_increases(client_server_network):
+    client, server, network = client_server_network
+
+    admin_user: User = client.user_manager.users["admin"]
+
+    assert admin_user.num_of_logins == 0
+
+    client.user_session_manager.local_login(username="admin", password="admin")
+
+    assert admin_user.num_of_logins == 1
+
+    client.user_session_manager.local_login(username="admin", password="admin")
+
+    # shouldn't change as user is already logged in
+    assert admin_user.num_of_logins == 1
+
+    client.user_session_manager.local_logout()
+
+    client.user_session_manager.local_login(username="admin", password="admin")
+
+    assert admin_user.num_of_logins == 2
 
 
 def test_local_login_failure(client_server_network):
