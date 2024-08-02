@@ -12,13 +12,14 @@ from primaite.simulator.network.hardware.nodes.network.router import ACLAction, 
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
+from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Server
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.service import ServiceOperatingState
 from primaite.simulator.system.services.web_server.web_server import WebServer
-from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
-from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Server
 
 # TODO: Update these tests.
+
 
 @pytest.fixture(scope="function")
 def c2_server_on_computer() -> Tuple[C2Beacon, Computer]:
@@ -30,6 +31,7 @@ def c2_server_on_computer() -> Tuple[C2Beacon, Computer]:
 
     return [c2_beacon, computer]
 
+
 @pytest.fixture(scope="function")
 def c2_server_on_computer() -> Tuple[C2Server, Computer]:
     computer: Computer = Computer(
@@ -39,7 +41,6 @@ def c2_server_on_computer() -> Tuple[C2Server, Computer]:
     c2_server = computer.software_manager.software.get("C2Server")
 
     return [c2_server, computer]
-
 
 
 @pytest.fixture(scope="function")
@@ -57,6 +58,7 @@ def basic_network() -> Network:
 
     return network
 
+
 def test_c2_suite_setup_receive(basic_network):
     """Test that C2 Beacon can successfully establish connection with the c2 Server."""
     network: Network = basic_network
@@ -68,5 +70,5 @@ def test_c2_suite_setup_receive(basic_network):
 
     c2_beacon.configure(c2_server_ip_address="192.168.0.10")
     c2_beacon.establish()
-    
+
     c2_beacon.sys_log.show()

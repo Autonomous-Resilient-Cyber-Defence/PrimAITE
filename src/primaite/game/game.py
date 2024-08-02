@@ -36,8 +36,6 @@ from primaite.simulator.system.applications.red_applications.data_manipulation_b
 )
 from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot  # noqa: F401
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript  # noqa: F401
-from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
-from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Server
 from primaite.simulator.system.applications.web_browser import WebBrowser  # noqa: F401
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_client import DNSClient
