@@ -1,7 +1,6 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
 from enum import IntEnum
-from ipaddress import IPv4Address
 from typing import Optional
 
 from primaite.interface.request import RequestResponse
@@ -67,12 +66,6 @@ class SSHUserCredentials(DataPacket):
 
 class SSHPacket(DataPacket):
     """Represents an SSHPacket."""
-
-    sender_ip_address: IPv4Address
-    """Sender IP Address"""
-
-    target_ip_address: IPv4Address
-    """Target IP Address"""
 
     transport_message: SSHTransportMessage
     """Message Transport Type"""
