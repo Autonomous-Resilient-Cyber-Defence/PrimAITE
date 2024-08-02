@@ -8,8 +8,8 @@ from uuid import uuid4
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel
 
-from primaite.interface.request import RequestFormat, RequestResponse
-from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType
+from primaite.interface.request import RequestResponse
+from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.protocols.ssh import (
     SSHConnectionMessage,
@@ -50,7 +50,7 @@ class TerminalClientConnection(BaseModel):
 
     def disconnect(self):
         """Disconnect the connection."""
-        if self.client and self.is_active:
+        if self.client:
             self.client._disconnect(self._connection_uuid)  # noqa
 
 
@@ -101,14 +101,10 @@ class Terminal(Service):
 
     def _init_request_manager(self) -> RequestManager:
         """Initialise Request manager."""
-        _login_valid = Terminal._LoginValidator(terminal=self)
-
         rm = super()._init_request_manager()
         rm.add_request(
             "send",
-            request_type=RequestType(
-                func=lambda request, context: RequestResponse.from_bool(self.send()), validator=_login_valid
-            ),
+            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.send())),
         )
 
         def _login(request: List[Any], context: Any) -> RequestResponse:
@@ -119,7 +115,7 @@ class Terminal(Service):
                 return RequestResponse(status="failure", data={})
 
         def _remote_login(request: List[Any], context: Any) -> RequestResponse:
-            login = self._process_remote_login(username=request[0], password=request[1], ip_address=request[2])
+            login = self._send_remote_login(username=request[0], password=request[1], ip_address=request[2])
             if login:
                 return RequestResponse(status="success", data={})
             else:
@@ -152,31 +148,12 @@ class Terminal(Service):
 
         rm.add_request(
             "Execute",
-            request_type=RequestType(func=_execute_request, validator=_login_valid),
+            request_type=RequestType(func=_execute_request),
         )
 
-        rm.add_request("Logoff", request_type=RequestType(func=_logoff, validator=_login_valid))
+        rm.add_request("Logoff", request_type=RequestType(func=_logoff))
 
         return rm
-
-    class _LoginValidator(RequestPermissionValidator):
-        """
-        When requests come in, this validator will only allow them through if the User is logged into the Terminal.
-
-        Login is required before making use of the Terminal.
-        """
-
-        terminal: Terminal
-        """Save a reference to the Terminal instance."""
-
-        def __call__(self, request: RequestFormat, context: Dict) -> bool:
-            """Return whether the Terminal is connected."""
-            return self.terminal.is_connected
-
-        @property
-        def fail_message(self) -> str:
-            """Message that is reported when a request is rejected by this validator."""
-            return "Cannot perform request on terminal as not logged in."
 
     def _add_new_connection(self, connection_uuid: str, session_id: str):
         """Create a new connection object and amend to list of active connections."""
@@ -249,6 +226,7 @@ class Terminal(Service):
         """Processes a remote terminal requesting to login to this terminal.
 
         :param payload: The SSH Payload Packet.
+        :param session_id: Session ID for sending login response.
         :return: True if successful, else False.
         """
         username: str = payload.user_account.username
@@ -282,6 +260,7 @@ class Terminal(Service):
         """Receive Payload and process for a response.
 
         :param payload: The message contents received.
+        :param session_id: Session ID of received message.
         :return: True if successful, else False.
         """
         self.sys_log.debug(f"Received payload: {payload}")
@@ -335,7 +314,7 @@ class Terminal(Service):
 
         software_manager: SoftwareManager = self.software_manager
         software_manager.send_payload_to_session_manager(
-            payload={"type": "disconnect", "connection_id": self.connection_uuid},
+            payload={"type": "disconnect", "connection_id": connection_uuid},
             dest_ip_address=dest_ip_address,
             dest_port=self.port,
         )
