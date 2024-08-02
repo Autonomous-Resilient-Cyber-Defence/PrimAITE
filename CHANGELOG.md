@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   **Bandwidth Tracking**: Tracks data transmission across each frequency.
 -   **New Tests**: Added to validate the respect of bandwidth capacities and the correct parsing of airspace configurations from YAML files.
 -   **New Logging**: Added a new agent behaviour log which are more human friendly than agent history. These Logs are found in session log directory and can be enabled in the I/O settings in a yaml configuration file.
-
+-   **Random Number Generator Seeding**: Added support for specifying a random number seed in the config file.
 ### Changed
 
 -   **NetworkInterface Speed Type**: The `speed` attribute of `NetworkInterface` has been changed from `int` to `float`.
