@@ -218,7 +218,8 @@ class Terminal(Service):
         if connection_uuid:
             self.sys_log.info(f"Login request authorised, connection uuid: {connection_uuid}")
             # Add new local session to list of connections
-            self._add_new_connection(connection_uuid=connection_uuid)
+            session_id = str(uuid4())
+            self._add_new_connection(connection_uuid=connection_uuid, session_id=session_id)
             return True
         else:
             self.sys_log.warning("Login failed, incorrect Username or Password")
