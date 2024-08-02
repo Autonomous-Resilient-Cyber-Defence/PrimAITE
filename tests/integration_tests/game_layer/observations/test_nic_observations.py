@@ -9,9 +9,11 @@ from gymnasium import spaces
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.game.game import PrimaiteGame
+from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.web_browser import WebBrowser
@@ -74,6 +76,18 @@ def test_nic(simulation):
     nic: NIC = pc.network_interface[1]
 
     nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=True)
+
+    # Set the NMNE configuration to capture DELETE/ENCRYPT queries as MNEs
+    nmne_config = {
+        "capture_nmne": True,  # Enable the capture of MNEs
+        "nmne_capture_keywords": [
+            "DELETE",
+            "ENCRYPT",
+        ],  # Specify "DELETE/ENCRYPT" SQL command as a keyword for MNE detection
+    }
+
+    # Apply the NMNE configuration settings
+    NetworkInterface.nmne_config = NMNEConfig(**nmne_config)
 
     assert nic_obs.space["nic_status"] == spaces.Discrete(3)
     assert nic_obs.space["NMNE"]["inbound"] == spaces.Discrete(4)
@@ -144,7 +158,7 @@ def test_nic_monitored_traffic(simulation):
     pc2: Computer = simulation.network.get_node_by_hostname("client_2")
 
     nic_obs = NICObservation(
-        where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=True, monitored_traffic=monitored_traffic
+        where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=False, monitored_traffic=monitored_traffic
     )
 
     simulation.pre_timestep(0)  # apply timestep to whole sim
