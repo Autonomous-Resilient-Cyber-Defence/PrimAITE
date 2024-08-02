@@ -377,6 +377,8 @@ class DatabaseService(Service):
                     )
                 else:
                     result = {"status_code": 401, "type": "sql"}
+        else:
+            self.sys_log.info(f"{self.name}: Ignoring payload as it is not a Database payload")
         self.send(payload=result, session_id=session_id)
         return True
 
