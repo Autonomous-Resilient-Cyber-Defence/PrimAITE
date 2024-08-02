@@ -6,12 +6,11 @@ import secrets
 from abc import ABC, abstractmethod
 from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
-from typing import Any, Dict, Optional, TypeVar, Union
+from typing import Any, ClassVar, Dict, Optional, TypeVar, Union
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel, Field
 
-import primaite.simulator.network.nmne
 from primaite import getLogger
 from primaite.exceptions import NetworkError
 from primaite.interface.request import RequestResponse
@@ -20,15 +19,7 @@ from primaite.simulator.core import RequestFormat, RequestManager, RequestPermis
 from primaite.simulator.domain.account import Account
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.nmne import (
-    CAPTURE_BY_DIRECTION,
-    CAPTURE_BY_IP_ADDRESS,
-    CAPTURE_BY_KEYWORD,
-    CAPTURE_BY_PORT,
-    CAPTURE_BY_PROTOCOL,
-    CAPTURE_NMNE,
-    NMNE_CAPTURE_KEYWORDS,
-)
+from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.system.applications.application import Application
@@ -108,8 +99,11 @@ class NetworkInterface(SimComponent, ABC):
     pcap: Optional[PacketCapture] = None
     "A PacketCapture instance for capturing and analysing packets passing through this interface."
 
+    nmne_config: ClassVar[NMNEConfig] = NMNEConfig()
+    "A dataclass defining malicious network events to be captured."
+
     nmne: Dict = Field(default_factory=lambda: {})
-    "A dict containing details of the number of malicious network events captured."
+    "A dict containing details of the number of malicious events captured."
 
     traffic: Dict = Field(default_factory=lambda: {})
     "A dict containing details of the inbound and outbound traffic by port and protocol."
@@ -167,8 +161,8 @@ class NetworkInterface(SimComponent, ABC):
                 "enabled": self.enabled,
             }
         )
-        if CAPTURE_NMNE:
-            state.update({"nmne": {k: v for k, v in self.nmne.items()}})
+        if self.nmne_config and self.nmne_config.capture_nmne:
+            state.update({"nmne": self.nmne})
         state.update({"traffic": convert_dict_enum_keys_to_enum_values(self.traffic)})
         return state
 
@@ -201,7 +195,7 @@ class NetworkInterface(SimComponent, ABC):
         :param inbound: Boolean indicating if the frame direction is inbound. Defaults to True.
         """
         # Exit function if NMNE capturing is disabled
-        if not CAPTURE_NMNE:
+        if not (self.nmne_config and self.nmne_config.capture_nmne):
             return
 
         # Initialise basic frame data variables
@@ -222,27 +216,27 @@ class NetworkInterface(SimComponent, ABC):
         frame_str = str(frame.payload)
 
         # Proceed only if any NMNE keyword is present in the frame payload
-        if any(keyword in frame_str for keyword in NMNE_CAPTURE_KEYWORDS):
+        if any(keyword in frame_str for keyword in self.nmne_config.nmne_capture_keywords):
             # Start with the root of the NMNE capture structure
             current_level = self.nmne
 
             # Update NMNE structure based on enabled settings
-            if CAPTURE_BY_DIRECTION:
+            if self.nmne_config.capture_by_direction:
                 # Set or get the dictionary for the current direction
                 current_level = current_level.setdefault("direction", {})
                 current_level = current_level.setdefault(direction, {})
 
-            if CAPTURE_BY_IP_ADDRESS:
+            if self.nmne_config.capture_by_ip_address:
                 # Set or get the dictionary for the current IP address
                 current_level = current_level.setdefault("ip_address", {})
                 current_level = current_level.setdefault(ip_address, {})
 
-            if CAPTURE_BY_PROTOCOL:
+            if self.nmne_config.capture_by_protocol:
                 # Set or get the dictionary for the current protocol
                 current_level = current_level.setdefault("protocol", {})
                 current_level = current_level.setdefault(protocol, {})
 
-            if CAPTURE_BY_PORT:
+            if self.nmne_config.capture_by_port:
                 # Set or get the dictionary for the current port
                 current_level = current_level.setdefault("port", {})
                 current_level = current_level.setdefault(port, {})
@@ -251,8 +245,8 @@ class NetworkInterface(SimComponent, ABC):
             keyword_level = current_level.setdefault("keywords", {})
 
             # Increment the count for detected keywords in the payload
-            if CAPTURE_BY_KEYWORD:
-                for keyword in NMNE_CAPTURE_KEYWORDS:
+            if self.nmne_config.capture_by_keyword:
+                for keyword in self.nmne_config.nmne_capture_keywords:
                     if keyword in frame_str:
                         # Update the count for each keyword found
                         keyword_level[keyword] = keyword_level.get(keyword, 0) + 1
@@ -1173,7 +1167,7 @@ class Node(SimComponent):
                     ip_address,
                     network_interface.speed,
                     "Enabled" if network_interface.enabled else "Disabled",
-                    network_interface.nmne if primaite.simulator.network.nmne.CAPTURE_NMNE else "Disabled",
+                    network_interface.nmne if network_interface.nmne_config.capture_nmne else "Disabled",
                 ]
             )
         print(table)
@@ -1454,74 +1448,6 @@ class Node(SimComponent):
                     )
         else:
             return
-
-    def install_service(self, service: Service) -> None:
-        """
-        Install a service on this node.
-
-        :param service: Service instance that has not been installed on any node yet.
-        :type service: Service
-        """
-        if service in self:
-            _LOGGER.warning(f"Can't add service {service.name} to node {self.hostname}. It's already installed.")
-            return
-        self.services[service.uuid] = service
-        service.parent = self
-        service.install()  # Perform any additional setup, such as creating files for this service on the node.
-        self.sys_log.info(f"Installed service {service.name}")
-        _LOGGER.debug(f"Added service {service.name} to node {self.hostname}")
-        self._service_request_manager.add_request(service.name, RequestType(func=service._request_manager))
-
-    def uninstall_service(self, service: Service) -> None:
-        """
-        Uninstall and completely remove service from this node.
-
-        :param service: Service object that is currently associated with this node.
-        :type service: Service
-        """
-        if service not in self:
-            _LOGGER.warning(f"Can't remove service {service.name} from node {self.hostname}. It's not installed.")
-            return
-        service.uninstall()  # Perform additional teardown, such as removing files or restarting the machine.
-        self.services.pop(service.uuid)
-        service.parent = None
-        self.sys_log.info(f"Uninstalled service {service.name}")
-        self._service_request_manager.remove_request(service.name)
-
-    def install_application(self, application: Application) -> None:
-        """
-        Install an application on this node.
-
-        :param application: Application instance that has not been installed on any node yet.
-        :type application: Application
-        """
-        if application in self:
-            _LOGGER.warning(
-                f"Can't add application {application.name} to node {self.hostname}. It's already installed."
-            )
-            return
-        self.applications[application.uuid] = application
-        application.parent = self
-        self.sys_log.info(f"Installed application {application.name}")
-        _LOGGER.debug(f"Added application {application.name} to node {self.hostname}")
-        self._application_request_manager.add_request(application.name, RequestType(func=application._request_manager))
-
-    def uninstall_application(self, application: Application) -> None:
-        """
-        Uninstall and completely remove application from this node.
-
-        :param application: Application object that is currently associated with this node.
-        :type application: Application
-        """
-        if application not in self:
-            _LOGGER.warning(
-                f"Can't remove application {application.name} from node {self.hostname}. It's not installed."
-            )
-            return
-        self.applications.pop(application.uuid)
-        application.parent = None
-        self.sys_log.info(f"Uninstalled application {application.name}")
-        self._application_request_manager.remove_request(application.name)
 
     def _shut_down_actions(self):
         """Actions to perform when the node is shut down."""

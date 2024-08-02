@@ -44,7 +44,7 @@ agents:
               num_files: 1
               num_nics: 1
               include_num_access: false
-              include_nmne: true
+              include_nmne: false
 
           - type: LINKS
             label: LINKS

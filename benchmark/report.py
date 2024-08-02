@@ -234,10 +234,7 @@ def _plot_av_s_per_100_steps_10_nodes(
     """
     major_v = primaite.__version__.split(".")[0]
     title = f"Performance of Minor and Bugfix Releases for Major Version {major_v}"
-    subtitle = (
-        f"Average Training Time per 100 Steps on 10 Nodes "
-        f"(target: <= {PLOT_CONFIG['av_s_per_100_steps_10_nodes_benchmark_threshold']} seconds)"
-    )
+    subtitle = "Average Training Time per 100 Steps on 10 Nodes "
     title = f"{title} <br><sub>{subtitle}</sub>"
 
     layout = go.Layout(
@@ -250,10 +247,6 @@ def _plot_av_s_per_100_steps_10_nodes(
 
     versions = sorted(list(version_times_dict.keys()))
     times = [version_times_dict[version] for version in versions]
-    av_s_per_100_steps_10_nodes_benchmark_threshold = PLOT_CONFIG["av_s_per_100_steps_10_nodes_benchmark_threshold"]
-
-    # Calculate the appropriate maximum y-axis value
-    max_y_axis_value = max(max(times), av_s_per_100_steps_10_nodes_benchmark_threshold) + 1
 
     fig.add_trace(
         go.Bar(
@@ -267,7 +260,6 @@ def _plot_av_s_per_100_steps_10_nodes(
     fig.update_layout(
         xaxis_title="PrimAITE Version",
         yaxis_title="Avg Time per 100 Steps on 10 Nodes (seconds)",
-        yaxis=dict(range=[0, max_y_axis_value]),
         title=title,
     )
 
