@@ -1505,12 +1505,12 @@ class Node(SimComponent):
         self.session_manager.software_manager = self.software_manager
 
     @property
-    def user_manager(self) -> UserManager:
+    def user_manager(self) -> Optional[UserManager]:
         """The Nodes User Manager."""
         return self.software_manager.software.get("UserManager")  # noqa
 
     @property
-    def user_session_manager(self) -> UserSessionManager:
+    def user_session_manager(self) -> Optional[UserSessionManager]:
         """The Nodes User Session Manager."""
         return self.software_manager.software.get("UserSessionManager")  # noqa
 
