@@ -18,7 +18,7 @@ from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.airspace import AirSpaceFrequency
-from primaite.simulator.network.hardware.base import NodeOperatingState
+from primaite.simulator.network.hardware.base import NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
@@ -267,6 +267,7 @@ class PrimaiteGame:
 
         for node_cfg in nodes_cfg:
             n_type = node_cfg["type"]
+            new_node = None
             if n_type == "computer":
                 new_node = Computer(
                     hostname=node_cfg["hostname"],
@@ -316,6 +317,11 @@ class PrimaiteGame:
                 msg = f"invalid node type {n_type} in config"
                 _LOGGER.error(msg)
                 raise ValueError(msg)
+
+            if "users" in node_cfg and new_node.software_manager.software.get("UserManager"):
+                user_manager: UserManager = new_node.software_manager.software["UserManager"]  # noqa
+                for user_cfg in node_cfg["users"]:
+                    user_manager.add_user(**user_cfg, bypass_can_perform_action=True)
             if "services" in node_cfg:
                 for service_cfg in node_cfg["services"]:
                     new_service = None
