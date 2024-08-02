@@ -13,7 +13,6 @@ from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.session_manager import Session
 
 # TODO:
-# Complete C2 Server and C2 Beacon TODOs
 # Create test that leverage all the functionality needed for the different TAPs
 # Create a .RST doc
 # Potentially? A notebook which demonstrates a custom red agent using the c2 server for various means.
@@ -79,24 +78,6 @@ class AbstractC2(Application, identifier="AbstractC2"):
     current_c2_session: Session = None
     """The currently active session that the C2 Traffic is using. Set after establishing connection."""
 
-    # TODO: Move this duplicate method from NMAP class into 'Application' to adhere to DRY principle.
-    def _can_perform_network_action(self) -> bool:
-        """
-        Checks if the C2 application can perform outbound network actions.
-
-        This is done by checking the parent application can_per_action functionality.
-        Then checking if there is an enabled NIC that can be used for outbound traffic.
-
-        :return: True if outbound network actions can be performed, otherwise False.
-        """
-        if not super()._can_perform_action():
-            return False
-
-        for nic in self.software_manager.node.network_interface.values():
-            if nic.enabled:
-                return True
-        return False
-
     def describe_state(self) -> Dict:
         """
         Describe the state of the C2 application.
@@ -106,9 +87,11 @@ class AbstractC2(Application, identifier="AbstractC2"):
         """
         return super().describe_state()
 
+    # TODO: Update this post application/services requiring to listen to multiple ports
     def __init__(self, **kwargs):
+        """Initialise the C2 applications to by default listen for HTTP traffic."""
         kwargs["port"] = Port.HTTP  # TODO: Update this post application/services requiring to listen to multiple ports
-        kwargs["protocol"] = IPProtocol.TCP  # Update this as well
+        kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
 
     # Validate call ensures we are only handling Masquerade Packets.
@@ -173,15 +156,30 @@ class AbstractC2(Application, identifier="AbstractC2"):
 
     # from_network_interface=from_network_interface
     def receive(self, payload: MasqueradePacket, session_id: Optional[str] = None, **kwargs) -> bool:
-        """Receives masquerade packets. Used by both c2 server and c2 client.
+        """Receives masquerade packets. Used by both c2 server and c2 beacon.
+
+        Defining the `Receive` method so that the application can receive packets via the session manager.
+        These packets are then immediately handed to ._handle_c2_payload.
 
         :param payload: The Masquerade Packet to be received.
-        :param session: The transport session that the payload is originating from.
+        :type payload: MasqueradePacket
+        :param session_id: The transport session_id that the payload is originating from.
+        :type session_id: str
         """
         return self._handle_c2_payload(payload, session_id)
 
     def _send_keep_alive(self, session_id: Optional[str]) -> bool:
-        """Sends a C2 keep alive payload to the self.remote_connection IPv4 Address."""
+        """Sends a C2 keep alive payload to the self.remote_connection IPv4 Address.
+
+        Used by both the c2 client and the s2 server for establishing and confirming connection.
+        This method also contains some additional validation to ensure that the C2 applications
+        are correctly configured before sending any traffic.
+
+        :param session_id: The transport session_id that the payload is originating from.
+        :type session_id: str
+        :returns: Returns True if a send alive was successfully sent. False otherwise.
+        :rtype bool:
+        """
         # Checking that the c2 application is capable of performing both actions and has an enabled NIC
         # (Using NOT to improve code readability)
         if self.c2_remote_connection is None:
@@ -230,6 +228,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
 
         :param payload: The Keep Alive payload received.
         :type payload: MasqueradePacket
+        :param session_id: The transport session_id that the payload is originating from.
+        :type session_id: str
         :return: True on successful configuration, false otherwise.
         :rtype: bool
         """
@@ -240,8 +240,9 @@ class AbstractC2(Application, identifier="AbstractC2"):
                 f"Port: {payload.masquerade_port} Protocol: {payload.masquerade_protocol}."
             )
             return False
+
         # TODO: Validation on Ports (E.g only allow HTTP, FTP etc)
-        # Potentially compare to IPProtocol & Port children (Same way that abstract TAP does it with kill chains)
+        # Potentially compare to IPProtocol & Port children? Depends on how listening on multiple ports is implemented.
 
         # Setting the Ports
         self.current_masquerade_port = payload.masquerade_port
@@ -253,6 +254,6 @@ class AbstractC2(Application, identifier="AbstractC2"):
             self.c2_remote_connection = self.current_c2_session.with_ip_address
 
         self.c2_connection_active = True  # Sets the connection to active
-        self.keep_alive_inactivity = 0  # Sets the keep alive inactivity to zeroW
+        self.keep_alive_inactivity = 0  # Sets the keep alive inactivity to zero
 
         return True

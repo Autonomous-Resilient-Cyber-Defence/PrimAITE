@@ -137,6 +137,10 @@ class C2Server(AbstractC2, identifier="C2 Server"):
         Returns False if a keep alive was unable to be sent.
         Returns True if a keep alive was successfully sent or already has been sent this timestep.
 
+        :param payload: The Keep Alive payload received.
+        :type payload: MasqueradePacket
+        :param session_id: The transport session_id that the payload is originating from.
+        :type session_id: str
         :return: True if successfully handled, false otherwise.
         :rtype: Bool
         """
@@ -160,7 +164,22 @@ class C2Server(AbstractC2, identifier="C2 Server"):
         """
         Sends a command to the C2 Beacon.
 
-        # TODO: Expand this docustring.
+        Currently, these commands leverage the pre-existing capability of other applications.
+        However, the commands are sent via the network rather than the game layer which
+        grants more opportunity to the blue agent to prevent attacks.
+
+        Additionally, future editions of primAITE may expand the C2 repertoire to allow for
+        more complex red agent behaviour such as file extraction, establishing further fall back channels
+        or introduce red applications that are only installable via C2 Servers. (T1105)
+
+        C2 Command           | Meaning
+        ---------------------|------------------------
+        RANSOMWARE_CONFIGURE | Configures an installed ransomware script based on the passed parameters.
+        RANSOMWARE_LAUNCH    | Launches the installed ransomware script.
+        Terminal             | Executes a command via the terminal installed on the C2 Beacons Host.
+
+        For more information on the impact of these commands please refer to the terminal
+        and the ransomware applications.
 
         :param given_command: The C2 command to be sent to the C2 Beacon.
         :type given_command: C2Command.
@@ -198,11 +217,12 @@ class C2Server(AbstractC2, identifier="C2 Server"):
         # If the command output was handled currently, the self.current_command_output will contain the RequestResponse.
         return self.current_command_output
 
-    # TODO: Perhaps make a new pydantic base model for command_options?
-    # TODO: Perhaps make the return optional? Returns False is the packet was unable to be crafted.
+    # TODO: Probably could move this as a class method in MasqueradePacket.
     def _craft_packet(self, given_command: C2Command, command_options: Dict) -> MasqueradePacket:
         """
-        Creates a Masquerade Packet based off the command parameter and the arguments given.
+        Creates and returns a Masquerade Packet using the arguments given.
+
+        Creates Masquerade Packet with a payload_type INPUT C2Payload
 
         :param given_command: The C2 command to be sent to the C2 Beacon.
         :type given_command: C2Command.
@@ -221,22 +241,17 @@ class C2Server(AbstractC2, identifier="C2 Server"):
         )
         return constructed_packet
 
-    # TODO: I think I can just overload the methods rather than setting it as abstract_method?
-    # Defining this abstract method
-    def _handle_command_input(self, payload: MasqueradePacket):
-        """Defining this method (Abstract method inherited from abstract C2) in order to instantiate the class.
-
-        C2 Servers currently do not receive input commands coming from the C2 Beacons.
-
-        :param payload: The incoming MasqueradePacket
-        :type payload: MasqueradePacket.
-        """
-        self.sys_log.warning(f"{self.name}: C2 Server received an unexpected INPUT payload: {payload}")
-        pass
-
     def show(self, markdown: bool = False):
         """
         Prints a table of the current C2 attributes on a C2 Server.
+
+        Displays the current values of the following C2 attributes:
+
+        ``C2 Connection Active``:
+        If the C2 Server has established connection with a C2 Beacon.
+
+        ``C2 Remote Connection``:
+        The IP of the C2 Beacon. (Configured by upon receiving a keep alive.)
 
         :param markdown: If True, outputs the table in markdown format. Default is False.
         """
@@ -247,3 +262,15 @@ class C2Server(AbstractC2, identifier="C2 Server"):
         table.title = f"{self.name} Running Status"
         table.add_row([self.c2_connection_active, self.c2_remote_connection])
         print(table)
+
+    # Abstract method inherited from abstract C2 - Not currently utilised.
+    def _handle_command_input(self, payload: MasqueradePacket) -> None:
+        """Defining this method (Abstract method inherited from abstract C2) in order to instantiate the class.
+
+        C2 Servers currently do not receive input commands coming from the C2 Beacons.
+
+        :param payload: The incoming MasqueradePacket
+        :type payload: MasqueradePacket.
+        """
+        self.sys_log.warning(f"{self.name}: C2 Server received an unexpected INPUT payload: {payload}")
+        pass
