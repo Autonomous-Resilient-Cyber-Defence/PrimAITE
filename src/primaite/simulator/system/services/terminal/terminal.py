@@ -292,6 +292,7 @@ class Terminal(Service):
             transport_message=transport_message,
             connection_message=connection_message,
             user_account=user_details,
+            connection_request_uuid=connection_request_id,
         )
 
         software_manager: SoftwareManager = self.software_manager
