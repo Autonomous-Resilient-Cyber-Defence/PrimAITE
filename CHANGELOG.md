@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Tests to verify that airspace bandwidth is applied correctly and can be configured via YAML
 -   Agent logging for agents' internal decision logic
 -   Action masking in all PrimAITE environments
--   **Random Number Generator Seeding**: Added support for specifying a random number seed in the config file.
+-   Random Number Generator Seeding by specifying a random number seed in the config file.
 ### Changed
 -   Application registry was moved to the `Application` class and now updates automatically when Application is subclassed
 -   Databases can no longer respond to request while performing a backup
