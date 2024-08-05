@@ -48,8 +48,8 @@ class C2Server(AbstractC2, identifier="C2 Server"):
             :rtype: RequestResponse
             """
             # TODO: Parse the parameters from the request to get the parameters
-            placeholder: dict = {}
-            return self._send_command(given_command=C2Command.RANSOMWARE_CONFIGURE, command_options=placeholder)
+            ransomware_config = {"server_ip_address": request[-1].get("server_ip_address")}
+            return self._send_command(given_command=C2Command.RANSOMWARE_CONFIGURE, command_options=ransomware_config)
 
         def _launch_ransomware_action(request: RequestFormat, context: Dict) -> RequestResponse:
             """Agent Action - Sends a RANSOMWARE_LAUNCH C2Command to the C2 Beacon with the given parameters.
@@ -61,9 +61,7 @@ class C2Server(AbstractC2, identifier="C2 Server"):
             :return: RequestResponse object with a success code reflecting whether the ransomware was launched.
             :rtype: RequestResponse
             """
-            # TODO: Parse the parameters from the request to get the parameters
-            placeholder: dict = {}
-            return self._send_command(given_command=C2Command.RANSOMWARE_LAUNCH, command_options=placeholder)
+            return self._send_command(given_command=C2Command.RANSOMWARE_LAUNCH, command_options={})
 
         def _remote_terminal_action(request: RequestFormat, context: Dict) -> RequestResponse:
             """Agent Action - Sends a TERMINAL C2Command to the C2 Beacon with the given parameters.
@@ -77,18 +75,18 @@ class C2Server(AbstractC2, identifier="C2 Server"):
             """
             # TODO: Parse the parameters from the request to get the parameters
             placeholder: dict = {}
-            return self._send_command(given_command=C2Command.RANSOMWARE_LAUNCH, command_options=placeholder)
+            return self._send_command(given_command=C2Command.TERMINAL, command_options=placeholder)
 
         rm.add_request(
-            name="c2_ransomware_configure",
+            name="ransomware_configure",
             request_type=RequestType(func=_configure_ransomware_action),
         )
         rm.add_request(
-            name="c2_ransomware_launch",
+            name="ransomware_launch",
             request_type=RequestType(func=_launch_ransomware_action),
         )
         rm.add_request(
-            name="c2_terminal_command",
+            name="terminal_command",
             request_type=RequestType(func=_remote_terminal_action),
         )
         return rm
@@ -203,7 +201,6 @@ class C2Server(AbstractC2, identifier="C2 Server"):
         self.sys_log.info(f"{self.name}: Attempting to send command {given_command}.")
         command_packet = self._craft_packet(given_command=given_command, command_options=command_options)
 
-        # Need to investigate if this is correct.
         if self.send(
             payload=command_packet,
             dest_ip_address=self.c2_remote_connection,

@@ -13,6 +13,7 @@ from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
+from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from primaite.simulator.system.software import SoftwareHealthState
 
 
@@ -44,8 +45,6 @@ class C2Beacon(AbstractC2, identifier="C2 Beacon"):
 
     # TODO:
     # Implement the placeholder command methods
-    # Implement the keep alive frequency.
-    # Implement a command output method that sends the RequestResponse to the C2 server.
     # Uncomment the terminal Import and the terminal property after terminal PR
 
     # @property
@@ -55,6 +54,14 @@ class C2Beacon(AbstractC2, identifier="C2 Beacon"):
     #    if host_terminal: is None:
     #        self.sys_log.warning(f"{self.__class__.__name__} cannot find a terminal on its host.")
     #    return host_terminal
+
+    @property
+    def _host_ransomware_script(self) -> RansomwareScript:
+        """Return the RansomwareScript that is installed on the same machine as the C2 Beacon."""
+        ransomware_script: RansomwareScript = self.software_manager.software.get("RansomwareScript")
+        if ransomware_script is None:
+            self.sys_log.warning(f"{self.__class__.__name__} cannot find installed ransomware on its host.")
+        return ransomware_script
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -87,6 +94,7 @@ class C2Beacon(AbstractC2, identifier="C2 Beacon"):
                 )
 
             c2_remote_ip = IPv4Address(c2_remote_ip)
+            # TODO: validation.
             frequency = request[-1].get("keep_alive_frequency")
             protocol = request[-1].get("masquerade_protocol")
             port = request[-1].get("masquerade_port")
@@ -127,7 +135,7 @@ class C2Beacon(AbstractC2, identifier="C2 Beacon"):
         :param masquerade_port: The Port that the C2 Traffic will masquerade as. Defaults to FTP.
         :type masquerade_port: Enum (Port)
         """
-        self.c2_remote_connection = c2_server_ip_address
+        self.c2_remote_connection = IPv4Address(c2_server_ip_address)
         self.keep_alive_frequency = keep_alive_frequency
         self.current_masquerade_port = masquerade_port
         self.current_masquerade_protocol = masquerade_protocol
@@ -252,7 +260,10 @@ class C2Beacon(AbstractC2, identifier="C2 Beacon"):
         :rtype: Request Response
         """
         # TODO: replace and use terminal
-        return RequestResponse(status="success", data={"Reason": "Placeholder."})
+        # return RequestResponse(status="success", data={"Reason": "Placeholder."})
+        given_config = payload.payload
+        host_ransomware = self._host_ransomware_script
+        return RequestResponse.from_bool(host_ransomware.configure(server_ip_address=given_config["server_ip_address"]))
 
     def _command_ransomware_launch(self, payload: MasqueradePacket) -> RequestResponse:
         """

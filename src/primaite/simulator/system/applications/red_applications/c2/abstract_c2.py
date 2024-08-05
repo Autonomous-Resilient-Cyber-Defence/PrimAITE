@@ -213,7 +213,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
             return True
         else:
             self.sys_log.warning(
-                f"{self.name}: failed to send a Keep Alive. The node may be unable to access the ``network."
+                f"{self.name}: failed to send a Keep Alive. The node may be unable to access networking resources."
             )
             return False
 
@@ -251,7 +251,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
         # This statement is intended to catch on the C2 Application that is listening for connection. (C2 Beacon)
         if self.c2_remote_connection is None:
             self.sys_log.debug(f"{self.name}: Attempting to configure remote C2 connection based off received output.")
-            self.c2_remote_connection = self.current_c2_session.with_ip_address
+            self.c2_remote_connection = IPv4Address(self.current_c2_session.with_ip_address)
 
         self.c2_connection_active = True  # Sets the connection to active
         self.keep_alive_inactivity = 0  # Sets the keep alive inactivity to zero
