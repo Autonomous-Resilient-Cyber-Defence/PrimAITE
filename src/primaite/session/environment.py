@@ -44,6 +44,10 @@ def set_random_seed(seed: int) -> Union[None, int]:
     # if torch not installed don't set random seed.
     if sys.modules["torch"]:
         th.manual_seed(seed)
+
+    th.backends.cudnn.deterministic = True
+    th.backends.cudnn.benchmark = False
+
     return seed
 
 
