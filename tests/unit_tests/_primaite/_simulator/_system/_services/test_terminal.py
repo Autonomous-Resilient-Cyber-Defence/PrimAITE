@@ -29,7 +29,7 @@ def terminal_on_computer() -> Tuple[Terminal, Computer]:
     computer.power_on()
     terminal: Terminal = computer.software_manager.software.get("Terminal")
 
-    return [terminal, computer]
+    return terminal, computer
 
 
 @pytest.fixture(scope="function")
@@ -73,6 +73,9 @@ def wireless_wan_network():
     # Configure Router 1 ACLs
     router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
     router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+
+    # add ACL rule to allow SSH traffic
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=21)
 
     # Configure PC B
     pc_b = Computer(
@@ -120,7 +123,7 @@ def game_and_agent_fixture(game_and_agent):
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
     client_1.start_up_duration = 3
 
-    return (game, agent)
+    return game, agent
 
 
 def test_terminal_creation(terminal_on_computer):
@@ -259,15 +262,9 @@ def test_terminal_ignores_when_off(basic_network):
 
 def test_computer_remote_login_to_router(wireless_wan_network):
     """Test to confirm that a computer can SSH into a router."""
-    pc_a, pc_b, router_1, router_2 = wireless_wan_network
-
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=21)
+    pc_a, _, router_1, _ = wireless_wan_network
 
     pc_a_terminal: Terminal = pc_a.software_manager.software.get("Terminal")
-    pc_b_terminal: Terminal = pc_b.software_manager.software.get("Terminal")
-
-    router_1_terminal: Terminal = router_1.software_manager.software.get("Terminal")
-    router_2_terminal: Terminal = router_2.software_manager.software.get("Terminal")
 
     assert len(pc_a_terminal._connections) == 0
 
@@ -284,15 +281,11 @@ def test_computer_remote_login_to_router(wireless_wan_network):
 
 def test_router_remote_login_to_computer(wireless_wan_network):
     """Test to confirm that a router can ssh into a computer."""
-    pc_a, pc_b, router_1, router_2 = wireless_wan_network
+    pc_a, _, router_1, _ = wireless_wan_network
 
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=21)
-
-    pc_a_terminal: Terminal = pc_a.software_manager.software.get("Terminal")
-    pc_b_terminal: Terminal = pc_b.software_manager.software.get("Terminal")
+    router_1: Router = router_1
 
     router_1_terminal: Terminal = router_1.software_manager.software.get("Terminal")
-    router_2_terminal: Terminal = router_2.software_manager.software.get("Terminal")
 
     assert len(router_1_terminal._connections) == 0
 
@@ -309,7 +302,12 @@ def test_router_remote_login_to_computer(wireless_wan_network):
 
 def test_router_blocks_SSH_traffic(wireless_wan_network):
     """Test to check that router will block SSH traffic if no ACL rule."""
-    pc_a, _, _, router_2 = wireless_wan_network
+    pc_a, _, router_1, _ = wireless_wan_network
+
+    router_1: Router = router_1
+
+    # Remove rule that allows SSH traffic.
+    router_1.acl.remove_rule(position=21)
 
     pc_a_terminal: Terminal = pc_a.software_manager.software.get("Terminal")
 
@@ -318,3 +316,19 @@ def test_router_blocks_SSH_traffic(wireless_wan_network):
     pc_a_terminal.login(username="username", password="password", ip_address="192.168.0.2")
 
     assert len(pc_a_terminal._connections) == 0
+
+
+def test_SSH_across_network(wireless_wan_network):
+    """Test to show ability to SSH across a network."""
+    pc_a, pc_b, router_1, router_2 = wireless_wan_network
+
+    terminal_a: Terminal = pc_a.software_manager.software.get("Terminal")
+    terminal_b: Terminal = pc_b.software_manager.software.get("Terminal")
+
+    router_2.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=21)
+
+    assert len(terminal_a._connections) == 0
+
+    terminal_b_on_terminal_a = terminal_b.login(username="username", password="password", ip_address="192.168.0.2")
+
+    assert len(terminal_a._connections) == 1
