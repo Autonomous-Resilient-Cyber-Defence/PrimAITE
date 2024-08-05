@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Union
 
 from pydantic import BaseModel, field_validator, validate_call
-from pydantic_core.core_schema import FieldValidationInfo
+from pydantic_core.core_schema import ValidationInfo
 
 from primaite import getLogger
 
@@ -96,7 +96,7 @@ class ICMPPacket(BaseModel):
 
     @field_validator("icmp_code")  # noqa
     @classmethod
-    def _icmp_type_must_have_icmp_code(cls, v: int, info: FieldValidationInfo) -> int:
+    def _icmp_type_must_have_icmp_code(cls, v: int, info: ValidationInfo) -> int:
         """Validates the icmp_type and icmp_code."""
         icmp_type = info.data["icmp_type"]
         if get_icmp_type_code_description(icmp_type, v):

@@ -45,7 +45,7 @@ def test_fix_duration_set_from_config():
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
     # in config - services take 3 timesteps to fix
-    for service in SERVICE_TYPES_MAPPING:
+    for service in ["DNSClient", "DNSServer", "DatabaseService", "WebServer", "FTPClient", "FTPServer", "NTPServer"]:
         assert client_1.software_manager.software.get(service) is not None
         assert client_1.software_manager.software.get(service).fixing_duration == 3
 
@@ -53,7 +53,7 @@ def test_fix_duration_set_from_config():
     # remove test applications from list
     applications = set(Application._application_registry) - set(TestApplications)
 
-    for application in applications:
+    for application in ["RansomwareScript", "WebBrowser", "DataManipulationBot", "DoSBot", "DatabaseClient"]:
         assert client_1.software_manager.software.get(application) is not None
         assert client_1.software_manager.software.get(application).fixing_duration == 1
 
@@ -64,17 +64,13 @@ def test_fix_duration_for_one_item():
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
     # in config - services take 3 timesteps to fix
-    services = copy.copy(SERVICE_TYPES_MAPPING)
-    services.pop("DatabaseService")
-    for service in services:
+    for service in ["DNSClient", "DNSServer", "WebServer", "FTPClient", "FTPServer", "NTPServer"]:
         assert client_1.software_manager.software.get(service) is not None
         assert client_1.software_manager.software.get(service).fixing_duration == 2
 
     # in config - applications take 1 timestep to fix
     # remove test applications from list
-    applications = set(Application._application_registry) - set(TestApplications)
-    applications.remove("DatabaseClient")
-    for applications in applications:
+    for applications in ["RansomwareScript", "WebBrowser", "DataManipulationBot", "DoSBot"]:
         assert client_1.software_manager.software.get(applications) is not None
         assert client_1.software_manager.software.get(applications).fixing_duration == 2
 

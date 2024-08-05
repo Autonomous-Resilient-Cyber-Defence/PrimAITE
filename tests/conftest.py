@@ -30,7 +30,7 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from tests import TEST_ASSETS_ROOT
 
-rayinit(local_mode=True)
+rayinit()
 ACTION_SPACE_NODE_VALUES = 1
 ACTION_SPACE_NODE_ACTION_VALUES = 1
 

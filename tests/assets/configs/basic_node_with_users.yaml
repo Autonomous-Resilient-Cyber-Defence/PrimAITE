@@ -1,0 +1,34 @@
+io_settings:
+  save_step_metadata: false
+  save_pcap_logs: true
+  save_sys_logs: true
+  sys_log_level: WARNING
+  agent_log_level: INFO
+  save_agent_logs: true
+  write_agent_log_to_terminal: True
+
+
+game:
+  max_episode_length: 256
+  ports:
+  - ARP
+  protocols:
+  - ICMP
+  - UDP
+
+
+simulation:
+  network:
+    nodes:
+    - hostname: client_1
+      type: computer
+      ip_address: 192.168.10.11
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+      users:
+        - username: jane.doe
+          password: '1234'
+          is_admin: true
+        - username: john.doe
+          password: password_1
+          is_admin: false
