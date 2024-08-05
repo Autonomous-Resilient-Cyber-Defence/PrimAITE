@@ -16,7 +16,7 @@ from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.service import ServiceOperatingState
-from primaite.simulator.system.services.terminal.terminal import Terminal
+from primaite.simulator.system.services.terminal.terminal import RemoteTerminalConnection, Terminal
 from primaite.simulator.system.services.web_server.web_server import WebServer
 
 
@@ -87,8 +87,6 @@ def test_terminal_send(basic_network):
         payload="Test_Payload",
         transport_message=SSHTransportMessage.SSH_MSG_SERVICE_REQUEST,
         connection_message=SSHConnectionMessage.SSH_MSG_CHANNEL_OPEN,
-        sender_ip_address=computer_a.network_interface[1].ip_address,
-        target_ip_address=computer_b.network_interface[1].ip_address,
     )
 
     assert terminal_a.send(payload=payload, dest_ip_address=computer_b.network_interface[1].ip_address)
@@ -106,11 +104,13 @@ def test_terminal_receive(basic_network):
         payload=["file_system", "create", "folder", folder_name],
         transport_message=SSHTransportMessage.SSH_MSG_SERVICE_REQUEST,
         connection_message=SSHConnectionMessage.SSH_MSG_CHANNEL_OPEN,
-        sender_ip_address=computer_a.network_interface[1].ip_address,
-        target_ip_address=computer_b.network_interface[1].ip_address,
     )
 
-    assert terminal_a.send(payload=payload, dest_ip_address=computer_b.network_interface[1].ip_address)
+    term_a_on_node_b: RemoteTerminalConnection = terminal_a.login(
+        username="username", password="password", ip_address="192.168.0.11"
+    )
+
+    term_a_on_node_b.execute(["file_system", "create", "folder", folder_name])
 
     # Assert that the Folder has been correctly created
     assert computer_b.file_system.get_folder(folder_name)
@@ -127,11 +127,13 @@ def test_terminal_install(basic_network):
         payload=["software_manager", "application", "install", "RansomwareScript"],
         transport_message=SSHTransportMessage.SSH_MSG_SERVICE_REQUEST,
         connection_message=SSHConnectionMessage.SSH_MSG_CHANNEL_OPEN,
-        sender_ip_address=computer_a.network_interface[1].ip_address,
-        target_ip_address=computer_b.network_interface[1].ip_address,
     )
 
-    terminal_a.send(payload=payload, dest_ip_address=computer_b.network_interface[1].ip_address)
+    term_a_on_node_b: RemoteTerminalConnection = terminal_a.login(
+        username="username", password="password", ip_address="192.168.0.11"
+    )
+
+    term_a_on_node_b.execute(["software_manager", "application", "install", "RansomwareScript"])
 
     assert computer_b.software_manager.software.get("RansomwareScript")
 
@@ -145,29 +147,30 @@ def test_terminal_fail_when_closed(basic_network):
 
     terminal.operating_state = ServiceOperatingState.STOPPED
 
-    assert (
-        terminal.login(username="admin", password="Admin123!", ip_address=computer_b.network_interface[1].ip_address)
-        is False
+    assert not terminal.login(
+        username="admin", password="Admin123!", ip_address=computer_b.network_interface[1].ip_address
     )
 
 
 def test_terminal_disconnect(basic_network):
-    """Terminal should set is_connected to false on disconnect"""
+    """Test Terminal disconnects"""
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
     terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
     computer_b: Computer = network.get_node_by_hostname("node_b")
     terminal_b: Terminal = computer_b.software_manager.software.get("Terminal")
 
-    assert terminal_a.is_connected is False
+    assert len(terminal_b._connections) == 0
 
-    terminal_a.login(username="admin", password="Admin123!", ip_address=computer_b.network_interface[1].ip_address)
+    term_a_on_term_b = terminal_a.login(
+        username="admin", password="Admin123!", ip_address=computer_b.network_interface[1].ip_address
+    )
 
-    assert terminal_a.is_connected is True
+    assert len(terminal_b._connections) == 1
 
-    terminal_a.disconnect(dest_ip_address=computer_b.network_interface[1].ip_address)
+    term_a_on_term_b.disconnect()
 
-    assert terminal_a.is_connected is False
+    assert len(terminal_b._connections) == 0
 
 
 def test_terminal_ignores_when_off(basic_network):
@@ -178,21 +181,13 @@ def test_terminal_ignores_when_off(basic_network):
 
     computer_b: Computer = network.get_node_by_hostname("node_b")
 
-    terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")  # login to computer_b
-
-    assert terminal_a.is_connected is True
+    term_a_on_term_b: RemoteTerminalConnection = terminal_a.login(
+        username="admin", password="Admin123!", ip_address="192.168.0.11"
+    )  # login to computer_b
 
     terminal_a.operating_state = ServiceOperatingState.STOPPED
 
-    payload: SSHPacket = SSHPacket(
-        payload="Test_Payload",
-        transport_message=SSHTransportMessage.SSH_MSG_SERVICE_REQUEST,
-        connection_message=SSHConnectionMessage.SSH_MSG_CHANNEL_DATA,
-        sender_ip_address=computer_a.network_interface[1].ip_address,
-        target_ip_address="192.168.0.11",
-    )
-
-    assert not terminal_a.send(payload=payload, dest_ip_address="192.168.0.11")
+    assert not term_a_on_term_b.execute(["software_manager", "application", "install", "RansomwareScript"])
 
 
 def test_network_simulation(basic_network):

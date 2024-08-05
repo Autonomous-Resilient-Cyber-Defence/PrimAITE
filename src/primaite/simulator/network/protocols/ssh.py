@@ -76,6 +76,8 @@ class SSHPacket(DataPacket):
     user_account: Optional[SSHUserCredentials] = None
     """User Account Credentials if passed"""
 
+    connection_request_uuid: Optional[str] = None  # Connection Request uuid.
+
     connection_uuid: Optional[str] = None  # The connection uuid used to validate the session
 
     ssh_output: Optional[RequestResponse] = None  # The Request Manager's returned RequestResponse

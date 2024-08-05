@@ -10,18 +10,11 @@ from pydantic import BaseModel
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.hardware.base import Node
-from primaite.simulator.network.protocols.ssh import (
-    SSHConnectionMessage,
-    SSHPacket,
-    SSHTransportMessage,
-    SSHUserCredentials,
-)
+from primaite.simulator.network.protocols.ssh import SSHPacket
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
-from primaite.simulator.system.software import SoftwareHealthState
 
 
 class TerminalClientConnection(BaseModel):
@@ -31,40 +24,45 @@ class TerminalClientConnection(BaseModel):
     This class is used to record current User Connections to the Terminal class.
     """
 
-    parent_node: Node  # Technically should be HostNode but this causes circular import error.
+    parent_terminal: Terminal
     """The parent Node that this connection was created on."""
-
-    dest_ip_address: IPv4Address = None
-    """Destination IP address of connection"""
 
     session_id: str = None
     """Session ID that connection is linked to"""
 
-    _connection_uuid: str = None
+    connection_uuid: str = None
     """Connection UUID"""
 
     @property
     def client(self) -> Optional[Terminal]:
         """The Terminal that holds this connection."""
-        return self.parent_node.software_manager.software.get("Terminal")
+        return self.parent_terminal
 
-    def disconnect(self):
-        """Disconnect the connection."""
-        if self.client:
-            self.client._disconnect(self._connection_uuid)  # noqa
+    def disconnect(self) -> bool:
+        """Disconnect the session."""
+        return self.parent_terminal._disconnect(connection_uuid=self.connection_uuid)
+
+
+class RemoteTerminalConnection(TerminalClientConnection):
+    """
+    RemoteTerminalConnection Class.
+
+    This class acts as broker between the terminal and remote.
+
+    """
+
+    def execute(self, command: Any) -> bool:
+        """Execute a given command on the remote Terminal."""
+        if self.parent_terminal.operating_state != ServiceOperatingState.RUNNING:
+            self.parent_terminal.sys_log.warning("Cannot process command as system not running")
+        # Send command to remote terminal to process.
+        return self.parent_terminal.send(payload=command, session_id=self.session_id)
 
 
 class Terminal(Service):
     """Class used to simulate a generic terminal service. Can be interacted with by other terminals via SSH."""
 
-    operating_state: ServiceOperatingState = ServiceOperatingState.RUNNING
-    "Initial Operating State"
-
-    health_state_actual: SoftwareHealthState = SoftwareHealthState.GOOD
-    "Service Health State"
-
-    _connections: Dict[str, TerminalClientConnection] = {}
-    "List of active connections held on this terminal."
+    _client_connection_requests: Dict[str, Optional[str]] = {}
 
     def __init__(self, **kwargs):
         kwargs["name"] = "Terminal"
@@ -155,34 +153,40 @@ class Terminal(Service):
 
         return rm
 
-    def _add_new_connection(self, connection_uuid: str, session_id: str):
+    def execute(self, command: List[Any]) -> RequestResponse:
+        """Execute a passed ssh command via the request manager."""
+        return self.parent.apply_request(command)
+
+    def _create_local_connection(self, connection_uuid: str, session_id: str) -> RemoteTerminalConnection:
         """Create a new connection object and amend to list of active connections."""
-        self._connections[connection_uuid] = TerminalClientConnection(
-            parent_node=self.software_manager.node,
+        new_connection = TerminalClientConnection(
+            parent_terminal=self,
             connection_uuid=connection_uuid,
             session_id=session_id,
         )
+        self._connections[connection_uuid] = new_connection
+        self._client_connection_requests[connection_uuid] = new_connection
 
-    def login(self, username: str, password: str, ip_address: Optional[IPv4Address] = None) -> bool:
-        """Process User request to login to Terminal.
+        return new_connection
 
-        If ip_address is passed, login will attempt a remote login to the node at that address.
-        :param username: The username credential.
-        :param password: The user password component of credentials.
-        :param dest_ip_address: The IP address of the node we want to connect to.
-        :return: True if successful, False otherwise.
-        """
+    def login(
+        self, username: str, password: str, ip_address: Optional[IPv4Address] = None
+    ) -> Optional[TerminalClientConnection]:
+        """Login to the terminal. Will attempt a remote login if ip_address is given, else local."""
         if self.operating_state != ServiceOperatingState.RUNNING:
-            self.sys_log.warning("Cannot process login as service is not running")
-            return False
-
+            self.sys_log.warning("Cannot login as service is not running.")
+            return None
+        connection_request_id = str(uuid4())
+        self._client_connection_requests[connection_request_id] = None
         if ip_address:
-            # if ip_address has been provided, we assume we are logging in to a remote terminal.
-            return self._send_remote_login(username=username, password=password, ip_address=ip_address)
+            # Assuming that if IP is passed we are connecting to remote
+            return self._send_remote_login(
+                username=username, password=password, ip_address=ip_address, connection_request_id=connection_request_id
+            )
+        else:
+            return self._process_local_login(username=username, password=password)
 
-        return self._process_local_login(username=username, password=password)
-
-    def _process_local_login(self, username: str, password: str) -> bool:
+    def _process_local_login(self, username: str, password: str) -> Optional[TerminalClientConnection]:
         """Local session login to terminal.
 
         :param username: Username for login.
@@ -195,109 +199,113 @@ class Terminal(Service):
         if connection_uuid:
             self.sys_log.info(f"Login request authorised, connection uuid: {connection_uuid}")
             # Add new local session to list of connections
-            session_id = str(uuid4())
-            self._add_new_connection(connection_uuid=connection_uuid, session_id=session_id)
-            return True
+            self._create_local_connection(connection_uuid=connection_uuid, session_id="")
+            return TerminalClientConnection(parent_terminal=self, session_id="", connection_uuid=connection_uuid)
         else:
             self.sys_log.warning("Login failed, incorrect Username or Password")
-            return False
+            return None
 
-    def _send_remote_login(self, username: str, password: str, ip_address: IPv4Address) -> bool:
-        """Attempt to login to a remote terminal.
+    def _check_client_connection(self, connection_id: str) -> bool:
+        """Check that client_connection_id is valid."""
+        return True if connection_id in self._client_connection_requests else False
 
-        :param username: username for login.
-        :param password: password for login.
-        :ip_address: IP address of the target node for login.
-        """
-        transport_message: SSHTransportMessage = SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST
-        connection_message: SSHConnectionMessage = SSHConnectionMessage.SSH_MSG_CHANNEL_DATA
-        user_account: SSHUserCredentials = SSHUserCredentials(username=username, password=password)
+    def _send_remote_login(
+        self,
+        username: str,
+        password: str,
+        ip_address: IPv4Address,
+        connection_request_id: str,
+        is_reattempt: bool = False,
+    ) -> Optional[RemoteTerminalConnection]:
+        """Process a remote login attempt."""
+        self.sys_log.info(f"Sending Remote login attempt to {ip_address}. Connection_id is {connection_request_id}")
+        if is_reattempt:
+            valid_connection = self._check_client_connection(connection_id=connection_request_id)
+            if valid_connection:
+                remote_terminal_connection = self._client_connection_requests.pop(connection_request_id)
+                self.sys_log.info(f"{self.name}: Remote Connection to {ip_address} authorised.")
+                return remote_terminal_connection
+            else:
+                self.sys_log.warning(f"{self.name}: Remote connection to {ip_address} declined.")
+                return None
 
-        payload: SSHPacket = SSHPacket(
-            transport_message=transport_message,
-            connection_message=connection_message,
-            user_account=user_account,
+        payload = {
+            "type": "login_request",
+            "username": username,
+            "password": password,
+            "connection_request_id": connection_request_id,
+        }
+        software_manager: SoftwareManager = self.software_manager
+        software_manager.send_payload_to_session_manager(
+            payload=payload, dest_ip_address=ip_address, dest_port=self.port
+        )
+        return self._send_remote_login(
+            username=username,
+            password=password,
+            ip_address=ip_address,
+            is_reattempt=True,
+            connection_request_id=connection_request_id,
         )
 
-        self.sys_log.info(f"Sending remote login request to {ip_address}")
-        return self.send(payload=payload, dest_ip_address=ip_address)
+    def _create_remote_connection(self, connection_id: str, connection_request_id: str, session_id: str) -> None:
+        """Create a new TerminalClientConnection Object."""
+        client_connection = RemoteTerminalConnection(
+            parent_terminal=self, session_id=session_id, connection_uuid=connection_id
+        )
+        self._connections[connection_id] = client_connection
+        self._client_connection_requests[connection_request_id] = client_connection
 
-    def _process_remote_login(self, payload: SSHPacket, session_id: str) -> bool:
-        """Processes a remote terminal requesting to login to this terminal.
-
-        :param payload: The SSH Payload Packet.
-        :param session_id: Session ID for sending login response.
-        :return: True if successful, else False.
+    def receive(self, session_id: str, payload: Any, **kwargs) -> bool:
         """
-        username: str = payload.user_account.username
-        password: str = payload.user_account.password
-        self.sys_log.info(f"Sending UserAuth request to UserSessionManager, username={username}, password={password}")
-        # TODO: Un-comment this when UserSessionManager is merged.
-        # connection_uuid = self.parent.UserSessionManager.remote_login(username=username, password=password)
-        connection_uuid = str(uuid4())
-        if connection_uuid:
-            # Send uuid to remote
-            self.sys_log.info(
-                f"Remote login authorised, connection ID {connection_uuid} for " f"{username} in session {session_id}"
-            )
-            transport_message: SSHTransportMessage = SSHTransportMessage.SSH_MSG_USERAUTH_SUCCESS
-            connection_message: SSHConnectionMessage = SSHConnectionMessage.SSH_MSG_CHANNEL_DATA
-            return_payload = SSHPacket(
-                transport_message=transport_message,
-                connection_message=connection_message,
-                connection_uuid=connection_uuid,
-            )
-            self._add_new_connection(connection_uuid=connection_uuid, session_id=session_id)
+        Receive a payload from the Software Manager.
 
-            self.send(payload=return_payload, session_id=session_id)
-            return True
-        else:
-            # UserSessionManager has returned None
-            self.sys_log.warning("Login failed, incorrect Username or Password")
-            return False
-
-    def receive(self, payload: SSHPacket, session_id: str, **kwargs) -> bool:
-        """Receive Payload and process for a response.
-
-        :param payload: The message contents received.
-        :param session_id: Session ID of received message.
-        :return: True if successful, else False.
+        :param payload: A payload to receive.
+        :param session_id: The session id the payload relates to.
+        :return: True.
         """
-        self.sys_log.debug(f"Received payload: {payload}")
+        self.sys_log.info(f"Received payload: {payload}")
+        if isinstance(payload, dict) and payload.get("type"):
+            if payload["type"] == "login_request":
+                # add connection
+                connection_request_id = payload["connection_request_id"]
+                username = payload["username"]
+                password = payload["password"]
+                print(f"Connection ID is: {connection_request_id}")
+                self.sys_log.info(f"Connection authorised, session_id: {session_id}")
+                self._create_remote_connection(
+                    connection_id=connection_request_id,
+                    connection_request_id=payload["connection_request_id"],
+                    session_id=session_id,
+                )
+                payload = {
+                    "type": "login_success",
+                    "username": username,
+                    "password": password,
+                    "connection_request_id": connection_request_id,
+                }
+                software_manager: SoftwareManager = self.software_manager
+                software_manager.send_payload_to_session_manager(
+                    payload=payload, dest_port=self.port, session_id=session_id
+                )
+            elif payload["type"] == "login_success":
+                self.sys_log.info(f"Login was successful! session_id is:{session_id}")
+                connection_request_id = payload["connection_request_id"]
+                self._create_remote_connection(
+                    connection_id=connection_request_id,
+                    session_id=session_id,
+                    connection_request_id=connection_request_id,
+                )
 
-        if not isinstance(payload, SSHPacket):
-            return False
+            elif payload["type"] == "disconnect":
+                connection_id = payload["connection_id"]
+                self.sys_log.info(f"{self.name}: Received disconnect command for {connection_id=} from the server")
+                self._disconnect(payload["connection_id"])
 
-        if self.operating_state != ServiceOperatingState.RUNNING:
-            self.sys_log.warning("Cannot process message as not running")
-            return False
-
-        if payload.connection_message == SSHConnectionMessage.SSH_MSG_CHANNEL_CLOSE:
-            # Close the channel
-            connection_id = kwargs["connection_id"]
-            dest_ip_address = kwargs["dest_ip_address"]
-            self.disconnect(dest_ip_address=dest_ip_address)
-            self.sys_log.debug(f"Disconnecting {connection_id}")
-
-        elif payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST:
-            return self._process_remote_login(payload=payload, session_id=session_id)
-
-        elif payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_SUCCESS:
-            self.sys_log.info(f"Login Successful, connection ID is {payload.connection_uuid}")
-            return True
-
-        elif payload.transport_message == SSHTransportMessage.SSH_MSG_SERVICE_REQUEST:
-            return self.execute(command=payload.payload)
-
-        else:
-            self.sys_log.warning("Encounter unexpected message type, rejecting connection")
-            return False
+        if isinstance(payload, list):
+            # A request? For me?
+            self.execute(payload)
 
         return True
-
-    def execute(self, command: List[Any]) -> RequestResponse:
-        """Execute a passed ssh command via the request manager."""
-        return self.parent.apply_request(command)
 
     def _disconnect(self, connection_uuid: str) -> bool:
         """Disconnect from the remote.
@@ -309,29 +317,15 @@ class Terminal(Service):
             self.sys_log.warning("No remote connection present")
             return False
 
-        dest_ip_address = self._connections[connection_uuid].dest_ip_address
+        session_id = self._connections[connection_uuid].session_id
         self._connections.pop(connection_uuid)
 
         software_manager: SoftwareManager = self.software_manager
         software_manager.send_payload_to_session_manager(
-            payload={"type": "disconnect", "connection_id": connection_uuid},
-            dest_ip_address=dest_ip_address,
-            dest_port=self.port,
+            payload={"type": "disconnect", "connection_id": connection_uuid}, dest_port=self.port, session_id=session_id
         )
         self.sys_log.info(f"{self.name}: Disconnected {connection_uuid}")
         return True
-
-    def disconnect(self, connection_uuid: Optional[str]) -> bool:
-        """Disconnect the terminal.
-
-        If no connection id has been supplied, disconnects the first connection.
-        :param connection_uuid: Connection ID that we want to disconnect.
-        :return: True if successful, False otherwise.
-        """
-        if not connection_uuid:
-            connection_uuid = next(iter(self._connections))
-
-        return self._disconnect(connection_uuid=connection_uuid)
 
     def send(
         self, payload: SSHPacket, dest_ip_address: Optional[IPv4Address] = None, session_id: Optional[str] = None
@@ -345,6 +339,7 @@ class Terminal(Service):
         if self.operating_state != ServiceOperatingState.RUNNING:
             self.sys_log.warning(f"Cannot send commands when Operating state is {self.operating_state}!")
             return False
+
         self.sys_log.debug(f"Sending payload: {payload}")
         return super().send(
             payload=payload, dest_ip_address=dest_ip_address, dest_port=self.port, session_id=session_id
