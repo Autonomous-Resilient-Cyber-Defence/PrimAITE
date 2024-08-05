@@ -12,7 +12,7 @@ def test_remote_logon(game_and_agent):
 
     action = (
         "NODE_SESSIONS_REMOTE_LOGIN",
-        {"node_id": 0, "username": "test_user", "password": "password"},
+        {"node_id": 0, "username": "test_user", "password": "password", "remote_ip": "10.0.2.2"},
     )
     agent.store_action(action)
     game.step()

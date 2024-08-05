@@ -1079,7 +1079,18 @@ class NodeAccountsChangePasswordAction(AbstractAction):
 
     def form_request(self, node_id: str, username: str, current_password: str, new_password: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["network", "node", node_id, "accounts", "change_password", username, current_password, new_password]
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "UserManager",
+            "change_password",
+            username,
+            current_password,
+            new_password,
+        ]
 
 
 class NodeSessionsRemoteLoginAction(AbstractAction):
@@ -1088,9 +1099,21 @@ class NodeSessionsRemoteLoginAction(AbstractAction):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: str, username: str, password: str) -> RequestFormat:
+    def form_request(self, node_id: str, username: str, password: str, remote_ip: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["network", "node", node_id, "sessions", "remote_login", username, password]
+        # TODO: change this so it creates a remote connection using terminal rather than a local remote login
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "UserSessionManager",
+            "remote_login",
+            username,
+            password,
+            remote_ip,
+        ]
 
 
 class NodeSessionsRemoteLogoutAction(AbstractAction):
@@ -1101,7 +1124,9 @@ class NodeSessionsRemoteLogoutAction(AbstractAction):
 
     def form_request(self, node_id: str, remote_session_id: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["network", "node", node_id, "sessions", "remote_logout", remote_session_id]
+        # TODO: change this so it destroys a remote connection using terminal rather than a local remote login
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return ["network", "node", node_name, "service", "UserSessionManager", "remote_logout", remote_session_id]
 
 
 class ActionManager:
