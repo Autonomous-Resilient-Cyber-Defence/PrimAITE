@@ -108,6 +108,9 @@ class Switch(NetworkNode):
         for i in range(1, self.num_ports + 1):
             self.connect_nic(SwitchPort())
 
+    def _install_system_software(self):
+        pass
+
     def show(self, markdown: bool = False):
         """
         Prints a table of the SwitchPorts on the Switch.

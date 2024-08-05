@@ -99,7 +99,7 @@ agents:
               num_files: 1
               num_nics: 2
               include_num_access: false
-              include_nmne: true
+              include_nmne: false
               routers:
                 - hostname: router_1
               num_ports: 0

@@ -6,256 +6,178 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Added
-
--   **show_bandwidth_load Function**: Displays current bandwidth load for each frequency in the airspace.
--   **Bandwidth Tracking**: Tracks data transmission across each frequency.
--   **New Tests**: Added to validate the respect of bandwidth capacities and the correct parsing of airspace configurations from YAML files.
--   **New Logging**: Added a new agent behaviour log which are more human friendly than agent history. These Logs are found in session log directory and can be enabled in the I/O settings in a yaml configuration file.
 
 ### Changed
+-   Removed the install/uninstall methods in the node class and made the software manager install/uninstall handle all of their functionality.
 
--   **NetworkInterface Speed Type**: The `speed` attribute of `NetworkInterface` has been changed from `int` to `float`.
--   **Transmission Feasibility Check**: Updated `_can_transmit` function in `Link` to account for current load and total bandwidth capacity, ensuring transmissions do not exceed limits.
--   **Frame Size Details**: Frame `size` attribute now includes both core size and payload size in bytes.
--   **Transmission Blocking**: Enhanced `AirSpace` logic to block transmissions that would exceed the available capacity.
+
+## [3.2.0] - 2024-07-18
+
+### Added
+-   Action penalty is a reward component that applies a negative reward for doing any action other than DONOTHING
+-   Application configuration actions for RansomwareScript, DatabaseClient, and DoSBot applications
+-   Ability to configure how long it takes to apply the service fix action
+-   Terminal service using SSH
+-   Airspaces now track the amount of data being transmitted, viewable using the `show_bandwidth_load` method
+-   Tests to verify that airspace bandwidth is applied correctly and can be configured via YAML
+-   Agent logging for agents' internal decision logic
+-   Action masking in all PrimAITE environments
+
+### Changed
+-   Application registry was moved to the `Application` class and now updates automatically when Application is subclassed
+-   Databases can no longer respond to request while performing a backup
+-   Application install no longer accepts an `ip_address` parameter
+-   Application install action can now be used on all applications
+-   Actions have additional logic for checking validity
+-   Frame `size` attribute now includes both core size and payload size in bytes
+-   The `speed` attribute of `NetworkInterface` has been changed from `int` to `float`
+-   Tidied up CHANGELOG
+-   Enhanced `AirSpace` logic to block transmissions that would exceed the available capacity.
+-   Updated `_can_transmit` function in `Link` to account for current load and total bandwidth capacity, ensuring transmissions do not exceed limits.
 
 ### Fixed
+-   Links and airspaces can no longer transmit data if this would exceed their bandwidth
 
--   **Transmission Permission Logic**: Corrected the logic in `can_transmit_frame` to accurately prevent overloads by checking if the transmission of a frame stays within allowable bandwidth limits after considering current load.
 
-
-[//]: # (This file needs tidying up between 2.0.0 and this line as it hasn't been segmented into 3.0.0 and 3.1.0 and isn't compliant with https://keepachangelog.com/en/1.1.0/)
-
-## 3.0.0b9
-- Removed deprecated `PrimaiteSession` class.
-- Added ability to set log levels via configuration.
-- Upgraded pydantic to version 2.7.0
-- Upgraded Ray to version >= 2.9
-- Added ipywidgets to the dependencies
-- Added ability to define scenarios that change depending on the episode number.
-- Standardised Environment API by renaming the config parameter of `PrimaiteGymEnv` from `game_config` to `env_config`
-- Database Connection ID's are now created/issued by DatabaseService and not DatabaseClient
-- Updated DatabaseClient so that it can now have a single native DatabaseClientConnection along with a collection of DatabaseClientConnection's.
-- Implemented the uninstall functionality for DatabaseClient so that all connections are terminated at the DatabaseService.
-- Added the ability for a DatabaseService to terminate a connection.
-- Added active_connection to DatabaseClientConnection so that if the connection is terminated active_connection is set to False and the object can no longer be used.
-- Added additional show functions to enable connection inspection.
-- Updates to agent logging, to include the reward both per step and per episode.
-- Introduced Developer CLI tools to assist with developing/debugging PrimAITE
-  - Can be enabled via `primaite dev-mode enable`
-  - Activating dev-mode will change the location where the sessions will be output - by default will output where the PrimAITE repository is located
-- Refactored all air-space usage to that a new instance of AirSpace is created for each instance of Network. This 1:1 relationship between network and airspace will allow parallelization.
-- Added notebook to demonstrate use of SubprocVecEnv from SB3 to vectorise environments to speed up training.
-
-## [Unreleased]
-- Made requests fail to reach their target if the node is off
-- Added responses to requests
-- Made environment reset completely recreate the game object.
-- Changed the red agent in the data manipulation scenario to randomly choose client 1 or client 2 to start its attack.
-- Changed the data manipulation scenario to include a second green agent on client 1.
-- Refactored actions and observations to be configurable via object name, instead of UUID.
-- Made database patch correctly take 2 timesteps instead of being immediate
-- Made database patch only possible when the software is compromised or good, it's no longer possible when the software is OFF or RESETTING
-- Added a notebook which explains Data manipulation scenario, demonstrates the attack, and shows off blue agent's action space, observation space, and reward function.
-- Made packet capture and system logging optional (off by default). To turn on, change the io_settings.save_pcap_logs and io_settings.save_sys_logs settings in the config.
-- Made observation space flattening optional (on by default). To turn off for an agent, change the `agent_settings.flatten_obs` setting in the config.
-- Added support for SQL INSERT command.
-- Added ability to log each agent's action choices in each step to a JSON file.
-- Removal of Link bandwidth hardcoding. This can now be configured via the network configuraiton yaml. Will default to 100 if not present.
-- Added NMAP application to all host and layer-3 network nodes.
-
-### Bug Fixes
-
-- ACL rules were not resetting on episode reset.
-- ACLs were not showing up correctly in the observation space.
-- Blue agent's ACL actions were being applied against the wrong IP addresses
-- Deleted files and folders did not reset correctly on episode reset.
-- Service health status was using the actual health state instead of the visible health state
-- Database file health status was using the incorrect value for negative rewards
-- Preventing file actions from reaching their intended file
-- The data manipulation attack was triggered at episode start.
-- FTP STOR stored an additional copy on the client machine's filesystem
-- The red agent acted to early
-- Order of service health state
-- Starting a node didn't start the services on it
-- Fixed an issue where the services were still able to run even though the node the service is installed on is turned off
-- The use of NODE_FILE_CHECKHASH and NODE_FOLDER_CHECKHASH in the current release is marked as 'Not Implemented'.
-
+## [3.1.0] - 2024-06-25
 
 ### Added
-- Network Hardware - Added base hardware module with NIC, SwitchPort, Node, and Link. Nodes have
-fundamental services like ARP, ICMP, and PCAP running them by default.
-- Network Transmission - Modelled OSI Model layers 1 through to 5 with various classes for creating network frames and
-transmitting them from a Service/Application, down through the layers, over the wire, and back up through the layers to
-a Service/Application another machine.
-- Introduced `Router` and `Switch` classes to manage networking routes more effectively.
-  - Added `ACLRule` and `RouteTableEntry` classes as part of the `Router`.
-- New `.show()` methods in all network component classes to inspect the state in either plain text or markdown formats.
-- Added `Computer` and `Server` class to better differentiate types of network nodes.
-- Integrated a new Use Case 2 network into the system.
-- New unit tests to verify routing between different subnets using `.ping()`.
-- system - Added the core structure of Application, Services, and Components. Also added a SoftwareManager and
-SessionManager.
-- Permission System - each action can define criteria that will be used to permit or deny agent actions.
-- File System - ability to emulate a node's file system during a simulation
-- Example notebooks - There are 5 jupyter notebook which walk through using PrimAITE
-  1. Training a Stable Baselines 3 agent
-  2. Training a single agent system using Ray RLLib
-  3. Training a multi-agent system Ray RLLib
-  4. Data manipulation end to end demonstration
-  5. Data manipulation scenario with customised red agents
-- Database:
-  - `DatabaseClient` and `DatabaseService` created to allow emulation of database actions
-  - Ability for `DatabaseService` to backup its data to another server via FTP and restore data from backup
-- Red Agent Services:
-  - Data Manipulator Bot - A red agent service which sends a payload to a target machine. (By default this payload is a SQL query that breaks a database). The attack runs in stages with a random, configurable probability of succeeding.
-  - `DataManipulationAgent` runs the Data Manipulator Bot according to a configured start step, frequency and variance.
-- DNS Services: `DNSClient` and `DNSServer`
-- FTP Services: `FTPClient` and `FTPServer`
-- HTTP Services: `WebBrowser` to simulate a web client and `WebServer`
-- NTP Services: `NTPClient` and `NTPServer`
-- **RouterNIC Class**: Introduced a new class `RouterNIC`, extending the standard `NIC` functionality. This class is specifically designed for router operations, optimizing the processing and routing of network traffic.
-  - **Custom Layer-3 Processing**: The `RouterNIC` class includes custom handling for network frames, bypassing standard Node NIC's Layer 3 broadcast/unicast checks. This allows for more efficient routing behavior in network scenarios where router-specific frame processing is required.
-  - **Enhanced Frame Reception**: The `receive_frame` method in `RouterNIC` is tailored to handle frames based on Layer 2 (Ethernet) checks, focusing on MAC address-based routing and broadcast frame acceptance.
-- **Subnet-Wide Broadcasting for Services and Applications**: Implemented the ability for services and applications to conduct broadcasts across an entire IPv4 subnet within the network simulation framework.
-- Introduced the `NetworkInterface` abstract class to provide a common interface for all network interfaces. Subclasses are divided into two main categories: `WiredNetworkInterface` and `WirelessNetworkInterface`, each serving as an abstract base class (ABC) for more specific interface types. Under `WiredNetworkInterface`, the subclasses `NIC` and `SwitchPort` were added. For wireless interfaces, `WirelessNIC` and `WirelessAccessPoint` are the subclasses under `WirelessNetworkInterface`.
-- Added `Layer3Interface` as an abstract base class for networking functionalities at layer 3, including IP addressing and routing capabilities. This class is inherited by `NIC`, `WirelessNIC`, and `WirelessAccessPoint` to provide them with layer 3 capabilities, facilitating their role in both wired and wireless networking contexts with IP-based communication.
-- Created the `ARP` and `ICMP` service classes to handle Address Resolution Protocol operations and Internet Control Message Protocol messages, respectively, with `RouterARP` and `RouterICMP` for router-specific implementations.
-- Created `HostNode` as a subclass of `Node`, extending its functionality with host-specific services and applications. This class is designed to represent end-user devices like computers or servers that can initiate and respond to network communications.
-- Introduced a new `IPV4Address` type in the Pydantic model for enhanced validation and auto-conversion of IPv4 addresses from strings using an `ipv4_validator`.
-- Comprehensive documentation for the Node and its network interfaces, detailing the operational workflow from frame reception to application-level processing.
-- Detailed descriptions of the Session Manager and Software Manager functionalities, including their roles in managing sessions, software services, and applications within the simulation.
-- Documentation for the Packet Capture (PCAP) service and SysLog functionality, highlighting their importance in logging network frames and system events, respectively.
-- Expanded documentation on network devices such as Routers, Switches, Computers, and Switch Nodes, explaining their specific processing logic and protocol support.
-- **Firewall Node**: Introduced the `Firewall` class extending the functionality of the existing `Router` class. The `Firewall` class incorporates advanced features to scrutinize, direct, and filter traffic between various network zones, guided by predefined security rules and policies. Key functionalities include:
-    - Access Control Lists (ACLs) for traffic filtering based on IP addresses, protocols, and port numbers.
-    - Network zone segmentation for managing traffic across external, internal, and DMZ (De-Militarized Zone) networks.
-    - Interface configuration to establish connectivity and define network parameters for external, internal, and DMZ interfaces.
-    - Protocol and service management to oversee traffic and enforce security policies.
-    - Dynamic traffic processing and filtering to ensure network security and integrity.
-- `AirSpace` class to simulate wireless communications, managing wireless interfaces and facilitating the transmission of frames within specified frequencies.
-- `AirSpaceFrequency` enum for defining standard wireless frequencies, including 2.4 GHz and 5 GHz bands, to support realistic wireless network simulations.
-- `WirelessRouter` class, extending the `Router` class, to incorporate wireless networking capabilities alongside traditional wired connections. This class allows the configuration of wireless access points with specific IP settings and operating frequencies.
-- Documentation Updates:
-    - Examples include how to set up PrimAITE session via config
-    - Examples include how to create nodes and install software via config
-    - Examples include how to set up PrimAITE session via Python
-    - Examples include how to create nodes and install software via Python
-    - Added missing ``DoSBot`` documentation page
-    - Added diagrams where needed to make understanding some things easier
-    - Templated parts of the documentation to prevent unnecessary repetition and for easier maintaining of documentation
-    - Separated documentation pages of some items i.e. client and server software were on the same pages - which may make things confusing
-    - Configuration section at the bottom of the software pages specifying the configuration options available (and which ones are optional)
-- Ability to add ``Firewall`` node via config
-- Ability to add ``Router`` routes via config
-- Ability to add ``Router``/``Firewall`` ``ACLRule`` via config
-- NMNE capturing capabilities to `NetworkInterface` class for detecting and logging Malicious Network Events.
-- New `nmne_config` settings in the simulation configuration to enable NMNE capturing and specify keywords such as "DELETE".
-- Router-specific SessionManager Implementation: Introduced a specialized version of the SessionManager tailored for router operations. This enhancement enables the SessionManager to determine the routing path by consulting the route table.
+-   Observations for traffic amounts on host network interfaces
+-   NMAP application network discovery, including ping scan and port scan
+-   NMAP actions
+-   Automated adding copyright notices to source files
+-   More file types
+-   `show` method to files
+-   `model_dump` methods to network enums to enable better logging
 
 ### Changed
-- Integrated the RouteTable into the Routers frame processing.
-- Frames are now dropped when their TTL reaches 0
-- **NIC Functionality Update**: Updated the Network Interface Card (`NIC`) functionality to support Layer 3 (L3) broadcasts.
-  - **Layer 3 Broadcast Handling**: Enhanced the existing `NIC` classes to correctly process and handle Layer 3 broadcasts. This update allows devices using standard NICs to effectively participate in network activities that involve L3 broadcasting.
-  - **Improved Frame Reception Logic**: The `receive_frame` method of the `NIC` class has been updated to include additional checks and handling for L3 broadcasts, ensuring proper frame processing in a wider range of network scenarios.
-- Standardised the way network interfaces are accessed across all `Node` subclasses (`HostNode`, `Router`, `Switch`) by maintaining a comprehensive `network_interface` attribute. This attribute captures all network interfaces by their port number, streamlining the management and interaction with network interfaces across different types of nodes.
-- Refactored all tests to utilise new `Node` subclasses (`Computer`, `Server`, `Router`, `Switch`) instead of creating generic `Node` instances and manually adding network interfaces. This change aligns test setups more closely with the intended use cases and hierarchies within the network simulation framework.
-- Updated all tests to employ the `Network()` class for managing nodes and their connections, ensuring a consistent and structured approach to setting up network topologies in testing scenarios.
-- **ACLRule Wildcard Masking**: Updated the `ACLRule` class to support IP ranges using wildcard masking. This enhancement allows for more flexible and granular control over traffic filtering, enabling the specification of broader or more specific IP address ranges in ACL rules.
-- Updated `NetworkInterface` documentation to reflect the new NMNE capturing features and how to use them.
-- Integration of NMNE capturing functionality within the `NICObservation` class.
-- Changed blue action set to enable applying node scan, reset, start, and shutdown to every host in data manipulation scenario
+-   Updated file system actions to stop failures when creating duplicate files
+-   Improved parsing of ACL add rule actions to make some parameters optional
+
+### Fixed
+-   Fixed database client uninstall failing due to persistent connections
+-   Fixed packet storm when pinging broadcast addresses
+
+
+## [3.0.0] - 2024-06-10
+
+### Added
+-   New simulation module
+-   Multi agent reinforcement learning support
+-   File system class to manage files and folders
+-   Software for nodes that can have its own behaviour
+-   Software classes to model FTP, Postgres databases, web traffic, NTP
+-   Much more detailed network simulation including packets, links, and network interfaces
+-   More node types: host, computer, server, router, switch, wireless router, and firewalls
+-   Network Hardware - NIC, SwitchPort, Node, and Link. Nodes have fundamental services like ARP, ICMP, and PCAP running them by default.
+-   Malicious network event detection
+-   New `game` module for managing agents
+-   ACL rule wildcard masking
+-   Network broadcasting
+-   Wireless transmission
+-   More detailed documentation
+-   Example jupyter notebooks to demonstrate new functionality
+-   More reward components
+-   Packet capture logs
+-   Node system logs
+-   Per-step full simulation state log
+-   Attack randomisation with respect to timing and attack source
+-   Ability to set log level via CLI
+-   Ability to vary the YAML configuration per-episode
+-   Developer CLI tools for enhanced debugging (with `primaite dev-mode enable`)
+-   `show` function to many simulation objects to inspect their current state
+
+### Changed
+-   Decoupled the environment from the simulation by adding the `game` interface layer
+-   Made agents share a common base class
+-   Added more actions
+-   Made all agents use CAOS actions, including red and green agents
+-   Reworked YAML configuration file schema
+-   Reworked the reward system to be component-based
+-   Changed agent logs to create a JSON output instead of CSV with more detailed action information
+-   Made observation space flattening optional
+-   Made all logging optional
+-   Agent actions now provide responses with a success code
 
 ### Removed
-- Removed legacy simulation modules: `acl`, `common`, `environment`, `links`, `nodes`, `pol`
-- Removed legacy training modules
-- Removed tests for legacy code
+-   Legacy simulation modules
+-   Legacy training modules
+-   Tests for legacy code
+-   Hardcoded IERs and PoL, traffic generation is now handled by agents and software
+-   Inbuilt agent training scripts
 
-### Fixed
-- Addressed network transmission issues that previously allowed ARP requests to be incorrectly routed and repeated across different subnets. This fix ensures ARP requests are correctly managed and confined to their appropriate network segments.
-- Resolved problems in `Node` and its subclasses where the default gateway configuration was not properly utilized for communications across different subnets. This correction ensures that nodes effectively use their configured default gateways for outbound communications to other network segments, thereby enhancing the network's routing functionality and reliability.
-- Network Interface Port name/num being set properly for sys log and PCAP output.
 
 ## [2.0.0] - 2023-07-26
 
 ### Added
-- Command Line Interface (CLI) for easy access and streamlined usage of PrimAITE.
-- Application Directories to enable PrimAITE as a Python package with predefined directories for storage.
-- Support for Ray Rllib, allowing training of PPO and A2C agents using Stable Baselines3 and Ray RLlib.
-- Random Red Agent to train the blue agent against, with options for randomised Red Agent `POL` and `IER`.
-- Repeatability of sessions through seed settings, and deterministic or stochastic evaluation options.
-- Session loading to revisit previously run sessions for SB3 Agents.
-- Agent Session Classes (`AgentSessionABC` and `HardCodedAgentSessionABC`) to standardise agent training with a common interface.
-- Standardised Session Output in a structured format in the user's app sessions directory, providing four types of outputs:
-  1. Session Metadata
-  2. Results
-  3. Diagrams
-  4. Saved agents (training checkpoints and a final trained agent).
-- Configurable Observation Space managed by the `ObservationHandler` class for a more flexible observation space setup.
-- Benchmarking of PrimAITE performance, showcasing session and step durations for reference.
-- Documentation overhaul, including automatic API and test documentation with recursive Sphinx auto-summary, using the Furo theme for responsive light/dark theme, and enhanced navigation with `sphinx-code-tabs` and `sphinx-copybutton`.
+-   Command Line Interface (CLI) for easy access and streamlined usage of PrimAITE.
+-   Application Directories to enable PrimAITE as a Python package with predefined directories for storage.
+-   Support for Ray Rllib, allowing training of PPO and A2C agents using Stable Baselines3 and Ray RLlib.
+-   Random Red Agent to train the blue agent against, with options for randomised Red Agent `POL` and `IER`.
+-   Repeatability of sessions through seed settings, and deterministic or stochastic evaluation options.
+-   Session loading to revisit previously run sessions for SB3 Agents.
+-   Agent Session Classes (`AgentSessionABC` and `HardCodedAgentSessionABC`) to standardise agent training with a common interface.
+-   Standardised Session Output in a structured format in the user's app sessions directory, providing four types of outputs: Session Metadata, Results, Diagrams, Trained agents.
+-   Configurable Observation Space managed by the `ObservationHandler` class for a more flexible observation space setup.
+-   Benchmarking of PrimAITE performance, showcasing session and step durations for reference.
+-   Documentation overhaul, including automatic API and test documentation with recursive Sphinx auto-summary, using the Furo theme for responsive light/dark theme, and enhanced navigation with `sphinx-code-tabs` and `sphinx-copybutton`.
 
 ### Changed
-- Action Space updated to discrete spaces, introducing a new `ANY` action space option for combined `NODE` and `ACL` actions.
-- Improved `Node` attribute naming convention for consistency, now adhering to `Pascal Case`.
-- Package Structure has been refactored for better build, distribution, and installation, with all source code now in the `src/` directory, and the `PRIMAITE` Python package renamed to `primaite` to adhere to PEP-8 Package & Module Names.
-- Docs and Tests now sit outside the `src/` directory.
-- Non-python files (example config files, Jupyter notebooks, etc.) now sit inside a `*/_package_data/` directory in their respective sub-packages.
-- All dependencies are now defined in the `pyproject.toml` file.
-- Introduced individual configuration for the number of episodes and time steps for training and evaluation sessions, with separate config values for each.
-- Decoupled the lay down config file from the training config, allowing more flexibility in configuration management.
-- Updated `Transactions` to only report pre-action observation, improving the CSV header and providing more human-readable descriptions for columns relating to observations.
-- Changes to `AccessControlList`, where the `acl` dictionary is now a list to accommodate changes to ACL action space and positioning of `ACLRules` inside the list to signal their level of priority.
+-   Action Space updated to discrete spaces, introducing a new `ANY` action space option for combined `NODE` and `ACL` actions.
+-   Improved `Node` attribute naming convention for consistency, now adhering to `Pascal Case`.
+-   Package Structure has been refactored for better build, distribution, and installation, with all source code now in the `src/` directory, and the `PRIMAITE` Python package renamed to `primaite` to adhere to PEP-8 Package & Module Names.
+-   Docs and Tests now sit outside the `src/` directory.
+-   Non-python files (example config files, Jupyter notebooks, etc.) now sit inside a `*/_package_data/` directory in their respective sub-packages.
+-   All dependencies are now defined in the `pyproject.toml` file.
+-   Introduced individual configuration for the number of episodes and time steps for training and evaluation sessions, with separate config values for each.
+-   Decoupled the lay down config file from the training config, allowing more flexibility in configuration management.
+-   Updated `Transactions` to only report pre-action observation, improving the CSV header and providing more human-readable descriptions for columns relating to observations.
+-   Changes to `AccessControlList`, where the `acl` dictionary is now a list to accommodate changes to ACL action space and positioning of `ACLRules` inside the list to signal their level of priority.
 
 
 ### Fixed
-- Various bug fixes, including Green IERs separation, correct clearing of links in the reference environment, and proper reward calculation.
-- Logic to check if a node is OFF before executing actions on the node by the blue agent, preventing erroneous state changes.
-- Improved functionality of Resetting a Node, adding "SHUTTING DOWN" and "BOOTING" operating states for more reliable reset commands.
-- Corrected the order of actions in the `Primaite` env to ensure the blue agent uses the current state for decision-making.
+-   Various bug fixes, including Green IERs separation, correct clearing of links in the reference environment, and proper reward calculation.
+-   Logic to check if a node is OFF before executing actions on the node by the blue agent, preventing erroneous state changes.
+-   Improved functionality of Resetting a Node, adding "SHUTTING DOWN" and "BOOTING" operating states for more reliable reset commands.
+-   Corrected the order of actions in the `Primaite` env to ensure the blue agent uses the current state for decision-making.
+
 
 ## [1.1.1] - 2023-06-27
 
-### Bug Fixes
-* Fixed bug whereby 'reference' environment links reach bandwidth capacity and are never cleared due to green & red IERs being applied to them. This bug had a knock-on effect that meant IERs were being blocked based on the full capacity of links on the reference environment which was not correct; they should only be based on the link capacity of the 'live' environment. This fix has been addressed by:
-  * Implementing a reference copy of all green IERs (`self.green_iers_reference`).
-  * Clearing the traffic on reference IERs at the same time as the live IERs.
-  * Passing the `green_iers_reference` to the `apply_iers` function at the reference stage.
-  * Passing the `green_iers_reference` as an additional argument to `calculate_reward_function`.
-  * Updating the green IERs section of the `calculate_reward_function` to now take into account both the green reference IERs and live IERs. The `green_ier_blocked` reward is only applied if the IER is blocked in the live environment but is running in the reference environment.
-  * Re-ordering the actions taken as part of the step function to ensure the blue action happens first before other changes.
-  * Removing the unnecessary "Reapply PoL and IERs" action from the step function.
-  * Moving the deep-copy of nodes and links to below the "Implement blue action" stage of the step function.
+### Fixed
+-   Fixed bug whereby 'reference' environment links reach bandwidth capacity and are never cleared due to green & red IERs being applied to them. This bug had a knock-on effect that meant IERs were being blocked based on the full capacity of links on the reference environment which was not correct; they should only be based on the link capacity of the 'live' environment. This fix has been addressed by:
+    -   Implementing a reference copy of all green IERs (`self.green_iers_reference`).
+    -   Clearing the traffic on reference IERs at the same time as the live IERs.
+    -   Passing the `green_iers_reference` to the `apply_iers` function at the reference stage.
+    -   Passing the `green_iers_reference` as an additional argument to `calculate_reward_function`.
+    -   Updating the green IERs section of the `calculate_reward_function` to now take into account both the green reference IERs and live IERs. The `green_ier_blocked` reward is only applied if the IER is blocked in the live environment but is running in the reference environment.
+    -   Re-ordering the actions taken as part of the step function to ensure the blue action happens first before other changes.
+    -   Removing the unnecessary "Reapply PoL and IERs" action from the step function.
+    -   Moving the deep-copy of nodes and links to below the "Implement blue action" stage of the step function.
+
 
 ## [1.1.0] - 2023-03-13
 
 ### Added
-* The user can now initiate either a TRAINING session or an EVALUATION (test) session with the Stable Baselines 3 (SB3) agents via the config_main.yaml file. During evaluation/testing, the agent policy will be fixed (no longer learning) and subjected to the SB3 `evaluate_policy()` function.
-* The user can choose whether a saved agent is loaded into the session (with reference to a URL) via the `config_main.yaml` file. They specify a Boolean true/false indicating whether a saved agent should be loaded, and specify the URL and file name.
-* Active and Service nodes now possess a new "File System State" attribute. This attribute is permitted to have the states GOOD, CORRUPT, DESTROYED, REPAIRING, and RESTORING. This new feature affects the following components:
-  * Blue agent observation space;
-  * Blue agent action space;
-  * Reward function;
-  * Node pattern-of-life.
-* The Red Agent node pattern-of-life has been enhanced so that node PoL is triggered by an 'initiator'. The initiator is either DIRECT (state change is applied to the node without any conditions), IER (state change is applied to the node based on IER entry condition), or SERVICE (state change is applied to the node based on a service state condition on the same node or a different node within the network).
-* New default config named "config_5_DATA_MANIPULATION.yaml" and associated Training Use Case Profile.
-* NodeStateInstruction has been split into `NodeStateInstructionGreen` and `NodeStateInstructionRed` to reflect the changes within the red agent pattern-of-life capability.
-* The reward function has been enhanced so that node attribute states of resetting, patching, repairing, and restarting contribute to the overall reward value.
-* The User Guide has been updated to reflect all the above changes.
+-   The user can now initiate either a TRAINING session or an EVALUATION (test) session with the Stable Baselines 3 (SB3) agents via the config_main.yaml file. During evaluation/testing, the agent policy will be fixed (no longer learning) and subjected to the SB3 `evaluate_policy()` function.
+-   The user can choose whether a saved agent is loaded into the session (with reference to a URL) via the `config_main.yaml` file. They specify a Boolean true/false indicating whether a saved agent should be loaded, and specify the URL and file name.
+-   Active and Service nodes now possess a new "File System State" attribute. This attribute is permitted to have the states GOOD, CORRUPT, DESTROYED, REPAIRING, and RESTORING. This new feature affects the following components:
+    -   Blue agent observation space;
+    -   Blue agent action space;
+    -   Reward function;
+    -   Node pattern-of-life.
+-   The Red Agent node pattern-of-life has been enhanced so that node PoL is triggered by an 'initiator'. The initiator is either DIRECT (state change is applied to the node without any conditions), IER (state change is applied to the node based on IER entry condition), or SERVICE (state change is applied to the node based on a service state condition on the same node or a different node within the network).
+-   New default config named "config_5_DATA_MANIPULATION.yaml" and associated Training Use Case Profile.
+-   NodeStateInstruction has been split into `NodeStateInstructionGreen` and `NodeStateInstructionRed` to reflect the changes within the red agent pattern-of-life capability.
+-   The reward function has been enhanced so that node attribute states of resetting, patching, repairing, and restarting contribute to the overall reward value.
+-   The User Guide has been updated to reflect all the above changes.
 
 ### Changed
-* "config_1_DDOS_BASIC.yaml" modified to make it more simplistic to aid evaluation testing.
-* "config_2_DDOS_BASIC.yaml" updated to reflect the addition of the File System State and the Red Agent node pattern-of-life enhancement.
-* "config_3_DOS_VERY_BASIC.yaml" updated to reflect the addition of the File System State and the Red Agent node pattern-of-life enhancement.
-* "config_UNIT_TEST.yaml" is a copy of the new "config_5_DATA_MANIPULATION.yaml" file.
-* Updates to Transactions.
+-   "config_1_DDOS_BASIC.yaml" modified to make it more simplistic to aid evaluation testing.
+-   "config_2_DDOS_BASIC.yaml" updated to reflect the addition of the File System State and the Red Agent node pattern-of-life enhancement.
+-   "config_3_DOS_VERY_BASIC.yaml" updated to reflect the addition of the File System State and the Red Agent node pattern-of-life enhancement.
+-   "config_UNIT_TEST.yaml" is a copy of the new "config_5_DATA_MANIPULATION.yaml" file.
+-   Updates to Transactions.
 
 ### Fixed
-* Fixed "config_2_DDOS_BASIC.yaml" by adding another ACL rule to allow traffic to flow from Node 9 to Node 3. Previously, there was no rule, so one of the green IERs could not flow by default.
-
-
-
-[unreleased]: https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/compare/v2.0.0...HEAD
-[2.0.0]: https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/releases/tag/v2.0.0
+-   Fixed "config_2_DDOS_BASIC.yaml" by adding another ACL rule to allow traffic to flow from Node 9 to Node 3. Previously, there was no rule, so one of the green IERs could not flow by default.

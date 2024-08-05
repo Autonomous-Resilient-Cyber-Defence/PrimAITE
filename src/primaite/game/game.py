@@ -18,7 +18,7 @@ from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.airspace import AirSpaceFrequency
-from primaite.simulator.network.hardware.base import NodeOperatingState
+from primaite.simulator.network.hardware.base import NetworkInterface, NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
@@ -26,7 +26,7 @@ from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
-from primaite.simulator.network.nmne import set_nmne_config
+from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
@@ -264,9 +264,12 @@ class PrimaiteGame:
 
         nodes_cfg = network_config.get("nodes", [])
         links_cfg = network_config.get("links", [])
+        # Set the NMNE capture config
+        NetworkInterface.nmne_config = NMNEConfig(**network_config.get("nmne_config", {}))
 
         for node_cfg in nodes_cfg:
             n_type = node_cfg["type"]
+            new_node = None
             if n_type == "computer":
                 new_node = Computer(
                     hostname=node_cfg["hostname"],
@@ -316,6 +319,11 @@ class PrimaiteGame:
                 msg = f"invalid node type {n_type} in config"
                 _LOGGER.error(msg)
                 raise ValueError(msg)
+
+            if "users" in node_cfg and new_node.software_manager.software.get("UserManager"):
+                user_manager: UserManager = new_node.software_manager.software["UserManager"]  # noqa
+                for user_cfg in node_cfg["users"]:
+                    user_manager.add_user(**user_cfg, bypass_can_perform_action=True)
             if "services" in node_cfg:
                 for service_cfg in node_cfg["services"]:
                     new_service = None
@@ -533,10 +541,7 @@ class PrimaiteGame:
         # Validate that if any agents are sharing rewards, they aren't forming an infinite loop.
         game.setup_reward_sharing()
 
-        # Set the NMNE capture config
-        set_nmne_config(network_config.get("nmne_config", {}))
         game.update_agents(game.get_sim_state())
-
         return game
 
     def setup_reward_sharing(self):

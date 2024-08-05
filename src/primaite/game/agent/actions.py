@@ -294,7 +294,7 @@ class ConfigureDoSBotAction(AbstractAction):
     """Action which sets config parameters for a DoS bot on a node."""
 
     class _Opts(BaseModel):
-        """Schema for options that can be passed to this option."""
+        """Schema for options that can be passed to this action."""
 
         model_config = ConfigDict(extra="forbid")
         target_ip_address: Optional[str] = None

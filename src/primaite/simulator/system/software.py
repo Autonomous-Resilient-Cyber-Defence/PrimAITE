@@ -291,7 +291,7 @@ class IOSoftware(Software):
         """
         if self.software_manager and self.software_manager.node.operating_state != NodeOperatingState.ON:
             self.software_manager.node.sys_log.error(
-                f"{self.name} Error: {self.software_manager.node.hostname} is not online."
+                f"{self.name} Error: {self.software_manager.node.hostname} is not powered on."
             )
             return False
         return True
