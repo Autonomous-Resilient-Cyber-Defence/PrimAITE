@@ -1,5 +1,6 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from typing import Tuple
+from uuid import uuid4
 
 import pytest
 
@@ -11,7 +12,12 @@ from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
-from primaite.simulator.network.protocols.ssh import SSHConnectionMessage, SSHPacket, SSHTransportMessage
+from primaite.simulator.network.protocols.ssh import (
+    SSHConnectionMessage,
+    SSHPacket,
+    SSHTransportMessage,
+    SSHUserCredentials,
+)
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
@@ -155,8 +161,10 @@ def test_terminal_send(basic_network):
 
     payload: SSHPacket = SSHPacket(
         payload="Test_Payload",
-        transport_message=SSHTransportMessage.SSH_MSG_SERVICE_REQUEST,
-        connection_message=SSHConnectionMessage.SSH_MSG_CHANNEL_OPEN,
+        transport_message=SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST,
+        connection_message=SSHConnectionMessage.SSH_MSG_CHANNEL_DATA,
+        user_account=SSHUserCredentials(username="username", password="password"),
+        connection_request_uuid=str(uuid4()),
     )
 
     assert terminal_a.send(payload=payload, dest_ip_address=computer_b.network_interface[1].ip_address)
@@ -283,8 +291,6 @@ def test_router_remote_login_to_computer(wireless_wan_network):
     """Test to confirm that a router can ssh into a computer."""
     pc_a, _, router_1, _ = wireless_wan_network
 
-    router_1: Router = router_1
-
     router_1_terminal: Terminal = router_1.software_manager.software.get("Terminal")
 
     assert len(router_1_terminal._connections) == 0
@@ -303,8 +309,6 @@ def test_router_remote_login_to_computer(wireless_wan_network):
 def test_router_blocks_SSH_traffic(wireless_wan_network):
     """Test to check that router will block SSH traffic if no ACL rule."""
     pc_a, _, router_1, _ = wireless_wan_network
-
-    router_1: Router = router_1
 
     # Remove rule that allows SSH traffic.
     router_1.acl.remove_rule(position=21)

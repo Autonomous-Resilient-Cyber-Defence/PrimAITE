@@ -19,7 +19,6 @@ installed on Nodes when they are instantiated.
 Key capabilities
 ================
 
- - Authenticates User connection by maintaining an active User account.
  - Ensures packets are matched to an existing session
  - Simulates common Terminal processes/commands.
  - Leverages the Service base class for install/uninstall, status tracking etc.
@@ -27,21 +26,18 @@ Key capabilities
 Usage
 =====
 
- - Pre-Installs on any `HostNode` component. See the below code example of how to access the terminal.
- - Terminal Clients connect, execute commands and disconnect from remote components.
+ - Pre-Installs on any `Node` (component with the exception of `Switches`).
+ - Terminal Clients connect, execute commands and disconnect from remote nodes.
  - Ensures that users are logged in to the component before executing any commands.
  - Service runs on SSH port 22 by default.
 
 Implementation
 ==============
 
-The terminal takes inspiration from the `Database Client` and `Database Service` classes, and leverages the `UserSessionManager`
-to provide User Credential authentication when receiving/processing commands.
-
-Terminal acts as the interface between the user/component and both the Session and Requests Managers, facilitating
-the passing of requests to both.
-
-A more detailed example of how to use the Terminal class can be found in the Terminal-Processing jupyter notebook.
+ - Manages remote connections in a dictionary by session ID.
+ - Processes commands, forwarding to the ``RequestManager`` or ``SessionManager`` where appropriate.
+ - Extends Service class.
+  - A detailed guide on the implementation and functionality of the Terminal class can be found in the "Terminal-Processing" jupyter notebook.
 
 Python
 """"""

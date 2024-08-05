@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ipaddress import IPv4Address
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
 from prettytable import MARKDOWN, PrettyTable
@@ -10,7 +10,12 @@ from pydantic import BaseModel
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.protocols.ssh import SSHPacket
+from primaite.simulator.network.protocols.ssh import (
+    SSHConnectionMessage,
+    SSHPacket,
+    SSHTransportMessage,
+    SSHUserCredentials,
+)
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
@@ -33,6 +38,9 @@ class TerminalClientConnection(BaseModel):
     connection_uuid: str = None
     """Connection UUID"""
 
+    connection_request_id: str = None
+    """Connection request ID"""
+
     @property
     def client(self) -> Optional[Terminal]:
         """The Terminal that holds this connection."""
@@ -50,6 +58,9 @@ class RemoteTerminalConnection(TerminalClientConnection):
     This class acts as broker between the terminal and remote.
 
     """
+
+    source_ip: IPv4Address
+    """Source IP of Connection"""
 
     def execute(self, command: Any) -> bool:
         """Execute a given command on the remote Terminal."""
@@ -88,13 +99,13 @@ class Terminal(Service):
 
         :param markdown: Whether to display the table in Markdown format or not. Default is `False`.
         """
-        table = PrettyTable(["Connection ID", "Session_ID"])
+        table = PrettyTable(["Connection ID", "Connection request ID", "Source IP"])
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.sys_log.hostname} {self.name} Connections"
         for connection_id, connection in self._connections.items():
-            table.add_row([connection_id, connection.session_id])
+            table.add_row([connection_id, connection.connection_request_id, connection.source_ip])
         print(table.get_string(sortby="Connection ID"))
 
     def _init_request_manager(self) -> RequestManager:
@@ -130,7 +141,7 @@ class Terminal(Service):
             connection_uuid = request[0]
             # TODO: Uncomment this when UserSessionManager merged.
             # self.parent.UserSessionManager.logoff(connection_uuid)
-            self.disconnect(connection_uuid)
+            self._disconnect(connection_uuid)
 
             return RequestResponse(status="success", data={})
 
@@ -157,8 +168,13 @@ class Terminal(Service):
         """Execute a passed ssh command via the request manager."""
         return self.parent.apply_request(command)
 
-    def _create_local_connection(self, connection_uuid: str, session_id: str) -> RemoteTerminalConnection:
-        """Create a new connection object and amend to list of active connections."""
+    def _create_local_connection(self, connection_uuid: str, session_id: str) -> TerminalClientConnection:
+        """Create a new connection object and amend to list of active connections.
+
+        :param connection_uuid: Connection ID of the new local connection
+        :param session_id: Session ID of the new local connection
+        :return: TerminalClientConnection object
+        """
         new_connection = TerminalClientConnection(
             parent_terminal=self,
             connection_uuid=connection_uuid,
@@ -172,7 +188,17 @@ class Terminal(Service):
     def login(
         self, username: str, password: str, ip_address: Optional[IPv4Address] = None
     ) -> Optional[TerminalClientConnection]:
-        """Login to the terminal. Will attempt a remote login if ip_address is given, else local."""
+        """Login to the terminal. Will attempt a remote login if ip_address is given, else local.
+
+        :param: username: Username used to connect to the remote node.
+        :type: username: str
+
+        :param: password: Password used to connect to the remote node
+        :type: password: str
+
+        :param: ip_address: Target Node IP address for login attempt. If None, login is assumed local.
+        :type: ip_address: Optional[IPv4Address]
+        """
         if self.operating_state != ServiceOperatingState.RUNNING:
             self.sys_log.warning("Cannot login as service is not running.")
             return None
@@ -199,8 +225,10 @@ class Terminal(Service):
         if connection_uuid:
             self.sys_log.info(f"Login request authorised, connection uuid: {connection_uuid}")
             # Add new local session to list of connections
-            self._create_local_connection(connection_uuid=connection_uuid, session_id="")
-            return TerminalClientConnection(parent_terminal=self, session_id="", connection_uuid=connection_uuid)
+            self._create_local_connection(connection_uuid=connection_uuid, session_id="Local_Connection")
+            return TerminalClientConnection(
+                parent_terminal=self, session_id="Local_Connection", connection_uuid=connection_uuid
+            )
         else:
             self.sys_log.warning("Login failed, incorrect Username or Password")
             return None
@@ -217,7 +245,26 @@ class Terminal(Service):
         connection_request_id: str,
         is_reattempt: bool = False,
     ) -> Optional[RemoteTerminalConnection]:
-        """Process a remote login attempt."""
+        """Send a remote login attempt and connect to Node.
+
+        :param: username: Username used to connect to the remote node.
+        :type: username: str
+
+        :param: password: Password used to connect to the remote node
+        :type: password: str
+
+        :param: ip_address: Target Node IP address for login attempt.
+        :type: ip_address: IPv4Address
+
+        :param: connection_request_id: Connection Request ID
+        :type: connection_request_id: str
+
+        :param: is_reattempt: True if the request has been reattempted. Default False.
+        :type: is_reattempt: Optional[bool]
+
+        :return: RemoteTerminalConnection: Connection Object for sending further commands if successful, else False.
+
+        """
         self.sys_log.info(f"Sending Remote login attempt to {ip_address}. Connection_id is {connection_request_id}")
         if is_reattempt:
             valid_connection = self._check_client_connection(connection_id=connection_request_id)
@@ -229,12 +276,24 @@ class Terminal(Service):
                 self.sys_log.warning(f"{self.name}: Remote connection to {ip_address} declined.")
                 return None
 
-        payload = {
+        transport_message: SSHTransportMessage = SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST
+        connection_message: SSHConnectionMessage = SSHConnectionMessage.SSH_MSG_CHANNEL_DATA
+        user_details: SSHUserCredentials = SSHUserCredentials(username=username, password=password)
+
+        payload_contents = {
             "type": "login_request",
             "username": username,
             "password": password,
             "connection_request_id": connection_request_id,
         }
+
+        payload: SSHPacket = SSHPacket(
+            payload=payload_contents,
+            transport_message=transport_message,
+            connection_message=connection_message,
+            user_account=user_details,
+        )
+
         software_manager: SoftwareManager = self.software_manager
         software_manager.send_payload_to_session_manager(
             payload=payload, dest_ip_address=ip_address, dest_port=self.port
@@ -247,15 +306,28 @@ class Terminal(Service):
             connection_request_id=connection_request_id,
         )
 
-    def _create_remote_connection(self, connection_id: str, connection_request_id: str, session_id: str) -> None:
-        """Create a new TerminalClientConnection Object."""
+    def _create_remote_connection(
+        self, connection_id: str, connection_request_id: str, session_id: str, source_ip: str
+    ) -> None:
+        """Create a new TerminalClientConnection Object.
+
+        :param: connection_request_id: Connection Request ID
+        :type: connection_request_id: str
+
+        :param: session_id: Session ID of connection.
+        :type: session_id: str
+        """
         client_connection = RemoteTerminalConnection(
-            parent_terminal=self, session_id=session_id, connection_uuid=connection_id
+            parent_terminal=self,
+            session_id=session_id,
+            connection_uuid=connection_id,
+            source_ip=source_ip,
+            connection_request_id=connection_request_id,
         )
         self._connections[connection_id] = client_connection
         self._client_connection_requests[connection_request_id] = client_connection
 
-    def receive(self, session_id: str, payload: Any, **kwargs) -> bool:
+    def receive(self, session_id: str, payload: Union[SSHPacket, Dict, List], **kwargs) -> bool:
         """
         Receive a payload from the Software Manager.
 
@@ -263,42 +335,62 @@ class Terminal(Service):
         :param session_id: The session id the payload relates to.
         :return: True.
         """
-        self.sys_log.info(f"Received payload: {payload}")
-        if isinstance(payload, dict) and payload.get("type"):
-            if payload["type"] == "login_request":
-                # add connection
-                connection_request_id = payload["connection_request_id"]
-                username = payload["username"]
-                password = payload["password"]
-                print(f"Connection ID is: {connection_request_id}")
-                self.sys_log.info(f"Connection authorised, session_id: {session_id}")
+        source_ip = kwargs["from_network_interface"].ip_address
+        self.sys_log.info(f"Received payload: {payload}. Source: {source_ip}")
+        if isinstance(payload, SSHPacket):
+            if payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST:
+                # validate & add connection
+                # TODO: uncomment this as part of 2781
+                # connection_id = self.parent.UserSessionManager.login(username=username, password=password)
+                connection_id = str(uuid4())
+                if connection_id:
+                    connection_request_id = payload.connection_request_uuid
+                    username = payload.user_account.username
+                    password = payload.user_account.password
+                    print(f"Connection ID is: {connection_request_id}")
+                    self.sys_log.info(f"Connection authorised, session_id: {session_id}")
+                    self._create_remote_connection(
+                        connection_id=connection_id,
+                        connection_request_id=connection_request_id,
+                        session_id=session_id,
+                        source_ip=source_ip,
+                    )
+
+                    transport_message = SSHTransportMessage.SSH_MSG_USERAUTH_SUCCESS
+                    connection_message = SSHConnectionMessage.SSH_MSG_CHANNEL_DATA
+
+                    payload_contents = {
+                        "type": "login_success",
+                        "username": username,
+                        "password": password,
+                        "connection_request_id": connection_request_id,
+                        "connection_id": connection_id,
+                    }
+                    payload: SSHPacket = SSHPacket(
+                        payload=payload_contents,
+                        transport_message=transport_message,
+                        connection_message=connection_message,
+                        connection_request_uuid=connection_request_id,
+                        connection_uuid=connection_id,
+                    )
+
+                    software_manager: SoftwareManager = self.software_manager
+                    software_manager.send_payload_to_session_manager(
+                        payload=payload, dest_port=self.port, session_id=session_id
+                    )
+            elif payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_SUCCESS:
+                self.sys_log.info("Login Successful")
                 self._create_remote_connection(
-                    connection_id=connection_request_id,
-                    connection_request_id=payload["connection_request_id"],
+                    connection_id=payload.connection_uuid,
+                    connection_request_id=payload.connection_request_uuid,
                     session_id=session_id,
-                )
-                payload = {
-                    "type": "login_success",
-                    "username": username,
-                    "password": password,
-                    "connection_request_id": connection_request_id,
-                }
-                software_manager: SoftwareManager = self.software_manager
-                software_manager.send_payload_to_session_manager(
-                    payload=payload, dest_port=self.port, session_id=session_id
-                )
-            elif payload["type"] == "login_success":
-                self.sys_log.info(f"Login was successful! session_id is:{session_id}")
-                connection_request_id = payload["connection_request_id"]
-                self._create_remote_connection(
-                    connection_id=connection_request_id,
-                    session_id=session_id,
-                    connection_request_id=connection_request_id,
+                    source_ip=source_ip,
                 )
 
-            elif payload["type"] == "disconnect":
+        if isinstance(payload, dict) and payload.get("type"):
+            if payload["type"] == "disconnect":
                 connection_id = payload["connection_id"]
-                self.sys_log.info(f"{self.name}: Received disconnect command for {connection_id=} from the server")
+                self.sys_log.info(f"{self.name}: Received disconnect command for {connection_id=} from remote.")
                 self._disconnect(payload["connection_id"])
 
         if isinstance(payload, list):

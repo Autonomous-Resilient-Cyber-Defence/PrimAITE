@@ -107,7 +107,7 @@ def test_port_scan_full_subnet_all_ports_and_protocols(example_network):
     expected_result = {
         IPv4Address("192.168.10.1"): {IPProtocol.UDP: [Port.ARP]},
         IPv4Address("192.168.10.22"): {
-            IPProtocol.TCP: [Port.HTTP, Port.FTP, Port.DNS, Port.SSH],
+            IPProtocol.TCP: [Port.HTTP, Port.FTP, Port.DNS],
             IPProtocol.UDP: [Port.ARP, Port.NTP],
         },
     }
