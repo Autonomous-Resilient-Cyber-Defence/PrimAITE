@@ -63,7 +63,6 @@ class ProbabilisticAgent(AbstractScriptedAgent):
         self.settings = ProbabilisticAgent.Settings(**settings)
         rng_seed = np.random.randint(0, 65535)
         self.rng = np.random.default_rng(rng_seed)
-        print(f"Probabilistic Agent - rng_seed: {rng_seed}")
 
         # convert probabilities from
         self.probabilities = np.asarray(list(self.settings.action_probabilities.values()))
