@@ -13,9 +13,6 @@
 * [Fork the repository](https://github.com/{todo:fill in URL}/PrimAITE/fork).
 * Install the pre-commit hook with `pre-commit install`.
 * Implement the bug fix.
-* Update documentation where applicable.
-* Update the **UNRELEASED** section of the [CHANGELOG.md](CHANGELOG.md) file
-* Write a suitable test/tests.
 * Commit the bug fix to the dev branch on your fork. If the bug has an open issue under [Issues](https://github.com/{todo:fill in URL}/PrimAITE/issues), reference the issue in the commit message (e.g. #1 references issue 1).
 * Submit a pull request from your dev branch to the {todo:fill in URL}/PrimAITE dev branch. Again, if the bug has an open issue under [Issues](https://github.com/{todo:fill in URL}/PrimAITE/issues), reference the issue in the pull request description.
 
