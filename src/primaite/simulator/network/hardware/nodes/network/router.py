@@ -4,14 +4,14 @@ from __future__ import annotations
 import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import validate_call
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
-from primaite.simulator.network.hardware.base import IPWiredNetworkInterface
+from primaite.simulator.network.hardware.base import IPWiredNetworkInterface, UserManager, UserSessionManager
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
 from primaite.simulator.network.protocols.arp import ARPPacket
@@ -1200,6 +1200,11 @@ class Router(NetworkNode):
         RouteTable, RouterARP, and RouterICMP services.
     """
 
+    SYSTEM_SOFTWARE: ClassVar[Dict] = {
+        "UserSessionManager": UserSessionManager,
+        "UserManager": UserManager,
+    }
+
     num_ports: int
     network_interfaces: Dict[str, RouterInterface] = {}
     "The Router Interfaces on the node."
@@ -1235,6 +1240,7 @@ class Router(NetworkNode):
         resolution within the network. These services are crucial for the router's operation, enabling it to manage
         network traffic efficiently.
         """
+        super()._install_system_software()
         self.software_manager.install(RouterICMP)
         icmp: RouterICMP = self.software_manager.icmp  # noqa
         icmp.router = self

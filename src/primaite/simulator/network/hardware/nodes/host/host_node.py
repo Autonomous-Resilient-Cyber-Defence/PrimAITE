@@ -5,7 +5,13 @@ from ipaddress import IPv4Address
 from typing import Any, ClassVar, Dict, Optional
 
 from primaite import getLogger
-from primaite.simulator.network.hardware.base import IPWiredNetworkInterface, Link, Node
+from primaite.simulator.network.hardware.base import (
+    IPWiredNetworkInterface,
+    Link,
+    Node,
+    UserManager,
+    UserSessionManager,
+)
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.system.applications.application import ApplicationOperatingState
@@ -309,6 +315,8 @@ class HostNode(Node):
         "WebBrowser": WebBrowser,
         "NMAP": NMAP,
         "Terminal": Terminal,
+        "UserSessionManager": UserSessionManager,
+        "UserManager": UserManager,
     }
     """List of system software that is automatically installed on nodes."""
 
@@ -340,18 +348,6 @@ class HostNode(Node):
         :rtype: Optional[ARP]
         """
         return self.software_manager.software.get("ARP")
-
-    def _install_system_software(self):
-        """
-        Installs the system software and network services typically found on an operating system.
-
-        This method equips the host with essential network services and applications, preparing it for various
-        network-related tasks and operations.
-        """
-        for _, software_class in self.SYSTEM_SOFTWARE.items():
-            self.software_manager.install(software_class)
-
-        super()._install_system_software()
 
     def default_gateway_hello(self):
         """
