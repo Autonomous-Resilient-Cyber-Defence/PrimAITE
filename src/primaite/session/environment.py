@@ -44,9 +44,8 @@ def set_random_seed(seed: int) -> Union[None, int]:
     # if torch not installed don't set random seed.
     if sys.modules["torch"]:
         th.manual_seed(seed)
-
-    th.backends.cudnn.deterministic = True
-    th.backends.cudnn.benchmark = False
+        th.backends.cudnn.deterministic = True
+        th.backends.cudnn.benchmark = False
 
     return seed
 
@@ -64,7 +63,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         super().__init__()
         self.episode_scheduler: EpisodeScheduler = build_scheduler(env_config)
         """Object that returns a config corresponding to the current episode."""
-        self.seed = self.episode_scheduler(0).get("game").get("seed")
+        self.seed = self.episode_scheduler(0).get("game", {}).get("seed")
         """Get RNG seed from config file. NB: Must be before game instantiation."""
         self.seed = set_random_seed(self.seed)
         self.io = PrimaiteIO.from_config(self.episode_scheduler(0).get("io_settings", {}))

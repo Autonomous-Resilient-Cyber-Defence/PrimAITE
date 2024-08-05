@@ -68,7 +68,7 @@ class ProbabilisticAgent(AbstractScriptedAgent):
         self.probabilities = np.asarray(list(self.settings.action_probabilities.values()))
 
         super().__init__(agent_name, action_space, observation_space, reward_function)
-        self.logger.info(f"ProbabilisticAgent RNG seed: {rng_seed}")
+        self.logger.debug(f"ProbabilisticAgent RNG seed: {rng_seed}")
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
