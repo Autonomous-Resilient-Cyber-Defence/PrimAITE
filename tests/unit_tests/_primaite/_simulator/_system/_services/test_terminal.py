@@ -10,6 +10,7 @@ from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
+from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.protocols.ssh import SSHConnectionMessage, SSHPacket, SSHTransportMessage
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -43,6 +44,72 @@ def basic_network() -> Network:
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
     return network
+
+
+@pytest.fixture(scope="function")
+def wireless_wan_network():
+    network = Network()
+
+    # Configure PC A
+    pc_a = Computer(
+        hostname="pc_a",
+        ip_address="192.168.0.2",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.0.1",
+        start_up_duration=0,
+    )
+    pc_a.power_on()
+    network.add_node(pc_a)
+
+    # Configure Router 1
+    router_1 = WirelessRouter(hostname="router_1", start_up_duration=0, airspace=network.airspace)
+    router_1.power_on()
+    network.add_node(router_1)
+
+    # Configure the connection between PC A and Router 1 port 2
+    router_1.configure_router_interface("192.168.0.1", "255.255.255.0")
+    network.connect(pc_a.network_interface[1], router_1.network_interface[2])
+
+    # Configure Router 1 ACLs
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+
+    # Configure PC B
+    pc_b = Computer(
+        hostname="pc_b",
+        ip_address="192.168.2.2",
+        subnet_mask="255.255.255.0",
+        default_gateway="192.168.2.1",
+        start_up_duration=0,
+    )
+    pc_b.power_on()
+    network.add_node(pc_b)
+
+    # Configure Router 2
+    router_2 = WirelessRouter(hostname="router_2", start_up_duration=0, airspace=network.airspace)
+    router_2.power_on()
+    network.add_node(router_2)
+
+    # Configure the connection between PC B and Router 2 port 2
+    router_2.configure_router_interface("192.168.2.1", "255.255.255.0")
+    network.connect(pc_b.network_interface[1], router_2.network_interface[2])
+
+    # Configure Router 2 ACLs
+
+    # Configure the wireless connection between Router 1 port 1 and Router 2 port 1
+    router_1.configure_wireless_access_point("192.168.1.1", "255.255.255.0")
+    router_2.configure_wireless_access_point("192.168.1.2", "255.255.255.0")
+
+    router_1.route_table.add_route(
+        address="192.168.2.0", subnet_mask="255.255.255.0", next_hop_ip_address="192.168.1.2"
+    )
+
+    # Configure Route from Router 2 to PC A subnet
+    router_2.route_table.add_route(
+        address="192.168.0.2", subnet_mask="255.255.255.0", next_hop_ip_address="192.168.1.1"
+    )
+
+    return pc_a, pc_b, router_1, router_2
 
 
 @pytest.fixture
@@ -190,86 +257,64 @@ def test_terminal_ignores_when_off(basic_network):
     assert not term_a_on_term_b.execute(["software_manager", "application", "install", "RansomwareScript"])
 
 
-def test_network_simulation(basic_network):
-    # 0: Pull out the network
-    network = basic_network
+def test_computer_remote_login_to_router(wireless_wan_network):
+    """Test to confirm that a computer can SSH into a router."""
+    pc_a, pc_b, router_1, router_2 = wireless_wan_network
 
-    # 1: Set up network hardware
-    # 1.1: Configure the router
-    router = Router(hostname="router", num_ports=3, start_up_duration=0)
-    router.power_on()
-    router.configure_port(port=1, ip_address="10.0.1.1", subnet_mask="255.255.255.0")
-    router.configure_port(port=2, ip_address="10.0.2.1", subnet_mask="255.255.255.0")
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=21)
 
-    # 1.2: Create and connect switches
-    switch_1 = Switch(hostname="switch_1", num_ports=6, start_up_duration=0)
-    switch_1.power_on()
-    network.connect(endpoint_a=router.network_interface[1], endpoint_b=switch_1.network_interface[6])
-    router.enable_port(1)
-    switch_2 = Switch(hostname="switch_2", num_ports=6, start_up_duration=0)
-    switch_2.power_on()
-    network.connect(endpoint_a=router.network_interface[2], endpoint_b=switch_2.network_interface[6])
-    router.enable_port(2)
+    pc_a_terminal: Terminal = pc_a.software_manager.software.get("Terminal")
+    pc_b_terminal: Terminal = pc_b.software_manager.software.get("Terminal")
 
-    # 1.3: Create and connect computer
-    client_1 = Computer(
-        hostname="client_1",
-        ip_address="10.0.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="10.0.1.1",
-        start_up_duration=0,
-    )
-    client_1.power_on()
-    network.connect(
-        endpoint_a=client_1.network_interface[1],
-        endpoint_b=switch_1.network_interface[1],
-    )
+    router_1_terminal: Terminal = router_1.software_manager.software.get("Terminal")
+    router_2_terminal: Terminal = router_2.software_manager.software.get("Terminal")
 
-    client_2 = Computer(
-        hostname="client_2",
-        ip_address="10.0.2.2",
-        subnet_mask="255.255.255.0",
-    )
-    client_2.power_on()
-    network.connect(endpoint_a=client_2.network_interface[1], endpoint_b=switch_2.network_interface[1])
+    assert len(pc_a_terminal._connections) == 0
 
-    # 1.4: Create and connect servers
-    server_1 = Server(
-        hostname="server_1",
-        ip_address="10.0.2.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="10.0.2.1",
-        start_up_duration=0,
-    )
-    server_1.power_on()
-    network.connect(endpoint_a=server_1.network_interface[1], endpoint_b=switch_2.network_interface[1])
+    pc_a_on_router_1 = pc_a_terminal.login(username="username", password="password", ip_address="192.168.1.1")
 
-    server_2 = Server(
-        hostname="server_2",
-        ip_address="10.0.2.3",
-        subnet_mask="255.255.255.0",
-        default_gateway="10.0.2.1",
-        start_up_duration=0,
-    )
-    server_2.power_on()
-    network.connect(endpoint_a=server_2.network_interface[1], endpoint_b=switch_2.network_interface[2])
+    assert len(pc_a_terminal._connections) == 1
 
-    # 2: Configure base ACL
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port.ARP, dst_port=Port.ARP, position=22)
-    router.acl.add_rule(action=ACLAction.DENY, protocol=IPProtocol.ICMP, position=23)
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port.DNS, dst_port=Port.DNS, position=1)
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=3)
+    payload = ["software_manager", "application", "install", "RansomwareScript"]
 
-    # 3: Install server software
-    server_1.software_manager.install(DNSServer)
-    dns_service: DNSServer = server_1.software_manager.software.get("DNSServer")  # noqa
-    dns_service.dns_register("www.example.com", server_2.network_interface[1].ip_address)
-    server_2.software_manager.install(WebServer)
+    pc_a_on_router_1.execute(payload)
 
-    # 3.1: Ensure that the dns clients are configured correctly
-    client_1.software_manager.software.get("DNSClient").dns_server = server_1.network_interface[1].ip_address
-    server_2.software_manager.software.get("DNSClient").dns_server = server_1.network_interface[1].ip_address
+    assert router_1.software_manager.software.get("RansomwareScript")
 
-    terminal_1: Terminal = client_1.software_manager.software.get("Terminal")
 
-    assert terminal_1.login(username="admin", password="Admin123!", ip_address="10.0.2.2") is False
+def test_router_remote_login_to_computer(wireless_wan_network):
+    """Test to confirm that a router can ssh into a computer."""
+    pc_a, pc_b, router_1, router_2 = wireless_wan_network
+
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=21)
+
+    pc_a_terminal: Terminal = pc_a.software_manager.software.get("Terminal")
+    pc_b_terminal: Terminal = pc_b.software_manager.software.get("Terminal")
+
+    router_1_terminal: Terminal = router_1.software_manager.software.get("Terminal")
+    router_2_terminal: Terminal = router_2.software_manager.software.get("Terminal")
+
+    assert len(router_1_terminal._connections) == 0
+
+    router_1_on_pc_a = router_1_terminal.login(username="username", password="password", ip_address="192.168.0.2")
+
+    assert len(router_1_terminal._connections) == 1
+
+    payload = ["software_manager", "application", "install", "RansomwareScript"]
+
+    router_1_on_pc_a.execute(payload)
+
+    assert pc_a.software_manager.software.get("RansomwareScript")
+
+
+def test_router_blocks_SSH_traffic(wireless_wan_network):
+    """Test to check that router will block SSH traffic if no ACL rule."""
+    pc_a, _, _, router_2 = wireless_wan_network
+
+    pc_a_terminal: Terminal = pc_a.software_manager.software.get("Terminal")
+
+    assert len(pc_a_terminal._connections) == 0
+
+    pc_a_terminal.login(username="username", password="password", ip_address="192.168.0.2")
+
+    assert len(pc_a_terminal._connections) == 0
