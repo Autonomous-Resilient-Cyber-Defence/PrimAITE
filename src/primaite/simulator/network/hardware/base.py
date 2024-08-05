@@ -30,6 +30,7 @@ from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.processes.process import Process
 from primaite.simulator.system.services.service import Service
+from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.software import IOSoftware, Software
 from primaite.utils.converters import convert_dict_enum_keys_to_enum_values
 from primaite.utils.validators import IPV4Address
@@ -1540,6 +1541,11 @@ class Node(SimComponent):
     def user_session_manager(self) -> Optional[UserSessionManager]:
         """The Nodes User Session Manager."""
         return self.software_manager.software.get("UserSessionManager")  # noqa
+
+    @property
+    def terminal(self) -> Optional[Terminal]:
+        """The Nodes Terminal."""
+        return self.software_manager.software.get("Terminal")
 
     def local_login(self, username: str, password: str) -> Optional[str]:
         """

@@ -314,9 +314,9 @@ class HostNode(Node):
         "NTPClient": NTPClient,
         "WebBrowser": WebBrowser,
         "NMAP": NMAP,
-        "Terminal": Terminal,
         "UserSessionManager": UserSessionManager,
         "UserManager": UserManager,
+        "Terminal": Terminal,
     }
     """List of system software that is automatically installed on nodes."""
 
