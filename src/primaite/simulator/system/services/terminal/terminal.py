@@ -8,7 +8,7 @@ from uuid import uuid4
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import BaseModel
 
-from primaite.interface.request import RequestResponse
+from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.ssh import (
     SSHConnectionMessage,
@@ -116,27 +116,27 @@ class Terminal(Service):
             request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.send())),
         )
 
-        def _login(request: List[Any], context: Any) -> RequestResponse:
+        def _login(request: RequestFormat, context: Dict) -> RequestResponse:
             login = self._process_local_login(username=request[0], password=request[1])
             if login:
                 return RequestResponse(status="success", data={})
             else:
                 return RequestResponse(status="failure", data={})
 
-        def _remote_login(request: List[Any], context: Any) -> RequestResponse:
+        def _remote_login(request: RequestFormat, context: Dict) -> RequestResponse:
             login = self._send_remote_login(username=request[0], password=request[1], ip_address=request[2])
             if login:
                 return RequestResponse(status="success", data={})
             else:
                 return RequestResponse(status="failure", data={})
 
-        def _execute_request(request: List[Any], context: Any) -> RequestResponse:
+        def _execute_request(request: RequestFormat, context: Dict) -> RequestResponse:
             """Execute an instruction."""
             command: str = request[0]
             self.execute(command)
             return RequestResponse(status="success", data={})
 
-        def _logoff(request: List[Any]) -> RequestResponse:
+        def _logoff(request: RequestFormat, context: Dict) -> RequestResponse:
             """Logoff from connection."""
             connection_uuid = request[0]
             # TODO: Uncomment this when UserSessionManager merged.
