@@ -39,6 +39,12 @@ Implementation
  - Extends Service class.
   - A detailed guide on the implementation and functionality of the Terminal class can be found in the "Terminal-Processing" jupyter notebook.
 
+
+Usage
+=====
+
+The below code examples demonstrate how to create a terminal, a remote terminal, and how to send a basic application install command to a remote node.
+
 Python
 """"""
 
@@ -59,3 +65,109 @@ Python
     )
 
     terminal: Terminal = client.software_manager.software.get("Terminal")
+
+Obtaining Remote Connection
+"""""""""""""""""""""""""""
+
+
+.. code-block:: python
+
+    from primaite.simulator.system.services.terminal.terminal import Terminal
+    from primaite.simulator.network.container import Network
+    from primaite.simulator.network.hardware.nodes.host.computer import Computer
+    from primaite.simulator.system.services.terminal.terminal import RemoteTerminalConnection
+
+
+    network = Network()
+    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a.power_on()
+    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b.power_on()
+    network.connect(node_a.network_interface[1], node_b.network_interface[1])
+
+    terminal_a: Terminal = node_a.software_manager.software.get("Terminal")
+
+
+    term_a_term_b_remote_connection: RemoteTerminalConnection = terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")
+
+
+
+Executing a basic application install command
+"""""""""""""""""""""""""""""""""
+
+.. code-block:: python
+
+    from primaite.simulator.system.services.terminal.terminal import Terminal
+    from primaite.simulator.network.container import Network
+    from primaite.simulator.network.hardware.nodes.host.computer import Computer
+    from primaite.simulator.system.services.terminal.terminal import RemoteTerminalConnection
+    from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
+
+
+    network = Network()
+    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a.power_on()
+    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b.power_on()
+    network.connect(node_a.network_interface[1], node_b.network_interface[1])
+
+    terminal_a: Terminal = node_a.software_manager.software.get("Terminal")
+
+
+    term_a_term_b_remote_connection: RemoteTerminalConnection = terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")
+
+    term_a_term_b_remote_connection.execute(["software_manager", "application", "install", "RansomwareScript"])
+
+
+
+Creating a file on a remote node
+""""""""""""""""""""""""""""""""
+
+.. code-block:: python
+
+    from primaite.simulator.system.services.terminal.terminal import Terminal
+    from primaite.simulator.network.container import Network
+    from primaite.simulator.network.hardware.nodes.host.computer import Computer
+    from primaite.simulator.system.services.terminal.terminal import RemoteTerminalConnection
+    from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
+
+
+    network = Network()
+    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a.power_on()
+    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b.power_on()
+    network.connect(node_a.network_interface[1], node_b.network_interface[1])
+
+    terminal_a: Terminal = node_a.software_manager.software.get("Terminal")
+
+
+    term_a_term_b_remote_connection: RemoteTerminalConnection = terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")
+
+    term_a_term_b_remote_connection.execute(["file_system", "create", "folder", "downloads"])
+
+
+Disconnect from Remote Node
+
+.. code-block:: python
+
+    from primaite.simulator.system.services.terminal.terminal import Terminal
+    from primaite.simulator.network.container import Network
+    from primaite.simulator.network.hardware.nodes.host.computer import Computer
+    from primaite.simulator.system.services.terminal.terminal import RemoteTerminalConnection
+    from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
+
+
+    network = Network()
+    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a.power_on()
+    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b.power_on()
+    network.connect(node_a.network_interface[1], node_b.network_interface[1])
+
+    terminal_a: Terminal = node_a.software_manager.software.get("Terminal")
+
+
+    term_a_term_b_remote_connection: RemoteTerminalConnection = terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")
+
+    term_a_term_b_remote_connection.disconnect()

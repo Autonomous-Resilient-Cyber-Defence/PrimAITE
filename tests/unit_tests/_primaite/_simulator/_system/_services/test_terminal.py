@@ -336,3 +336,19 @@ def test_SSH_across_network(wireless_wan_network):
     terminal_b_on_terminal_a = terminal_b.login(username="username", password="password", ip_address="192.168.0.2")
 
     assert len(terminal_a._connections) == 1
+
+
+def test_multiple_remote_terminals_same_node(basic_network):
+    """Test to check that multiple remote terminals can be spawned by one node."""
+    network: Network = basic_network
+    computer_a: Computer = network.get_node_by_hostname("node_a")
+    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    computer_b: Computer = network.get_node_by_hostname("node_b")
+
+    assert len(terminal_a._connections) == 0
+
+    # Spam login requests to terminal.
+    for attempt in range(10):
+        remote_connection = terminal_a.login(username="username", password="password", ip_address="192.168.0.11")
+
+    assert len(terminal_a._connections) == 10

@@ -76,10 +76,14 @@ class SSHPacket(DataPacket):
     user_account: Optional[SSHUserCredentials] = None
     """User Account Credentials if passed"""
 
-    connection_request_uuid: Optional[str] = None  # Connection Request uuid.
+    connection_request_uuid: Optional[str] = None
+    """Connection Request UUID used when establishing a remote connection"""
 
-    connection_uuid: Optional[str] = None  # The connection uuid used to validate the session
+    connection_uuid: Optional[str] = None
+    """Connection UUID used when validating a remote connection"""
 
-    ssh_output: Optional[RequestResponse] = None  # The Request Manager's returned RequestResponse
+    ssh_output: Optional[RequestResponse] = None
+    """RequestResponse from Request Manager"""
 
-    ssh_command: Optional[str] = None  # This is the request string
+    ssh_command: Optional[str] = None
+    """Request String"""
