@@ -84,8 +84,11 @@ class LocalTerminalConnection(TerminalClientConnection):
 
     ip_address: str = "Local Connection"
 
-    def execute(self, command: Any) -> RequestResponse:
+    def execute(self, command: Any) -> Optional[RequestResponse]:
         """Execute a given command on local Terminal."""
+        if self.parent_terminal.operating_state != ServiceOperatingState.RUNNING:
+            self.parent_terminal.sys_log.warning("Cannot process command as system not running")
+            return None
         if not self.is_active:
             self.parent_terminal.sys_log.warning("Connection inactive, cannot execute")
             return None

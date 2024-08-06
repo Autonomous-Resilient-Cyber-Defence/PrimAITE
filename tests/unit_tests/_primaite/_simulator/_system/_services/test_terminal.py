@@ -376,3 +376,5 @@ def test_terminal_rejects_commands_if_disconnect(basic_network):
     assert remote_connection.execute(["software_manager", "application", "install", "RansomwareScript"]) is False
 
     assert not computer_b.software_manager.software.get("RansomwareScript")
+
+    assert remote_connection.is_active is False
