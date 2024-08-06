@@ -10,7 +10,7 @@ from primaite.simulator.network.protocols.masquerade import MasqueradePacket
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 
 
-class C2Server(AbstractC2, identifier="C2 Server"):
+class C2Server(AbstractC2, identifier="C2Server"):
     """
     C2 Server Application.
 
@@ -74,8 +74,8 @@ class C2Server(AbstractC2, identifier="C2 Server"):
             :rtype: RequestResponse
             """
             # TODO: Parse the parameters from the request to get the parameters
-            placeholder: dict = {}
-            return self._send_command(given_command=C2Command.TERMINAL, command_options=placeholder)
+            terminal_commands = {"commands": request[-1].get("commands")}
+            return self._send_command(given_command=C2Command.TERMINAL, command_options=terminal_commands)
 
         rm.add_request(
             name="ransomware_configure",
@@ -250,14 +250,29 @@ class C2Server(AbstractC2, identifier="C2 Server"):
         ``C2 Remote Connection``:
         The IP of the C2 Beacon. (Configured by upon receiving a keep alive.)
 
+        ``Current Masquerade Protocol``:
+        The current protocol that the C2 Traffic is using. (e.g TCP/UDP)
+
+        ``Current Masquerade Port``:
+        The current port that the C2 Traffic is using. (e.g HTTP (Port 80))
+
         :param markdown: If True, outputs the table in markdown format. Default is False.
         """
-        table = PrettyTable(["C2 Connection Active", "C2 Remote Connection"])
+        table = PrettyTable(
+            ["C2 Connection Active", "C2 Remote Connection", "Current Masquerade Protocol", "Current Masquerade Port"]
+        )
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.name} Running Status"
-        table.add_row([self.c2_connection_active, self.c2_remote_connection])
+        table.add_row(
+            [
+                self.c2_connection_active,
+                self.c2_remote_connection,
+                self.current_masquerade_protocol,
+                self.current_masquerade_port,
+            ]
+        )
         print(table)
 
     # Abstract method inherited from abstract C2 - Not currently utilised.

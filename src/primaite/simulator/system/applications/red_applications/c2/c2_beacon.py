@@ -5,6 +5,7 @@ from typing import Dict, Optional
 
 # from primaite.simulator.system.services.terminal.terminal import Terminal
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import validate_call
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
@@ -17,7 +18,7 @@ from primaite.simulator.system.applications.red_applications.ransomware_script i
 from primaite.simulator.system.software import SoftwareHealthState
 
 
-class C2Beacon(AbstractC2, identifier="C2 Beacon"):
+class C2Beacon(AbstractC2, identifier="C2Beacon"):
     """
     C2 Beacon Application.
 
@@ -94,16 +95,16 @@ class C2Beacon(AbstractC2, identifier="C2 Beacon"):
                 )
 
             c2_remote_ip = IPv4Address(c2_remote_ip)
-            # TODO: validation.
             frequency = request[-1].get("keep_alive_frequency")
             protocol = request[-1].get("masquerade_protocol")
             port = request[-1].get("masquerade_port")
+
             return RequestResponse.from_bool(
                 self.configure(
                     c2_server_ip_address=c2_remote_ip,
                     keep_alive_frequency=frequency,
-                    masquerade_protocol=protocol,
-                    masquerade_port=port,
+                    masquerade_protocol=IPProtocol[protocol],
+                    masquerade_port=Port[port],
                 )
             )
 
@@ -114,12 +115,13 @@ class C2Beacon(AbstractC2, identifier="C2 Beacon"):
         kwargs["name"] = "C2Beacon"
         super().__init__(**kwargs)
 
+    @validate_call
     def configure(
         self,
         c2_server_ip_address: IPv4Address = None,
-        keep_alive_frequency: Optional[int] = 5,
-        masquerade_protocol: Optional[Enum] = IPProtocol.TCP,
-        masquerade_port: Optional[Enum] = Port.HTTP,
+        keep_alive_frequency: int = 5,
+        masquerade_protocol: Enum = IPProtocol.TCP,
+        masquerade_port: Enum = Port.HTTP,
     ) -> bool:
         """
         Configures the C2 beacon to communicate with the C2 server with following additional parameters.
@@ -278,8 +280,7 @@ class C2Beacon(AbstractC2, identifier="C2 Beacon"):
         :return: Returns the Request Response returned by the Terminal execute method.
         :rtype: Request Response
         """
-        # TODO: replace and use terminal
-        return RequestResponse(status="success", data={"Reason": "Placeholder."})
+        return RequestResponse.from_bool(self._host_ransomware_script.attack())
 
     def _command_terminal(self, payload: MasqueradePacket) -> RequestResponse:
         """
@@ -295,7 +296,6 @@ class C2Beacon(AbstractC2, identifier="C2 Beacon"):
         """
         # TODO: uncomment and replace (uses terminal)
         return RequestResponse(status="success", data={"Reason": "Placeholder."})
-        # return self._host_terminal.execute(command)
 
     def _handle_keep_alive(self, payload: MasqueradePacket, session_id: Optional[str]) -> bool:
         """
@@ -421,10 +421,23 @@ class C2Beacon(AbstractC2, identifier="C2 Beacon"):
         ``Keep Alive Frequency``:
         How often should the C2 Beacon attempt a keep alive?
 
+        ``Current Masquerade Protocol``:
+        The current protocol that the C2 Traffic is using. (e.g TCP/UDP)
+
+        ``Current Masquerade Port``:
+        The current port that the C2 Traffic is using. (e.g HTTP (Port 80))
+
         :param markdown: If True, outputs the table in markdown format. Default is False.
         """
         table = PrettyTable(
-            ["C2 Connection Active", "C2 Remote Connection", "Keep Alive Inactivity", "Keep Alive Frequency"]
+            [
+                "C2 Connection Active",
+                "C2 Remote Connection",
+                "Keep Alive Inactivity",
+                "Keep Alive Frequency",
+                "Current Masquerade Protocol",
+                "Current Masquerade Port",
+            ]
         )
         if markdown:
             table.set_style(MARKDOWN)
@@ -436,6 +449,8 @@ class C2Beacon(AbstractC2, identifier="C2 Beacon"):
                 self.c2_remote_connection,
                 self.keep_alive_inactivity,
                 self.keep_alive_frequency,
+                self.current_masquerade_protocol,
+                self.current_masquerade_port,
             ]
         )
         print(table)

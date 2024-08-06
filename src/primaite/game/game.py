@@ -31,6 +31,8 @@ from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient  # noqa: F401
+from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon  # noqa: F401
+from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Server  # noqa: F401
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (  # noqa: F401
     DataManipulationBot,
 )

@@ -1071,6 +1071,103 @@ class NodeNetworkServiceReconAction(AbstractAction):
         ]
 
 
+class ConfigureC2BeaconAction(AbstractAction):
+    """Action which configures a C2 Beacon based on the parameters given."""
+
+    class _Opts(BaseModel):
+        """Schema for options that can be passed to this action."""
+
+        c2_server_ip_address: str
+        keep_alive_frequency: int = Field(default=5, ge=1)
+        masquerade_protocol: str = Field(default="TCP")
+        masquerade_port: str = Field(default="HTTP")
+
+        @field_validator(
+            "c2_server_ip_address",
+            "keep_alive_frequency",
+            "masquerade_protocol",
+            "masquerade_port",
+            mode="before",
+        )
+        @classmethod
+        def not_none(cls, v: str, info: ValidationInfo) -> int:
+            """If None is passed, use the default value instead."""
+            if v is None:
+                return cls.model_fields[info.field_name].default
+            return v
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        config = ConfigureC2BeaconAction._Opts(
+            c2_server_ip_address=config["c2_server_ip_address"],
+            keep_alive_frequency=config["keep_alive_frequency"],
+            masquerade_port=config["masquerade_protocol"],
+            masquerade_protocol=config["masquerade_port"],
+        )
+
+        ConfigureC2BeaconAction._Opts.model_validate(config)  # check that options adhere to schema
+
+        return ["network", "node", node_name, "application", "C2Beacon", "configure", config.__dict__]
+
+
+class RansomwareConfigureC2ServerAction(AbstractAction):
+    """Action which sends a command from the C2 Server to the C2 Beacon which configures a local RansomwareScript."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        # Using the ransomware scripts model to validate.
+        ConfigureRansomwareScriptAction._Opts.model_validate(config)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "C2Server", "ransomware_configure", config]
+
+
+class RansomwareLaunchC2ServerAction(AbstractAction):
+    """Action which causes the C2 Server to send a command to the C2 Beacon to launch the RansomwareScript."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        # Not options needed for this action.
+        return ["network", "node", node_name, "application", "C2Server", "ransomware_launch"]
+
+
+class TerminalC2ServerAction(AbstractAction):
+    """Action which causes the C2 Server to send a command to the C2 Beacon to execute the terminal command passed."""
+
+    class _Opts(BaseModel):
+        """Schema for options that can be passed to this action."""
+
+        model_config = ConfigDict(extra="forbid")
+        commands: RequestFormat
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        TerminalC2ServerAction._Opts.model_validate(config)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "C2Server", "terminal_command", config]
+
+
 class ActionManager:
     """Class which manages the action space for an agent."""
 
@@ -1122,6 +1219,10 @@ class ActionManager:
         "CONFIGURE_DATABASE_CLIENT": ConfigureDatabaseClientAction,
         "CONFIGURE_RANSOMWARE_SCRIPT": ConfigureRansomwareScriptAction,
         "CONFIGURE_DOSBOT": ConfigureDoSBotAction,
+        "CONFIGURE_C2_BEACON": ConfigureC2BeaconAction,
+        "C2_SERVER_RANSOMWARE_LAUNCH": RansomwareLaunchC2ServerAction,
+        "C2_SERVER_RANSOMWARE_CONFIGURE": RansomwareConfigureC2ServerAction,
+        "C2_SERVER_TERMINAL_COMMAND": TerminalC2ServerAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 
