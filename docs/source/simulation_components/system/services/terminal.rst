@@ -66,7 +66,7 @@ Python
 
     terminal: Terminal = client.software_manager.software.get("Terminal")
 
-Obtaining Remote Connection
+Creating Remote Terminal Connection
 """""""""""""""""""""""""""
 
 
@@ -120,7 +120,7 @@ Executing a basic application install command
 
 
 
-Creating a file on a remote node
+Creating a folder on a remote node
 """"""""""""""""""""""""""""""""
 
 .. code-block:: python
