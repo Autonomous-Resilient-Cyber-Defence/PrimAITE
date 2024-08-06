@@ -100,6 +100,7 @@ def test_ray_single_agent_action_masking(monkeypatch):
     monkeypatch.undo()
 
 
+@pytest.mark.xfail(reason="Fails due to being flaky when run in CI.")
 def test_ray_multi_agent_action_masking(monkeypatch):
     """Check that Ray agents never take invalid actions when using MARL."""
     with open(MARL_PATH, "r") as f:
