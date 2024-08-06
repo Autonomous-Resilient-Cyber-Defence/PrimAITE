@@ -352,3 +352,27 @@ def test_multiple_remote_terminals_same_node(basic_network):
         remote_connection = terminal_a.login(username="username", password="password", ip_address="192.168.0.11")
 
     assert len(terminal_a._connections) == 10
+
+
+def test_terminal_rejects_commands_if_disconnect(basic_network):
+    """Test to check terminal will ignore commands from disconnected connections"""
+    network: Network = basic_network
+    computer_a: Computer = network.get_node_by_hostname("node_a")
+    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    computer_b: Computer = network.get_node_by_hostname("node_b")
+
+    terminal_b: Terminal = computer_b.software_manager.software.get("Terminal")
+
+    remote_connection = terminal_a.login(username="username", password="password", ip_address="192.168.0.11")
+
+    assert len(terminal_a._connections) == 1
+    assert len(terminal_b._connections) == 1
+
+    remote_connection.disconnect()
+
+    assert len(terminal_a._connections) == 0
+    assert len(terminal_b._connections) == 0
+
+    assert remote_connection.execute(["software_manager", "application", "install", "RansomwareScript"]) is False
+
+    assert not computer_b.software_manager.software.get("RansomwareScript")

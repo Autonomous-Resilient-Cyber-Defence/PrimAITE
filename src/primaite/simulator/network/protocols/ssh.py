@@ -85,5 +85,5 @@ class SSHPacket(DataPacket):
     ssh_output: Optional[RequestResponse] = None
     """RequestResponse from Request Manager"""
 
-    ssh_command: Optional[str] = None
+    ssh_command: Optional[list] = None
     """Request String"""
