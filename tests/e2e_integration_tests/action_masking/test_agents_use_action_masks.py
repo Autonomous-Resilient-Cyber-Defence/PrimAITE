@@ -1,6 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from typing import Dict
 
+import pytest
 import yaml
 from ray.rllib.algorithms.ppo import PPOConfig
 from ray.rllib.core.rl_module.marl_module import MultiAgentRLModuleSpec
