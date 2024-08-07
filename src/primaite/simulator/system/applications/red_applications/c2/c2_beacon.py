@@ -380,6 +380,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             self.keep_alive_inactivity += 1
             if not self._check_c2_connection(timestep):
                 self.sys_log.error(f"{self.name}: Connection Severed - Application Closing.")
+                self.c2_connection_active = False
                 self.clear_connections()
                 # TODO: Shouldn't this close() method also set the health state to 'UNUSED'?
                 self.close()
