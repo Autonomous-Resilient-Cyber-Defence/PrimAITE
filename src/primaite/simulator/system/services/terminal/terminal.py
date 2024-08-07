@@ -277,8 +277,7 @@ class Terminal(Service):
         :return: boolean, True if successful, else False
         """
         # TODO: Un-comment this when UserSessionManager is merged.
-        # connection_uuid = self.parent.UserSessionManager.login(username=username, password=password)
-        connection_uuid = str(uuid4())
+        connection_uuid = self.parent.user_session_manager.local_login(username=username, password=password)
         if connection_uuid:
             self.sys_log.info(f"Login request authorised, connection uuid: {connection_uuid}")
             # Add new local session to list of connections and return
@@ -332,7 +331,7 @@ class Terminal(Service):
                     self.sys_log.info(f"{self.name}: Remote Connection to {ip_address} authorised.")
                     return remote_terminal_connection
                 else:
-                    self.sys_log.warning(f"Connection request{connection_request_id} declined")
+                    self.sys_log.warning(f"Connection request {connection_request_id} declined")
                     return None
             else:
                 self.sys_log.warning(f"{self.name}: Remote connection to {ip_address} declined.")
@@ -405,13 +404,14 @@ class Terminal(Service):
             if payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST:
                 # validate & add connection
                 # TODO: uncomment this as part of 2781
-                # connection_id = self.parent.UserSessionManager.login(username=username, password=password)
-                connection_id = str(uuid4())
+                username = payload.user_account.username
+                password = payload.user_account.password
+                connection_id = self.parent.user_session_manager.remote_login(
+                    username=username, password=password, remote_ip_address=source_ip
+                )
+                # connection_id = str(uuid4())
                 if connection_id:
                     connection_request_id = payload.connection_request_uuid
-                    username = payload.user_account.username
-                    password = payload.user_account.password
-                    print(f"Connection ID is: {connection_request_id}")
                     self.sys_log.info(f"Connection authorised, session_id: {session_id}")
                     self._create_remote_connection(
                         connection_id=connection_id,
@@ -469,6 +469,7 @@ class Terminal(Service):
                 if valid_id:
                     self.sys_log.info(f"{self.name}: Received disconnect command for {connection_id=} from remote.")
                     self._disconnect(payload["connection_id"])
+                    self.parent.user_session_manager.remote_logout(remote_session_id=connection_id)
                 else:
                     self.sys_log.info("No Active connection held for received connection ID.")
 
@@ -501,7 +502,7 @@ class Terminal(Service):
             return True
 
         elif isinstance(connection, LocalTerminalConnection):
-            # No further action needed
+            self.parent.user_session_manager.local_logout()
             return True
 
     def send(
