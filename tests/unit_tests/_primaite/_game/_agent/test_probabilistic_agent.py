@@ -62,7 +62,6 @@ def test_probabilistic_agent():
         reward_function=reward_function,
         settings={
             "action_probabilities": {0: P_DO_NOTHING, 1: P_NODE_APPLICATION_EXECUTE, 2: P_NODE_FILE_DELETE},
-            "random_seed": 120,
         },
     )
 

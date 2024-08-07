@@ -63,6 +63,7 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
 
     def reset(self, *, seed: int = None, options: dict = None) -> Tuple[ObsType, Dict]:
         """Reset the environment."""
+        super().reset()  # Ensure PRNG seed is set everywhere
         rewards = {name: agent.reward_function.total_reward for name, agent in self.agents.items()}
         _LOGGER.info(f"Resetting environment, episode {self.episode_counter}, " f"avg. reward: {rewards}")
 
@@ -176,6 +177,7 @@ class PrimaiteRayEnv(gymnasium.Env):
 
     def reset(self, *, seed: int = None, options: dict = None) -> Tuple[ObsType, Dict]:
         """Reset the environment."""
+        super().reset()  # Ensure PRNG seed is set everywhere
         if self.env.agent.action_masking:
             obs, *_ = self.env.reset(seed=seed)
             new_obs = {"action_mask": self.env.action_masks(), "observations": obs}
