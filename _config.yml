@@ -1,0 +1,3 @@
+# Used by nbmake to change build pipeline notebook timeout
+execute:
+  timeout: 600

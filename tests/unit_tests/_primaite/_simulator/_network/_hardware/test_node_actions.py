@@ -7,6 +7,7 @@ from primaite.simulator.file_system.folder import Folder
 from primaite.simulator.network.hardware.base import Node, NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.system.software import SoftwareHealthState
+from tests.conftest import DummyApplication, DummyService
 
 
 @pytest.fixture
@@ -47,7 +48,7 @@ def test_node_shutdown(node):
     assert node.operating_state == NodeOperatingState.OFF
 
 
-def test_node_os_scan(node, service, application):
+def test_node_os_scan(node):
     """Test OS Scanning."""
     node.operating_state = NodeOperatingState.ON
 
@@ -55,13 +56,15 @@ def test_node_os_scan(node, service, application):
     # TODO implement processes
 
     # add services to node
+    node.software_manager.install(DummyService)
+    service = node.software_manager.software.get("DummyService")
     service.set_health_state(SoftwareHealthState.COMPROMISED)
-    node.install_service(service=service)
     assert service.health_state_visible == SoftwareHealthState.UNUSED
 
     # add application to node
+    node.software_manager.install(DummyApplication)
+    application = node.software_manager.software.get("DummyApplication")
     application.set_health_state(SoftwareHealthState.COMPROMISED)
-    node.install_application(application=application)
     assert application.health_state_visible == SoftwareHealthState.UNUSED
 
     # add folder and file to node
@@ -91,7 +94,7 @@ def test_node_os_scan(node, service, application):
     assert file2.visible_health_status == FileSystemItemHealthStatus.CORRUPT
 
 
-def test_node_red_scan(node, service, application):
+def test_node_red_scan(node):
     """Test revealing to red"""
     node.operating_state = NodeOperatingState.ON
 
@@ -99,12 +102,14 @@ def test_node_red_scan(node, service, application):
     # TODO implement processes
 
     # add services to node
-    node.install_service(service=service)
+    node.software_manager.install(DummyService)
+    service = node.software_manager.software.get("DummyService")
     assert service.revealed_to_red is False
 
     # add application to node
+    node.software_manager.install(DummyApplication)
+    application = node.software_manager.software.get("DummyApplication")
     application.set_health_state(SoftwareHealthState.COMPROMISED)
-    node.install_application(application=application)
     assert application.revealed_to_red is False
 
     # add folder and file to node

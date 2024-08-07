@@ -1,5 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import json
+import random
+import sys
 from os import PathLike
 from typing import Any, Dict, Optional, SupportsFloat, Tuple, Union
 
@@ -17,6 +19,36 @@ from primaite.simulator.system.core.packet_capture import PacketCapture
 
 _LOGGER = getLogger(__name__)
 
+# Check torch is installed
+try:
+    import torch as th
+except ModuleNotFoundError:
+    _LOGGER.debug("Torch not available for importing")
+
+
+def set_random_seed(seed: int) -> Union[None, int]:
+    """
+    Set random number generators.
+
+    :param seed: int
+    """
+    if seed is None or seed == -1:
+        return None
+    elif seed < -1:
+        raise ValueError("Invalid random number seed")
+    # Seed python RNG
+    random.seed(seed)
+    # Seed numpy RNG
+    np.random.seed(seed)
+    # Seed the RNG for all devices (both CPU and CUDA)
+    # if torch not installed don't set random seed.
+    if sys.modules["torch"]:
+        th.manual_seed(seed)
+        th.backends.cudnn.deterministic = True
+        th.backends.cudnn.benchmark = False
+
+    return seed
+
 
 class PrimaiteGymEnv(gymnasium.Env):
     """
@@ -31,6 +63,9 @@ class PrimaiteGymEnv(gymnasium.Env):
         super().__init__()
         self.episode_scheduler: EpisodeScheduler = build_scheduler(env_config)
         """Object that returns a config corresponding to the current episode."""
+        self.seed = self.episode_scheduler(0).get("game", {}).get("seed")
+        """Get RNG seed from config file. NB: Must be before game instantiation."""
+        self.seed = set_random_seed(self.seed)
         self.io = PrimaiteIO.from_config(self.episode_scheduler(0).get("io_settings", {}))
         """Handles IO for the environment. This produces sys logs, agent logs, etc."""
         self.game: PrimaiteGame = PrimaiteGame.from_config(self.episode_scheduler(0))
@@ -41,6 +76,8 @@ class PrimaiteGymEnv(gymnasium.Env):
         """Current episode number."""
         self.total_reward_per_episode: Dict[int, float] = {}
         """Average rewards of agents per episode."""
+
+        _LOGGER.info(f"PrimaiteGymEnv RNG seed = {self.seed}")
 
     def action_masks(self) -> np.ndarray:
         """
@@ -108,6 +145,8 @@ class PrimaiteGymEnv(gymnasium.Env):
             f"Resetting environment, episode {self.episode_counter}, "
             f"avg. reward: {self.agent.reward_function.total_reward}"
         )
+        if seed is not None:
+            set_random_seed(seed)
         self.total_reward_per_episode[self.episode_counter] = self.agent.reward_function.total_reward
 
         if self.io.settings.save_agent_actions:
