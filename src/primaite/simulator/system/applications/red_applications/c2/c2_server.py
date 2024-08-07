@@ -219,7 +219,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
         """
         Creates and returns a Masquerade Packet using the arguments given.
 
-        Creates Masquerade Packet with a payload_type INPUT C2Payload
+        Creates Masquerade Packet with a payload_type INPUT C2Payload.
 
         :param given_command: The C2 command to be sent to the C2 Beacon.
         :type given_command: C2Command.
@@ -228,7 +228,6 @@ class C2Server(AbstractC2, identifier="C2Server"):
         :return: Returns the construct MasqueradePacket
         :rtype: MasqueradePacket
         """
-        # TODO: Validation on command_options.
         constructed_packet = MasqueradePacket(
             masquerade_protocol=self.current_masquerade_protocol,
             masquerade_port=self.current_masquerade_port,

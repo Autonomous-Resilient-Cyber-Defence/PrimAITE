@@ -184,8 +184,6 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :return: The Request Response provided by the terminal execute method.
         :rtype Request Response:
         """
-        # TODO: Probably could refactor this to be a more clean.
-        # The elif's are a bit ugly when they are all calling the same method.
         command = payload.command
         if not isinstance(command, C2Command):
             self.sys_log.warning(f"{self.name}: Received unexpected C2 command. Unable to resolve command")
@@ -253,19 +251,26 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         """
         C2 Command: Ransomware Configuration.
 
-        Creates a request that configures the ransomware based off the configuration options given.
-        This request is then sent to the terminal service in order to be executed.
+        Calls the locally installed RansomwareScript application's configure method
+        and passes the given parameters.
+
+        The class attribute self._host_ransomware_script will return None if the host
+        does not have an instance of the RansomwareScript.
 
         :payload MasqueradePacket: The incoming INPUT command.
         :type Masquerade Packet: MasqueradePacket.
         :return: Returns the Request Response returned by the Terminal execute method.
         :rtype: Request Response
         """
-        # TODO: replace and use terminal
-        # return RequestResponse(status="success", data={"Reason": "Placeholder."})
         given_config = payload.payload
-        host_ransomware = self._host_ransomware_script
-        return RequestResponse.from_bool(host_ransomware.configure(server_ip_address=given_config["server_ip_address"]))
+        if self._host_ransomware_script is None:
+            return RequestResponse(
+                status="failure",
+                data={"Reason": "Cannot find any instances of a RansomwareScript. Have you installed one?"},
+            )
+        return RequestResponse.from_bool(
+            self._host_ransomware_script.configure(server_ip_address=given_config["server_ip_address"])
+        )
 
     def _command_ransomware_launch(self, payload: MasqueradePacket) -> RequestResponse:
         """
@@ -280,6 +285,11 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :return: Returns the Request Response returned by the Terminal execute method.
         :rtype: Request Response
         """
+        if self._host_ransomware_script is None:
+            return RequestResponse(
+                status="failure",
+                data={"Reason": "Cannot find any instances of a RansomwareScript. Have you installed one?"},
+            )
         return RequestResponse.from_bool(self._host_ransomware_script.attack())
 
     def _command_terminal(self, payload: MasqueradePacket) -> RequestResponse:
