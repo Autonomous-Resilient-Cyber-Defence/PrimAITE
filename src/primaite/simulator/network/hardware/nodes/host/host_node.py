@@ -21,6 +21,7 @@ from primaite.simulator.system.services.arp.arp import ARP, ARPPacket
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.icmp.icmp import ICMP
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
+from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.utils.validators import IPV4Address
 
 _LOGGER = getLogger(__name__)
@@ -298,6 +299,7 @@ class HostNode(Node):
         * DNS (Domain Name System) Client: Resolves domain names to IP addresses.
         * FTP (File Transfer Protocol) Client: Enables file transfers between the host and FTP servers.
         * NTP (Network Time Protocol) Client: Synchronizes the system clock with NTP servers.
+        * Terminal Client: Handles SSH requests between HostNode and external components.
 
     Applications:
     ------------
@@ -314,6 +316,7 @@ class HostNode(Node):
         "NMAP": NMAP,
         "UserSessionManager": UserSessionManager,
         "UserManager": UserManager,
+        "Terminal": Terminal,
     }
     """List of system software that is automatically installed on nodes."""
 

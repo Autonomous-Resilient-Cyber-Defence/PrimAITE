@@ -44,6 +44,7 @@ from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.simulator.system.services.ntp.ntp_server import NTPServer
+from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.services.web_server.web_server import WebServer
 
 _LOGGER = getLogger(__name__)
@@ -57,6 +58,7 @@ SERVICE_TYPES_MAPPING = {
     "FTPServer": FTPServer,
     "NTPClient": NTPClient,
     "NTPServer": NTPServer,
+    "Terminal": Terminal,
 }
 """List of available services that can be installed on nodes in the PrimAITE Simulation."""
 
@@ -70,6 +72,8 @@ class PrimaiteGameOptions(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    seed: int = None
+    """Random number seed for RNGs."""
     max_episode_length: int = 256
     """Maximum number of episodes for the PrimAITE game."""
     ports: List[str]

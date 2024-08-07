@@ -24,6 +24,7 @@ from primaite.simulator.system.core.session_manager import SessionManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.arp.arp import ARP
 from primaite.simulator.system.services.icmp.icmp import ICMP
+from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.utils.validators import IPV4Address
 
 
@@ -1203,6 +1204,7 @@ class Router(NetworkNode):
     SYSTEM_SOFTWARE: ClassVar[Dict] = {
         "UserSessionManager": UserSessionManager,
         "UserManager": UserManager,
+        "Terminal": Terminal,
     }
 
     num_ports: int
