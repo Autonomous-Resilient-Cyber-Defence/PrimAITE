@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 -   Removed the install/uninstall methods in the node class and made the software manager install/uninstall handle all of their functionality.
+-   File and folder observations can now be configured to always show the true health status, or require scanning like before.
+
+### Fixed
+-   Folder observations showing the true health state without scanning (the old behaviour can be reenabled via config)
 
 
 ## [3.2.0] - 2024-07-18

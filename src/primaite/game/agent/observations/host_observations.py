@@ -48,6 +48,10 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         """A dict containing which traffic types are to be included in the observation."""
         include_num_access: Optional[bool] = None
         """Whether to include the number of accesses to files observations on this host."""
+        file_system_requires_scan: Optional[bool] = None
+        """
+        If True, files and folders must be scanned to update the health state. If False, true state is always shown.
+        """
 
     def __init__(
         self,
@@ -64,6 +68,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         include_nmne: bool,
         monitored_traffic: Optional[Dict],
         include_num_access: bool,
+        file_system_requires_scan: bool,
     ) -> None:
         """
         Initialise a host observation instance.
@@ -95,6 +100,9 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         :type monitored_traffic: Dict
         :param include_num_access: Flag to include the number of accesses to files.
         :type include_num_access: bool
+        :param file_system_requires_scan: If True, the files and folders must be scanned to update the health state.
+            If False, the true state is always shown.
+        :type file_system_requires_scan: bool
         """
         self.where: WhereType = where
 
@@ -120,7 +128,13 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         self.folders: List[FolderObservation] = folders
         while len(self.folders) < num_folders:
             self.folders.append(
-                FolderObservation(where=None, files=[], num_files=num_files, include_num_access=include_num_access)
+                FolderObservation(
+                    where=None,
+                    files=[],
+                    num_files=num_files,
+                    include_num_access=include_num_access,
+                    file_system_requires_scan=file_system_requires_scan,
+                )
             )
         while len(self.folders) > num_folders:
             truncated_folder = self.folders.pop()
@@ -226,6 +240,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         for folder_config in config.folders:
             folder_config.include_num_access = config.include_num_access
             folder_config.num_files = config.num_files
+            folder_config.file_system_requires_scan = config.file_system_requires_scan
         for nic_config in config.network_interfaces:
             nic_config.include_nmne = config.include_nmne
 
@@ -257,4 +272,5 @@ class HostObservation(AbstractObservation, identifier="HOST"):
             include_nmne=config.include_nmne,
             monitored_traffic=config.monitored_traffic,
             include_num_access=config.include_num_access,
+            file_system_requires_scan=config.file_system_requires_scan,
         )

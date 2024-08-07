@@ -44,6 +44,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         """A dict containing which traffic types are to be included in the observation."""
         include_num_access: Optional[bool] = None
         """Flag to include the number of accesses."""
+        file_system_requires_scan: bool = True
+        """If True, the folder must be scanned to update the health state. Tf False, the true state is always shown."""
         num_ports: Optional[int] = None
         """Number of ports."""
         ip_list: Optional[List[str]] = None
@@ -187,6 +189,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 host_config.monitored_traffic = config.monitored_traffic
             if host_config.include_num_access is None:
                 host_config.include_num_access = config.include_num_access
+            if host_config.file_system_requires_scan is None:
+                host_config.file_system_requires_scan = config.file_system_requires_scan
 
         for router_config in config.routers:
             if router_config.num_ports is None:
