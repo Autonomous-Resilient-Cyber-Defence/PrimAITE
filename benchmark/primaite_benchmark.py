@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Final, Tuple
 
-from report import build_benchmark_md_report
+from report import build_benchmark_md_report, md2pdf
 from stable_baselines3 import PPO
 
 import primaite
@@ -159,6 +159,13 @@ def run(
     learning_rate: float = 3e-4,
 ) -> None:
     """Run the PrimAITE benchmark."""
+    # generate report folder
+    v_str = f"v{primaite.__version__}"
+
+    version_result_dir = _RESULTS_ROOT / v_str
+    version_result_dir.mkdir(exist_ok=True, parents=True)
+    output_path = version_result_dir / f"PrimAITE {v_str} Benchmark Report.md"
+
     benchmark_start_time = datetime.now()
 
     session_metadata_dict = {}
@@ -193,6 +200,12 @@ def run(
         session_metadata=session_metadata_dict,
         config_path=data_manipulation_config_path(),
         results_root_path=_RESULTS_ROOT,
+        output_path=output_path,
+    )
+    md2pdf(
+        md_path=output_path,
+        pdf_path=str(output_path).replace(".md", ".pdf"),
+        css_path="benchmark/static/styles.css",
     )
 
 
