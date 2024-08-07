@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 -   Random Number Generator Seeding by specifying a random number seed in the config file.
+-   Implemented Terminal service class, providing a generic terminal simulation.
+
 ### Changed
 -   Removed the install/uninstall methods in the node class and made the software manager install/uninstall handle all of their functionality.
 
