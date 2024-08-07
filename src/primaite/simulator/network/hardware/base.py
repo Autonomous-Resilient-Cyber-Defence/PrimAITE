@@ -1174,7 +1174,7 @@ class UserSessionManager(Service):
         """
         rm = super()._init_request_manager()
 
-        # todo add doc about requeest schemas
+        # todo add doc about request schemas
         rm.add_request(
             "remote_login",
             RequestType(

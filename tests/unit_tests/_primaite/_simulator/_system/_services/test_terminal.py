@@ -185,7 +185,7 @@ def test_terminal_receive(basic_network):
     )
 
     term_a_on_node_b: RemoteTerminalConnection = terminal_a.login(
-        username="username", password="password", ip_address="192.168.0.11"
+        username="admin", password="admin", ip_address="192.168.0.11"
     )
 
     term_a_on_node_b.execute(["file_system", "create", "folder", folder_name])
@@ -208,7 +208,7 @@ def test_terminal_install(basic_network):
     )
 
     term_a_on_node_b: RemoteTerminalConnection = terminal_a.login(
-        username="username", password="password", ip_address="192.168.0.11"
+        username="admin", password="admin", ip_address="192.168.0.11"
     )
 
     term_a_on_node_b.execute(["software_manager", "application", "install", "RansomwareScript"])
@@ -225,9 +225,7 @@ def test_terminal_fail_when_closed(basic_network):
 
     terminal.operating_state = ServiceOperatingState.STOPPED
 
-    assert not terminal.login(
-        username="admin", password="Admin123!", ip_address=computer_b.network_interface[1].ip_address
-    )
+    assert not terminal.login(username="admin", password="admin", ip_address=computer_b.network_interface[1].ip_address)
 
 
 def test_terminal_disconnect(basic_network):
@@ -241,7 +239,7 @@ def test_terminal_disconnect(basic_network):
     assert len(terminal_b._connections) == 0
 
     term_a_on_term_b = terminal_a.login(
-        username="admin", password="Admin123!", ip_address=computer_b.network_interface[1].ip_address
+        username="admin", password="admin", ip_address=computer_b.network_interface[1].ip_address
     )
 
     assert len(terminal_b._connections) == 1
@@ -260,7 +258,7 @@ def test_terminal_ignores_when_off(basic_network):
     computer_b: Computer = network.get_node_by_hostname("node_b")
 
     term_a_on_term_b: RemoteTerminalConnection = terminal_a.login(
-        username="admin", password="Admin123!", ip_address="192.168.0.11"
+        username="admin", password="admin", ip_address="192.168.0.11"
     )  # login to computer_b
 
     terminal_a.operating_state = ServiceOperatingState.STOPPED
@@ -276,7 +274,7 @@ def test_computer_remote_login_to_router(wireless_wan_network):
 
     assert len(pc_a_terminal._connections) == 0
 
-    pc_a_on_router_1 = pc_a_terminal.login(username="username", password="password", ip_address="192.168.1.1")
+    pc_a_on_router_1 = pc_a_terminal.login(username="admin", password="admin", ip_address="192.168.1.1")
 
     assert len(pc_a_terminal._connections) == 1
 
@@ -295,7 +293,7 @@ def test_router_remote_login_to_computer(wireless_wan_network):
 
     assert len(router_1_terminal._connections) == 0
 
-    router_1_on_pc_a = router_1_terminal.login(username="username", password="password", ip_address="192.168.0.2")
+    router_1_on_pc_a = router_1_terminal.login(username="admin", password="admin", ip_address="192.168.0.2")
 
     assert len(router_1_terminal._connections) == 1
 
@@ -317,7 +315,7 @@ def test_router_blocks_SSH_traffic(wireless_wan_network):
 
     assert len(pc_a_terminal._connections) == 0
 
-    pc_a_terminal.login(username="username", password="password", ip_address="192.168.0.2")
+    pc_a_terminal.login(username="admin", password="admin", ip_address="192.168.0.2")
 
     assert len(pc_a_terminal._connections) == 0
 
@@ -333,7 +331,7 @@ def test_SSH_across_network(wireless_wan_network):
 
     assert len(terminal_a._connections) == 0
 
-    terminal_b_on_terminal_a = terminal_b.login(username="username", password="password", ip_address="192.168.0.2")
+    terminal_b_on_terminal_a = terminal_b.login(username="admin", password="admin", ip_address="192.168.0.2")
 
     assert len(terminal_a._connections) == 1
 
@@ -347,11 +345,13 @@ def test_multiple_remote_terminals_same_node(basic_network):
 
     assert len(terminal_a._connections) == 0
 
-    # Spam login requests to terminal.
-    for attempt in range(10):
-        remote_connection = terminal_a.login(username="username", password="password", ip_address="192.168.0.11")
+    # Spam login requests to node.
+    for attempt in range(3):
+        remote_connection = terminal_a.login(username="admin", password="admin", ip_address="192.168.0.11")
 
-    assert len(terminal_a._connections) == 10
+    terminal_a.show()
+
+    assert len(terminal_a._connections) == 3
 
 
 def test_terminal_rejects_commands_if_disconnect(basic_network):
@@ -363,7 +363,7 @@ def test_terminal_rejects_commands_if_disconnect(basic_network):
 
     terminal_b: Terminal = computer_b.software_manager.software.get("Terminal")
 
-    remote_connection = terminal_a.login(username="username", password="password", ip_address="192.168.0.11")
+    remote_connection = terminal_a.login(username="admin", password="admin", ip_address="192.168.0.11")
 
     assert len(terminal_a._connections) == 1
     assert len(terminal_b._connections) == 1

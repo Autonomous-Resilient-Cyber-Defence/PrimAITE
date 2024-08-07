@@ -456,7 +456,6 @@ class Terminal(Service):
                 self.sys_log.info("Received command to execute")
                 command = payload.ssh_command
                 valid_connection = self._check_client_connection(payload.connection_uuid)
-                self.sys_log.info(f"Connection uuid is {valid_connection}")
                 if valid_connection:
                     return self.execute(command, payload.connection_uuid)
                 else:
