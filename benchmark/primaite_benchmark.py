@@ -205,7 +205,7 @@ def run(
     md2pdf(
         md_path=output_path,
         pdf_path=str(output_path).replace(".md", ".pdf"),
-        css_path="benchmark/static/styles.css",
+        css_path="static/styles.css",
     )
 
 
