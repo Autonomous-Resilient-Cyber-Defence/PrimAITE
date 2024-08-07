@@ -26,6 +26,7 @@ def test_file_observation(simulation):
     dog_file_obs = FileObservation(
         where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"],
         include_num_access=False,
+        file_system_requires_scan=True,
     )
 
     assert dog_file_obs.space["health_status"] == spaces.Discrete(6)
@@ -53,6 +54,7 @@ def test_folder_observation(simulation):
     root_folder_obs = FolderObservation(
         where=["network", "nodes", pc.hostname, "file_system", "folders", "test_folder"],
         include_num_access=False,
+        file_system_requires_scan=True,
         num_files=1,
         files=[],
     )
