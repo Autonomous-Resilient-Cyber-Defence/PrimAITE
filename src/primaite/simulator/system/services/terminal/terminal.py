@@ -33,8 +33,8 @@ class TerminalClientConnection(BaseModel):
     parent_terminal: Terminal
     """The parent Node that this connection was created on."""
 
-    session_id: str = None
-    """Session ID that connection is linked to"""
+    ssh_session_id: str = None
+    """Session ID that connection is linked to, used for sending commands via session manager."""
 
     connection_uuid: str = None
     """Connection UUID"""
@@ -52,7 +52,9 @@ class TerminalClientConnection(BaseModel):
     """Flag to state whether the connection is active or not"""
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__}(connection_id='{self.connection_uuid}')"
+        return (
+            f"{self.__class__.__name__}(connection_id: '{self.connection_uuid}, ssh_session_id: {self.ssh_session_id}')"
+        )
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -124,13 +126,14 @@ class RemoteTerminalConnection(TerminalClientConnection):
             ssh_command=command,
         )
 
-        return self.parent_terminal.send(payload=payload, session_id=self.session_id)
+        return self.parent_terminal.send(payload=payload, session_id=self.ssh_session_id)
 
 
 class Terminal(Service):
     """Class used to simulate a generic terminal service. Can be interacted with by other terminals via SSH."""
 
     _client_connection_requests: Dict[str, Optional[Union[str, TerminalClientConnection]]] = {}
+    """Dictionary of connect requests made to remote nodes."""
 
     def __init__(self, **kwargs):
         kwargs["name"] = "Terminal"
@@ -169,7 +172,14 @@ class Terminal(Service):
         def _login(request: RequestFormat, context: Dict) -> RequestResponse:
             login = self._process_local_login(username=request[0], password=request[1])
             if login:
-                return RequestResponse(status="success", data={})
+                return RequestResponse(
+                    status="success",
+                    data={
+                        "connection ID": login.connection_uuid,
+                        "ssh_session_id": login.ssh_session_id,
+                        "ip_address": login.ip_address,
+                    },
+                )
             else:
                 return RequestResponse(status="failure", data={})
 
@@ -184,16 +194,13 @@ class Terminal(Service):
             """Execute an instruction."""
             command: str = request[0]
             connection_id: str = request[1]
-            self.execute(command, connection_id=connection_id)
-            return RequestResponse(status="success", data={})
+            return self.execute(command, connection_id=connection_id)
 
         def _logoff(request: RequestFormat, context: Dict) -> RequestResponse:
             """Logoff from connection."""
             connection_uuid = request[0]
-            # TODO: Uncomment this when UserSessionManager merged.
-            # self.parent.UserSessionManager.logoff(connection_uuid)
+            self.parent.user_session_manager.local_logout(connection_uuid)
             self._disconnect(connection_uuid)
-
             return RequestResponse(status="success", data={})
 
         rm.add_request(
@@ -234,7 +241,7 @@ class Terminal(Service):
         new_connection = LocalTerminalConnection(
             parent_terminal=self,
             connection_uuid=connection_uuid,
-            session_id=session_id,
+            ssh_session_id=session_id,
             time=datetime.now(),
         )
         self._connections[connection_uuid] = new_connection
@@ -288,11 +295,11 @@ class Terminal(Service):
 
     def _validate_client_connection_request(self, connection_id: str) -> bool:
         """Check that client_connection_id is valid."""
-        return True if connection_id in self._client_connection_requests else False
+        return connection_id in self._client_connection_requests
 
     def _check_client_connection(self, connection_id: str) -> bool:
         """Check that client_connection_id is valid."""
-        return True if connection_id in self._connections else False
+        return connection_id in self._connections
 
     def _send_remote_login(
         self,
@@ -381,7 +388,7 @@ class Terminal(Service):
         """
         client_connection = RemoteTerminalConnection(
             parent_terminal=self,
-            session_id=session_id,
+            ssh_session_id=session_id,
             connection_uuid=connection_id,
             ip_address=source_ip,
             connection_request_id=connection_request_id,
@@ -398,7 +405,7 @@ class Terminal(Service):
         :param session_id: The session id the payload relates to.
         :return: True.
         """
-        source_ip = kwargs["from_network_interface"].ip_address
+        source_ip = [kwargs["frame"].ip.src_ip_address][0]
         self.sys_log.info(f"Received payload: {payload}. Source: {source_ip}")
         if isinstance(payload, SSHPacket):
             if payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST:
@@ -470,12 +477,21 @@ class Terminal(Service):
                     self._disconnect(payload["connection_id"])
                     self.parent.user_session_manager.remote_logout(remote_session_id=connection_id)
                 else:
-                    self.sys_log.info("No Active connection held for received connection ID.")
+                    self.sys_log.error("No Active connection held for received connection ID.")
+
+            if payload["type"] == "user_timeout":
+                connection_id = payload["connection_id"]
+                valid_id = self._check_client_connection(connection_id)
+                if valid_id:
+                    self._connections.pop(connection_id)
+                    self.sys_log.info(f"{self.name}: Connection {connection_id} disconnected due to inactivity.")
+                else:
+                    self.sys_log.error(f"{self.name}: Connection {connection_id} is invalid.")
 
         return True
 
     def _disconnect(self, connection_uuid: str) -> bool:
-        """Disconnect from the remote.
+        """Disconnect connection.
 
         :param connection_uuid: Connection ID that we want to disconnect.
         :return True if successful, False otherwise.
@@ -489,7 +505,7 @@ class Terminal(Service):
 
         if isinstance(connection, RemoteTerminalConnection):
             # Send disconnect command via software manager
-            session_id = connection.session_id
+            session_id = connection.ssh_session_id
 
             software_manager: SoftwareManager = self.software_manager
             software_manager.send_payload_to_session_manager(

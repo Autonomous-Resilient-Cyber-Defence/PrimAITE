@@ -1294,6 +1294,13 @@ class UserSessionManager(Service):
             self.remote_sessions.pop(session.uuid)
             session_type = "Remote"
             session_identity = f"{session_identity} {session.remote_ip_address}"
+            self.parent.terminal._connections.pop(session.uuid)
+            software_manager: SoftwareManager = self.software_manager
+            software_manager.send_payload_to_session_manager(
+                payload={"type": "user_timeout", "connection_id": session.uuid},
+                dest_port=Port.SSH,
+                dest_ip_address=session.remote_ip_address,
+            )
 
         self.sys_log.info(f"{self.name}: {session_type} {session_identity} session timeout due to inactivity")
 
