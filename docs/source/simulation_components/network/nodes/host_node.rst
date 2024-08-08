@@ -49,3 +49,5 @@ fundamental network operations:
 5. **NTP (Network Time Protocol) Client:** Synchronises the host's clock with network time servers.
 
 6. **Web Browser:** A simulated application that allows the host to request and display web content.
+
+7. **Terminal:** A simulated service that allows the host to connect to remote hosts and execute commands.

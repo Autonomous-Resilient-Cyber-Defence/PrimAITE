@@ -316,7 +316,7 @@ class IOSoftware(Software):
         # if over or at capacity, set to overwhelmed
         if len(self._connections) >= self.max_sessions:
             self.set_health_state(SoftwareHealthState.OVERWHELMED)
-            self.sys_log.warning(f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity.")
+            self.sys_log.warning(f"{self.name}: Connection request ({connection_id}) declined. Service is at capacity.")
             return False
         else:
             # if service was previously overwhelmed, set to good because there is enough space for connections
@@ -333,11 +333,11 @@ class IOSoftware(Software):
                     "ip_address": session_details.with_ip_address if session_details else None,
                     "time": datetime.now(),
                 }
-                self.sys_log.info(f"{self.name}: Connect request for {connection_id=} authorised")
+                self.sys_log.info(f"{self.name}: Connection request ({connection_id}) authorised")
                 return True
             # connection with given id already exists
             self.sys_log.warning(
-                f"{self.name}: Connect request for {connection_id=} declined. Connection already exists."
+                f"{self.name}: Connection request ({connection_id}) declined. Connection already exists."
             )
             return False
 
