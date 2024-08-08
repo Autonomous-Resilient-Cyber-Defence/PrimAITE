@@ -181,12 +181,19 @@ class Terminal(Service):
                     },
                 )
             else:
-                return RequestResponse(status="failure", data={})
+                return RequestResponse(status="failure", data={"reason": "Invalid login credentials"})
 
         def _remote_login(request: RequestFormat, context: Dict) -> RequestResponse:
             login = self._send_remote_login(username=request[0], password=request[1], ip_address=request[2])
             if login:
-                return RequestResponse(status="success", data={})
+                return RequestResponse(
+                    status="success",
+                    data={
+                        "connection ID": login.connection_uuid,
+                        "ssh_session_id": login.ssh_session_id,
+                        "ip_address": login.ip_address,
+                    },
+                )
             else:
                 return RequestResponse(status="failure", data={})
 
