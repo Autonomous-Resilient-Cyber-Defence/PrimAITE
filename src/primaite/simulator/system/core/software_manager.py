@@ -237,19 +237,24 @@ class SoftwareManager:
             self.software.get("NMAP").receive(payload=payload, session_id=session_id)
             return
         main_receiver = self.port_protocol_mapping.get((port, protocol), None)
-        listening_receivers = [software for software in self.software.values() if port in software.listen_on_ports]
-        receivers = [main_receiver] + listening_receivers if main_receiver else listening_receivers
-        if receivers:
-            for receiver in receivers:
-                receiver.receive(
-                    payload=deepcopy(payload),
-                    session_id=session_id,
-                    from_network_interface=from_network_interface,
-                    frame=frame,
-                )
-        else:
+        if main_receiver:
+            main_receiver.receive(
+                payload=payload, session_id=session_id, from_network_interface=from_network_interface, frame=frame
+            )
+        listening_receivers = [
+            software
+            for software in self.software.values()
+            if port in software.listen_on_ports and software != main_receiver
+        ]
+        for receiver in listening_receivers:
+            receiver.receive(
+                payload=deepcopy(payload),
+                session_id=session_id,
+                from_network_interface=from_network_interface,
+                frame=frame,
+            )
+        if not main_receiver and not listening_receivers:
             self.sys_log.warning(f"No service or application found for port {port} and protocol {protocol}")
-        pass
 
     def show(self, markdown: bool = False):
         """

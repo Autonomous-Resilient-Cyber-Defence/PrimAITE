@@ -1,13 +1,17 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from typing import Any, Dict, List, Set
 
+import yaml
 from pydantic import Field
 
+from primaite.game.game import PrimaiteGame
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.service import Service
+from tests import TEST_ASSETS_ROOT
 
 
 class _DatabaseListener(Service):
@@ -62,3 +66,19 @@ def test_http_listener(client_server):
     assert db_connection.query("SELECT")
 
     assert len(server_db_listener.payloads_received) == 3
+
+
+def test_set_listen_on_ports_from_config():
+    config_path = TEST_ASSETS_ROOT / "configs" / "basic_node_with_software_listening_ports.yaml"
+
+    with open(config_path, "r") as f:
+        config_dict = yaml.safe_load(f)
+    network = PrimaiteGame.from_config(cfg=config_dict).simulation.network
+
+    client: Computer = network.get_node_by_hostname("client")
+    assert Port.SMB in client.software_manager.get_open_ports()
+    assert Port.IPP in client.software_manager.get_open_ports()
+
+    web_browser = client.software_manager.software["WebBrowser"]
+
+    assert not web_browser.listen_on_ports.difference({Port.SMB, Port.IPP})
