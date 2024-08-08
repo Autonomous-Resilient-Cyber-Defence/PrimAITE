@@ -173,7 +173,6 @@ class Terminal(Service):
                 return RequestResponse(
                     status="success",
                     data={
-                        "connection ID": login.connection_uuid,
                         "ip_address": login.ip_address,
                     },
                 )
