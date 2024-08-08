@@ -1278,6 +1278,10 @@ class UserSessionManager(Service):
         if self.local_session:
             if self.local_session.last_active_step + self.local_session_timeout_steps <= timestep:
                 self._timeout_session(self.local_session)
+        for session in self.remote_sessions:
+            remote_session = self.remote_sessions[session]
+            if remote_session.last_active_step + self.remote_session_timeout_steps <= timestep:
+                self._timeout_session(remote_session)
 
     def _timeout_session(self, session: UserSession) -> None:
         """

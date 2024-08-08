@@ -248,6 +248,8 @@ def test_terminal_disconnect(basic_network):
 
     assert len(terminal_b._connections) == 0
 
+    assert term_a_on_term_b.is_active is False
+
 
 def test_terminal_ignores_when_off(basic_network):
     """Terminal should ignore commands when not running"""
@@ -378,3 +380,27 @@ def test_terminal_rejects_commands_if_disconnect(basic_network):
     assert not computer_b.software_manager.software.get("RansomwareScript")
 
     assert remote_connection.is_active is False
+
+
+def test_terminal_connection_timeout(basic_network):
+    """Test that terminal_connections are affected by UserSession timeout."""
+    network: Network = basic_network
+    computer_a: Computer = network.get_node_by_hostname("node_a")
+    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    computer_b: Computer = network.get_node_by_hostname("node_b")
+    terminal_b: Terminal = computer_b.software_manager.software.get("Terminal")
+
+    remote_connection = terminal_a.login(username="admin", password="admin", ip_address="192.168.0.11")
+
+    assert len(terminal_a._connections) == 1
+    assert len(terminal_b._connections) == 1
+    assert len(computer_b.user_session_manager.remote_sessions) == 1
+
+    remote_session = computer_b.user_session_manager.remote_sessions[remote_connection.connection_uuid]
+    computer_b.user_session_manager._timeout_session(remote_session)
+
+    assert len(terminal_a._connections) == 0
+    assert len(terminal_b._connections) == 0
+    assert len(computer_b.user_session_manager.remote_sessions) == 0
+
+    assert not remote_connection.is_active
