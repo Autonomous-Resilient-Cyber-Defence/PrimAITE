@@ -52,9 +52,7 @@ class TerminalClientConnection(BaseModel):
     """Flag to state whether the connection is active or not"""
 
     def __str__(self) -> str:
-        return (
-            f"{self.__class__.__name__}(connection_id: '{self.connection_uuid}, ssh_session_id: {self.ssh_session_id}')"
-        )
+        return f"{self.__class__.__name__}(connection_id: '{self.connection_uuid}, ip_address: {self.ip_address}')"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -176,7 +174,6 @@ class Terminal(Service):
                     status="success",
                     data={
                         "connection ID": login.connection_uuid,
-                        "ssh_session_id": login.ssh_session_id,
                         "ip_address": login.ip_address,
                     },
                 )
@@ -189,19 +186,28 @@ class Terminal(Service):
                 return RequestResponse(
                     status="success",
                     data={
-                        "connection ID": login.connection_uuid,
-                        "ssh_session_id": login.ssh_session_id,
                         "ip_address": login.ip_address,
                     },
                 )
             else:
                 return RequestResponse(status="failure", data={})
 
-        def _execute_request(request: RequestFormat, context: Dict) -> RequestResponse:
+        def remote_execute_request(request: RequestFormat, context: Dict) -> RequestResponse:
             """Execute an instruction."""
             command: str = request[0]
-            connection_id: str = request[1]
-            return self.execute(command, connection_id=connection_id)
+            ip_address: IPv4Address = IPv4Address(request[1])
+            remote_connection = self._get_connection_from_ip(ip_address=ip_address)
+            outcome = remote_connection.execute(command)
+            if outcome:
+                return RequestResponse(
+                    status="success",
+                    data={},
+                )
+            else:
+                return RequestResponse(
+                    status="failure",
+                    data={},
+                )
 
         def _logoff(request: RequestFormat, context: Dict) -> RequestResponse:
             """Logoff from connection."""
@@ -222,20 +228,23 @@ class Terminal(Service):
 
         rm.add_request(
             "Execute",
-            request_type=RequestType(func=_execute_request),
+            request_type=RequestType(func=remote_execute_request),
         )
 
         rm.add_request("Logoff", request_type=RequestType(func=_logoff))
 
         return rm
 
-    def execute(self, command: List[Any], connection_id: str) -> Optional[RequestResponse]:
+    def execute(self, command: List[Any]) -> Optional[RequestResponse]:
         """Execute a passed ssh command via the request manager."""
-        valid_connection = self._check_client_connection(connection_id=connection_id)
-        if valid_connection:
-            return self.parent.apply_request(command)
+        return self.parent.apply_request(command)
+
+    def _get_connection_from_ip(self, ip_address: IPv4Address) -> Optional[RemoteTerminalConnection]:
+        """Find Remote Terminal Connection from a given IP."""
+        for connection in self._connections:
+            if self._connections[connection].ip_address == ip_address:
+                return self._connections[connection]
         else:
-            self.sys_log.error("Invalid connection ID provided")
             return None
 
     def _create_local_connection(self, connection_uuid: str, session_id: str) -> TerminalClientConnection:
@@ -471,7 +480,7 @@ class Terminal(Service):
                 command = payload.ssh_command
                 valid_connection = self._check_client_connection(payload.connection_uuid)
                 if valid_connection:
-                    return self.execute(command, payload.connection_uuid)
+                    return self.execute(command)
                 else:
                     self.sys_log.error(f"Connection UUID:{payload.connection_uuid} is not valid. Rejecting Command.")
 
