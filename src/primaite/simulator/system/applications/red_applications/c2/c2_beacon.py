@@ -3,7 +3,6 @@ from enum import Enum
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
-# from primaite.simulator.system.services.terminal.terminal import Terminal
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import validate_call
 
@@ -15,6 +14,11 @@ from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
+from primaite.simulator.system.services.terminal.terminal import (
+    LocalTerminalConnection,
+    RemoteTerminalConnection,
+    Terminal,
+)
 from primaite.simulator.system.software import SoftwareHealthState
 
 
@@ -44,17 +48,19 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     keep_alive_frequency: int = 5
     "The frequency at which ``Keep Alive`` packets are sent to the C2 Server from the C2 Beacon."
 
-    # TODO:
-    # Implement the placeholder command methods
-    # Uncomment the terminal Import and the terminal property after terminal PR
+    local_terminal_session: LocalTerminalConnection = None
+    """#TODO"""
 
-    # @property
-    # def _host_terminal(self) -> Terminal:
-    #    """Return the Terminal that is installed on the same machine as the C2 Beacon."""
-    #    host_terminal: Terminal = self.software_manager.software.get("Terminal")
-    #    if host_terminal: is None:
-    #        self.sys_log.warning(f"{self.__class__.__name__} cannot find a terminal on its host.")
-    #    return host_terminal
+    remote_terminal_session: RemoteTerminalConnection = None
+    """#TODO"""
+
+    @property
+    def _host_terminal(self) -> Optional[Terminal]:
+        """Return the Terminal that is installed on the same machine as the C2 Beacon."""
+        host_terminal: Terminal = self.software_manager.software.get("Terminal")
+        if host_terminal is None:
+            self.sys_log.warning(f"{self.__class__.__name__} cannot find a terminal on its host.")
+        return host_terminal
 
     @property
     def _host_ransomware_script(self) -> RansomwareScript:
@@ -63,6 +69,26 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         if ransomware_script is None:
             self.sys_log.warning(f"{self.__class__.__name__} cannot find installed ransomware on its host.")
         return ransomware_script
+
+    def get_terminal_session(self, username: str, password: str) -> Optional[LocalTerminalConnection]:
+        """Return an instance of a Local Terminal Connection upon successful login. Otherwise returns None."""
+        if self.local_terminal_session is None:
+            host_terminal: Terminal = self._host_terminal
+            self.local_terminal_session = host_terminal.login(username=username, password=password)
+
+        return self.local_terminal_session
+
+    def get_remote_terminal_session(
+        self, username: str, password: str, ip_address: IPv4Address
+    ) -> Optional[RemoteTerminalConnection]:
+        """Return an instance of a Local Terminal Connection upon successful login. Otherwise returns None."""
+        if self.remote_terminal_session is None:
+            host_terminal: Terminal = self._host_terminal
+            self.remote_terminal_session = host_terminal.login(
+                username=username, password=password, ip_address=ip_address
+            )
+
+        return self.remote_terminal_session
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -153,7 +179,6 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         )
         return True
 
-    # I THINK that once the application is running it can respond to incoming traffic but I'll need to test this later.
     def establish(self) -> bool:
         """Establishes connection to the C2 server via a send alive. The C2 Beacon must already be configured."""
         if self.c2_remote_connection is None:
@@ -269,7 +294,9 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
                 data={"Reason": "Cannot find any instances of a RansomwareScript. Have you installed one?"},
             )
         return RequestResponse.from_bool(
-            self._host_ransomware_script.configure(server_ip_address=given_config["server_ip_address"])
+            self._host_ransomware_script.configure(
+                server_ip_address=given_config["server_ip_address"], payload=given_config["payload"]
+            )
         )
 
     def _command_ransomware_launch(self, payload: MasqueradePacket) -> RequestResponse:
@@ -304,8 +331,44 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :return: Returns the Request Response returned by the Terminal execute method.
         :rtype: Request Response
         """
-        # TODO: uncomment and replace (uses terminal)
-        return RequestResponse(status="success", data={"Reason": "Placeholder."})
+        terminal_output: Dict[int, RequestResponse] = {}
+        given_commands: list[RequestFormat]
+
+        if self._host_terminal is None:
+            return RequestResponse(
+                status="failure",
+                data={"Reason": "Host does not seem to have terminal installed. Unable to resolve command."},
+            )
+
+        # TODO: Placeholder until further details on handling user sessions.
+        given_commands = payload.payload.get("commands")
+        given_username = payload.payload.get("username")
+        given_password = payload.payload.get("password")
+        remote_ip = payload.payload.get("ip_address")
+
+        # Creating a remote terminal session if given an IP Address, otherwise using a local terminal session.
+        if payload.payload.get("ip_address") is None:
+            terminal_session = self.get_terminal_session(username=given_username, password=given_password)
+        else:
+            terminal_session = self.get_remote_terminal_session(
+                username=given_username, password=given_password, ip_address=remote_ip
+            )
+
+        if terminal_session is None:
+            RequestResponse(
+                status="failure",
+                data={"Reason": "Host cannot is unable to connect to terminal. Unable to resolve command."},
+            )
+
+        for index, given_command in enumerate(given_commands):
+            # A try catch exception ladder was used but was considered not the best approach
+            # as it can end up obscuring visibility of actual bugs (Not the expected ones) and was a temporary solution.
+            # TODO: Refactor + add further validation to ensure that a request is correct. (maybe a pydantic method?)
+            terminal_output[index] = terminal_session.execute(given_command)
+
+        # Reset our remote terminal session.
+        self.remote_terminal_session is None
+        return RequestResponse(status="success", data=terminal_output)
 
     def _handle_keep_alive(self, payload: MasqueradePacket, session_id: Optional[str]) -> bool:
         """

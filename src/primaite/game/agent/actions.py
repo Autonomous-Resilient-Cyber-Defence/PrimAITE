@@ -1153,19 +1153,29 @@ class TerminalC2ServerAction(AbstractAction):
     class _Opts(BaseModel):
         """Schema for options that can be passed to this action."""
 
-        model_config = ConfigDict(extra="forbid")
-        commands: RequestFormat
+        commands: List[RequestFormat]
+        ip_address: Optional[str]
+        username: Optional[str]
+        password: Optional[str]
 
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
+    def form_request(self, node_id: int, commands: List, ip_address: Optional[str], account: dict) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None:
             return ["do_nothing"]
-        TerminalC2ServerAction._Opts.model_validate(config)  # check that options adhere to schema
-        return ["network", "node", node_name, "application", "C2Server", "terminal_command", config]
+
+        command_model = {
+            "commands": commands,
+            "ip_address": ip_address,
+            "username": account["username"],
+            "password": account["password"],
+        }
+
+        TerminalC2ServerAction._Opts.model_validate(command_model)
+        return ["network", "node", node_name, "application", "C2Server", "terminal_command", command_model]
 
 
 class ActionManager:

@@ -47,8 +47,10 @@ class C2Server(AbstractC2, identifier="C2Server"):
             :return: RequestResponse object with a success code reflecting whether the configuration could be applied.
             :rtype: RequestResponse
             """
-            # TODO: Parse the parameters from the request to get the parameters
-            ransomware_config = {"server_ip_address": request[-1].get("server_ip_address")}
+            ransomware_config = {
+                "server_ip_address": request[-1].get("server_ip_address"),
+                "payload": request[-1].get("payload"),
+            }
             return self._send_command(given_command=C2Command.RANSOMWARE_CONFIGURE, command_options=ransomware_config)
 
         def _launch_ransomware_action(request: RequestFormat, context: Dict) -> RequestResponse:
@@ -73,9 +75,8 @@ class C2Server(AbstractC2, identifier="C2Server"):
             :return: RequestResponse object with a success code reflecting whether the ransomware was launched.
             :rtype: RequestResponse
             """
-            # TODO: Parse the parameters from the request to get the parameters
-            terminal_commands = {"commands": request[-1].get("commands")}
-            return self._send_command(given_command=C2Command.TERMINAL, command_options=terminal_commands)
+            command_payload = request[-1]
+            return self._send_command(given_command=C2Command.TERMINAL, command_options=command_payload)
 
         rm.add_request(
             name="ransomware_configure",
@@ -174,7 +175,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
         ---------------------|------------------------
         RANSOMWARE_CONFIGURE | Configures an installed ransomware script based on the passed parameters.
         RANSOMWARE_LAUNCH    | Launches the installed ransomware script.
-        Terminal             | Executes a command via the terminal installed on the C2 Beacons Host.
+        TERMINAL             | Executes a command via the terminal installed on the C2 Beacons Host.
 
         For more information on the impact of these commands please refer to the terminal
         and the ransomware applications.
@@ -196,6 +197,18 @@ class C2Server(AbstractC2, identifier="C2Server"):
             self.sys_log.warning(f"{self.name}: Unable to make leverage networking resources. Rejecting Command.")
             return RequestResponse(
                 status="failure", data={"Reason": "Unable to access networking resources. Unable to send command."}
+            )
+
+        if self.c2_remote_connection is False:
+            self.sys_log.warning(f"{self.name}: C2 Beacon has yet to establish connection. Rejecting command.")
+            return RequestResponse(
+                status="failure", data={"Reason": "C2 Beacon has yet to establish connection. Unable to send command."}
+            )
+
+        if self.current_c2_session is None:
+            self.sys_log.warning(f"{self.name}: C2 Beacon cannot be reached. Rejecting command.")
+            return RequestResponse(
+                status="failure", data={"Reason": "C2 Beacon cannot be reached. Unable to send command."}
             )
 
         self.sys_log.info(f"{self.name}: Attempting to send command {given_command}.")
