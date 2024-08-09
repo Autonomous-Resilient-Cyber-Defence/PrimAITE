@@ -1107,8 +1107,8 @@ class ConfigureC2BeaconAction(AbstractAction):
         config = ConfigureC2BeaconAction._Opts(
             c2_server_ip_address=config["c2_server_ip_address"],
             keep_alive_frequency=config["keep_alive_frequency"],
-            masquerade_port=config["masquerade_protocol"],
-            masquerade_protocol=config["masquerade_port"],
+            masquerade_port=config["masquerade_port"],
+            masquerade_protocol=config["masquerade_protocol"],
         )
 
         ConfigureC2BeaconAction._Opts.model_validate(config)  # check that options adhere to schema
