@@ -90,7 +90,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
     # TODO: Update this post application/services requiring to listen to multiple ports
     def __init__(self, **kwargs):
         """Initialise the C2 applications to by default listen for HTTP traffic."""
-        kwargs["port"] = Port.HTTP  # TODO: Update this post application/services requiring to listen to multiple ports
+        kwargs["listen_on_ports"] = {Port.HTTP, Port.FTP, Port.DNS}
+        kwargs["port"] = Port.HTTP
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
 
@@ -240,9 +241,6 @@ class AbstractC2(Application, identifier="AbstractC2"):
                 f"Port: {payload.masquerade_port} Protocol: {payload.masquerade_protocol}."
             )
             return False
-
-        # TODO: Validation on Ports (E.g only allow HTTP, FTP etc)
-        # Potentially compare to IPProtocol & Port children? Depends on how listening on multiple ports is implemented.
 
         # Setting the Ports
         self.current_masquerade_port = payload.masquerade_port

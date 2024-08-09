@@ -102,6 +102,12 @@ def test_c2_suite_setup_receive(basic_network):
     assert c2_server.c2_connection_active is True
     assert c2_server.c2_remote_connection == IPv4Address("192.168.255.2")
 
+    for i in range(50):
+        network.apply_timestep(i)
+
+    assert c2_beacon.c2_connection_active is True
+    assert c2_server.c2_connection_active is True
+
 
 def test_c2_suite_keep_alive_inactivity(basic_network):
     """Tests that C2 Beacon disconnects from the C2 Server after inactivity."""
