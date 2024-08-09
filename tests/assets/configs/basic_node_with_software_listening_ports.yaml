@@ -1,0 +1,39 @@
+io_settings:
+  save_step_metadata: false
+  save_pcap_logs: true
+  save_sys_logs: true
+  sys_log_level: WARNING
+  agent_log_level: INFO
+  save_agent_logs: true
+  write_agent_log_to_terminal: True
+
+
+game:
+  max_episode_length: 256
+  ports:
+  - ARP
+  protocols:
+  - ICMP
+  - UDP
+
+
+simulation:
+  network:
+    nodes:
+    - hostname: client
+      type: computer
+      ip_address: 192.168.10.11
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+      services:
+        - type: DatabaseService
+          options:
+            backup_server_ip: 10.10.1.12
+            listen_on_ports:
+              - 631
+      applications:
+          - type: WebBrowser
+            options:
+              target_url: http://sometech.ai
+              listen_on_ports:
+                - SMB
