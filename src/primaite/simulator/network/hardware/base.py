@@ -1174,7 +1174,7 @@ class UserSessionManager(Service):
         """
         rm = super()._init_request_manager()
 
-        # todo add doc about requeest schemas
+        # todo add doc about request schemas
         rm.add_request(
             "remote_login",
             RequestType(
@@ -1278,6 +1278,10 @@ class UserSessionManager(Service):
         if self.local_session:
             if self.local_session.last_active_step + self.local_session_timeout_steps <= timestep:
                 self._timeout_session(self.local_session)
+        for session in self.remote_sessions:
+            remote_session = self.remote_sessions[session]
+            if remote_session.last_active_step + self.remote_session_timeout_steps <= timestep:
+                self._timeout_session(remote_session)
 
     def _timeout_session(self, session: UserSession) -> None:
         """
@@ -1294,6 +1298,13 @@ class UserSessionManager(Service):
             self.remote_sessions.pop(session.uuid)
             session_type = "Remote"
             session_identity = f"{session_identity} {session.remote_ip_address}"
+            self.parent.terminal._connections.pop(session.uuid)
+            software_manager: SoftwareManager = self.software_manager
+            software_manager.send_payload_to_session_manager(
+                payload={"type": "user_timeout", "connection_id": session.uuid},
+                dest_port=Port.SSH,
+                dest_ip_address=session.remote_ip_address,
+            )
 
         self.sys_log.info(f"{self.name}: {session_type} {session_identity} session timeout due to inactivity")
 
