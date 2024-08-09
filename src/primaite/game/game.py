@@ -335,7 +335,6 @@ class PrimaiteGame:
                 """Set listener ports on software."""
                 listen_on_ports = []
                 for port_id in set(software_cfg.get("options", {}).get("listen_on_ports", [])):
-                    print("yes", port_id)
                     port = None
                     if isinstance(port_id, int):
                         port = Port(port_id)
