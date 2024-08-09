@@ -15,7 +15,7 @@ from utils import _get_system_info
 import primaite
 
 PLOT_CONFIG = {
-    "size": {"auto_size": False, "width": 800, "height": 800},
+    "size": {"auto_size": False, "width": 800, "height": 640},
     "template": "plotly_white",
     "range_slider": False,
 }
