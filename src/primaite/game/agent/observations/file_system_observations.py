@@ -162,6 +162,9 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         :type num_files: int
         :param include_num_access: Whether to include the number of accesses to files in the observation.
         :type include_num_access: bool
+        :param file_system_requires_scan: If True, the folder must be scanned to update the health state. Tf False,
+            the true state is always shown.
+        :type file_system_requires_scan: bool
         """
         self.where: WhereType = where
 
