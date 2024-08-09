@@ -49,10 +49,10 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     "The frequency at which ``Keep Alive`` packets are sent to the C2 Server from the C2 Beacon."
 
     local_terminal_session: LocalTerminalConnection = None
-    """#TODO"""
+    "The currently in use local terminal session."
 
     remote_terminal_session: RemoteTerminalConnection = None
-    """#TODO"""
+    "The currently in use remote terminal session"
 
     @property
     def _host_terminal(self) -> Optional[Terminal]:
@@ -199,7 +199,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         ---------------------|------------------------
         RANSOMWARE_CONFIGURE | self._command_ransomware_config()
         RANSOMWARE_LAUNCH    | self._command_ransomware_launch()
-        Terminal             | self._command_terminal()
+        TERMINAL             | self._command_terminal()
 
         Please see each method individually for further information regarding
         the implementation of these commands.
@@ -340,14 +340,13 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
                 data={"Reason": "Host does not seem to have terminal installed. Unable to resolve command."},
             )
 
-        # TODO: Placeholder until further details on handling user sessions.
         given_commands = payload.payload.get("commands")
         given_username = payload.payload.get("username")
         given_password = payload.payload.get("password")
         remote_ip = payload.payload.get("ip_address")
 
         # Creating a remote terminal session if given an IP Address, otherwise using a local terminal session.
-        if payload.payload.get("ip_address") is None:
+        if remote_ip is None:
             terminal_session = self.get_terminal_session(username=given_username, password=given_password)
         else:
             terminal_session = self.get_remote_terminal_session(
@@ -355,9 +354,8 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             )
 
         if terminal_session is None:
-            RequestResponse(
-                status="failure",
-                data={"Reason": "Host cannot is unable to connect to terminal. Unable to resolve command."},
+            return RequestResponse(
+                status="failure", data={"reason": "Terminal Login failed. Cannot create a terminal session."}
             )
 
         for index, given_command in enumerate(given_commands):

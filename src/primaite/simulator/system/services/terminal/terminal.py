@@ -92,7 +92,7 @@ class LocalTerminalConnection(TerminalClientConnection):
         if not self.is_active:
             self.parent_terminal.sys_log.warning("Connection inactive, cannot execute")
             return None
-        return self.parent_terminal.execute(command, connection_id=self.connection_uuid)
+        return self.parent_terminal.execute(command)
 
 
 class RemoteTerminalConnection(TerminalClientConnection):
