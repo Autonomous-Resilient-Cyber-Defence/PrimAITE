@@ -25,3 +25,35 @@ The configuration options are the attributes that fall under the options for an 
 Optional. Default value is ``2``.
 
 The number of timesteps the |SOFTWARE_NAME| will remain in a ``FIXING`` state before going into a ``GOOD`` state.
+
+
+``listen_on_ports``
+"""""""""""""""""""
+
+The set of ports to listen on. This is in addition to the main port the software is designated. This set can either be
+the string name of ports or the port integers
+
+Example:
+
+.. code-block:: yaml
+
+    simulation:
+      network:
+        nodes:
+        - hostname: client
+          type: computer
+          ip_address: 192.168.10.11
+          subnet_mask: 255.255.255.0
+          default_gateway: 192.168.10.1
+          services:
+            - type: DatabaseService
+              options:
+                backup_server_ip: 10.10.1.12
+                listen_on_ports:
+                  - 631
+          applications:
+              - type: WebBrowser
+                options:
+                  target_url: http://sometech.ai
+                  listen_on_ports:
+                    - SMB
