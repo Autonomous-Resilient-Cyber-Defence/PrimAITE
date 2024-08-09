@@ -191,12 +191,16 @@ class DatabaseService(Service):
         :return: Response to connection request containing success info.
         :rtype: Dict[str, Union[int, Dict[str, bool]]]
         """
+        self.sys_log.info(f"{self.name}: Processing new connection request ({connection_request_id}) from {src_ip}")
         status_code = 500  # Default internal server error
         connection_id = None
         if self.operating_state == ServiceOperatingState.RUNNING:
             status_code = 503  # service unavailable
             if self.health_state_actual == SoftwareHealthState.OVERWHELMED:
-                self.sys_log.error(f"{self.name}: Connect request for {src_ip=} declined. Service is at capacity.")
+                self.sys_log.info(
+                    f"{self.name}: Connection request ({connection_request_id}) from {src_ip} declined, service is at "
+                    f"capacity."
+                )
             if self.health_state_actual in [
                 SoftwareHealthState.GOOD,
                 SoftwareHealthState.FIXING,
@@ -208,12 +212,16 @@ class DatabaseService(Service):
                     # try to create connection
                     if not self.add_connection(connection_id=connection_id, session_id=session_id):
                         status_code = 500
-                        self.sys_log.warning(f"{self.name}: Connect request for {connection_id=} declined")
-                    else:
-                        self.sys_log.info(f"{self.name}: Connect request for {connection_id=} authorised")
+                        self.sys_log.info(
+                            f"{self.name}: Connection request ({connection_request_id}) from {src_ip} declined, "
+                            f"returning status code 500"
+                        )
                 else:
                     status_code = 401  # Unauthorised
-                    self.sys_log.warning(f"{self.name}: Connect request for {connection_id=} declined")
+                    self.sys_log.info(
+                        f"{self.name}: Connection request ({connection_request_id}) from {src_ip} unauthorised "
+                        f"(incorrect password), returning status code 401"
+                    )
         else:
             status_code = 404  # service not found
         return {

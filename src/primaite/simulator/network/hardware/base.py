@@ -30,6 +30,7 @@ from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.processes.process import Process
 from primaite.simulator.system.services.service import Service
+from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.software import IOSoftware, Software
 from primaite.utils.converters import convert_dict_enum_keys_to_enum_values
 from primaite.utils.validators import IPV4Address
@@ -1173,7 +1174,7 @@ class UserSessionManager(Service):
         """
         rm = super()._init_request_manager()
 
-        # todo add doc about requeest schemas
+        # todo add doc about request schemas
         rm.add_request(
             "remote_login",
             RequestType(
@@ -1277,6 +1278,10 @@ class UserSessionManager(Service):
         if self.local_session:
             if self.local_session.last_active_step + self.local_session_timeout_steps <= timestep:
                 self._timeout_session(self.local_session)
+        for session in self.remote_sessions:
+            remote_session = self.remote_sessions[session]
+            if remote_session.last_active_step + self.remote_session_timeout_steps <= timestep:
+                self._timeout_session(remote_session)
 
     def _timeout_session(self, session: UserSession) -> None:
         """
@@ -1293,6 +1298,13 @@ class UserSessionManager(Service):
             self.remote_sessions.pop(session.uuid)
             session_type = "Remote"
             session_identity = f"{session_identity} {session.remote_ip_address}"
+            self.parent.terminal._connections.pop(session.uuid)
+            software_manager: SoftwareManager = self.software_manager
+            software_manager.send_payload_to_session_manager(
+                payload={"type": "user_timeout", "connection_id": session.uuid},
+                dest_port=Port.SSH,
+                dest_ip_address=session.remote_ip_address,
+            )
 
         self.sys_log.info(f"{self.name}: {session_type} {session_identity} session timeout due to inactivity")
 
@@ -1540,6 +1552,11 @@ class Node(SimComponent):
     def user_session_manager(self) -> Optional[UserSessionManager]:
         """The Nodes User Session Manager."""
         return self.software_manager.software.get("UserSessionManager")  # noqa
+
+    @property
+    def terminal(self) -> Optional[Terminal]:
+        """The Nodes Terminal."""
+        return self.software_manager.software.get("Terminal")
 
     def local_login(self, username: str, password: str) -> Optional[str]:
         """

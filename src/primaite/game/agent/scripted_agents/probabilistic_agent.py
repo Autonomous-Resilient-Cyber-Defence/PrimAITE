@@ -22,8 +22,6 @@ class ProbabilisticAgent(AbstractScriptedAgent):
         """Strict validation."""
         action_probabilities: Dict[int, float]
         """Probability to perform each action in the action map. The sum of probabilities should sum to 1."""
-        random_seed: Optional[int] = None
-        """Random seed. If set, each episode the agent will choose the same random sequence of actions."""
         # TODO: give the option to still set a random seed, but have it vary each episode in a predictable way
         #       for example if the user sets seed 123, have it be 123 + episode_num, so that each ep it's the next seed.
 
@@ -59,17 +57,18 @@ class ProbabilisticAgent(AbstractScriptedAgent):
             num_actions = len(action_space.action_map)
             settings = {"action_probabilities": {i: 1 / num_actions for i in range(num_actions)}}
 
-        # If seed not specified, set it to None so that numpy chooses a random one.
-        settings.setdefault("random_seed")
-
+        # The random number seed for np.random is dependent on whether a random number seed is set
+        # in the config file. If there is one it is processed by set_random_seed() in environment.py
+        # and as a consequence the the sequence of rng_seed's used here will be repeatable.
         self.settings = ProbabilisticAgent.Settings(**settings)
-
-        self.rng = np.random.default_rng(self.settings.random_seed)
+        rng_seed = np.random.randint(0, 65535)
+        self.rng = np.random.default_rng(rng_seed)
 
         # convert probabilities from
         self.probabilities = np.asarray(list(self.settings.action_probabilities.values()))
 
         super().__init__(agent_name, action_space, observation_space, reward_function)
+        self.logger.debug(f"ProbabilisticAgent RNG seed: {rng_seed}")
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
