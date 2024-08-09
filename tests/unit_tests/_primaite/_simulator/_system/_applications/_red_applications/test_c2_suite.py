@@ -1,0 +1,138 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+import pytest
+
+from primaite.simulator.network.container import Network
+from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.system.applications.application import ApplicationOperatingState
+from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
+from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Command, C2Server
+
+
+@pytest.fixture(scope="function")
+def basic_c2_network() -> Network:
+    network = Network()
+
+    # Creating two generic nodes for the C2 Server and the C2 Beacon.
+
+    computer_a = Computer(
+        hostname="computer_a",
+        ip_address="192.168.0.1",
+        subnet_mask="255.255.255.252",
+        start_up_duration=0,
+    )
+    computer_a.power_on()
+    computer_a.software_manager.install(software_class=C2Server)
+
+    computer_b = Computer(
+        hostname="computer_b", ip_address="192.168.0.2", subnet_mask="255.255.255.252", start_up_duration=0
+    )
+
+    computer_b.power_on()
+    computer_b.software_manager.install(software_class=C2Beacon)
+
+    network.connect(endpoint_a=computer_a.network_interface[1], endpoint_b=computer_b.network_interface[1])
+    return network
+
+
+def setup_c2(given_network: Network):
+    """Installs the C2 Beacon & Server, configures and then returns."""
+    network: Network = given_network
+
+    computer_a: Computer = network.get_node_by_hostname("computer_a")
+    computer_b: Computer = network.get_node_by_hostname("computer_b")
+
+    c2_beacon: C2Beacon = computer_b.software_manager.software.get("C2Beacon")
+    c2_server: C2Server = computer_a.software_manager.software.get("C2Server")
+
+    c2_beacon.configure(c2_server_ip_address="192.168.0.1", keep_alive_frequency=2)
+    c2_server.run()
+    c2_beacon.establish()
+
+    return network, computer_a, c2_server, computer_b, c2_beacon
+
+
+def test_c2_handle_server_disconnect(basic_c2_network):
+    """Tests that the C2 suite will be able handle the c2 server application closing."""
+    network: Network = basic_c2_network
+    network, computer_a, c2_server, computer_b, c2_beacon = setup_c2(network)
+
+    assert c2_beacon.c2_connection_active is True
+
+    ##### C2 Server disconnecting.
+
+    # Closing the C2 Server
+    c2_server.close()
+
+    # Applying 10 timesteps to trigger C2 beacon keep alive
+
+    for i in range(10):
+        network.apply_timestep(i)
+
+    assert c2_beacon.c2_connection_active is False
+    assert c2_beacon.operating_state is ApplicationOperatingState.CLOSED
+
+    # C2 Beacon disconnected.
+
+    network: Network = basic_c2_network
+
+    network, computer_a, c2_server, computer_b, c2_beacon = setup_c2(network)
+
+
+def test_c2_handle_beacon_disconnect(basic_c2_network):
+    """Tests that the C2 suite will be able handle the c2 beacon application closing."""
+    network: Network = basic_c2_network
+    network, computer_a, c2_server, computer_b, c2_beacon = setup_c2(network)
+
+    assert c2_server.c2_connection_active is True
+
+    # Closing the C2 beacon
+
+    c2_beacon.close()
+
+    assert c2_beacon.operating_state is ApplicationOperatingState.CLOSED
+
+    # Attempting a simple C2 Server command:
+    file_create_command = {
+        "commands": [["file_system", "create", "folder", "test_folder"]],
+        "username": "admin",
+        "password": "admin",
+        "ip_address": None,
+    }
+
+    command_request_response = c2_server._send_command(C2Command.TERMINAL, command_options=file_create_command)
+
+    assert command_request_response.status == "failure"
+
+    # Despite the command failing - The C2 Server will still consider the beacon alive
+    # Until it does not respond within the keep alive frequency set in the last keep_alive.
+    assert c2_server.c2_connection_active is True
+
+    # Stepping 6 timesteps in order for the C2 server to consider the beacon dead.
+    for i in range(6):
+        network.apply_timestep(i)
+
+    assert c2_server.c2_connection_active is False
+
+
+# TODO: Finalise and complete these tests.
+
+
+def test_c2_handle_switching_port(basic_c2_network):
+    """Tests that the C2 suite will be able handle switching destination/src port."""
+    network: Network = basic_c2_network
+
+    network, computer_a, c2_server, computer_b, c2_beacon = setup_c2(network)
+
+    # Asserting that the c2 beacon has established a c2 connection
+    assert c2_beacon.c2_connection_active is True
+
+
+def test_c2_handle_switching_frequency(basic_c2_network):
+    """Tests that the C2 suite will be able handle switching keep alive frequency."""
+    network: Network = basic_c2_network
+
+    network, computer_a, c2_server, computer_b, c2_beacon = setup_c2(network)
+
+    # Asserting that the c2 beacon has established a c2 connection
+    assert c2_beacon.c2_connection_active is True

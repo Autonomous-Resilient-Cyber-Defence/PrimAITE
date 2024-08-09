@@ -4,13 +4,14 @@ from enum import Enum
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
-from pydantic import validate_call
+from pydantic import BaseModel, Field, validate_call
 
-from primaite.simulator.network.protocols.masquerade import MasqueradePacket
+from primaite.simulator.network.protocols.masquerade import C2Packet
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.application import Application
+from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 from primaite.simulator.system.core.session_manager import Session
+from primaite.simulator.system.software import SoftwareHealthState
 
 # TODO:
 # Create test that leverage all the functionality needed for the different TAPs
@@ -65,18 +66,29 @@ class AbstractC2(Application, identifier="AbstractC2"):
     c2_remote_connection: IPv4Address = None
     """The IPv4 Address of the remote c2 connection. (Either the IP of the beacon or the server)."""
 
-    # These two attributes are set differently in the c2 server and c2 beacon.
-    # The c2 server parses the keep alive and sets these accordingly.
-    # The c2 beacon will set this attributes upon installation and configuration
-
-    current_masquerade_protocol: IPProtocol = IPProtocol.TCP
-    """The currently chosen protocol that the C2 traffic is masquerading as. Defaults as TCP."""
-
-    current_masquerade_port: Port = Port.HTTP
-    """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
-
-    current_c2_session: Session = None
+    c2_session: Session = None
     """The currently active session that the C2 Traffic is using. Set after establishing connection."""
+
+    keep_alive_inactivity: int = 0
+    """Indicates how many timesteps since the last time the c2 application received a keep alive."""
+
+    class _C2_Opts(BaseModel):
+        """A Pydantic Schema for the different C2 configuration options."""
+
+        keep_alive_frequency: int = Field(default=5, ge=1)
+        """The frequency at which ``Keep Alive`` packets are sent to the C2 Server from the C2 Beacon."""
+
+        masquerade_protocol: IPProtocol = Field(default=IPProtocol.TCP)
+        """The currently chosen protocol that the C2 traffic is masquerading as. Defaults as TCP."""
+
+        masquerade_port: Port = Field(default=Port.HTTP)
+        """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
+
+    # The c2 beacon sets the c2_config through it's own internal method - configure (which is also used by agents)
+    # and then passes the config attributes to the c2 server via keep alives
+    # The c2 server parses the C2 configurations from keep alive traffic and sets the c2_config accordingly.
+    c2_config: _C2_Opts = _C2_Opts()
+    """Holds the current configuration settings of the C2 Suite."""
 
     def describe_state(self) -> Dict:
         """
@@ -96,7 +108,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
 
     # Validate call ensures we are only handling Masquerade Packets.
     @validate_call
-    def _handle_c2_payload(self, payload: MasqueradePacket, session_id: Optional[str] = None) -> bool:
+    def _handle_c2_payload(self, payload: C2Packet, session_id: Optional[str] = None) -> bool:
         """Handles masquerade payloads for both c2 beacons and c2 servers.
 
         Currently, the C2 application suite can handle the following payloads:
@@ -151,18 +163,18 @@ class AbstractC2(Application, identifier="AbstractC2"):
         """Abstract Method: Used in C2 beacon to parse and handle commands received from the c2 server."""
         pass
 
-    def _handle_keep_alive(self, payload: MasqueradePacket, session_id: Optional[str]) -> bool:
+    def _handle_keep_alive(self, payload: C2Packet, session_id: Optional[str]) -> bool:
         """Abstract Method: The C2 Server and the C2 Beacon handle the KEEP ALIVEs differently."""
 
     # from_network_interface=from_network_interface
-    def receive(self, payload: MasqueradePacket, session_id: Optional[str] = None, **kwargs) -> bool:
+    def receive(self, payload: C2Packet, session_id: Optional[str] = None, **kwargs) -> bool:
         """Receives masquerade packets. Used by both c2 server and c2 beacon.
 
         Defining the `Receive` method so that the application can receive packets via the session manager.
         These packets are then immediately handed to ._handle_c2_payload.
 
         :param payload: The Masquerade Packet to be received.
-        :type payload: MasqueradePacket
+        :type payload: C2Packet
         :param session_id: The transport session_id that the payload is originating from.
         :type session_id: str
         """
@@ -193,9 +205,10 @@ class AbstractC2(Application, identifier="AbstractC2"):
 
         # We also Pass masquerade proto`col/port so that the c2 server can reply on the correct protocol/port.
         # (This also lays the foundations for switching masquerade port/protocols mid episode.)
-        keep_alive_packet = MasqueradePacket(
-            masquerade_protocol=self.current_masquerade_protocol,
-            masquerade_port=self.current_masquerade_port,
+        keep_alive_packet = C2Packet(
+            masquerade_protocol=self.c2_config.masquerade_protocol,
+            masquerade_port=self.c2_config.masquerade_port,
+            keep_alive_frequency=self.c2_config.keep_alive_frequency,
             payload_type=C2Payload.KEEP_ALIVE,
             command=None,
         )
@@ -203,13 +216,15 @@ class AbstractC2(Application, identifier="AbstractC2"):
         if self.send(
             payload=keep_alive_packet,
             dest_ip_address=self.c2_remote_connection,
-            dest_port=self.current_masquerade_port,
-            ip_protocol=self.current_masquerade_protocol,
+            dest_port=self.c2_config.masquerade_port,
+            ip_protocol=self.c2_config.masquerade_protocol,
             session_id=session_id,
         ):
             self.keep_alive_sent = True
             self.sys_log.info(f"{self.name}: Keep Alive sent to {self.c2_remote_connection}")
-            self.sys_log.debug(f"{self.name}: on {self.current_masquerade_port} via {self.current_masquerade_protocol}")
+            self.sys_log.debug(
+                f"{self.name}: on {self.c2_config.masquerade_port} via {self.c2_config.masquerade_protocol}"
+            )
             return True
         else:
             self.sys_log.warning(
@@ -217,7 +232,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
             )
             return False
 
-    def _resolve_keep_alive(self, payload: MasqueradePacket, session_id: Optional[str]) -> bool:
+    def _resolve_keep_alive(self, payload: C2Packet, session_id: Optional[str]) -> bool:
         """
         Parses the Masquerade Port/Protocol within the received Keep Alive packet.
 
@@ -227,7 +242,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
         Returns False otherwise.
 
         :param payload: The Keep Alive payload received.
-        :type payload: MasqueradePacket
+        :type payload: C2Packet
         :param session_id: The transport session_id that the payload is originating from.
         :type session_id: str
         :return: True on successful configuration, false otherwise.
@@ -241,16 +256,61 @@ class AbstractC2(Application, identifier="AbstractC2"):
             )
             return False
 
-        # Setting the masquerade_port/protocol attribute:
-        self.current_masquerade_port = payload.masquerade_port
-        self.current_masquerade_protocol = payload.masquerade_protocol
+        # Updating the C2 Configuration attribute.
+
+        self.c2_config.masquerade_port = payload.masquerade_port
+        self.c2_config.masquerade_protocol = payload.masquerade_protocol
+        self.c2_config.keep_alive_frequency = payload.keep_alive_frequency
 
         # This statement is intended to catch on the C2 Application that is listening for connection. (C2 Beacon)
         if self.c2_remote_connection is None:
             self.sys_log.debug(f"{self.name}: Attempting to configure remote C2 connection based off received output.")
-            self.c2_remote_connection = IPv4Address(self.current_c2_session.with_ip_address)
+            self.c2_remote_connection = IPv4Address(self.c2_session.with_ip_address)
 
         self.c2_connection_active = True  # Sets the connection to active
         self.keep_alive_inactivity = 0  # Sets the keep alive inactivity to zero
 
         return True
+
+    def _reset_c2_connection(self) -> None:
+        """Resets all currently established C2 communications to their default setting."""
+        self.c2_connection_active = False
+        self.c2_session = None
+        self.keep_alive_inactivity = 0
+        self.keep_alive_frequency = 5
+        self.c2_remote_connection = None
+        self.c2_config.masquerade_port = Port.HTTP
+        self.c2_config.masquerade_protocol = IPProtocol.TCP
+
+    @abstractmethod
+    def _confirm_connection(self, timestep: int) -> bool:
+        """Abstract method - Checks the suitability of the current C2 Server/Beacon connection."""
+
+    def apply_timestep(self, timestep: int) -> None:
+        """Apply a timestep to the c2_server & c2 beacon.
+
+        Used to keep track of when the c2 server should consider a beacon dead
+        and set it's c2_remote_connection attribute to false.
+
+        1. Each timestep the keep_alive_inactivity is increased.
+
+        2. If the keep alive inactivity eclipses that of the keep alive frequency then another keep alive is sent.
+
+        3. If a keep alive response packet is received then the ``keep_alive_inactivity`` attribute is reset.
+
+        Therefore, if ``keep_alive_inactivity`` attribute is not 0 after a keep alive is sent
+        then the connection is considered severed and c2 beacon will shut down.
+
+        :param timestep: The current timestep of the simulation.
+        :type timestep: Int
+        :return bool: Returns false if connection was lost. Returns True if connection is active or re-established.
+        :rtype bool:
+        """
+        super().apply_timestep(timestep=timestep)
+        if (
+            self.operating_state is ApplicationOperatingState.RUNNING
+            and self.health_state_actual is SoftwareHealthState.GOOD
+        ):
+            self.keep_alive_inactivity += 1
+            self._confirm_connection(timestep)
+        return

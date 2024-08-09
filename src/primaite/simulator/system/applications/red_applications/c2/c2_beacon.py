@@ -8,10 +8,9 @@ from pydantic import validate_call
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.protocols.masquerade import MasqueradePacket
+from primaite.simulator.network.protocols.masquerade import C2Packet
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from primaite.simulator.system.services.terminal.terminal import (
@@ -19,7 +18,6 @@ from primaite.simulator.system.services.terminal.terminal import (
     RemoteTerminalConnection,
     Terminal,
 )
-from primaite.simulator.system.software import SoftwareHealthState
 
 
 class C2Beacon(AbstractC2, identifier="C2Beacon"):
@@ -40,13 +38,6 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
 
     keep_alive_attempted: bool = False
     """Indicates if a keep alive has been attempted to be sent this timestep. Used to prevent packet storms."""
-
-    # We should set the application to NOT_RUNNING if the inactivity count reaches a certain thresh hold.
-    keep_alive_inactivity: int = 0
-    """Indicates how many timesteps since the last time the c2 application received a keep alive."""
-
-    keep_alive_frequency: int = 5
-    "The frequency at which ``Keep Alive`` packets are sent to the C2 Server from the C2 Beacon."
 
     local_terminal_session: LocalTerminalConnection = None
     "The currently in use local terminal session."
@@ -164,9 +155,9 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :type masquerade_port: Enum (Port)
         """
         self.c2_remote_connection = IPv4Address(c2_server_ip_address)
-        self.keep_alive_frequency = keep_alive_frequency
-        self.current_masquerade_port = masquerade_port
-        self.current_masquerade_protocol = masquerade_protocol
+        self.c2_config.keep_alive_frequency = keep_alive_frequency
+        self.c2_config.masquerade_port = masquerade_port
+        self.c2_config.masquerade_protocol = masquerade_protocol
         self.sys_log.info(
             f"{self.name}: Configured {self.name} with remote C2 server connection: {c2_server_ip_address=}."
         )
@@ -188,7 +179,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         self.num_executions += 1
         return self._send_keep_alive(session_id=None)
 
-    def _handle_command_input(self, payload: MasqueradePacket, session_id: Optional[str]) -> bool:
+    def _handle_command_input(self, payload: C2Packet, session_id: Optional[str]) -> bool:
         """
         Handles the parsing of C2 Commands from C2 Traffic (Masquerade Packets).
 
@@ -205,7 +196,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         the implementation of these commands.
 
         :param payload: The INPUT C2 Payload
-        :type payload: MasqueradePacket
+        :type payload: C2Packet
         :return: The Request Response provided by the terminal execute method.
         :rtype Request Response:
         """
@@ -250,21 +241,24 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :param session_id: The current session established with the C2 Server.
         :type session_id: Str
         """
-        output_packet = MasqueradePacket(
-            masquerade_protocol=self.current_masquerade_protocol,
-            masquerade_port=self.current_masquerade_port,
+        output_packet = C2Packet(
+            masquerade_protocol=self.c2_config.masquerade_protocol,
+            masquerade_port=self.c2_config.masquerade_port,
+            keep_alive_frequency=self.c2_config.keep_alive_frequency,
             payload_type=C2Payload.OUTPUT,
             payload=command_output,
         )
         if self.send(
             payload=output_packet,
             dest_ip_address=self.c2_remote_connection,
-            dest_port=self.current_masquerade_port,
-            ip_protocol=self.current_masquerade_protocol,
+            dest_port=self.c2_config.masquerade_port,
+            ip_protocol=self.c2_config.masquerade_protocol,
             session_id=session_id,
         ):
             self.sys_log.info(f"{self.name}: Command output sent to {self.c2_remote_connection}")
-            self.sys_log.debug(f"{self.name}: on {self.current_masquerade_port} via {self.current_masquerade_protocol}")
+            self.sys_log.debug(
+                f"{self.name}: on {self.c2_config.masquerade_port} via {self.c2_config.masquerade_protocol}"
+            )
             return True
         else:
             self.sys_log.warning(
@@ -272,7 +266,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             )
             return False
 
-    def _command_ransomware_config(self, payload: MasqueradePacket) -> RequestResponse:
+    def _command_ransomware_config(self, payload: C2Packet) -> RequestResponse:
         """
         C2 Command: Ransomware Configuration.
 
@@ -282,8 +276,8 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         The class attribute self._host_ransomware_script will return None if the host
         does not have an instance of the RansomwareScript.
 
-        :payload MasqueradePacket: The incoming INPUT command.
-        :type Masquerade Packet: MasqueradePacket.
+        :payload C2Packet: The incoming INPUT command.
+        :type Masquerade Packet: C2Packet.
         :return: Returns the Request Response returned by the Terminal execute method.
         :rtype: Request Response
         """
@@ -299,7 +293,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             )
         )
 
-    def _command_ransomware_launch(self, payload: MasqueradePacket) -> RequestResponse:
+    def _command_ransomware_launch(self, payload: C2Packet) -> RequestResponse:
         """
         C2 Command: Ransomware Launch.
 
@@ -307,8 +301,8 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         This request is then sent to the terminal service in order to be executed.
 
 
-        :payload MasqueradePacket: The incoming INPUT command.
-        :type Masquerade Packet: MasqueradePacket.
+        :payload C2Packet: The incoming INPUT command.
+        :type Masquerade Packet: C2Packet.
         :return: Returns the Request Response returned by the Terminal execute method.
         :rtype: Request Response
         """
@@ -319,15 +313,15 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             )
         return RequestResponse.from_bool(self._host_ransomware_script.attack())
 
-    def _command_terminal(self, payload: MasqueradePacket) -> RequestResponse:
+    def _command_terminal(self, payload: C2Packet) -> RequestResponse:
         """
         C2 Command: Terminal.
 
         Creates a request that executes a terminal command.
         This request is then sent to the terminal service in order to be executed.
 
-        :payload MasqueradePacket: The incoming INPUT command.
-        :type Masquerade Packet: MasqueradePacket.
+        :payload C2Packet: The incoming INPUT command.
+        :type Masquerade Packet: C2Packet.
         :return: Returns the Request Response returned by the Terminal execute method.
         :rtype: Request Response
         """
@@ -368,7 +362,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         self.remote_terminal_session is None
         return RequestResponse(status="success", data=terminal_output)
 
-    def _handle_keep_alive(self, payload: MasqueradePacket, session_id: Optional[str]) -> bool:
+    def _handle_keep_alive(self, payload: C2Packet, session_id: Optional[str]) -> bool:
         """
         Handles receiving and sending keep alive payloads. This method is only called if we receive a keep alive.
 
@@ -395,7 +389,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         if self.keep_alive_attempted is True:
             self.c2_connection_active = True  # Sets the connection to active
             self.keep_alive_inactivity = 0  # Sets the keep alive inactivity to zero
-            self.current_c2_session = self.software_manager.session_manager.sessions_by_uuid[session_id]
+            self.c2_session = self.software_manager.session_manager.sessions_by_uuid[session_id]
 
             # We set keep alive_attempted here to show that we've achieved connection.
             self.keep_alive_attempted = False
@@ -412,42 +406,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         # If this method returns true then we have sent successfully sent a keep alive.
         return self._send_keep_alive(session_id)
 
-    def apply_timestep(self, timestep: int) -> None:
-        """Apply a timestep to the c2_beacon.
-
-        Used to keep track of when the c2 beacon should send another keep alive.
-        The following logic is applied:
-
-        1. Each timestep the keep_alive_inactivity is increased.
-
-        2. If the keep alive inactivity eclipses that of the keep alive frequency then another keep alive is sent.
-
-        3. If a keep alive response packet is received then the ``keep_alive_inactivity`` attribute is reset.
-
-        Therefore, if ``keep_alive_inactivity`` attribute is not 0 after a keep alive is sent
-        then the connection is considered severed and c2 beacon will shut down.
-
-        :param timestep: The current timestep of the simulation.
-        :type timestep: Int
-        :return bool: Returns false if connection was lost. Returns True if connection is active or re-established.
-        :rtype bool:
-        """
-        super().apply_timestep(timestep=timestep)
-        self.keep_alive_attempted = False  # Resetting keep alive sent.
-        if (
-            self.operating_state is ApplicationOperatingState.RUNNING
-            and self.health_state_actual is SoftwareHealthState.GOOD
-        ):
-            self.keep_alive_inactivity += 1
-            if not self._check_c2_connection(timestep):
-                self.sys_log.error(f"{self.name}: Connection Severed - Application Closing.")
-                self.c2_connection_active = False
-                self.clear_connections()
-                # TODO: Shouldn't this close() method also set the health state to 'UNUSED'?
-                self.close()
-        return
-
-    def _check_c2_connection(self, timestep: int) -> bool:
+    def _confirm_connection(self, timestep: int) -> bool:
         """Checks the suitability of the current C2 Server connection.
 
         If a connection cannot be confirmed then this method will return false otherwise true.
@@ -457,20 +416,23 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :return: Returns False if connection was lost. Returns True if connection is active or re-established.
         :rtype bool:
         """
-        if self.keep_alive_inactivity == self.keep_alive_frequency:
+        self.keep_alive_attempted = False  # Resetting keep alive sent.
+        if self.keep_alive_inactivity == self.c2_config.keep_alive_frequency:
             self.sys_log.info(
                 f"{self.name}: Attempting to Send Keep Alive to {self.c2_remote_connection} at timestep {timestep}."
             )
-            self._send_keep_alive(session_id=self.current_c2_session.uuid)
+            self._send_keep_alive(session_id=self.c2_session.uuid)
             if self.keep_alive_inactivity != 0:
                 self.sys_log.warning(
                     f"{self.name}: Did not receive keep alive from c2 Server. Connection considered severed."
                 )
+                self._reset_c2_connection()
+                self.close()
                 return False
         return True
 
     # Defining this abstract method from Abstract C2
-    def _handle_command_output(self, payload: MasqueradePacket):
+    def _handle_command_output(self, payload: C2Packet):
         """C2 Beacons currently does not need to handle output commands coming from the C2 Servers."""
         self.sys_log.warning(f"{self.name}: C2 Beacon received an unexpected OUTPUT payload: {payload}.")
         pass
@@ -520,9 +482,9 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
                 self.c2_connection_active,
                 self.c2_remote_connection,
                 self.keep_alive_inactivity,
-                self.keep_alive_frequency,
-                self.current_masquerade_protocol,
-                self.current_masquerade_port,
+                self.c2_config.keep_alive_frequency,
+                self.c2_config.masquerade_protocol,
+                self.c2_config.masquerade_port,
             ]
         )
         print(table)

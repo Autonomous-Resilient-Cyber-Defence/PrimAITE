@@ -14,7 +14,7 @@ Overview:
 =========
 
 These two new classes intend to Red Agents a cyber realistic way of leveraging the capabilities of the ``Terminal`` application.
-Whilst introducing both more oppourtinies for the blue agent to notice and subvert Red Agents during an episode.
+Whilst introducing both more opportunities for the blue agent to notice and subvert Red Agents during an episode.
 
 For a more in-depth look at the command and control applications then please refer to the ``C2-E2E-Notebook``.
 
@@ -42,7 +42,7 @@ It's important to note that in order to keep the PrimAITE realistic from a cyber
 The C2 Server application should never be visible or actionable upon directly by the blue agent.
 
 This is because in the real world, C2 servers are hosted on ephemeral public domains that would not be accessible by private network blue agent.
-Therefore granting a blue agent's the ability to perform counter measures directly against the application would be unrealistic.
+Therefore granting blue agent(s) the ability to perform counter measures directly against the application would be unrealistic.
 
 It is more accurate to see the host that the C2 Server is installed on as being able to route to the C2 Server (Internet Access).
 

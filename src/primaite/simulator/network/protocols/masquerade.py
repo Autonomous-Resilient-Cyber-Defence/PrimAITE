@@ -12,6 +12,12 @@ class MasqueradePacket(DataPacket):
 
     masquerade_port: Enum  # The 'Masquerade' port that is currently in use
 
+
+class C2Packet(MasqueradePacket):
+    """Represents C2 suite communications packets."""
+
     payload_type: Enum  # The type of C2 traffic (e.g keep alive, command or command out)
 
     command: Optional[Enum] = None  # Used to pass the actual C2 Command in C2 INPUT
+
+    keep_alive_frequency: int

@@ -6,7 +6,7 @@ from pydantic import validate_call
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.protocols.masquerade import MasqueradePacket
+from primaite.simulator.network.protocols.masquerade import C2Packet
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 
 
@@ -96,18 +96,18 @@ class C2Server(AbstractC2, identifier="C2Server"):
         kwargs["name"] = "C2Server"
         super().__init__(**kwargs)
 
-    def _handle_command_output(self, payload: MasqueradePacket) -> bool:
+    def _handle_command_output(self, payload: C2Packet) -> bool:
         """
         Handles the parsing of C2 Command Output from C2 Traffic (Masquerade Packets).
 
-        Parses the Request Response within MasqueradePacket's payload attribute (Inherited from Data packet).
+        Parses the Request Response within C2Packet's payload attribute (Inherited from Data packet).
         The class attribute self.current_command_output is then set to this Request Response.
 
         If the payload attribute does not contain a RequestResponse, then an error will be raised in syslog and
         the self.current_command_output is updated to reflect the error.
 
         :param payload: The OUTPUT C2 Payload
-        :type payload: MasqueradePacket
+        :type payload: C2Packet
         :return: Returns True if the self.current_command_output is currently updated, false otherwise.
         :rtype Bool:
         """
@@ -123,7 +123,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
         self.current_command_output = command_output
         return True
 
-    def _handle_keep_alive(self, payload: MasqueradePacket, session_id: Optional[str]) -> bool:
+    def _handle_keep_alive(self, payload: C2Packet, session_id: Optional[str]) -> bool:
         """
         Handles receiving and sending keep alive payloads. This method is only called if we receive a keep alive.
 
@@ -137,7 +137,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
         Returns True if a keep alive was successfully sent or already has been sent this timestep.
 
         :param payload: The Keep Alive payload received.
-        :type payload: MasqueradePacket
+        :type payload: C2Packet
         :param session_id: The transport session_id that the payload is originating from.
         :type session_id: str
         :return: True if successfully handled, false otherwise.
@@ -146,7 +146,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
         self.sys_log.info(f"{self.name}: Keep Alive Received. Attempting to resolve the remote connection details.")
 
         self.c2_connection_active = True  # Sets the connection to active
-        self.current_c2_session = self.software_manager.session_manager.sessions_by_uuid[session_id]
+        self.c2_session = self.software_manager.session_manager.sessions_by_uuid[session_id]
 
         if self._resolve_keep_alive(payload, session_id) == False:
             self.sys_log.warning(f"{self.name}: Keep Alive Could not be resolved correctly. Refusing Keep Alive.")
@@ -205,7 +205,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
                 status="failure", data={"Reason": "C2 Beacon has yet to establish connection. Unable to send command."}
             )
 
-        if self.current_c2_session is None:
+        if self.c2_session is None:
             self.sys_log.warning(f"{self.name}: C2 Beacon cannot be reached. Rejecting command.")
             return RequestResponse(
                 status="failure", data={"Reason": "C2 Beacon cannot be reached. Unable to send command."}
@@ -217,18 +217,22 @@ class C2Server(AbstractC2, identifier="C2Server"):
         if self.send(
             payload=command_packet,
             dest_ip_address=self.c2_remote_connection,
-            session_id=self.current_c2_session.uuid,
-            dest_port=self.current_masquerade_port,
-            ip_protocol=self.current_masquerade_protocol,
+            session_id=self.c2_session.uuid,
+            dest_port=self.c2_config.masquerade_port,
+            ip_protocol=self.c2_config.masquerade_protocol,
         ):
             self.sys_log.info(f"{self.name}: Successfully sent {given_command}.")
             self.sys_log.info(f"{self.name}: Awaiting command response {given_command}.")
 
         # If the command output was handled currently, the self.current_command_output will contain the RequestResponse.
+        if self.current_command_output is None:
+            return RequestResponse(
+                status="failure", data={"Reason": "Command sent to the C2 Beacon but no response was ever received."}
+            )
         return self.current_command_output
 
-    # TODO: Probably could move this as a class method in MasqueradePacket.
-    def _craft_packet(self, given_command: C2Command, command_options: Dict) -> MasqueradePacket:
+    # TODO: Probably could move this as a class method in C2Packet.
+    def _craft_packet(self, given_command: C2Command, command_options: Dict) -> C2Packet:
         """
         Creates and returns a Masquerade Packet using the arguments given.
 
@@ -238,12 +242,13 @@ class C2Server(AbstractC2, identifier="C2Server"):
         :type given_command: C2Command.
         :param command_options: The relevant C2 Beacon parameters.F
         :type command_options: Dict
-        :return: Returns the construct MasqueradePacket
-        :rtype: MasqueradePacket
+        :return: Returns the construct C2Packet
+        :rtype: C2Packet
         """
-        constructed_packet = MasqueradePacket(
-            masquerade_protocol=self.current_masquerade_protocol,
-            masquerade_port=self.current_masquerade_port,
+        constructed_packet = C2Packet(
+            masquerade_protocol=self.c2_config.masquerade_protocol,
+            masquerade_port=self.c2_config.masquerade_port,
+            keep_alive_frequency=self.c2_config.keep_alive_frequency,
             payload_type=C2Payload.INPUT,
             command=given_command,
             payload=command_options,
@@ -281,20 +286,41 @@ class C2Server(AbstractC2, identifier="C2Server"):
             [
                 self.c2_connection_active,
                 self.c2_remote_connection,
-                self.current_masquerade_protocol,
-                self.current_masquerade_port,
+                self.c2_config.masquerade_protocol,
+                self.c2_config.masquerade_port,
             ]
         )
         print(table)
 
     # Abstract method inherited from abstract C2 - Not currently utilised.
-    def _handle_command_input(self, payload: MasqueradePacket) -> None:
+    def _handle_command_input(self, payload: C2Packet) -> None:
         """Defining this method (Abstract method inherited from abstract C2) in order to instantiate the class.
 
         C2 Servers currently do not receive input commands coming from the C2 Beacons.
 
-        :param payload: The incoming MasqueradePacket
-        :type payload: MasqueradePacket.
+        :param payload: The incoming C2Packet
+        :type payload: C2Packet.
         """
         self.sys_log.warning(f"{self.name}: C2 Server received an unexpected INPUT payload: {payload}")
         pass
+
+    def _confirm_connection(self, timestep: int) -> bool:
+        """Checks the suitability of the current C2 Beacon connection.
+
+        If a C2 Server has not received a keep alive within the current set
+        keep alive frequency (self._keep_alive_frequency) then the C2 beacons
+        connection is considered dead and any commands will be rejected.
+
+        :param timestep: The current timestep of the simulation.
+        :type timestep: Int
+        :return: Returns False if the C2 beacon is considered dead. Otherwise True.
+        :rtype bool:
+        """
+        if self.keep_alive_inactivity > self.c2_config.keep_alive_frequency:
+            self.sys_log.debug(
+                f"{self.name}: Failed to receive expected keep alive from {self.c2_remote_connection} at {timestep}."
+            )
+            self.sys_log.info(f"{self.name}: C2 Beacon connection considered dead due to inactivity.")
+            self._reset_c2_connection()
+            return False
+        return True
