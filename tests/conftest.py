@@ -458,9 +458,10 @@ def game_and_agent():
         {"type": "HOST_NIC_DISABLE"},
         {"type": "NETWORK_PORT_ENABLE"},
         {"type": "NETWORK_PORT_DISABLE"},
-        {"type": "NODE_ACCOUNTS_CHANGEPASSWORD"},
-        {"type": "NODE_SESSIONS_REMOTE_LOGIN"},
-        {"type": "NODE_SESSIONS_REMOTE_LOGOUT"},
+        {"type": "NODE_ACCOUNTS_CHANGE_PASSWORD"},
+        {"type": "SSH_TO_REMOTE"},
+        {"type": "SSH_LOGOUT_LOGOUT"},
+        {"type": "NODE_SEND_REMOTE_COMMAND"},
     ]
 
     action_space = ActionManager(

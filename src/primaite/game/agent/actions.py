@@ -1101,15 +1101,14 @@ class NodeSessionsRemoteLoginAction(AbstractAction):
 
     def form_request(self, node_id: str, username: str, password: str, remote_ip: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        # TODO: change this so it creates a remote connection using terminal rather than a local remote login
         node_name = self.manager.get_node_name_by_idx(node_id)
         return [
             "network",
             "node",
             node_name,
             "service",
-            "UserSessionManager",
-            "remote_login",
+            "Terminal",
+            "ssh_to_remote",
             username,
             password,
             remote_ip,
@@ -1122,11 +1121,21 @@ class NodeSessionsRemoteLogoutAction(AbstractAction):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: str, remote_session_id: str) -> RequestFormat:
+    def form_request(self, node_id: str, remote_ip: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        # TODO: change this so it destroys a remote connection using terminal rather than a local remote login
         node_name = self.manager.get_node_name_by_idx(node_id)
-        return ["network", "node", node_name, "service", "UserSessionManager", "remote_logout", remote_session_id]
+        return ["network", "node", node_name, "service", "Terminal", "remote_logoff", remote_ip]
+
+
+class NodeSendRemoteCommandAction(AbstractAction):
+    """Action which sends a terminal command to a remote node via SSH."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, remote_ip: str, command: RequestFormat) -> RequestFormat:
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return ["network", "node", node_name, "service", "Terminal", "send_remote_command", remote_ip, command]
 
 
 class ActionManager:
@@ -1180,9 +1189,10 @@ class ActionManager:
         "CONFIGURE_DATABASE_CLIENT": ConfigureDatabaseClientAction,
         "CONFIGURE_RANSOMWARE_SCRIPT": ConfigureRansomwareScriptAction,
         "CONFIGURE_DOSBOT": ConfigureDoSBotAction,
-        "NODE_ACCOUNTS_CHANGEPASSWORD": NodeAccountsChangePasswordAction,
-        "NODE_SESSIONS_REMOTE_LOGIN": NodeSessionsRemoteLoginAction,
-        "NODE_SESSIONS_REMOTE_LOGOUT": NodeSessionsRemoteLogoutAction,
+        "NODE_ACCOUNTS_CHANGE_PASSWORD": NodeAccountsChangePasswordAction,
+        "SSH_TO_REMOTE": NodeSessionsRemoteLoginAction,
+        "SSH_LOGOUT_LOGOUT": NodeSessionsRemoteLogoutAction,
+        "NODE_SEND_REMOTE_COMMAND": NodeSendRemoteCommandAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 
