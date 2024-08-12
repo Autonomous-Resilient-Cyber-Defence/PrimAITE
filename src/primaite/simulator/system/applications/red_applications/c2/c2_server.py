@@ -317,10 +317,12 @@ class C2Server(AbstractC2, identifier="C2Server"):
         :rtype bool:
         """
         if self.keep_alive_inactivity > self.c2_config.keep_alive_frequency:
-            self.sys_log.debug(
-                f"{self.name}: Failed to receive expected keep alive from {self.c2_remote_connection} at {timestep}."
-            )
             self.sys_log.info(f"{self.name}: C2 Beacon connection considered dead due to inactivity.")
+            self.sys_log.debug(
+                f"{self.name}: Did not receive expected keep alive connection from {self.c2_remote_connection}"
+                f"{self.name}: Expected at timestep: {timestep} due to frequency: {self.c2_config.keep_alive_frequency}"
+                f"{self.name}: Last Keep Alive received at {(timestep - self.keep_alive_inactivity)}"
+            )
             self._reset_c2_connection()
             return False
         return True

@@ -4,6 +4,8 @@ import pytest
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
 from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Command, C2Server
@@ -124,8 +126,38 @@ def test_c2_handle_switching_port(basic_c2_network):
 
     network, computer_a, c2_server, computer_b, c2_beacon = setup_c2(network)
 
-    # Asserting that the c2 beacon has established a c2 connection
+    # Asserting that the c2 applications have established a c2 connection
     assert c2_beacon.c2_connection_active is True
+    assert c2_server.c2_connection_active is True
+
+    # Assert to confirm that both the C2 server and the C2 beacon are configured correctly.
+    assert c2_beacon.c2_config.keep_alive_frequency is 2
+    assert c2_beacon.c2_config.masquerade_port is Port.HTTP
+    assert c2_beacon.c2_config.masquerade_protocol is IPProtocol.TCP
+
+    assert c2_server.c2_config.keep_alive_frequency is 2
+    assert c2_server.c2_config.masquerade_port is Port.HTTP
+    assert c2_server.c2_config.masquerade_protocol is IPProtocol.TCP
+
+    # Configuring the C2 Beacon.
+    c2_beacon.configure(
+        c2_server_ip_address="192.168.0.1",
+        keep_alive_frequency=2,
+        masquerade_port=Port.FTP,
+        masquerade_protocol=IPProtocol.TCP,
+    )
+
+    # Asserting that the c2 applications have established a c2 connection
+    assert c2_beacon.c2_connection_active is True
+    assert c2_server.c2_connection_active is True
+
+    # Assert to confirm that both the C2 server and the C2 beacon
+    # Have reconfigured their C2 settings.
+    assert c2_beacon.c2_config.masquerade_port is Port.FTP
+    assert c2_beacon.c2_config.masquerade_protocol is IPProtocol.TCP
+
+    assert c2_server.c2_config.masquerade_port is Port.FTP
+    assert c2_server.c2_config.masquerade_protocol is IPProtocol.TCP
 
 
 def test_c2_handle_switching_frequency(basic_c2_network):
@@ -136,3 +168,40 @@ def test_c2_handle_switching_frequency(basic_c2_network):
 
     # Asserting that the c2 beacon has established a c2 connection
     assert c2_beacon.c2_connection_active is True
+    network: Network = basic_c2_network
+
+    network, computer_a, c2_server, computer_b, c2_beacon = setup_c2(network)
+
+    # Asserting that the c2 applications have established a c2 connection
+    assert c2_beacon.c2_connection_active is True
+    assert c2_server.c2_connection_active is True
+
+    # Assert to confirm that both the C2 server and the C2 beacon are configured correctly.
+    assert c2_beacon.c2_config.keep_alive_frequency is 2
+    assert c2_server.c2_config.keep_alive_frequency is 2
+
+    # Configuring the C2 Beacon.
+    c2_beacon.configure(c2_server_ip_address="192.168.0.1", keep_alive_frequency=10)
+
+    # Asserting that the c2 applications have established a c2 connection
+    assert c2_beacon.c2_connection_active is True
+    assert c2_server.c2_connection_active is True
+
+    # Assert to confirm that both the C2 server and the C2 beacon
+    # Have reconfigured their C2 settings.
+    assert c2_beacon.c2_config.keep_alive_frequency is 10
+    assert c2_server.c2_config.keep_alive_frequency is 10
+
+    # Now skipping 9 time steps to confirm keep alive inactivity
+    for i in range(9):
+        network.apply_timestep(i)
+
+    # If the keep alive reconfiguration failed then the keep alive inactivity could never reach 9
+    # As another keep alive would have already been sent.
+    assert c2_beacon.keep_alive_inactivity is 9
+    assert c2_server.keep_alive_inactivity is 9
+
+    network.apply_timestep(10)
+
+    assert c2_beacon.keep_alive_inactivity is 0
+    assert c2_server.keep_alive_inactivity is 0

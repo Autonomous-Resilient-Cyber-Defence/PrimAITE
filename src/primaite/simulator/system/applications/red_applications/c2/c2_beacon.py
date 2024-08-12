@@ -168,6 +168,10 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             f"Masquerade Protocol: {masquerade_protocol}"
             f"Masquerade Port: {masquerade_port}"
         )
+        # Send a keep alive to the C2 Server if we already have a keep alive.
+        if self.c2_connection_active is True:
+            self.sys_log.info(f"{self.name}: Updating C2 Server with updated C2 configuration.")
+            self._send_keep_alive(self.c2_session.uuid if not None else None)
         return True
 
     def establish(self) -> bool:

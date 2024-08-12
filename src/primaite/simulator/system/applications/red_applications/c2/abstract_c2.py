@@ -13,11 +13,6 @@ from primaite.simulator.system.applications.application import Application, Appl
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.software import SoftwareHealthState
 
-# TODO:
-# Create test that leverage all the functionality needed for the different TAPs
-# Create a .RST doc
-# Potentially? A notebook which demonstrates a custom red agent using the c2 server for various means.
-
 
 class C2Command(Enum):
     """Enumerations representing the different commands the C2 suite currently supports."""
@@ -196,11 +191,11 @@ class AbstractC2(Application, identifier="AbstractC2"):
         # (Using NOT to improve code readability)
         if self.c2_remote_connection is None:
             self.sys_log.error(
-                f"{self.name}: Unable to Establish connection as the C2 Server's IP Address has not been given."
+                f"{self.name}: Unable to establish connection as the C2 Server's IP Address has not been configured."
             )
 
         if not self._can_perform_network_action():
-            self.sys_log.warning(f"{self.name}: Unable to perform network actions.")
+            self.sys_log.warning(f"{self.name}: Unable to perform network actions. Unable to send Keep Alive.")
             return False
 
         # We also Pass masquerade proto`col/port so that the c2 server can reply on the correct protocol/port.
@@ -223,12 +218,14 @@ class AbstractC2(Application, identifier="AbstractC2"):
             self.keep_alive_sent = True
             self.sys_log.info(f"{self.name}: Keep Alive sent to {self.c2_remote_connection}")
             self.sys_log.debug(
-                f"{self.name}: on {self.c2_config.masquerade_port} via {self.c2_config.masquerade_protocol}"
+                f"{self.name}: Keep Alive sent to {self.c2_remote_connection}"
+                f"Using Masquerade Port: {self.c2_config.masquerade_port}"
+                f"Using Masquerade Protocol: {self.c2_config.masquerade_protocol}"
             )
             return True
         else:
             self.sys_log.warning(
-                f"{self.name}: failed to send a Keep Alive. The node may be unable to access networking resources."
+                f"{self.name}: Failed to send a Keep Alive. The node may be unable to access networking resources."
             )
             return False
 
@@ -261,6 +258,13 @@ class AbstractC2(Application, identifier="AbstractC2"):
         self.c2_config.masquerade_port = payload.masquerade_port
         self.c2_config.masquerade_protocol = payload.masquerade_protocol
         self.c2_config.keep_alive_frequency = payload.keep_alive_frequency
+
+        self.sys_log.debug(
+            f"{self.name}: C2 Config Resolved Config from Keep Alive:"
+            f"Masquerade Port: {self.c2_config.masquerade_port}"
+            f"Masquerade Protocol: {self.c2_config.masquerade_protocol}"
+            f"Keep Alive Frequency: {self.c2_config.keep_alive_frequency}"
+        )
 
         # This statement is intended to catch on the C2 Application that is listening for connection. (C2 Beacon)
         if self.c2_remote_connection is None:
