@@ -27,8 +27,6 @@ class C2Command(Enum):
     TERMINAL = "Terminal"
     "Instructs the c2 beacon to execute the provided terminal command."
 
-    # The terminal command should also be able to pass a session which can be used for remote connections.
-
 
 class C2Payload(Enum):
     """Represents the different types of command and control payloads."""
