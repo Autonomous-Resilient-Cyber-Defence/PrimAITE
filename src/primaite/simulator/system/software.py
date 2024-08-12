@@ -4,9 +4,10 @@ from abc import abstractmethod
 from datetime import datetime
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, Dict, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, Optional, Set, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import Field
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
@@ -252,6 +253,8 @@ class IOSoftware(Software):
     "Indicates if the software uses UDP protocol for communication. Default is True."
     port: Port
     "The port to which the software is connected."
+    listen_on_ports: Set[Port] = Field(default_factory=set)
+    "The set of ports to listen on."
     protocol: IPProtocol
     "The IP Protocol the Software operates on."
     _connections: Dict[str, Dict] = {}
