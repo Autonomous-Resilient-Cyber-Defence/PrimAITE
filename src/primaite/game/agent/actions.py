@@ -1134,8 +1134,18 @@ class NodeSendRemoteCommandAction(AbstractAction):
         super().__init__(manager=manager)
 
     def form_request(self, node_id: int, remote_ip: str, command: RequestFormat) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
-        return ["network", "node", node_name, "service", "Terminal", "send_remote_command", remote_ip, command]
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "Terminal",
+            "send_remote_command",
+            remote_ip,
+            {"command": command},
+        ]
 
 
 class ActionManager:

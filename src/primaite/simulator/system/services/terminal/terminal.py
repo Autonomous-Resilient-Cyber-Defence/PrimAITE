@@ -23,6 +23,8 @@ from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 
 
+# TODO 2824: Since remote terminal connections and remote user sessions are the same thing, we could refactor
+# the terminal to leverage the user session manager's list. This way we avoid potential bugs and code ducplication
 class TerminalClientConnection(BaseModel):
     """
     TerminalClientConnection Class.
@@ -232,7 +234,7 @@ class Terminal(Service):
         def remote_execute_request(request: RequestFormat, context: Dict) -> RequestResponse:
             """Execute an instruction."""
             ip_address: IPv4Address = IPv4Address(request[0])
-            command: str = request[1]
+            command: str = request[1]["command"]
             remote_connection = self._get_connection_from_ip(ip_address=ip_address)
             if remote_connection:
                 outcome = remote_connection.execute(command)
@@ -328,6 +330,9 @@ class Terminal(Service):
 
     def _check_client_connection(self, connection_id: str) -> bool:
         """Check that client_connection_id is valid."""
+        if not self.parent.user_session_manager.validate_remote_session_uuid(connection_id):
+            self._disconnect(connection_id)
+            return False
         return connection_id in self._connections
 
     def _send_remote_login(

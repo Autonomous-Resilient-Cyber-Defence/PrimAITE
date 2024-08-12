@@ -8,6 +8,8 @@ from primaite.game.game import PrimaiteGame
 from primaite.simulator.network.hardware.base import UserManager
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import ServiceOperatingState
 from primaite.simulator.system.services.terminal.terminal import RemoteTerminalConnection
 
@@ -17,8 +19,8 @@ def game_and_agent_fixture(game_and_agent):
     """Create a game with a simple agent that can be controlled by the tests."""
     game, agent = game_and_agent
 
-    client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
-    client_1.start_up_duration = 3
+    router = game.simulation.network.get_node_by_hostname("router")
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=4)
 
     return (game, agent)
 
@@ -154,7 +156,7 @@ def test_change_password_logs_out_user(game_and_agent_fixture: Tuple[PrimaiteGam
         "NODE_SEND_REMOTE_COMMAND",
         {
             "node_id": 0,
-            "remote_ip": server_1.network_interface[1].ip_address,
+            "remote_ip": str(server_1.network_interface[1].ip_address),
             "command": ["file_system", "create", "file", "folder123", "doggo.pdf", False],
         },
     )
