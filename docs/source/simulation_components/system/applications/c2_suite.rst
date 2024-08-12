@@ -34,7 +34,7 @@ Currently, the C2 Server offers three commands:
 +---------------------+---------------------------------------------------------------------------+
 |RANSOMWARE_LAUNCH    | Launches the installed ransomware script.                                 |
 +---------------------+---------------------------------------------------------------------------+
-|TERMINAL_COMMAND     | Executes a command via the terminal installed on the C2 Beacons Host.     |
+|TERMINAL             | Executes a command via the terminal installed on the C2 Beacons Host.     |
 +---------------------+---------------------------------------------------------------------------+
 
 
@@ -69,9 +69,17 @@ As mentioned, the C2 Suite is intended to grant Red Agents further flexibility w
 
 Adding to this, the following behaviour of the C2 beacon can be configured by users for increased domain randomisation:
 
-- Frequency of C2 ``Keep Alive `` Communication``
-- C2 Communication Port
-- C2 Communication Protocol
++---------------------+---------------------------------------------------------------------------+
+|Configuration Option | Option Meaning                                                            |
++=====================+===========================================================================+
+|c2_server_ip_address | The IP Address of the C2 Server. (The C2 Server must be running)          |
++---------------------+---------------------------------------------------------------------------+
+|keep_alive_frequency | How often should the C2 Beacon confirm it's connection in timesteps.      |
++---------------------+---------------------------------------------------------------------------+
+|masquerade_protocol  | What protocol should the C2 traffic masquerade as? (HTTP, FTP or DNS)     |
++---------------------+---------------------------------------------------------------------------+
+|masquerade_port      | What port should the C2 traffic use? (TCP or UDP)                         |
++---------------------+---------------------------------------------------------------------------+
 
 
 Implementation
@@ -91,6 +99,7 @@ However, each host implements it's receive methods individually.
     - Receives the RequestResponse of the C2 Commands executed by C2 Beacon via ``C2Payload.OUTPUT``.
 
 
+For further details and more in-depth examples please refer to the ``Command-&-Control notebook``
 
 Examples
 ========
@@ -120,8 +129,8 @@ Python
 
     # C2 Application objects
 
-    c2_server_host = simulation_testing_network.get_node_by_hostname("node_a")
-    c2_beacon_host = simulation_testing_network.get_node_by_hostname("node_b")
+    c2_server_host: computer = simulation_testing_network.get_node_by_hostname("node_a")
+    c2_beacon_host: computer = simulation_testing_network.get_node_by_hostname("node_b")
 
 
     c2_server: C2Server = c2_server_host.software_manager.software["C2Server"]
@@ -136,10 +145,125 @@ Python
     # Establishing connection
     c2_beacon.establish()
 
-    # Example command: Configuring Ransomware
+    # Example command: Creating a file
 
-    ransomware_config = {"server_ip_address": "1.1.1.1"}
-    c2_server._send_command(given_command=C2Command.RANSOMWARE_CONFIGURE, command_options=ransomware_config)
+    file_create_command = {
+        "commands": [
+            ["file_system", "create", "folder", "test_folder"],
+            ["file_system", "create", "file", "test_folder", "example_file", "True"],
+        ],
+        "username": "admin",
+        "password": "admin",
+        "ip_address": None,
+    }
+
+    c2_server.send_command(C2Command.TERMINAL, command_options=file_create_command)
+
+    # Example commands: Installing and configuring Ransomware:
+
+    ransomware_installation_command = { "commands": [
+            ["software_manager","application","install","RansomwareScript"],
+        ],
+        "username": "admin",
+        "password": "admin",
+        "ip_address": None,
+    }
+    c2_server.send_command(given_command=C2Command.TERMINAL, command_options=ransomware_config)
+
+    ransomware_config = {"server_ip_address": "192.168.0.10"}
+
+    c2_server.send_command(given_command=C2Command.RANSOMWARE_CONFIGURE, command_options=ransomware_config)
+
+    c2_beacon_host.software_manager.show()
 
 
-For a more in-depth look at the command and control applications then please refer to the ``C2-Suite-E2E-Notebook``.
+Via Configuration
+"""""""""""""""""
+
+.. code-block:: yaml
+
+    simulation:
+        network:
+            nodes:
+                - ref: example_computer_1
+                hostname: computer_a
+                type: computer
+                ...
+                applications:
+                    type: C2Server
+            ...
+                hostname: computer_b
+                type: computer
+                ...
+                # A C2 Beacon will not automatically connection to a C2 Server.
+                # Either an agent must use application_execute.
+                # Or a user must use .establish().
+                applications:
+                    type: C2Beacon
+                    options:
+                        c2_server_ip_address: ...
+                        keep_alive_frequency: 5
+                        masquerade_protocol: tcp
+                        masquerade_port: http
+
+
+
+C2 Beacon Configuration
+=======================
+
+.. include:: ../common/common_configuration.rst
+
+.. |SOFTWARE_NAME| replace:: C2Beacon
+.. |SOFTWARE_NAME_BACKTICK| replace:: ``C2Beacon``
+
+``c2_server_ip_address``
+"""""""""""""""""""""""
+
+IP address of the ``C2Server`` that the C2 Beacon will use to establish connection.
+
+This must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.255``.
+
+
+``Keep Alive Frequency``
+"""""""""""""""""""""""
+
+How often should the C2 Beacon confirm it's connection in timesteps.
+
+For example, if the keep alive Frequency is set to one then every single timestep
+the C2 connection will be confirmed.
+
+It's worth noting that this may be useful option when investigating
+network blue agent observation space.
+
+This must be a valid integer i.e ``10``. Defaults to ``5``.
+
+
+``Masquerade Protocol``
+"""""""""""""""""""""""
+
+The protocol that the C2 Beacon will use to communicate to the C2 Server with.
+
+Currently only ``tcp`` and ``udp`` are valid masquerade protocol options.
+
+It's worth noting that this may be useful option to bypass ACL rules.
+
+This must be a string i.e ``udp``. Defaults to ``tcp``.
+
+_Please refer to the ``IPProtocol`` class for further reference._
+
+``Masquerade Port``
+"""""""""""""""""""
+
+What port that the C2 Beacon will use to communicate to the C2 Server with.
+
+Currently only ``FTP``, ``HTTP`` and ``DNS`` are valid masquerade port options.
+
+It's worth noting that this may be useful option to bypass ACL rules.
+
+This must be a string i.e ``DNS``. Defaults to ``HTTP``.
+
+_Please refer to the ``IPProtocol`` class for further reference._
+
+
+
+_The C2 Server does not currently offer any unique configuration options and will configure itself to match the C2 beacon's network behaviour._

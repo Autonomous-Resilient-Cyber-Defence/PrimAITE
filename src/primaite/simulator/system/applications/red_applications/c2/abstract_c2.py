@@ -6,6 +6,7 @@ from typing import Dict, Optional
 
 from pydantic import BaseModel, Field, validate_call
 
+from primaite.interface.request import RequestResponse
 from primaite.simulator.network.protocols.masquerade import C2Packet
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
@@ -53,6 +54,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
     as well as providing the abstract methods for sending, receiving and parsing commands.
 
     Defaults to masquerading as HTTP (Port 80) via TCP.
+
+    Please refer to the Command-&-Control notebook for an in-depth example of the C2 Suite.
     """
 
     c2_connection_active: bool = False
@@ -79,11 +82,46 @@ class AbstractC2(Application, identifier="AbstractC2"):
         masquerade_port: Port = Field(default=Port.HTTP)
         """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
 
-    # The c2 beacon sets the c2_config through it's own internal method - configure (which is also used by agents)
-    # and then passes the config attributes to the c2 server via keep alives
-    # The c2 server parses the C2 configurations from keep alive traffic and sets the c2_config accordingly.
+    def _craft_packet(
+        self, c2_payload: C2Payload, c2_command: Optional[C2Command] = None, command_options: Optional[Dict] = {}
+    ) -> C2Packet:
+        """
+        Creates and returns a Masquerade Packet using the parameters given.
+
+        The packet uses the current c2 configuration and parameters given
+        to construct a C2 Packet.
+
+        :param c2_payload: The type of C2 Traffic ot be sent
+        :type c2_payload: C2Payload
+        :param c2_command: The C2 command to be sent to the C2 Beacon.
+        :type c2_command: C2Command.
+        :param command_options: The relevant C2 Beacon parameters.F
+        :type command_options: Dict
+        :return: Returns the construct C2Packet
+        :rtype: C2Packet
+        """
+        constructed_packet = C2Packet(
+            masquerade_protocol=self.c2_config.masquerade_protocol,
+            masquerade_port=self.c2_config.masquerade_port,
+            keep_alive_frequency=self.c2_config.keep_alive_frequency,
+            payload_type=c2_payload,
+            command=c2_command,
+            payload=command_options,
+        )
+        return constructed_packet
+
     c2_config: _C2_Opts = _C2_Opts()
-    """Holds the current configuration settings of the C2 Suite."""
+    """
+    Holds the current configuration settings of the C2 Suite.
+
+    The C2 beacon initialise this class through it's internal configure method.
+
+    The C2 Server when receiving a keep alive will initialise it's own configuration
+    to match that of the configuration settings passed in the keep alive through _resolve keep alive.
+
+    If the C2 Beacon is reconfigured then a new keep alive is set which causes the
+    C2 beacon to reconfigure it's configuration settings.
+    """
 
     def describe_state(self) -> Dict:
         """
@@ -187,27 +225,18 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :returns: Returns True if a send alive was successfully sent. False otherwise.
         :rtype bool:
         """
-        # Checking that the c2 application is capable of performing both actions and has an enabled NIC
-        # (Using NOT to improve code readability)
-        if self.c2_remote_connection is None:
-            self.sys_log.error(
-                f"{self.name}: Unable to establish connection as the C2 Server's IP Address has not been configured."
+        # Checking that the c2 application is capable of connecting to remote.
+        # Purely a safety guard clause.
+        if not (connection_status := self._check_connection()[0]):
+            self.sys_log.warning(
+                f"{self.name}: Unable to send keep alive due to c2 connection status: {connection_status}."
             )
-
-        if not self._can_perform_network_action():
-            self.sys_log.warning(f"{self.name}: Unable to perform network actions. Unable to send Keep Alive.")
             return False
 
-        # We also Pass masquerade proto`col/port so that the c2 server can reply on the correct protocol/port.
-        # (This also lays the foundations for switching masquerade port/protocols mid episode.)
-        keep_alive_packet = C2Packet(
-            masquerade_protocol=self.c2_config.masquerade_protocol,
-            masquerade_port=self.c2_config.masquerade_port,
-            keep_alive_frequency=self.c2_config.keep_alive_frequency,
-            payload_type=C2Payload.KEEP_ALIVE,
-            command=None,
-        )
-        # C2 Server will need to configure c2_remote_connection after it receives it's first keep alive.
+        # Passing our current C2 configuration in remain in sync.
+        keep_alive_packet = self._craft_packet(c2_payload=C2Payload.KEEP_ALIVE)
+
+        # Sending the keep alive via the .send() method (as with all other applications.)
         if self.send(
             payload=keep_alive_packet,
             dest_ip_address=self.c2_remote_connection,
@@ -215,6 +244,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
             ip_protocol=self.c2_config.masquerade_protocol,
             session_id=session_id,
         ):
+            # Setting the keep_alive_sent guard condition to True. This is used to prevent packet storms.
+            # This prevents the _resolve_keep_alive method from calling this method again (until the next timestep.)
             self.keep_alive_sent = True
             self.sys_log.info(f"{self.name}: Keep Alive sent to {self.c2_remote_connection}")
             self.sys_log.debug(
@@ -266,7 +297,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
             f"Keep Alive Frequency: {self.c2_config.keep_alive_frequency}"
         )
 
-        # This statement is intended to catch on the C2 Application that is listening for connection. (C2 Beacon)
+        # This statement is intended to catch on the C2 Application that is listening for connection.
         if self.c2_remote_connection is None:
             self.sys_log.debug(f"{self.name}: Attempting to configure remote C2 connection based off received output.")
             self.c2_remote_connection = IPv4Address(self.c2_session.with_ip_address)
@@ -287,8 +318,14 @@ class AbstractC2(Application, identifier="AbstractC2"):
         self.c2_config.masquerade_protocol = IPProtocol.TCP
 
     @abstractmethod
-    def _confirm_connection(self, timestep: int) -> bool:
-        """Abstract method - Checks the suitability of the current C2 Server/Beacon connection."""
+    def _confirm_remote_connection(self, timestep: int) -> bool:
+        """
+        Abstract method - Confirms the suitability of the current C2 application remote connection.
+
+        Each application will have perform different behaviour to confirm the remote connection.
+
+        :return: Boolean. True if remote connection is confirmed, false otherwise.
+        """
 
     def apply_timestep(self, timestep: int) -> None:
         """Apply a timestep to the c2_server & c2 beacon.
@@ -316,5 +353,39 @@ class AbstractC2(Application, identifier="AbstractC2"):
             and self.health_state_actual is SoftwareHealthState.GOOD
         ):
             self.keep_alive_inactivity += 1
-            self._confirm_connection(timestep)
+            self._confirm_remote_connection(timestep)
         return
+
+    def _check_connection(self) -> tuple[bool, RequestResponse]:
+        """
+        Validation method: Checks that the C2 application is capable of sending C2 Command input/output.
+
+        Performs a series of connection validation to ensure that the C2 application is capable of
+        sending and responding to the remote c2 connection.
+
+        :return: A tuple containing a boolean True/False and a corresponding Request Response
+        :rtype: tuple[bool, RequestResponse]
+        """
+        if self._can_perform_network_action == False:
+            self.sys_log.warning(f"{self.name}: Unable to make leverage networking resources. Rejecting Command.")
+            return [
+                False,
+                RequestResponse(
+                    status="failure", data={"Reason": "Unable to access networking resources. Unable to send command."}
+                ),
+            ]
+
+        if self.c2_remote_connection is False:
+            self.sys_log.warning(f"{self.name}: C2 Application has yet to establish connection. Rejecting command.")
+            return [
+                False,
+                RequestResponse(
+                    status="failure",
+                    data={"Reason": "C2 Application has yet to establish connection. Unable to send command."},
+                ),
+            ]
+        else:
+            return [
+                True,
+                RequestResponse(status="success", data={"Reason": "C2 Application is able to send connections."}),
+            ]

@@ -28,12 +28,15 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     to simulate malicious communications and infrastructure within primAITE.
 
     Must be configured with the C2 Server's IP Address upon installation.
+    Please refer to the _configure method for further information.
 
     Extends the Abstract C2 application to include the following:
 
     1. Receiving commands from the C2 Server (Command input)
     2. Leveraging the terminal application to execute requests (dependant on the command given)
     3. Sending the RequestResponse back to the C2 Server (Command output)
+
+    Please refer to the Command-&-Control notebook for an in-depth example of the C2 Suite.
     """
 
     keep_alive_attempted: bool = False
@@ -141,9 +144,18 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         masquerade_port: Enum = Port.HTTP,
     ) -> bool:
         """
-        Configures the C2 beacon to communicate with the C2 server with following additional parameters.
+        Configures the C2 beacon to communicate with the C2 server.
 
-        # TODO: Expand docustring.
+        The C2 Beacon has four different configuration options which can be used to
+        modify the networking behaviour between the C2 Server and the C2 Beacon.
+
+        Configuration Option | Option Meaning
+        ---------------------|------------------------
+        c2_server_ip_address | The IP Address of the C2 Server. (The C2 Server must be running)
+        keep_alive_frequency | How often should the C2 Beacon confirm it's connection in timesteps.
+        masquerade_protocol  | What protocol should the C2 traffic masquerade as? (HTTP, FTP or DNS)
+        masquerade_port      | What port should the C2 traffic use? (TCP or UDP)
+
 
         :param c2_server_ip_address: The IP Address of the C2 Server. Used to establish connection.
         :type c2_server_ip_address: IPv4Address
@@ -245,13 +257,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :param session_id: The current session established with the C2 Server.
         :type session_id: Str
         """
-        output_packet = C2Packet(
-            masquerade_protocol=self.c2_config.masquerade_protocol,
-            masquerade_port=self.c2_config.masquerade_port,
-            keep_alive_frequency=self.c2_config.keep_alive_frequency,
-            payload_type=C2Payload.OUTPUT,
-            payload=command_output,
-        )
+        output_packet = self._craft_packet(c2_payload=C2Payload.OUTPUT, command_options=command_output)
         if self.send(
             payload=output_packet,
             dest_ip_address=self.c2_remote_connection,
@@ -410,7 +416,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         # If this method returns true then we have sent successfully sent a keep alive.
         return self._send_keep_alive(session_id)
 
-    def _confirm_connection(self, timestep: int) -> bool:
+    def _confirm_remote_connection(self, timestep: int) -> bool:
         """Checks the suitability of the current C2 Server connection.
 
         If a connection cannot be confirmed then this method will return false otherwise true.

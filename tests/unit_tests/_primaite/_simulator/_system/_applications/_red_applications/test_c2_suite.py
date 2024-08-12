@@ -102,7 +102,7 @@ def test_c2_handle_beacon_disconnect(basic_c2_network):
         "ip_address": None,
     }
 
-    command_request_response = c2_server._send_command(C2Command.TERMINAL, command_options=file_create_command)
+    command_request_response = c2_server.send_command(C2Command.TERMINAL, command_options=file_create_command)
 
     assert command_request_response.status == "failure"
 
@@ -115,9 +115,6 @@ def test_c2_handle_beacon_disconnect(basic_c2_network):
         network.apply_timestep(i)
 
     assert c2_server.c2_connection_active is False
-
-
-# TODO: Finalise and complete these tests.
 
 
 def test_c2_handle_switching_port(basic_c2_network):
@@ -205,3 +202,30 @@ def test_c2_handle_switching_frequency(basic_c2_network):
 
     assert c2_beacon.keep_alive_inactivity is 0
     assert c2_server.keep_alive_inactivity is 0
+
+
+def test_c2_handles_1_timestep_keep_alive(basic_c2_network):
+    """Tests that the C2 suite will be able handle a C2 Beacon will a keep alive of 1 timestep."""
+    network: Network = basic_c2_network
+
+    network, computer_a, c2_server, computer_b, c2_beacon = setup_c2(network)
+
+    c2_beacon.configure(c2_server_ip_address="192.168.0.1", keep_alive_frequency=1)
+    c2_server.run()
+    c2_beacon.establish()
+
+    for i in range(50):
+        network.apply_timestep(i)
+
+    assert c2_beacon.c2_connection_active is True
+    assert c2_server.c2_connection_active is True
+
+
+def test_c2_server_runs_on_default(basic_c2_network):
+    """Tests that the C2 Server begins running by default."""
+    network: Network = basic_c2_network
+
+    computer_a: Computer = network.get_node_by_hostname("computer_a")
+    c2_server: C2Server = computer_a.software_manager.software.get("C2Server")
+
+    assert c2_server.operating_state == ApplicationOperatingState.RUNNING

@@ -263,7 +263,7 @@ def test_c2_suite_terminal_command_file_creation(basic_network):
         "ip_address": None,
     }
 
-    c2_server._send_command(C2Command.TERMINAL, command_options=file_create_command)
+    c2_server.send_command(C2Command.TERMINAL, command_options=file_create_command)
 
     assert computer_b.software_manager.file_system.access_file(folder_name="test_folder", file_name="test_file") == True
     assert c2_beacon.local_terminal_session is not None
@@ -273,7 +273,7 @@ def test_c2_suite_terminal_command_file_creation(basic_network):
     #  node_c's IP is 192.168.255.3
     file_create_command.update({"ip_address": "192.168.255.3"})
 
-    c2_server._send_command(C2Command.TERMINAL, command_options=file_create_command)
+    c2_server.send_command(C2Command.TERMINAL, command_options=file_create_command)
 
     assert computer_c.software_manager.file_system.access_file(folder_name="test_folder", file_name="test_file") == True
     assert c2_beacon.remote_terminal_session is not None
@@ -369,7 +369,7 @@ def test_c2_suite_acl_bypass(basic_network):
         "password": "admin",
         "ip_address": None,
     }
-    c2_server._send_command(C2Command.TERMINAL, command_options=ftp_file_create_command)
+    c2_server.send_command(C2Command.TERMINAL, command_options=ftp_file_create_command)
     assert (
         computer_b.software_manager.file_system.access_file(folder_name="test_folder", file_name="ftp_test_file")
         == True
@@ -440,7 +440,7 @@ def test_c2_suite_acl_bypass(basic_network):
         "password": "admin",
         "ip_address": None,
     }
-    c2_server._send_command(C2Command.TERMINAL, command_options=http_file_create_command)
+    c2_server.send_command(C2Command.TERMINAL, command_options=http_file_create_command)
     assert (
         computer_b.software_manager.file_system.access_file(folder_name="test_folder", file_name="http_test_file")
         == True

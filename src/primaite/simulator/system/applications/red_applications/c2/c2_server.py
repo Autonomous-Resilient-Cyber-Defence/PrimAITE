@@ -24,6 +24,8 @@ class C2Server(AbstractC2, identifier="C2Server"):
 
     1. Sending commands to the C2 Beacon. (Command input)
     2. Parsing terminal RequestResponses back to the Agent.
+
+    Please refer to the Command-&-Control notebook for an in-depth example of the C2 Suite.
     """
 
     current_command_output: RequestResponse = None
@@ -51,7 +53,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
                 "server_ip_address": request[-1].get("server_ip_address"),
                 "payload": request[-1].get("payload"),
             }
-            return self._send_command(given_command=C2Command.RANSOMWARE_CONFIGURE, command_options=ransomware_config)
+            return self.send_command(given_command=C2Command.RANSOMWARE_CONFIGURE, command_options=ransomware_config)
 
         def _launch_ransomware_action(request: RequestFormat, context: Dict) -> RequestResponse:
             """Agent Action - Sends a RANSOMWARE_LAUNCH C2Command to the C2 Beacon with the given parameters.
@@ -63,7 +65,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
             :return: RequestResponse object with a success code reflecting whether the ransomware was launched.
             :rtype: RequestResponse
             """
-            return self._send_command(given_command=C2Command.RANSOMWARE_LAUNCH, command_options={})
+            return self.send_command(given_command=C2Command.RANSOMWARE_LAUNCH, command_options={})
 
         def _remote_terminal_action(request: RequestFormat, context: Dict) -> RequestResponse:
             """Agent Action - Sends a TERMINAL C2Command to the C2 Beacon with the given parameters.
@@ -76,7 +78,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
             :rtype: RequestResponse
             """
             command_payload = request[-1]
-            return self._send_command(given_command=C2Command.TERMINAL, command_options=command_payload)
+            return self.send_command(given_command=C2Command.TERMINAL, command_options=command_payload)
 
         rm.add_request(
             name="ransomware_configure",
@@ -159,7 +161,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
         return self._send_keep_alive(session_id)
 
     @validate_call
-    def _send_command(self, given_command: C2Command, command_options: Dict) -> RequestResponse:
+    def send_command(self, given_command: C2Command, command_options: Dict) -> RequestResponse:
         """
         Sends a command to the C2 Beacon.
 
@@ -193,26 +195,17 @@ class C2Server(AbstractC2, identifier="C2Server"):
                 status="failure", data={"Reason": "Received unexpected C2Command. Unable to send command."}
             )
 
-        if self._can_perform_network_action == False:
-            self.sys_log.warning(f"{self.name}: Unable to make leverage networking resources. Rejecting Command.")
-            return RequestResponse(
-                status="failure", data={"Reason": "Unable to access networking resources. Unable to send command."}
-            )
-
-        if self.c2_remote_connection is False:
-            self.sys_log.warning(f"{self.name}: C2 Beacon has yet to establish connection. Rejecting command.")
-            return RequestResponse(
-                status="failure", data={"Reason": "C2 Beacon has yet to establish connection. Unable to send command."}
-            )
-
-        if self.c2_session is None:
-            self.sys_log.warning(f"{self.name}: C2 Beacon cannot be reached. Rejecting command.")
-            return RequestResponse(
-                status="failure", data={"Reason": "C2 Beacon cannot be reached. Unable to send command."}
-            )
+        # Lambda method used to return a failure RequestResponse if we're unable to confirm a connection.
+        # If _check_connection returns false then connection_status will return reason (A 'failure' Request Response)
+        if connection_status := (lambda return_bool, reason: reason if return_bool is False else None)(
+            *self._check_connection()
+        ):
+            return connection_status
 
         self.sys_log.info(f"{self.name}: Attempting to send command {given_command}.")
-        command_packet = self._craft_packet(given_command=given_command, command_options=command_options)
+        command_packet = self._craft_packet(
+            c2_payload=C2Payload.INPUT, c2_command=given_command, command_options=command_options
+        )
 
         if self.send(
             payload=command_packet,
@@ -230,30 +223,6 @@ class C2Server(AbstractC2, identifier="C2Server"):
                 status="failure", data={"Reason": "Command sent to the C2 Beacon but no response was ever received."}
             )
         return self.current_command_output
-
-    # TODO: Probably could move this as a class method in C2Packet.
-    def _craft_packet(self, given_command: C2Command, command_options: Dict) -> C2Packet:
-        """
-        Creates and returns a Masquerade Packet using the arguments given.
-
-        Creates Masquerade Packet with a payload_type INPUT C2Payload.
-
-        :param given_command: The C2 command to be sent to the C2 Beacon.
-        :type given_command: C2Command.
-        :param command_options: The relevant C2 Beacon parameters.F
-        :type command_options: Dict
-        :return: Returns the construct C2Packet
-        :rtype: C2Packet
-        """
-        constructed_packet = C2Packet(
-            masquerade_protocol=self.c2_config.masquerade_protocol,
-            masquerade_port=self.c2_config.masquerade_port,
-            keep_alive_frequency=self.c2_config.keep_alive_frequency,
-            payload_type=C2Payload.INPUT,
-            command=given_command,
-            payload=command_options,
-        )
-        return constructed_packet
 
     def show(self, markdown: bool = False):
         """
@@ -292,7 +261,8 @@ class C2Server(AbstractC2, identifier="C2Server"):
         )
         print(table)
 
-    # Abstract method inherited from abstract C2 - Not currently utilised.
+    # Abstract method inherited from abstract C2.
+    # C2 Servers do not currently receive any input commands from the C2 beacon.
     def _handle_command_input(self, payload: C2Packet) -> None:
         """Defining this method (Abstract method inherited from abstract C2) in order to instantiate the class.
 
@@ -304,12 +274,14 @@ class C2Server(AbstractC2, identifier="C2Server"):
         self.sys_log.warning(f"{self.name}: C2 Server received an unexpected INPUT payload: {payload}")
         pass
 
-    def _confirm_connection(self, timestep: int) -> bool:
+    def _confirm_remote_connection(self, timestep: int) -> bool:
         """Checks the suitability of the current C2 Beacon connection.
 
         If a C2 Server has not received a keep alive within the current set
         keep alive frequency (self._keep_alive_frequency) then the C2 beacons
         connection is considered dead and any commands will be rejected.
+
+        This method is used to
 
         :param timestep: The current timestep of the simulation.
         :type timestep: Int
