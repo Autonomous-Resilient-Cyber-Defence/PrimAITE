@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     main port they're assigned.
 
 ### Changed
+-   File and folder observations can now be configured to always show the true health status, or require scanning like before.
+
+### Fixed
+-   Folder observations showing the true health state without scanning (the old behaviour can be reenabled via config)
 -   Updated `SoftwareManager` `install` and `uninstall` to handle all functionality that was being done at the `install`
     and `uninstall` methods in the `Node` class.
 -   Updated the `receive_payload_from_session_manager` method in `SoftwareManager` so that it now sends a copy of the
