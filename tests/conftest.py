@@ -458,6 +458,10 @@ def game_and_agent():
         {"type": "HOST_NIC_DISABLE"},
         {"type": "NETWORK_PORT_ENABLE"},
         {"type": "NETWORK_PORT_DISABLE"},
+        {"type": "CONFIGURE_C2_BEACON"},
+        {"type": "C2_SERVER_RANSOMWARE_LAUNCH"},
+        {"type": "C2_SERVER_RANSOMWARE_CONFIGURE"},
+        {"type": "C2_SERVER_TERMINAL_COMMAND"},
     ]
 
     action_space = ActionManager(
@@ -468,12 +472,14 @@ def game_and_agent():
                 "applications": [
                     {"application_name": "WebBrowser"},
                     {"application_name": "DoSBot"},
+                    {"application_name": "C2Server"},
                 ],
                 "folders": [{"folder_name": "downloads", "files": [{"file_name": "cat.png"}]}],
             },
             {
                 "node_name": "server_1",
                 "services": [{"service_name": "DNSServer"}],
+                "applications": [{"application_name": "C2Beacon"}],
             },
             {"node_name": "server_2", "services": [{"service_name": "WebServer"}]},
             {"node_name": "router"},
@@ -481,7 +487,7 @@ def game_and_agent():
         max_folders_per_node=2,
         max_files_per_folder=2,
         max_services_per_node=2,
-        max_applications_per_node=2,
+        max_applications_per_node=3,
         max_nics_per_node=2,
         max_acl_rules=10,
         protocols=["TCP", "UDP", "ICMP"],
