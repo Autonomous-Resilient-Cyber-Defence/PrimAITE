@@ -197,7 +197,7 @@ Via Configuration
                 ...
                 # A C2 Beacon will not automatically connection to a C2 Server.
                 # Either an agent must use application_execute.
-                # Or a user must use .establish().
+                # Or a if using the simulation layer - .establish().
                 applications:
                     type: C2Beacon
                     options:
@@ -205,6 +205,10 @@ Via Configuration
                         keep_alive_frequency: 5
                         masquerade_protocol: tcp
                         masquerade_port: http
+                        listen_on_ports:
+                            - 80
+                            - 53
+                            - 21
 
 
 
@@ -264,6 +268,13 @@ This must be a string i.e ``DNS``. Defaults to ``HTTP``.
 
 _Please refer to the ``IPProtocol`` class for further reference._
 
-
+C2 Server Configuration
+=======================
 
 _The C2 Server does not currently offer any unique configuration options and will configure itself to match the C2 beacon's network behaviour._
+
+
+.. include:: ../common/common_configuration.rst
+
+.. |SOFTWARE_NAME| replace:: C2Server
+.. |SOFTWARE_NAME_BACKTICK| replace:: ``C2Server``

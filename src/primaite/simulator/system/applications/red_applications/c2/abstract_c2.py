@@ -247,9 +247,9 @@ class AbstractC2(Application, identifier="AbstractC2"):
             self.keep_alive_sent = True
             self.sys_log.info(f"{self.name}: Keep Alive sent to {self.c2_remote_connection}")
             self.sys_log.debug(
-                f"{self.name}: Keep Alive sent to {self.c2_remote_connection}"
-                f"Using Masquerade Port: {self.c2_config.masquerade_port}"
-                f"Using Masquerade Protocol: {self.c2_config.masquerade_protocol}"
+                f"{self.name}: Keep Alive sent to {self.c2_remote_connection} "
+                f"Masquerade Port: {self.c2_config.masquerade_port} "
+                f"Masquerade Protocol: {self.c2_config.masquerade_protocol} "
             )
             return True
         else:

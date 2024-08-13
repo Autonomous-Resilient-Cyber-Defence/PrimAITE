@@ -3,6 +3,7 @@ from ipaddress import IPv4Address
 from typing import Tuple
 
 import pytest
+import yaml
 
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
@@ -22,6 +23,7 @@ from primaite.simulator.system.applications.red_applications.ransomware_script i
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
+from tests import TEST_ASSETS_ROOT
 
 
 @pytest.fixture(scope="function")
@@ -463,3 +465,35 @@ def test_c2_suite_acl_bypass(basic_network):
     assert c2_packets_blocked == blocking_acl.match_count
     assert c2_server.c2_connection_active is True
     assert c2_beacon.c2_connection_active is True
+
+
+def test_c2_suite_yaml():
+    """Tests that the C2 Suite is can be configured correctly via the Yaml."""
+    with open(TEST_ASSETS_ROOT / "configs" / "basic_c2_setup.yaml") as f:
+        cfg = yaml.safe_load(f)
+    game = PrimaiteGame.from_config(cfg)
+
+    yaml_network = game.simulation.network
+    computer_a: Computer = yaml_network.get_node_by_hostname("node_a")
+    c2_server: C2Server = computer_a.software_manager.software.get("C2Server")
+
+    computer_b: Computer = yaml_network.get_node_by_hostname("node_b")
+    c2_beacon: C2Beacon = computer_b.software_manager.software.get("C2Beacon")
+
+    assert c2_server.operating_state == ApplicationOperatingState.RUNNING
+
+    assert c2_beacon.c2_remote_connection == IPv4Address("192.168.10.21")
+
+    c2_beacon.establish()
+
+    # Asserting that the c2 beacon has established a c2 connection
+    assert c2_beacon.c2_connection_active is True
+    # Asserting that the c2 server has established a c2 connection.
+    assert c2_server.c2_connection_active is True
+    assert c2_server.c2_remote_connection == IPv4Address("192.168.10.22")
+
+    for i in range(50):
+        yaml_network.apply_timestep(i)
+
+    assert c2_beacon.c2_connection_active is True
+    assert c2_server.c2_connection_active is True

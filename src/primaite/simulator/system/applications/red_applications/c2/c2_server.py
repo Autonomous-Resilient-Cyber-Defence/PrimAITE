@@ -97,6 +97,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
     def __init__(self, **kwargs):
         kwargs["name"] = "C2Server"
         super().__init__(**kwargs)
+        self.run()
 
     def _handle_command_output(self, payload: C2Packet) -> bool:
         """
