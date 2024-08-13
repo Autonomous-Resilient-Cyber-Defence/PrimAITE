@@ -33,18 +33,18 @@ def pc_a_pc_b_router_1() -> Tuple[Computer, Computer, Router]:
     )
     pc_b.power_on()
 
-    router = Router(hostname="router", start_up_duration=0)
-    router.power_on()
+    router_1 = Router(hostname="router", start_up_duration=0)
+    router_1.power_on()
 
-    router.configure_port(1, "192.168.0.1", "255.255.255.0")
-    router.configure_port(2, "192.168.1.1", "255.255.255.0")
+    router_1.configure_port(1, "192.168.0.1", "255.255.255.0")
+    router_1.configure_port(2, "192.168.1.1", "255.255.255.0")
 
-    network.connect(endpoint_a=pc_a.network_interface[1], endpoint_b=router.network_interface[1])
-    network.connect(endpoint_a=pc_b.network_interface[1], endpoint_b=router.network_interface[2])
-    router.enable_port(1)
-    router.enable_port(2)
+    network.connect(endpoint_a=pc_a.network_interface[1], endpoint_b=router_1.network_interface[1])
+    network.connect(endpoint_a=pc_b.network_interface[1], endpoint_b=router_1.network_interface[2])
+    router_1.enable_port(1)
+    router_1.enable_port(2)
 
-    return pc_a, pc_b, router
+    return pc_a, pc_b, router_1
 
 
 @pytest.fixture(scope="function")
