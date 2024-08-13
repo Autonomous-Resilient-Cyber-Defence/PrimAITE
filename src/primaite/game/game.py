@@ -461,7 +461,7 @@ class PrimaiteGame:
                             opt = application_cfg["options"]
                             new_application.configure(
                                 c2_server_ip_address=IPv4Address(opt.get("c2_server_ip_address")),
-                                keep_alive_frequency=(opt.get("keep_alive_frequency"))
+                                keep_alive_frequency=(opt.get("keep_alive_frequency", 5))
                                 if opt.get("keep_alive_frequency")
                                 else 5,
                                 masquerade_protocol=IPProtocol[(opt.get("masquerade_protocol"))]

@@ -14,7 +14,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
     """
     C2 Server Application.
 
-    Represents a vendor generic C2 Server is used in conjunction with the C2 beacon
+    Represents a vendor generic C2 Server used in conjunction with the C2 beacon
     to simulate malicious communications and infrastructure within primAITE.
 
     The C2 Server must be installed and be in a running state before it's able to receive
