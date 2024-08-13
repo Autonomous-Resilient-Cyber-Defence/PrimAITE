@@ -253,7 +253,7 @@ It's worth noting that this may be useful option to bypass ACL rules.
 
 This must be a string i.e ``udp``. Defaults to ``tcp``.
 
-_Please refer to the ``IPProtocol`` class for further reference._
+*Please refer to the ``IPProtocol`` class for further reference.*
 
 ``Masquerade Port``
 """""""""""""""""""
@@ -266,12 +266,12 @@ It's worth noting that this may be useful option to bypass ACL rules.
 
 This must be a string i.e ``DNS``. Defaults to ``HTTP``.
 
-_Please refer to the ``IPProtocol`` class for further reference._
+*Please refer to the ``IPProtocol`` class for further reference.*
 
 C2 Server Configuration
 =======================
 
-_The C2 Server does not currently offer any unique configuration options and will configure itself to match the C2 beacon's network behaviour._
+*The C2 Server does not currently offer any unique configuration options and will configure itself to match the C2 beacon's network behaviour.*
 
 
 .. include:: ../common/common_configuration.rst

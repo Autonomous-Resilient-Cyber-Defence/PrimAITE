@@ -183,15 +183,11 @@ class AbstractC2(Application, identifier="AbstractC2"):
             )
             return False
 
-    # Abstract method
-    # Used in C2 server to parse and receive the output of commands sent to the c2 beacon.
     @abstractmethod
     def _handle_command_output(payload):
         """Abstract Method: Used in C2 server to parse and receive the output of commands sent to the c2 beacon."""
         pass
 
-    # Abstract method
-    # Used in C2 beacon to parse and handle commands received from the c2 server.
     @abstractmethod
     def _handle_command_input(payload):
         """Abstract Method: Used in C2 beacon to parse and handle commands received from the c2 server."""
