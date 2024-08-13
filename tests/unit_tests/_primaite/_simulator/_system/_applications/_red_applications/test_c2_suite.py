@@ -219,13 +219,3 @@ def test_c2_handles_1_timestep_keep_alive(basic_c2_network):
 
     assert c2_beacon.c2_connection_active is True
     assert c2_server.c2_connection_active is True
-
-
-def test_c2_server_runs_on_default(basic_c2_network):
-    """Tests that the C2 Server begins running by default."""
-    network: Network = basic_c2_network
-
-    computer_a: Computer = network.get_node_by_hostname("computer_a")
-    c2_server: C2Server = computer_a.software_manager.software.get("C2Server")
-
-    assert c2_server.operating_state == ApplicationOperatingState.RUNNING

@@ -156,6 +156,11 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         masquerade_protocol  | What protocol should the C2 traffic masquerade as? (HTTP, FTP or DNS)
         masquerade_port      | What port should the C2 traffic use? (TCP or UDP)
 
+        These configuration options are used to reassign the fields in the inherited inner class
+        ``c2_config``.
+
+        If a connection is already in progress then this method also sends a keep alive to the C2
+        Server in order for the C2 Server to sync with the new configuration settings.
 
         :param c2_server_ip_address: The IP Address of the C2 Server. Used to establish connection.
         :type c2_server_ip_address: IPv4Address
@@ -165,6 +170,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :type masquerade_protocol: Enum (IPProtocol)
         :param masquerade_port: The Port that the C2 Traffic will masquerade as. Defaults to FTP.
         :type masquerade_port: Enum (Port)
+        :return: Returns True if the configuration was successful, False otherwise.
         """
         self.c2_remote_connection = IPv4Address(c2_server_ip_address)
         self.c2_config.keep_alive_frequency = keep_alive_frequency
@@ -183,7 +189,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         # Send a keep alive to the C2 Server if we already have a keep alive.
         if self.c2_connection_active is True:
             self.sys_log.info(f"{self.name}: Updating C2 Server with updated C2 configuration.")
-            self._send_keep_alive(self.c2_session.uuid if not None else None)
+            return self._send_keep_alive(self.c2_session.uuid if not None else None)
         return True
 
     def establish(self) -> bool:
@@ -193,14 +199,14 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             return False
         self.run()
         self.num_executions += 1
+        # Creates a new session if using the establish method.
         return self._send_keep_alive(session_id=None)
 
     def _handle_command_input(self, payload: C2Packet, session_id: Optional[str]) -> bool:
         """
         Handles the parsing of C2 Commands from C2 Traffic (Masquerade Packets).
 
-        Dependant the C2 Command contained within the payload.
-        The following methods are called and returned.
+        Dependant the C2 Command parsed from the payload, the following methods are called and returned:
 
         C2 Command           | Internal Method
         ---------------------|------------------------

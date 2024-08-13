@@ -87,7 +87,10 @@ class AbstractC2(Application, identifier="AbstractC2"):
         Creates and returns a Masquerade Packet using the parameters given.
 
         The packet uses the current c2 configuration and parameters given
-        to construct a C2 Packet.
+        to construct the base networking information such as the masquerade
+        protocol/port. Additionally all C2 Traffic packets pass the currently
+        in use C2 configuration. This ensures that the all C2 applications
+        can keep their configuration in sync.
 
         :param c2_payload: The type of C2 Traffic ot be sent
         :type c2_payload: C2Payload
@@ -208,6 +211,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :type payload: C2Packet
         :param session_id: The transport session_id that the payload is originating from.
         :type session_id: str
+        :return: Returns a bool if the traffic was received correctly (See _handle_c2_payload.)
+        :rtype: bool
         """
         return self._handle_c2_payload(payload, session_id)
 
@@ -306,7 +311,13 @@ class AbstractC2(Application, identifier="AbstractC2"):
         return True
 
     def _reset_c2_connection(self) -> None:
-        """Resets all currently established C2 communications to their default setting."""
+        """
+        Resets all currently established C2 communications to their default setting.
+
+        This method is called once a C2 application considers their remote connection
+        severed and reverts back to default settings. Worth noting that that this will
+        revert any non-default configuration that a user/agent may have set.
+        """
         self.c2_connection_active = False
         self.c2_session = None
         self.keep_alive_inactivity = 0
@@ -359,7 +370,9 @@ class AbstractC2(Application, identifier="AbstractC2"):
         Validation method: Checks that the C2 application is capable of sending C2 Command input/output.
 
         Performs a series of connection validation to ensure that the C2 application is capable of
-        sending and responding to the remote c2 connection.
+        sending and responding to the remote c2 connection. This method is used to confirm connection
+        before carrying out Agent Commands hence why this method also returns a tuple
+        containing both a success boolean as well as RequestResponse.
 
         :return: A tuple containing a boolean True/False and a corresponding Request Response
         :rtype: tuple[bool, RequestResponse]
