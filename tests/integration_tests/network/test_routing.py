@@ -33,7 +33,7 @@ def pc_a_pc_b_router_1() -> Tuple[Computer, Computer, Router]:
     )
     pc_b.power_on()
 
-    router_1 = Router(hostname="router", start_up_duration=0)
+    router_1 = Router(hostname="router_1", start_up_duration=0)
     router_1.power_on()
 
     router_1.configure_port(1, "192.168.0.1", "255.255.255.0")
