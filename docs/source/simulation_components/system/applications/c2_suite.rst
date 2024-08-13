@@ -38,7 +38,7 @@ Currently, the C2 Server offers three commands:
 +---------------------+---------------------------------------------------------------------------+
 
 
-It's important to note that in order to keep the PrimAITE realistic from a cyber perspective,
+It's important to note that in order to keep PrimAITE realistic from a cyber perspective,
 The C2 Server application should never be visible or actionable upon directly by the blue agent.
 
 This is because in the real world, C2 servers are hosted on ephemeral public domains that would not be accessible by private network blue agent.
