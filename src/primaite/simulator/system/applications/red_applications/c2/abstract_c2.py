@@ -2,16 +2,20 @@
 from abc import abstractmethod
 from enum import Enum
 from ipaddress import IPv4Address
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from pydantic import BaseModel, Field, validate_call
 
 from primaite.interface.request import RequestResponse
+from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.protocols.masquerade import C2Packet
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 from primaite.simulator.system.core.session_manager import Session
+from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+from primaite.simulator.system.services.ftp.ftp_server import FTPServer
+from primaite.simulator.system.services.service import ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
 
 
@@ -23,6 +27,9 @@ class C2Command(Enum):
 
     RANSOMWARE_LAUNCH = "Ransomware Launch"
     "Instructs the c2 beacon to execute the installed ransomware."
+
+    DATA_EXFILTRATION = "Data Exfiltration"
+    "Instructs the c2 beacon to attempt to return a file to the C2 Server."
 
     TERMINAL = "Terminal"
     "Instructs the c2 beacon to execute the provided terminal command."
@@ -80,6 +87,19 @@ class AbstractC2(Application, identifier="AbstractC2"):
         masquerade_port: Port = Field(default=Port.HTTP)
         """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
 
+    c2_config: _C2_Opts = _C2_Opts()
+    """
+    Holds the current configuration settings of the C2 Suite.
+
+    The C2 beacon initialise this class through it's internal configure method.
+
+    The C2 Server when receiving a keep alive will initialise it's own configuration
+    to match that of the configuration settings passed in the keep alive through _resolve keep alive.
+
+    If the C2 Beacon is reconfigured then a new keep alive is set which causes the
+    C2 beacon to reconfigure it's configuration settings.
+    """
+
     def _craft_packet(
         self, c2_payload: C2Payload, c2_command: Optional[C2Command] = None, command_options: Optional[Dict] = {}
     ) -> C2Packet:
@@ -111,19 +131,6 @@ class AbstractC2(Application, identifier="AbstractC2"):
         )
         return constructed_packet
 
-    c2_config: _C2_Opts = _C2_Opts()
-    """
-    Holds the current configuration settings of the C2 Suite.
-
-    The C2 beacon initialise this class through it's internal configure method.
-
-    The C2 Server when receiving a keep alive will initialise it's own configuration
-    to match that of the configuration settings passed in the keep alive through _resolve keep alive.
-
-    If the C2 Beacon is reconfigured then a new keep alive is set which causes the
-    C2 beacon to reconfigure it's configuration settings.
-    """
-
     def describe_state(self) -> Dict:
         """
         Describe the state of the C2 application.
@@ -139,6 +146,82 @@ class AbstractC2(Application, identifier="AbstractC2"):
         kwargs["port"] = Port.NONE
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
+
+    # TODO: We may need to disable the ftp_server/client when using the opposite service. (To test)
+    @property
+    def _host_ftp_client(self) -> Optional[FTPClient]:
+        """Return the FTPClient that is installed C2 Application's host.
+
+        This method confirms that the FTP Client is functional via the ._can_perform_action
+        method. If the FTP Client service is not in a suitable state (e.g disabled/pause)
+        then this method will return None.
+
+        (The FTP Client service is installed by default)
+
+        :return: An FTPClient object is successful, else None
+        :rtype: union[FTPClient, None]
+        """
+        ftp_client: Union[FTPClient, None] = self.software_manager.software.get("FTPClient")
+        if ftp_client is None:
+            self.sys_log.warning(f"{self.__class__.__name__}: No FTPClient.  Attempting to install.")
+            self.software_manager.install(FTPClient)
+            ftp_client = self.software_manager.software.get("FTPClient")
+
+        # Force start if the service is stopped.
+        if ftp_client.operating_state == ServiceOperatingState.STOPPED:
+            if not ftp_client.start():
+                self.sys_log.warning(f"{self.__class__.__name__}: cannot start the FTP Client.")
+
+        if not ftp_client._can_perform_action():
+            self.sys_log.error(f"{self.__class__.__name__}: is unable to use the FTP service on its host.")
+            return
+
+        return ftp_client
+
+    @property
+    def _host_ftp_server(self) -> Optional[FTPServer]:
+        """
+        Returns the FTP Server that is installed C2 Application's host.
+
+        If a FTPServer is not installed then this method will attempt to install one.
+
+        :return: An FTPServer object is successful, else None
+        :rtype: union[FTPServer, None]
+        """
+        ftp_server: Union[FTPServer, None] = self.software_manager.software.get("FTPServer")
+        if ftp_server is None:
+            self.sys_log.warning(f"{self.__class__.__name__}:No FTPServer installed. Attempting to install FTPServer.")
+            self.software_manager.install(FTPServer)
+            ftp_server = self.software_manager.software.get("FTPServer")
+
+        # Force start if the service is stopped.
+        if ftp_server.operating_state == ServiceOperatingState.STOPPED:
+            if not ftp_server.start():
+                self.sys_log.warning(f"{self.__class__.__name__}: cannot start the FTP Server.")
+
+        if not ftp_server._can_perform_action():
+            self.sys_log.error(f"{self.__class__.__name__}: is unable use FTP Server service on its host.")
+            return
+
+        return ftp_server
+
+    # Getter property for the get_exfiltration_folder method ()
+    @property
+    def _host_file_system(self) -> FileSystem:
+        """Return the C2 Host's filesystem (Used for exfiltration related commands) ."""
+        host_file_system: FileSystem = self.software_manager.file_system
+        if host_file_system is None:
+            self.sys_log.error(f"{self.__class__.__name__}: does not seem to have a file system!")
+        return host_file_system
+
+    def get_exfiltration_folder(self, folder_name: str) -> Optional[Folder]:
+        """Return a folder used for storing exfiltrated data. Otherwise returns None."""
+        exfiltration_folder: Union[Folder, None] = self._host_file_system.get_folder(folder_name)
+        if exfiltration_folder is None:
+            self.sys_log.info(f"{self.__class__.__name__}: Creating a exfiltration folder.")
+            return self._host_file_system.create_folder(folder_name=folder_name)
+
+        return exfiltration_folder
 
     # Validate call ensures we are only handling Masquerade Packets.
     @validate_call
@@ -197,7 +280,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
         """Abstract Method: The C2 Server and the C2 Beacon handle the KEEP ALIVEs differently."""
 
     # from_network_interface=from_network_interface
-    def receive(self, payload: C2Packet, session_id: Optional[str] = None, **kwargs) -> bool:
+    def receive(self, payload: any, session_id: Optional[str] = None, **kwargs) -> bool:
         """Receives masquerade packets. Used by both c2 server and c2 beacon.
 
         Defining the `Receive` method so that the application can receive packets via the session manager.
@@ -210,6 +293,11 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :return: Returns a bool if the traffic was received correctly (See _handle_c2_payload.)
         :rtype: bool
         """
+        if not isinstance(payload, C2Packet):
+            self.sys_log.warning(f"{self.name}: Payload is not an C2Packet")
+            self.sys_log.debug(f"{self.name}: {payload}")
+            return False
+
         return self._handle_c2_payload(payload, session_id)
 
     def _send_keep_alive(self, session_id: Optional[str]) -> bool:
@@ -352,14 +440,13 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :return bool: Returns false if connection was lost. Returns True if connection is active or re-established.
         :rtype bool:
         """
-        super().apply_timestep(timestep=timestep)
         if (
             self.operating_state is ApplicationOperatingState.RUNNING
             and self.health_state_actual is SoftwareHealthState.GOOD
         ):
             self.keep_alive_inactivity += 1
             self._confirm_remote_connection(timestep)
-        return
+        return super().apply_timestep(timestep=timestep)
 
     def _check_connection(self) -> tuple[bool, RequestResponse]:
         """

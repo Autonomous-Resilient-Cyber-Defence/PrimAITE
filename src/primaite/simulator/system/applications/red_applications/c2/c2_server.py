@@ -67,6 +67,19 @@ class C2Server(AbstractC2, identifier="C2Server"):
             """
             return self.send_command(given_command=C2Command.RANSOMWARE_LAUNCH, command_options={})
 
+        def _data_exfiltration_action(request: RequestFormat, context: Dict) -> RequestResponse:
+            """Agent Action - Sends a Data Exfiltration C2Command to the C2 Beacon with the given parameters.
+
+            :param request: Request with one element containing a dict of parameters for the configure method.
+            :type request: RequestFormat
+            :param context: additional context for resolving this action, currently unused
+            :type context: dict
+            :return: RequestResponse object with a success code reflecting whether the ransomware was launched.
+            :rtype: RequestResponse
+            """
+            command_payload = request[-1]
+            return self.send_command(given_command=C2Command.DATA_EXFILTRATION, command_options=command_payload)
+
         def _remote_terminal_action(request: RequestFormat, context: Dict) -> RequestResponse:
             """Agent Action - Sends a TERMINAL C2Command to the C2 Beacon with the given parameters.
 
@@ -91,6 +104,10 @@ class C2Server(AbstractC2, identifier="C2Server"):
         rm.add_request(
             name="terminal_command",
             request_type=RequestType(func=_remote_terminal_action),
+        )
+        rm.add_request(
+            name="exfiltrate",
+            request_type=RequestType(func=_data_exfiltration_action),
         )
         return rm
 
@@ -177,6 +194,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
         ---------------------|------------------------
         RANSOMWARE_CONFIGURE | Configures an installed ransomware script based on the passed parameters.
         RANSOMWARE_LAUNCH    | Launches the installed ransomware script.
+        DATA_EXFILTRATION    | Utilises the FTP Service to exfiltrate data back to the C2 Server.
         TERMINAL             | Executes a command via the terminal installed on the C2 Beacons Host.
 
         Currently, these commands leverage the pre-existing capability of other applications.
@@ -210,6 +228,14 @@ class C2Server(AbstractC2, identifier="C2Server"):
         ):
             return connection_status
 
+        if not self._command_setup(given_command, command_options):
+            self.sys_log.warning(
+                f"{self.name}: Failed to perform necessary C2 Server setup for given command: {given_command}."
+            )
+            return RequestResponse(
+                status="failure", data={"Reason": "Failed to perform necessary C2 Server setup for given command."}
+            )
+
         self.sys_log.info(f"{self.name}: Attempting to send command {given_command}.")
         command_packet = self._craft_packet(
             c2_payload=C2Payload.INPUT, c2_command=given_command, command_options=command_options
@@ -231,6 +257,41 @@ class C2Server(AbstractC2, identifier="C2Server"):
                 status="failure", data={"Reason": "Command sent to the C2 Beacon but no response was ever received."}
             )
         return self.current_command_output
+
+    def _command_setup(self, given_command: C2Command, command_options: dict) -> bool:
+        """
+        Performs any necessary C2 Server setup needed to perform certain commands.
+
+        The following table details any C2 Server prequisites for following commands.
+
+        C2 Command           | Command Service/Application Requirements
+        ---------------------|-----------------------------------------
+        RANSOMWARE_CONFIGURE | N/A
+        RANSOMWARE_LAUNCH    | N/A
+        DATA_EXFILTRATION    | FTP Server & File system folder
+        TERMINAL             | N/A
+
+        Currently, only the data exfiltration command require the C2 Server
+        to perform any necessary setup. Specifically, the Data Exfiltration command requires
+        the C2 Server to have an running FTP Server service as well as a folder for
+        storing any exfiltrated data.
+
+        :param given_command: Any C2 Command.
+        :type given_command: C2Command.
+        :param command_options: The relevant command parameters.
+        :type command_options: Dict
+        :returns: True the setup was successful, false otherwise.
+        :rtype: bool
+        """
+        if given_command == C2Command.DATA_EXFILTRATION:  # Data exfiltration setup
+            if self._host_ftp_server is None:
+                self.sys_log.warning(f"{self.name}: Unable to setup the FTP Server for data exfiltration")
+                return False
+            if not self.get_exfiltration_folder(command_options.get("exfiltration_folder_name", "exfil")):
+                self.sys_log.warning(f"{self.name}: Unable to create a folder for storing exfiltration data.")
+                return False
+
+        return True
 
     def _confirm_remote_connection(self, timestep: int) -> bool:
         """Checks the suitability of the current C2 Beacon connection.

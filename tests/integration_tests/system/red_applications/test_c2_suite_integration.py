@@ -22,6 +22,8 @@ from primaite.simulator.system.applications.red_applications.c2.c2_server import
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.dns.dns_server import DNSServer
+from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from tests import TEST_ASSETS_ROOT
 
@@ -497,3 +499,42 @@ def test_c2_suite_yaml():
 
     assert c2_beacon.c2_connection_active is True
     assert c2_server.c2_connection_active is True
+
+
+def test_c2_suite_file_extraction(basic_network):
+    """Test that C2 Beacon can successfully exfiltrate a target file."""
+    network: Network = basic_network
+    network, computer_a, c2_server, computer_b, c2_beacon = setup_c2(network)
+    # Asserting that the c2 beacon has established a c2 connection
+    assert c2_beacon.c2_connection_active is True
+
+    # Asserting that the c2 server has established a c2 connection.
+    assert c2_server.c2_connection_active is True
+    assert c2_server.c2_remote_connection == IPv4Address("192.168.255.2")
+
+    # Creating the target file on computer_c
+    computer_c: Computer = network.get_node_by_hostname("node_c")
+    computer_c.file_system.create_folder("important_files")
+    computer_c.file_system.create_file(file_name="secret.txt", folder_name="important_files")
+    assert computer_c.file_system.access_file(folder_name="important_files", file_name="secret.txt")
+
+    # Installing an FTP Server on the same node as C2 Beacon via the terminal:
+
+    # Attempting to exfiltrate secret.txt from computer c to the C2 Server
+    c2_server.send_command(
+        given_command=C2Command.DATA_EXFILTRATION,
+        command_options={
+            "username": "admin",
+            "password": "admin",
+            "target_ip_address": "192.168.255.3",
+            "target_folder_name": "important_files",
+            "exfiltration_folder_name": "yoinked_files",
+            "target_file_name": "secret.txt",
+        },
+    )
+
+    # Asserting that C2 Beacon has managed to get the file
+    assert c2_beacon._host_file_system.access_file(folder_name="yoinked_files", file_name="secret.txt")
+
+    # Asserting that the C2 Beacon can relay it back to the C2 Server
+    assert c2_server._host_file_system.access_file(folder_name="yoinked_files", file_name="secret.txt")

@@ -462,6 +462,7 @@ def game_and_agent():
         {"type": "C2_SERVER_RANSOMWARE_LAUNCH"},
         {"type": "C2_SERVER_RANSOMWARE_CONFIGURE"},
         {"type": "C2_SERVER_TERMINAL_COMMAND"},
+        {"type": "C2_SERVER_DATA_EXFILTRATE"},
     ]
 
     action_space = ActionManager(

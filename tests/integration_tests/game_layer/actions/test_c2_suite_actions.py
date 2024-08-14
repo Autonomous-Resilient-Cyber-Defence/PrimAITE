@@ -15,6 +15,8 @@ from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
 from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Command, C2Server
 from primaite.simulator.system.services.database.database_service import DatabaseService
+from primaite.simulator.system.services.ftp.ftp_client import FTPClient
+from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.service import ServiceOperatingState
 
 
@@ -150,3 +152,52 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
 
     database_file = server_2.software_manager.file_system.get_file("database", "database.db")
     assert database_file.health_status == FileSystemItemHealthStatus.CORRUPT
+
+
+def test_c2_server_data_exfiltration(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
+    """Tests that a Red Agent can extract a database.db file via C2 Server actions."""
+    game, agent = game_and_agent_fixture
+
+    # Installing a C2 Beacon on server_1
+    server_1: Server = game.simulation.network.get_node_by_hostname("server_1")
+    server_1.software_manager.install(C2Beacon)
+
+    # Installing a database on Server_2 (creates a database.db file.)
+    server_2: Server = game.simulation.network.get_node_by_hostname("server_2")
+    server_2.software_manager.install(DatabaseService)
+    server_2.software_manager.software["DatabaseService"].start()
+
+    # Configuring the C2 to connect to client 1 (C2 Server)
+    c2_beacon: C2Beacon = server_1.software_manager.software["C2Beacon"]
+    c2_beacon.configure(c2_server_ip_address=IPv4Address("10.0.1.2"))
+    c2_beacon.establish()
+    assert c2_beacon.c2_connection_active == True
+
+    # Selecting a target file to steal: database.db
+    # Server 2 ip : 10.0.2.3
+    database_file = server_2.software_manager.file_system.get_file(folder_name="database", file_name="database.db")
+    assert database_file is not None
+
+    # C2 Action: Data exfiltrate.
+
+    action = (
+        "C2_SERVER_DATA_EXFILTRATE",
+        {
+            "node_id": 0,
+            "target_file_name": "database.db",
+            "target_folder_name": "database",
+            "exfiltration_folder_name": "spoils",
+            "target_ip_address": "10.0.2.3",
+            "account": {
+                "username": "admin",
+                "password": "admin",
+            },
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    assert server_1.file_system.access_file(folder_name="spoils", file_name="database.db")
+
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")
+    assert client_1.file_system.access_file(folder_name="spoils", file_name="database.db")

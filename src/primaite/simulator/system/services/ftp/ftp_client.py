@@ -1,8 +1,10 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
-from typing import Optional
+from typing import Dict, Optional
 
 from primaite import getLogger
+from primaite.interface.request import RequestFormat, RequestResponse
+from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.network.transmission.network_layer import IPProtocol
@@ -27,6 +29,55 @@ class FTPClient(FTPServiceABC):
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
         self.start()
+
+    def _init_request_manager(self) -> RequestManager:
+        """
+        Initialise the request manager.
+
+        More information in user guide and docstring for SimComponent._init_request_manager.
+        """
+        rm = super()._init_request_manager()
+
+        def _send_data_request(request: RequestFormat, context: Dict) -> RequestResponse:
+            """
+            Request for sending data via the ftp_client using the request options parameters.
+
+            :param request: Request with one element containing a dict of parameters for the send method.
+            :type request: RequestFormat
+            :param context: additional context for resolving this action, currently unused
+            :type context: dict
+            :return: RequestResponse object with a success code reflecting whether the configuration could be applied.
+            :rtype: RequestResponse
+            """
+            dest_ip = request[-1].get("dest_ip_address")
+            dest_ip = None if dest_ip is None else IPv4Address(dest_ip)
+
+            # TODO: Confirm that the default values lead to a safe failure.
+            src_folder = request[-1].get("src_folder_name", None)
+            src_file_name = request[-1].get("src_file_name", None)
+            dest_folder = request[-1].get("dest_folder_name", None)
+            dest_file_name = request[-1].get("dest_file_name", None)
+
+            if not self.file_system.access_file(folder_name=src_folder, file_name=src_file_name):
+                self.sys_log.debug(
+                    f"{self.name}: Received a FTP Request to transfer file: {src_file_name} to Remote IP: {dest_ip}."
+                )
+                return RequestResponse(
+                    status="failure", data={"reason": "Unable to locate requested file on local file system."}
+                )
+
+            return RequestResponse.from_bool(
+                self.send_file(
+                    dest_ip_address=dest_ip,
+                    src_folder_name=src_folder,
+                    src_file_name=src_file_name,
+                    dest_folder_name=dest_folder,
+                    dest_file_name=dest_file_name,
+                )
+            )
+
+        rm.add_request("send", request_type=RequestType(func=_send_data_request)),
+        return rm
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
         """

@@ -1147,6 +1147,48 @@ class RansomwareLaunchC2ServerAction(AbstractAction):
         return ["network", "node", node_name, "application", "C2Server", "ransomware_launch"]
 
 
+class ExfiltrationC2ServerAction(AbstractAction):
+    """Action which exfiltrates a target file from a certain node onto the C2 beacon and then the C2 Server."""
+
+    class _Opts(BaseModel):
+        """Schema for options that can be passed to this action."""
+
+        username: Optional[str]
+        password: Optional[str]
+        target_ip_address: str
+        target_file_name: str
+        target_folder_name: str
+        exfiltration_folder_name: Optional[str]
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(
+        self,
+        node_id: int,
+        account: dict,
+        target_ip_address: str,
+        target_file_name: str,
+        target_folder_name: str,
+        exfiltration_folder_name: Optional[str],
+    ) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+
+        command_model = {
+            "target_file_name": target_file_name,
+            "target_folder_name": target_folder_name,
+            "exfiltration_folder_name": exfiltration_folder_name,
+            "target_ip_address": target_ip_address,
+            "username": account["username"],
+            "password": account["password"],
+        }
+        ExfiltrationC2ServerAction._Opts.model_validate(command_model)
+        return ["network", "node", node_name, "application", "C2Server", "exfiltrate", command_model]
+
+
 class TerminalC2ServerAction(AbstractAction):
     """Action which causes the C2 Server to send a command to the C2 Beacon to execute the terminal command passed."""
 
@@ -1233,6 +1275,7 @@ class ActionManager:
         "C2_SERVER_RANSOMWARE_LAUNCH": RansomwareLaunchC2ServerAction,
         "C2_SERVER_RANSOMWARE_CONFIGURE": RansomwareConfigureC2ServerAction,
         "C2_SERVER_TERMINAL_COMMAND": TerminalC2ServerAction,
+        "C2_SERVER_DATA_EXFILTRATE": ExfiltrationC2ServerAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 

@@ -135,6 +135,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         kwargs["name"] = "C2Beacon"
         super().__init__(**kwargs)
 
+    # Configure is practically setter method for the ``c2.config`` attribute that also ties into the request manager.
     @validate_call
     def configure(
         self,
@@ -212,6 +213,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         ---------------------|------------------------
         RANSOMWARE_CONFIGURE | self._command_ransomware_config()
         RANSOMWARE_LAUNCH    | self._command_ransomware_launch()
+        DATA_EXFILTRATION    | self._command_data_exfiltration()
         TERMINAL             | self._command_terminal()
 
         Please see each method individually for further information regarding
@@ -248,6 +250,12 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         elif command == C2Command.TERMINAL:
             self.sys_log.info(f"{self.name}: Received a terminal C2 command.")
             return self._return_command_output(command_output=self._command_terminal(payload), session_id=session_id)
+
+        elif command == C2Command.DATA_EXFILTRATION:
+            self.sys_log.info(f"{self.name}: Received a Data Exfiltration C2 command.")
+            return self._return_command_output(
+                command_output=self._command_data_exfiltration(payload), session_id=session_id
+            )
 
         else:
             self.sys_log.error(f"{self.name}: Received an C2 command: {command} but was unable to resolve command.")
@@ -313,9 +321,8 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         """
         C2 Command: Ransomware Launch.
 
-        Creates a request that executes the ransomware script.
-        This request is then sent to the terminal service in order to be executed.
-
+        Uses the RansomwareScript's public method .attack() to carry out the
+        ransomware attack and uses the .from_bool method to return a RequestResponse
 
         :payload C2Packet: The incoming INPUT command.
         :type Masquerade Packet: C2Packet.
@@ -328,6 +335,119 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
                 data={"Reason": "Cannot find any instances of a RansomwareScript. Have you installed one?"},
             )
         return RequestResponse.from_bool(self._host_ransomware_script.attack())
+
+    def _command_data_exfiltration(self, payload: C2Packet) -> RequestResponse:
+        """
+        C2 Command: Data Exfiltration.
+
+        Uses the FTP Client & Server services to perform the data exfiltration.
+
+        Similar to the terminal, the logic of this command is dependant on if a remote_ip
+        is present within the payload.
+
+        If a payload does contain an IP address then the C2 Beacon will ssh into the target ip
+        and execute a command which causes the FTPClient service to send a
+
+        target file will be moved from the target IP address onto the C2 Beacon's host
+        file system.
+
+        However, if no IP is given, then the command will move the target file from this
+        machine onto the C2 server. (This logic is performed on the C2)
+
+        :payload C2Packet: The incoming INPUT command.
+        :type Masquerade Packet: C2Packet.
+        :return: Returns the Request Response returned by the Terminal execute method.
+        :rtype: Request Response
+        """
+        if self._host_ftp_server is None:
+            self.sys_log.warning(f"{self.name}: C2 Beacon unable to the FTP Server. Unable to resolve command.")
+            return RequestResponse(
+                status="failure",
+                data={"Reason": "Cannot find any instances of both a FTP Server & Client. Are they installed?"},
+            )
+
+        remote_ip = payload.payload.get("target_ip_address")
+        target_folder = payload.payload.get("target_folder_name")
+        dest_folder = payload.payload.get("exfiltration_folder_name")
+
+        # Using the same name for both the target/destination file for clarity.
+        file_name = payload.payload.get("target_file_name")
+
+        # TODO: Split Remote file extraction and local file extraction into different methods.
+        # if remote_ip is None:
+        #    self._host_ftp_client.start()
+        #    self.sys_log.info(f"{self.name}: No Remote IP given. Returning target file from local file system.")
+        #    return RequestResponse.from_bool(self._host_ftp_client.send_file(
+        #        dest_ip_address=self.c2_remote_connection,
+        #        src_folder_name=target_folder,
+        #        src_file_name=file_name,
+        #        dest_folder_name=dest_folder,
+        #        dest_file_name=file_name,
+        #        session_id=self.c2_session.uuid
+        #    ))
+
+        # Parsing remote login credentials
+        given_username = payload.payload.get("username")
+        given_password = payload.payload.get("password")
+
+        # Setting up the terminal session and the ftp server
+        terminal_session = self.get_remote_terminal_session(
+            username=given_username, password=given_password, ip_address=remote_ip
+        )
+
+        # Initialising the exfiltration folder.
+        exfiltration_folder = self.get_exfiltration_folder(dest_folder)
+
+        # Using the terminal to start the FTP Client on the remote machine.
+        # This can fail if the FTP Client is already enabled.
+        terminal_session.execute(command=["service", "start", "FTPClient"])
+        host_network_interfaces = self.software_manager.node.network_interfaces
+        local_ip = host_network_interfaces.get(next(iter(host_network_interfaces))).ip_address
+        # Creating the FTP creation options.
+        remote_ftp_options = {
+            "dest_ip_address": str(local_ip),
+            "src_folder_name": target_folder,
+            "src_file_name": file_name,
+            "dest_folder_name": dest_folder,
+            "dest_file_name": file_name,
+        }
+
+        # Using the terminal to send the target data back to the C2 Beacon.
+        remote_ftp_response: RequestResponse = RequestResponse.from_bool(
+            terminal_session.execute(command=["service", "FTPClient", "send", remote_ftp_options])
+        )
+
+        # Validating that we successfully received the target data.
+
+        if remote_ftp_response.status == "failure":
+            self.sys_log.warning(
+                f"{self.name}: Remote connection: {remote_ip} failed to transfer the target data via FTP."
+            )
+            return remote_ftp_response
+
+        if exfiltration_folder.get_file(file_name) is None:
+            self.sys_log.warning(f"{self.name}: Unable to locate exfiltrated file on local filesystem.")
+            return RequestResponse(
+                status="failure", data={"reason": "Unable to locate exfiltrated data on file system."}
+            )
+
+        if self._host_ftp_client is None:
+            self.sys_log.warning(f"{self.name}: C2 Beacon unable to the FTP Server. Unable to resolve command.")
+            return RequestResponse(
+                status="failure",
+                data={"Reason": "Cannot find any instances of both a FTP Server & Client. Are they installed?"},
+            )
+
+        # Sending the transferred target data back to the C2 Server to successfully exfiltrate the data out the network.
+        return RequestResponse.from_bool(
+            self._host_ftp_client.send_file(
+                dest_ip_address=self.c2_remote_connection,
+                src_folder_name=dest_folder,  # TODO: Clarify this - Dest folder has the same name on c2server/c2beacon.
+                src_file_name=file_name,
+                dest_folder_name=dest_folder,
+                dest_file_name=file_name,
+            )
+        )
 
     def _command_terminal(self, payload: C2Packet) -> RequestResponse:
         """
