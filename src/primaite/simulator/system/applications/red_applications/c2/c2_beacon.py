@@ -359,8 +359,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             username=command_opts.username, password=command_opts.password, ip_address=command_opts.target_ip_address
         ):
             return RequestResponse(
-                status="failure",
-                data={"Reason": "Cannot create a terminal session. Are the credentials correct?"},
+                status="failure", data={"Reason": "Cannot create a terminal session. Are the credentials correct?"}
             )
 
         # Using the terminal to start the FTP Client on the remote machine.
@@ -371,7 +370,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         local_ip = host_network_interfaces.get(next(iter(host_network_interfaces))).ip_address
 
         # Creating the FTP creation options.
-        exfil_opts = {
+        ftp_opts = {
             "dest_ip_address": str(local_ip),
             "src_folder_name": command_opts.target_folder_name,
             "src_file_name": command_opts.target_file_name,
@@ -379,7 +378,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             "dest_file_name": command_opts.target_file_name,
         }
 
-        attempt_exfiltration: tuple[bool, RequestResponse] = self._perform_exfiltration(exfil_opts)
+        attempt_exfiltration: tuple[bool, RequestResponse] = self._perform_exfiltration(ftp_opts)
 
         if attempt_exfiltration[0] is False:
             self.sys_log.error(f"{self.name}: File Exfiltration Attempt Failed: {attempt_exfiltration[1].data}")
@@ -397,7 +396,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             )
         )
 
-    def _perform_exfiltration(self, exfil_opts: Exfil_Opts) -> tuple[bool, RequestResponse]:
+    def _perform_exfiltration(self, ftp_opts: dict) -> tuple[bool, RequestResponse]:
         """
         Attempts to exfiltrate a target file from a target using the parameters given.
 
@@ -418,11 +417,11 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :rtype: tuple[bool, RequestResponse
         """
         # Creating the exfiltration folder .
-        exfiltration_folder = self.get_exfiltration_folder(exfil_opts.get("dest_folder_name"))
+        exfiltration_folder = self.get_exfiltration_folder(ftp_opts.get("dest_folder_name"))
 
         # Using the terminal to send the target data back to the C2 Beacon.
         exfil_response: RequestResponse = RequestResponse.from_bool(
-            self.terminal_session.execute(command=["service", "FTPClient", "send", exfil_opts])
+            self.terminal_session.execute(command=["service", "FTPClient", "send", ftp_opts])
         )
 
         # Validating that we successfully received the target data.
@@ -432,7 +431,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             return [False, exfil_response]
 
         # Target file:
-        target_file: str = exfil_opts.get("src_file_name")
+        target_file: str = ftp_opts.get("src_file_name")
 
         if exfiltration_folder.get_file(target_file) is None:
             self.sys_log.warning(

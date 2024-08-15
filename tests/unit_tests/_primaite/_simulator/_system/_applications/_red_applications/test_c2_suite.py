@@ -219,3 +219,30 @@ def test_c2_handles_1_timestep_keep_alive(basic_c2_network):
 
     assert c2_beacon.c2_connection_active is True
     assert c2_server.c2_connection_active is True
+
+
+def test_c2_exfil_folder(basic_c2_network):
+    """Tests that the C2 suite correctly default and setup their exfiltration_folders."""
+    network: Network = basic_c2_network
+
+    network, computer_a, c2_server, computer_b, c2_beacon = setup_c2(network)
+
+    c2_beacon.get_exfiltration_folder()
+    c2_server.get_exfiltration_folder()
+    assert c2_beacon.file_system.get_folder("exfiltration_folder")
+    assert c2_server.file_system.get_folder("exfiltration_folder")
+
+    c2_server.file_system.create_file(folder_name="test_folder", file_name="test_file")
+
+    # asserting to check that by default the c2 exfil will use "exfiltration_folder"
+    exfil_options = {
+        "username": "admin",
+        "password": "admin",
+        "target_ip_address": "192.168.0.1",
+        "target_folder_name": "test_folder",
+        "exfiltration_folder_name": None,
+        "target_file_name": "test_file",
+    }
+    c2_server.send_command(given_command=C2Command.DATA_EXFILTRATION, command_options=exfil_options)
+
+    assert c2_beacon.file_system.get_file(folder_name="exfiltration_folder", file_name="test_file")

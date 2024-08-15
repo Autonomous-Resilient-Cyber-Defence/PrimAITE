@@ -1,13 +1,21 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from typing import Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
 from primaite.interface.request import RequestFormat
 
 
 class Command_Opts(BaseModel):
     """A C2 Pydantic Schema acting as a base class for all C2 Commands."""
+
+    @field_validator("payload", "exfiltration_folder_name", "ip_address", mode="before", check_fields=False)
+    @classmethod
+    def not_none(cls, v: str, info: ValidationInfo) -> int:
+        """If None is passed, use the default value instead."""
+        if v is None:
+            return cls.model_fields[info.field_name].default
+        return v
 
 
 class Ransomware_Opts(Command_Opts):
@@ -16,7 +24,7 @@ class Ransomware_Opts(Command_Opts):
     server_ip_address: str
     """The IP Address of the target database that the RansomwareScript will attack."""
 
-    payload: Optional[str] = Field(default="ENCRYPT")
+    payload: str = Field(default="ENCRYPT")
     """The malicious payload to be used to attack the target database."""
 
 
@@ -45,7 +53,7 @@ class Exfil_Opts(Remote_Opts):
     target_folder_name: str
     """The name of the remote folder which contains the target file."""
 
-    exfiltration_folder_name: Optional[str] = Field(default="exfiltration_folder")
+    exfiltration_folder_name: str = Field(default="exfiltration_folder")
     """"""
 
 

@@ -185,9 +185,9 @@ class AbstractC2(Application, identifier="AbstractC2"):
         If a FTPServer is not installed then this method will attempt to install one.
 
         :return: An FTPServer object is successful, else None
-        :rtype: union[FTPServer, None]
+        :rtype: Optional[FTPServer]
         """
-        ftp_server: Union[FTPServer, None] = self.software_manager.software.get("FTPServer")
+        ftp_server: Optional[FTPServer] = self.software_manager.software.get("FTPServer")
         if ftp_server is None:
             self.sys_log.warning(f"{self.__class__.__name__}:No FTPServer installed. Attempting to install FTPServer.")
             self.software_manager.install(FTPServer)

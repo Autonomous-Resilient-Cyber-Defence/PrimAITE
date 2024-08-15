@@ -7,6 +7,12 @@ from pydantic import validate_call
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.masquerade import C2Packet
+from primaite.simulator.system.applications.red_applications.c2 import (
+    Command_Opts,
+    Exfil_Opts,
+    Ransomware_Opts,
+    Terminal_Opts,
+)
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 
 
@@ -49,11 +55,11 @@ class C2Server(AbstractC2, identifier="C2Server"):
             :return: RequestResponse object with a success code reflecting whether the configuration could be applied.
             :rtype: RequestResponse
             """
-            ransomware_config = {
+            command_payload = {
                 "server_ip_address": request[-1].get("server_ip_address"),
                 "payload": request[-1].get("payload"),
             }
-            return self.send_command(given_command=C2Command.RANSOMWARE_CONFIGURE, command_options=ransomware_config)
+            return self.send_command(given_command=C2Command.RANSOMWARE_CONFIGURE, command_options=command_payload)
 
         def _launch_ransomware_action(request: RequestFormat, context: Dict) -> RequestResponse:
             """Agent Action - Sends a RANSOMWARE_LAUNCH C2Command to the C2 Beacon with the given parameters.
@@ -226,7 +232,9 @@ class C2Server(AbstractC2, identifier="C2Server"):
         if connection_status[0] is False:
             return connection_status[1]
 
-        if not self._command_setup(given_command, command_options):
+        setup_success, command_options = self._command_setup(given_command, command_options)
+
+        if setup_success is False:
             self.sys_log.warning(
                 f"{self.name}: Failed to perform necessary C2 Server setup for given command: {given_command}."
             )
@@ -236,7 +244,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
 
         self.sys_log.info(f"{self.name}: Attempting to send command {given_command}.")
         command_packet = self._craft_packet(
-            c2_payload=C2Payload.INPUT, c2_command=given_command, command_options=command_options
+            c2_payload=C2Payload.INPUT, c2_command=given_command, command_options=command_options.model_dump()
         )
 
         if self.send(
@@ -256,9 +264,11 @@ class C2Server(AbstractC2, identifier="C2Server"):
             )
         return self.current_command_output
 
-    def _command_setup(self, given_command: C2Command, command_options: dict) -> bool:
+    def _command_setup(self, given_command: C2Command, command_options: dict) -> tuple[bool, Command_Opts]:
         """
         Performs any necessary C2 Server setup needed to perform certain commands.
+
+        This includes any option validation and any other required setup.
 
         The following table details any C2 Server prequisites for following commands.
 
@@ -278,18 +288,35 @@ class C2Server(AbstractC2, identifier="C2Server"):
         :type given_command: C2Command.
         :param command_options: The relevant command parameters.
         :type command_options: Dict
-        :returns: True the setup was successful, false otherwise.
-        :rtype: bool
+        :returns: Tuple containing a success bool if the setup was successful and the validated c2 opts.
+        :rtype: tuple[bool, Command_Opts]
         """
+        server_setup_success: bool = True
+
         if given_command == C2Command.DATA_EXFILTRATION:  # Data exfiltration setup
+            # Validating command options
+            command_options = Exfil_Opts.model_validate(command_options)
             if self._host_ftp_server is None:
                 self.sys_log.warning(f"{self.name}: Unable to setup the FTP Server for data exfiltration")
-                return False
-            if self.get_exfiltration_folder(command_options.get("exfiltration_folder_name")) is None:
-                self.sys_log.warning(f"{self.name}: Unable to create a folder for storing exfiltration data.")
-                return False
+                server_setup_success = False
 
-        return True
+            if self.get_exfiltration_folder(command_options.exfiltration_folder_name) is None:
+                self.sys_log.warning(f"{self.name}: Unable to create a folder for storing exfiltration data.")
+                server_setup_success = False
+
+        if given_command == C2Command.TERMINAL:
+            # Validating command options
+            command_options = Terminal_Opts.model_validate(command_options)
+
+        if given_command == C2Command.RANSOMWARE_CONFIGURE:
+            # Validating command options
+            command_options = Ransomware_Opts.model_validate(command_options)
+
+        if given_command == C2Command.RANSOMWARE_LAUNCH:
+            # Validating command options
+            command_options = Command_Opts.model_validate(command_options)
+
+        return [server_setup_success, command_options]
 
     def _confirm_remote_connection(self, timestep: int) -> bool:
         """Checks the suitability of the current C2 Beacon connection.
