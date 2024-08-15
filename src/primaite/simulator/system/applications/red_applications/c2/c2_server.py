@@ -8,10 +8,10 @@ from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.masquerade import C2Packet
 from primaite.simulator.system.applications.red_applications.c2 import (
-    Command_Opts,
-    Exfil_Opts,
-    Ransomware_Opts,
-    Terminal_Opts,
+    CommandOpts,
+    ExfilOpts,
+    RansomwareOpts,
+    TerminalOpts,
 )
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 
@@ -264,7 +264,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
             )
         return self.current_command_output
 
-    def _command_setup(self, given_command: C2Command, command_options: dict) -> tuple[bool, Command_Opts]:
+    def _command_setup(self, given_command: C2Command, command_options: dict) -> tuple[bool, CommandOpts]:
         """
         Performs any necessary C2 Server setup needed to perform certain commands.
 
@@ -289,13 +289,13 @@ class C2Server(AbstractC2, identifier="C2Server"):
         :param command_options: The relevant command parameters.
         :type command_options: Dict
         :returns: Tuple containing a success bool if the setup was successful and the validated c2 opts.
-        :rtype: tuple[bool, Command_Opts]
+        :rtype: tuple[bool, CommandOpts]
         """
         server_setup_success: bool = True
 
         if given_command == C2Command.DATA_EXFILTRATION:  # Data exfiltration setup
             # Validating command options
-            command_options = Exfil_Opts.model_validate(command_options)
+            command_options = ExfilOpts.model_validate(command_options)
             if self._host_ftp_server is None:
                 self.sys_log.warning(f"{self.name}: Unable to setup the FTP Server for data exfiltration")
                 server_setup_success = False
@@ -306,15 +306,15 @@ class C2Server(AbstractC2, identifier="C2Server"):
 
         if given_command == C2Command.TERMINAL:
             # Validating command options
-            command_options = Terminal_Opts.model_validate(command_options)
+            command_options = TerminalOpts.model_validate(command_options)
 
         if given_command == C2Command.RANSOMWARE_CONFIGURE:
             # Validating command options
-            command_options = Ransomware_Opts.model_validate(command_options)
+            command_options = RansomwareOpts.model_validate(command_options)
 
         if given_command == C2Command.RANSOMWARE_LAUNCH:
             # Validating command options
-            command_options = Command_Opts.model_validate(command_options)
+            command_options = CommandOpts.model_validate(command_options)
 
         return [server_setup_success, command_options]
 

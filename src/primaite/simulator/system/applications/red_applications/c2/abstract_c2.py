@@ -277,8 +277,10 @@ class AbstractC2(Application, identifier="AbstractC2"):
         """Abstract Method: Used in C2 beacon to parse and handle commands received from the c2 server."""
         pass
 
+    @abstractmethod
     def _handle_keep_alive(self, payload: C2Packet, session_id: Optional[str]) -> bool:
-        """Abstract Method: The C2 Server and the C2 Beacon handle the KEEP ALIVEs differently."""
+        """Abstract Method: Each C2 suite handles ``C2Payload.KEEP_ALIVE`` differently."""
+        pass
 
     # from_network_interface=from_network_interface
     def receive(self, payload: any, session_id: Optional[str] = None, **kwargs) -> bool:

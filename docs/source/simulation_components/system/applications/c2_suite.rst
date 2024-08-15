@@ -7,14 +7,13 @@
 Command and Control Application Suite
 #####################################
 
-Comprising of two applications, the command and control (C2) suites intends to introduce
+Comprising of two applications, the Command and Control (C2) suites intends to introduce
 malicious network architecture and begin to further the realism of red agents within primAITE.
 
 Overview:
 =========
 
-These two new classes intend to Red Agents a cyber realistic way of leveraging the capabilities of the ``Terminal`` application.
-Whilst introducing both more opportunities for the blue agent to notice and subvert Red Agents during an episode.
+These two new classes give red agents a cyber realistic way of leveraging the capabilities of the ``Terminal`` application whilst introducing more opportunities for the blue agent to notice and subvert a red agent during an episode.
 
 For a more in-depth look at the command and control applications then please refer to the ``C2-E2E-Notebook``.
 
@@ -23,7 +22,7 @@ For a more in-depth look at the command and control applications then please ref
 
 The C2 Server application is intended to represent the malicious infrastructure already under the control of an adversary.
 
-The C2 Server is configured to listen and await ``keep alive`` traffic from a c2 beacon. Once received the C2 Server is able to send and receive c2 commands.
+The C2 Server is configured to listen and await ``keep alive`` traffic from a C2 beacon. Once received the C2 Server is able to send and receive C2 commands.
 
 Currently, the C2 Server offers three commands:
 
@@ -88,7 +87,7 @@ Implementation
 ==============
 
 Both applications inherit from an abstract C2 which handles the keep alive functionality and main logic.
-However, each host implements it's receive methods individually.
+However, each host implements it's own receive methods.
 
 - The ``C2 Beacon`` is responsible for the following logic:
     - Establishes and confirms connection to the C2 Server via sending ``C2Payload.KEEP_ALIVE``.
@@ -275,11 +274,11 @@ This must be a valid integer i.e ``10``. Defaults to ``5``.
 
 The protocol that the C2 Beacon will use to communicate to the C2 Server with.
 
-Currently only ``tcp`` and ``udp`` are valid masquerade protocol options.
+Currently only ``TCP`` and ``UDP`` are valid masquerade protocol options.
 
 It's worth noting that this may be useful option to bypass ACL rules.
 
-This must be a string i.e ``udp``. Defaults to ``tcp``.
+This must be a string i.e *UDP*. Defaults to ``TCP``.
 
 *Please refer to the ``IPProtocol`` class for further reference.*
 

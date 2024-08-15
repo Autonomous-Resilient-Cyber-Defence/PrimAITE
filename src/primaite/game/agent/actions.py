@@ -1143,7 +1143,7 @@ class RansomwareLaunchC2ServerAction(AbstractAction):
         node_name = self.manager.get_node_name_by_idx(node_id)
         if node_name is None:
             return ["do_nothing"]
-        # Not options needed for this action.
+        # This action currently doesn't require any further configuration options.
         return ["network", "node", node_name, "application", "C2Server", "ransomware_launch"]
 
 

@@ -11,7 +11,7 @@ from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.masquerade import C2Packet
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.applications.red_applications.c2 import Exfil_Opts, Ransomware_Opts, Terminal_Opts
+from primaite.simulator.system.applications.red_applications.c2 import ExfilOpts, RansomwareOpts, TerminalOpts
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from primaite.simulator.system.services.terminal.terminal import Terminal, TerminalClientConnection
@@ -30,7 +30,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     Extends the Abstract C2 application to include the following:
 
     1. Receiving commands from the C2 Server (Command input)
-    2. Leveraging the terminal application to execute requests (dependant on the command given)
+    2. Leveraging the terminal application to execute requests (dependent on the command given)
     3. Sending the RequestResponse back to the C2 Server (Command output)
 
     Please refer to the Command-&-Control notebook for an in-depth example of the C2 Suite.
@@ -156,7 +156,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :type c2_server_ip_address: IPv4Address
         :param keep_alive_frequency: The frequency (timesteps) at which the C2 beacon will send keep alive(s).
         :type keep_alive_frequency: Int
-        :param masquerade_protocol: The Protocol that C2 Traffic will masquerade as. Defaults as TCP.
+        :param masquerade_protocol: The Protocol that C2 Traffic will masquerade as. Defaults to TCP.
         :type masquerade_protocol: Enum (IPProtocol)
         :param masquerade_port: The Port that the C2 Traffic will masquerade as. Defaults to FTP.
         :type masquerade_port: Enum (Port)
@@ -294,7 +294,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :return: Returns the Request Response returned by the Terminal execute method.
         :rtype: Request Response
         """
-        command_opts = Ransomware_Opts.model_validate(payload.payload)
+        command_opts = RansomwareOpts.model_validate(payload.payload)
         if self._host_ransomware_script is None:
             return RequestResponse(
                 status="failure",
@@ -352,7 +352,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
                 data={"Reason": "Cannot find any instances of both a FTP Server & Client. Are they installed?"},
             )
 
-        command_opts = Exfil_Opts.model_validate(payload.payload)
+        command_opts = ExfilOpts.model_validate(payload.payload)
 
         # Setting up the terminal session and the ftp server
         if not self._set_terminal_session(
@@ -401,7 +401,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         Attempts to exfiltrate a target file from a target using the parameters given.
 
         Uses the current terminal_session to send a command to the
-        remote host's FTP Client passing the exfil_opts as command options.
+        remote host's FTP Client passing the ExfilOpts as command options.
 
         This will instruct the FTP client to send the target file to the
         dest_ip_address's destination folder.
@@ -411,8 +411,8 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         2. The target has a functioning FTP Client Service.
 
 
-        :exfil_opts: A Pydantic model containing the require configuration options
-        :type exfil_opts: Exfil_Opts
+        :ExfilOpts: A Pydantic model containing the require configuration options
+        :type ExfilOpts: ExfilOpts
         :return: Returns a tuple containing a success boolean and a Request Response..
         :rtype: tuple[bool, RequestResponse
         """
@@ -473,7 +473,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :return: Returns the Request Response returned by the Terminal execute method.
         :rtype: Request Response
         """
-        command_opts = Terminal_Opts.model_validate(payload.payload)
+        command_opts = TerminalOpts.model_validate(payload.payload)
 
         if self._host_terminal is None:
             return RequestResponse(

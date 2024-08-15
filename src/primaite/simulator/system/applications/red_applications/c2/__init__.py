@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, field_validator, ValidationInfo
 from primaite.interface.request import RequestFormat
 
 
-class Command_Opts(BaseModel):
+class CommandOpts(BaseModel):
     """A C2 Pydantic Schema acting as a base class for all C2 Commands."""
 
     @field_validator("payload", "exfiltration_folder_name", "ip_address", mode="before", check_fields=False)
@@ -18,7 +18,7 @@ class Command_Opts(BaseModel):
         return v
 
 
-class Ransomware_Opts(Command_Opts):
+class RansomwareOpts(CommandOpts):
     """A Pydantic Schema for the Ransomware Configuration command options."""
 
     server_ip_address: str
@@ -28,7 +28,7 @@ class Ransomware_Opts(Command_Opts):
     """The malicious payload to be used to attack the target database."""
 
 
-class Remote_Opts(Command_Opts):
+class RemoteOpts(CommandOpts):
     """A base C2 Pydantic Schema for all C2 Commands that require a terminal connection."""
 
     ip_address: Optional[str] = Field(default=None)
@@ -41,7 +41,7 @@ class Remote_Opts(Command_Opts):
     """A Password of a valid user account. Used to login into both remote and local hosts."""
 
 
-class Exfil_Opts(Remote_Opts):
+class ExfilOpts(RemoteOpts):
     """A Pydantic Schema for the C2 Data Exfiltration command options."""
 
     target_ip_address: str
@@ -54,10 +54,10 @@ class Exfil_Opts(Remote_Opts):
     """The name of the remote folder which contains the target file."""
 
     exfiltration_folder_name: str = Field(default="exfiltration_folder")
-    """"""
+    """The name of C2 Suite folder used to store the target file. Defaults to ``exfiltration_folder``"""
 
 
-class Terminal_Opts(Remote_Opts):
+class TerminalOpts(RemoteOpts):
     """A Pydantic Schema for the C2 Terminal command options."""
 
     commands: Union[list[RequestFormat], RequestFormat]
