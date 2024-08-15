@@ -1195,7 +1195,7 @@ class TerminalC2ServerAction(AbstractAction):
     class _Opts(BaseModel):
         """Schema for options that can be passed to this action."""
 
-        commands: List[RequestFormat]
+        commands: Union[List[RequestFormat], RequestFormat]
         ip_address: Optional[str]
         username: Optional[str]
         password: Optional[str]

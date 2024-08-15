@@ -287,7 +287,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
             if self._host_ftp_server is None:
                 self.sys_log.warning(f"{self.name}: Unable to setup the FTP Server for data exfiltration")
                 return False
-            if not self.get_exfiltration_folder(command_options.get("exfiltration_folder_name", "exfil")):
+            if self.get_exfiltration_folder(command_options.get("exfiltration_folder_name")) is None:
                 self.sys_log.warning(f"{self.name}: Unable to create a folder for storing exfiltration data.")
                 return False
 

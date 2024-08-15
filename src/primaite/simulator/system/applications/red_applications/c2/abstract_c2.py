@@ -147,7 +147,6 @@ class AbstractC2(Application, identifier="AbstractC2"):
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
 
-    # TODO: We may need to disable the ftp_server/client when using the opposite service. (To test)
     @property
     def _host_ftp_client(self) -> Optional[FTPClient]:
         """Return the FTPClient that is installed C2 Application's host.
@@ -214,8 +213,10 @@ class AbstractC2(Application, identifier="AbstractC2"):
             self.sys_log.error(f"{self.__class__.__name__}: does not seem to have a file system!")
         return host_file_system
 
-    def get_exfiltration_folder(self, folder_name: str) -> Optional[Folder]:
+    def get_exfiltration_folder(self, folder_name: Optional[str] = "exfiltration_folder") -> Optional[Folder]:
         """Return a folder used for storing exfiltrated data. Otherwise returns None."""
+        if self._host_file_system is None:
+            return
         exfiltration_folder: Union[Folder, None] = self._host_file_system.get_folder(folder_name)
         if exfiltration_folder is None:
             self.sys_log.info(f"{self.__class__.__name__}: Creating a exfiltration folder.")
