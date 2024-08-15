@@ -379,12 +379,11 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             "dest_file_name": command_opts.target_file_name,
         }
 
-        # Lambda method used to return a failure RequestResponse if we're unable to perform the exfiltration.
-        # If _check_connection returns false then connection_status will return reason (A 'failure' Request Response)
-        if attempt_exfiltration := (lambda return_bool, reason: reason if return_bool is False else None)(
-            *self._perform_exfiltration(exfil_opts)
-        ):
-            return attempt_exfiltration
+        attempt_exfiltration: tuple[bool, RequestResponse] = self._perform_exfiltration(exfil_opts)
+
+        if attempt_exfiltration[0] is False:
+            self.sys_log.error(f"{self.name}: File Exfiltration Attempt Failed: {attempt_exfiltration[1].data}")
+            return attempt_exfiltration[1]
 
         # Sending the transferred target data back to the C2 Server to successfully exfiltrate the data out the network.
 
@@ -418,6 +417,9 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :return: Returns a tuple containing a success boolean and a Request Response..
         :rtype: tuple[bool, RequestResponse
         """
+        # Creating the exfiltration folder .
+        exfiltration_folder = self.get_exfiltration_folder(exfil_opts.get("dest_folder_name"))
+
         # Using the terminal to send the target data back to the C2 Beacon.
         exfil_response: RequestResponse = RequestResponse.from_bool(
             self.terminal_session.execute(command=["service", "FTPClient", "send", exfil_opts])
@@ -432,12 +434,9 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         # Target file:
         target_file: str = exfil_opts.get("src_file_name")
 
-        # Creating the exfiltration folder .
-        exfiltration_folder = self.get_exfiltration_folder(exfil_opts.get("src_folder_name"))
-
         if exfiltration_folder.get_file(target_file) is None:
             self.sys_log.warning(
-                f"{self.name}: Unable to locate exfiltrated file on local filesystem."
+                f"{self.name}: Unable to locate exfiltrated file on local filesystem. "
                 f"Perhaps the file transfer failed?"
             )
             return [

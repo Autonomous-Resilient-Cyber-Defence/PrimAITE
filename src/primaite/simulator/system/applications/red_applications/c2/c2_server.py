@@ -221,12 +221,10 @@ class C2Server(AbstractC2, identifier="C2Server"):
                 status="failure", data={"Reason": "Received unexpected C2Command. Unable to send command."}
             )
 
-        # Lambda method used to return a failure RequestResponse if we're unable to confirm a connection.
-        # If _check_connection returns false then connection_status will return reason (A 'failure' Request Response)
-        if connection_status := (lambda return_bool, reason: reason if return_bool is False else None)(
-            *self._check_connection()
-        ):
-            return connection_status
+        connection_status: tuple[bool, RequestResponse] = self._check_connection()
+
+        if connection_status[0] is False:
+            return connection_status[1]
 
         if not self._command_setup(given_command, command_options):
             self.sys_log.warning(

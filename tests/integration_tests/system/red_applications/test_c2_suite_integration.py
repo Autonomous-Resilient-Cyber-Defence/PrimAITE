@@ -270,7 +270,7 @@ def test_c2_suite_terminal_command_file_creation(basic_network):
     c2_server.send_command(C2Command.TERMINAL, command_options=file_create_command)
 
     assert computer_b.software_manager.file_system.access_file(folder_name="test_folder", file_name="test_file") == True
-    assert c2_beacon.local_terminal_session is not None
+    assert c2_beacon.terminal_session is not None
 
     # Testing that we can create the same test file/folders via on node 3 via a remote terminal.
 
@@ -280,7 +280,7 @@ def test_c2_suite_terminal_command_file_creation(basic_network):
     c2_server.send_command(C2Command.TERMINAL, command_options=file_create_command)
 
     assert computer_c.software_manager.file_system.access_file(folder_name="test_folder", file_name="test_file") == True
-    assert c2_beacon.remote_terminal_session is not None
+    assert c2_beacon.terminal_session is not None
 
 
 def test_c2_suite_acl_bypass(basic_network):

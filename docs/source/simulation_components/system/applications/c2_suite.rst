@@ -34,6 +34,8 @@ Currently, the C2 Server offers three commands:
 +---------------------+---------------------------------------------------------------------------+
 |RANSOMWARE_LAUNCH    | Launches the installed ransomware script.                                 |
 +---------------------+---------------------------------------------------------------------------+
+|DATA_EXFILTRATION    | Copies a target file from a remote node to the C2 Beacon & Server via FTP |
++---------------------+---------------------------------------------------------------------------+
 |TERMINAL             | Executes a command via the terminal installed on the C2 Beacons Host.     |
 +---------------------+---------------------------------------------------------------------------+
 
@@ -111,21 +113,28 @@ Python
     from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Server
     from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Command
     from primaite.simulator.network.hardware.nodes.host.computer import Computer
-
+    from primaite.simulator.system.services.database.database_service import DatabaseService
+    from primaite.simulator.system.applications.database_client import DatabaseClient
     # Network Setup
+
+    switch = Switch(hostname="switch", start_up_duration=0, num_ports=4)
+    switch.power_on()
 
     node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
     node_a.power_on()
     node_a.software_manager.install(software_class=C2Server)
-    node_a.software_manager.get_open_ports()
-
+    network.connect(node_a.network_interface[1], switch.network_interface[1])
 
     node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
     node_b.power_on()
     node_b.software_manager.install(software_class=C2Beacon)
-    node_b.software_manager.install(software_class=RansomwareScript)
-    network.connect(node_a.network_interface[1], node_b.network_interface[1])
+    node_b.software_manager.install(software_class=DatabaseClient)
+    network.connect(node_b.network_interface[1], switch.network_interface[2])
 
+    node_c = Computer(hostname="node_c", ip_address="192.168.0.12", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_c.power_on()
+    node_c.software_manager.install(software_class=DatabaseServer)
+    network.connect(node_c.network_interface[1], switch.network_interface[3])
 
     # C2 Application objects
 
@@ -159,7 +168,7 @@ Python
 
     c2_server.send_command(C2Command.TERMINAL, command_options=file_create_command)
 
-    # Example commands: Installing and configuring Ransomware:
+    # Example command: Installing and configuring Ransomware:
 
     ransomware_installation_command = { "commands": [
             ["software_manager","application","install","RansomwareScript"],
@@ -170,11 +179,30 @@ Python
     }
     c2_server.send_command(given_command=C2Command.TERMINAL, command_options=ransomware_config)
 
-    ransomware_config = {"server_ip_address": "192.168.0.10"}
+    ransomware_config = {"server_ip_address": "192.168.0.12"}
 
     c2_server.send_command(given_command=C2Command.RANSOMWARE_CONFIGURE, command_options=ransomware_config)
 
     c2_beacon_host.software_manager.show()
+
+    # Example command: File Exfiltration
+
+    data_exfil_options = {
+        "username": "admin",
+        "password": "admin",
+        "ip_address": None,
+        "target_ip_address": "192.168.0.12",
+        "target_file_name": "database.db"
+        "target_folder_name": "database"
+        "exfiltration_folder_name":
+    }
+
+    c2_server.send_command(given_command=C2Command.DATA_EXFILTRATION, command_options=data_exfil_options)
+
+    # Example command: Launching Ransomware
+
+    c2_server.send_command(given_command=C2Command.RANSOMWARE_LAUNCH, command_options={})
+
 
 
 Via Configuration
