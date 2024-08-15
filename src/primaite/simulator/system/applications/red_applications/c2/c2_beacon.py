@@ -14,11 +14,7 @@ from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.red_applications.c2 import Exfil_Opts, Ransomware_Opts, Terminal_Opts
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
-from primaite.simulator.system.services.terminal.terminal import (
-    LocalTerminalConnection,
-    RemoteTerminalConnection,
-    Terminal,
-)
+from primaite.simulator.system.services.terminal.terminal import Terminal, TerminalClientConnection
 
 
 class C2Beacon(AbstractC2, identifier="C2Beacon"):
@@ -43,11 +39,8 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     keep_alive_attempted: bool = False
     """Indicates if a keep alive has been attempted to be sent this timestep. Used to prevent packet storms."""
 
-    local_terminal_session: LocalTerminalConnection = None
-    "The currently in use local terminal session."
-
-    remote_terminal_session: RemoteTerminalConnection = None
-    "The currently in use remote terminal session"
+    terminal_session: TerminalClientConnection = None
+    "The currently in use terminal session."
 
     @property
     def _host_terminal(self) -> Optional[Terminal]:
@@ -65,25 +58,20 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             self.sys_log.warning(f"{self.__class__.__name__} cannot find installed ransomware on its host.")
         return ransomware_script
 
-    def get_terminal_session(self, username: str, password: str) -> Optional[LocalTerminalConnection]:
-        """Return an instance of a Local Terminal Connection upon successful login. Otherwise returns None."""
-        if self.local_terminal_session is None:
-            host_terminal: Terminal = self._host_terminal
-            self.local_terminal_session = host_terminal.login(username=username, password=password)
+    def _set_terminal_session(self, username: str, password: str, ip_address: Optional[IPv4Address] = None) -> bool:
+        """
+        Attempts to create and a terminal session using the parameters given.
 
-        return self.local_terminal_session
+        If an IP Address is passed then this method will attempt to create a remote terminal
+        session. Otherwise a local terminal session will be created.
 
-    def get_remote_terminal_session(
-        self, username: str, password: str, ip_address: IPv4Address
-    ) -> Optional[RemoteTerminalConnection]:
-        """Return an instance of a Local Terminal Connection upon successful login. Otherwise returns None."""
-        if self.remote_terminal_session is None:
-            host_terminal: Terminal = self._host_terminal
-            self.remote_terminal_session = host_terminal.login(
-                username=username, password=password, ip_address=ip_address
-            )
-
-        return self.remote_terminal_session
+        :return: Returns true if a terminal session was successfully set. False otherwise.
+        :rtype: Bool
+        """
+        self.terminal_session is None
+        host_terminal: Terminal = self._host_terminal
+        self.terminal_session = host_terminal.login(username=username, password=password, ip_address=ip_address)
+        return self.terminal_session is not None
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -354,7 +342,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
 
         :payload C2Packet: The incoming INPUT command.
         :type Masquerade Packet: C2Packet.
-        :return: Returns the Request Response returned by the Terminal execute method.
+        :return: Returns a tuple containing Request Response returned by the Terminal execute method.
         :rtype: Request Response
         """
         if self._host_ftp_server is None:
@@ -367,12 +355,16 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         command_opts = Exfil_Opts.model_validate(payload.payload)
 
         # Setting up the terminal session and the ftp server
-        terminal_session = self.get_remote_terminal_session(
+        if not self._set_terminal_session(
             username=command_opts.username, password=command_opts.password, ip_address=command_opts.target_ip_address
-        )
+        ):
+            return RequestResponse(
+                status="failure",
+                data={"Reason": "Cannot create a terminal session. Are the credentials correct?"},
+            )
 
         # Using the terminal to start the FTP Client on the remote machine.
-        terminal_session.execute(command=["service", "start", "FTPClient"])
+        self.terminal_session.execute(command=["service", "start", "FTPClient"])
 
         # Need to supply to the FTP Client the C2 Beacon's host IP.
         host_network_interfaces = self.software_manager.node.network_interfaces
@@ -390,7 +382,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         # Lambda method used to return a failure RequestResponse if we're unable to perform the exfiltration.
         # If _check_connection returns false then connection_status will return reason (A 'failure' Request Response)
         if attempt_exfiltration := (lambda return_bool, reason: reason if return_bool is False else None)(
-            *self._perform_target_exfiltration(exfil_opts, terminal_session)
+            *self._perform_exfiltration(exfil_opts)
         ):
             return attempt_exfiltration
 
@@ -406,13 +398,29 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             )
         )
 
-    def _perform_target_exfiltration(
-        self, exfil_opts: dict, terminal_session: RemoteTerminalConnection
-    ) -> tuple[bool, RequestResponse]:
-        """Confirms that the target data is currently present within the C2 Beacon's hosts file system."""
+    def _perform_exfiltration(self, exfil_opts: Exfil_Opts) -> tuple[bool, RequestResponse]:
+        """
+        Attempts to exfiltrate a target file from a target using the parameters given.
+
+        Uses the current terminal_session to send a command to the
+        remote host's FTP Client passing the exfil_opts as command options.
+
+        This will instruct the FTP client to send the target file to the
+        dest_ip_address's destination folder.
+
+        This method assumes that the following:
+        1. The self.terminal_session is the remote target.
+        2. The target has a functioning FTP Client Service.
+
+
+        :exfil_opts: A Pydantic model containing the require configuration options
+        :type exfil_opts: Exfil_Opts
+        :return: Returns a tuple containing a success boolean and a Request Response..
+        :rtype: tuple[bool, RequestResponse
+        """
         # Using the terminal to send the target data back to the C2 Beacon.
         exfil_response: RequestResponse = RequestResponse.from_bool(
-            terminal_session.execute(command=["service", "FTPClient", "send", exfil_opts])
+            self.terminal_session.execute(command=["service", "FTPClient", "send", exfil_opts])
         )
 
         # Validating that we successfully received the target data.
@@ -432,16 +440,20 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
                 f"{self.name}: Unable to locate exfiltrated file on local filesystem."
                 f"Perhaps the file transfer failed?"
             )
-            return RequestResponse(
-                status="failure", data={"reason": "Unable to locate exfiltrated data on file system."}
-            )
+            return [
+                False,
+                RequestResponse(status="failure", data={"reason": "Unable to locate exfiltrated data on file system."}),
+            ]
 
         if self._host_ftp_client is None:
             self.sys_log.warning(f"{self.name}: C2 Beacon unable to the FTP Server. Unable to resolve command.")
-            return RequestResponse(
-                status="failure",
-                data={"Reason": "Cannot find any instances of both a FTP Server & Client. Are they installed?"},
-            )
+            return [
+                False,
+                RequestResponse(
+                    status="failure",
+                    data={"Reason": "Cannot find any instances of both a FTP Server & Client. Are they installed?"},
+                ),
+            ]
 
         return [
             True,
@@ -474,16 +486,12 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         terminal_output: Dict[int, RequestResponse] = {}
 
         # Creating a remote terminal session if given an IP Address, otherwise using a local terminal session.
-        if command_opts.ip_address is None:
-            terminal_session = self.get_terminal_session(username=command_opts.username, password=command_opts.password)
-        else:
-            terminal_session = self.get_remote_terminal_session(
-                username=command_opts.username, password=command_opts.password, ip_address=command_opts.ip_address
-            )
-
-        if terminal_session is None:
+        if not self._set_terminal_session(
+            username=command_opts.username, password=command_opts.password, ip_address=command_opts.ip_address
+        ):
             return RequestResponse(
-                status="failure", data={"reason": "Terminal Login failed. Cannot create a terminal session."}
+                status="failure",
+                data={"Reason": "Cannot create a terminal session. Are the credentials correct?"},
             )
 
         # Converts a singular terminal command: [RequestFormat] into a list with one element [[RequestFormat]]
@@ -495,10 +503,10 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             # A try catch exception ladder was used but was considered not the best approach
             # as it can end up obscuring visibility of actual bugs (Not the expected ones) and was a temporary solution.
             # TODO: Refactor + add further validation to ensure that a request is correct. (maybe a pydantic method?)
-            terminal_output[index] = terminal_session.execute(given_command)
+            terminal_output[index] = self.terminal_session.execute(given_command)
 
         # Reset our remote terminal session.
-        self.remote_terminal_session is None
+        self.terminal_session is None
         return RequestResponse(status="success", data=terminal_output)
 
     def _handle_keep_alive(self, payload: C2Packet, session_id: Optional[str]) -> bool:
