@@ -1265,7 +1265,8 @@ class UserSessionManager(Service):
         :return: A dictionary representing the current state.
         """
         state = super().describe_state()
-        state["active_remote_logins"] = len(self.remote_sessions)
+        state["current_local_user"] = None if not self.local_session else self.local_session.user.username
+        state["active_remote_sessions"] = list(self.remote_sessions.keys())
         return state
 
     @property
