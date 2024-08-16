@@ -10,11 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Random Number Generator Seeding by specifying a random number seed in the config file.
 -   Implemented Terminal service class, providing a generic terminal simulation.
 -   Added `User`, `UserManager` and `UserSessionManager` to enable the creation of user accounts and login on Nodes.
+-   Added actions to establish SSH connections, send commands remotely and terminate SSH connections.
+-   Added actions to change users' passwords.
 -   Added a `listen_on_ports` set in the `IOSoftware` class to enable software listening on ports in addition to the
     main port they're assigned.
 
 ### Changed
 -   File and folder observations can now be configured to always show the true health status, or require scanning like before.
+-   Node observations can now be configured to show the number of active local and remote logins.
 
 ### Fixed
 -   Folder observations showing the true health state without scanning (the old behaviour can be reenabled via config)
