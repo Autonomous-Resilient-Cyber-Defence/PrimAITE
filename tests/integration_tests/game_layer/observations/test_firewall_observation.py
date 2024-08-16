@@ -33,6 +33,7 @@ def test_firewall_observation():
         wildcard_list=["0.0.0.255", "0.0.0.1"],
         port_list=["HTTP", "DNS"],
         protocol_list=["TCP"],
+        include_users=False,
     )
 
     observation = firewall_observation.observe(firewall.describe_state())
