@@ -461,15 +461,9 @@ class PrimaiteGame:
                             opt = application_cfg["options"]
                             new_application.configure(
                                 c2_server_ip_address=IPv4Address(opt.get("c2_server_ip_address")),
-                                keep_alive_frequency=(opt.get("keep_alive_frequency", 5))
-                                if opt.get("keep_alive_frequency")
-                                else 5,
-                                masquerade_protocol=IPProtocol[(opt.get("masquerade_protocol"))]
-                                if opt.get("masquerade_protocol")
-                                else IPProtocol.TCP,
-                                masquerade_port=Port[(opt.get("masquerade_port"))]
-                                if opt.get("masquerade_port")
-                                else Port.HTTP,
+                                keep_alive_frequency=(opt.get("keep_alive_frequency", 5)),
+                                masquerade_protocol=IPProtocol[(opt.get("masquerade_protocol", IPProtocol.TCP))],
+                                masquerade_port=Port[(opt.get("masquerade_port", Port.HTTP))],
                             )
             if "network_interfaces" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():

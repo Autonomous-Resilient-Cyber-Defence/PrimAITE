@@ -257,27 +257,37 @@ def test_c2_suite_terminal_command_file_creation(basic_network):
     # Testing that we can create the test file and folders via the terminal command (Local C2 Terminal).
 
     # Local file/folder creation commands.
-    file_create_command = {
-        "commands": [
-            ["file_system", "create", "folder", "test_folder"],
-            ["file_system", "create", "file", "test_folder", "test_file", "True"],
-        ],
+    folder_create_command = {
+        "commands": ["file_system", "create", "folder", "test_folder"],
         "username": "admin",
         "password": "admin",
         "ip_address": None,
     }
+    c2_server.send_command(C2Command.TERMINAL, command_options=folder_create_command)
 
+    file_create_command = {
+        "commands": ["file_system", "create", "file", "test_folder", "test_file", "True"],
+        "username": "admin",
+        "password": "admin",
+        "ip_address": None,
+    }
     c2_server.send_command(C2Command.TERMINAL, command_options=file_create_command)
 
     assert computer_b.software_manager.file_system.access_file(folder_name="test_folder", file_name="test_file") == True
     assert c2_beacon.terminal_session is not None
 
     # Testing that we can create the same test file/folders via on node 3 via a remote terminal.
+    file_remote_create_command = {
+        "commands": [
+            ["file_system", "create", "folder", "test_folder"],
+            ["file_system", "create", "file", "test_folder", "test_file", "True"],
+        ],
+        "username": "admin",
+        "password": "admin",
+        "ip_address": "192.168.255.3",
+    }
 
-    #  node_c's IP is 192.168.255.3
-    file_create_command.update({"ip_address": "192.168.255.3"})
-
-    c2_server.send_command(C2Command.TERMINAL, command_options=file_create_command)
+    c2_server.send_command(C2Command.TERMINAL, command_options=file_remote_create_command)
 
     assert computer_c.software_manager.file_system.access_file(folder_name="test_folder", file_name="test_file") == True
     assert c2_beacon.terminal_session is not None
@@ -435,11 +445,15 @@ def test_c2_suite_acl_bypass(basic_network):
 
     # Confirming that we can send commands
 
+    http_folder_create_command = {
+        "commands": ["file_system", "create", "folder", "test_folder"],
+        "username": "admin",
+        "password": "admin",
+        "ip_address": None,
+    }
+    c2_server.send_command(C2Command.TERMINAL, command_options=http_folder_create_command)
     http_file_create_command = {
-        "commands": [
-            ["file_system", "create", "folder", "test_folder"],
-            ["file_system", "create", "file", "test_folder", "http_test_file", "True"],
-        ],
+        "commands": ["file_system", "create", "file", "test_folder", "http_test_file", "true"],
         "username": "admin",
         "password": "admin",
         "ip_address": None,

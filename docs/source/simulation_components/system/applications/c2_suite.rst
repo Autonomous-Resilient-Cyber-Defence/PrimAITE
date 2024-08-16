@@ -13,7 +13,7 @@ malicious network architecture and begin to further the realism of red agents wi
 Overview:
 =========
 
-These two new classes give red agents a cyber realistic way of leveraging the capabilities of the ``Terminal`` application whilst introducing more opportunities for the blue agent to notice and subvert a red agent during an episode.
+These two new classes give red agents a cyber realistic way of leveraging the capabilities of the ``Terminal`` application whilst introducing more opportunities for the blue agent(s) to notice and subvert a red agent during an episode.
 
 For a more in-depth look at the command and control applications then please refer to the ``C2-E2E-Notebook``.
 

@@ -493,8 +493,9 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
             )
 
         # Converts a singular terminal command: [RequestFormat] into a list with one element [[RequestFormat]]
+        # Checks the first element - if this element is a str then there must be multiple commands.
         command_opts.commands = (
-            [command_opts.commands] if not isinstance(command_opts.commands, list) else command_opts.commands
+            [command_opts.commands] if isinstance(command_opts.commands[0], str) else command_opts.commands
         )
 
         for index, given_command in enumerate(command_opts.commands):
