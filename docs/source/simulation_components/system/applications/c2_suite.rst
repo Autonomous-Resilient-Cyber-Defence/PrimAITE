@@ -18,7 +18,7 @@ These two new classes give red agents a cyber realistic way of leveraging the ca
 For a more in-depth look at the command and control applications then please refer to the ``C2-E2E-Notebook``.
 
 ``C2 Server``
-""""""""""""
+"""""""""""""
 
 The C2 Server application is intended to represent the malicious infrastructure already under the control of an adversary.
 
@@ -101,8 +101,8 @@ However, each host implements it's own receive methods.
 
 The sequence diagram below clarifies the functionality of both applications:
 
-.. image:: ../_static/c2_sequence.png
-    :width: 500
+.. image:: ../../../../_static/c2_sequence.png
+    :width: 1000
     :align: center
 
 
@@ -114,38 +114,45 @@ Examples
 Python
 """"""
 .. code-block:: python
-    from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
-    from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Server
-    from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Command
+
+    from primaite.simulator.network.container import Network
     from primaite.simulator.network.hardware.nodes.host.computer import Computer
-    from primaite.simulator.system.services.database.database_service import DatabaseService
+    from primaite.simulator.network.hardware.nodes.network.switch import Switch
     from primaite.simulator.system.applications.database_client import DatabaseClient
+    from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
+    from primaite.simulator.system.services.database.database_service import DatabaseService
+    from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Command, C2Server
+    from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
+
     # Network Setup
+    network = Network()
+
 
     switch = Switch(hostname="switch", start_up_duration=0, num_ports=4)
     switch.power_on()
 
     node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
     node_a.power_on()
-    node_a.software_manager.install(software_class=C2Server)
     network.connect(node_a.network_interface[1], switch.network_interface[1])
 
     node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
     node_b.power_on()
-    node_b.software_manager.install(software_class=C2Beacon)
-    node_b.software_manager.install(software_class=DatabaseClient)
+
     network.connect(node_b.network_interface[1], switch.network_interface[2])
 
     node_c = Computer(hostname="node_c", ip_address="192.168.0.12", subnet_mask="255.255.255.0", start_up_duration=0)
     node_c.power_on()
-    node_c.software_manager.install(software_class=DatabaseServer)
     network.connect(node_c.network_interface[1], switch.network_interface[3])
+
+    node_c.software_manager.install(software_class=DatabaseService)
+    node_b.software_manager.install(software_class=DatabaseClient)
+    node_b.software_manager.install(software_class=RansomwareScript)
+    node_a.software_manager.install(software_class=C2Server)
 
     # C2 Application objects
 
-    c2_server_host: computer = simulation_testing_network.get_node_by_hostname("node_a")
-    c2_beacon_host: computer = simulation_testing_network.get_node_by_hostname("node_b")
-
+    c2_server_host: Computer = network.get_node_by_hostname("node_a")
+    c2_beacon_host: Computer = network.get_node_by_hostname("node_b")
 
     c2_server: C2Server = c2_server_host.software_manager.software["C2Server"]
     c2_beacon: C2Beacon = c2_beacon_host.software_manager.software["C2Beacon"]
@@ -182,7 +189,7 @@ Python
         "password": "admin",
         "ip_address": None,
     }
-    c2_server.send_command(given_command=C2Command.TERMINAL, command_options=ransomware_config)
+    c2_server.send_command(given_command=C2Command.TERMINAL, command_options=ransomware_installation_command)
 
     ransomware_config = {"server_ip_address": "192.168.0.12"}
 
@@ -197,9 +204,8 @@ Python
         "password": "admin",
         "ip_address": None,
         "target_ip_address": "192.168.0.12",
-        "target_file_name": "database.db"
-        "target_folder_name": "database"
-        "exfiltration_folder_name":
+        "target_file_name": "database.db",
+        "target_folder_name": "database",
     }
 
     c2_server.send_command(given_command=C2Command.DATA_EXFILTRATION, command_options=data_exfil_options)
@@ -254,7 +260,7 @@ C2 Beacon Configuration
 .. |SOFTWARE_NAME_BACKTICK| replace:: ``C2Beacon``
 
 ``c2_server_ip_address``
-"""""""""""""""""""""""
+""""""""""""""""""""""""
 
 IP address of the ``C2Server`` that the C2 Beacon will use to establish connection.
 
@@ -262,7 +268,7 @@ This must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.25
 
 
 ``Keep Alive Frequency``
-"""""""""""""""""""""""
+""""""""""""""""""""""""
 
 How often should the C2 Beacon confirm it's connection in timesteps.
 
