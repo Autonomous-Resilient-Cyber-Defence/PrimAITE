@@ -75,7 +75,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
     keep_alive_inactivity: int = 0
     """Indicates how many timesteps since the last time the c2 application received a keep alive."""
 
-    class C2_Opts(BaseModel):
+    class _C2Opts(BaseModel):
         """A Pydantic Schema for the different C2 configuration options."""
 
         keep_alive_frequency: int = Field(default=5, ge=1)
@@ -87,7 +87,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
         masquerade_port: Port = Field(default=Port.HTTP)
         """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
 
-    c2_config: C2_Opts = C2_Opts()
+    c2_config: _C2Opts = _C2Opts()
     """
     Holds the current configuration settings of the C2 Suite.
 

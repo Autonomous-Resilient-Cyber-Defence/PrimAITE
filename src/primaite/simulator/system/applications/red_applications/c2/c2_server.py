@@ -208,7 +208,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
         grants more opportunity to the blue agent to prevent attacks.
 
         Additionally, future editions of primAITE may expand the C2 repertoire to allow for
-        more complex red agent behaviour such as file extraction, establishing further fall back channels
+        more complex red agent behaviour such as establishing further fall back channels
         or introduce red applications that are only installable via C2 Servers. (T1105)
 
         For more information on the impact of these commands please refer to the terminal

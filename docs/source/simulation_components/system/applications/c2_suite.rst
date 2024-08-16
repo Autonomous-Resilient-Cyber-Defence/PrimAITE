@@ -99,6 +99,12 @@ However, each host implements it's own receive methods.
     - Sends C2 Commands to the C2 Beacon via ``C2Payload.INPUT``.
     - Receives the RequestResponse of the C2 Commands executed by C2 Beacon via ``C2Payload.OUTPUT``.
 
+The sequence diagram below clarifies the functionality of both applications:
+
+.. image:: ../_static/c2_sequence.png
+    :width: 500
+    :align: center
+
 
 For further details and more in-depth examples please refer to the ``Command-&-Control notebook``
 

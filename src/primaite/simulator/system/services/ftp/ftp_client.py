@@ -52,7 +52,7 @@ class FTPClient(FTPServiceABC):
             dest_ip = request[-1].get("dest_ip_address")
             dest_ip = None if dest_ip is None else IPv4Address(dest_ip)
 
-            # TODO: Confirm that the default values lead to a safe failure.
+            # Missing FTP Options results is an automatic failure.
             src_folder = request[-1].get("src_folder_name", None)
             src_file_name = request[-1].get("src_file_name", None)
             dest_folder = request[-1].get("dest_folder_name", None)
@@ -63,7 +63,10 @@ class FTPClient(FTPServiceABC):
                     f"{self.name}: Received a FTP Request to transfer file: {src_file_name} to Remote IP: {dest_ip}."
                 )
                 return RequestResponse(
-                    status="failure", data={"reason": "Unable to locate requested file on local file system."}
+                    status="failure",
+                    data={
+                        "reason": "Unable to locate given file on local file system. Perhaps given options are invalid?"
+                    },
                 )
 
             return RequestResponse.from_bool(
