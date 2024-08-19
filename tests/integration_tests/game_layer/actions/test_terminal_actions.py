@@ -151,7 +151,6 @@ def test_change_password_logs_out_user(game_and_agent_fixture: Tuple[PrimaiteGam
     game.step()
 
     # Assert that the user cannot execute an action
-    # TODO: should the db conn object get destroyed on both nodes? or is that not realistic?
     action = (
         "NODE_SEND_REMOTE_COMMAND",
         {
