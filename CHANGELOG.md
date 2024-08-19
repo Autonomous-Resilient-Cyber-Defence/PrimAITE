@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 -   File and folder observations can now be configured to always show the true health status, or require scanning like before.
+-   It's now possible to disable stickiness on reward components, meaning their value returns to 0 during timesteps where agent don't issue the corresponding action. Affects `GreenAdminDatabaseUnreachablePenalty`, `WebpageUnavailablePenalty`, `WebServer404Penalty`
 
 ### Fixed
 -   Folder observations showing the true health state without scanning (the old behaviour can be reenabled via config)
