@@ -73,7 +73,6 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
 
     server_ip_address: Optional[IPv4Address] = None
     server_password: Optional[str] = None
-    _last_connection_successful: Optional[bool] = None
     _query_success_tracker: Dict[str, bool] = {}
     """Keep track of connections that were established or verified during this step. Used for rewards."""
     last_query_response: Optional[Dict] = None
@@ -135,8 +134,6 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         :return: A dictionary representing the current state.
         """
         state = super().describe_state()
-        # list of connections that were established or verified during this step.
-        state["last_connection_successful"] = self._last_connection_successful
         return state
 
     def show(self, markdown: bool = False):
@@ -226,13 +223,11 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
                         f"Using connection id {database_client_connection}"
                     )
                     self.connected = True
-                    self._last_connection_successful = True
                     return database_client_connection
                 else:
                     self.sys_log.info(
                         f"{self.name}: Connection request ({connection_request_id}) to {server_ip_address} declined"
                     )
-                    self._last_connection_successful = False
                     return None
             else:
                 self.sys_log.info(
@@ -357,10 +352,8 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
             success = self._query_success_tracker.get(query_id)
             if success:
                 self.sys_log.info(f"{self.name}: Query successful {sql}")
-                self._last_connection_successful = True
                 return True
             self.sys_log.error(f"{self.name}: Unable to run query {sql}")
-            self._last_connection_successful = False
             return False
         else:
             software_manager: SoftwareManager = self.software_manager
@@ -390,9 +383,6 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         if not self.native_connection:
             return False
 
-        # reset last query response
-        self.last_query_response = None
-
         uuid = str(uuid4())
         self._query_success_tracker[uuid] = False
         return self.native_connection.query(sql)
@@ -416,7 +406,6 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
                         connection_id=connection_id, connection_request_id=payload["connection_request_id"]
                     )
             elif payload["type"] == "sql":
-                self.last_query_response = payload
                 query_id = payload.get("uuid")
                 status_code = payload.get("status_code")
                 self._query_success_tracker[query_id] = status_code == 200
