@@ -164,36 +164,6 @@ class Terminal(Service):
     def _init_request_manager(self) -> RequestManager:
         """Initialise Request manager."""
         rm = super()._init_request_manager()
-        # rm.add_request(
-        #     "send",
-        #     request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.send())),
-        # )
-
-        # def _login(request: RequestFormat, context: Dict) -> RequestResponse:
-        #     login = self._process_local_login(username=request[0], password=request[1])
-        #     if login:
-        #         return RequestResponse(
-        #             status="success",
-        #             data={
-        #                 "ip_address": login.ip_address,
-        #             },
-        #         )
-        #     else:
-        #         return RequestResponse(status="failure", data={"reason": "Invalid login credentials"})
-        #
-        # rm.add_request(
-        #     "Login",
-        #     request_type=RequestType(func=_login),
-        # )
-
-        # def _logoff(request: RequestFormat, context: Dict) -> RequestResponse:
-        #     """Logoff from connection."""
-        #     connection_uuid = request[0]
-        #     self.parent.user_session_manager.local_logout(connection_uuid)
-        #     self._disconnect(connection_uuid)
-        #     return RequestResponse(status="success", data={})
-        #
-        # rm.add_request("Logoff", request_type=RequestType(func=_logoff))
 
         def _remote_login(request: RequestFormat, context: Dict) -> RequestResponse:
             login = self._send_remote_login(username=request[0], password=request[1], ip_address=request[2])

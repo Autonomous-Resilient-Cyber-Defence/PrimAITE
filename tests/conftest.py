@@ -460,7 +460,7 @@ def game_and_agent():
         {"type": "NETWORK_PORT_DISABLE"},
         {"type": "NODE_ACCOUNTS_CHANGE_PASSWORD"},
         {"type": "SSH_TO_REMOTE"},
-        {"type": "SSH_LOGOUT_LOGOUT"},
+        {"type": "SESSIONS_REMOTE_LOGOFF"},
         {"type": "NODE_SEND_REMOTE_COMMAND"},
     ]
 

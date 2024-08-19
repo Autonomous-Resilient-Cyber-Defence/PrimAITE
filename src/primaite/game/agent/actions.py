@@ -1201,7 +1201,7 @@ class ActionManager:
         "CONFIGURE_DOSBOT": ConfigureDoSBotAction,
         "NODE_ACCOUNTS_CHANGE_PASSWORD": NodeAccountsChangePasswordAction,
         "SSH_TO_REMOTE": NodeSessionsRemoteLoginAction,
-        "SSH_LOGOUT_LOGOUT": NodeSessionsRemoteLogoutAction,
+        "SESSIONS_REMOTE_LOGOFF": NodeSessionsRemoteLogoutAction,
         "NODE_SEND_REMOTE_COMMAND": NodeSendRemoteCommandAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
