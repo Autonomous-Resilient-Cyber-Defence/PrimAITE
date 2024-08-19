@@ -76,13 +76,16 @@ def test_uc2_rewards(game_and_agent):
         ]
     )
     state = game.get_sim_state()
-    reward_value = comp.calculate(
-        state,
-        last_action_response=AgentHistoryItem(
-            timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=["execute"], response=response
-        ),
+    ahi = AgentHistoryItem(
+        timestep=0,
+        action="NODE_APPLICATION_EXECUTE",
+        parameters={},
+        request=["execute"],
+        response=response,
     )
+    reward_value = comp.calculate(state, last_action_response=ahi)
     assert reward_value == 1.0
+    assert ahi.reward_info == {"last_connection_successful": True}
 
     router.acl.remove_rule(position=2)
 
@@ -92,13 +95,9 @@ def test_uc2_rewards(game_and_agent):
         ]
     )
     state = game.get_sim_state()
-    reward_value = comp.calculate(
-        state,
-        last_action_response=AgentHistoryItem(
-            timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=["execute"], response=response
-        ),
-    )
+    reward_value = comp.calculate(state, last_action_response=ahi)
     assert reward_value == -1.0
+    assert ahi.reward_info == {"last_connection_successful": False}
 
 
 def test_shared_reward():
