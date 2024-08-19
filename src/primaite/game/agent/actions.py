@@ -1071,6 +1071,83 @@ class NodeNetworkServiceReconAction(AbstractAction):
         ]
 
 
+class NodeAccountsChangePasswordAction(AbstractAction):
+    """Action which changes the password for a user."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: str, username: str, current_password: str, new_password: str) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "UserManager",
+            "change_password",
+            username,
+            current_password,
+            new_password,
+        ]
+
+
+class NodeSessionsRemoteLoginAction(AbstractAction):
+    """Action which performs a remote session login."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: str, username: str, password: str, remote_ip: str) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "Terminal",
+            "ssh_to_remote",
+            username,
+            password,
+            remote_ip,
+        ]
+
+
+class NodeSessionsRemoteLogoutAction(AbstractAction):
+    """Action which performs a remote session logout."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: str, remote_ip: str) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return ["network", "node", node_name, "service", "Terminal", "remote_logoff", remote_ip]
+
+
+class NodeSendRemoteCommandAction(AbstractAction):
+    """Action which sends a terminal command to a remote node via SSH."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, remote_ip: str, command: RequestFormat) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "Terminal",
+            "send_remote_command",
+            remote_ip,
+            {"command": command},
+        ]
+
+
 class ActionManager:
     """Class which manages the action space for an agent."""
 
@@ -1122,6 +1199,10 @@ class ActionManager:
         "CONFIGURE_DATABASE_CLIENT": ConfigureDatabaseClientAction,
         "CONFIGURE_RANSOMWARE_SCRIPT": ConfigureRansomwareScriptAction,
         "CONFIGURE_DOSBOT": ConfigureDoSBotAction,
+        "NODE_ACCOUNTS_CHANGE_PASSWORD": NodeAccountsChangePasswordAction,
+        "SSH_TO_REMOTE": NodeSessionsRemoteLoginAction,
+        "SESSIONS_REMOTE_LOGOFF": NodeSessionsRemoteLogoutAction,
+        "NODE_SEND_REMOTE_COMMAND": NodeSendRemoteCommandAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 

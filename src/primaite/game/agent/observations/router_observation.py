@@ -39,6 +39,8 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         """List of protocols for encoding ACLs."""
         num_rules: Optional[int] = None
         """Number of rules ACL rules to show."""
+        include_users: Optional[bool] = True
+        """If True, report user session information."""
 
     def __init__(
         self,
@@ -46,6 +48,7 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         ports: List[PortObservation],
         num_ports: int,
         acl: ACLObservation,
+        include_users: bool,
     ) -> None:
         """
         Initialise a router observation instance.
@@ -59,12 +62,16 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         :type num_ports: int
         :param acl: ACL observation representing the access control list of the router.
         :type acl: ACLObservation
+        :param include_users: If True, report user session information.
+        :type include_users: bool
         """
         self.where: WhereType = where
         self.ports: List[PortObservation] = ports
         self.acl: ACLObservation = acl
         self.num_ports: int = num_ports
-
+        self.include_users: bool = include_users
+        self.max_users: int = 3
+        """Maximum number of remote sessions observable, excess sessions are truncated."""
         while len(self.ports) < num_ports:
             self.ports.append(PortObservation(where=None))
         while len(self.ports) > num_ports:
@@ -95,6 +102,12 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         obs["ACL"] = self.acl.observe(state)
         if self.ports:
             obs["PORTS"] = {i + 1: p.observe(state) for i, p in enumerate(self.ports)}
+        if self.include_users:
+            sess = router_state["services"]["UserSessionManager"]
+            obs["users"] = {
+                "local_login": 1 if sess["current_local_user"] else 0,
+                "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),
+            }
         return obs
 
     @property
@@ -143,4 +156,4 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
 
         ports = [PortObservation.from_config(config=c, parent_where=where) for c in config.ports]
         acl = ACLObservation.from_config(config=config.acl, parent_where=where)
-        return cls(where=where, ports=ports, num_ports=config.num_ports, acl=acl)
+        return cls(where=where, ports=ports, num_ports=config.num_ports, acl=acl, include_users=config.include_users)
