@@ -180,13 +180,17 @@ class WebServer404Penalty(AbstractReward):
             return 0.0
 
         codes = web_service_state.get("response_codes_this_timestep")
-        if codes or not self.sticky:  # skip calculating if sticky and no new codes. Insted, reuse last step's value.
+        if codes:
 
             def status2rew(status: int) -> int:
                 """Map status codes to reward values."""
                 return 1.0 if status == 200 else -1.0 if status == 404 else 0.0
 
             self.reward = sum(map(status2rew, codes)) / len(codes)  # convert form HTTP codes to rewards and average
+        elif not self.sticky:  # there are no codes, but reward is not sticky, set reward to 0
+            self.reward = 0
+        else:  # skip calculating if sticky and no new codes. insted, reuse last step's value
+            pass
 
         return self.reward
 
@@ -319,13 +323,6 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         request returned was able to connect to the database server, because there has been an unsuccessful request
         since.
         """
-        db_state = access_from_nested_dict(state, self.location_in_state)
-
-        # If the last request was actually sent, then check if the connection was established.
-        if db_state is NOT_PRESENT_IN_STATE:
-            _LOGGER.debug(f"Can't calculate reward for {self.__class__.__name__}")
-            self.reward = 0.0
-
         request_attempted = last_action_response.request == [
             "network",
             "node",
@@ -335,11 +332,13 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
             "execute",
         ]
 
-        # skip calculating if sticky and no new codes, reusing last step value
-        if not request_attempted and self.sticky:
-            return self.reward
+        if request_attempted:  # if agent makes request, always recalculate fresh value
+            self.reward = 1.0 if last_action_response.response.status == "success" else -1.0
+        elif not self.sticky:  # if no new request and not sticky, set reward to 0
+            self.reward = 0.0
+        else:  # if no new request and sticky, reuse reward value from last step
+            pass
 
-        self.reward = 1.0 if last_action_response.response.status == "success" else -1.0
         return self.reward
 
     @classmethod
