@@ -472,7 +472,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
                 ),
             )
 
-        if self.c2_remote_connection is False:
+        if self.c2_remote_connection is None:
             self.sys_log.warning(f"{self.name}: C2 Application has yet to establish connection. Rejecting command.")
             return (
                 False,
@@ -481,8 +481,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
                     data={"Reason": "C2 Application has yet to establish connection. Unable to send command."},
                 ),
             )
-        else:
-            return (
-                True,
-                RequestResponse(status="success", data={"Reason": "C2 Application is able to send connections."}),
-            )
+        return (
+            True,
+            RequestResponse(status="success", data={"Reason": "C2 Application is able to send connections."}),
+        )
