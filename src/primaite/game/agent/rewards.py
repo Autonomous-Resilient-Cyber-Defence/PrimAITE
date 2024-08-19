@@ -255,29 +255,26 @@ class WebpageUnavailablePenalty(AbstractReward):
             "execute",
         ]
 
-        if (
-            not request_attempted and self.sticky
-        ):  # skip calculating if sticky and no new codes, reusing last step value
+        # skip calculating if sticky and no new codes, reusing last step value
+        if not request_attempted and self.sticky:
             return self.reward
 
         if last_action_response.response.status != "success":
             self.reward = -1.0
-        #
-        elif web_browser_state is NOT_PRESENT_IN_STATE or "history" not in web_browser_state:
+        elif web_browser_state is NOT_PRESENT_IN_STATE or not web_browser_state["history"]:
             _LOGGER.debug(
                 "Web browser reward could not be calculated because the web browser history on node",
                 f"{self._node} was not reported in the simulation state. Returning 0.0",
             )
             self.reward = 0.0
-        elif not web_browser_state["history"]:
-            self.reward = 0.0  # 0 if no requests have been attempted yet
-        outcome = web_browser_state["history"][-1]["outcome"]
-        if outcome == "PENDING":
-            self.reward = 0.0  # 0 if a request was attempted but not yet resolved
-        elif outcome == 200:
-            self.reward = 1.0  # 1 for successful request
-        else:  # includes failure codes and SERVER_UNREACHABLE
-            self.reward = -1.0  # -1 for failure
+        else:
+            outcome = web_browser_state["history"][-1]["outcome"]
+            if outcome == "PENDING":
+                self.reward = 0.0  # 0 if a request was attempted but not yet resolved
+            elif outcome == 200:
+                self.reward = 1.0  # 1 for successful request
+            else:  # includes failure codes and SERVER_UNREACHABLE
+                self.reward = -1.0  # -1 for failure
 
         return self.reward
 
@@ -325,7 +322,7 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         db_state = access_from_nested_dict(state, self.location_in_state)
 
         # If the last request was actually sent, then check if the connection was established.
-        if db_state is NOT_PRESENT_IN_STATE or "last_connection_successful" not in db_state:
+        if db_state is NOT_PRESENT_IN_STATE:
             _LOGGER.debug(f"Can't calculate reward for {self.__class__.__name__}")
             self.reward = 0.0
 
@@ -338,9 +335,8 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
             "execute",
         ]
 
-        if (
-            not request_attempted and self.sticky
-        ):  # skip calculating if sticky and no new codes, reusing last step value
+        # skip calculating if sticky and no new codes, reusing last step value
+        if not request_attempted and self.sticky:
             return self.reward
 
         self.reward = 1.0 if last_action_response.response.status == "success" else -1.0
