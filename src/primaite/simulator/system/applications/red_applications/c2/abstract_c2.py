@@ -463,7 +463,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :return: A tuple containing a boolean True/False and a corresponding Request Response
         :rtype: tuple[bool, RequestResponse]
         """
-        if not self._can_perform_network_action:
+        if not self._can_perform_network_action():
             self.sys_log.warning(f"{self.name}: Unable to make leverage networking resources. Rejecting Command.")
             return (
                 False,
