@@ -463,26 +463,26 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :return: A tuple containing a boolean True/False and a corresponding Request Response
         :rtype: tuple[bool, RequestResponse]
         """
-        if self._can_perform_network_action == False:
+        if not self._can_perform_network_action:
             self.sys_log.warning(f"{self.name}: Unable to make leverage networking resources. Rejecting Command.")
-            return [
+            return (
                 False,
                 RequestResponse(
                     status="failure", data={"Reason": "Unable to access networking resources. Unable to send command."}
                 ),
-            ]
+            )
 
         if self.c2_remote_connection is False:
             self.sys_log.warning(f"{self.name}: C2 Application has yet to establish connection. Rejecting command.")
-            return [
+            return (
                 False,
                 RequestResponse(
                     status="failure",
                     data={"Reason": "C2 Application has yet to establish connection. Unable to send command."},
                 ),
-            ]
+            )
         else:
-            return [
+            return (
                 True,
                 RequestResponse(status="success", data={"Reason": "C2 Application is able to send connections."}),
-            ]
+            )
