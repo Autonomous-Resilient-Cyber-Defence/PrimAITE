@@ -990,6 +990,7 @@ class UserManager(Service):
         if user and user.password == current_password:
             user.password = new_password
             self.sys_log.info(f"{self.name}: Password changed for {username}")
+            self._user_session_manager._logout_user(user=user)
             return True
         self.sys_log.info(f"{self.name}: Password change failed for {username}")
         return False
@@ -1026,6 +1027,10 @@ class UserManager(Service):
             return True
         self.sys_log.info(f"{self.name}: Failed to enable user: {username}")
         return False
+
+    @property
+    def _user_session_manager(self) -> "UserSessionManager":
+        return self.software_manager.software["UserSessionManager"]  # noqa
 
 
 class UserSession(SimComponent):
@@ -1260,7 +1265,8 @@ class UserSessionManager(Service):
         :return: A dictionary representing the current state.
         """
         state = super().describe_state()
-        state["active_remote_logins"] = len(self.remote_sessions)
+        state["current_local_user"] = None if not self.local_session else self.local_session.user.username
+        state["active_remote_sessions"] = list(self.remote_sessions.keys())
         return state
 
     @property
@@ -1434,6 +1440,19 @@ class UserSessionManager(Service):
         :return: True if logout successful, otherwise False.
         """
         return self._logout(local=False, remote_session_id=remote_session_id)
+
+    def _logout_user(self, user: Union[str, User]) -> bool:
+        """End a user session by username or user object."""
+        if isinstance(user, str):
+            user = self._user_manager.users[user]  # grab user object from username
+        for sess_id, session in self.remote_sessions.items():
+            if session.user is user:
+                self._logout(local=False, remote_session_id=sess_id)
+                return True
+        if self.local_user_logged_in and self.local_session.user is user:
+            self.local_logout()
+            return True
+        return False
 
     @property
     def local_user_logged_in(self) -> bool:

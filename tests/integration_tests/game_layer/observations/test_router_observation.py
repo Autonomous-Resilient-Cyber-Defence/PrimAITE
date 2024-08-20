@@ -27,7 +27,7 @@ def test_router_observation():
         port_list=["HTTP", "DNS"],
         protocol_list=["TCP"],
     )
-    router_observation = RouterObservation(where=[], ports=ports, num_ports=8, acl=acl)
+    router_observation = RouterObservation(where=[], ports=ports, num_ports=8, acl=acl, include_users=False)
 
     # Observe the state using the RouterObservation instance
     observed_output = router_observation.observe(router.describe_state())

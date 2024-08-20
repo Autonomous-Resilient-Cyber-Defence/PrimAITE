@@ -46,6 +46,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         """Flag to include the number of accesses."""
         file_system_requires_scan: bool = True
         """If True, the folder must be scanned to update the health state. Tf False, the true state is always shown."""
+        include_users: Optional[bool] = True
+        """If True, report user session information."""
         num_ports: Optional[int] = None
         """Number of ports."""
         ip_list: Optional[List[str]] = None
@@ -191,6 +193,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 host_config.include_num_access = config.include_num_access
             if host_config.file_system_requires_scan is None:
                 host_config.file_system_requires_scan = config.file_system_requires_scan
+            if host_config.include_users is None:
+                host_config.include_users = config.include_users
 
         for router_config in config.routers:
             if router_config.num_ports is None:
@@ -205,6 +209,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 router_config.protocol_list = config.protocol_list
             if router_config.num_rules is None:
                 router_config.num_rules = config.num_rules
+            if router_config.include_users is None:
+                router_config.include_users = config.include_users
 
         for firewall_config in config.firewalls:
             if firewall_config.ip_list is None:
@@ -217,6 +223,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 firewall_config.protocol_list = config.protocol_list
             if firewall_config.num_rules is None:
                 firewall_config.num_rules = config.num_rules
+            if firewall_config.include_users is None:
+                firewall_config.include_users = config.include_users
 
         hosts = [HostObservation.from_config(config=c, parent_where=where) for c in config.hosts]
         routers = [RouterObservation.from_config(config=c, parent_where=where) for c in config.routers]

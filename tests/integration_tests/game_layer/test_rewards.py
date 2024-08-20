@@ -72,25 +72,26 @@ def test_uc2_rewards(game_and_agent):
     request = ["network", "node", "client_1", "application", "DatabaseClient", "execute"]
     response = game.simulation.apply_request(request)
     state = game.get_sim_state()
-    reward_value = comp.calculate(
-        state,
-        last_action_response=AgentHistoryItem(
-            timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=request, response=response
-        ),
+    ahi = AgentHistoryItem(
+        timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=request, response=response
     )
+    reward_value = comp.calculate(state, last_action_response=ahi)
     assert reward_value == 1.0
+    assert ahi.reward_info == {"connection_attempt_status": "success"}
 
     router.acl.remove_rule(position=2)
 
     response = game.simulation.apply_request(request)
     state = game.get_sim_state()
+    ahi = AgentHistoryItem(
+        timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=request, response=response
+    )
     reward_value = comp.calculate(
         state,
-        last_action_response=AgentHistoryItem(
-            timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=request, response=response
-        ),
+        last_action_response=ahi,
     )
     assert reward_value == -1.0
+    assert ahi.reward_info == {"connection_attempt_status": "failure"}
 
 
 def test_shared_reward():

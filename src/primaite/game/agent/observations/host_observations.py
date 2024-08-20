@@ -52,6 +52,8 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         """
         If True, files and folders must be scanned to update the health state. If False, true state is always shown.
         """
+        include_users: Optional[bool] = True
+        """If True, report user session information."""
 
     def __init__(
         self,
@@ -69,6 +71,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         monitored_traffic: Optional[Dict],
         include_num_access: bool,
         file_system_requires_scan: bool,
+        include_users: bool,
     ) -> None:
         """
         Initialise a host observation instance.
@@ -103,10 +106,15 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         :param file_system_requires_scan: If True, the files and folders must be scanned to update the health state.
             If False, the true state is always shown.
         :type file_system_requires_scan: bool
+        :param include_users: If True, report user session information.
+        :type include_users: bool
         """
         self.where: WhereType = where
 
         self.include_num_access = include_num_access
+        self.include_users = include_users
+        self.max_users: int = 3
+        """Maximum number of remote sessions observable, excess sessions are truncated."""
 
         # Ensure lists have lengths equal to specified counts by truncating or padding
         self.services: List[ServiceObservation] = services
@@ -165,6 +173,8 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         if self.include_num_access:
             self.default_observation["num_file_creations"] = 0
             self.default_observation["num_file_deletions"] = 0
+        if self.include_users:
+            self.default_observation["users"] = {"local_login": 0, "remote_sessions": 0}
 
     def observe(self, state: Dict) -> ObsType:
         """
@@ -192,6 +202,12 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         if self.include_num_access:
             obs["num_file_creations"] = node_state["file_system"]["num_file_creations"]
             obs["num_file_deletions"] = node_state["file_system"]["num_file_deletions"]
+        if self.include_users:
+            sess = node_state["services"]["UserSessionManager"]
+            obs["users"] = {
+                "local_login": 1 if sess["current_local_user"] else 0,
+                "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),
+            }
         return obs
 
     @property
@@ -216,6 +232,10 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         if self.include_num_access:
             shape["num_file_creations"] = spaces.Discrete(4)
             shape["num_file_deletions"] = spaces.Discrete(4)
+        if self.include_users:
+            shape["users"] = spaces.Dict(
+                {"local_login": spaces.Discrete(2), "remote_sessions": spaces.Discrete(self.max_users + 1)}
+            )
         return spaces.Dict(shape)
 
     @classmethod
@@ -273,4 +293,5 @@ class HostObservation(AbstractObservation, identifier="HOST"):
             monitored_traffic=config.monitored_traffic,
             include_num_access=config.include_num_access,
             file_system_requires_scan=config.file_system_requires_scan,
+            include_users=config.include_users,
         )

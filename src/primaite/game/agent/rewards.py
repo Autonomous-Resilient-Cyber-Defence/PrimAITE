@@ -47,7 +47,15 @@ class AbstractReward:
 
     @abstractmethod
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
-        """Calculate the reward for the current state."""
+        """Calculate the reward for the current state.
+
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
+        """
         return 0.0
 
     @classmethod
@@ -67,7 +75,15 @@ class DummyReward(AbstractReward):
     """Dummy reward function component which always returns 0."""
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
-        """Calculate the reward for the current state."""
+        """Calculate the reward for the current state.
+
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
+        """
         return 0.0
 
     @classmethod
@@ -109,8 +125,12 @@ class DatabaseFileIntegrity(AbstractReward):
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Calculate the reward for the current state.
 
-        :param state: The current state of the simulation.
+        :param state: Current simulation state
         :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
         """
         database_file_state = access_from_nested_dict(state, self.location_in_state)
         if database_file_state is NOT_PRESENT_IN_STATE:
@@ -322,6 +342,12 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         component will keep track of that information. In that case, it doesn't matter whether the last successful
         request returned was able to connect to the database server, because there has been an unsuccessful request
         since.
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
         """
         request_attempted = last_action_response.request == [
             "network",
@@ -333,10 +359,13 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         ]
 
         if request_attempted:  # if agent makes request, always recalculate fresh value
+            last_action_response.reward_info = {"connection_attempt_status": last_action_response.response.status}
             self.reward = 1.0 if last_action_response.response.status == "success" else -1.0
         elif not self.sticky:  # if no new request and not sticky, set reward to 0
+            last_action_response.reward_info = {"connection_attempt_status": "n/a"}
             self.reward = 0.0
         else:  # if no new request and sticky, reuse reward value from last step
+            last_action_response.reward_info = {"connection_attempt_status": "n/a"}
             pass
 
         return self.reward
@@ -384,7 +413,15 @@ class SharedReward(AbstractReward):
         """Method that retrieves an agent's current reward given the agent's name."""
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
-        """Simply access the other agent's reward and return it."""
+        """Simply access the other agent's reward and return it.
+
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
+        """
         return self.callback(self.agent_name)
 
     @classmethod
@@ -417,7 +454,15 @@ class ActionPenalty(AbstractReward):
         self.do_nothing_penalty = do_nothing_penalty
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
-        """Calculate the penalty to be applied."""
+        """Calculate the penalty to be applied.
+
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
+        """
         if last_action_response.action == "DONOTHING":
             return self.do_nothing_penalty
         else:

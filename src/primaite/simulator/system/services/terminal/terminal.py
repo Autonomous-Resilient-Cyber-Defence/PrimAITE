@@ -23,6 +23,8 @@ from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 
 
+# TODO 2824: Since remote terminal connections and remote user sessions are the same thing, we could refactor
+# the terminal to leverage the user session manager's list. This way we avoid potential bugs and code ducplication
 class TerminalClientConnection(BaseModel):
     """
     TerminalClientConnection Class.
@@ -92,7 +94,7 @@ class LocalTerminalConnection(TerminalClientConnection):
         if not self.is_active:
             self.parent_terminal.sys_log.warning("Connection inactive, cannot execute")
             return None
-        return self.parent_terminal.execute(command, connection_id=self.connection_uuid)
+        return self.parent_terminal.execute(command)
 
 
 class RemoteTerminalConnection(TerminalClientConnection):
@@ -162,22 +164,6 @@ class Terminal(Service):
     def _init_request_manager(self) -> RequestManager:
         """Initialise Request manager."""
         rm = super()._init_request_manager()
-        rm.add_request(
-            "send",
-            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.send())),
-        )
-
-        def _login(request: RequestFormat, context: Dict) -> RequestResponse:
-            login = self._process_local_login(username=request[0], password=request[1])
-            if login:
-                return RequestResponse(
-                    status="success",
-                    data={
-                        "ip_address": login.ip_address,
-                    },
-                )
-            else:
-                return RequestResponse(status="failure", data={"reason": "Invalid login credentials"})
 
         def _remote_login(request: RequestFormat, context: Dict) -> RequestResponse:
             login = self._send_remote_login(username=request[0], password=request[1], ip_address=request[2])
@@ -191,10 +177,34 @@ class Terminal(Service):
             else:
                 return RequestResponse(status="failure", data={})
 
+        rm.add_request(
+            "ssh_to_remote",
+            request_type=RequestType(func=_remote_login),
+        )
+
+        def _remote_logoff(request: RequestFormat, context: Dict) -> RequestResponse:
+            """Logoff from remote connection."""
+            ip_address = IPv4Address(request[0])
+            remote_connection = self._get_connection_from_ip(ip_address=ip_address)
+            if remote_connection:
+                outcome = self._disconnect(remote_connection.connection_uuid)
+                if outcome:
+                    return RequestResponse(
+                        status="success",
+                        data={},
+                    )
+            else:
+                return RequestResponse(
+                    status="failure",
+                    data={"reason": "No remote connection held."},
+                )
+
+        rm.add_request("remote_logoff", request_type=RequestType(func=_remote_logoff))
+
         def remote_execute_request(request: RequestFormat, context: Dict) -> RequestResponse:
             """Execute an instruction."""
-            command: str = request[0]
-            ip_address: IPv4Address = IPv4Address(request[1])
+            ip_address: IPv4Address = IPv4Address(request[0])
+            command: str = request[1]["command"]
             remote_connection = self._get_connection_from_ip(ip_address=ip_address)
             if remote_connection:
                 outcome = remote_connection.execute(command)
@@ -209,29 +219,10 @@ class Terminal(Service):
                     data={},
                 )
 
-        def _logoff(request: RequestFormat, context: Dict) -> RequestResponse:
-            """Logoff from connection."""
-            connection_uuid = request[0]
-            self.parent.user_session_manager.local_logout(connection_uuid)
-            self._disconnect(connection_uuid)
-            return RequestResponse(status="success", data={})
-
         rm.add_request(
-            "Login",
-            request_type=RequestType(func=_login),
-        )
-
-        rm.add_request(
-            "Remote Login",
-            request_type=RequestType(func=_remote_login),
-        )
-
-        rm.add_request(
-            "Execute",
+            "send_remote_command",
             request_type=RequestType(func=remote_execute_request),
         )
-
-        rm.add_request("Logoff", request_type=RequestType(func=_logoff))
 
         return rm
 
@@ -280,13 +271,9 @@ class Terminal(Service):
         if self.operating_state != ServiceOperatingState.RUNNING:
             self.sys_log.warning(f"{self.name}: Cannot login as service is not running.")
             return None
-        connection_request_id = str(uuid4())
-        self._client_connection_requests[connection_request_id] = None
         if ip_address:
             # Assuming that if IP is passed we are connecting to remote
-            return self._send_remote_login(
-                username=username, password=password, ip_address=ip_address, connection_request_id=connection_request_id
-            )
+            return self._send_remote_login(username=username, password=password, ip_address=ip_address)
         else:
             return self._process_local_login(username=username, password=password)
 
@@ -313,6 +300,9 @@ class Terminal(Service):
 
     def _check_client_connection(self, connection_id: str) -> bool:
         """Check that client_connection_id is valid."""
+        if not self.parent.user_session_manager.validate_remote_session_uuid(connection_id):
+            self._disconnect(connection_id)
+            return False
         return connection_id in self._connections
 
     def _send_remote_login(
@@ -320,32 +310,24 @@ class Terminal(Service):
         username: str,
         password: str,
         ip_address: IPv4Address,
-        connection_request_id: str,
+        connection_request_id: Optional[str] = None,
         is_reattempt: bool = False,
     ) -> Optional[RemoteTerminalConnection]:
         """Send a remote login attempt and connect to Node.
 
         :param: username: Username used to connect to the remote node.
         :type: username: str
-
         :param: password: Password used to connect to the remote node
         :type: password: str
-
         :param: ip_address: Target Node IP address for login attempt.
         :type: ip_address: IPv4Address
-
-        :param: connection_request_id: Connection Request ID
-        :type: connection_request_id: str
-
+        :param: connection_request_id: Connection Request ID, if not provided, a new one is generated
+        :type: connection_request_id: Optional[str]
         :param: is_reattempt: True if the request has been reattempted. Default False.
         :type: is_reattempt: Optional[bool]
-
         :return: RemoteTerminalConnection: Connection Object for sending further commands if successful, else False.
-
         """
-        self.sys_log.info(
-            f"{self.name}: Sending Remote login attempt to {ip_address}. Connection_id is {connection_request_id}"
-        )
+        connection_request_id = connection_request_id or str(uuid4())
         if is_reattempt:
             valid_connection_request = self._validate_client_connection_request(connection_id=connection_request_id)
             if valid_connection_request:
@@ -360,6 +342,9 @@ class Terminal(Service):
                 self.sys_log.warning(f"{self.name}: Remote connection to {ip_address} declined.")
                 return None
 
+        self.sys_log.info(
+            f"{self.name}: Sending Remote login attempt to {ip_address}. Connection_id is {connection_request_id}"
+        )
         transport_message: SSHTransportMessage = SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST
         connection_message: SSHConnectionMessage = SSHConnectionMessage.SSH_MSG_CHANNEL_DATA
         user_details: SSHUserCredentials = SSHUserCredentials(username=username, password=password)
