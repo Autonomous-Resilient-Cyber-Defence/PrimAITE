@@ -208,8 +208,8 @@ class WebServer404Penalty(AbstractReward):
 
             self.reward = sum(map(status2rew, codes)) / len(codes)  # convert form HTTP codes to rewards and average
         elif not self.sticky:  # there are no codes, but reward is not sticky, set reward to 0
-            self.reward = 0
-        else:  # skip calculating if sticky and no new codes. insted, reuse last step's value
+            self.reward = 0.0
+        else:  # skip calculating if sticky and no new codes. instead, reuse last step's value
             pass
 
         return self.reward
