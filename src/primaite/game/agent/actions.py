@@ -1096,10 +1096,6 @@ class ConfigureC2BeaconAction(AbstractAction):
                 return cls.model_fields[info.field_name].default
             return v
 
-
-class NodeAccountsChangePasswordAction(AbstractAction):
-    """Action which changes the password for a user."""
-
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
@@ -1120,8 +1116,11 @@ class NodeAccountsChangePasswordAction(AbstractAction):
         return ["network", "node", node_name, "application", "C2Beacon", "configure", config.__dict__]
 
 
-class RansomwareConfigureC2ServerAction(AbstractAction):
-    """Action which sends a command from the C2 Server to the C2 Beacon which configures a local RansomwareScript."""
+class NodeAccountsChangePasswordAction(AbstractAction):
+    """Action which changes the password for a user."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
 
     def form_request(self, node_id: str, username: str, current_password: str, new_password: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
@@ -1145,19 +1144,6 @@ class NodeSessionsRemoteLoginAction(AbstractAction):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
-        """Return the action formatted as a request that can be ingested by the simulation."""
-        node_name = self.manager.get_node_name_by_idx(node_id)
-        if node_name is None:
-            return ["do_nothing"]
-        # Using the ransomware scripts model to validate.
-        ConfigureRansomwareScriptAction._Opts.model_validate(config)  # check that options adhere to schema
-        return ["network", "node", node_name, "application", "C2Server", "ransomware_configure", config]
-
-
-class RansomwareLaunchC2ServerAction(AbstractAction):
-    """Action which causes the C2 Server to send a command to the C2 Beacon to launch the RansomwareScript."""
-
     def form_request(self, node_id: str, username: str, password: str, remote_ip: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
@@ -1176,6 +1162,43 @@ class RansomwareLaunchC2ServerAction(AbstractAction):
 
 class NodeSessionsRemoteLogoutAction(AbstractAction):
     """Action which performs a remote session logout."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, remote_ip: str, command: RequestFormat) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "Terminal",
+            "send_remote_command",
+            remote_ip,
+            {"command": command},
+        ]
+
+
+class RansomwareConfigureC2ServerAction(AbstractAction):
+    """Action which sends a command from the C2 Server to the C2 Beacon which configures a local RansomwareScript."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        if node_name is None:
+            return ["do_nothing"]
+        # Using the ransomware scripts model to validate.
+        ConfigureRansomwareScriptAction._Opts.model_validate(config)  # check that options adhere to schema
+        return ["network", "node", node_name, "application", "C2Server", "ransomware_configure", config]
+
+
+class RansomwareLaunchC2ServerAction(AbstractAction):
+    """Action which causes the C2 Server to send a command to the C2 Beacon to launch the RansomwareScript."""
 
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
@@ -1201,15 +1224,6 @@ class ExfiltrationC2ServerAction(AbstractAction):
         target_file_name: str
         target_folder_name: str
         exfiltration_folder_name: Optional[str]
-
-    def form_request(self, node_id: str, remote_ip: str) -> RequestFormat:
-        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_name = self.manager.get_node_name_by_idx(node_id)
-        return ["network", "node", node_name, "service", "Terminal", "remote_logoff", remote_ip]
-
-
-class NodeSendRemoteCommandAction(AbstractAction):
-    """Action which sends a terminal command to a remote node via SSH."""
 
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
@@ -1238,6 +1252,27 @@ class NodeSendRemoteCommandAction(AbstractAction):
         }
         ExfiltrationC2ServerAction._Opts.model_validate(command_model)
         return ["network", "node", node_name, "application", "C2Server", "exfiltrate", command_model]
+
+
+class NodeSendRemoteCommandAction(AbstractAction):
+    """Action which sends a terminal command to a remote node via SSH."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, remote_ip: str, command: RequestFormat) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "Terminal",
+            "send_remote_command",
+            remote_ip,
+            {"command": command},
+        ]
 
 
 class TerminalC2ServerAction(AbstractAction):
@@ -1270,19 +1305,20 @@ class TerminalC2ServerAction(AbstractAction):
         TerminalC2ServerAction._Opts.model_validate(command_model)
         return ["network", "node", node_name, "application", "C2Server", "terminal_command", command_model]
 
-    def form_request(self, node_id: int, remote_ip: str, command: RequestFormat) -> RequestFormat:
-        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+
+class RansomwareLaunchC2ServerAction(AbstractAction):
+    """Action which causes the C2 Server to send a command to the C2 Beacon to launch the RansomwareScript."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
-        return [
-            "network",
-            "node",
-            node_name,
-            "service",
-            "Terminal",
-            "send_remote_command",
-            remote_ip,
-            {"command": command},
-        ]
+        if node_name is None:
+            return ["do_nothing"]
+        # This action currently doesn't require any further configuration options.
+        return ["network", "node", node_name, "application", "C2Server", "ransomware_launch"]
 
 
 class ActionManager:
