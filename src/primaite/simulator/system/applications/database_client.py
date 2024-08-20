@@ -75,6 +75,8 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
     server_password: Optional[str] = None
     _query_success_tracker: Dict[str, bool] = {}
     """Keep track of connections that were established or verified during this step. Used for rewards."""
+    last_query_response: Optional[Dict] = None
+    """Keep track of the latest query response. Used to determine rewards."""
     _server_connection_id: Optional[str] = None
     """Connection ID to the Database Server."""
     client_connections: Dict[str, DatabaseClientConnection] = {}
@@ -381,6 +383,9 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         if not self.native_connection:
             return False
 
+        # reset last query response
+        self.last_query_response = None
+
         uuid = str(uuid4())
         self._query_success_tracker[uuid] = False
         return self.native_connection.query(sql)
@@ -404,6 +409,7 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
                         connection_id=connection_id, connection_request_id=payload["connection_request_id"]
                     )
             elif payload["type"] == "sql":
+                self.last_query_response = payload
                 query_id = payload.get("uuid")
                 status_code = payload.get("status_code")
                 self._query_success_tracker[query_id] = status_code == 200
