@@ -1166,19 +1166,10 @@ class NodeSessionsRemoteLogoutAction(AbstractAction):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: int, remote_ip: str, command: RequestFormat) -> RequestFormat:
+    def form_request(self, node_id: str, remote_ip: str) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         node_name = self.manager.get_node_name_by_idx(node_id)
-        return [
-            "network",
-            "node",
-            node_name,
-            "service",
-            "Terminal",
-            "send_remote_command",
-            remote_ip,
-            {"command": command},
-        ]
+        return ["network", "node", node_name, "service", "Terminal", "remote_logoff", remote_ip]
 
 
 class RansomwareConfigureC2ServerAction(AbstractAction):
