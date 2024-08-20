@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added actions to change users' passwords.
 -   Added a `listen_on_ports` set in the `IOSoftware` class to enable software listening on ports in addition to the
     main port they're assigned.
+-   Added two new red applications: ``C2Beacon`` and ``C2Server`` which aim to simulate malicious network infrastructure.
+    Refer to the ``Command and Control Application Suite E2E Demonstration`` notebook for more information.
 -   Added reward calculation details to AgentHistoryItem.
 
 ### Changed

@@ -3,6 +3,7 @@ from typing import Tuple
 
 import pytest
 
+from primaite.interface.request import RequestResponse
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
@@ -105,3 +106,65 @@ def test_ftp_client_tries_to_connect_to_offline_server(ftp_client_and_ftp_server
 
     # client should have retrieved the file
     assert ftp_client.file_system.get_file(folder_name="downloads", file_name="test_file.txt") is None
+
+
+def test_ftp_client_store_file_in_server_via_request_success(ftp_client_and_ftp_server):
+    """
+    Test checks to see if the client can successfully store files in the backup server via the request manager.
+    """
+    ftp_client, computer, ftp_server, server = ftp_client_and_ftp_server
+
+    assert ftp_client.operating_state == ServiceOperatingState.RUNNING
+    assert ftp_server.operating_state == ServiceOperatingState.RUNNING
+
+    # create file on ftp client
+    ftp_client.file_system.create_file(file_name="test_file.txt")
+
+    ftp_opts = {
+        "src_folder_name": "root",
+        "src_file_name": "test_file.txt",
+        "dest_folder_name": "client_1_backup",
+        "dest_file_name": "test_file.txt",
+        "dest_ip_address": server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address,
+    }
+
+    ftp_client.apply_request(["send", ftp_opts])
+
+    assert ftp_server.file_system.get_file(folder_name="client_1_backup", file_name="test_file.txt")
+
+
+def test_ftp_client_store_file_in_server_via_request_failure(ftp_client_and_ftp_server):
+    """
+    Test checks to see if the client fails to store files in the backup server via the request manager.
+    """
+    ftp_client, computer, ftp_server, server = ftp_client_and_ftp_server
+
+    assert ftp_client.operating_state == ServiceOperatingState.RUNNING
+    assert ftp_server.operating_state == ServiceOperatingState.RUNNING
+
+    # create file on ftp client
+    ftp_client.file_system.create_file(file_name="test_file.txt")
+
+    # Purposefully misconfigured FTP Options
+    ftp_opts = {
+        "src_folder_name": "root",
+        "dest_ip_address": server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address,
+    }
+
+    request_response: RequestResponse = ftp_client.apply_request(["send", ftp_opts])
+
+    assert request_response.status == "failure"
+
+    # Purposefully misconfigured FTP Options
+
+    ftp_opts = {
+        "src_folder_name": "root",
+        "src_file_name": "not_a_real_file.txt",
+        "dest_folder_name": "client_1_backup",
+        "dest_file_name": "test_file.txt",
+        "dest_ip_address": server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address,
+    }
+
+    request_response: RequestResponse = ftp_client.apply_request(["send", ftp_opts])
+
+    assert request_response.status == "failure"

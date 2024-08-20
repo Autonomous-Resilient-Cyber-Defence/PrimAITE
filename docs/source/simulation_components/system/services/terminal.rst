@@ -5,26 +5,26 @@
 .. _Terminal:
 
 Terminal
-========
+########
 
 The ``Terminal.py`` class provides a generic terminal simulation, by extending the base Service class within PrimAITE. The aim of this is to act as the primary entrypoint for Nodes within the environment.
 
 
 Overview
---------
+========
 
 The Terminal service uses Secure Socket (SSH) as the communication method between terminals. They operate on port 22, and are part of the services automatically
 installed on Nodes when they are instantiated.
 
 Key capabilities
-================
+""""""""""""""""
 
  - Ensures packets are matched to an existing session
  - Simulates common Terminal processes/commands.
  - Leverages the Service base class for install/uninstall, status tracking etc.
 
 Usage
-=====
+"""""
 
  - Pre-Installs on any `Node` (component with the exception of `Switches`).
  - Terminal Clients connect, execute commands and disconnect from remote nodes.
@@ -32,7 +32,7 @@ Usage
  - Service runs on SSH port 22 by default.
 
 Implementation
-==============
+""""""""""""""
 
  - Manages remote connections in a dictionary by session ID.
  - Processes commands, forwarding to the ``RequestManager`` or ``SessionManager`` where appropriate.
@@ -67,7 +67,7 @@ Python
     terminal: Terminal = client.software_manager.software.get("Terminal")
 
 Creating Remote Terminal Connection
-"""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""
 
 
 .. code-block:: python
@@ -93,7 +93,7 @@ Creating Remote Terminal Connection
 
 
 Executing a basic application install command
-"""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""
 
 .. code-block:: python
 
@@ -121,7 +121,7 @@ Executing a basic application install command
 
 
 Creating a folder on a remote node
-""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""
 
 .. code-block:: python
 
@@ -148,6 +148,7 @@ Creating a folder on a remote node
 
 
 Disconnect from Remote Node
+"""""""""""""""""""""""""""
 
 .. code-block:: python
 

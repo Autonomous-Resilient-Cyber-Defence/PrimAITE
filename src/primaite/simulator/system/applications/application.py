@@ -214,3 +214,21 @@ class Application(IOSoftware):
                 f"Cannot perform request on application '{self.application.name}' because it is not in the "
                 f"{self.state.name} state."
             )
+
+    def _can_perform_network_action(self) -> bool:
+        """
+        Checks if the application can perform outbound network actions.
+
+        First confirms application suitability via the can_perform_action method.
+        Then confirms that the host has an enabled NIC that can be used for outbound traffic.
+
+        :return: True if outbound network actions can be performed, otherwise False.
+        :rtype bool:
+        """
+        if not super()._can_perform_action():
+            return False
+
+        for nic in self.software_manager.node.network_interface.values():
+            if nic.enabled:
+                return True
+        return False

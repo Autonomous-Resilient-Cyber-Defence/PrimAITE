@@ -1281,13 +1281,18 @@ class UserSessionManager(Service):
     def pre_timestep(self, timestep: int) -> None:
         """Apply any pre-timestep logic that helps make sure we have the correct observations."""
         self.current_timestep = timestep
+        inactive_sessions: list = []
         if self.local_session:
             if self.local_session.last_active_step + self.local_session_timeout_steps <= timestep:
-                self._timeout_session(self.local_session)
+                inactive_sessions.append(self.local_session)
+
         for session in self.remote_sessions:
             remote_session = self.remote_sessions[session]
             if remote_session.last_active_step + self.remote_session_timeout_steps <= timestep:
-                self._timeout_session(remote_session)
+                inactive_sessions.append(remote_session)
+
+        for sessions in inactive_sessions:
+            self._timeout_session(sessions)
 
     def _timeout_session(self, session: UserSession) -> None:
         """

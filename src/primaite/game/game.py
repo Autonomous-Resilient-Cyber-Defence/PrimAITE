@@ -27,10 +27,13 @@ from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.nmne import NMNEConfig
+from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient  # noqa: F401
+from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon  # noqa: F401
+from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Server  # noqa: F401
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (  # noqa: F401
     DataManipulationBot,
 )
@@ -452,6 +455,15 @@ class PrimaiteGame:
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 dos_intensity=float(opt.get("dos_intensity", "1.0")),
                                 max_sessions=int(opt.get("max_sessions", "1000")),
+                            )
+                    elif application_type == "C2Beacon":
+                        if "options" in application_cfg:
+                            opt = application_cfg["options"]
+                            new_application.configure(
+                                c2_server_ip_address=IPv4Address(opt.get("c2_server_ip_address")),
+                                keep_alive_frequency=(opt.get("keep_alive_frequency", 5)),
+                                masquerade_protocol=IPProtocol[(opt.get("masquerade_protocol", IPProtocol.TCP))],
+                                masquerade_port=Port[(opt.get("masquerade_port", Port.HTTP))],
                             )
             if "network_interfaces" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():
