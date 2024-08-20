@@ -1096,6 +1096,10 @@ class ConfigureC2BeaconAction(AbstractAction):
                 return cls.model_fields[info.field_name].default
             return v
 
+
+class NodeAccountsChangePasswordAction(AbstractAction):
+    """Action which changes the password for a user."""
+
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
@@ -1119,6 +1123,25 @@ class ConfigureC2BeaconAction(AbstractAction):
 class RansomwareConfigureC2ServerAction(AbstractAction):
     """Action which sends a command from the C2 Server to the C2 Beacon which configures a local RansomwareScript."""
 
+    def form_request(self, node_id: str, username: str, current_password: str, new_password: str) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "UserManager",
+            "change_password",
+            username,
+            current_password,
+            new_password,
+        ]
+
+
+class NodeSessionsRemoteLoginAction(AbstractAction):
+    """Action which performs a remote session login."""
+
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
@@ -1134,6 +1157,25 @@ class RansomwareConfigureC2ServerAction(AbstractAction):
 
 class RansomwareLaunchC2ServerAction(AbstractAction):
     """Action which causes the C2 Server to send a command to the C2 Beacon to launch the RansomwareScript."""
+
+    def form_request(self, node_id: str, username: str, password: str, remote_ip: str) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "Terminal",
+            "ssh_to_remote",
+            username,
+            password,
+            remote_ip,
+        ]
+
+
+class NodeSessionsRemoteLogoutAction(AbstractAction):
+    """Action which performs a remote session logout."""
 
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
@@ -1159,6 +1201,15 @@ class ExfiltrationC2ServerAction(AbstractAction):
         target_file_name: str
         target_folder_name: str
         exfiltration_folder_name: Optional[str]
+
+    def form_request(self, node_id: str, remote_ip: str) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return ["network", "node", node_name, "service", "Terminal", "remote_logoff", remote_ip]
+
+
+class NodeSendRemoteCommandAction(AbstractAction):
+    """Action which sends a terminal command to a remote node via SSH."""
 
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
@@ -1219,6 +1270,20 @@ class TerminalC2ServerAction(AbstractAction):
         TerminalC2ServerAction._Opts.model_validate(command_model)
         return ["network", "node", node_name, "application", "C2Server", "terminal_command", command_model]
 
+    def form_request(self, node_id: int, remote_ip: str, command: RequestFormat) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "Terminal",
+            "send_remote_command",
+            remote_ip,
+            {"command": command},
+        ]
+
 
 class ActionManager:
     """Class which manages the action space for an agent."""
@@ -1276,6 +1341,10 @@ class ActionManager:
         "C2_SERVER_RANSOMWARE_CONFIGURE": RansomwareConfigureC2ServerAction,
         "C2_SERVER_TERMINAL_COMMAND": TerminalC2ServerAction,
         "C2_SERVER_DATA_EXFILTRATE": ExfiltrationC2ServerAction,
+        "NODE_ACCOUNTS_CHANGE_PASSWORD": NodeAccountsChangePasswordAction,
+        "SSH_TO_REMOTE": NodeSessionsRemoteLoginAction,
+        "SESSIONS_REMOTE_LOGOFF": NodeSessionsRemoteLogoutAction,
+        "NODE_SEND_REMOTE_COMMAND": NodeSendRemoteCommandAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 

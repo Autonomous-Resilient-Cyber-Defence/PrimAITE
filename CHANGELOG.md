@@ -10,12 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Random Number Generator Seeding by specifying a random number seed in the config file.
 -   Implemented Terminal service class, providing a generic terminal simulation.
 -   Added `User`, `UserManager` and `UserSessionManager` to enable the creation of user accounts and login on Nodes.
+-   Added actions to establish SSH connections, send commands remotely and terminate SSH connections.
+-   Added actions to change users' passwords.
 -   Added a `listen_on_ports` set in the `IOSoftware` class to enable software listening on ports in addition to the
     main port they're assigned.
 -   Added two new red applications: ``C2Beacon`` and ``C2Server`` which aim to simulate malicious network infrastructure.
     Refer to the ``Command and Control Application Suite E2E Demonstration`` notebook for more information.
+-   Added reward calculation details to AgentHistoryItem.
 
 ### Changed
+-   File and folder observations can now be configured to always show the true health status, or require scanning like before.
+-   Node observations can now be configured to show the number of active local and remote logins.
+
+### Fixed
+-   Folder observations showing the true health state without scanning (the old behaviour can be reenabled via config)
 -   Updated `SoftwareManager` `install` and `uninstall` to handle all functionality that was being done at the `install`
     and `uninstall` methods in the `Node` class.
 -   Updated the `receive_payload_from_session_manager` method in `SoftwareManager` so that it now sends a copy of the

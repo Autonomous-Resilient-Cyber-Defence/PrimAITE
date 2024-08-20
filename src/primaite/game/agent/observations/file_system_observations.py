@@ -23,8 +23,10 @@ class FileObservation(AbstractObservation, identifier="FILE"):
         """Name of the file, used for querying simulation state dictionary."""
         include_num_access: Optional[bool] = None
         """Whether to include the number of accesses to the file in the observation."""
+        file_system_requires_scan: Optional[bool] = None
+        """If True, the file must be scanned to update the health state. Tf False, the true state is always shown."""
 
-    def __init__(self, where: WhereType, include_num_access: bool) -> None:
+    def __init__(self, where: WhereType, include_num_access: bool, file_system_requires_scan: bool) -> None:
         """
         Initialise a file observation instance.
 
@@ -34,9 +36,13 @@ class FileObservation(AbstractObservation, identifier="FILE"):
         :type where: WhereType
         :param include_num_access: Whether to include the number of accesses to the file in the observation.
         :type include_num_access: bool
+        :param file_system_requires_scan: If True, the file must be scanned to update the health state. Tf False,
+            the true state is always shown.
+        :type file_system_requires_scan: bool
         """
         self.where: WhereType = where
         self.include_num_access: bool = include_num_access
+        self.file_system_requires_scan: bool = file_system_requires_scan
 
         self.default_observation: ObsType = {"health_status": 0}
         if self.include_num_access:
@@ -74,7 +80,11 @@ class FileObservation(AbstractObservation, identifier="FILE"):
         file_state = access_from_nested_dict(state, self.where)
         if file_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
-        obs = {"health_status": file_state["visible_status"]}
+        if self.file_system_requires_scan:
+            health_status = file_state["visible_status"]
+        else:
+            health_status = file_state["health_status"]
+        obs = {"health_status": health_status}
         if self.include_num_access:
             obs["num_access"] = self._categorise_num_access(file_state["num_access"])
         return obs
@@ -104,8 +114,15 @@ class FileObservation(AbstractObservation, identifier="FILE"):
         :type parent_where: WhereType, optional
         :return: Constructed file observation instance.
         :rtype: FileObservation
+        :param file_system_requires_scan: If True, the folder must be scanned to update the health state. Tf False,
+            the true state is always shown.
+        :type file_system_requires_scan: bool
         """
-        return cls(where=parent_where + ["files", config.file_name], include_num_access=config.include_num_access)
+        return cls(
+            where=parent_where + ["files", config.file_name],
+            include_num_access=config.include_num_access,
+            file_system_requires_scan=config.file_system_requires_scan,
+        )
 
 
 class FolderObservation(AbstractObservation, identifier="FOLDER"):
@@ -122,9 +139,16 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         """Number of spaces for file observations in this folder."""
         include_num_access: Optional[bool] = None
         """Whether files in this folder should include the number of accesses in their observation."""
+        file_system_requires_scan: Optional[bool] = None
+        """If True, the folder must be scanned to update the health state. Tf False, the true state is always shown."""
 
     def __init__(
-        self, where: WhereType, files: Iterable[FileObservation], num_files: int, include_num_access: bool
+        self,
+        where: WhereType,
+        files: Iterable[FileObservation],
+        num_files: int,
+        include_num_access: bool,
+        file_system_requires_scan: bool,
     ) -> None:
         """
         Initialise a folder observation instance.
@@ -138,12 +162,23 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         :type num_files: int
         :param include_num_access: Whether to include the number of accesses to files in the observation.
         :type include_num_access: bool
+        :param file_system_requires_scan: If True, the folder must be scanned to update the health state. Tf False,
+            the true state is always shown.
+        :type file_system_requires_scan: bool
         """
         self.where: WhereType = where
 
+        self.file_system_requires_scan: bool = file_system_requires_scan
+
         self.files: List[FileObservation] = files
         while len(self.files) < num_files:
-            self.files.append(FileObservation(where=None, include_num_access=include_num_access))
+            self.files.append(
+                FileObservation(
+                    where=None,
+                    include_num_access=include_num_access,
+                    file_system_requires_scan=self.file_system_requires_scan,
+                )
+            )
         while len(self.files) > num_files:
             truncated_file = self.files.pop()
             msg = f"Too many files in folder observation. Truncating file {truncated_file}"
@@ -168,7 +203,10 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         if folder_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
 
-        health_status = folder_state["health_status"]
+        if self.file_system_requires_scan:
+            health_status = folder_state["visible_status"]
+        else:
+            health_status = folder_state["health_status"]
 
         obs = {}
 
@@ -209,6 +247,13 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         # pass down shared/common config items
         for file_config in config.files:
             file_config.include_num_access = config.include_num_access
+            file_config.file_system_requires_scan = config.file_system_requires_scan
 
         files = [FileObservation.from_config(config=f, parent_where=where) for f in config.files]
-        return cls(where=where, files=files, num_files=config.num_files, include_num_access=config.include_num_access)
+        return cls(
+            where=where,
+            files=files,
+            num_files=config.num_files,
+            include_num_access=config.include_num_access,
+            file_system_requires_scan=config.file_system_requires_scan,
+        )
