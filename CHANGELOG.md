@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added two new red applications: ``C2Beacon`` and ``C2Server`` which aim to simulate malicious network infrastructure.
     Refer to the ``Command and Control Application Suite E2E Demonstration`` notebook for more information.
 -   Added reward calculation details to AgentHistoryItem.
+-   Added a new Privilege-Escalation-and Data-Loss-Example.ipynb notebook with a realistic cyber scenario focusing on
+    internal privilege escalation and data loss through the manipulation of SSH access and Access Control Lists (ACLs).
 
 ### Changed
 -   File and folder observations can now be configured to always show the true health status, or require scanning like before.

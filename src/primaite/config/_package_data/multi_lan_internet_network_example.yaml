@@ -25,7 +25,7 @@ simulation:
               db_server_ip: 10.10.1.11
           - type: WebBrowser
             options:
-              target_url: http://sometech.ai
+              target_url: http://sometech.ai/users/
 
       - hostname: pc_2
         type: computer
@@ -39,7 +39,7 @@ simulation:
               db_server_ip: 10.10.1.11
           - type: WebBrowser
             options:
-              target_url: http://sometech.ai
+              target_url: http://sometech.ai/users/
 
       - hostname: server_1
         type: server
@@ -221,7 +221,7 @@ simulation:
             subnet_mask: 255.255.255.0
 
         acl:
-          2: # Allow the some_tech_web_srv to connect to the Database Service on some_tech_db_srv
+          11: # Allow the some_tech_web_srv to connect to the Database Service on some_tech_db_srv
             action: PERMIT
             src_ip: 94.10.180.6
             src_wildcard_mask: 0.0.0.0
@@ -229,7 +229,7 @@ simulation:
             dst_ip: 10.10.1.11
             dst_wildcard_mask: 0.0.0.0
             dst_port: POSTGRES_SERVER
-          3: # Allow the Database Service on some_tech_db_srv to respond to some_tech_web_srv
+          12: # Allow the Database Service on some_tech_db_srv to respond to some_tech_web_srv
             action: PERMIT
             src_ip: 10.10.1.11
             src_wildcard_mask: 0.0.0.0
@@ -237,7 +237,7 @@ simulation:
             dst_ip: 94.10.180.6
             dst_wildcard_mask: 0.0.0.0
             dst_port: POSTGRES_SERVER
-          4: # Prevent the Junior engineer from downloading files from the some_tech_storage_srv over FTP
+          13: # Prevent the Junior engineer from downloading files from the some_tech_storage_srv over FTP
             action: DENY
             src_ip: 10.10.2.12
             src_wildcard_mask: 0.0.0.0
@@ -245,33 +245,41 @@ simulation:
             dst_ip: 10.10.1.12
             dst_wildcard_mask: 0.0.0.0
             dst_port: FTP
-          5: # Allow communication between Engineering and the DB & Storage subnet
+          14: # Prevent the Junior engineer from connecting to some_tech_storage_srv over SSH
+            action: DENY
+            src_ip: 10.10.2.12
+            src_wildcard_mask: 0.0.0.0
+            src_port: SSH
+            dst_ip: 10.10.1.12
+            dst_wildcard_mask: 0.0.0.0
+            dst_port: SSH
+          15: # Allow communication between Engineering and the DB & Storage subnet
             action: PERMIT
             src_ip: 10.10.2.0
             src_wildcard_mask: 0.0.0.255
             dst_ip: 10.10.1.0
             dst_wildcard_mask: 0.0.0.255
-          6: # Allow communication between the DB & Storage subnet and Engineering
+          16: # Allow communication between the DB & Storage subnet and Engineering
             action: PERMIT
             src_ip: 10.10.1.0
             src_wildcard_mask: 0.0.0.255
             dst_ip: 10.10.2.0
             dst_wildcard_mask: 0.0.0.255
-          7: # Allow the SomeTech network to use HTTP
+          17: # Allow the SomeTech network to use HTTP
             action: PERMIT
             src_port: HTTP
             dst_port: HTTP
-          8: # Allow the SomeTech internal network to use ARP
+          18: # Allow the SomeTech internal network to use ARP
             action: PERMIT
             src_ip: 10.10.0.0
             src_wildcard_mask: 0.0.255.255
             src_port: ARP
-          9: # Allow the SomeTech internal network to use ICMP
+          19: # Allow the SomeTech internal network to use ICMP
             action: PERMIT
             src_ip: 10.10.0.0
             src_wildcard_mask: 0.0.255.255
             protocol: ICMP
-          10:
+          21:
             action: PERMIT
             src_ip: 94.10.180.6
             src_wildcard_mask: 0.0.0.0
@@ -279,10 +287,14 @@ simulation:
             dst_ip: 10.10.0.0
             dst_wildcard_mask: 0.0.255.255
             dst_port: HTTP
-          11: # Permit SomeTech to use DNS
+          22: # Permit SomeTech to use DNS
             action: PERMIT
             src_port: DNS
             dst_port: DNS
+          23: # Permit SomeTech to use SSH
+            action: PERMIT
+            src_port: SSH
+            dst_port: SSH
         default_route: # Default route to all external networks
           next_hop_ip_address: 10.10.4.2 # NI int on some_tech_fw
 
@@ -332,7 +344,7 @@ simulation:
               db_server_ip: 10.10.1.11
           - type: WebBrowser
             options:
-              target_url: http://sometech.ai
+              target_url: http://sometech.ai/users/
 
       - hostname: some_tech_snr_dev_pc
         type: computer
@@ -346,7 +358,7 @@ simulation:
               db_server_ip: 10.10.1.11
           - type: WebBrowser
             options:
-              target_url: http://sometech.ai
+              target_url: http://sometech.ai/users/
 
       - hostname: some_tech_jnr_dev_pc
         type: computer
@@ -360,7 +372,7 @@ simulation:
               db_server_ip: 10.10.1.11
           - type: WebBrowser
             options:
-              target_url: http://sometech.ai
+              target_url: http://sometech.ai/users/
 
     links:
       # Home/Office Lan Links
