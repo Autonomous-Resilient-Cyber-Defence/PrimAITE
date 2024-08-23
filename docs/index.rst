@@ -25,6 +25,7 @@ What is PrimAITE?
    source/game_layer
    source/simulation
    source/config
+   source/rewards
    source/customising_scenarios
    source/varying_config_files
    source/environment
