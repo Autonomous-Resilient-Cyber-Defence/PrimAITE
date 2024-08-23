@@ -11,9 +11,10 @@ Components
 **********
 The following API pages describe the use of each reward component and the possible configuration options. An example of configuring each via yaml is also provided.
 
-:py:class:`DummyReward`
+:py:class:`primaite.game.agent.rewards.DummyReward`
 
 .. code-block:: yaml
+
     agents:
       - ref: agent_name
         # ...
@@ -26,6 +27,7 @@ The following API pages describe the use of each reward component and the possib
 :py:class:`primaite.game.agent.rewards.DatabaseFileIntegrity`
 
 .. code-block:: yaml
+
     agents:
       - ref: agent_name
         # ...
@@ -39,9 +41,10 @@ The following API pages describe the use of each reward component and the possib
                 file_name: database.db
 
 
-:py:class:`WebServer404Penalty`
+:py:class:`primaite.game.agent.rewards.WebServer404Penalty`
 
 .. code-block:: yaml
+
     agents:
       - ref: agent_name
         # ...
@@ -55,9 +58,10 @@ The following API pages describe the use of each reward component and the possib
                 sticky: false
 
 
-:py:class:`WebpageUnavailablePenalty`
+:py:class:`primaite.game.agent.rewards.WebpageUnavailablePenalty`
 
 .. code-block:: yaml
+
     agents:
       - ref: agent_name
         # ...
@@ -70,9 +74,10 @@ The following API pages describe the use of each reward component and the possib
                 sticky: false
 
 
-:py:class:`GreenAdminDatabaseUnreachablePenalty`
+:py:class:`primaite.game.agent.rewards.GreenAdminDatabaseUnreachablePenalty`
 
 .. code-block:: yaml
+
     agents:
       - ref: agent_name
         # ...
@@ -85,9 +90,10 @@ The following API pages describe the use of each reward component and the possib
                 sticky: false
 
 
-:py:class:`SharedReward`
+:py:class:`primaite.game.agent.rewards.SharedReward`
 
 .. code-block:: yaml
+
     agents:
       - ref: scripted_agent
         # ...
@@ -101,9 +107,10 @@ The following API pages describe the use of each reward component and the possib
                 agent_name: scripted_agent
 
 
-:py:class:`ActionPenalty`
+:py:class:`primaite.game.agent.rewards.ActionPenalty`
 
 .. code-block:: yaml
+
     agents:
       - ref: agent_name
         # ...
