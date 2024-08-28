@@ -446,6 +446,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
         if (
             self.operating_state is ApplicationOperatingState.RUNNING
             and self.health_state_actual is SoftwareHealthState.GOOD
+            and self.c2_connection_active is True
         ):
             self.keep_alive_inactivity += 1
             self._confirm_remote_connection(timestep)

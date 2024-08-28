@@ -60,13 +60,13 @@ class AirSpaceFrequency(Enum):
     @property
     def maximum_data_rate_bps(self) -> float:
         """
-        Retrieves the maximum data transmission rate in bits per second (bps) for the frequency.
+        Retrieves the maximum data transmission rate in bits per second (bps).
 
-        The maximum rates are predefined for known frequencies:
-            - For WIFI_2_4, it returns 100,000,000 bps (100 Mbps).
-            - For WIFI_5, it returns 500,000,000 bps (500 Mbps).
+        The maximum rates are predefined for frequencies.:
+            - WIFI 2.4 supports 100,000,000 bps
+            - WIFI 5 supports 500,000,000 bps
 
-        :return: The maximum data rate in bits per second. If the frequency is not recognized, returns 0.0.
+        :return: The maximum data rate in bits per second.
         """
         if self == AirSpaceFrequency.WIFI_2_4:
             return 100_000_000.0  # 100 Megabits per second

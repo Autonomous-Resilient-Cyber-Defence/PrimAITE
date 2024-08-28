@@ -1149,7 +1149,7 @@ class UserSessionManager(Service):
     local_session_timeout_steps: int = 30
     """The number of steps before a local session times out due to inactivity."""
 
-    remote_session_timeout_steps: int = 5
+    remote_session_timeout_steps: int = 30
     """The number of steps before a remote session times out due to inactivity."""
 
     max_remote_sessions: int = 3
@@ -1179,15 +1179,14 @@ class UserSessionManager(Service):
         """
         rm = super()._init_request_manager()
 
-        # todo add doc about request schemas
-        rm.add_request(
-            "remote_login",
-            RequestType(
-                func=lambda request, context: RequestResponse.from_bool(
-                    self.remote_login(username=request[0], password=request[1], remote_ip_address=request[2])
-                )
-            ),
-        )
+        def _remote_login(request: RequestFormat, context: Dict) -> RequestResponse:
+            """Request should take the form [username, password, remote_ip_address]."""
+            username, password, remote_ip_address = request
+            response = RequestResponse.from_bool(self.remote_login(username, password, remote_ip_address))
+            response.data = {"remote_hostname": self.parent.hostname, "username": username}
+            return response
+
+        rm.add_request("remote_login", RequestType(func=_remote_login))
 
         rm.add_request(
             "remote_logout",
@@ -1422,6 +1421,7 @@ class UserSessionManager(Service):
             self.local_session = None
 
         if not local and remote_session_id:
+            self.parent.terminal._disconnect(remote_session_id)
             session = self.remote_sessions.pop(remote_session_id)
         if session:
             self.historic_sessions.append(session)
