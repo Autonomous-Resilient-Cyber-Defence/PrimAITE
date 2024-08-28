@@ -190,8 +190,12 @@ class WebServer404Penalty(AbstractReward):
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Calculate the reward for the current state.
 
-        :param state: The current state of the simulation.
+        :param state: Current simulation state
         :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
         """
         web_service_state = access_from_nested_dict(state, self.location_in_state)
 
@@ -263,6 +267,12 @@ class WebpageUnavailablePenalty(AbstractReward):
         When the green agent requests to execute the browser application, and that request fails, this reward
         component will keep track of that information. In that case, it doesn't matter whether the last webpage
         had a 200 status code, because there has been an unsuccessful request since.
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
         """
         web_browser_state = access_from_nested_dict(state, self.location_in_state)
 
@@ -519,6 +529,7 @@ class RewardFunction:
             weight = comp_and_weight[1]
             total += weight * comp.calculate(state=state, last_action_response=last_action_response)
         self.current_reward = total
+
         return self.current_reward
 
     @classmethod

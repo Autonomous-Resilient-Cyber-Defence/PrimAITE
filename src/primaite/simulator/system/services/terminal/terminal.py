@@ -171,7 +171,8 @@ class Terminal(Service):
                 return RequestResponse(
                     status="success",
                     data={
-                        "ip_address": login.ip_address,
+                        "ip_address": str(login.ip_address),
+                        "username": request[0],
                     },
                 )
             else:
@@ -189,15 +190,9 @@ class Terminal(Service):
             if remote_connection:
                 outcome = self._disconnect(remote_connection.connection_uuid)
                 if outcome:
-                    return RequestResponse(
-                        status="success",
-                        data={},
-                    )
-            else:
-                return RequestResponse(
-                    status="failure",
-                    data={"reason": "No remote connection held."},
-                )
+                    return RequestResponse(status="success", data={})
+
+            return RequestResponse(status="failure", data={})
 
         rm.add_request("remote_logoff", request_type=RequestType(func=_remote_logoff))
 
@@ -464,6 +459,10 @@ class Terminal(Service):
                 command = payload.ssh_command
                 valid_connection = self._check_client_connection(payload.connection_uuid)
                 if valid_connection:
+                    remote_session = self.software_manager.node.user_session_manager.remote_sessions.get(
+                        payload.connection_uuid
+                    )
+                    remote_session.last_active_step = self.software_manager.node.user_session_manager.current_timestep
                     self.execute(command)
                     return True
                 else:
@@ -484,7 +483,7 @@ class Terminal(Service):
 
             if payload["type"] == "user_timeout":
                 connection_id = payload["connection_id"]
-                valid_id = self._check_client_connection(connection_id)
+                valid_id = connection_id in self._connections
                 if valid_id:
                     connection = self._connections.pop(connection_id)
                     connection.is_active = False
@@ -500,11 +499,14 @@ class Terminal(Service):
         :param connection_uuid: Connection ID that we want to disconnect.
         :return True if successful, False otherwise.
         """
+        # TODO: Handle the possibility of attempting to disconnect
         if not self._connections:
             self.sys_log.warning(f"{self.name}: No remote connection present")
             return False
 
-        connection = self._connections.pop(connection_uuid)
+        connection = self._connections.pop(connection_uuid, None)
+        if not connection:
+            return False
         connection.is_active = False
 
         if isinstance(connection, RemoteTerminalConnection):
