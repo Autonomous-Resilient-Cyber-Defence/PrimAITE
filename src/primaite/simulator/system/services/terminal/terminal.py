@@ -208,10 +208,10 @@ class Terminal(Service):
                         status="success",
                         data={},
                     )
-                return RequestResponse(
-                    status="failure",
-                    data={},
-                )
+            return RequestResponse(
+                status="failure",
+                data={},
+            )
 
         rm.add_request(
             "send_remote_command",

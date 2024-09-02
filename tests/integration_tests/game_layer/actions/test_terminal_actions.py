@@ -215,3 +215,4 @@ def test_local_terminal(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent])
     game.step()
 
     assert client_1.file_system.get_file("folder123", "cat.pdf") is None
+    client_1.session_manager.show()
