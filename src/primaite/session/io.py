@@ -45,6 +45,8 @@ class PrimaiteIO:
         """The level of sys logs that should be included in the logfiles/logged into terminal."""
         agent_log_level: LogLevel = LogLevel.INFO
         """The level of agent logs that should be included in the logfiles/logged into terminal."""
+        obs_space_data: bool = False
+        """Whether to save observation space data to a log file."""
 
     def __init__(self, settings: Optional[Settings] = None) -> None:
         """
