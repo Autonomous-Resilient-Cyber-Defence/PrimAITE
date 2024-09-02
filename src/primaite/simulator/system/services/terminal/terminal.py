@@ -208,7 +208,6 @@ class Terminal(Service):
                         status="success",
                         data={},
                     )
-            else:
                 return RequestResponse(
                     status="failure",
                     data={},
@@ -217,6 +216,27 @@ class Terminal(Service):
         rm.add_request(
             "send_remote_command",
             request_type=RequestType(func=remote_execute_request),
+        )
+
+        def local_execute_request(request: RequestFormat, context: Dict) -> RequestResponse:
+            """Executes a command using a local terminal session."""
+            command: str = request[2]["command"]
+            local_connection = self._process_local_login(username=request[0], password=request[1])
+            if local_connection:
+                outcome = local_connection.execute(command)
+                if outcome:
+                    return RequestResponse(
+                        status="success",
+                        data={"reason": outcome},
+                    )
+            return RequestResponse(
+                status="success",
+                data={"reason": "Local Terminal failed to resolve command. Potentially invalid credentials?"},
+            )
+
+        rm.add_request(
+            "send_local_command",
+            request_type=RequestType(func=local_execute_request),
         )
 
         return rm
