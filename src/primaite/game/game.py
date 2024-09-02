@@ -329,6 +329,12 @@ class PrimaiteGame:
                 _LOGGER.error(msg)
                 raise ValueError(msg)
 
+            # handle node file system
+            if node_cfg.get("file_system") is not None and len(node_cfg.get("file_system")) > 0:
+                for folder in node_cfg.get("file_system"):
+                    for file in node_cfg["file_system"][folder]:
+                        new_node.file_system.create_file(folder_name=folder, file_name=file)
+
             if "users" in node_cfg and new_node.software_manager.software.get("UserManager"):
                 user_manager: UserManager = new_node.software_manager.software["UserManager"]  # noqa
                 for user_cfg in node_cfg["users"]:
