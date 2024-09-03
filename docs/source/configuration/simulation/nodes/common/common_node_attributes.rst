@@ -54,6 +54,39 @@ Optional. Default value is ``3``.
 
 The number of time steps required to occur in order for the node to cycle from ``ON`` to ``SHUTTING_DOWN`` and then finally ``OFF``.
 
+``file_system``
+---------------
+
+Optional.
+
+The file system of the node. This configuration allows nodes to be initialised with files and/or folders.
+
+The file system takes a list of folders and files.
+
+Example:
+
+.. code-block:: yaml
+
+    simulation:
+      network:
+        nodes:
+        - hostname: client_1
+          type: computer
+          ip_address: 192.168.10.11
+          subnet_mask: 255.255.255.0
+          default_gateway: 192.168.10.1
+          file_system:
+            - empty_folder  # example of an empty folder
+            - downloads:
+              - "test_1.txt"  # files in the downloads folder
+              - "test_2.txt"
+            - root:
+              - passwords:  # example of file with size and type
+                size: 69  # size in bytes
+                type: TXT  # See FileType for list of available file types
+
+List of file types: :py:mod:`primaite.simulator.file_system.file_type.FileType`
+
 ``users``
 ---------
 

@@ -843,7 +843,14 @@ simulation:
       dns_server: 192.168.1.10
       services:
       - type: FTPServer
-
+      file_system:
+        - root:
+          - backup_script.sh:  # example file in backup server
+            size: 400
+            type: SH
+        - downloads:
+          - "ChromeSetup.exe"  # another example file
+        - "New Folder"  # example of an empty folder
     - hostname: security_suite
       type: server
       ip_address: 192.168.1.110
