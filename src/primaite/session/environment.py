@@ -112,9 +112,6 @@ class PrimaiteGymEnv(gymnasium.Env):
         self.game.update_agents(state)
 
         next_obs = self._get_obs()  # this doesn't update observation, just gets the current observation
-        if self.io.settings.obs_space_data:
-            # Write unflattened observation space to log file.
-            self._write_obs_space_data(self.agent.observation_manager.current_observation)
         reward = self.agent.reward_function.current_reward
         _LOGGER.debug(f"step: {self.game.step_counter}, Blue reward: {reward}")
         terminated = False
@@ -142,25 +139,6 @@ class PrimaiteGymEnv(gymnasium.Env):
         with open(path, "w") as file:
             json.dump(data, file)
 
-    def _write_obs_space_data(self, obs_space: ObsType) -> None:
-        """Write the unflattened observation space data to a JSON file.
-        
-        :param obs: Observation of the environment (dict)
-        :type obs: ObsType
-        """
-        output_dir = SIM_OUTPUT.path / f"episode_{self.episode_counter}" / "obs_space_data"
-
-        output_dir.mkdir(parents=True, exist_ok=True)
-        path = output_dir / f"step_{self.game.step_counter}.json"
-
-        data = {
-            "episode": self.episode_counter,
-            "step": self.game.step_counter,
-            "obs_space_data": obs_space,
-        }
-        with open(path, "w") as file:
-            json.dump(data, file)
-
     def reset(self, seed: Optional[int] = None, options: Optional[Dict] = None) -> Tuple[ObsType, Dict[str, Any]]:
         """Reset the environment."""
         _LOGGER.info(
@@ -181,9 +159,6 @@ class PrimaiteGymEnv(gymnasium.Env):
         state = self.game.get_sim_state()
         self.game.update_agents(state=state)
         next_obs = self._get_obs()
-        if self.io.settings.obs_space_data:
-            # Write unflattened observation space to log file.
-            self._write_obs_space_data(self.agent.observation_manager.current_observation)
         info = {}
         return next_obs, info
 
