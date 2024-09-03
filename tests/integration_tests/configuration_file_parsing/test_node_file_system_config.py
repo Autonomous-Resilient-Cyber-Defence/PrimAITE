@@ -5,6 +5,7 @@ from typing import Union
 import yaml
 
 from primaite.game.game import PrimaiteGame
+from primaite.simulator.file_system.file_type import FileType
 from tests import TEST_ASSETS_ROOT
 
 BASIC_CONFIG = TEST_ASSETS_ROOT / "configs/nodes_with_initial_files.yaml"
@@ -42,6 +43,22 @@ def test_node_file_system_from_config():
     # web files should not exist
     assert client_2.file_system.get_file(folder_name="primaite", file_name="index.html") is None
 
-    # TODO file sizes and file types
-    # TODO assert that files and folders created:
-    # TODO create empty folders
+    empty_folder = client_2.file_system.get_folder(folder_name="empty_folder")
+    assert empty_folder
+    assert len(empty_folder.files) == 0  # should have no files
+
+    password_file = client_2.file_system.get_file(folder_name="root", file_name="passwords.txt")
+    assert password_file  # should exist
+    assert password_file.file_type is FileType.TXT
+    assert password_file.size is 69
+
+    downloads_folder = client_2.file_system.get_folder(folder_name="downloads")
+    assert downloads_folder  # downloads folder should exist
+
+    test_txt = downloads_folder.get_file(file_name="test.txt")
+    assert test_txt  # test.txt should exist
+    assert test_txt.file_type is FileType.TXT
+
+    unknown_file_type = downloads_folder.get_file(file_name="suh_con.dn")
+    assert unknown_file_type  # unknown_file_type should exist
+    assert unknown_file_type.file_type is FileType.UNKNOWN

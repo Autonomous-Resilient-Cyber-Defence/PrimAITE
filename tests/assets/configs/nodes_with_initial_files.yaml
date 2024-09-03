@@ -226,11 +226,14 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       file_system:
-        downloads:
+        - empty_folder
+        - downloads:
             - "test.txt"
             - "suh_con.dn"
-        root:
-            - "passwords.txt"
+        - root:
+            - passwords:
+                size: 69
+                type: TXT
       # pre installed services and applications
     - hostname: client_3
       type: computer

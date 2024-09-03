@@ -17,6 +17,7 @@ from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
+from primaite.simulator.file_system.file_type import FileType
 from primaite.simulator.network.airspace import AirSpaceFrequency
 from primaite.simulator.network.hardware.base import NetworkInterface, NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -331,9 +332,23 @@ class PrimaiteGame:
 
             # handle node file system
             if node_cfg.get("file_system") is not None and len(node_cfg.get("file_system")) > 0:
-                for folder in node_cfg.get("file_system"):
-                    for file in node_cfg["file_system"][folder]:
-                        new_node.file_system.create_file(folder_name=folder, file_name=file)
+                for folder_idx, folder_obj in enumerate(node_cfg.get("file_system")):
+                    # if the folder is not a Dict, create an empty folder
+                    if not isinstance(folder_obj, Dict):
+                        new_node.file_system.create_folder(folder_name=folder_obj)
+                    else:
+                        folder_name = next(iter(folder_obj))
+                        for file_idx, file_obj in enumerate(node_cfg["file_system"][folder_idx][folder_name]):
+                            if not isinstance(file_obj, Dict):
+                                new_node.file_system.create_file(folder_name=folder_name, file_name=file_obj)
+                            else:
+                                file_name = next(iter(file_obj))
+                                new_node.file_system.create_file(
+                                    folder_name=folder_name,
+                                    file_name=file_name,
+                                    size=file_obj[file_name].get("size", 0),
+                                    file_type=FileType[file_obj[file_name].get("type", "UNKNOWN").upper()],
+                                )
 
             if "users" in node_cfg and new_node.software_manager.software.get("UserManager"):
                 user_manager: UserManager = new_node.software_manager.software["UserManager"]  # noqa
