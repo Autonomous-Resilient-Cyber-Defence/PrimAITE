@@ -12,7 +12,9 @@ from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.airspace import AirSpace
 from primaite.simulator.network.hardware.base import Link, Node, WiredNetworkInterface
+from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 from primaite.simulator.network.hardware.nodes.host.server import Printer
+from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.service import Service
 
@@ -128,6 +130,16 @@ class Network(SimComponent):
     def firewall_nodes(self) -> List[Node]:
         """The Firewalls in the Network."""
         return [node for node in self.nodes.values() if node.__class__.__name__ == "Firewall"]
+    
+    @property
+    def extended_hostnodes(self) -> List[Node]:
+        """Extended nodes that inherited HostNode in the network"""
+        return [node for node in self.nodes.values() if node.__class__.__name__.lower() in HostNode._registry]
+    
+    @property
+    def extended_networknodes(self) -> List[Node]:
+        """Extended nodes that inherited NetworkNode in the network"""
+        return [node for node in self.nodes.values() if node.__class__.__name__.lower() in NetworkNode._registry]
 
     @property
     def printer_nodes(self) -> List[Node]:
@@ -160,6 +172,7 @@ class Network(SimComponent):
             "Printer": self.printer_nodes,
             "Wireless Router": self.wireless_router_nodes,
         }
+
         if nodes:
             table = PrettyTable(["Node", "Type", "Operating State"])
             if markdown:

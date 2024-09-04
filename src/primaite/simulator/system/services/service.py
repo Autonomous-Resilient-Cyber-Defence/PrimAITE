@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, ClassVar, Dict, Optional, Type
 
 from primaite import getLogger
 from primaite.interface.request import RequestFormat, RequestResponse
@@ -46,8 +46,28 @@ class Service(IOSoftware):
     restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
 
+    _registry: ClassVar[Dict[str, Type["Service"]]] = {}
+    """Registry of service types. Automatically populated when subclasses are defined."""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def __init_subclass__(cls, identifier: str = 'default', **kwargs: Any) -> None:
+        """
+        Register a hostnode type.
+
+        :param identifier: Uniquely specifies an hostnode class by name. Used for finding items by config.
+        :type identifier: str
+        :raises ValueError: When attempting to register an hostnode with a name that is already allocated.
+        """
+        if identifier == 'default':
+            return
+        # Enforce lowercase registry entries because it makes comparisons everywhere else much easier.
+        identifier = identifier.lower()
+        super().__init_subclass__(**kwargs)
+        if identifier in cls._registry:
+            raise ValueError(f"Tried to define new hostnode {identifier}, but this name is already reserved.")
+        cls._registry[identifier] = cls
 
     def _can_perform_action(self) -> bool:
         """

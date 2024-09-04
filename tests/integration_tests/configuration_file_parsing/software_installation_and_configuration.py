@@ -86,7 +86,7 @@ def test_node_software_install():
         assert client_2.software_manager.software.get(software.__name__) is not None
 
     # check that applications have been installed on client 1
-    for applications in Application._application_registry:
+    for applications in Application._registry:
         assert client_1.software_manager.software.get(applications) is not None
 
     # check that services have been installed on client 1

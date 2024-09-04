@@ -51,7 +51,7 @@ def test_fix_duration_set_from_config():
 
     # in config - applications take 1 timestep to fix
     # remove test applications from list
-    applications = set(Application._application_registry) - set(TestApplications)
+    applications = set(Application._registry) - set(TestApplications)
 
     for application in ["RansomwareScript", "WebBrowser", "DataManipulationBot", "DoSBot", "DatabaseClient"]:
         assert client_1.software_manager.software.get(application) is not None

@@ -20,9 +20,10 @@ from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.airspace import AirSpaceFrequency
 from primaite.simulator.network.hardware.base import NetworkInterface, NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.host.host_node import NIC
+from primaite.simulator.network.hardware.nodes.host.host_node import NIC, HostNode
 from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
 from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
+from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
@@ -278,8 +279,25 @@ class PrimaiteGame:
 
         for node_cfg in nodes_cfg:
             n_type = node_cfg["type"]
+
             new_node = None
-            if n_type == "computer":
+            # Handle extended nodes
+            if n_type.lower() in HostNode._registry:
+                new_node = HostNode._registry[n_type](
+                    hostname=node_cfg["hostname"],
+                    ip_address=node_cfg["ip_address"],
+                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
+                    default_gateway=node_cfg.get("default_gateway"),
+                    dns_server=node_cfg.get("dns_server", None),
+                    operating_state=NodeOperatingState.ON
+                    if not (p := node_cfg.get("operating_state"))
+                    else NodeOperatingState[p.upper()])
+            elif n_type in NetworkNode._registry:
+                new_node = NetworkNode._registry[n_type](
+                    **node_cfg
+                )
+            # Default PrimAITE nodes
+            elif n_type == "computer":
                 new_node = Computer(
                     hostname=node_cfg["hostname"],
                     ip_address=node_cfg["ip_address"],
@@ -351,10 +369,18 @@ class PrimaiteGame:
                 for service_cfg in node_cfg["services"]:
                     new_service = None
                     service_type = service_cfg["type"]
-                    if service_type in SERVICE_TYPES_MAPPING:
+
+                    service_class = None
+                    # Handle extended services
+                    if service_type.lower() in Service._registry:
+                        service_class = Service._registry[service_type.lower()]
+                    elif service_type in SERVICE_TYPES_MAPPING:
+                        service_class = SERVICE_TYPES_MAPPING[service_type]
+
+                    if service_class is not None:
                         _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
-                        new_node.software_manager.install(SERVICE_TYPES_MAPPING[service_type])
-                        new_service = new_node.software_manager.software[service_type]
+                        new_node.software_manager.install(service_class)
+                        new_service = new_node.software_manager.software[service_class.__name__]
 
                         # fixing duration for the service
                         if "fix_duration" in service_cfg.get("options", {}):
@@ -398,8 +424,8 @@ class PrimaiteGame:
                     new_application = None
                     application_type = application_cfg["type"]
 
-                    if application_type in Application._application_registry:
-                        new_node.software_manager.install(Application._application_registry[application_type])
+                    if application_type in Application._registry:
+                        new_node.software_manager.install(Application._registry[application_type])
                         new_application = new_node.software_manager.software[application_type]  # grab the instance
 
                         # fixing duration for the application
