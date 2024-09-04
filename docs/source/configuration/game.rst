@@ -28,6 +28,7 @@ This section defines high-level settings that apply across the game, currently i
                 high: 10
                 medium: 5
                 low: 0
+        seed: 1
 
 ``max_episode_length``
 ----------------------
@@ -54,3 +55,8 @@ See :ref:`List of IPProtocols <List of IPProtocols>` for a list of protocols.
 --------------
 
 These are used to determine the thresholds of high, medium and low categories for counted observation occurrences.
+
+``seed``
+--------
+
+Used to configure the random seeds used within PrimAITE, ensuring determinism within episode/session runs. If empty or set to -1, no seed is set.
