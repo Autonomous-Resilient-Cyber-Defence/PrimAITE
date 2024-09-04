@@ -92,10 +92,6 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: WebBrowser
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``WebBrowser``
 
 ``target_url``
 """"""""""""""

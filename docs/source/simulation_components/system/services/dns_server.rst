@@ -83,13 +83,9 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
 
-.. |SOFTWARE_NAME| replace:: DNSServer
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``DNSServer``
-
-domain_mapping
-""""""""""""""
+``domain_mapping``
+""""""""""""""""""
 
 Domain mapping takes the domain and IP Addresses as a key-value pairs i.e.
 

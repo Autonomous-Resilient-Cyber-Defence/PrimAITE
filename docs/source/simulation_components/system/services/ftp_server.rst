@@ -81,11 +81,6 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: FTPServer
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``FTPServer``
-
 ``server_password``
 """""""""""""""""""
 

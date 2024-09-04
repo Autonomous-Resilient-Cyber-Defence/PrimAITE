@@ -254,6 +254,9 @@ Via Configuration
 C2 Beacon Configuration
 =======================
 
+``Common Configuration``
+""""""""""""""""""""""""
+
 .. include:: ../common/common_configuration.rst
 
 .. |SOFTWARE_NAME| replace:: C2Beacon
@@ -311,9 +314,3 @@ C2 Server Configuration
 =======================
 
 *The C2 Server does not currently offer any unique configuration options and will configure itself to match the C2 beacon's network behaviour.*
-
-
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: C2Server
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``C2Server``

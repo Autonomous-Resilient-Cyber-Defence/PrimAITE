@@ -74,11 +74,3 @@ Via Configuration
                 services:
                     - ref: ntp_server
                     type: NTPServer
-
-Configuration
-=============
-
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: NTPServer
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``NTPServer``

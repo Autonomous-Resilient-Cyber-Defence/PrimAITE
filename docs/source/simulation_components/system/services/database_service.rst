@@ -94,11 +94,6 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: DatabaseService
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``DatabaseService``
-
 ``backup_server_ip``
 """"""""""""""""""""
 
@@ -114,3 +109,8 @@ This must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.25
 Optional. Default value is ``None``.
 
 The password that needs to be provided by connecting clients in order to create a successful connection.
+
+``Common Configuration``
+""""""""""""""""""""""""
+
+Common configuration variables are detailed within :ref:`software`

@@ -173,11 +173,3 @@ Disconnect from Remote Node
     term_a_term_b_remote_connection: RemoteTerminalConnection = terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")
 
     term_a_term_b_remote_connection.disconnect()
-
-Configuration
-=============
-
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: Terminal
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``Terminal``

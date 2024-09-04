@@ -82,8 +82,3 @@ Via Configuration
 
 Configuration
 =============
-
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: FTPClient
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``FTPClient``

@@ -90,11 +90,6 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: DatabaseClient
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``DatabaseClient``
-
 
 ``db_server_ip``
 """"""""""""""""

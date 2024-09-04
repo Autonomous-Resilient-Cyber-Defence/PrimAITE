@@ -84,10 +84,6 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: DNSClient
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``DNSClient``
 
 ``dns_server``
 """"""""""""""

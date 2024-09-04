@@ -2,6 +2,8 @@
 
     © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
+.. _software:
+
 
 Software
 ========
@@ -63,3 +65,10 @@ Processes
 #########
 
 `To be implemented`
+
+Common Software Configuration
+#############################
+
+Below is a list of the common configuration items within Software components of PrimAITE:
+
+.. include:: common/common_configuration.rst

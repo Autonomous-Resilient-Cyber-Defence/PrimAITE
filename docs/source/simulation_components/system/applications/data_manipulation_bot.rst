@@ -158,10 +158,6 @@ If not using the data manipulation bot manually, it needs to be used with a data
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: DataManipulationBot
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``DataManipulationBot``
 
 ``server_ip``
 """""""""""""

@@ -72,10 +72,6 @@ Configuration
 
 The RansomwareScript inherits configuration options such as ``fix_duration`` from its parent class. However, for the ``RansomwareScript`` the most relevant option is ``server_ip``.
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: RansomwareScript
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``RansomwareScript``
 
 ``server_ip``
 """""""""""""

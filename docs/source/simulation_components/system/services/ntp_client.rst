@@ -80,11 +80,6 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: NTPClient
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``NTPClient``
-
 ``ntp_server_ip``
 """""""""""""""""
 

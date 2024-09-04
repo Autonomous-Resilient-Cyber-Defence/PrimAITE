@@ -98,6 +98,9 @@ Via Configuration
 Configuration
 =============
 
+``Common Configuration``
+""""""""""""""""""""""""
+
 .. include:: ../common/common_configuration.rst
 
 .. |SOFTWARE_NAME| replace:: DoSBot
