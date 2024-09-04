@@ -30,7 +30,7 @@ The number of timesteps the |SOFTWARE_NAME| will remain in a ``FIXING`` state be
 ``listen_on_ports``
 """""""""""""""""""
 
-The set of ports to listen on. This is in addition to the main port the software is designated. This set can either be
+The set of ports to listen on. This is in addition to the main port the software is designated. This can either be
 the string name of ports or the port integers
 
 Example:
@@ -46,14 +46,12 @@ Example:
           subnet_mask: 255.255.255.0
           default_gateway: 192.168.10.1
           services:
-            - type: DatabaseService
+            - type: [Service Type]
               options:
-                backup_server_ip: 10.10.1.12
                 listen_on_ports:
                   - 631
           applications:
-              - type: WebBrowser
+              - type: [Application Type]
                 options:
-                  target_url: http://sometech.ai
                   listen_on_ports:
                     - SMB
