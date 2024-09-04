@@ -25,4 +25,4 @@ def test_obs_data_in_log_file():
     with open(path, "r") as f:
         j = json.load(f)
 
-    assert type(j["0"]["defender"]["obs_space_data"]) == dict
+    assert type(j["0"]["defender"]["observation"]) == dict

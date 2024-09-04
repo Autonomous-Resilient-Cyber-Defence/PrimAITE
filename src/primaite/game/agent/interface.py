@@ -38,7 +38,7 @@ class AgentHistoryItem(BaseModel):
 
     reward_info: Dict[str, Any] = {}
 
-    obs_space_data: Optional[ObsType] = None
+    observation: Optional[ObsType] = None
     """The observation space data for this step."""
 
 
@@ -178,7 +178,7 @@ class AbstractAgent(ABC):
         parameters: Dict[str, Any],
         request: RequestFormat,
         response: RequestResponse,
-        obs_space_data: ObsType,
+        observation: ObsType,
     ) -> None:
         """Process the response from the most recent action."""
         self.history.append(
@@ -188,7 +188,7 @@ class AbstractAgent(ABC):
                 parameters=parameters,
                 request=request,
                 response=response,
-                obs_space_data=obs_space_data,
+                observation=observation,
             )
         )
 
