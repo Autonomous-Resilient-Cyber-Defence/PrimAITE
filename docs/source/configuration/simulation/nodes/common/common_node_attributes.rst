@@ -82,8 +82,8 @@ Example:
               - "test_2.txt"
             - root:
               - passwords:  # example of file with size and type
-                size: 69  # size in bytes
-                type: TXT  # See FileType for list of available file types
+                  size: 69  # size in bytes
+                  type: TXT  # See FileType for list of available file types
 
 List of file types: :py:mod:`primaite.simulator.file_system.file_type.FileType`
 

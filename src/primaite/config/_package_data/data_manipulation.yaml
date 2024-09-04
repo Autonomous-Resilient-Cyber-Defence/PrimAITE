@@ -846,8 +846,8 @@ simulation:
       file_system:
         - root:
           - backup_script.sh:  # example file in backup server
-            size: 400
-            type: SH
+              size: 400
+              type: SH
         - downloads:
           - "ChromeSetup.exe"  # another example file
         - "New Folder"  # example of an empty folder
