@@ -38,6 +38,9 @@ class AgentHistoryItem(BaseModel):
 
     reward_info: Dict[str, Any] = {}
 
+    observation: Optional[ObsType] = None
+    """The observation space data for this step."""
+
 
 class AgentStartSettings(BaseModel):
     """Configuration values for when an agent starts performing actions."""
@@ -169,12 +172,23 @@ class AbstractAgent(ABC):
         return request
 
     def process_action_response(
-        self, timestep: int, action: str, parameters: Dict[str, Any], request: RequestFormat, response: RequestResponse
+        self,
+        timestep: int,
+        action: str,
+        parameters: Dict[str, Any],
+        request: RequestFormat,
+        response: RequestResponse,
+        observation: ObsType,
     ) -> None:
         """Process the response from the most recent action."""
         self.history.append(
             AgentHistoryItem(
-                timestep=timestep, action=action, parameters=parameters, request=request, response=response
+                timestep=timestep,
+                action=action,
+                parameters=parameters,
+                request=request,
+                response=response,
+                observation=observation,
             )
         )
 

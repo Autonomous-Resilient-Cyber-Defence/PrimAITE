@@ -186,6 +186,7 @@ class PrimaiteGame:
                 parameters=parameters,
                 request=request,
                 response=response,
+                observation=obs,
             )
 
     def pre_timestep(self) -> None:
