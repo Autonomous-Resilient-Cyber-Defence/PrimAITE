@@ -83,16 +83,17 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
 
-.. |SOFTWARE_NAME| replace:: DNSServer
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``DNSServer``
-
-domain_mapping
-""""""""""""""
+``domain_mapping``
+""""""""""""""""""
 
 Domain mapping takes the domain and IP Addresses as a key-value pairs i.e.
 
 If the domain is "arcd.com" and the IP Address attributed to the domain is 192.168.0.10, then the value should be ``arcd.com: 192.168.0.10``
 
 The key must be a string and the IP Address must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.255``.
+
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
+
+See :ref:`Common Configuration`
