@@ -331,7 +331,7 @@ class PrimaiteGame:
                 raise ValueError(msg)
 
             # handle node file system
-            if node_cfg.get("file_system") is not None and len(node_cfg.get("file_system")) > 0:
+            if node_cfg.get("file_system"):
                 for folder_idx, folder_obj in enumerate(node_cfg.get("file_system")):
                     # if the folder is not a Dict, create an empty folder
                     if not isinstance(folder_obj, Dict):
