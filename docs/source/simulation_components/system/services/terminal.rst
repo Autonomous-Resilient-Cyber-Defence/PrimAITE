@@ -36,7 +36,7 @@ Implementation
 Usage
 """""
 
- - Pre-Installs on all ``Node`` (with the exception of ``Switch``).
+ - Pre-Installs on all ``Nodes`` (with the exception of ``Switches``).
  - Terminal Clients connect, execute commands and disconnect from remote nodes.
  - Ensures that users are logged in to the component before executing any commands.
  - Service runs on SSH port 22 by default.
@@ -176,6 +176,6 @@ Disconnect from Remote Node
 
 
 ``Common Attributes``
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 See :ref:`Common Configuration`

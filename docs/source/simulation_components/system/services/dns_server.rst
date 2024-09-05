@@ -94,6 +94,6 @@ If the domain is "arcd.com" and the IP Address attributed to the domain is 192.1
 The key must be a string and the IP Address must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.255``.
 
 ``Common Attributes``
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 See :ref:`Common Configuration`

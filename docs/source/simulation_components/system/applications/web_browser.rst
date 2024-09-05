@@ -108,6 +108,6 @@ The domain ``arcd.com`` can be matched by
 
 
 ``Common Attributes``
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 See :ref:`Common Configuration`

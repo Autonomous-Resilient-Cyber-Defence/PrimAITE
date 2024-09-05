@@ -90,6 +90,6 @@ The IP address of an NTP Server which provides a time that the ``NTPClient`` can
 This must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.255``.
 
 ``Common Attributes``
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 See :ref:`Common Configuration`

@@ -158,6 +158,6 @@ The maximum number of sessions the ``DoSBot`` is able to make.
 This must be an integer value equal to or greater than ``0``.
 
 ``Common Attributes``
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 See :ref:`Common Configuration`

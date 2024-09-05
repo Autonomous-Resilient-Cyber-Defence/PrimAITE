@@ -89,6 +89,6 @@ Optional. Default value is ``None``.
 The password that needs to be provided by a connecting :ref:`FTPClient` in order to create a successful connection.
 
 ``Common Attributes``
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 See :ref:`Common Configuration`

@@ -5,7 +5,7 @@
 .. _Common Configuration:
 
 Common Configuration
---------------------
+""""""""""""""""""""
 
 ref
 """

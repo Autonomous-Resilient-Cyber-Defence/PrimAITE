@@ -106,6 +106,6 @@ Optional. Default value is ``None``.
 The password that the ``DatabaseClient`` will use to access the :ref:`DatabaseService`.
 
 ``Common Attributes``
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 See :ref:`Common Configuration`

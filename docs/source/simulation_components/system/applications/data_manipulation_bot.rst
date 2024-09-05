@@ -201,6 +201,6 @@ The chance of the ``DataManipulationBot`` to succeed with a data manipulation at
 This must be a float value between ``0`` and ``1``.
 
 ``Common Attributes``
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 See :ref:`Common Configuration`

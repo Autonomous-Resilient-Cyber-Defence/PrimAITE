@@ -59,7 +59,7 @@ Once installed and configured; the C2 beacon can establish connection with the C
 This will send an initial ``keep alive`` to the given C2 Server (The C2 Server IPv4Address must be given upon C2 Beacon configuration).
 Which is then resolved and responded by another ``Keep Alive`` by the C2 server back to the C2 beacon to confirm connection.
 
-The C2 Beacon will send out periodic keep alive based on it's configuration parameters to configure it's active connection with the C2 server.
+The C2 Beacon will send out periodic keep alive based on its configuration parameters to configure it's active connection with the C2 server.
 
 It's recommended that a C2 Beacon is installed and configured mid episode by a Red Agent for a more cyber realistic simulation.
 
@@ -254,12 +254,6 @@ Via Configuration
 C2 Beacon Configuration
 =======================
 
-``Common Attributes``
-"""""""""""""""""""""
-
-See :ref:`Common Configuration`
-
-
 ``c2_server_ip_address``
 """"""""""""""""""""""""
 
@@ -308,12 +302,18 @@ This must be a string i.e ``DNS``. Defaults to ``HTTP``.
 
 *Please refer to the ``IPProtocol`` class for further reference.*
 
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
+
+See :ref:`Common Configuration`
+
+
 C2 Server Configuration
 =======================
 
 *The C2 Server does not currently offer any unique configuration options and will configure itself to match the C2 beacon's network behaviour.*
 
 ``Common Attributes``
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 See :ref:`Common Configuration`

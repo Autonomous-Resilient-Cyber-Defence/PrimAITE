@@ -111,6 +111,6 @@ Optional. Default value is ``None``.
 The password that needs to be provided by connecting clients in order to create a successful connection.
 
 ``Common Attributes``
-"""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^
 
 See :ref:`Common Configuration`
