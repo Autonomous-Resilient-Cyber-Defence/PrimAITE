@@ -79,3 +79,8 @@ The RansomwareScript inherits configuration options such as ``fix_duration`` fro
 IP address of the :ref:`DatabaseService` which the ``RansomwareScript`` will encrypt.
 
 This must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.255``.
+
+``Common Attributes``
+"""""""""""""""""""""
+
+See :ref:`Common Configuration`

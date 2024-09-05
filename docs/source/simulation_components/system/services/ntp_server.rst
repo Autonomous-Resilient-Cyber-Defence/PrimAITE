@@ -74,3 +74,9 @@ Via Configuration
                 services:
                     - ref: ntp_server
                     type: NTPServer
+
+
+``Common Attributes``
+"""""""""""""""""""""
+
+See :ref:`Common Configuration`

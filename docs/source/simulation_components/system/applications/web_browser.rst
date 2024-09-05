@@ -105,3 +105,9 @@ The domain ``arcd.com`` can be matched by
 - http://arcd.com/
 - http://arcd.com/users/
 - arcd.com
+
+
+``Common Attributes``
+"""""""""""""""""""""
+
+See :ref:`Common Configuration`

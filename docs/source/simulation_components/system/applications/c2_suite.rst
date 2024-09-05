@@ -254,13 +254,11 @@ Via Configuration
 C2 Beacon Configuration
 =======================
 
-``Common Configuration``
-""""""""""""""""""""""""
+``Common Attributes``
+"""""""""""""""""""""
 
-.. include:: ../common/common_configuration.rst
+See :ref:`Common Configuration`
 
-.. |SOFTWARE_NAME| replace:: C2Beacon
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``C2Beacon``
 
 ``c2_server_ip_address``
 """"""""""""""""""""""""
@@ -314,3 +312,8 @@ C2 Server Configuration
 =======================
 
 *The C2 Server does not currently offer any unique configuration options and will configure itself to match the C2 beacon's network behaviour.*
+
+``Common Attributes``
+"""""""""""""""""""""
+
+See :ref:`Common Configuration`

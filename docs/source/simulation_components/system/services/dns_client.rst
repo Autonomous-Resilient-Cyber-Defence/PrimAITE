@@ -93,3 +93,8 @@ Optional. Default value is ``None``.
 The IP Address of the :ref:`DNSServer`.
 
 This must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.255``.
+
+``Common Attributes``
+"""""""""""""""""""""
+
+See :ref:`Common Configuration`

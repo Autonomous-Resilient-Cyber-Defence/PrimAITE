@@ -98,14 +98,6 @@ Via Configuration
 Configuration
 =============
 
-``Common Configuration``
-""""""""""""""""""""""""
-
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: DoSBot
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``DoSBot``
-
 ``target_ip_address``
 """""""""""""""""""""
 
@@ -164,3 +156,8 @@ Optional. Default value is ``1000``.
 The maximum number of sessions the ``DoSBot`` is able to make.
 
 This must be an integer value equal to or greater than ``0``.
+
+``Common Attributes``
+"""""""""""""""""""""
+
+See :ref:`Common Configuration`

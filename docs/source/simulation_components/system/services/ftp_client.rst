@@ -82,3 +82,8 @@ Via Configuration
 
 Configuration
 =============
+
+``Common Attributes``
+"""""""""""""""""""""
+
+See :ref:`Common Configuration`

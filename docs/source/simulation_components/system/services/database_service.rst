@@ -110,7 +110,7 @@ Optional. Default value is ``None``.
 
 The password that needs to be provided by connecting clients in order to create a successful connection.
 
-``Common Configuration``
-""""""""""""""""""""""""
+``Common Attributes``
+"""""""""""""""""""""
 
-Common configuration variables are detailed within :ref:`software`
+See :ref:`Common Configuration`
