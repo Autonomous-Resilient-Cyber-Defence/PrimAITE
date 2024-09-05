@@ -1116,6 +1116,38 @@ class ConfigureC2BeaconAction(AbstractAction):
         return ["network", "node", node_name, "application", "C2Beacon", "configure", config.__dict__]
 
 
+class NodeAccountsAddUserAction(AbstractAction):
+    """Action which changes adds a User."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: str, username: str, password: str, is_admin: bool) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return ["network", "node", node_name, "service", "UserManager", "add_user", username, password, is_admin]
+
+
+class NodeAccountsDisableUserAction(AbstractAction):
+    """Action which disables a user."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: str, username: str) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "UserManager",
+            "disable_user",
+            username,
+        ]
+
+
 class NodeAccountsChangePasswordAction(AbstractAction):
     """Action which changes the password for a user."""
 
@@ -1368,6 +1400,8 @@ class ActionManager:
         "C2_SERVER_RANSOMWARE_CONFIGURE": RansomwareConfigureC2ServerAction,
         "C2_SERVER_TERMINAL_COMMAND": TerminalC2ServerAction,
         "C2_SERVER_DATA_EXFILTRATE": ExfiltrationC2ServerAction,
+        "NODE_ACCOUNTS_ADD_USER": NodeAccountsAddUserAction,
+        "NODE_ACCOUNTS_DISABLE_USER": NodeAccountsDisableUserAction,
         "NODE_ACCOUNTS_CHANGE_PASSWORD": NodeAccountsChangePasswordAction,
         "SSH_TO_REMOTE": NodeSessionsRemoteLoginAction,
         "SESSIONS_REMOTE_LOGOFF": NodeSessionsRemoteLogoutAction,
