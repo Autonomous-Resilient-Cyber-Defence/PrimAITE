@@ -2,6 +2,8 @@
 import pytest
 
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction
+from primaite.simulator.network.transmission.transport_layer import Port
 
 
 @pytest.fixture
@@ -91,3 +93,84 @@ def test_user_account_change_password_action(game_and_agent_fixture):
     game.step()
 
     assert test_user.password == "2Hard_2_Hack"
+
+
+def test_user_account_create_terminal_action(game_and_agent_fixture):
+    """Tests that agents can use the terminal to create new users."""
+    game, agent = game_and_agent_fixture
+
+    router = game.simulation.network.get_node_by_hostname("router")
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=4)
+
+    server_1 = game.simulation.network.get_node_by_hostname("server_1")
+    server_1_usm = server_1.software_manager.software["UserManager"]
+    server_1_usm.add_user("user123", "password", is_admin=True)
+
+    action = (
+        "SSH_TO_REMOTE",
+        {
+            "node_id": 0,
+            "username": "user123",
+            "password": "password",
+            "remote_ip": str(server_1.network_interface[1].ip_address),
+        },
+    )
+    agent.store_action(action)
+    game.step()
+    assert agent.history[-1].response.status == "success"
+
+    # Create a new user account via terminal.
+    action = (
+        "NODE_SEND_REMOTE_COMMAND",
+        {
+            "node_id": 0,
+            "remote_ip": str(server_1.network_interface[1].ip_address),
+            "command": ["service", "UserManager", "add_user", "new_user", "new_pass", True],
+        },
+    )
+    agent.store_action(action)
+    game.step()
+    new_user = server_1.user_manager.users.get("new_user")
+    assert new_user
+    assert new_user.password == "new_pass"
+    assert new_user.disabled is not True
+
+
+def test_user_account_disable_terminal_action(game_and_agent_fixture):
+    """Tests that agents can use the terminal to disable users."""
+    game, agent = game_and_agent_fixture
+    router = game.simulation.network.get_node_by_hostname("router")
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=4)
+
+    server_1 = game.simulation.network.get_node_by_hostname("server_1")
+    server_1_usm = server_1.software_manager.software["UserManager"]
+    server_1_usm.add_user("user123", "password", is_admin=True)
+
+    action = (
+        "SSH_TO_REMOTE",
+        {
+            "node_id": 0,
+            "username": "user123",
+            "password": "password",
+            "remote_ip": str(server_1.network_interface[1].ip_address),
+        },
+    )
+    agent.store_action(action)
+    game.step()
+    assert agent.history[-1].response.status == "success"
+
+    # Disable a user via terminal
+    action = (
+        "NODE_SEND_REMOTE_COMMAND",
+        {
+            "node_id": 0,
+            "remote_ip": str(server_1.network_interface[1].ip_address),
+            "command": ["service", "UserManager", "disable_user", "user123"],
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    new_user = server_1.user_manager.users.get("user123")
+    assert new_user
+    assert new_user.disabled is True
