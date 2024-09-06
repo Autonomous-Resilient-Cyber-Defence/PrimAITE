@@ -20,7 +20,7 @@ The type of software that should be added. To add the required software, this mu
 options
 """""""
 
-The configuration options are the attributes that fall under the options for an application.
+The configuration options are the attributes that fall under the options for an application or service.
 
 fix_duration
 """"""""""""

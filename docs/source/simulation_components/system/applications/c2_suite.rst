@@ -270,7 +270,7 @@ How often should the C2 Beacon confirm it's connection in timesteps.
 For example, if the keep alive Frequency is set to one then every single timestep
 the C2 connection will be confirmed.
 
-It's worth noting that this may be useful option when investigating
+It's worth noting that this may be a useful option when investigating
 network blue agent observation space.
 
 This must be a valid integer i.e ``10``. Defaults to ``5``.
@@ -283,7 +283,7 @@ The protocol that the C2 Beacon will use to communicate to the C2 Server with.
 
 Currently only ``TCP`` and ``UDP`` are valid masquerade protocol options.
 
-It's worth noting that this may be useful option to bypass ACL rules.
+It's worth noting that this may be a useful option to bypass ACL rules.
 
 This must be a string i.e *UDP*. Defaults to ``TCP``.
 
