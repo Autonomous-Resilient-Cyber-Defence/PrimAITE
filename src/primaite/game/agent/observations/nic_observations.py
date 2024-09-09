@@ -1,18 +1,21 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import ClassVar, Dict, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
 
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.network.transmission.transport_layer import Port
 
 
 class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
     """Status information about a network interface within the simulation environment."""
+    capture_nmne: ClassVar[bool] = NMNEConfig().capture_nmne
+    "A dataclass defining malicious network events to be captured."
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
         """Configuration schema for NICObservation."""
@@ -164,7 +167,7 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
                         for port in self.monitored_traffic[protocol]:
                             obs["TRAFFIC"][protocol][Port[port].value] = {"inbound": 0, "outbound": 0}
 
-        if self.include_nmne:
+        if self.capture_nmne and self.include_nmne:
             obs.update({"NMNE": {}})
             direction_dict = nic_state["nmne"].get("direction", {})
             inbound_keywords = direction_dict.get("inbound", {}).get("keywords", {})
