@@ -14,8 +14,9 @@ from primaite.simulator.network.transmission.transport_layer import Port
 
 class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
     """Status information about a network interface within the simulation environment."""
+
     capture_nmne: ClassVar[bool] = NMNEConfig().capture_nmne
-    "A dataclass defining malicious network events to be captured."
+    "A Boolean specifying whether malicious network events should be captured."
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
         """Configuration schema for NICObservation."""
