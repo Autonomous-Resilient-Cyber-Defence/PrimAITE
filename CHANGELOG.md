@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+-   Log observation space data by episode and step.
+
+## [3.3.0] - 2024-09-04
+### Added
 -   Random Number Generator Seeding by specifying a random number seed in the config file.
 -   Implemented Terminal service class, providing a generic terminal simulation.
 -   Added `User`, `UserManager` and `UserSessionManager` to enable the creation of user accounts and login on Nodes.
