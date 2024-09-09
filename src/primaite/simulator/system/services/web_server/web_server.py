@@ -119,9 +119,10 @@ class WebServer(Service):
         if path.startswith("users"):
             # get data from DatabaseServer
             # get all users
-            if self._establish_db_connection():
+            if not self._establish_db_connection():
                 # unable to create a db connection
                 response.status_code = HttpStatusCode.INTERNAL_SERVER_ERROR
+                return response
 
             if self.db_connection.query("SELECT"):
                 # query succeeded
