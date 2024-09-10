@@ -28,7 +28,7 @@ def test_user_account_add_user_action(game_and_agent_fixture):
     # add admin account
     action = (
         "NODE_ACCOUNTS_ADD_USER",
-        {"node_id": 0, "username": "soccon_diiz", "password": "nuts", "is_admin": True},
+        {"node_id": 0, "username": "admin_2", "password": "e-tronic-boogaloo", "is_admin": True},
     )
     agent.store_action(action)
     game.step()
@@ -39,7 +39,7 @@ def test_user_account_add_user_action(game_and_agent_fixture):
     # add non admin account
     action = (
         "NODE_ACCOUNTS_ADD_USER",
-        {"node_id": 0, "username": "mike_rotch", "password": "password", "is_admin": False},
+        {"node_id": 0, "username": "leeroy.jenkins", "password": "no_plan_needed", "is_admin": False},
     )
     agent.store_action(action)
     game.step()
@@ -53,7 +53,7 @@ def test_user_account_disable_user_action(game_and_agent_fixture):
     game, agent = game_and_agent_fixture
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
 
-    client_1.user_manager.add_user(username="test", password="icles", is_admin=True)
+    client_1.user_manager.add_user(username="test", password="password", is_admin=True)
     assert len(client_1.user_manager.users) == 2  # new user added
     assert len(client_1.user_manager.admins) == 2
 
@@ -79,7 +79,7 @@ def test_user_account_change_password_action(game_and_agent_fixture):
     game, agent = game_and_agent_fixture
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
 
-    client_1.user_manager.add_user(username="test", password="icles", is_admin=True)
+    client_1.user_manager.add_user(username="test", password="password", is_admin=True)
 
     test_user = client_1.user_manager.users.get("test")
     assert test_user.password == "icles"
@@ -87,7 +87,7 @@ def test_user_account_change_password_action(game_and_agent_fixture):
     # change account password
     action = (
         "NODE_ACCOUNTS_CHANGE_PASSWORD",
-        {"node_id": 0, "username": "test", "current_password": "icles", "new_password": "2Hard_2_Hack"},
+        {"node_id": 0, "username": "test", "current_password": "password", "new_password": "2Hard_2_Hack"},
     )
     agent.store_action(action)
     game.step()
