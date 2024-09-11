@@ -106,7 +106,7 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     """
     Test that the RouterACLAddRuleAction can form a request and that it is accepted by the simulation.
 
-    The ACL starts off with 4 rules, and we add a rule, and check that the ACL now has 5 rules.
+    The ACL starts off with 3 rules, and we add a rule, and check that the ACL now has 4 rules.
     """
     game, agent = game_and_agent
 
