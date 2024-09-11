@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 -   Log observation space data by episode and step.
+-   ACL's are no longer applied to layer-2 traffic.
 
 ## [3.3.0] - 2024-09-04
 ### Added
