@@ -468,13 +468,6 @@ class AccessControlList(SimComponent):
         permitted = False
         rule: ACLRule = None
 
-        # check if the frame is ARP and if ACL rules apply.
-        if frame.udp:
-            if frame.is_arp:
-                permitted = True
-                rule: ACLRule = None
-                return permitted, rule
-
         for _rule in self._acl:
             if not _rule:
                 continue
@@ -1376,6 +1369,12 @@ class Router(NetworkNode):
 
         return False
 
+    def subject_to_acl(self, frame: Frame) -> bool:
+        """Check that frame is subject to ACL rules."""
+        if frame.ip.protocol == IPProtocol.UDP and frame.udp.dst_port == Port.ARP:
+            return False
+        return True
+
     def receive_frame(self, frame: Frame, from_network_interface: RouterInterface):
         """
         Processes an incoming frame received on one of the router's interfaces.
@@ -1389,8 +1388,12 @@ class Router(NetworkNode):
         if self.operating_state != NodeOperatingState.ON:
             return
 
-        # Check if it's permitted
-        permitted, rule = self.acl.is_permitted(frame)
+        if self.subject_to_acl(frame=frame):
+            # Check if it's permitted
+            permitted, rule = self.acl.is_permitted(frame)
+        else:
+            permitted = True
+            rule = None
 
         if not permitted:
             at_port = self._get_port_of_nic(from_network_interface)
