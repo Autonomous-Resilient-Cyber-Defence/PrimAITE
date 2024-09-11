@@ -108,37 +108,44 @@ class WebServer(Service):
         :type: payload: HttpRequestPacket
         """
         response = HttpResponsePacket(status_code=HttpStatusCode.NOT_FOUND, payload=payload)
-        try:
-            parsed_url = urlparse(payload.request_url)
-            path = parsed_url.path.strip("/")
 
-            if len(path) < 1:
+        parsed_url = urlparse(payload.request_url)
+        path = parsed_url.path.strip("/") if parsed_url and parsed_url.path else ""
+
+        if len(path) < 1:
+            # query succeeded
+            response.status_code = HttpStatusCode.OK
+
+        if path.startswith("users"):
+            # get data from DatabaseServer
+            # get all users
+            if not self._establish_db_connection():
+                # unable to create a db connection
+                response.status_code = HttpStatusCode.INTERNAL_SERVER_ERROR
+                return response
+
+            if self.db_connection.query("SELECT"):
                 # query succeeded
+                self.set_health_state(SoftwareHealthState.GOOD)
                 response.status_code = HttpStatusCode.OK
+            else:
+                self.set_health_state(SoftwareHealthState.COMPROMISED)
+        return response
 
-            if path.startswith("users"):
-                # get data from DatabaseServer
-                # get all users
-                if not self.db_connection:
-                    self._establish_db_connection()
-
-                if self.db_connection.query("SELECT"):
-                    # query succeeded
-                    self.set_health_state(SoftwareHealthState.GOOD)
-                    response.status_code = HttpStatusCode.OK
-                else:
-                    self.set_health_state(SoftwareHealthState.COMPROMISED)
-
-            return response
-        except Exception:  # TODO: refactor this. Likely to cause silent bugs. (ADO ticket #2345 )
-            # something went wrong on the server
-            response.status_code = HttpStatusCode.INTERNAL_SERVER_ERROR
-            return response
-
-    def _establish_db_connection(self) -> None:
+    def _establish_db_connection(self) -> bool:
         """Establish a connection to db."""
+        # if active db connection, return true
+        if self.db_connection:
+            return True
+
+        # otherwise, try to create db connection
         db_client = self.software_manager.software.get("DatabaseClient")
+
+        if db_client is None:
+            return False  # database client not installed
+
         self.db_connection: DatabaseClientConnection = db_client.get_new_connection()
+        return self.db_connection is not None
 
     def send(
         self,
