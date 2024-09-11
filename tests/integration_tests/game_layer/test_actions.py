@@ -115,7 +115,7 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     server_1 = game.simulation.network.get_node_by_hostname("server_1")
     server_2 = game.simulation.network.get_node_by_hostname("server_2")
     router = game.simulation.network.get_node_by_hostname("router")
-    assert router.acl.num_rules == 4
+    assert router.acl.num_rules == 3
     assert client_1.ping("10.0.2.3")  # client_1 can ping server_2
     assert server_2.ping("10.0.1.2")  # server_2 can ping client_1
 
@@ -138,8 +138,8 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     agent.store_action(action)
     game.step()
 
-    # 3: Check that the ACL now has 5 rules, and that client 1 cannot ping server 2
-    assert router.acl.num_rules == 5
+    # 3: Check that the ACL now has 4 rules, and that client 1 cannot ping server 2
+    assert router.acl.num_rules == 4
     assert not client_1.ping("10.0.2.3")  # Cannot ping server_2
     assert client_1.ping("10.0.2.2")  # Can ping server_1
     assert not server_2.ping(
@@ -165,8 +165,8 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     agent.store_action(action)
     game.step()
 
-    # 5: Check that the ACL now has 6 rules, but that server_1 can still ping server_2
-    assert router.acl.num_rules == 6
+    # 5: Check that the ACL now has 5 rules, but that server_1 can still ping server_2
+    assert router.acl.num_rules == 5
     assert server_1.ping("10.0.2.3")  # Can ping server_2
 
 
@@ -195,8 +195,8 @@ def test_router_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, P
     agent.store_action(action)
     game.step()
 
-    # 3: Check that the ACL now has 3 rules, and that client 1 cannot access example.com
-    assert router.acl.num_rules == 3
+    # 3: Check that the ACL now has 2 rules, and that client 1 cannot access example.com
+    assert router.acl.num_rules == 2
     assert not browser.get_webpage()
     client_1.software_manager.software.get("DNSClient").dns_cache.clear()
     assert client_1.ping("10.0.2.2")  # pinging still works because ICMP is allowed

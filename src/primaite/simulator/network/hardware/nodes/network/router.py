@@ -1388,6 +1388,9 @@ class Router(NetworkNode):
         if self.operating_state != NodeOperatingState.ON:
             return
 
+        print("£££££££££££££££££££££££££££££")
+        print(f"Frame received is: {frame}")
+
         if self.subject_to_acl(frame=frame):
             # Check if it's permitted
             permitted, rule = self.acl.is_permitted(frame)
