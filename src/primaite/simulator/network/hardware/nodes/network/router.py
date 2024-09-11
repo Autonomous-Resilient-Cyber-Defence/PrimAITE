@@ -1371,7 +1371,7 @@ class Router(NetworkNode):
 
     def subject_to_acl(self, frame: Frame) -> bool:
         """Check that frame is subject to ACL rules."""
-        if frame.ip.protocol == IPProtocol.UDP and frame.udp.dst_port == Port.ARP:
+        if frame.ip.protocol == IPProtocol.UDP and frame.is_arp:
             return False
         return True
 
@@ -1387,9 +1387,6 @@ class Router(NetworkNode):
         """
         if self.operating_state != NodeOperatingState.ON:
             return
-
-        print("£££££££££££££££££££££££££££££")
-        print(f"Frame received is: {frame}")
 
         if self.subject_to_acl(frame=frame):
             # Check if it's permitted
