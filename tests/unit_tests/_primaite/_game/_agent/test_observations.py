@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+import json
 from typing import List
 
 import pytest
@@ -142,7 +143,7 @@ class TestServiceRequiresScan:
         ),
     )
     def test_obs_config(self, yaml_option_string, expected_val):
-        """Check that the default behaviour is to set FileSystemRequiresScan to True."""
+        """Check that the default behaviour is to set service_requires_scan to True."""
         obs_cfg_yaml = f"""
       type: CUSTOM
       options:
@@ -155,19 +156,20 @@ class TestServiceRequiresScan:
                 - hostname: web_server
                   services:
                     - service_name: WebServer
+                    - service_name: DNSClient
                 - hostname: database_server
                   folders:
                     - folder_name: database
                       files:
                       - file_name: database.db
                 - hostname: backup_server
+                  services:
+                    - service_name: FTPServer
                 - hostname: security_suite
                 - hostname: client_1
-                  applications:
-                    - application_name: WebBrowser
                 - hostname: client_2
-              num_services: 1
-              num_applications: 1
+              num_services: 3
+              num_applications: 0
               num_folders: 1
               num_files: 1
               num_nics: 2
@@ -226,10 +228,12 @@ class TestServiceRequiresScan:
         manager = ObservationManager.from_config(cfg)
 
         hosts: List[HostObservation] = manager.obs.components["NODES"].hosts
-        for host in hosts:
+        for i, host in enumerate(hosts):
             services: List[ServiceObservation] = host.services
-            for service in services:
-                assert service.services_requires_scan == expected_val  # Make sure services require scan by default
+            for j, service in enumerate(services):
+                val = service.services_requires_scan
+                print(f"host {i} service {j} {val}")
+                assert val == expected_val  # Make sure services require scan by default
 
     def test_services_requires_scan(self):
         state = {"health_state_actual": 3, "health_state_visible": 1, "operating_state": 1}

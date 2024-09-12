@@ -281,6 +281,10 @@ class HostObservation(AbstractObservation, identifier="HOST"):
             folder_config.file_system_requires_scan = config.file_system_requires_scan
         for nic_config in config.network_interfaces:
             nic_config.include_nmne = config.include_nmne
+        for service_config in config.services:
+            service_config.services_requires_scan = config.services_requires_scan
+        for application_config in config.applications:
+            application_config.application_config_requires_scan = config.application_config_requires_scan
 
         services = [ServiceObservation.from_config(config=c, parent_where=where) for c in config.services]
         applications = [ApplicationObservation.from_config(config=c, parent_where=where) for c in config.applications]
