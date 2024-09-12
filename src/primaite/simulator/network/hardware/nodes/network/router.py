@@ -467,6 +467,7 @@ class AccessControlList(SimComponent):
         """Check if a packet with the given properties is permitted through the ACL."""
         permitted = False
         rule: ACLRule = None
+
         for _rule in self._acl:
             if not _rule:
                 continue
@@ -1257,7 +1258,6 @@ class Router(NetworkNode):
         Initializes the router's ACL (Access Control List) with default rules, permitting essential protocols like ARP
         and ICMP, which are necessary for basic network operations and diagnostics.
         """
-        self.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
         self.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
 
     def setup_for_episode(self, episode: int):
@@ -1369,6 +1369,12 @@ class Router(NetworkNode):
 
         return False
 
+    def subject_to_acl(self, frame: Frame) -> bool:
+        """Check that frame is subject to ACL rules."""
+        if frame.ip.protocol == IPProtocol.UDP and frame.is_arp:
+            return False
+        return True
+
     def receive_frame(self, frame: Frame, from_network_interface: RouterInterface):
         """
         Processes an incoming frame received on one of the router's interfaces.
@@ -1382,8 +1388,12 @@ class Router(NetworkNode):
         if self.operating_state != NodeOperatingState.ON:
             return
 
-        # Check if it's permitted
-        permitted, rule = self.acl.is_permitted(frame)
+        if self.subject_to_acl(frame=frame):
+            # Check if it's permitted
+            permitted, rule = self.acl.is_permitted(frame)
+        else:
+            permitted = True
+            rule = None
 
         if not permitted:
             at_port = self._get_port_of_nic(from_network_interface)

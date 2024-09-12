@@ -37,7 +37,6 @@ def wireless_wan_network():
     network.connect(pc_a.network_interface[1], router_1.network_interface[2])
 
     # Configure Router 1 ACLs
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
     router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
 
     # Configure PC B

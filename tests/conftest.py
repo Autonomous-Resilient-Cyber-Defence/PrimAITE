@@ -350,7 +350,6 @@ def install_stuff_to_sim(sim: Simulation):
     network.connect(endpoint_a=server_2.network_interface[1], endpoint_b=switch_2.network_interface[2])
 
     # 2: Configure base ACL
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
     router.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
     router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.DNS, dst_port=Port.DNS, position=1)
     router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=3)
@@ -382,8 +381,6 @@ def install_stuff_to_sim(sim: Simulation):
             assert acl_rule.src_port == acl_rule.dst_port == Port.DNS
         elif i == 3:
             assert acl_rule.src_port == acl_rule.dst_port == Port.HTTP
-        elif i == 22:
-            assert acl_rule.src_port == acl_rule.dst_port == Port.ARP
         elif i == 23:
             assert acl_rule.protocol == IPProtocol.ICMP
         elif i == 24:
