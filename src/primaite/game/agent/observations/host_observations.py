@@ -52,6 +52,14 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         """
         If True, files and folders must be scanned to update the health state. If False, true state is always shown.
         """
+        services_requires_scan: Optional[bool] = None
+        """
+        If True, services must be scanned to update the health state. If False, true state is always shown.
+        """
+        applications_requires_scan: Optional[bool] = None
+        """
+        If True, applications must be scanned to update the health state. If False, true state is always shown.
+        """
         include_users: Optional[bool] = True
         """If True, report user session information."""
 
@@ -71,6 +79,8 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         monitored_traffic: Optional[Dict],
         include_num_access: bool,
         file_system_requires_scan: bool,
+        services_requires_scan: bool,
+        applications_requires_scan: bool,
         include_users: bool,
     ) -> None:
         """
@@ -106,6 +116,12 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         :param file_system_requires_scan: If True, the files and folders must be scanned to update the health state.
             If False, the true state is always shown.
         :type file_system_requires_scan: bool
+        :param services_requires_scan: If True, services must be scanned to update the health state.
+            If False, the true state is always shown.
+        :type services_requires_scan: bool
+        :param applications_requires_scan: If True, applications must be scanned to update the health state.
+            If False, the true state is always shown.
+        :type applications_requires_scan: bool
         :param include_users: If True, report user session information.
         :type include_users: bool
         """
@@ -119,7 +135,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         # Ensure lists have lengths equal to specified counts by truncating or padding
         self.services: List[ServiceObservation] = services
         while len(self.services) < num_services:
-            self.services.append(ServiceObservation(where=None))
+            self.services.append(ServiceObservation(where=None, services_requires_scan=services_requires_scan))
         while len(self.services) > num_services:
             truncated_service = self.services.pop()
             msg = f"Too many services in Node observation space for node. Truncating service {truncated_service.where}"
@@ -127,7 +143,9 @@ class HostObservation(AbstractObservation, identifier="HOST"):
 
         self.applications: List[ApplicationObservation] = applications
         while len(self.applications) < num_applications:
-            self.applications.append(ApplicationObservation(where=None))
+            self.applications.append(
+                ApplicationObservation(where=None, applications_requires_scan=applications_requires_scan)
+            )
         while len(self.applications) > num_applications:
             truncated_application = self.applications.pop()
             msg = f"Too many applications in Node observation space for node. Truncating {truncated_application.where}"
@@ -293,5 +311,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
             monitored_traffic=config.monitored_traffic,
             include_num_access=config.include_num_access,
             file_system_requires_scan=config.file_system_requires_scan,
+            services_requires_scan=config.services_requires_scan,
+            applications_requires_scan=config.applications_requires_scan,
             include_users=config.include_users,
         )
