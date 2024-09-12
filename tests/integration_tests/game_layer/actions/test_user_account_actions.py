@@ -82,7 +82,7 @@ def test_user_account_change_password_action(game_and_agent_fixture):
     client_1.user_manager.add_user(username="test", password="password", is_admin=True)
 
     test_user = client_1.user_manager.users.get("test")
-    assert test_user.password == "icles"
+    assert test_user.password == "password"
 
     # change account password
     action = (
