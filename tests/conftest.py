@@ -460,6 +460,8 @@ def game_and_agent():
         {"type": "C2_SERVER_RANSOMWARE_CONFIGURE"},
         {"type": "C2_SERVER_TERMINAL_COMMAND"},
         {"type": "C2_SERVER_DATA_EXFILTRATE"},
+        {"type": "NODE_ACCOUNTS_ADD_USER"},
+        {"type": "NODE_ACCOUNTS_DISABLE_USER"},
         {"type": "NODE_ACCOUNTS_CHANGE_PASSWORD"},
         {"type": "SSH_TO_REMOTE"},
         {"type": "SESSIONS_REMOTE_LOGOFF"},
