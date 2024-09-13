@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -19,7 +19,10 @@ class ServiceObservation(AbstractObservation, identifier="SERVICE"):
         service_name: str
         """Name of the service, used for querying simulation state dictionary"""
 
-    def __init__(self, where: WhereType) -> None:
+        services_requires_scan: Optional[bool] = None
+        """If True, services must be scanned to update the health state. If False, true state is always shown."""
+
+    def __init__(self, where: WhereType, services_requires_scan: bool) -> None:
         """
         Initialise a service observation instance.
 
@@ -28,6 +31,7 @@ class ServiceObservation(AbstractObservation, identifier="SERVICE"):
         :type where: WhereType
         """
         self.where = where
+        self.services_requires_scan = services_requires_scan
         self.default_observation = {"operating_status": 0, "health_status": 0}
 
     def observe(self, state: Dict) -> ObsType:
@@ -44,7 +48,9 @@ class ServiceObservation(AbstractObservation, identifier="SERVICE"):
             return self.default_observation
         return {
             "operating_status": service_state["operating_state"],
-            "health_status": service_state["health_state_visible"],
+            "health_status": service_state["health_state_visible"]
+            if self.services_requires_scan
+            else service_state["health_state_actual"],
         }
 
     @property
@@ -70,7 +76,9 @@ class ServiceObservation(AbstractObservation, identifier="SERVICE"):
         :return: Constructed service observation instance.
         :rtype: ServiceObservation
         """
-        return cls(where=parent_where + ["services", config.service_name])
+        return cls(
+            where=parent_where + ["services", config.service_name], services_requires_scan=config.services_requires_scan
+        )
 
 
 class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
@@ -82,7 +90,12 @@ class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
         application_name: str
         """Name of the application, used for querying simulation state dictionary"""
 
-    def __init__(self, where: WhereType) -> None:
+        applications_requires_scan: Optional[bool] = None
+        """
+        If True, applications must be scanned to update the health state. If False, true state is always shown.
+        """
+
+    def __init__(self, where: WhereType, applications_requires_scan: bool) -> None:
         """
         Initialise an application observation instance.
 
@@ -92,6 +105,7 @@ class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
         :type where: WhereType
         """
         self.where = where
+        self.applications_requires_scan = applications_requires_scan
         self.default_observation = {"operating_status": 0, "health_status": 0, "num_executions": 0}
 
         # TODO: allow these to be configured in yaml
@@ -128,7 +142,9 @@ class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
             return self.default_observation
         return {
             "operating_status": application_state["operating_state"],
-            "health_status": application_state["health_state_visible"],
+            "health_status": application_state["health_state_visible"]
+            if self.applications_requires_scan
+            else application_state["health_state_actual"],
             "num_executions": self._categorise_num_executions(application_state["num_executions"]),
         }
 
@@ -161,4 +177,7 @@ class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
         :return: Constructed application observation instance.
         :rtype: ApplicationObservation
         """
-        return cls(where=parent_where + ["applications", config.application_name])
+        return cls(
+            where=parent_where + ["applications", config.application_name],
+            applications_requires_scan=config.applications_requires_scan,
+        )

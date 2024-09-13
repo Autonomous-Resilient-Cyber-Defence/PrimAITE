@@ -857,7 +857,21 @@ class UserManager(Service):
         """
         rm = super()._init_request_manager()
 
-        # todo add doc about requeest schemas
+        # todo add doc about request schemas
+        rm.add_request(
+            "add_user",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.add_user(username=request[0], password=request[1], is_admin=request[2])
+                )
+            ),
+        )
+        rm.add_request(
+            "disable_user",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.disable_user(username=request[0]))
+            ),
+        )
         rm.add_request(
             "change_password",
             RequestType(
