@@ -80,6 +80,8 @@ class PrimaiteGameOptions(BaseModel):
 
     seed: int = None
     """Random number seed for RNGs."""
+    generate_seed_value: bool = False
+    """Internally generated seed value."""
     max_episode_length: int = 256
     """Maximum number of episodes for the PrimAITE game."""
     ports: List[str]
