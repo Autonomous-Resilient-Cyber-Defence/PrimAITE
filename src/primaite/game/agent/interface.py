@@ -127,25 +127,34 @@ class AbstractAgent(ABC):
         self.history: List[AgentHistoryItem] = []
         self.logger = AgentLog(agent_name)
 
-    def show_history(self):
+    def add_agent_action(self, item: AgentHistoryItem, table: PrettyTable) -> PrettyTable:
+        """Update the given table with information from given AgentHistoryItem."""
+        node, application = "unknown", "unknown"
+        if (node_id := item.parameters.get("node_id")) is not None:
+            node = self.action_manager.node_names[node_id]
+        if (application_id := item.parameters.get("application_id")) is not None:
+            application = self.action_manager.application_names[node_id][application_id]
+        if (application_name := item.parameters.get("application_name")) is not None:
+            application = application_name
+        table.add_row([item.timestep, item.action, node, application, item.response.status])
+        return table
+
+    def show_history(self, include_nothing: bool = False):
         """
         Print an agent action provided it's not the DONOTHING action.
 
-        :param agent_name: Name of agent (str).
+        :param include_nothing: boolean for including DONOTHING actions. Default False.
         """
         table = PrettyTable()
         table.field_names = ["Step", "Action", "Node", "Application", "Response"]
         print(f"Actions for '{self.agent_name}':")
         for item in self.history:
-            if item.action != "DONOTHING":
-                node, application = "unknown", "unknown"
-                if (node_id := item.parameters.get("node_id")) is not None:
-                    node = self.action_manager.node_names[node_id]
-                if (application_id := item.parameters.get("application_id")) is not None:
-                    application = self.action_manager.application_names[node_id][application_id]
-                if (application_name := item.parameters.get("application_name")) is not None:
-                    application = application_name
-                table.add_row([item.timestep, item.action, node, application, item.response.status])
+            if item.action == "DONOTHING":
+                if include_nothing:
+                    table = self.add_agent_action(item=item, table=table)
+                else:
+                    pass
+            self.add_agent_action(item=item, table=table)
         print(table)
 
     def update_observation(self, state: Dict) -> ObsType:
