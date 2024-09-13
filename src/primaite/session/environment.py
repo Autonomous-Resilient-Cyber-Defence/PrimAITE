@@ -62,6 +62,13 @@ def set_random_seed(seed: int, generate_seed_value: bool) -> Union[None, int]:
     return seed
 
 
+def log_seed_value(seed: int):
+    """Log the selected seed value to file."""
+    path = SIM_OUTPUT.path / "seed.log"
+    with open(path, "w") as file:
+        file.write(f"Seed value = {seed}")
+
+
 class PrimaiteGymEnv(gymnasium.Env):
     """
     Thin wrapper env to provide agents with a gymnasium API.
@@ -91,6 +98,8 @@ class PrimaiteGymEnv(gymnasium.Env):
         """Average rewards of agents per episode."""
 
         _LOGGER.info(f"PrimaiteGymEnv RNG seed = {self.seed}")
+
+        log_seed_value(self.seed)
 
     def action_masks(self) -> np.ndarray:
         """
