@@ -139,22 +139,23 @@ class AbstractAgent(ABC):
         table.add_row([item.timestep, item.action, node, application, item.response.status])
         return table
 
-    def show_history(self, include_nothing: bool = False):
+    def show_history(self, ignored_actions: Optional[list] = None):
         """
         Print an agent action provided it's not the DONOTHING action.
 
-        :param include_nothing: boolean for including DONOTHING actions. Default False.
+        :param ignored_actions: OPTIONAL: List of actions to be ignored when displaying the history.
+                                If not provided, defaults to ignore DONOTHING actions.
         """
+        if not ignored_actions:
+            ignored_actions = ["DONOTHING"]
         table = PrettyTable()
         table.field_names = ["Step", "Action", "Node", "Application", "Response"]
         print(f"Actions for '{self.agent_name}':")
         for item in self.history:
-            if item.action == "DONOTHING":
-                if include_nothing:
-                    table = self.add_agent_action(item=item, table=table)
-                else:
-                    pass
-            self.add_agent_action(item=item, table=table)
+            if item.action in ignored_actions:
+                pass
+            else:
+                table = self.add_agent_action(item=item, table=table)
         print(table)
 
     def update_observation(self, state: Dict) -> ObsType:
