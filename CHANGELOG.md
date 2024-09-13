@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 -   ACL's are no longer applied to layer-2 traffic.
--   ARP .show() method will no include the port number associated with each entry.
+-   ARP .show() method will now include the port number associated with each entry.
 
 
 ## [3.3.0] - 2024-09-04
