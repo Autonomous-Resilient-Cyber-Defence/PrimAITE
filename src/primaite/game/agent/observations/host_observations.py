@@ -284,7 +284,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         for service_config in config.services:
             service_config.services_requires_scan = config.services_requires_scan
         for application_config in config.applications:
-            application_config.application_config_requires_scan = config.application_config_requires_scan
+            application_config.applications_requires_scan = config.applications_requires_scan
 
         services = [ServiceObservation.from_config(config=c, parent_where=where) for c in config.services]
         applications = [ApplicationObservation.from_config(config=c, parent_where=where) for c in config.applications]
