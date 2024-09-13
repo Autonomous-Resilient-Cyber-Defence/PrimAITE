@@ -47,7 +47,7 @@ class ARP(Service):
 
         :param markdown: If True, format the output as Markdown. Otherwise, use plain text.
         """
-        table = PrettyTable(["IP Address", "MAC Address", "Via"])
+        table = PrettyTable(["IP Address", "MAC Address", "Via", "Port"])
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
@@ -58,6 +58,7 @@ class ARP(Service):
                     str(ip),
                     arp.mac_address,
                     self.software_manager.node.network_interfaces[arp.network_interface_uuid].mac_address,
+                    self.software_manager.node.network_interfaces[arp.network_interface_uuid].port_num,
                 ]
             )
         print(table)
