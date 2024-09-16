@@ -43,7 +43,7 @@ def set_random_seed(seed: int, generate_seed_value: bool) -> Union[None, int]:
         if generate_seed_value:
             rng = np.random.default_rng()
             # 2**32-1 is highest value for python RNG seed.
-            seed = int(rng.integers(low=0, high=2**32-1))
+            seed = int(rng.integers(low=0, high=2**32 - 1))
         else:
             return None
     elif seed < -1:
