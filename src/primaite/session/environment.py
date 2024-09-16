@@ -168,7 +168,7 @@ class PrimaiteGymEnv(gymnasium.Env):
             f"avg. reward: {self.agent.reward_function.total_reward}"
         )
         if seed is not None:
-            set_random_seed(seed)
+            set_random_seed(seed, self.generate_seed_value)
         self.total_reward_per_episode[self.episode_counter] = self.agent.reward_function.total_reward
 
         if self.io.settings.save_agent_actions:
