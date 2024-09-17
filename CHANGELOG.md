@@ -5,10 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.3.0] - 2024-09-04
+
 ### Added
 -   Log observation space data by episode and step.
+
+### Changed
 -   ACL's are no longer applied to layer-2 traffic.
+-   ARP .show() method will now include the port number associated with each entry.
+-   Added `services_requires_scan` and `applications_requires_scan` to agent observation space config to allow the agents to be able to see actual health states of services and applications without requiring scans (Default `True`, set to `False` to allow agents to see actual health state without scanning).
 
 ## [3.3.0] - 2024-09-04
 ### Added

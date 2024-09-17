@@ -90,11 +90,6 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: DatabaseClient
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``DatabaseClient``
-
 
 ``db_server_ip``
 """"""""""""""""
@@ -109,3 +104,8 @@ This must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.25
 Optional. Default value is ``None``.
 
 The password that the ``DatabaseClient`` will use to access the :ref:`DatabaseService`.
+
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
+
+See :ref:`Common Configuration`

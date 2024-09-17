@@ -72,10 +72,6 @@ Configuration
 
 The RansomwareScript inherits configuration options such as ``fix_duration`` from its parent class. However, for the ``RansomwareScript`` the most relevant option is ``server_ip``.
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: RansomwareScript
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``RansomwareScript``
 
 ``server_ip``
 """""""""""""
@@ -83,3 +79,8 @@ The RansomwareScript inherits configuration options such as ``fix_duration`` fro
 IP address of the :ref:`DatabaseService` which the ``RansomwareScript`` will encrypt.
 
 This must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.255``.
+
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
+
+See :ref:`Common Configuration`

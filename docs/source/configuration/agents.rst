@@ -172,3 +172,8 @@ The amount of timesteps that the frequency can randomly change.
 ---------------
 
 If ``True``, gymnasium flattening will be performed on the observation space before sending to the agent. Set this to ``True`` if your agent does not support nested observation spaces.
+
+``Agent History``
+-----------------
+
+Agents will record their action log for each step. This is a summary of what the agent did, along with response information from requests within the simulation.
