@@ -75,10 +75,8 @@ Via Configuration
                     - ref: web_server
                     type: WebServer
 
-Configuration
-=============
 
-.. include:: ../common/common_configuration.rst
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
 
-.. |SOFTWARE_NAME| replace:: WebServer
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``WebServer``
+See :ref:`Common Configuration`

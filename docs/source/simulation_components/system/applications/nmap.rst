@@ -346,10 +346,8 @@ Perform a full box scan on all ports, over both TCP and UDP, on a whole subnet:
    | 192.168.1.13 | 219  | ARP             | UDP      |
    +--------------+------+-----------------+----------+
 
-Configuration
-=============
 
-.. include:: ../common/common_configuration.rst
+``Common Attributes``
+"""""""""""""""""""""
 
-.. |SOFTWARE_NAME| replace:: NMAP
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``NMAP``
+See :ref:`Common Configuration`

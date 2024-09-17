@@ -23,13 +23,6 @@ Key capabilities
  - Simulates common Terminal processes/commands.
  - Leverages the Service base class for install/uninstall, status tracking etc.
 
-Usage
-"""""
-
- - Pre-Installs on any `Node` (component with the exception of `Switches`).
- - Terminal Clients connect, execute commands and disconnect from remote nodes.
- - Ensures that users are logged in to the component before executing any commands.
- - Service runs on SSH port 22 by default.
 
 Implementation
 """"""""""""""
@@ -39,6 +32,14 @@ Implementation
  - Extends Service class.
   - A detailed guide on the implementation and functionality of the Terminal class can be found in the "Terminal-Processing" jupyter notebook.
 
+
+Usage
+"""""
+
+ - Pre-Installs on all ``Nodes`` (with the exception of ``Switches``).
+ - Terminal Clients connect, execute commands and disconnect from remote nodes.
+ - Ensures that users are logged in to the component before executing any commands.
+ - Service runs on SSH port 22 by default.
 
 Usage
 =====
@@ -172,3 +173,9 @@ Disconnect from Remote Node
     term_a_term_b_remote_connection: RemoteTerminalConnection = terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")
 
     term_a_term_b_remote_connection.disconnect()
+
+
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
+
+See :ref:`Common Configuration`
