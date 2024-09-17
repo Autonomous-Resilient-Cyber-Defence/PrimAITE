@@ -177,4 +177,4 @@ If ``True``, gymnasium flattening will be performed on the observation space bef
 -----------------
 
 Agents will record their action log for each step. This is a summary of what the agent did, along with response information from requests within the simulation.
-A log of the actions taken by the agent can be viewed using the `show_history()` function. By default, this will display all actions taken apart from ``DONOTHING``.
+A summary of the actions taken by the agent can be viewed using the `show_history()` function. By default, this will display all actions taken apart from ``DONOTHING``.
