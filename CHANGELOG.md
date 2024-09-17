@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 -   Log observation space data by episode and step.
+-   Added `show_history` method to Agents, allowing you to view actions taken by an agent per step. By default, `DONOTHING` actions are omitted.
 
 ### Changed
 -   ACL's are no longer applied to layer-2 traffic.
