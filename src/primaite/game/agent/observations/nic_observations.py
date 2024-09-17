@@ -24,7 +24,13 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
         monitored_traffic: Optional[Dict] = None
         """A dict containing which traffic types are to be included in the observation."""
 
-    def __init__(self, where: WhereType, include_nmne: bool, monitored_traffic: Optional[Dict] = None) -> None:
+    def __init__(
+        self,
+        where: WhereType,
+        include_nmne: bool,
+        monitored_traffic: Optional[Dict] = None,
+        thresholds: Optional[Dict] = {},
+    ) -> None:
         """
         Initialise a network interface observation instance.
 
@@ -44,10 +50,22 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
             self.nmne_inbound_last_step: int = 0
             self.nmne_outbound_last_step: int = 0
 
-        # TODO: allow these to be configured in yaml
-        self.high_nmne_threshold = 10
-        self.med_nmne_threshold = 5
-        self.low_nmne_threshold = 0
+        if thresholds.get("nmne") is None:
+            self.low_threshold = 0
+            self.med_threshold = 5
+            self.high_threshold = 10
+        else:
+            if self._validate_thresholds(
+                thresholds=[
+                    thresholds.get("nmne")["low"],
+                    thresholds.get("nmne")["medium"],
+                    thresholds.get("nmne")["high"],
+                ],
+                threshold_identifier="nmne",
+            ):
+                self.low_threshold = thresholds.get("nmne")["low"]
+                self.med_threshold = thresholds.get("nmne")["medium"]
+                self.high_threshold = thresholds.get("nmne")["high"]
 
         self.monitored_traffic = monitored_traffic
         if self.monitored_traffic:
@@ -86,11 +104,11 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
         :param nmne_count: Number of MNEs detected.
         :return: Bin number corresponding to the number of MNEs. Returns 0, 1, 2, or 3 based on the detected MNE count.
         """
-        if nmne_count > self.high_nmne_threshold:
+        if nmne_count > self.high_threshold:
             return 3
-        elif nmne_count > self.med_nmne_threshold:
+        elif nmne_count > self.med_threshold:
             return 2
-        elif nmne_count > self.low_nmne_threshold:
+        elif nmne_count > self.low_threshold:
             return 1
         return 0
 
@@ -224,6 +242,7 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
             where=parent_where + ["NICs", config.nic_num],
             include_nmne=config.include_nmne,
             monitored_traffic=config.monitored_traffic,
+            thresholds=config.thresholds,
         )
 
 

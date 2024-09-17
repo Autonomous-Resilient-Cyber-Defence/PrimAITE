@@ -25,7 +25,19 @@ game:
   - ICMP
   - TCP
   - UDP
-
+  thresholds:
+    nmne:
+      high: 100
+      medium: 25
+      low: 5
+    file_access:
+      high: 10
+      medium: 5
+      low: 2
+    app_executions:
+      high: 5
+      medium: 3
+      low: 2
 agents:
   - ref: client_2_green_user
     team: GREEN
@@ -79,10 +91,16 @@ agents:
             options:
               hosts:
                 - hostname: client_1
+                  applications:
+                    - application_name: WebBrowser
+                  folders:
+                    - folder_name: root
+                      files:
+                        - file_name: "test.txt"
                 - hostname: client_2
                 - hostname: client_3
               num_services: 1
-              num_applications: 0
+              num_applications: 1
               num_folders: 1
               num_files: 1
               num_nics: 2
@@ -219,6 +237,9 @@ simulation:
         options:
           ntp_server_ip: 192.168.1.10
       - type: NTPServer
+      file_system:
+        - root:
+          - "test.txt"
     - hostname: client_2
       type: computer
       ip_address: 192.168.10.22

@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -82,7 +82,7 @@ class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
         application_name: str
         """Name of the application, used for querying simulation state dictionary"""
 
-    def __init__(self, where: WhereType) -> None:
+    def __init__(self, where: WhereType, thresholds: Optional[Dict] = {}) -> None:
         """
         Initialise an application observation instance.
 
@@ -94,16 +94,28 @@ class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
         self.where = where
         self.default_observation = {"operating_status": 0, "health_status": 0, "num_executions": 0}
 
-        # TODO: allow these to be configured in yaml
-        self.high_threshold = 10
-        self.med_threshold = 5
-        self.low_threshold = 0
+        if thresholds.get("app_executions") is None:
+            self.low_threshold = 0
+            self.med_threshold = 5
+            self.high_threshold = 10
+        else:
+            if self._validate_thresholds(
+                thresholds=[
+                    thresholds.get("app_executions")["low"],
+                    thresholds.get("app_executions")["medium"],
+                    thresholds.get("app_executions")["high"],
+                ],
+                threshold_identifier="app_executions",
+            ):
+                self.low_threshold = thresholds.get("app_executions")["low"]
+                self.med_threshold = thresholds.get("app_executions")["medium"]
+                self.high_threshold = thresholds.get("app_executions")["high"]
 
     def _categorise_num_executions(self, num_executions: int) -> int:
         """
-        Represent number of file accesses as a categorical variable.
+        Represent number of application executions as a categorical variable.
 
-        :param num_access: Number of file accesses.
+        :param num_access: Number of application executions.
         :return: Bin number corresponding to the number of accesses.
         """
         if num_executions > self.high_threshold:
@@ -161,4 +173,4 @@ class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
         :return: Constructed application observation instance.
         :rtype: ApplicationObservation
         """
-        return cls(where=parent_where + ["applications", config.application_name])
+        return cls(where=parent_where + ["applications", config.application_name], thresholds=config.thresholds)

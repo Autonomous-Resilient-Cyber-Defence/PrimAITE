@@ -8,7 +8,7 @@ from primaite.config.load import data_manipulation_config_path
 from primaite.game.game import PrimaiteGame
 from tests import TEST_ASSETS_ROOT
 
-BASIC_CONFIG = TEST_ASSETS_ROOT / "configs/basic_switched_network.yaml"
+BASIC_SWITCHED_NETWORK_CONFIG = TEST_ASSETS_ROOT / "configs/basic_switched_network.yaml"
 
 
 def load_config(config_path: Union[str, Path]) -> PrimaiteGame:
@@ -24,3 +24,42 @@ def test_thresholds():
     game = load_config(data_manipulation_config_path())
 
     assert game.options.thresholds is not None
+
+
+def test_nmne_threshold():
+    """Test that the NMNE thresholds are properly loaded in by observation."""
+    game = load_config(BASIC_SWITCHED_NETWORK_CONFIG)
+
+    assert game.options.thresholds["nmne"] is not None
+
+    # get NIC observation
+    nic_obs = game.agents["defender"].observation_manager.obs.components["NODES"].hosts[0].nics[0]
+    assert nic_obs.low_threshold == 5
+    assert nic_obs.med_threshold == 25
+    assert nic_obs.high_threshold == 100
+
+
+def test_file_access_threshold():
+    """Test that the NMNE thresholds are properly loaded in by observation."""
+    game = load_config(BASIC_SWITCHED_NETWORK_CONFIG)
+
+    assert game.options.thresholds["file_access"] is not None
+
+    # get file observation
+    file_obs = game.agents["defender"].observation_manager.obs.components["NODES"].hosts[0].folders[0].files[0]
+    assert file_obs.low_threshold == 2
+    assert file_obs.med_threshold == 5
+    assert file_obs.high_threshold == 10
+
+
+def test_app_executions_threshold():
+    """Test that the NMNE thresholds are properly loaded in by observation."""
+    game = load_config(BASIC_SWITCHED_NETWORK_CONFIG)
+
+    assert game.options.thresholds["app_executions"] is not None
+
+    # get application observation
+    app_obs = game.agents["defender"].observation_manager.obs.components["NODES"].hosts[0].applications[0]
+    assert app_obs.low_threshold == 2
+    assert app_obs.med_threshold == 3
+    assert app_obs.high_threshold == 5

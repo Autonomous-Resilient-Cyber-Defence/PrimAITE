@@ -69,3 +69,30 @@ def test_application_observation(simulation):
     assert observation_state.get("health_status") == 1
     assert observation_state.get("operating_status") == 1  # running
     assert observation_state.get("num_executions") == 1
+
+
+def test_application_executions_categories(simulation):
+    pc: Computer = simulation.network.get_node_by_hostname("client_1")
+
+    app_obs = ApplicationObservation(
+        where=["network", "nodes", pc.hostname, "applications", "WebBrowser"],
+        thresholds={"app_executions": {"low": 3, "medium": 6, "high": 9}},
+    )
+
+    assert app_obs.high_threshold == 9
+    assert app_obs.med_threshold == 6
+    assert app_obs.low_threshold == 3
+
+    with pytest.raises(Exception):
+        # should throw an error
+        ApplicationObservation(
+            where=["network", "nodes", pc.hostname, "applications", "WebBrowser"],
+            thresholds={"app_executions": {"low": 9, "medium": 6, "high": 9}},
+        )
+
+    with pytest.raises(Exception):
+        # should throw an error
+        ApplicationObservation(
+            where=["network", "nodes", pc.hostname, "applications", "WebBrowser"],
+            thresholds={"app_executions": {"low": 3, "medium": 9, "high": 9}},
+        )

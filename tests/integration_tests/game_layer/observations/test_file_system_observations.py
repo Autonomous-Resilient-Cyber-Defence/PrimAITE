@@ -44,6 +44,38 @@ def test_file_observation(simulation):
     assert observation_state.get("health_status") == 3  # corrupted
 
 
+def test_config_file_access_categories(simulation):
+    pc: Computer = simulation.network.get_node_by_hostname("client_1")
+    file_obs = FileObservation(
+        where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"],
+        include_num_access=False,
+        file_system_requires_scan=True,
+        thresholds={"file_access": {"low": 3, "medium": 6, "high": 9}},
+    )
+
+    assert file_obs.high_threshold == 9
+    assert file_obs.med_threshold == 6
+    assert file_obs.low_threshold == 3
+
+    with pytest.raises(Exception):
+        # should throw an error
+        FileObservation(
+            where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"],
+            include_num_access=False,
+            file_system_requires_scan=True,
+            thresholds={"file_access": {"low": 9, "medium": 6, "high": 9}},
+        )
+
+    with pytest.raises(Exception):
+        # should throw an error
+        FileObservation(
+            where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"],
+            include_num_access=False,
+            file_system_requires_scan=True,
+            thresholds={"file_access": {"low": 3, "medium": 9, "high": 9}},
+        )
+
+
 def test_folder_observation(simulation):
     """Test the folder observation."""
     pc: Computer = simulation.network.get_node_by_hostname("client_1")

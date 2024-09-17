@@ -151,7 +151,13 @@ class HostObservation(AbstractObservation, identifier="HOST"):
 
         self.nics: List[NICObservation] = network_interfaces
         while len(self.nics) < num_nics:
-            self.nics.append(NICObservation(where=None, include_nmne=include_nmne, monitored_traffic=monitored_traffic))
+            self.nics.append(
+                NICObservation(
+                    where=None,
+                    include_nmne=include_nmne,
+                    monitored_traffic=monitored_traffic,
+                )
+            )
         while len(self.nics) > num_nics:
             truncated_nic = self.nics.pop()
             msg = f"Too many network_interfaces in Node observation space for node. Truncating {truncated_nic.where}"
@@ -257,12 +263,16 @@ class HostObservation(AbstractObservation, identifier="HOST"):
             where = parent_where + [config.hostname]
 
         # Pass down shared/common config items
+        for app_config in config.applications:
+            app_config.thresholds = config.thresholds
         for folder_config in config.folders:
             folder_config.include_num_access = config.include_num_access
             folder_config.num_files = config.num_files
             folder_config.file_system_requires_scan = config.file_system_requires_scan
+            folder_config.thresholds = config.thresholds
         for nic_config in config.network_interfaces:
             nic_config.include_nmne = config.include_nmne
+            nic_config.thresholds = config.thresholds
 
         services = [ServiceObservation.from_config(config=c, parent_where=where) for c in config.services]
         applications = [ApplicationObservation.from_config(config=c, parent_where=where) for c in config.applications]
@@ -273,7 +283,10 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         count = 1
         while len(nics) < config.num_nics:
             nic_config = NICObservation.ConfigSchema(
-                nic_num=count, include_nmne=config.include_nmne, monitored_traffic=config.monitored_traffic
+                nic_num=count,
+                include_nmne=config.include_nmne,
+                monitored_traffic=config.monitored_traffic,
+                thresholds=config.thresholds,
             )
             nics.append(NICObservation.from_config(config=nic_config, parent_where=where))
             count += 1

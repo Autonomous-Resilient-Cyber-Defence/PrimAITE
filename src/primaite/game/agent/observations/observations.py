@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 """Manages the observation space for the agent."""
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Optional, Type, Union
+from typing import Any, Dict, Iterable, List, Optional, Type, Union
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -18,6 +18,9 @@ class AbstractObservation(ABC):
 
     class ConfigSchema(ABC, BaseModel):
         """Config schema for observations."""
+
+        thresholds: Optional[Dict] = None
+        """A dict containing the observation thresholds."""
 
         model_config = ConfigDict(extra="forbid")
 
@@ -67,3 +70,34 @@ class AbstractObservation(ABC):
     def from_config(cls, config: ConfigSchema, parent_where: WhereType = []) -> "AbstractObservation":
         """Create this observation space component form a serialised format."""
         return cls()
+
+    def _validate_thresholds(self, thresholds: List[int] = None, threshold_identifier: Optional[str] = "") -> bool:
+        """
+        Method that checks if the thresholds are non overlapping and in the correct (ascending) order.
+
+        Pass in the thresholds from low to high e.g.
+        thresholds=[low_threshold, med_threshold, ..._threshold, high_threshold]
+
+        Throws an error if the threshold is not valid
+
+        :param: thresholds: List of thresholds in ascending order.
+        :type: List[int]
+        :param: threshold_identifier: The name of the threshold option.
+        :type: Optional[str]
+
+        :returns: bool
+        """
+        if thresholds is None or len(thresholds) < 2:
+            raise Exception(f"{threshold_identifier} thresholds are invalid {thresholds}")
+        for idx in range(1, len(thresholds)):
+            if not isinstance(thresholds[idx], int):
+                raise Exception(f"{threshold_identifier} threshold ({thresholds[idx]}) is not a valid int.")
+            if not isinstance(thresholds[idx - 1], int):
+                raise Exception(f"{threshold_identifier} threshold ({thresholds[idx]}) is not a valid int.")
+
+            if thresholds[idx] <= thresholds[idx - 1]:
+                raise Exception(
+                    f"{threshold_identifier} threshold ({thresholds[idx]}) "
+                    f"is greater than or equal to ({thresholds[idx - 1]}.)"
+                )
+        return True

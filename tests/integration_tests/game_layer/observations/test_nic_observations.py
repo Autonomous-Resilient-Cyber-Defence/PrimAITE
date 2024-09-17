@@ -110,33 +110,28 @@ def test_nic_categories(simulation):
 
     nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=True)
 
-    assert nic_obs.high_nmne_threshold == 10  # default
-    assert nic_obs.med_nmne_threshold == 5  # default
-    assert nic_obs.low_nmne_threshold == 0  # default
+    assert nic_obs.high_threshold == 10  # default
+    assert nic_obs.med_threshold == 5  # default
+    assert nic_obs.low_threshold == 0  # default
 
 
-@pytest.mark.skip(reason="Feature not implemented yet")
 def test_config_nic_categories(simulation):
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
     nic_obs = NICObservation(
         where=["network", "nodes", pc.hostname, "NICs", 1],
-        low_nmne_threshold=3,
-        med_nmne_threshold=6,
-        high_nmne_threshold=9,
+        thresholds={"nmne": {"low": 3, "medium": 6, "high": 9}},
         include_nmne=True,
     )
 
-    assert nic_obs.high_nmne_threshold == 9
-    assert nic_obs.med_nmne_threshold == 6
-    assert nic_obs.low_nmne_threshold == 3
+    assert nic_obs.high_threshold == 9
+    assert nic_obs.med_threshold == 6
+    assert nic_obs.low_threshold == 3
 
     with pytest.raises(Exception):
         # should throw an error
         NICObservation(
             where=["network", "nodes", pc.hostname, "NICs", 1],
-            low_nmne_threshold=9,
-            med_nmne_threshold=6,
-            high_nmne_threshold=9,
+            thresholds={"nmne": {"low": 9, "medium": 6, "high": 9}},
             include_nmne=True,
         )
 
@@ -144,9 +139,7 @@ def test_config_nic_categories(simulation):
         # should throw an error
         NICObservation(
             where=["network", "nodes", pc.hostname, "NICs", 1],
-            low_nmne_threshold=3,
-            med_nmne_threshold=9,
-            high_nmne_threshold=9,
+            thresholds={"nmne": {"low": 3, "medium": 9, "high": 9}},
             include_nmne=True,
         )
 
