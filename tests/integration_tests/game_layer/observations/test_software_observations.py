@@ -29,7 +29,9 @@ def test_service_observation(simulation):
     ntp_server = pc.software_manager.software.get("NTPServer")
     assert ntp_server
 
-    service_obs = ServiceObservation(where=["network", "nodes", pc.hostname, "services", "NTPServer"])
+    service_obs = ServiceObservation(
+        where=["network", "nodes", pc.hostname, "services", "NTPServer"], services_requires_scan=True
+    )
 
     assert service_obs.space["operating_status"] == spaces.Discrete(7)
     assert service_obs.space["health_status"] == spaces.Discrete(5)
@@ -54,7 +56,9 @@ def test_application_observation(simulation):
     web_browser: WebBrowser = pc.software_manager.software.get("WebBrowser")
     assert web_browser
 
-    app_obs = ApplicationObservation(where=["network", "nodes", pc.hostname, "applications", "WebBrowser"])
+    app_obs = ApplicationObservation(
+        where=["network", "nodes", pc.hostname, "applications", "WebBrowser"], applications_requires_scan=True
+    )
 
     web_browser.close()
     observation_state = app_obs.observe(simulation.describe_state())
@@ -76,6 +80,7 @@ def test_application_executions_categories(simulation):
 
     app_obs = ApplicationObservation(
         where=["network", "nodes", pc.hostname, "applications", "WebBrowser"],
+        applications_requires_scan=False,
         thresholds={"app_executions": {"low": 3, "medium": 6, "high": 9}},
     )
 
@@ -87,6 +92,7 @@ def test_application_executions_categories(simulation):
         # should throw an error
         ApplicationObservation(
             where=["network", "nodes", pc.hostname, "applications", "WebBrowser"],
+            applications_requires_scan=False,
             thresholds={"app_executions": {"low": 9, "medium": 6, "high": 9}},
         )
 
@@ -94,5 +100,6 @@ def test_application_executions_categories(simulation):
         # should throw an error
         ApplicationObservation(
             where=["network", "nodes", pc.hostname, "applications", "WebBrowser"],
+            applications_requires_scan=False,
             thresholds={"app_executions": {"low": 3, "medium": 9, "high": 9}},
         )

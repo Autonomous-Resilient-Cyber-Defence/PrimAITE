@@ -3,7 +3,7 @@
     © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
 ######
-Router
+Wireless Router
 ######
 
 The ``WirelessRouter`` class extends the functionality of the standard ``Router`` class within PrimAITE,

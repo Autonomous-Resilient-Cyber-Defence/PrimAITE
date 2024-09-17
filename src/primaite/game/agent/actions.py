@@ -877,7 +877,7 @@ class FirewallACLRemoveRuleAction(AbstractAction):
     """Action which removes a rule from a firewall port's ACL."""
 
     def __init__(self, manager: "ActionManager", max_acl_rules: int, **kwargs) -> None:
-        """Init method for RouterACLRemoveRuleAction.
+        """Init method for FirewallACLRemoveRuleAction.
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
@@ -1524,7 +1524,7 @@ class ActionManager:
             "num_nics": max_nics_per_node,
             "num_acl_rules": max_acl_rules,
             "num_protocols": len(self.protocols),
-            "num_ports": len(self.protocols),
+            "num_ports": len(self.ports),
             "num_ips": len(self.ip_address_list),
             "max_acl_rules": max_acl_rules,
             "max_nics_per_node": max_nics_per_node,

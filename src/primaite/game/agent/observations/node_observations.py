@@ -45,7 +45,13 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         include_num_access: Optional[bool] = None
         """Flag to include the number of accesses."""
         file_system_requires_scan: bool = True
-        """If True, the folder must be scanned to update the health state. Tf False, the true state is always shown."""
+        """If True, the folder must be scanned to update the health state. If False, the true state is always shown."""
+        services_requires_scan: bool = True
+        """If True, the services must be scanned to update the health state.
+        If False, the true state is always shown."""
+        applications_requires_scan: bool = True
+        """If True, the applications must be scanned to update the health state.
+        If False, the true state is always shown."""
         include_users: Optional[bool] = True
         """If True, report user session information."""
         num_ports: Optional[int] = None
@@ -193,6 +199,10 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 host_config.include_num_access = config.include_num_access
             if host_config.file_system_requires_scan is None:
                 host_config.file_system_requires_scan = config.file_system_requires_scan
+            if host_config.services_requires_scan is None:
+                host_config.services_requires_scan = config.services_requires_scan
+            if host_config.applications_requires_scan is None:
+                host_config.applications_requires_scan = config.applications_requires_scan
             if host_config.include_users is None:
                 host_config.include_users = config.include_users
             if host_config.thresholds is None:
