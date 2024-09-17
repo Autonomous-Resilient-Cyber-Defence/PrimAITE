@@ -7,6 +7,9 @@ Rewards
 
 Rewards in PrimAITE are based on a system of individual components that react to events in the simulation. An agent's reward function is calculated as the weighted sum of several reward components.
 
+Some rewards, such as the ``GreenAdminDatabaseUnreachablePenalty``, can be marked as 'sticky' in their configuration. Setting this to ``True`` will mean that they continue to output the same value after an event until another event of that type.
+In the instance of the ``GreenAdminDatabaseUnreachablePenalty``, the database admin reward will stay negative until the next successful database request is made, even if the database admin agents do nothing and the database returns a good state.
+
 Components
 **********
 The following API pages describe the use of each reward component and the possible configuration options. An example of configuring each via yaml is also provided.
