@@ -28,8 +28,8 @@ def test_create_dns_client(dns_client):
     assert dns_client is not None
     dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
     assert dns_client_service.name is "DNSClient"
-    assert dns_client_service.port is Port.DNS
-    assert dns_client_service.protocol is IPProtocol.TCP
+    assert dns_client_service.port is Port["DNS"]
+    assert dns_client_service.protocol is IPProtocol["TCP"]
 
 
 def test_dns_client_add_domain_to_cache_when_not_running(dns_client):

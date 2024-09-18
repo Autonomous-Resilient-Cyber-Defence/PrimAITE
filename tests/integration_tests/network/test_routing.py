@@ -73,8 +73,8 @@ def multi_hop_network() -> Network:
     router_1.enable_port(2)
 
     # Configure Router 1 ACLs
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
-    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["ARP"], dst_port=Port["ARP"], position=22)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol["ICMP"], position=23)
 
     # Configure PC B
     pc_b = Computer(
@@ -197,8 +197,8 @@ def test_routing_services(multi_hop_network):
     router_1: Router = multi_hop_network.get_node_by_hostname("router_1")  # noqa
     router_2: Router = multi_hop_network.get_node_by_hostname("router_2")  # noqa
 
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=21)
-    router_2.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=21)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["NTP"], dst_port=Port["NTP"], position=21)
+    router_2.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["NTP"], dst_port=Port["NTP"], position=21)
 
     assert ntp_client.time is None
     ntp_client.request_time()

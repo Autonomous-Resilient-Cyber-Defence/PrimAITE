@@ -49,10 +49,10 @@ class WebServer(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "WebServer"
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["protocol"] = IPProtocol["TCP"]
         # default for web is port 80
         if kwargs.get("port") is None:
-            kwargs["port"] = Port.HTTP
+            kwargs["port"] = Port["HTTP"]
 
         super().__init__(**kwargs)
         self._install_web_files()
@@ -145,7 +145,7 @@ class WebServer(Service):
         payload: HttpResponsePacket,
         session_id: Optional[str] = None,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
+        dest_port: Optional[int] = None,
         **kwargs,
     ) -> bool:
         """

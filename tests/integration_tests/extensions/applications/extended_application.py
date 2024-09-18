@@ -44,10 +44,10 @@ class ExtendedApplication(Application, identifier="ExtendedApplication"):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ExtendedApplication"
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["protocol"] = IPProtocol["TCP"]
         # default for web is port 80
         if kwargs.get("port") is None:
-            kwargs["port"] = Port.HTTP
+            kwargs["port"] = Port["HTTP"]
 
         super().__init__(**kwargs)
         self.run()
@@ -127,7 +127,7 @@ class ExtendedApplication(Application, identifier="ExtendedApplication"):
         if self.send(
             payload=payload,
             dest_ip_address=self.domain_name_ip_address,
-            dest_port=parsed_url.port if parsed_url.port else Port.HTTP,
+            dest_port=parsed_url.port if parsed_url.port else Port["HTTP"],
         ):
             self.sys_log.info(
                 f"{self.name}: Received HTTP {payload.request_method.name} "
@@ -155,7 +155,7 @@ class ExtendedApplication(Application, identifier="ExtendedApplication"):
         self,
         payload: HttpRequestPacket,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = Port.HTTP,
+        dest_port: Optional[int] = Port["HTTP"],
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:

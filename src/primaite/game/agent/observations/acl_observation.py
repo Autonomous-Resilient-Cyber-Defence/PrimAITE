@@ -10,6 +10,8 @@ from gymnasium.core import ObsType
 from primaite import getLogger
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 
 _LOGGER = getLogger(__name__)
 
@@ -61,7 +63,7 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
         self.ip_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(ip_list)}
         self.wildcard_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(wildcard_list)}
         self.port_to_id: Dict[int, int] = {p: i + 2 for i, p in enumerate(port_list)}
-        self.protocol_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(protocol_list)}
+        self.protocol_to_id: Dict[str, int] = {IPProtocol[p]: i + 2 for i, p in enumerate(protocol_list)}
         self.default_observation: Dict = {
             i
             + 1: {

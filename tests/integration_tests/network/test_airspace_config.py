@@ -13,8 +13,8 @@ def test_override_freq_max_capacity_mbps():
         config_dict = yaml.safe_load(f)
     network = PrimaiteGame.from_config(cfg=config_dict).simulation.network
 
-    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency.WIFI_2_4) == 123.45
-    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency.WIFI_5) == 0.0
+    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency["WIFI_2_4"]) == 123.45
+    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency["WIFI_5"]) == 0.0
 
     pc_a = network.get_node_by_hostname("pc_a")
     pc_b = network.get_node_by_hostname("pc_b")
@@ -32,8 +32,8 @@ def test_override_freq_max_capacity_mbps_blocked():
         config_dict = yaml.safe_load(f)
     network = PrimaiteGame.from_config(cfg=config_dict).simulation.network
 
-    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency.WIFI_2_4) == 0.0
-    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency.WIFI_5) == 0.0
+    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency["WIFI_2_4"]) == 0.0
+    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency["WIFI_5"]) == 0.0
 
     pc_a = network.get_node_by_hostname("pc_a")
     pc_b = network.get_node_by_hostname("pc_b")

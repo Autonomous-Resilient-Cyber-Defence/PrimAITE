@@ -8,9 +8,9 @@ from primaite.simulator.network.protocols.packet import DataPacket
 class MasqueradePacket(DataPacket):
     """Represents an generic malicious packet that is masquerading as another protocol."""
 
-    masquerade_protocol: Enum  # The 'Masquerade' protocol that is currently in use
+    masquerade_protocol: str  # The 'Masquerade' protocol that is currently in use
 
-    masquerade_port: Enum  # The 'Masquerade' port that is currently in use
+    masquerade_port: int  # The 'Masquerade' port that is currently in use
 
 
 class C2Packet(MasqueradePacket):

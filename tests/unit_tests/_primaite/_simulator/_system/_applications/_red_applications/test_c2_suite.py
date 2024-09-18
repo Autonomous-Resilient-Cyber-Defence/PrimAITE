@@ -129,19 +129,19 @@ def test_c2_handle_switching_port(basic_c2_network):
 
     # Assert to confirm that both the C2 server and the C2 beacon are configured correctly.
     assert c2_beacon.c2_config.keep_alive_frequency is 2
-    assert c2_beacon.c2_config.masquerade_port is Port.HTTP
-    assert c2_beacon.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_beacon.c2_config.masquerade_port is Port["HTTP"]
+    assert c2_beacon.c2_config.masquerade_protocol is IPProtocol["TCP"]
 
     assert c2_server.c2_config.keep_alive_frequency is 2
-    assert c2_server.c2_config.masquerade_port is Port.HTTP
-    assert c2_server.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_server.c2_config.masquerade_port is Port["HTTP"]
+    assert c2_server.c2_config.masquerade_protocol is IPProtocol["TCP"]
 
     # Configuring the C2 Beacon.
     c2_beacon.configure(
         c2_server_ip_address="192.168.0.1",
         keep_alive_frequency=2,
-        masquerade_port=Port.FTP,
-        masquerade_protocol=IPProtocol.TCP,
+        masquerade_port=Port["FTP"],
+        masquerade_protocol=IPProtocol["TCP"],
     )
 
     # Asserting that the c2 applications have established a c2 connection
@@ -150,11 +150,11 @@ def test_c2_handle_switching_port(basic_c2_network):
 
     # Assert to confirm that both the C2 server and the C2 beacon
     # Have reconfigured their C2 settings.
-    assert c2_beacon.c2_config.masquerade_port is Port.FTP
-    assert c2_beacon.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_beacon.c2_config.masquerade_port is Port["FTP"]
+    assert c2_beacon.c2_config.masquerade_protocol is IPProtocol["TCP"]
 
-    assert c2_server.c2_config.masquerade_port is Port.FTP
-    assert c2_server.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_server.c2_config.masquerade_port is Port["FTP"]
+    assert c2_server.c2_config.masquerade_protocol is IPProtocol["TCP"]
 
 
 def test_c2_handle_switching_frequency(basic_c2_network):

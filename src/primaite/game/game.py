@@ -4,7 +4,7 @@ from ipaddress import IPv4Address
 from typing import Dict, List, Optional, Union
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from primaite import DEFAULT_BANDWIDTH, getLogger
 from primaite.game.agent.actions import ActionManager
@@ -82,12 +82,39 @@ class PrimaiteGameOptions(BaseModel):
     """Random number seed for RNGs."""
     max_episode_length: int = 256
     """Maximum number of episodes for the PrimAITE game."""
-    ports: List[str]
+    ports: List[int]
     """A whitelist of available ports in the simulation."""
     protocols: List[str]
     """A whitelist of available protocols in the simulation."""
     thresholds: Optional[Dict] = {}
     """A dict containing the thresholds used for determining what is acceptable during observations."""
+
+    @field_validator('ports', mode='before')
+    def ports_str2int(cls, vals:Union[List[str],List[int]]) -> List[int]:
+        """
+        Convert named port strings to port integer values. Integer ports remain unaffected.
+
+        This is necessary to retain backwards compatibility with configs written for PrimAITE<=3.3.
+        :warning: This will be deprecated in PrimAITE 4.0 and configs will need to be converted.
+        """
+        for i, port_val in enumerate(vals):
+            if port_val in Port:
+                vals[i] = Port[port_val]
+        return vals
+
+    @field_validator('protocols', mode='before')
+    def protocols_str2int(cls, vals:List[str]) -> List[str]:
+        """
+        Convert old-style named protocols to their proper values.
+
+        This is necessary to retain backwards compatibility with configs written for PrimAITE<=3.3.
+        :warning: This will be deprecated in PrimAITE 4.0 and configs will need to be converted.
+        """
+        for i, proto_val in enumerate(vals):
+            if proto_val in IPProtocol:
+                vals[i] = IPProtocol[proto_val]
+        return vals
+
 
 
 class PrimaiteGame:
@@ -358,7 +385,7 @@ class PrimaiteGame:
                 for port_id in set(software_cfg.get("options", {}).get("listen_on_ports", [])):
                     port = None
                     if isinstance(port_id, int):
-                        port = Port(port_id)
+                        port = port_id
                     elif isinstance(port_id, str):
                         port = Port[port_id]
                     if port:
@@ -475,7 +502,7 @@ class PrimaiteGame:
                             opt = application_cfg["options"]
                             new_application.configure(
                                 target_ip_address=IPv4Address(opt.get("target_ip_address")),
-                                target_port=Port(opt.get("target_port", Port.POSTGRES_SERVER.value)),
+                                target_port = Port[opt.get("target_port", "POSTGRES_SERVER")],
                                 payload=opt.get("payload"),
                                 repeat=bool(opt.get("repeat")),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
@@ -488,8 +515,8 @@ class PrimaiteGame:
                             new_application.configure(
                                 c2_server_ip_address=IPv4Address(opt.get("c2_server_ip_address")),
                                 keep_alive_frequency=(opt.get("keep_alive_frequency", 5)),
-                                masquerade_protocol=IPProtocol[(opt.get("masquerade_protocol", IPProtocol.TCP))],
-                                masquerade_port=Port[(opt.get("masquerade_port", Port.HTTP))],
+                                masquerade_protocol=IPProtocol[(opt.get("masquerade_protocol", IPProtocol["TCP"]))],
+                                masquerade_port=Port[(opt.get("masquerade_port", Port["HTTP"]))],
                             )
             if "network_interfaces" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():

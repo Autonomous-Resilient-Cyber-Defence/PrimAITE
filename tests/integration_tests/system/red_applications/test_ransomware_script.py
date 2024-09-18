@@ -47,7 +47,7 @@ def ransomware_script_db_server_green_client(example_network) -> Network:
 
     router_1: Router = example_network.get_node_by_hostname("router_1")
     router_1.acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER, position=0
+        action=ACLAction.PERMIT, src_port=Port["POSTGRES_SERVER"], dst_port=Port["POSTGRES_SERVER"], position=0
     )
 
     client_1: Computer = network.get_node_by_hostname("client_1")

@@ -200,7 +200,7 @@ class TestConfigureDoSBot:
         game.step()
 
         assert dos_bot.target_ip_address == IPv4Address("192.168.1.99")
-        assert dos_bot.target_port == Port.POSTGRES_SERVER
+        assert dos_bot.target_port == Port["POSTGRES_SERVER"]
         assert dos_bot.payload == "HACC"
         assert not dos_bot.repeat
         assert dos_bot.port_scan_p_of_success == 0.875

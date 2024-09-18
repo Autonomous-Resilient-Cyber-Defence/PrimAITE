@@ -50,8 +50,8 @@ class DataManipulationBot(Application, identifier="DataManipulationBot"):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DataManipulationBot"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.NONE
+        kwargs["port"] = Port["NONE"]
+        kwargs["protocol"] = IPProtocol["NONE"]
 
         super().__init__(**kwargs)
         self._db_connection: Optional[DatabaseClientConnection] = None

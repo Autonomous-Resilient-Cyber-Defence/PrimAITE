@@ -19,10 +19,10 @@ class TestSoftware(Service):
 def software(file_system):
     return TestSoftware(
         name="TestSoftware",
-        port=Port.ARP,
+        port=Port["ARP"],
         file_system=file_system,
         sys_log=SysLog(hostname="test_service"),
-        protocol=IPProtocol.TCP,
+        protocol=IPProtocol["TCP"],
     )
 
 

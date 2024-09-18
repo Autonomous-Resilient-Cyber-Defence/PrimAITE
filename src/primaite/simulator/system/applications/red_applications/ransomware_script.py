@@ -27,8 +27,8 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "RansomwareScript"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.NONE
+        kwargs["port"] = Port["NONE"]
+        kwargs["protocol"] = IPProtocol["NONE"]
 
         super().__init__(**kwargs)
         self._db_connection: Optional[DatabaseClientConnection] = None

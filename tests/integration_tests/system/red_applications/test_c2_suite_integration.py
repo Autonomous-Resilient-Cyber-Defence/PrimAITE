@@ -227,7 +227,7 @@ def test_c2_suite_acl_block(basic_network):
     assert c2_beacon.c2_connection_active == True
 
     # Now we add a HTTP blocking acl (Thus preventing a keep alive)
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+    router.acl.add_rule(action=ACLAction.DENY, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=0)
 
     c2_beacon.apply_timestep(2)
     c2_beacon.apply_timestep(3)
@@ -322,8 +322,8 @@ def test_c2_suite_acl_bypass(basic_network):
     ################ Confirm Default Setup #########################
 
     # Permitting all HTTP & FTP traffic
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.FTP, dst_port=Port.FTP, position=1)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=0)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["FTP"], dst_port=Port["FTP"], position=1)
 
     c2_beacon.apply_timestep(0)
     assert c2_beacon.keep_alive_inactivity == 1
@@ -337,7 +337,7 @@ def test_c2_suite_acl_bypass(basic_network):
     ################ Denying HTTP Traffic #########################
 
     # Now we add a HTTP blocking acl (Thus preventing a keep alive)
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+    router.acl.add_rule(action=ACLAction.DENY, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=0)
     blocking_acl: AccessControlList = router.acl.acl[0]
 
     # Asserts to show the C2 Suite is unable to maintain connection:
@@ -359,8 +359,8 @@ def test_c2_suite_acl_bypass(basic_network):
     c2_beacon.configure(
         c2_server_ip_address="192.168.0.2",
         keep_alive_frequency=2,
-        masquerade_port=Port.FTP,
-        masquerade_protocol=IPProtocol.TCP,
+        masquerade_port=Port["FTP"],
+        masquerade_protocol=IPProtocol["TCP"],
     )
 
     c2_beacon.establish()
@@ -407,8 +407,8 @@ def test_c2_suite_acl_bypass(basic_network):
     ################ Denying FTP Traffic & Enable HTTP #########################
 
     # Blocking FTP and re-permitting HTTP:
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port.FTP, dst_port=Port.FTP, position=1)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=0)
+    router.acl.add_rule(action=ACLAction.DENY, src_port=Port["FTP"], dst_port=Port["FTP"], position=1)
     blocking_acl: AccessControlList = router.acl.acl[1]
 
     # Asserts to show the C2 Suite is unable to maintain connection:
@@ -430,8 +430,8 @@ def test_c2_suite_acl_bypass(basic_network):
     c2_beacon.configure(
         c2_server_ip_address="192.168.0.2",
         keep_alive_frequency=2,
-        masquerade_port=Port.HTTP,
-        masquerade_protocol=IPProtocol.TCP,
+        masquerade_port=Port["HTTP"],
+        masquerade_protocol=IPProtocol["TCP"],
     )
 
     c2_beacon.establish()

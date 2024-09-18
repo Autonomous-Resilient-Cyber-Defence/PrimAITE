@@ -42,7 +42,7 @@ def test_WebpageUnavailablePenalty(game_and_agent):
 
     # Block the web traffic, check that failing to fetch the webpage yields a reward of -0.7
     router: Router = game.simulation.network.get_node_by_hostname("router")
-    router.acl.add_rule(action=ACLAction.DENY, protocol=IPProtocol.TCP, src_port=Port.HTTP, dst_port=Port.HTTP)
+    router.acl.add_rule(action=ACLAction.DENY, protocol=IPProtocol["TCP"], src_port=Port["HTTP"], dst_port=Port["HTTP"])
     agent.store_action(("NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}))
     game.step()
     assert agent.reward_function.current_reward == -0.7
@@ -65,7 +65,7 @@ def test_uc2_rewards(game_and_agent):
     db_client.run()
 
     router: Router = game.simulation.network.get_node_by_hostname("router")
-    router.acl.add_rule(ACLAction.PERMIT, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER, position=2)
+    router.acl.add_rule(ACLAction.PERMIT, src_port=Port["POSTGRES_SERVER"], dst_port=Port["POSTGRES_SERVER"], position=2)
 
     comp = GreenAdminDatabaseUnreachablePenalty("client_1")
 

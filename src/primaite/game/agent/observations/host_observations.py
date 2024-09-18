@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
+from pydantic import field_validator
 
 from primaite import getLogger
 from primaite.game.agent.observations.file_system_observations import FolderObservation
@@ -12,6 +13,8 @@ from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.observations.software_observation import ApplicationObservation, ServiceObservation
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 
 _LOGGER = getLogger(__name__)
 
@@ -54,6 +57,21 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         """
         include_users: Optional[bool] = True
         """If True, report user session information."""
+
+        @field_validator('monitored_traffic', mode='before')
+        def traffic_lookup(cls, val:Optional[Dict]) -> Optional[Dict]:
+            if val is None:
+                return val
+            new_val = {}
+            for proto, port_list in val.items():
+                # convert protocol, for instance ICMP becomes "icmp"
+                proto = IPProtocol[proto] if proto in IPProtocol else proto
+                new_val[proto] = []
+                for port in port_list:
+                    # convert ports, for instance "HTTP" becomes 80
+                    port = Port[port] if port in Port else port
+                    new_val[proto].append(port)
+            return new_val
 
     def __init__(
         self,

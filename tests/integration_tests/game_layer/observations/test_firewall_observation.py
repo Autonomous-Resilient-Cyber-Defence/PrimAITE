@@ -62,13 +62,13 @@ def test_firewall_observation():
     # add a rule to the internal inbound and check that the observation is correct
     firewall.internal_inbound_acl.add_rule(
         action=ACLAction.DENY,
-        protocol=IPProtocol.TCP,
+        protocol=IPProtocol["TCP"],
         src_ip_address="10.0.0.1",
         src_wildcard_mask="0.0.0.1",
         dst_ip_address="10.0.0.2",
         dst_wildcard_mask="0.0.0.1",
-        src_port=Port.HTTP,
-        dst_port=Port.HTTP,
+        src_port=Port["HTTP"],
+        dst_port=Port["HTTP"],
         position=5,
     )
 

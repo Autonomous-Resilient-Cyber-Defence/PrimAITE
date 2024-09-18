@@ -26,9 +26,9 @@ def game_and_agent_fixture(game_and_agent):
     game, agent = game_and_agent
 
     router = game.simulation.network.get_node_by_hostname("router")
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=4)
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.DNS, dst_port=Port.DNS, position=5)
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.FTP, dst_port=Port.FTP, position=6)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=4)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["DNS"], dst_port=Port["DNS"], position=5)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["FTP"], dst_port=Port["FTP"], position=6)
 
     c2_server_host = game.simulation.network.get_node_by_hostname("client_1")
     c2_server_host.software_manager.install(software_class=C2Server)

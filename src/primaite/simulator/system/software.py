@@ -251,11 +251,11 @@ class IOSoftware(Software):
     "Indicates if the software uses TCP protocol for communication. Default is True."
     udp: bool = True
     "Indicates if the software uses UDP protocol for communication. Default is True."
-    port: Port
+    port: int
     "The port to which the software is connected."
-    listen_on_ports: Set[Port] = Field(default_factory=set)
+    listen_on_ports: Set[int] = Field(default_factory=set)
     "The set of ports to listen on."
-    protocol: IPProtocol
+    protocol: str
     "The IP Protocol the Software operates on."
     _connections: Dict[str, Dict] = {}
     "Active connections."
@@ -277,7 +277,7 @@ class IOSoftware(Software):
                 "max_sessions": self.max_sessions,
                 "tcp": self.tcp,
                 "udp": self.udp,
-                "port": self.port.value,
+                "port": self.port,
             }
         )
         return state
@@ -386,8 +386,8 @@ class IOSoftware(Software):
         payload: Any,
         session_id: Optional[str] = None,
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
-        dest_port: Optional[Port] = None,
-        ip_protocol: IPProtocol = IPProtocol.TCP,
+        dest_port: Optional[int] = None,
+        ip_protocol: str = IPProtocol["TCP"],
         **kwargs,
     ) -> bool:
         """

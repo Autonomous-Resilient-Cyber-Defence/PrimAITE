@@ -22,11 +22,11 @@ class DNSClient(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DNSClient"
-        kwargs["port"] = Port.DNS
+        kwargs["port"] = Port["DNS"]
         # DNS uses UDP by default
         # it switches to TCP when the bytes exceed 512 (or 4096) bytes
         # TCP for now
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["protocol"] = IPProtocol["TCP"]
         super().__init__(**kwargs)
         self.start()
 
@@ -95,7 +95,7 @@ class DNSClient(Service):
                 # send a request to check if domain name exists in the DNS Server
                 software_manager: SoftwareManager = self.software_manager
                 software_manager.send_payload_to_session_manager(
-                    payload=payload, dest_ip_address=self.dns_server, dest_port=Port.DNS
+                    payload=payload, dest_ip_address=self.dns_server, dest_port=Port["DNS"]
                 )
 
                 # recursively re-call the function passing is_reattempt=True
@@ -110,7 +110,7 @@ class DNSClient(Service):
         payload: DNSPacket,
         session_id: Optional[str] = None,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
+        dest_port: Optional[int] = None,
         **kwargs,
     ) -> bool:
         """

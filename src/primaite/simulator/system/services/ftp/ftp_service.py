@@ -78,7 +78,7 @@ class FTPServiceABC(Service, ABC):
         dest_folder_name: str,
         dest_file_name: str,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
+        dest_port: Optional[int] = None,
         session_id: Optional[str] = None,
         is_response: bool = False,
     ) -> bool:
@@ -97,8 +97,8 @@ class FTPServiceABC(Service, ABC):
         :param: dest_ip_address: The IP address of the machine that hosts the FTP Server.
         :type: dest_ip_address: Optional[IPv4Address]
 
-        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port.FTP.
-        :type: dest_port: Optional[Port]
+        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port["FTP"].
+        :type: dest_port: Optional[int]
 
         :param: session_id: session ID linked to the FTP Packet. Optional.
         :type: session_id: Optional[str]
@@ -168,7 +168,7 @@ class FTPServiceABC(Service, ABC):
         payload: FTPPacket,
         session_id: Optional[str] = None,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = None,
+        dest_port: Optional[int] = None,
         **kwargs,
     ) -> bool:
         """

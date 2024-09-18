@@ -20,7 +20,7 @@ def game_and_agent_fixture(game_and_agent):
     game, agent = game_and_agent
 
     router = game.simulation.network.get_node_by_hostname("router")
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=4)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["SSH"], dst_port=Port["SSH"], position=4)
 
     return (game, agent)
 

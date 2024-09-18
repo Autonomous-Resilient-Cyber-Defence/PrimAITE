@@ -33,7 +33,7 @@ def test_acl_observations(simulation):
     server.software_manager.install(NTPServer)
 
     # add router acl rule
-    router.acl.add_rule(action=ACLAction.PERMIT, dst_port=Port.NTP, src_port=Port.NTP, position=1)
+    router.acl.add_rule(action=ACLAction.PERMIT, dst_port=Port["NTP"], src_port=Port["NTP"], position=1)
 
     acl_obs = ACLObservation(
         where=["network", "nodes", router.hostname, "acl", "acl"],

@@ -39,8 +39,8 @@ def test_create_web_client():
     # Web Browser should be pre-installed in computer
     web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
     assert web_browser.name is "WebBrowser"
-    assert web_browser.port is Port.HTTP
-    assert web_browser.protocol is IPProtocol.TCP
+    assert web_browser.port is Port["HTTP"]
+    assert web_browser.protocol is IPProtocol["TCP"]
 
 
 def test_receive_invalid_payload(web_browser):

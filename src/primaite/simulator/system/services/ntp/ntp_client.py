@@ -21,8 +21,8 @@ class NTPClient(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPClient"
-        kwargs["port"] = Port.NTP
-        kwargs["protocol"] = IPProtocol.UDP
+        kwargs["port"] = Port["NTP"]
+        kwargs["protocol"] = IPProtocol["UDP"]
         super().__init__(**kwargs)
         self.start()
 
@@ -55,7 +55,7 @@ class NTPClient(Service):
         payload: NTPPacket,
         session_id: Optional[str] = None,
         dest_ip_address: IPv4Address = None,
-        dest_port: Port = Port.NTP,
+        dest_port: int = Port["NTP"],
         **kwargs,
     ) -> bool:
         """Requests NTP data from NTP server.

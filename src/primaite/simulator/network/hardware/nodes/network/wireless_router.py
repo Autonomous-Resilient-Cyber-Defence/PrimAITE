@@ -116,7 +116,7 @@ class WirelessRouter(Router):
         >>> wireless_router.configure_wireless_access_point(
         ...     ip_address="10.10.10.1",
         ...     subnet_mask="255.255.255.0"
-        ...     frequency=AirSpaceFrequency.WIFI_2_4
+        ...     frequency=AirSpaceFrequency["WIFI_2_4"]
         ... )
     """
 
@@ -153,7 +153,7 @@ class WirelessRouter(Router):
         self,
         ip_address: IPV4Address,
         subnet_mask: IPV4Address,
-        frequency: Optional[AirSpaceFrequency] = AirSpaceFrequency.WIFI_2_4,
+        frequency: Optional[int] = AirSpaceFrequency["WIFI_2_4"],
     ):
         """
         Configures a wireless access point (WAP).
@@ -168,10 +168,10 @@ class WirelessRouter(Router):
         :param subnet_mask: The subnet mask associated with the IP address
         :param frequency: The operating frequency of the wireless access point, defined by the AirSpaceFrequency
             enum. This determines the frequency band (e.g., 2.4 GHz or 5 GHz) the access point will use for wireless
-            communication. Default is AirSpaceFrequency.WIFI_2_4.
+            communication. Default is AirSpaceFrequency["WIFI_2_4"].
         """
         if not frequency:
-            frequency = AirSpaceFrequency.WIFI_2_4
+            frequency = AirSpaceFrequency["WIFI_2_4"]
         self.sys_log.info("Configuring wireless access point")
 
         self.wireless_access_point.disable()  # Temporarily disable the WAP for reconfiguration

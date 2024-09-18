@@ -63,8 +63,8 @@ def test_router_acl_rules_correctly_added(dmz_config):
     # ICMP and ARP should be allowed
     assert router_1.acl.num_rules == 2
     assert router_1.acl.acl[22].action == ACLAction.PERMIT
-    assert router_1.acl.acl[22].src_port == Port.ARP
-    assert router_1.acl.acl[22].dst_port == Port.ARP
+    assert router_1.acl.acl[22].src_port == Port["ARP"]
+    assert router_1.acl.acl[22].dst_port == Port["ARP"]
     assert router_1.acl.acl[23].action == ACLAction.PERMIT
-    assert router_1.acl.acl[23].protocol == IPProtocol.ICMP
+    assert router_1.acl.acl[23].protocol == IPProtocol["ICMP"]
     assert router_1.acl.implicit_action == ACLAction.DENY

@@ -81,10 +81,10 @@ class AbstractC2(Application, identifier="AbstractC2"):
         keep_alive_frequency: int = Field(default=5, ge=1)
         """The frequency at which ``Keep Alive`` packets are sent to the C2 Server from the C2 Beacon."""
 
-        masquerade_protocol: IPProtocol = Field(default=IPProtocol.TCP)
+        masquerade_protocol: str = Field(default=IPProtocol["TCP"])
         """The currently chosen protocol that the C2 traffic is masquerading as. Defaults as TCP."""
 
-        masquerade_port: Port = Field(default=Port.HTTP)
+        masquerade_port: int = Field(default=Port["HTTP"])
         """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
 
     c2_config: _C2Opts = _C2Opts()
@@ -142,9 +142,9 @@ class AbstractC2(Application, identifier="AbstractC2"):
 
     def __init__(self, **kwargs):
         """Initialise the C2 applications to by default listen for HTTP traffic."""
-        kwargs["listen_on_ports"] = {Port.HTTP, Port.FTP, Port.DNS}
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["listen_on_ports"] = {Port["HTTP"], Port["FTP"], Port["DNS"]}
+        kwargs["port"] = Port["NONE"]
+        kwargs["protocol"] = IPProtocol["TCP"]
         super().__init__(**kwargs)
 
     @property
@@ -367,7 +367,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :rtype: bool
         """
         # Validating that they are valid Enums.
-        if not isinstance(payload.masquerade_port, Port) or not isinstance(payload.masquerade_protocol, IPProtocol):
+        if not isinstance(payload.masquerade_port, int) or not isinstance(payload.masquerade_protocol, str):
             self.sys_log.warning(
                 f"{self.name}: Received invalid Masquerade Values within Keep Alive."
                 f"Port: {payload.masquerade_port} Protocol: {payload.masquerade_protocol}."
@@ -410,8 +410,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
         self.keep_alive_inactivity = 0
         self.keep_alive_frequency = 5
         self.c2_remote_connection = None
-        self.c2_config.masquerade_port = Port.HTTP
-        self.c2_config.masquerade_protocol = IPProtocol.TCP
+        self.c2_config.masquerade_port = Port["HTTP"]
+        self.c2_config.masquerade_protocol = IPProtocol["TCP"]
 
     @abstractmethod
     def _confirm_remote_connection(self, timestep: int) -> bool:

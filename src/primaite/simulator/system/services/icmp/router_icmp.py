@@ -36,13 +36,13 @@
 #                             self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
 #                         target_mac_address = self.arp.get_arp_cache_mac_address(frame.ip.src_ip_address)
 #                         src_nic = self.arp.get_arp_cache_network_interface(frame.ip.src_ip_address)
-#                         tcp_header = TCPHeader(src_port=Port.ARP, dst_port=Port.ARP)
+#                         tcp_header = TCPHeader(src_port=Port["ARP"], dst_port=Port["ARP"])
 #
 #                         # Network Layer
 #                         ip_packet = IPPacket(
 #                             src_ip_address=network_interface.ip_address,
 #                             dst_ip_address=frame.ip.src_ip_address,
-#                             protocol=IPProtocol.ICMP,
+#                             protocol=IPProtocol["ICMP"],
 #                         )
 #                         # Data Link Layer
 #                         ethernet_header = EthernetHeader(

@@ -39,13 +39,13 @@ def test_router_observation():
     # Add an ACL rule to the router
     router.acl.add_rule(
         action=ACLAction.DENY,
-        protocol=IPProtocol.TCP,
+        protocol=IPProtocol["TCP"],
         src_ip_address="10.0.0.1",
         src_wildcard_mask="0.0.0.1",
         dst_ip_address="10.0.0.2",
         dst_wildcard_mask="0.0.0.1",
-        src_port=Port.HTTP,
-        dst_port=Port.HTTP,
+        src_port=Port["HTTP"],
+        dst_port=Port["HTTP"],
         position=5,
     )
     # Observe the state using the RouterObservation instance

@@ -15,7 +15,7 @@ def env_with_ssh() -> PrimaiteGymEnv:
     env = PrimaiteGymEnv(DATA_MANIPULATION_CONFIG)
     env.agent.flatten_obs = False
     router: Router = env.game.simulation.network.get_node_by_hostname("router_1")
-    router.acl.add_rule(ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=3)
+    router.acl.add_rule(ACLAction.PERMIT, src_port=Port["SSH"], dst_port=Port["SSH"], position=3)
     return env
 
 

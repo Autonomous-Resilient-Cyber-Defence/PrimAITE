@@ -27,8 +27,8 @@ def test_create_dm_bot(dm_client):
     data_manipulation_bot: DataManipulationBot = dm_client.software_manager.software.get("DataManipulationBot")
 
     assert data_manipulation_bot.name == "DataManipulationBot"
-    assert data_manipulation_bot.port == Port.NONE
-    assert data_manipulation_bot.protocol == IPProtocol.NONE
+    assert data_manipulation_bot.port == Port["NONE"]
+    assert data_manipulation_bot.protocol == IPProtocol["NONE"]
     assert data_manipulation_bot.payload == "DELETE"
 
 

@@ -90,8 +90,8 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseClient"
-        kwargs["port"] = Port.POSTGRES_SERVER
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = Port["POSTGRES_SERVER"]
+        kwargs["protocol"] = IPProtocol["TCP"]
         super().__init__(**kwargs)
 
     def _init_request_manager(self) -> RequestManager:

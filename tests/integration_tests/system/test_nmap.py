@@ -73,10 +73,10 @@ def test_port_scan_one_node_one_port(example_network):
     client_2 = network.get_node_by_hostname("client_2")
 
     actual_result = client_1_nmap.port_scan(
-        target_ip_address=client_2.network_interface[1].ip_address, target_port=Port.DNS, target_protocol=IPProtocol.TCP
+        target_ip_address=client_2.network_interface[1].ip_address, target_port=Port["DNS"], target_protocol=IPProtocol["TCP"]
     )
 
-    expected_result = {IPv4Address("192.168.10.22"): {IPProtocol.TCP: [Port.DNS]}}
+    expected_result = {IPv4Address("192.168.10.22"): {IPProtocol["TCP"]: [Port["DNS"]]}}
 
     assert actual_result == expected_result
 
@@ -101,14 +101,14 @@ def test_port_scan_full_subnet_all_ports_and_protocols(example_network):
 
     actual_result = client_1_nmap.port_scan(
         target_ip_address=IPv4Network("192.168.10.0/24"),
-        target_port=[Port.ARP, Port.HTTP, Port.FTP, Port.DNS, Port.NTP],
+        target_port=[Port["ARP"], Port["HTTP"], Port["FTP"], Port["DNS"], Port["NTP"]],
     )
 
     expected_result = {
-        IPv4Address("192.168.10.1"): {IPProtocol.UDP: [Port.ARP]},
+        IPv4Address("192.168.10.1"): {IPProtocol["UDP"]: [Port["ARP"]]},
         IPv4Address("192.168.10.22"): {
-            IPProtocol.TCP: [Port.HTTP, Port.FTP, Port.DNS],
-            IPProtocol.UDP: [Port.ARP, Port.NTP],
+            IPProtocol["TCP"]: [Port["HTTP"], Port["FTP"], Port["DNS"]],
+            IPProtocol["UDP"]: [Port["ARP"], Port["NTP"]],
         },
     }
 
@@ -122,10 +122,10 @@ def test_network_service_recon_all_ports_and_protocols(example_network):
     client_1_nmap: NMAP = client_1.software_manager.software["NMAP"]  # noqa
 
     actual_result = client_1_nmap.network_service_recon(
-        target_ip_address=IPv4Network("192.168.10.0/24"), target_port=Port.HTTP, target_protocol=IPProtocol.TCP
+        target_ip_address=IPv4Network("192.168.10.0/24"), target_port=Port["HTTP"], target_protocol=IPProtocol["TCP"]
     )
 
-    expected_result = {IPv4Address("192.168.10.22"): {IPProtocol.TCP: [Port.HTTP]}}
+    expected_result = {IPv4Address("192.168.10.22"): {IPProtocol["TCP"]: [Port["HTTP"]]}}
 
     assert sort_dict(actual_result) == sort_dict(expected_result)
 

@@ -53,28 +53,28 @@ def dmz_external_internal_network() -> Network:
     )
 
     # Allow ICMP
-    firewall_node.internal_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
-    firewall_node.internal_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
-    firewall_node.external_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
-    firewall_node.external_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
-    firewall_node.dmz_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
-    firewall_node.dmz_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+    firewall_node.internal_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol["ICMP"], position=23)
+    firewall_node.internal_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol["ICMP"], position=23)
+    firewall_node.external_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol["ICMP"], position=23)
+    firewall_node.external_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol["ICMP"], position=23)
+    firewall_node.dmz_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol["ICMP"], position=23)
+    firewall_node.dmz_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol["ICMP"], position=23)
 
     # Allow ARP
     firewall_node.internal_inbound_acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22
+        action=ACLAction.PERMIT, src_port=Port["ARP"], dst_port=Port["ARP"], position=22
     )
     firewall_node.internal_outbound_acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22
+        action=ACLAction.PERMIT, src_port=Port["ARP"], dst_port=Port["ARP"], position=22
     )
     firewall_node.external_inbound_acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22
+        action=ACLAction.PERMIT, src_port=Port["ARP"], dst_port=Port["ARP"], position=22
     )
     firewall_node.external_outbound_acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22
+        action=ACLAction.PERMIT, src_port=Port["ARP"], dst_port=Port["ARP"], position=22
     )
-    firewall_node.dmz_inbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
-    firewall_node.dmz_outbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
+    firewall_node.dmz_inbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port["ARP"], dst_port=Port["ARP"], position=22)
+    firewall_node.dmz_outbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port["ARP"], dst_port=Port["ARP"], position=22)
 
     # external node
     external_node = Computer(
@@ -262,8 +262,8 @@ def test_service_allowed_with_rule(dmz_external_internal_network):
 
     assert not internal_ntp_client.time
 
-    firewall.internal_outbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=1)
-    firewall.internal_inbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=1)
+    firewall.internal_outbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port["NTP"], dst_port=Port["NTP"], position=1)
+    firewall.internal_inbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port["NTP"], dst_port=Port["NTP"], position=1)
 
     internal_ntp_client.request_time()
 
@@ -271,8 +271,8 @@ def test_service_allowed_with_rule(dmz_external_internal_network):
 
     assert not dmz_ntp_client.time
 
-    firewall.dmz_outbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=1)
-    firewall.dmz_inbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=1)
+    firewall.dmz_outbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port["NTP"], dst_port=Port["NTP"], position=1)
+    firewall.dmz_inbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port["NTP"], dst_port=Port["NTP"], position=1)
 
     dmz_ntp_client.request_time()
 

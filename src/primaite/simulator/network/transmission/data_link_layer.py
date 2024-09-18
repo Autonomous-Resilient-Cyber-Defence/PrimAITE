@@ -70,15 +70,15 @@ class Frame(BaseModel):
             msg = "Network Frame cannot have both a TCP header and a UDP header"
             _LOGGER.error(msg)
             raise ValueError(msg)
-        if kwargs["ip"].protocol == IPProtocol.TCP and not kwargs.get("tcp"):
+        if kwargs["ip"].protocol == IPProtocol["TCP"] and not kwargs.get("tcp"):
             msg = "Cannot build a Frame using the TCP IP Protocol without a TCPHeader"
             _LOGGER.error(msg)
             raise ValueError(msg)
-        if kwargs["ip"].protocol == IPProtocol.UDP and not kwargs.get("udp"):
+        if kwargs["ip"].protocol == IPProtocol["UDP"] and not kwargs.get("udp"):
             msg = "Cannot build a Frame using the UDP IP Protocol without a UDPHeader"
             _LOGGER.error(msg)
             raise ValueError(msg)
-        if kwargs["ip"].protocol == IPProtocol.ICMP and not kwargs.get("icmp"):
+        if kwargs["ip"].protocol == IPProtocol["ICMP"] and not kwargs.get("icmp"):
             msg = "Cannot build a Frame using the ICMP IP Protocol without a ICMPPacket"
             _LOGGER.error(msg)
             raise ValueError(msg)
@@ -165,7 +165,7 @@ class Frame(BaseModel):
 
         :return: True if the Frame is an ARP packet, otherwise False.
         """
-        return self.udp.dst_port == Port.ARP
+        return self.udp.dst_port == Port["ARP"]
 
     @property
     def is_icmp(self) -> bool:

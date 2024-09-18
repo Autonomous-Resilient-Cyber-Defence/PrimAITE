@@ -11,7 +11,7 @@ def test_simple_conversion():
     The original dictionary contains one level of nested dictionary with enums as keys.
     The expected output should have string values of enums as keys.
     """
-    original_dict = {IPProtocol.UDP: {Port.ARP: {"inbound": 0, "outbound": 1016.0}}}
+    original_dict = {IPProtocol["UDP"]: {Port["ARP"]: {"inbound": 0, "outbound": 1016.0}}}
     expected_dict = {"udp": {219: {"inbound": 0, "outbound": 1016.0}}}
     assert convert_dict_enum_keys_to_enum_values(original_dict) == expected_dict
 
@@ -36,8 +36,8 @@ def test_mixed_keys():
     The expected output should have string values of enums and original string keys.
     """
     original_dict = {
-        IPProtocol.TCP: {"port": {"inbound": 0, "outbound": 1016.0}},
-        "protocol": {Port.HTTP: {"inbound": 10, "outbound": 2020.0}},
+        IPProtocol["TCP"]: {"port": {"inbound": 0, "outbound": 1016.0}},
+        "protocol": {Port["HTTP"]: {"inbound": 10, "outbound": 2020.0}},
     }
     expected_dict = {
         "tcp": {"port": {"inbound": 0, "outbound": 1016.0}},
@@ -66,7 +66,7 @@ def test_nested_dicts():
     The expected output should have string values of enums as keys at all levels.
     """
     original_dict = {
-        IPProtocol.UDP: {Port.ARP: {"inbound": 0, "outbound": 1016.0, "details": {IPProtocol.TCP: {"latency": "low"}}}}
+        IPProtocol["UDP"]: {Port["ARP"]: {"inbound": 0, "outbound": 1016.0, "details": {IPProtocol["TCP"]: {"latency": "low"}}}}
     }
     expected_dict = {"udp": {219: {"inbound": 0, "outbound": 1016.0, "details": {"tcp": {"latency": "low"}}}}}
     assert convert_dict_enum_keys_to_enum_values(original_dict) == expected_dict
@@ -79,6 +79,6 @@ def test_non_dict_values():
     The original dictionary contains lists and tuples as values.
     The expected output should preserve these non-dictionary values while converting enum keys to string values.
     """
-    original_dict = {IPProtocol.UDP: [Port.ARP, Port.HTTP], "protocols": (IPProtocol.TCP, IPProtocol.UDP)}
-    expected_dict = {"udp": [Port.ARP, Port.HTTP], "protocols": (IPProtocol.TCP, IPProtocol.UDP)}
+    original_dict = {IPProtocol["UDP"]: [Port["ARP"], Port["HTTP"]], "protocols": (IPProtocol["TCP"], IPProtocol["UDP"])}
+    expected_dict = {"udp": [Port["ARP"], Port["HTTP"]], "protocols": (IPProtocol["TCP"], IPProtocol["UDP"])}
     assert convert_dict_enum_keys_to_enum_values(original_dict) == expected_dict

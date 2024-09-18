@@ -24,17 +24,17 @@ def web_client_web_server_database(example_network) -> Tuple[Network, Computer, 
     # add rules to network router
     router_1: Router = example_network.get_node_by_hostname("router_1")
     router_1.acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER, position=0
+        action=ACLAction.PERMIT, src_port=Port["POSTGRES_SERVER"], dst_port=Port["POSTGRES_SERVER"], position=0
     )
 
     # Allow DNS requests
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.DNS, dst_port=Port.DNS, position=1)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["DNS"], dst_port=Port["DNS"], position=1)
 
     # Allow FTP requests
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.FTP, dst_port=Port.FTP, position=2)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["FTP"], dst_port=Port["FTP"], position=2)
 
     # Open port 80 for web server
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=3)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=3)
 
     # Create Computer
     computer: Computer = example_network.get_node_by_hostname("client_1")
@@ -148,7 +148,7 @@ class TestWebBrowserHistory:
         assert web_browser.history[-1].response_code == 200
 
         router = network.get_node_by_hostname("router_1")
-        router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+        router.acl.add_rule(action=ACLAction.DENY, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=0)
         assert not web_browser.get_webpage()
         assert len(web_browser.history) == 3
         # with current NIC behaviour, even if you block communication, you won't get SERVER_UNREACHABLE because
@@ -166,7 +166,7 @@ class TestWebBrowserHistory:
 
         web_browser.get_webpage()
         router = network.get_node_by_hostname("router_1")
-        router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+        router.acl.add_rule(action=ACLAction.DENY, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=0)
         web_browser.get_webpage()
 
         state = computer.describe_state()

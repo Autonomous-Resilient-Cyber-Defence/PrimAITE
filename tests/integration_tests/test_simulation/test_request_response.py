@@ -171,7 +171,7 @@ class TestDataManipulationGreenRequests:
         assert client_1_browser_execute.status == "success"
         assert client_2_browser_execute.status == "success"
 
-        router.acl.add_rule(ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=3)
+        router.acl.add_rule(ACLAction.DENY, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=3)
         client_1_browser_execute = net.apply_request(["node", "client_1", "application", "WebBrowser", "execute"])
         client_2_browser_execute = net.apply_request(["node", "client_2", "application", "WebBrowser", "execute"])
         assert client_1_browser_execute.status == "failure"
@@ -182,7 +182,7 @@ class TestDataManipulationGreenRequests:
         assert client_1_db_client_execute.status == "success"
         assert client_2_db_client_execute.status == "success"
 
-        router.acl.add_rule(ACLAction.DENY, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER)
+        router.acl.add_rule(ACLAction.DENY, src_port=Port["POSTGRES_SERVER"], dst_port=Port["POSTGRES_SERVER"])
         client_1_db_client_execute = net.apply_request(["node", "client_1", "application", "DatabaseClient", "execute"])
         client_2_db_client_execute = net.apply_request(["node", "client_2", "application", "DatabaseClient", "execute"])
         assert client_1_db_client_execute.status == "failure"

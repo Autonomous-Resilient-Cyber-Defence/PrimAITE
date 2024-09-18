@@ -7,7 +7,7 @@ from ipaddress import IPv4Address, IPv4Network
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import validate_call
+from pydantic import field_validator, validate_call
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
@@ -106,7 +106,7 @@ class ACLRule(SimComponent):
 
     :ivar ACLAction action: Specifies whether to `PERMIT` or `DENY` the traffic that matches the rule conditions.
         The default action is `DENY`.
-    :ivar Optional[IPProtocol] protocol: The network protocol (e.g., TCP, UDP, ICMP) to match. If `None`, the rule
+    :ivar Optional[str] protocol: The network protocol (e.g., TCP, UDP, ICMP) to match. If `None`, the rule
         applies to all protocols.
     :ivar Optional[IPV4Address] src_ip_address: The source IP address to match. If combined with `src_wildcard_mask`,
         it specifies the start of an IP range.
@@ -116,19 +116,32 @@ class ACLRule(SimComponent):
         `dst_wildcard_mask`, it specifies the start of an IP range.
     :ivar Optional[IPv4Address] dst_wildcard_mask: The wildcard mask for the destination IP address, defining the
         range of addresses to match.
-    :ivar Optional[Port] src_port: The source port number to match. Relevant for TCP/UDP protocols.
-    :ivar Optional[Port] dst_port: The destination port number to match. Relevant for TCP/UDP protocols.
+    :ivar Optional[int] src_port: The source port number to match. Relevant for TCP/UDP protocols.
+    :ivar Optional[int] dst_port: The destination port number to match. Relevant for TCP/UDP protocols.
     """
 
     action: ACLAction = ACLAction.DENY
-    protocol: Optional[IPProtocol] = None
+    protocol: Optional[str] = None
     src_ip_address: Optional[IPV4Address] = None
     src_wildcard_mask: Optional[IPV4Address] = None
     dst_ip_address: Optional[IPV4Address] = None
     dst_wildcard_mask: Optional[IPV4Address] = None
-    src_port: Optional[Port] = None
-    dst_port: Optional[Port] = None
+    src_port: Optional[int] = None
+    dst_port: Optional[int] = None
     match_count: int = 0
+
+    @field_validator('protocol', mode='before')
+    def protocol_valid(cls, val:Optional[str]) -> Optional[str]:
+        if val is not None:
+            assert val in IPProtocol.values(), f"Cannot create ACL rule with invalid protocol {val}"
+        return val
+
+    @field_validator('src_port', 'dst_port', mode='before')
+    def ports_valid(cls, val:Optional[int]) -> Optional[int]:
+        if val is not None:
+            assert val in Port.values(), f"Cannot create ACL rule with invalid port {val}"
+        return val
+
 
     def __str__(self) -> str:
         rule_strings = []
@@ -149,13 +162,13 @@ class ACLRule(SimComponent):
         """
         state = super().describe_state()
         state["action"] = self.action.value
-        state["protocol"] = self.protocol.name if self.protocol else None
+        state["protocol"] = self.protocol if self.protocol else None
         state["src_ip_address"] = str(self.src_ip_address) if self.src_ip_address else None
         state["src_wildcard_mask"] = str(self.src_wildcard_mask) if self.src_wildcard_mask else None
-        state["src_port"] = self.src_port.name if self.src_port else None
+        state["src_port"] = self.src_port if self.src_port else None
         state["dst_ip_address"] = str(self.dst_ip_address) if self.dst_ip_address else None
         state["dst_wildcard_mask"] = str(self.dst_wildcard_mask) if self.dst_wildcard_mask else None
-        state["dst_port"] = self.dst_port.name if self.dst_port else None
+        state["dst_port"] = self.dst_port if self.dst_port else None
         state["match_count"] = self.match_count
         return state
 
@@ -265,7 +278,7 @@ class AccessControlList(SimComponent):
         >>> acl = AccessControlList()
         >>> acl.add_rule(
         ...    action=ACLAction.PERMIT,
-        ...    protocol=IPProtocol.TCP,
+        ...    protocol=IPProtocol["TCP"],
         ...    src_ip_address="192.168.1.0",
         ...    src_wildcard_mask="0.0.0.255",
         ...    dst_ip_address="192.168.2.0",
@@ -323,13 +336,13 @@ class AccessControlList(SimComponent):
                 func=lambda request, context: RequestResponse.from_bool(
                     self.add_rule(
                         action=ACLAction[request[0]],
-                        protocol=None if request[1] == "ALL" else IPProtocol[request[1]],
+                        protocol=None if request[1] == "ALL" else request[1],
                         src_ip_address=None if request[2] == "ALL" else IPv4Address(request[2]),
                         src_wildcard_mask=None if request[3] == "NONE" else IPv4Address(request[3]),
-                        src_port=None if request[4] == "ALL" else Port[request[4]],
+                        src_port=None if request[4] == "ALL" else request[4],
                         dst_ip_address=None if request[5] == "ALL" else IPv4Address(request[5]),
                         dst_wildcard_mask=None if request[6] == "NONE" else IPv4Address(request[6]),
-                        dst_port=None if request[7] == "ALL" else Port[request[7]],
+                        dst_port=None if request[7] == "ALL" else request[7],
                         position=int(request[8]),
                     )
                 )
@@ -377,13 +390,13 @@ class AccessControlList(SimComponent):
     def add_rule(
         self,
         action: ACLAction = ACLAction.DENY,
-        protocol: Optional[IPProtocol] = None,
+        protocol: Optional[str] = None,
         src_ip_address: Optional[IPV4Address] = None,
         src_wildcard_mask: Optional[IPV4Address] = None,
         dst_ip_address: Optional[IPV4Address] = None,
         dst_wildcard_mask: Optional[IPV4Address] = None,
-        src_port: Optional[Port] = None,
-        dst_port: Optional[Port] = None,
+        src_port: Optional[int] = None,
+        dst_port: Optional[int] = None,
         position: int = 0,
     ) -> bool:
         """
@@ -399,11 +412,11 @@ class AccessControlList(SimComponent):
             >>> router = Router("router")
             >>> router.add_rule(
             ...    action=ACLAction.DENY,
-            ...    protocol=IPProtocol.TCP,
+            ...    protocol=IPProtocol["TCP"],
             ...    src_ip_address="192.168.1.0",
             ...    src_wildcard_mask="0.0.0.255",
             ...    dst_ip_address="10.10.10.5",
-            ...    dst_port=Port.SSH,
+            ...    dst_port=Port["SSH"],
             ...    position=5
             ... )
             >>> # This permits SSH traffic from the 192.168.1.0/24 subnet to the 10.10.10.5 server.
@@ -411,10 +424,10 @@ class AccessControlList(SimComponent):
             >>> # Then if we want to allow a specific IP address from this subnet to SSH into the server
             >>> router.add_rule(
             ...    action=ACLAction.PERMIT,
-            ...    protocol=IPProtocol.TCP,
+            ...    protocol=IPProtocol["TCP"],
             ...    src_ip_address="192.168.1.25",
             ...    dst_ip_address="10.10.10.5",
-            ...    dst_port=Port.SSH,
+            ...    dst_port=Port["SSH"],
             ...    position=4
             ... )
 
@@ -485,11 +498,11 @@ class AccessControlList(SimComponent):
 
     def get_relevant_rules(
         self,
-        protocol: IPProtocol,
+        protocol: str,
         src_ip_address: Union[str, IPv4Address],
-        src_port: Port,
+        src_port: int,
         dst_ip_address: Union[str, IPv4Address],
-        dst_port: Port,
+        dst_port: int,
     ) -> List[ACLRule]:
         """
         Get the list of relevant rules for a packet with given properties.
@@ -552,13 +565,13 @@ class AccessControlList(SimComponent):
                     [
                         index,
                         rule.action.name if rule.action else "ANY",
-                        rule.protocol.name if rule.protocol else "ANY",
+                        rule.protocol if rule.protocol else "ANY",
                         rule.src_ip_address if rule.src_ip_address else "ANY",
                         rule.src_wildcard_mask if rule.src_wildcard_mask else "ANY",
-                        f"{rule.src_port.value} ({rule.src_port.name})" if rule.src_port else "ANY",
+                        f"{rule.src_port} ({rule.src_port})" if rule.src_port else "ANY",
                         rule.dst_ip_address if rule.dst_ip_address else "ANY",
                         rule.dst_wildcard_mask if rule.dst_wildcard_mask else "ANY",
-                        f"{rule.dst_port.value} ({rule.dst_port.name})" if rule.dst_port else "ANY",
+                        f"{rule.dst_port} ({rule.dst_port})" if rule.dst_port else "ANY",
                         rule.match_count,
                     ]
                 )
@@ -1088,17 +1101,17 @@ class RouterSessionManager(SessionManager):
     def resolve_outbound_transmission_details(
         self,
         dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
-        src_port: Optional[Port] = None,
-        dst_port: Optional[Port] = None,
-        protocol: Optional[IPProtocol] = None,
+        src_port: Optional[int] = None,
+        dst_port: Optional[int] = None,
+        protocol: Optional[str] = None,
         session_id: Optional[str] = None,
     ) -> Tuple[
         Optional[RouterInterface],
         Optional[str],
         IPv4Address,
-        Optional[Port],
-        Optional[Port],
-        Optional[IPProtocol],
+        Optional[int],
+        Optional[int],
+        Optional[str],
         bool,
     ]:
         """
@@ -1118,19 +1131,19 @@ class RouterSessionManager(SessionManager):
             treats the transmission as a broadcast to that network. Optional.
         :type dst_ip_address: Optional[Union[IPv4Address, IPv4Network]]
         :param src_port: The source port number for the transmission. Optional.
-        :type src_port: Optional[Port]
+        :type src_port: Optional[int]
         :param dst_port: The destination port number for the transmission. Optional.
-        :type dst_port: Optional[Port]
+        :type dst_port: Optional[int]
         :param protocol: The IP protocol to be used for the transmission. Optional.
-        :type protocol: Optional[IPProtocol]
+        :type protocol: Optional[str]
         :param session_id: The session ID associated with the transmission. If provided, the session details override
             other parameters. Optional.
         :type session_id: Optional[str]
         :return: A tuple containing the resolved outbound network interface, destination MAC address, destination IP
             address, source port, destination port, protocol, and a boolean indicating whether the transmission is a
             broadcast.
-        :rtype: Tuple[Optional[RouterInterface], Optional[str], IPv4Address, Optional[Port], Optional[Port],
-            Optional[IPProtocol], bool]
+        :rtype: Tuple[Optional[RouterInterface], Optional[str], IPv4Address, Optional[int], Optional[int],
+            Optional[str], bool]
         """
         if dst_ip_address and not isinstance(dst_ip_address, (IPv4Address, IPv4Network)):
             dst_ip_address = IPv4Address(dst_ip_address)
@@ -1257,8 +1270,8 @@ class Router(NetworkNode):
         Initializes the router's ACL (Access Control List) with default rules, permitting essential protocols like ARP
         and ICMP, which are necessary for basic network operations and diagnostics.
         """
-        self.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
-        self.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+        self.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["ARP"], dst_port=Port["ARP"], position=22)
+        self.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol["ICMP"], position=23)
 
     def setup_for_episode(self, episode: int):
         """
@@ -1357,9 +1370,9 @@ class Router(NetworkNode):
         """
         dst_ip_address = frame.ip.dst_ip_address
         dst_port = None
-        if frame.ip.protocol == IPProtocol.TCP:
+        if frame.ip.protocol == IPProtocol["TCP"]:
             dst_port = frame.tcp.dst_port
-        elif frame.ip.protocol == IPProtocol.UDP:
+        elif frame.ip.protocol == IPProtocol["UDP"]:
             dst_port = frame.udp.dst_port
 
         if self.ip_is_router_interface(dst_ip_address) and (

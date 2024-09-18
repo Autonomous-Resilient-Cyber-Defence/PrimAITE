@@ -137,8 +137,8 @@ class Terminal(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "Terminal"
-        kwargs["port"] = Port.SSH
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = Port["SSH"]
+        kwargs["protocol"] = IPProtocol["TCP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:

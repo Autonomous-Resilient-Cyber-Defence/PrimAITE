@@ -26,8 +26,8 @@ class ARP(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ARP"
-        kwargs["port"] = Port.ARP
-        kwargs["protocol"] = IPProtocol.UDP
+        kwargs["port"] = Port["ARP"]
+        kwargs["protocol"] = IPProtocol["UDP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:

@@ -16,9 +16,9 @@ from tests import TEST_ASSETS_ROOT
 
 class _DatabaseListener(Service):
     name: str = "DatabaseListener"
-    protocol: IPProtocol = IPProtocol.TCP
-    port: Port = Port.NONE
-    listen_on_ports: Set[Port] = {Port.POSTGRES_SERVER}
+    protocol: str = IPProtocol["TCP"]
+    port: int = Port["NONE"]
+    listen_on_ports: Set[int] = {Port["POSTGRES_SERVER"]}
     payloads_received: List[Any] = Field(default_factory=list)
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
@@ -51,8 +51,8 @@ def test_http_listener(client_server):
     computer.session_manager.receive_payload_from_software_manager(
         payload="masquerade as Database traffic",
         dst_ip_address=server.network_interface[1].ip_address,
-        dst_port=Port.POSTGRES_SERVER,
-        ip_protocol=IPProtocol.TCP,
+        dst_port=Port["POSTGRES_SERVER"],
+        ip_protocol=IPProtocol["TCP"],
     )
 
     assert len(server_db_listener.payloads_received) == 1
@@ -76,9 +76,9 @@ def test_set_listen_on_ports_from_config():
     network = PrimaiteGame.from_config(cfg=config_dict).simulation.network
 
     client: Computer = network.get_node_by_hostname("client")
-    assert Port.SMB in client.software_manager.get_open_ports()
-    assert Port.IPP in client.software_manager.get_open_ports()
+    assert Port["SMB"] in client.software_manager.get_open_ports()
+    assert Port["IPP"] in client.software_manager.get_open_ports()
 
     web_browser = client.software_manager.software["WebBrowser"]
 
-    assert not web_browser.listen_on_ports.difference({Port.SMB, Port.IPP})
+    assert not web_browser.listen_on_ports.difference({Port["SMB"], Port["IPP"]})

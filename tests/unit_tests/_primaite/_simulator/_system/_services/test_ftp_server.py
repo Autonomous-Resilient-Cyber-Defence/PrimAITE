@@ -30,8 +30,8 @@ def test_create_ftp_server(ftp_server):
     assert ftp_server is not None
     ftp_server_service: FTPServer = ftp_server.software_manager.software.get("FTPServer")
     assert ftp_server_service.name is "FTPServer"
-    assert ftp_server_service.port is Port.FTP
-    assert ftp_server_service.protocol is IPProtocol.TCP
+    assert ftp_server_service.port is Port["FTP"]
+    assert ftp_server_service.protocol is IPProtocol["TCP"]
 
 
 def test_ftp_server_store_file(ftp_server):

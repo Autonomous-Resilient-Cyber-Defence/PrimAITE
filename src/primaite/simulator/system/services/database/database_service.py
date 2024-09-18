@@ -38,8 +38,8 @@ class DatabaseService(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseService"
-        kwargs["port"] = Port.POSTGRES_SERVER
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = Port["POSTGRES_SERVER"]
+        kwargs["protocol"] = IPProtocol["TCP"]
         super().__init__(**kwargs)
         self._create_db_file()
 

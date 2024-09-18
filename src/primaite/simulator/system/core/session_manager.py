@@ -34,14 +34,14 @@ class Session(SimComponent):
     :param connected: A flag indicating whether the session is connected.
     """
 
-    protocol: IPProtocol
+    protocol: str
     with_ip_address: IPv4Address
-    src_port: Optional[Port]
-    dst_port: Optional[Port]
+    src_port: Optional[int]
+    dst_port: Optional[int]
     connected: bool = False
 
     @classmethod
-    def from_session_key(cls, session_key: Tuple[IPProtocol, IPv4Address, Optional[Port], Optional[Port]]) -> Session:
+    def from_session_key(cls, session_key: Tuple[str, IPv4Address, Optional[int], Optional[int]]) -> Session:
         """
         Create a Session instance from a session key tuple.
 
@@ -77,7 +77,7 @@ class SessionManager:
 
     def __init__(self, sys_log: SysLog):
         self.sessions_by_key: Dict[
-            Tuple[IPProtocol, IPv4Address, IPv4Address, Optional[Port], Optional[Port]], Session
+            Tuple[str, IPv4Address, IPv4Address, Optional[int], Optional[int]], Session
         ] = {}
         self.sessions_by_uuid: Dict[str, Session] = {}
         self.sys_log: SysLog = sys_log
@@ -103,7 +103,7 @@ class SessionManager:
     @staticmethod
     def _get_session_key(
         frame: Frame, inbound_frame: bool = True
-    ) -> Tuple[IPProtocol, IPv4Address, Optional[Port], Optional[Port]]:
+    ) -> Tuple[str, IPv4Address, Optional[int], Optional[int]]:
         """
         Extracts the session key from the given frame.
 
@@ -111,15 +111,15 @@ class SessionManager:
         - IPProtocol: The transport protocol (e.g. TCP, UDP, ICMP).
         - IPv4Address: The source IP address.
         - IPv4Address: The destination IP address.
-        - Optional[Port]: The source port number (if applicable).
-        - Optional[Port]: The destination port number (if applicable).
+        - Optional[int]: The source port number (if applicable).
+        - Optional[int]: The destination port number (if applicable).
 
         :param frame: The network frame from which to extract the session key.
         :return: A tuple containing the session key.
         """
         protocol = frame.ip.protocol
         with_ip_address = frame.ip.src_ip_address
-        if protocol == IPProtocol.TCP:
+        if protocol == IPProtocol["TCP"]:
             if inbound_frame:
                 src_port = frame.tcp.src_port
                 dst_port = frame.tcp.dst_port
@@ -127,7 +127,7 @@ class SessionManager:
                 dst_port = frame.tcp.src_port
                 src_port = frame.tcp.dst_port
                 with_ip_address = frame.ip.dst_ip_address
-        elif protocol == IPProtocol.UDP:
+        elif protocol == IPProtocol["UDP"]:
             if inbound_frame:
                 src_port = frame.udp.src_port
                 dst_port = frame.udp.dst_port
@@ -167,17 +167,17 @@ class SessionManager:
     def resolve_outbound_transmission_details(
         self,
         dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
-        src_port: Optional[Port] = None,
-        dst_port: Optional[Port] = None,
-        protocol: Optional[IPProtocol] = None,
+        src_port: Optional[int] = None,
+        dst_port: Optional[int] = None,
+        protocol: Optional[str] = None,
         session_id: Optional[str] = None,
     ) -> Tuple[
         Optional["NetworkInterface"],
         Optional[str],
         IPv4Address,
-        Optional[Port],
-        Optional[Port],
-        Optional[IPProtocol],
+        Optional[int],
+        Optional[int],
+        Optional[str],
         bool,
     ]:
         """
@@ -196,19 +196,19 @@ class SessionManager:
             treats the transmission as a broadcast to that network. Optional.
         :type dst_ip_address: Optional[Union[IPv4Address, IPv4Network]]
         :param src_port: The source port number for the transmission. Optional.
-        :type src_port: Optional[Port]
+        :type src_port: Optional[int]
         :param dst_port: The destination port number for the transmission. Optional.
-        :type dst_port: Optional[Port]
+        :type dst_port: Optional[int]
         :param protocol: The IP protocol to be used for the transmission. Optional.
-        :type protocol: Optional[IPProtocol]
+        :type protocol: Optional[str]
         :param session_id: The session ID associated with the transmission. If provided, the session details override
             other parameters. Optional.
         :type session_id: Optional[str]
         :return: A tuple containing the resolved outbound network interface, destination MAC address, destination IP
             address, source port, destination port, protocol, and a boolean indicating whether the transmission is a
             broadcast.
-        :rtype: Tuple[Optional["NetworkInterface"], Optional[str], IPv4Address, Optional[Port], Optional[Port],
-            Optional[IPProtocol], bool]
+        :rtype: Tuple[Optional["NetworkInterface"], Optional[str], IPv4Address, Optional[int], Optional[int],
+            Optional[str], bool]
         """
         if dst_ip_address and not isinstance(dst_ip_address, (IPv4Address, IPv4Network)):
             dst_ip_address = IPv4Address(dst_ip_address)
@@ -259,10 +259,10 @@ class SessionManager:
         self,
         payload: Any,
         dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
-        src_port: Optional[Port] = None,
-        dst_port: Optional[Port] = None,
+        src_port: Optional[int] = None,
+        dst_port: Optional[int] = None,
         session_id: Optional[str] = None,
-        ip_protocol: IPProtocol = IPProtocol.TCP,
+        ip_protocol: str = IPProtocol["TCP"],
         icmp_packet: Optional[ICMPPacket] = None,
     ) -> Union[Any, None]:
         """
@@ -286,7 +286,7 @@ class SessionManager:
                 dst_mac_address = payload.target_mac_addr
             outbound_network_interface = self.resolve_outbound_network_interface(payload.target_ip_address)
             is_broadcast = payload.request
-            ip_protocol = IPProtocol.UDP
+            ip_protocol = IPProtocol["UDP"]
         else:
             vals = self.resolve_outbound_transmission_details(
                 dst_ip_address=dst_ip_address,
@@ -311,26 +311,26 @@ class SessionManager:
         if not outbound_network_interface or not dst_mac_address:
             return False
 
-        if not (src_port or dst_port):
+        if src_port is None and dst_port is None:
             raise ValueError(
                 "Failed to resolve src or dst port. Have you sent the port from the service or application?"
             )
 
         tcp_header = None
         udp_header = None
-        if ip_protocol == IPProtocol.TCP:
+        if ip_protocol == IPProtocol["TCP"]:
             tcp_header = TCPHeader(
                 src_port=dst_port,
                 dst_port=dst_port,
             )
-        elif ip_protocol == IPProtocol.UDP:
+        elif ip_protocol == IPProtocol["UDP"]:
             udp_header = UDPHeader(
                 src_port=dst_port,
                 dst_port=dst_port,
             )
         # TODO: Only create IP packet if not ARP
         # ip_packet = None
-        # if dst_port != Port.ARP:
+        # if dst_port != Port["ARP"]:
         #     IPPacket(
         #         src_ip_address=outbound_network_interface.ip_address,
         #         dst_ip_address=dst_ip_address,
@@ -387,7 +387,7 @@ class SessionManager:
         elif frame.udp:
             dst_port = frame.udp.dst_port
         elif frame.icmp:
-            dst_port = Port.NONE
+            dst_port = Port["NONE"]
         self.software_manager.receive_payload_from_session_manager(
             payload=frame.payload,
             port=dst_port,
@@ -413,5 +413,5 @@ class SessionManager:
         table.align = "l"
         table.title = f"{self.sys_log.hostname} Session Manager"
         for session in self.sessions_by_key.values():
-            table.add_row([session.dst_ip_address, session.dst_port.value, session.protocol.name])
+            table.add_row([session.dst_ip_address, session.dst_port, session.protocol])
         print(table)

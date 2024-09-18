@@ -38,8 +38,8 @@ class ExtendedService(Service, identifier='extendedservice'):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ExtendedService"
-        kwargs["port"] = Port.POSTGRES_SERVER
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = Port["POSTGRES_SERVER"]
+        kwargs["protocol"] = IPProtocol["TCP"]
         super().__init__(**kwargs)
         self._create_db_file()
         if kwargs.get('options'):

@@ -20,8 +20,8 @@ class BroadcastTestService(Service):
     def __init__(self, **kwargs):
         # Set default service properties for broadcasting
         kwargs["name"] = "BroadcastService"
-        kwargs["port"] = Port.HTTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = Port["HTTP"]
+        kwargs["protocol"] = IPProtocol["TCP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:
@@ -33,12 +33,12 @@ class BroadcastTestService(Service):
         super().send(
             payload="unicast",
             dest_ip_address=ip_address,
-            dest_port=Port.HTTP,
+            dest_port=Port["HTTP"],
         )
 
     def broadcast(self, ip_network: IPv4Network):
         # Send a broadcast payload to an entire IP network
-        super().send(payload="broadcast", dest_ip_address=ip_network, dest_port=Port.HTTP, ip_protocol=self.protocol)
+        super().send(payload="broadcast", dest_ip_address=ip_network, dest_port=Port["HTTP"], ip_protocol=self.protocol)
 
 
 class BroadcastTestClient(Application, identifier="BroadcastTestClient"):
@@ -49,8 +49,8 @@ class BroadcastTestClient(Application, identifier="BroadcastTestClient"):
     def __init__(self, **kwargs):
         # Set default client properties
         kwargs["name"] = "BroadcastTestClient"
-        kwargs["port"] = Port.HTTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = Port["HTTP"]
+        kwargs["protocol"] = IPProtocol["TCP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:

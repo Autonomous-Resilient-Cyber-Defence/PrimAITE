@@ -165,8 +165,8 @@ Perform a horizontal port scan on port 5432 across multiple IP addresses:
 
    {
       IPv4Address('192.168.1.12'): {
-         <IPProtocol.TCP: 'tcp'>: [
-            <Port.POSTGRES_SERVER: 5432>
+         <IPProtocol["TCP"]: 'tcp'>: [
+            <Port["POSTGRES_SERVER"]: 5432>
          ]
       }
    }
@@ -192,7 +192,7 @@ Perform a vertical port scan on multiple ports on a single IP address:
 
    vertical_scan_results = pc_1_nmap.port_scan(
        target_ip_address=[IPv4Address("192.168.1.12")],
-       target_port=[Port(21), Port(22), Port(80), Port(443)]
+       target_port=[21, 22, 80, 443]
    )
 
 .. code-block:: python
@@ -200,9 +200,9 @@ Perform a vertical port scan on multiple ports on a single IP address:
 
    {
       IPv4Address('192.168.1.12'): {
-         <IPProtocol.TCP: 'tcp'>: [
-            <Port.FTP: 21>,
-            <Port.HTTP: 80>
+         <IPProtocol["TCP"]: 'tcp'>: [
+            <Port["FTP"]: 21>,
+            <Port["HTTP"]: 80>
          ]
       }
    }
@@ -233,7 +233,7 @@ Perform a box scan on multiple ports across multiple IP addresses:
 
    box_scan_results = pc_1_nmap.port_scan(
        target_ip_address=[IPv4Address("192.168.1.12"), IPv4Address("192.168.1.13")],
-       target_port=[Port(21), Port(22), Port(80), Port(443)]
+       target_port=[21, 22, 80, 443]
    )
 
 .. code-block:: python
@@ -241,15 +241,15 @@ Perform a box scan on multiple ports across multiple IP addresses:
 
    {
       IPv4Address('192.168.1.13'): {
-         <IPProtocol.TCP: 'tcp'>: [
-            <Port.FTP: 21>,
-            <Port.HTTP: 80>
+         <IPProtocol["TCP"]: 'tcp'>: [
+            <Port["FTP"]: 21>,
+            <Port["HTTP"]: 80>
          ]
       },
       IPv4Address('192.168.1.12'): {
-         <IPProtocol.TCP: 'tcp'>: [
-            <Port.FTP: 21>,
-            <Port.HTTP: 80>
+         <IPProtocol["TCP"]: 'tcp'>: [
+            <Port["FTP"]: 21>,
+            <Port["HTTP"]: 80>
          ]
       }
    }
@@ -289,36 +289,36 @@ Perform a full box scan on all ports, over both TCP and UDP, on a whole subnet:
 
    {
       IPv4Address('192.168.1.11'): {
-         <IPProtocol.UDP: 'udp'>: [
-            <Port.ARP: 219>
+         <IPProtocol["UDP"]: 'udp'>: [
+            <Port["ARP"]: 219>
          ]
       },
       IPv4Address('192.168.1.1'): {
-         <IPProtocol.UDP: 'udp'>: [
-            <Port.ARP: 219>
+         <IPProtocol["UDP"]: 'udp'>: [
+            <Port["ARP"]: 219>
          ]
       },
       IPv4Address('192.168.1.12'): {
-         <IPProtocol.TCP: 'tcp'>: [
-            <Port.HTTP: 80>,
-            <Port.DNS: 53>,
-            <Port.POSTGRES_SERVER: 5432>,
-            <Port.FTP: 21>
+         <IPProtocol["TCP"]: 'tcp'>: [
+            <Port["HTTP"]: 80>,
+            <Port["DNS"]: 53>,
+            <Port["POSTGRES_SERVER"]: 5432>,
+            <Port["FTP"]: 21>
          ],
-         <IPProtocol.UDP: 'udp'>: [
-            <Port.NTP: 123>,
-            <Port.ARP: 219>
+         <IPProtocol["UDP"]: 'udp'>: [
+            <Port["NTP"]: 123>,
+            <Port["ARP"]: 219>
          ]
       },
       IPv4Address('192.168.1.13'): {
-         <IPProtocol.TCP: 'tcp'>: [
-            <Port.HTTP: 80>,
-            <Port.DNS: 53>,
-            <Port.FTP: 21>
+         <IPProtocol["TCP"]: 'tcp'>: [
+            <Port["HTTP"]: 80>,
+            <Port["DNS"]: 53>,
+            <Port["FTP"]: 21>
          ],
-         <IPProtocol.UDP: 'udp'>: [
-            <Port.NTP: 123>,
-            <Port.ARP: 219>
+         <IPProtocol["UDP"]: 'udp'>: [
+            <Port["NTP"]: 123>,
+            <Port["ARP"]: 219>
          ]
       }
    }

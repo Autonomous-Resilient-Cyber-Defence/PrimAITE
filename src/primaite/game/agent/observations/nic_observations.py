@@ -5,9 +5,11 @@ from typing import Dict, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
+from pydantic import field_validator
 
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 
 
@@ -23,6 +25,22 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
         """Whether to include number of malicious network events (NMNE) in the observation."""
         monitored_traffic: Optional[Dict] = None
         """A dict containing which traffic types are to be included in the observation."""
+
+        @field_validator('monitored_traffic', mode='before')
+        def traffic_lookup(cls, val:Optional[Dict]) -> Optional[Dict]:
+            if val is None:
+                return val
+            new_val = {}
+            for proto, port_list in val.items():
+                # convert protocol, for instance ICMP becomes "icmp"
+                proto = IPProtocol[proto] if proto in IPProtocol else proto
+                new_val[proto] = []
+                for port in port_list:
+                    # convert ports, for instance "HTTP" becomes 80
+                    port = Port[port] if port in Port else port
+                    new_val[proto].append(port)
+            return new_val
+
 
     def __init__(self, where: WhereType, include_nmne: bool, monitored_traffic: Optional[Dict] = None) -> None:
         """
@@ -67,7 +85,7 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
             else:
                 default_traffic_obs["TRAFFIC"][protocol] = {}
                 for port in monitored_traffic_config[protocol]:
-                    default_traffic_obs["TRAFFIC"][protocol][Port[port].value] = {"inbound": 0, "outbound": 0}
+                    default_traffic_obs["TRAFFIC"][protocol] = {"inbound": 0, "outbound": 0}
 
         return default_traffic_obs
 
@@ -142,17 +160,16 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
                         }
                     else:
                         for port in self.monitored_traffic[protocol]:
-                            port_enum = Port[port]
-                            obs["TRAFFIC"][protocol][port_enum.value] = {}
+                            obs["TRAFFIC"][protocol][port] = {}
                             traffic = {"inbound": 0, "outbound": 0}
 
-                            if nic_state["traffic"][protocol].get(port_enum.value) is not None:
-                                traffic = nic_state["traffic"][protocol][port_enum.value]
+                            if nic_state["traffic"][protocol].get(port) is not None:
+                                traffic = nic_state["traffic"][protocol][port]
 
-                            obs["TRAFFIC"][protocol][port_enum.value]["inbound"] = self._categorise_traffic(
+                            obs["TRAFFIC"][protocol][port]["inbound"] = self._categorise_traffic(
                                 traffic_value=traffic["inbound"], nic_state=nic_state
                             )
-                            obs["TRAFFIC"][protocol][port_enum.value]["outbound"] = self._categorise_traffic(
+                            obs["TRAFFIC"][protocol][port]["outbound"] = self._categorise_traffic(
                                 traffic_value=traffic["outbound"], nic_state=nic_state
                             )
 
@@ -162,7 +179,7 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
                         obs["TRAFFIC"]["icmp"] = {"inbound": 0, "outbound": 0}
                     else:
                         for port in self.monitored_traffic[protocol]:
-                            obs["TRAFFIC"][protocol][Port[port].value] = {"inbound": 0, "outbound": 0}
+                            obs["TRAFFIC"][protocol][port] = {"inbound": 0, "outbound": 0}
 
         if self.include_nmne:
             obs.update({"NMNE": {}})
@@ -201,7 +218,7 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
                 else:
                     space["TRAFFIC"][protocol] = spaces.Dict({})
                     for port in self.monitored_traffic[protocol]:
-                        space["TRAFFIC"][protocol][Port[port].value] = spaces.Dict(
+                        space["TRAFFIC"][protocol][port] = spaces.Dict(
                             {"inbound": spaces.Discrete(11), "outbound": spaces.Discrete(11)}
                         )
 

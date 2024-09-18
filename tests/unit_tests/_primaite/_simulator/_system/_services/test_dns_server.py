@@ -32,8 +32,8 @@ def test_create_dns_server(dns_server):
     assert dns_server is not None
     dns_server_service: DNSServer = dns_server.software_manager.software.get("DNSServer")
     assert dns_server_service.name is "DNSServer"
-    assert dns_server_service.port is Port.DNS
-    assert dns_server_service.protocol is IPProtocol.TCP
+    assert dns_server_service.port is Port["DNS"]
+    assert dns_server_service.protocol is IPProtocol["TCP"]
 
 
 def test_dns_server_domain_name_registration(dns_server):

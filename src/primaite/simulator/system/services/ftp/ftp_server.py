@@ -23,8 +23,8 @@ class FTPServer(FTPServiceABC):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPServer"
-        kwargs["port"] = Port.FTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = Port["FTP"]
+        kwargs["protocol"] = IPProtocol["TCP"]
         super().__init__(**kwargs)
         self.start()
 
@@ -52,7 +52,7 @@ class FTPServer(FTPServiceABC):
         # process server specific commands, otherwise call super
         if payload.ftp_command == FTPCommand.PORT:
             # check that the port is valid
-            if isinstance(payload.ftp_command_args, Port) and payload.ftp_command_args.value in range(0, 65535):
+            if isinstance(payload.ftp_command_args, int) and (0 <= payload.ftp_command_args < 65535):
                 # return successful connection
                 self.add_connection(connection_id=session_id, session_id=session_id)
                 payload.status_code = FTPStatusCode.OK

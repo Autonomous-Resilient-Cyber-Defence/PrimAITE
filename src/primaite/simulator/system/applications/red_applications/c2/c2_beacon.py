@@ -130,8 +130,8 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         self,
         c2_server_ip_address: IPv4Address = None,
         keep_alive_frequency: int = 5,
-        masquerade_protocol: Enum = IPProtocol.TCP,
-        masquerade_port: Enum = Port.HTTP,
+        masquerade_protocol: str = IPProtocol["TCP"],
+        masquerade_port: int = Port["HTTP"],
     ) -> bool:
         """
         Configures the C2 beacon to communicate with the C2 server.

@@ -26,8 +26,8 @@ class ICMP(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ICMP"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.ICMP
+        kwargs["port"] = Port["NONE"]
+        kwargs["protocol"] = IPProtocol["ICMP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:
