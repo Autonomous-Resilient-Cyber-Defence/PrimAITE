@@ -2,6 +2,7 @@
 import json
 import sys
 from datetime import datetime
+from os import PathLike
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -14,7 +15,7 @@ from utils import _get_system_info
 import primaite
 
 PLOT_CONFIG = {
-    "size": {"auto_size": False, "width": 1500, "height": 900},
+    "size": {"auto_size": False, "width": 800, "height": 640},
     "template": "plotly_white",
     "range_slider": False,
 }
@@ -144,6 +145,20 @@ def _plot_benchmark_metadata(
         yaxis={"title": "Total Reward"},
         title=title,
     )
+    fig.update_layout(
+        legend=dict(
+            yanchor="top",
+            y=0.99,
+            xanchor="left",
+            x=0.01,
+            bgcolor="rgba(255,255,255,0.3)",
+        )
+    )
+    for trace in fig["data"]:
+        if trace["name"].startswith("Session"):
+            trace["showlegend"] = False
+    fig["data"][0]["name"] = "Individual Sessions"
+    fig["data"][0]["showlegend"] = True
 
     return fig
 
@@ -194,6 +209,7 @@ def _plot_all_benchmarks_combined_session_av(results_directory: Path) -> Figure:
         title=title,
     )
     fig["data"][0]["showlegend"] = True
+    fig.update_layout(legend=dict(yanchor="top", y=-0.2, xanchor="left", x=0.01, orientation="h"))
 
     return fig
 
@@ -234,10 +250,7 @@ def _plot_av_s_per_100_steps_10_nodes(
     """
     major_v = primaite.__version__.split(".")[0]
     title = f"Performance of Minor and Bugfix Releases for Major Version {major_v}"
-    subtitle = (
-        f"Average Training Time per 100 Steps on 10 Nodes "
-        f"(target: <= {PLOT_CONFIG['av_s_per_100_steps_10_nodes_benchmark_threshold']} seconds)"
-    )
+    subtitle = "Average Training Time per 100 Steps on 10 Nodes "
     title = f"{title} <br><sub>{subtitle}</sub>"
 
     layout = go.Layout(
@@ -250,24 +263,12 @@ def _plot_av_s_per_100_steps_10_nodes(
 
     versions = sorted(list(version_times_dict.keys()))
     times = [version_times_dict[version] for version in versions]
-    av_s_per_100_steps_10_nodes_benchmark_threshold = PLOT_CONFIG["av_s_per_100_steps_10_nodes_benchmark_threshold"]
 
-    # Calculate the appropriate maximum y-axis value
-    max_y_axis_value = max(max(times), av_s_per_100_steps_10_nodes_benchmark_threshold) + 1
-
-    fig.add_trace(
-        go.Bar(
-            x=versions,
-            y=times,
-            text=times,
-            textposition="auto",
-        )
-    )
+    fig.add_trace(go.Bar(x=versions, y=times, text=times, textposition="auto", texttemplate="%{y:.3f}"))
 
     fig.update_layout(
         xaxis_title="PrimAITE Version",
         yaxis_title="Avg Time per 100 Steps on 10 Nodes (seconds)",
-        yaxis=dict(range=[0, max_y_axis_value]),
         title=title,
     )
 
@@ -275,7 +276,11 @@ def _plot_av_s_per_100_steps_10_nodes(
 
 
 def build_benchmark_md_report(
-    benchmark_start_time: datetime, session_metadata: Dict, config_path: Path, results_root_path: Path
+    benchmark_start_time: datetime,
+    session_metadata: Dict,
+    config_path: Path,
+    results_root_path: Path,
+    output_path: PathLike,
 ) -> None:
     """
     Generates a Markdown report for a benchmarking session, documenting performance metrics and graphs.
@@ -327,7 +332,7 @@ def build_benchmark_md_report(
     data = benchmark_metadata_dict
     primaite_version = data["primaite_version"]
 
-    with open(version_result_dir / f"PrimAITE v{primaite_version} Benchmark Report.md", "w") as file:
+    with open(output_path, "w") as file:
         # Title
         file.write(f"# PrimAITE v{primaite_version} Learning Benchmark\n")
         file.write("## PrimAITE Dev Team\n")
@@ -401,3 +406,15 @@ def build_benchmark_md_report(
             f"![Performance of Minor and Bugfix Releases for Major Version {major_v}]"
             f"({performance_benchmark_plot_path.name})\n"
         )
+
+
+def md2pdf(md_path: PathLike, pdf_path: PathLike, css_path: PathLike) -> None:
+    """Generate PDF version of Markdown report."""
+    from md2pdf.core import md2pdf
+
+    md2pdf(
+        pdf_file_path=pdf_path,
+        md_file_path=md_path,
+        base_url=Path(md_path).parent,
+        css_file_path=css_path,
+    )

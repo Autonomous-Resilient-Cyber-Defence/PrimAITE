@@ -2,6 +2,8 @@
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
+from prettytable import MARKDOWN, PrettyTable
+
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.transmission.network_layer import IPProtocol
@@ -169,3 +171,25 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
         else:
             self.sys_log.warning("Attack Attempted to launch too quickly")
             return False
+
+    def show(self, markdown: bool = False):
+        """
+        Prints a table of the current status of the Ransomware Script.
+
+        Displays the current values of the following Ransomware Attributes:
+
+        ``server_ip_address`:
+        The IP of the target database.
+
+        ``payload``:
+        The payload (type of attack) to be sent to the database.
+
+        :param markdown: If True, outputs the table in markdown format. Default is False.
+        """
+        table = PrettyTable(["Target Server IP Address", "Payload"])
+        if markdown:
+            table.set_style(MARKDOWN)
+        table.align = "l"
+        table.title = f"{self.name} Running Status"
+        table.add_row([self.server_ip_address, self.payload])
+        print(table)

@@ -53,3 +53,27 @@ The number of time steps required to occur in order for the node to cycle from `
 Optional. Default value is ``3``.
 
 The number of time steps required to occur in order for the node to cycle from ``ON`` to ``SHUTTING_DOWN`` and then finally ``OFF``.
+
+``users``
+---------
+
+The list of pre-existing users that are additional to the default admin user (``username=admin``, ``password=admin``).
+Additional users are configured as an array and must contain a ``username``, ``password``, and can contain an optional
+boolean ``is_admin``.
+
+Example of adding two additional users to a node:
+
+.. code-block:: yaml
+
+    simulation:
+      network:
+        nodes:
+        - hostname: [hostname]
+          type: [Node Type]
+          users:
+            - username: jane.doe
+              password: '1234'
+              is_admin: true
+            - username: john.doe
+              password: password_1
+              is_admin: false

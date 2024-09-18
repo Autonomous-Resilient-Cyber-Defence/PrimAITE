@@ -38,6 +38,8 @@ def test_host_observation(simulation):
         applications=[],
         folders=[],
         network_interfaces=[],
+        file_system_requires_scan=True,
+        include_users=False,
     )
 
     assert host_obs.space["operating_status"] == spaces.Discrete(5)

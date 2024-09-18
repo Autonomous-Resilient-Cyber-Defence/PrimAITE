@@ -30,21 +30,21 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from tests import TEST_ASSETS_ROOT
 
-rayinit(local_mode=True)
+rayinit()
 ACTION_SPACE_NODE_VALUES = 1
 ACTION_SPACE_NODE_ACTION_VALUES = 1
 
 _LOGGER = getLogger(__name__)
 
 
-class TestService(Service):
+class DummyService(Service):
     """Test Service class"""
 
     def describe_state(self) -> Dict:
         return super().describe_state()
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "TestService"
+        kwargs["name"] = "DummyService"
         kwargs["port"] = Port.HTTP
         kwargs["protocol"] = IPProtocol.TCP
         super().__init__(**kwargs)
@@ -75,15 +75,15 @@ def uc2_network() -> Network:
 
 
 @pytest.fixture(scope="function")
-def service(file_system) -> TestService:
-    return TestService(
-        name="TestService", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="test_service")
+def service(file_system) -> DummyService:
+    return DummyService(
+        name="DummyService", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="dummy_service")
     )
 
 
 @pytest.fixture(scope="function")
 def service_class():
-    return TestService
+    return DummyService
 
 
 @pytest.fixture(scope="function")
@@ -458,6 +458,15 @@ def game_and_agent():
         {"type": "HOST_NIC_DISABLE"},
         {"type": "NETWORK_PORT_ENABLE"},
         {"type": "NETWORK_PORT_DISABLE"},
+        {"type": "CONFIGURE_C2_BEACON"},
+        {"type": "C2_SERVER_RANSOMWARE_LAUNCH"},
+        {"type": "C2_SERVER_RANSOMWARE_CONFIGURE"},
+        {"type": "C2_SERVER_TERMINAL_COMMAND"},
+        {"type": "C2_SERVER_DATA_EXFILTRATE"},
+        {"type": "NODE_ACCOUNTS_CHANGE_PASSWORD"},
+        {"type": "SSH_TO_REMOTE"},
+        {"type": "SESSIONS_REMOTE_LOGOFF"},
+        {"type": "NODE_SEND_REMOTE_COMMAND"},
     ]
 
     action_space = ActionManager(
@@ -468,12 +477,14 @@ def game_and_agent():
                 "applications": [
                     {"application_name": "WebBrowser"},
                     {"application_name": "DoSBot"},
+                    {"application_name": "C2Server"},
                 ],
                 "folders": [{"folder_name": "downloads", "files": [{"file_name": "cat.png"}]}],
             },
             {
                 "node_name": "server_1",
                 "services": [{"service_name": "DNSServer"}],
+                "applications": [{"application_name": "C2Beacon"}],
             },
             {"node_name": "server_2", "services": [{"service_name": "WebServer"}]},
             {"node_name": "router"},
@@ -481,7 +492,7 @@ def game_and_agent():
         max_folders_per_node=2,
         max_files_per_folder=2,
         max_services_per_node=2,
-        max_applications_per_node=2,
+        max_applications_per_node=3,
         max_nics_per_node=2,
         max_acl_rules=10,
         protocols=["TCP", "UDP", "ICMP"],

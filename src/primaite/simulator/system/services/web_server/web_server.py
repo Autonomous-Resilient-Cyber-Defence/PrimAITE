@@ -1,6 +1,6 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 from primaite import getLogger
@@ -22,7 +22,7 @@ _LOGGER = getLogger(__name__)
 class WebServer(Service):
     """Class used to represent a Web Server Service in simulation."""
 
-    last_response_status_code: Optional[HttpStatusCode] = None
+    response_codes_this_timestep: List[HttpStatusCode] = []
 
     def describe_state(self) -> Dict:
         """
@@ -34,10 +34,18 @@ class WebServer(Service):
         :rtype: Dict
         """
         state = super().describe_state()
-        state["last_response_status_code"] = (
-            self.last_response_status_code.value if isinstance(self.last_response_status_code, HttpStatusCode) else None
-        )
+        state["response_codes_this_timestep"] = [code.value for code in self.response_codes_this_timestep]
         return state
+
+    def pre_timestep(self, timestep: int) -> None:
+        """
+        Logic to execute at the start of the timestep - clear the observation-related attributes.
+
+        :param timestep: the current timestep in the episode.
+        :type timestep: int
+        """
+        self.response_codes_this_timestep = []
+        return super().pre_timestep(timestep)
 
     def __init__(self, **kwargs):
         kwargs["name"] = "WebServer"
@@ -89,7 +97,7 @@ class WebServer(Service):
         self.send(payload=response, session_id=session_id)
 
         # return true if response is OK
-        self.last_response_status_code = response.status_code
+        self.response_codes_this_timestep.append(response.status_code)
         return response.status_code == HttpStatusCode.OK
 
     def _handle_get_request(self, payload: HttpRequestPacket) -> HttpResponsePacket:

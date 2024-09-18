@@ -146,7 +146,6 @@ def test_data_manipulation_disrupts_green_agent_connection(data_manipulation_db_
 
     assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.GOOD
     assert green_db_connection.query("SELECT")
-    assert green_db_client.last_query_response.get("status_code") == 200
 
     data_manipulation_bot.port_scan_p_of_success = 1
     data_manipulation_bot.data_manipulation_p_of_success = 1
@@ -155,4 +154,3 @@ def test_data_manipulation_disrupts_green_agent_connection(data_manipulation_db_
 
     assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.COMPROMISED
     assert green_db_connection.query("SELECT") is False
-    assert green_db_client.last_query_response.get("status_code") != 200

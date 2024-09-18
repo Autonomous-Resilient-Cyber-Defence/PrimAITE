@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 """PrimAITE game - Encapsulates the simulation and agents."""
 from ipaddress import IPv4Address
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict
@@ -18,7 +18,7 @@ from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.airspace import AirSpaceFrequency
-from primaite.simulator.network.hardware.base import NodeOperatingState
+from primaite.simulator.network.hardware.base import NetworkInterface, NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
@@ -26,11 +26,14 @@ from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
-from primaite.simulator.network.nmne import set_nmne_config
+from primaite.simulator.network.nmne import NMNEConfig
+from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient  # noqa: F401
+from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon  # noqa: F401
+from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Server  # noqa: F401
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (  # noqa: F401
     DataManipulationBot,
 )
@@ -44,7 +47,10 @@ from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.simulator.system.services.ntp.ntp_server import NTPServer
+from primaite.simulator.system.services.service import Service
+from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.services.web_server.web_server import WebServer
+from primaite.simulator.system.software import Software
 
 _LOGGER = getLogger(__name__)
 
@@ -57,6 +63,7 @@ SERVICE_TYPES_MAPPING = {
     "FTPServer": FTPServer,
     "NTPClient": NTPClient,
     "NTPServer": NTPServer,
+    "Terminal": Terminal,
 }
 """List of available services that can be installed on nodes in the PrimAITE Simulation."""
 
@@ -70,6 +77,8 @@ class PrimaiteGameOptions(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    seed: int = None
+    """Random number seed for RNGs."""
     max_episode_length: int = 256
     """Maximum number of episodes for the PrimAITE game."""
     ports: List[str]
@@ -264,9 +273,12 @@ class PrimaiteGame:
 
         nodes_cfg = network_config.get("nodes", [])
         links_cfg = network_config.get("links", [])
+        # Set the NMNE capture config
+        NetworkInterface.nmne_config = NMNEConfig(**network_config.get("nmne_config", {}))
 
         for node_cfg in nodes_cfg:
             n_type = node_cfg["type"]
+            new_node = None
             if n_type == "computer":
                 new_node = Computer(
                     hostname=node_cfg["hostname"],
@@ -316,6 +328,25 @@ class PrimaiteGame:
                 msg = f"invalid node type {n_type} in config"
                 _LOGGER.error(msg)
                 raise ValueError(msg)
+
+            if "users" in node_cfg and new_node.software_manager.software.get("UserManager"):
+                user_manager: UserManager = new_node.software_manager.software["UserManager"]  # noqa
+                for user_cfg in node_cfg["users"]:
+                    user_manager.add_user(**user_cfg, bypass_can_perform_action=True)
+
+            def _set_software_listen_on_ports(software: Union[Software, Service], software_cfg: Dict):
+                """Set listener ports on software."""
+                listen_on_ports = []
+                for port_id in set(software_cfg.get("options", {}).get("listen_on_ports", [])):
+                    port = None
+                    if isinstance(port_id, int):
+                        port = Port(port_id)
+                    elif isinstance(port_id, str):
+                        port = Port[port_id]
+                    if port:
+                        listen_on_ports.append(port)
+                software.listen_on_ports = set(listen_on_ports)
+
             if "services" in node_cfg:
                 for service_cfg in node_cfg["services"]:
                     new_service = None
@@ -329,6 +360,7 @@ class PrimaiteGame:
                         if "fix_duration" in service_cfg.get("options", {}):
                             new_service.fixing_duration = service_cfg["options"]["fix_duration"]
 
+                        _set_software_listen_on_ports(new_service, service_cfg)
                         # start the service
                         new_service.start()
                     else:
@@ -378,6 +410,8 @@ class PrimaiteGame:
                         _LOGGER.error(msg)
                         raise ValueError(msg)
 
+                    _set_software_listen_on_ports(new_application, application_cfg)
+
                     # run the application
                     new_application.run()
 
@@ -421,6 +455,15 @@ class PrimaiteGame:
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
                                 dos_intensity=float(opt.get("dos_intensity", "1.0")),
                                 max_sessions=int(opt.get("max_sessions", "1000")),
+                            )
+                    elif application_type == "C2Beacon":
+                        if "options" in application_cfg:
+                            opt = application_cfg["options"]
+                            new_application.configure(
+                                c2_server_ip_address=IPv4Address(opt.get("c2_server_ip_address")),
+                                keep_alive_frequency=(opt.get("keep_alive_frequency", 5)),
+                                masquerade_protocol=IPProtocol[(opt.get("masquerade_protocol", IPProtocol.TCP))],
+                                masquerade_port=Port[(opt.get("masquerade_port", Port.HTTP))],
                             )
             if "network_interfaces" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():
@@ -533,10 +576,7 @@ class PrimaiteGame:
         # Validate that if any agents are sharing rewards, they aren't forming an infinite loop.
         game.setup_reward_sharing()
 
-        # Set the NMNE capture config
-        set_nmne_config(network_config.get("nmne_config", {}))
         game.update_agents(game.get_sim_state())
-
         return game
 
     def setup_reward_sharing(self):

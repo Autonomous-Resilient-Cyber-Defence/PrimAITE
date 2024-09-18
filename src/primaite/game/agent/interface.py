@@ -36,6 +36,8 @@ class AgentHistoryItem(BaseModel):
 
     reward: Optional[float] = None
 
+    reward_info: Dict[str, Any] = {}
+
 
 class AgentStartSettings(BaseModel):
     """Configuration values for when an agent starts performing actions."""

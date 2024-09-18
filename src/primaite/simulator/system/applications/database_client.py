@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ipaddress import IPv4Address
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from uuid import uuid4
 
 from prettytable import MARKDOWN, PrettyTable
@@ -54,6 +54,12 @@ class DatabaseClientConnection(BaseModel):
         if self.client and self.is_active:
             self.client._disconnect(self.connection_id)  # noqa
 
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}(connection_id='{self.connection_id}', is_active={self.is_active})"
+
+    def __repr__(self) -> str:
+        return str(self)
+
 
 class DatabaseClient(Application, identifier="DatabaseClient"):
     """
@@ -67,7 +73,6 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
 
     server_ip_address: Optional[IPv4Address] = None
     server_password: Optional[str] = None
-    _last_connection_successful: Optional[bool] = None
     _query_success_tracker: Dict[str, bool] = {}
     """Keep track of connections that were established or verified during this step. Used for rewards."""
     last_query_response: Optional[Dict] = None
@@ -76,7 +81,7 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
     """Connection ID to the Database Server."""
     client_connections: Dict[str, DatabaseClientConnection] = {}
     """Keep track of active connections to Database Server."""
-    _client_connection_requests: Dict[str, Optional[str]] = {}
+    _client_connection_requests: Dict[str, Optional[Union[str, DatabaseClientConnection]]] = {}
     """Dictionary of connection requests to Database Server."""
     connected: bool = False
     """Boolean Value for whether connected to DB Server."""
@@ -129,8 +134,6 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         :return: A dictionary representing the current state.
         """
         state = super().describe_state()
-        # list of connections that were established or verified during this step.
-        state["last_connection_successful"] = self._last_connection_successful
         return state
 
     def show(self, markdown: bool = False):
@@ -187,7 +190,7 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
             return False
         return self._query("SELECT * FROM pg_stat_activity", connection_id=connection_id)
 
-    def _check_client_connection(self, connection_id: str) -> bool:
+    def _validate_client_connection_request(self, connection_id: str) -> bool:
         """Check that client_connection_id is valid."""
         return True if connection_id in self._client_connection_requests else False
 
@@ -211,23 +214,28 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         :type: is_reattempt: Optional[bool]
         """
         if is_reattempt:
-            valid_connection = self._check_client_connection(connection_id=connection_request_id)
-            if valid_connection:
+            valid_connection_request = self._validate_client_connection_request(connection_id=connection_request_id)
+            if valid_connection_request:
                 database_client_connection = self._client_connection_requests.pop(connection_request_id)
-                self.sys_log.info(
-                    f"{self.name}: DatabaseClient connection to {server_ip_address} authorised."
-                    f"Connection Request ID was {connection_request_id}."
-                )
-                self.connected = True
-                self._last_connection_successful = True
-                return database_client_connection
+                if isinstance(database_client_connection, DatabaseClientConnection):
+                    self.sys_log.info(
+                        f"{self.name}: Connection request ({connection_request_id}) to {server_ip_address} authorised. "
+                        f"Using connection id {database_client_connection}"
+                    )
+                    self.connected = True
+                    return database_client_connection
+                else:
+                    self.sys_log.info(
+                        f"{self.name}: Connection request ({connection_request_id}) to {server_ip_address} declined"
+                    )
+                    return None
             else:
-                self.sys_log.warning(
-                    f"{self.name}: DatabaseClient connection to {server_ip_address} declined."
-                    f"Connection Request ID was {connection_request_id}."
+                self.sys_log.info(
+                    f"{self.name}: Connection request ({connection_request_id}) to {server_ip_address} declined "
+                    f"due to unknown client-side connection request id"
                 )
-                self._last_connection_successful = False
                 return None
+
         payload = {"type": "connect_request", "password": password, "connection_request_id": connection_request_id}
         software_manager: SoftwareManager = self.software_manager
         software_manager.send_payload_to_session_manager(
@@ -300,8 +308,13 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         """
         if not self._can_perform_action():
             return None
+
         connection_request_id = str(uuid4())
         self._client_connection_requests[connection_request_id] = None
+
+        self.sys_log.info(
+            f"{self.name}: Sending new connection request ({connection_request_id}) to {self.server_ip_address}"
+        )
 
         return self._connect(
             server_ip_address=self.server_ip_address,
@@ -339,10 +352,8 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
             success = self._query_success_tracker.get(query_id)
             if success:
                 self.sys_log.info(f"{self.name}: Query successful {sql}")
-                self._last_connection_successful = True
                 return True
             self.sys_log.error(f"{self.name}: Unable to run query {sql}")
-            self._last_connection_successful = False
             return False
         else:
             software_manager: SoftwareManager = self.software_manager

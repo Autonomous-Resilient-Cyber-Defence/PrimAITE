@@ -5,7 +5,13 @@ from ipaddress import IPv4Address
 from typing import Any, ClassVar, Dict, Optional
 
 from primaite import getLogger
-from primaite.simulator.network.hardware.base import IPWiredNetworkInterface, Link, Node
+from primaite.simulator.network.hardware.base import (
+    IPWiredNetworkInterface,
+    Link,
+    Node,
+    UserManager,
+    UserSessionManager,
+)
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.system.applications.application import ApplicationOperatingState
@@ -15,6 +21,7 @@ from primaite.simulator.system.services.arp.arp import ARP, ARPPacket
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.icmp.icmp import ICMP
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
+from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.utils.validators import IPV4Address
 
 _LOGGER = getLogger(__name__)
@@ -292,6 +299,7 @@ class HostNode(Node):
         * DNS (Domain Name System) Client: Resolves domain names to IP addresses.
         * FTP (File Transfer Protocol) Client: Enables file transfers between the host and FTP servers.
         * NTP (Network Time Protocol) Client: Synchronizes the system clock with NTP servers.
+        * Terminal Client: Handles SSH requests between HostNode and external components.
 
     Applications:
     ------------
@@ -306,6 +314,9 @@ class HostNode(Node):
         "NTPClient": NTPClient,
         "WebBrowser": WebBrowser,
         "NMAP": NMAP,
+        "UserSessionManager": UserSessionManager,
+        "UserManager": UserManager,
+        "Terminal": Terminal,
     }
     """List of system software that is automatically installed on nodes."""
 
@@ -337,18 +348,6 @@ class HostNode(Node):
         :rtype: Optional[ARP]
         """
         return self.software_manager.software.get("ARP")
-
-    def _install_system_software(self):
-        """
-        Installs the system software and network services typically found on an operating system.
-
-        This method equips the host with essential network services and applications, preparing it for various
-        network-related tasks and operations.
-        """
-        for _, software_class in self.SYSTEM_SOFTWARE.items():
-            self.software_manager.install(software_class)
-
-        super()._install_system_software()
 
     def default_gateway_hello(self):
         """

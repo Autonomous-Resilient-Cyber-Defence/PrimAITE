@@ -103,7 +103,7 @@ def test_ransomware_script_attack(ransomware_script_and_db_server):
 
 
 def test_ransomware_disrupts_green_agent_connection(ransomware_script_db_server_green_client):
-    """Test to see show that the database service still operate"""
+    """Test to show that the database service still operates after corruption"""
     network: Network = ransomware_script_db_server_green_client
 
     client_1: Computer = network.get_node_by_hostname("client_1")
@@ -111,17 +111,18 @@ def test_ransomware_disrupts_green_agent_connection(ransomware_script_db_server_
 
     client_2: Computer = network.get_node_by_hostname("client_2")
     green_db_client: DatabaseClient = client_2.software_manager.software.get("DatabaseClient")
+    green_db_client.connect()
     green_db_client_connection: DatabaseClientConnection = green_db_client.get_new_connection()
 
     server: Server = network.get_node_by_hostname("server_1")
     db_server_service: DatabaseService = server.software_manager.software.get("DatabaseService")
 
     assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.GOOD
-    assert green_db_client_connection.query("SELECT")
-    assert green_db_client.last_query_response.get("status_code") == 200
+    assert green_db_client.query("SELECT") is True
 
     ransomware_script_application.attack()
 
+    network.apply_timestep(0)
+
     assert db_server_service.db_file.health_status is FileSystemItemHealthStatus.CORRUPT
-    assert green_db_client_connection.query("SELECT") is True
-    assert green_db_client.last_query_response.get("status_code") == 200
+    assert green_db_client.query("SELECT") is True  # Still operates but now the data field of response is empty

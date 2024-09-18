@@ -12,6 +12,7 @@ from primaite.simulator.network.hardware.nodes.network.router import ACLAction, 
 from primaite.simulator.network.transmission.network_layer import IPProtocol
 from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from tests import TEST_ASSETS_ROOT
 from tests.conftest import ControlledAgent
@@ -19,32 +20,30 @@ from tests.conftest import ControlledAgent
 
 def test_WebpageUnavailablePenalty(game_and_agent):
     """Test that we get the right reward for failing to fetch a website."""
+    # set up the scenario, configure the web browser to the correct url
     game, agent = game_and_agent
     agent: ControlledAgent
     comp = WebpageUnavailablePenalty(node_hostname="client_1")
-
-    agent.reward_function.register_component(comp, 0.7)
-    action = ("DONOTHING", {})
-    agent.store_action(action)
-    game.step()
-
-    # client 1 has not attempted to fetch webpage yet!
-    assert agent.reward_function.current_reward == 0.0
-
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
-    browser = client_1.software_manager.software.get("WebBrowser")
+    browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
     browser.run()
     browser.target_url = "http://www.example.com"
-    assert browser.get_webpage()
-    action = ("DONOTHING", {})
-    agent.store_action(action)
+    agent.reward_function.register_component(comp, 0.7)
+
+    # Check that before trying to fetch the webpage, the reward is 0.0
+    agent.store_action(("DONOTHING", {}))
+    game.step()
+    assert agent.reward_function.current_reward == 0.0
+
+    # Check that successfully fetching the webpage yields a reward of 0.7
+    agent.store_action(("NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}))
     game.step()
     assert agent.reward_function.current_reward == 0.7
 
+    # Block the web traffic, check that failing to fetch the webpage yields a reward of -0.7
     router: Router = game.simulation.network.get_node_by_hostname("router")
     router.acl.add_rule(action=ACLAction.DENY, protocol=IPProtocol.TCP, src_port=Port.HTTP, dst_port=Port.HTTP)
-    assert not browser.get_webpage()
-    agent.store_action(action)
+    agent.store_action(("NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}))
     game.step()
     assert agent.reward_function.current_reward == -0.7
 
@@ -70,35 +69,29 @@ def test_uc2_rewards(game_and_agent):
 
     comp = GreenAdminDatabaseUnreachablePenalty("client_1")
 
-    response = db_client.apply_request(
-        [
-            "execute",
-        ]
-    )
+    request = ["network", "node", "client_1", "application", "DatabaseClient", "execute"]
+    response = game.simulation.apply_request(request)
     state = game.get_sim_state()
-    reward_value = comp.calculate(
-        state,
-        last_action_response=AgentHistoryItem(
-            timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=["execute"], response=response
-        ),
+    ahi = AgentHistoryItem(
+        timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=request, response=response
     )
+    reward_value = comp.calculate(state, last_action_response=ahi)
     assert reward_value == 1.0
+    assert ahi.reward_info == {"connection_attempt_status": "success"}
 
     router.acl.remove_rule(position=2)
 
-    db_client.apply_request(
-        [
-            "execute",
-        ]
-    )
+    response = game.simulation.apply_request(request)
     state = game.get_sim_state()
+    ahi = AgentHistoryItem(
+        timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=request, response=response
+    )
     reward_value = comp.calculate(
         state,
-        last_action_response=AgentHistoryItem(
-            timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=["execute"], response=response
-        ),
+        last_action_response=ahi,
     )
     assert reward_value == -1.0
+    assert ahi.reward_info == {"connection_attempt_status": "failure"}
 
 
 def test_shared_reward():

@@ -4,9 +4,10 @@ from abc import abstractmethod
 from datetime import datetime
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, Dict, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, Optional, Set, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import Field
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
@@ -252,6 +253,8 @@ class IOSoftware(Software):
     "Indicates if the software uses UDP protocol for communication. Default is True."
     port: Port
     "The port to which the software is connected."
+    listen_on_ports: Set[Port] = Field(default_factory=set)
+    "The set of ports to listen on."
     protocol: IPProtocol
     "The IP Protocol the Software operates on."
     _connections: Dict[str, Dict] = {}
@@ -291,7 +294,7 @@ class IOSoftware(Software):
         """
         if self.software_manager and self.software_manager.node.operating_state != NodeOperatingState.ON:
             self.software_manager.node.sys_log.error(
-                f"{self.name} Error: {self.software_manager.node.hostname} is not online."
+                f"{self.name} Error: {self.software_manager.node.hostname} is not powered on."
             )
             return False
         return True
@@ -313,7 +316,7 @@ class IOSoftware(Software):
         # if over or at capacity, set to overwhelmed
         if len(self._connections) >= self.max_sessions:
             self.set_health_state(SoftwareHealthState.OVERWHELMED)
-            self.sys_log.warning(f"{self.name}: Connect request for {connection_id=} declined. Service is at capacity.")
+            self.sys_log.warning(f"{self.name}: Connection request ({connection_id}) declined. Service is at capacity.")
             return False
         else:
             # if service was previously overwhelmed, set to good because there is enough space for connections
@@ -330,11 +333,11 @@ class IOSoftware(Software):
                     "ip_address": session_details.with_ip_address if session_details else None,
                     "time": datetime.now(),
                 }
-                self.sys_log.info(f"{self.name}: Connect request for {connection_id=} authorised")
+                self.sys_log.info(f"{self.name}: Connection request ({connection_id}) authorised")
                 return True
             # connection with given id already exists
             self.sys_log.warning(
-                f"{self.name}: Connect request for {connection_id=} declined. Connection already exists."
+                f"{self.name}: Connection request ({connection_id}) declined. Connection already exists."
             )
             return False
 

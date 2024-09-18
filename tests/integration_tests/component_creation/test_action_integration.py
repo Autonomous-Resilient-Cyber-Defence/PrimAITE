@@ -22,8 +22,7 @@ def test_passing_actions_down(monkeypatch) -> None:
     for n in [pc1, pc2, srv, s1]:
         sim.network.add_node(n)
 
-    database_service = DatabaseService(file_system=srv.file_system)
-    srv.install_service(database_service)
+    srv.software_manager.install(DatabaseService)
 
     downloads_folder = pc1.file_system.create_folder("downloads")
     pc1.file_system.create_file("bermuda_triangle.png", folder_name="downloads")

@@ -47,7 +47,15 @@ class AbstractReward:
 
     @abstractmethod
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
-        """Calculate the reward for the current state."""
+        """Calculate the reward for the current state.
+
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
+        """
         return 0.0
 
     @classmethod
@@ -67,7 +75,15 @@ class DummyReward(AbstractReward):
     """Dummy reward function component which always returns 0."""
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
-        """Calculate the reward for the current state."""
+        """Calculate the reward for the current state.
+
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
+        """
         return 0.0
 
     @classmethod
@@ -109,8 +125,12 @@ class DatabaseFileIntegrity(AbstractReward):
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Calculate the reward for the current state.
 
-        :param state: The current state of the simulation.
+        :param state: Current simulation state
         :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
         """
         database_file_state = access_from_nested_dict(state, self.location_in_state)
         if database_file_state is NOT_PRESENT_IN_STATE:
@@ -151,33 +171,52 @@ class DatabaseFileIntegrity(AbstractReward):
 class WebServer404Penalty(AbstractReward):
     """Reward function component which penalises the agent when the web server returns a 404 error."""
 
-    def __init__(self, node_hostname: str, service_name: str) -> None:
+    def __init__(self, node_hostname: str, service_name: str, sticky: bool = True) -> None:
         """Initialise the reward component.
 
         :param node_hostname: Hostname of the node which contains the web server service.
         :type node_hostname: str
         :param service_name: Name of the web server service.
         :type service_name: str
+        :param sticky: If True, calculate the reward based on the most recent response status. If False, only calculate
+            the reward if there were any responses this timestep.
+        :type sticky: bool
         """
+        self.sticky: bool = sticky
+        self.reward: float = 0.0
+        """Reward value calculated last time any responses were seen. Used for persisting sticky rewards."""
         self.location_in_state = ["network", "nodes", node_hostname, "services", service_name]
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Calculate the reward for the current state.
 
-        :param state: The current state of the simulation.
+        :param state: Current simulation state
         :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
         """
         web_service_state = access_from_nested_dict(state, self.location_in_state)
+
+        # if webserver is no longer installed on the node, return 0
         if web_service_state is NOT_PRESENT_IN_STATE:
             return 0.0
-        most_recent_return_code = web_service_state["last_response_status_code"]
-        # TODO: reward needs to use the current web state. Observation should return web state at the time of last scan.
-        if most_recent_return_code == 200:
-            return 1.0
-        elif most_recent_return_code == 404:
-            return -1.0
-        else:
-            return 0.0
+
+        codes = web_service_state.get("response_codes_this_timestep")
+        if codes:
+
+            def status2rew(status: int) -> int:
+                """Map status codes to reward values."""
+                return 1.0 if status == 200 else -1.0 if status == 404 else 0.0
+
+            self.reward = sum(map(status2rew, codes)) / len(codes)  # convert form HTTP codes to rewards and average
+        elif not self.sticky:  # there are no codes, but reward is not sticky, set reward to 0
+            self.reward = 0.0
+        else:  # skip calculating if sticky and no new codes. instead, reuse last step's value
+            pass
+
+        return self.reward
 
     @classmethod
     def from_config(cls, config: Dict) -> "WebServer404Penalty":
@@ -197,23 +236,29 @@ class WebServer404Penalty(AbstractReward):
             )
             _LOGGER.warning(msg)
             raise ValueError(msg)
+        sticky = config.get("sticky", True)
 
-        return cls(node_hostname=node_hostname, service_name=service_name)
+        return cls(node_hostname=node_hostname, service_name=service_name, sticky=sticky)
 
 
 class WebpageUnavailablePenalty(AbstractReward):
     """Penalises the agent when the web browser fails to fetch a webpage."""
 
-    def __init__(self, node_hostname: str) -> None:
+    def __init__(self, node_hostname: str, sticky: bool = True) -> None:
         """
         Initialise the reward component.
 
         :param node_hostname: Hostname of the node which has the web browser.
         :type node_hostname: str
+        :param sticky: If True, calculate the reward based on the most recent response status. If False, only calculate
+            the reward if there were any responses this timestep.
+        :type sticky: bool
         """
         self._node: str = node_hostname
         self.location_in_state: List[str] = ["network", "nodes", node_hostname, "applications", "WebBrowser"]
-        self._last_request_failed: bool = False
+        self.sticky: bool = sticky
+        self.reward: float = 0.0
+        """Reward value calculated last time any responses were seen. Used for persisting sticky rewards."""
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """
@@ -222,32 +267,50 @@ class WebpageUnavailablePenalty(AbstractReward):
         When the green agent requests to execute the browser application, and that request fails, this reward
         component will keep track of that information. In that case, it doesn't matter whether the last webpage
         had a 200 status code, because there has been an unsuccessful request since.
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
         """
-        if last_action_response.request == ["network", "node", self._node, "application", "WebBrowser", "execute"]:
-            self._last_request_failed = last_action_response.response.status != "success"
-
-        # if agent couldn't even get as far as sending the request (because for example the node was off), then
-        # apply a penalty
-        if self._last_request_failed:
-            return -1.0
-
-        # If the last request did actually go through, then check if the webpage also loaded
         web_browser_state = access_from_nested_dict(state, self.location_in_state)
-        if web_browser_state is NOT_PRESENT_IN_STATE or "history" not in web_browser_state:
+
+        if web_browser_state is NOT_PRESENT_IN_STATE:
+            self.reward = 0.0
+
+        # check if the most recent action was to request the webpage
+        request_attempted = last_action_response.request == [
+            "network",
+            "node",
+            self._node,
+            "application",
+            "WebBrowser",
+            "execute",
+        ]
+
+        # skip calculating if sticky and no new codes, reusing last step value
+        if not request_attempted and self.sticky:
+            return self.reward
+
+        if last_action_response.response.status != "success":
+            self.reward = -1.0
+        elif web_browser_state is NOT_PRESENT_IN_STATE or not web_browser_state["history"]:
             _LOGGER.debug(
                 "Web browser reward could not be calculated because the web browser history on node",
                 f"{self._node} was not reported in the simulation state. Returning 0.0",
             )
-            return 0.0  # 0 if the web browser cannot be found
-        if not web_browser_state["history"]:
-            return 0.0  # 0 if no requests have been attempted yet
-        outcome = web_browser_state["history"][-1]["outcome"]
-        if outcome == "PENDING":
-            return 0.0  # 0 if a request was attempted but not yet resolved
-        elif outcome == 200:
-            return 1.0  # 1 for successful request
-        else:  # includes failure codes and SERVER_UNREACHABLE
-            return -1.0  # -1 for failure
+            self.reward = 0.0
+        else:
+            outcome = web_browser_state["history"][-1]["outcome"]
+            if outcome == "PENDING":
+                self.reward = 0.0  # 0 if a request was attempted but not yet resolved
+            elif outcome == 200:
+                self.reward = 1.0  # 1 for successful request
+            else:  # includes failure codes and SERVER_UNREACHABLE
+                self.reward = -1.0  # -1 for failure
+
+        return self.reward
 
     @classmethod
     def from_config(cls, config: dict) -> AbstractReward:
@@ -258,22 +321,28 @@ class WebpageUnavailablePenalty(AbstractReward):
         :type config: Dict
         """
         node_hostname = config.get("node_hostname")
-        return cls(node_hostname=node_hostname)
+        sticky = config.get("sticky", True)
+        return cls(node_hostname=node_hostname, sticky=sticky)
 
 
 class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
     """Penalises the agent when the green db clients fail to connect to the database."""
 
-    def __init__(self, node_hostname: str) -> None:
+    def __init__(self, node_hostname: str, sticky: bool = True) -> None:
         """
         Initialise the reward component.
 
         :param node_hostname: Hostname of the node where the database client sits.
         :type node_hostname: str
+        :param sticky: If True, calculate the reward based on the most recent response status. If False, only calculate
+            the reward if there were any responses this timestep.
+        :type sticky: bool
         """
         self._node: str = node_hostname
         self.location_in_state: List[str] = ["network", "nodes", node_hostname, "applications", "DatabaseClient"]
-        self._last_request_failed: bool = False
+        self.sticky: bool = sticky
+        self.reward: float = 0.0
+        """Reward value calculated last time any responses were seen. Used for persisting sticky rewards."""
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """
@@ -283,26 +352,33 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         component will keep track of that information. In that case, it doesn't matter whether the last successful
         request returned was able to connect to the database server, because there has been an unsuccessful request
         since.
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
         """
-        if last_action_response.request == ["network", "node", self._node, "application", "DatabaseClient", "execute"]:
-            self._last_request_failed = last_action_response.response.status != "success"
+        request_attempted = last_action_response.request == [
+            "network",
+            "node",
+            self._node,
+            "application",
+            "DatabaseClient",
+            "execute",
+        ]
 
-        # if agent couldn't even get as far as sending the request (because for example the node was off), then
-        # apply a penalty
-        if self._last_request_failed:
-            return -1.0
+        if request_attempted:  # if agent makes request, always recalculate fresh value
+            last_action_response.reward_info = {"connection_attempt_status": last_action_response.response.status}
+            self.reward = 1.0 if last_action_response.response.status == "success" else -1.0
+        elif not self.sticky:  # if no new request and not sticky, set reward to 0
+            last_action_response.reward_info = {"connection_attempt_status": "n/a"}
+            self.reward = 0.0
+        else:  # if no new request and sticky, reuse reward value from last step
+            last_action_response.reward_info = {"connection_attempt_status": "n/a"}
+            pass
 
-        # If the last request was actually sent, then check if the connection was established.
-        db_state = access_from_nested_dict(state, self.location_in_state)
-        if db_state is NOT_PRESENT_IN_STATE or "last_connection_successful" not in db_state:
-            _LOGGER.debug(f"Can't calculate reward for {self.__class__.__name__}")
-            return 0.0
-        last_connection_successful = db_state["last_connection_successful"]
-        if last_connection_successful is False:
-            return -1.0
-        elif last_connection_successful is True:
-            return 1.0
-        return 0.0
+        return self.reward
 
     @classmethod
     def from_config(cls, config: Dict) -> AbstractReward:
@@ -313,7 +389,8 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         :type config: Dict
         """
         node_hostname = config.get("node_hostname")
-        return cls(node_hostname=node_hostname)
+        sticky = config.get("sticky", True)
+        return cls(node_hostname=node_hostname, sticky=sticky)
 
 
 class SharedReward(AbstractReward):
@@ -346,7 +423,15 @@ class SharedReward(AbstractReward):
         """Method that retrieves an agent's current reward given the agent's name."""
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
-        """Simply access the other agent's reward and return it."""
+        """Simply access the other agent's reward and return it.
+
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
+        """
         return self.callback(self.agent_name)
 
     @classmethod
@@ -379,7 +464,15 @@ class ActionPenalty(AbstractReward):
         self.do_nothing_penalty = do_nothing_penalty
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
-        """Calculate the penalty to be applied."""
+        """Calculate the penalty to be applied.
+
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
+        """
         if last_action_response.action == "DONOTHING":
             return self.do_nothing_penalty
         else:
@@ -436,6 +529,7 @@ class RewardFunction:
             weight = comp_and_weight[1]
             total += weight * comp.calculate(state=state, last_action_response=last_action_response)
         self.current_reward = total
+
         return self.current_reward
 
     @classmethod

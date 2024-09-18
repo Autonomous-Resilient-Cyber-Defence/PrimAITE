@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2024-09-04
+
+### Added
+-   Random Number Generator Seeding by specifying a random number seed in the config file.
+-   Implemented Terminal service class, providing a generic terminal simulation.
+-   Added `User`, `UserManager` and `UserSessionManager` to enable the creation of user accounts and login on Nodes.
+-   Added actions to establish SSH connections, send commands remotely and terminate SSH connections.
+-   Added actions to change users' passwords.
+-   Added a `listen_on_ports` set in the `IOSoftware` class to enable software listening on ports in addition to the
+    main port they're assigned.
+-   Added two new red applications: ``C2Beacon`` and ``C2Server`` which aim to simulate malicious network infrastructure.
+    Refer to the ``Command and Control Application Suite E2E Demonstration`` notebook for more information.
+-   Added reward calculation details to AgentHistoryItem.
+-   Added a new Privilege-Escalation-and Data-Loss-Example.ipynb notebook with a realistic cyber scenario focusing on
+    internal privilege escalation and data loss through the manipulation of SSH access and Access Control Lists (ACLs).
+
+### Changed
+-   File and folder observations can now be configured to always show the true health status, or require scanning like before.
+-   It's now possible to disable stickiness on reward components, meaning their value returns to 0 during timesteps where agent don't issue the corresponding action. Affects `GreenAdminDatabaseUnreachablePenalty`, `WebpageUnavailablePenalty`, `WebServer404Penalty`
+-   Node observations can now be configured to show the number of active local and remote logins.
+
+### Fixed
+-   Folder observations showing the true health state without scanning (the old behaviour can be reenabled via config)
+-   Updated `SoftwareManager` `install` and `uninstall` to handle all functionality that was being done at the `install`
+    and `uninstall` methods in the `Node` class.
+-   Updated the `receive_payload_from_session_manager` method in `SoftwareManager` so that it now sends a copy of the
+    payload to any software listening on the destination port of the `Frame`.
+
+### Removed
+-   Removed the `install` and `uninstall` methods in the `Node` class.
+
 
 ## [3.2.0] - 2024-07-18
 
@@ -17,7 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Tests to verify that airspace bandwidth is applied correctly and can be configured via YAML
 -   Agent logging for agents' internal decision logic
 -   Action masking in all PrimAITE environments
-
 ### Changed
 -   Application registry was moved to the `Application` class and now updates automatically when Application is subclassed
 -   Databases can no longer respond to request while performing a backup
@@ -27,6 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Frame `size` attribute now includes both core size and payload size in bytes
 -   The `speed` attribute of `NetworkInterface` has been changed from `int` to `float`
 -   Tidied up CHANGELOG
+-   Enhanced `AirSpace` logic to block transmissions that would exceed the available capacity.
+-   Updated `_can_transmit` function in `Link` to account for current load and total bandwidth capacity, ensuring transmissions do not exceed limits.
 
 ### Fixed
 -   Links and airspaces can no longer transmit data if this would exceed their bandwidth
