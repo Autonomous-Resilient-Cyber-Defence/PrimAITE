@@ -9,11 +9,11 @@ from primaite.utils.validators import IPV4Address
 _LOGGER = getLogger(__name__)
 
 
-IPProtocol : dict[str, str] = dict(
-    NONE = "none",
-    TCP = "tcp",
-    UDP = "udp",
-    ICMP = "icmp",
+IPProtocol: dict[str, str] = dict(
+    NONE="none",
+    TCP="tcp",
+    UDP="udp",
+    ICMP="icmp",
 )
 
 # class IPProtocol(Enum):

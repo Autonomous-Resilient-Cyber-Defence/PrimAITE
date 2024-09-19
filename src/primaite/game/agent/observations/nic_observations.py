@@ -26,8 +26,14 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
         monitored_traffic: Optional[Dict] = None
         """A dict containing which traffic types are to be included in the observation."""
 
-        @field_validator('monitored_traffic', mode='before')
-        def traffic_lookup(cls, val:Optional[Dict]) -> Optional[Dict]:
+        @field_validator("monitored_traffic", mode="before")
+        def traffic_lookup(cls, val: Optional[Dict]) -> Optional[Dict]:
+            """
+            Convert monitored_traffic by lookup against Port and Protocol dicts.
+
+            This is necessary for retaining compatiblility with configs written for PrimAITE <=3.3.
+            This method will be removed in PrimAITE >= 4.0
+            """
             if val is None:
                 return val
             new_val = {}
@@ -40,7 +46,6 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
                     port = Port[port] if port in Port else port
                     new_val[proto].append(port)
             return new_val
-
 
     def __init__(self, where: WhereType, include_nmne: bool, monitored_traffic: Optional[Dict] = None) -> None:
         """
@@ -76,7 +81,7 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
     def _default_monitored_traffic_observation(self, monitored_traffic_config: Dict) -> Dict:
         default_traffic_obs = {"TRAFFIC": {}}
 
-        for protocol in monitored_traffic_config:
+        for protocol in self.monitored_traffic:
             protocol = str(protocol).lower()
             default_traffic_obs["TRAFFIC"][protocol] = {}
 
@@ -84,8 +89,8 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
                 default_traffic_obs["TRAFFIC"]["icmp"] = {"inbound": 0, "outbound": 0}
             else:
                 default_traffic_obs["TRAFFIC"][protocol] = {}
-                for port in monitored_traffic_config[protocol]:
-                    default_traffic_obs["TRAFFIC"][protocol] = {"inbound": 0, "outbound": 0}
+                for port in self.monitored_traffic[protocol]:
+                    default_traffic_obs["TRAFFIC"][protocol][port] = {"inbound": 0, "outbound": 0}
 
         return default_traffic_obs
 

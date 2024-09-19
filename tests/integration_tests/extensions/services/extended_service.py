@@ -17,7 +17,7 @@ from primaite.simulator.system.software import SoftwareHealthState
 _LOGGER = getLogger(__name__)
 
 
-class ExtendedService(Service, identifier='extendedservice'):
+class ExtendedService(Service, identifier="extendedservice"):
     """
     A copy of DatabaseService that uses the extension framework instead of being part of PrimAITE.
 
@@ -42,7 +42,7 @@ class ExtendedService(Service, identifier='extendedservice'):
         kwargs["protocol"] = IPProtocol["TCP"]
         super().__init__(**kwargs)
         self._create_db_file()
-        if kwargs.get('options'):
+        if kwargs.get("options"):
             opt = kwargs["options"]
             self.password = opt.get("db_password", None)
             if "backup_server_ip" in opt:
@@ -139,7 +139,9 @@ class ExtendedService(Service, identifier='extendedservice'):
         old_visible_state = SoftwareHealthState.GOOD
 
         # get db file regardless of whether or not it was deleted
-        db_file = self.file_system.get_file(folder_name="database", file_name="extended_service_database.db", include_deleted=True)
+        db_file = self.file_system.get_file(
+            folder_name="database", file_name="extended_service_database.db", include_deleted=True
+        )
 
         if db_file is None:
             self.sys_log.warning("Database file not initialised.")
@@ -153,7 +155,9 @@ class ExtendedService(Service, identifier='extendedservice'):
             self.file_system.delete_file(folder_name="database", file_name="extended_service_database.db")
 
         # replace db file
-        self.file_system.copy_file(src_folder_name="downloads", src_file_name="extended_service_database.db", dst_folder_name="database")
+        self.file_system.copy_file(
+            src_folder_name="downloads", src_file_name="extended_service_database.db", dst_folder_name="database"
+        )
 
         if self.db_file is None:
             self.sys_log.error("Copying database backup failed.")

@@ -73,7 +73,9 @@ def test_port_scan_one_node_one_port(example_network):
     client_2 = network.get_node_by_hostname("client_2")
 
     actual_result = client_1_nmap.port_scan(
-        target_ip_address=client_2.network_interface[1].ip_address, target_port=Port["DNS"], target_protocol=IPProtocol["TCP"]
+        target_ip_address=client_2.network_interface[1].ip_address,
+        target_port=Port["DNS"],
+        target_protocol=IPProtocol["TCP"],
     )
 
     expected_result = {IPv4Address("192.168.10.22"): {IPProtocol["TCP"]: [Port["DNS"]]}}

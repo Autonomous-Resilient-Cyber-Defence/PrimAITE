@@ -38,8 +38,8 @@ def test_acl_observations(simulation):
     acl_obs = ACLObservation(
         where=["network", "nodes", router.hostname, "acl", "acl"],
         ip_list=[],
-        port_list=["NTP", "HTTP", "POSTGRES_SERVER"],
-        protocol_list=["TCP", "UDP", "ICMP"],
+        port_list=[123, 80, 5432],
+        protocol_list=["tcp", "udp", "icmp"],
         num_rules=10,
         wildcard_list=[],
     )

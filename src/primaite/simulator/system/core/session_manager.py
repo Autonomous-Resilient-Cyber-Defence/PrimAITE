@@ -76,9 +76,7 @@ class SessionManager:
     """
 
     def __init__(self, sys_log: SysLog):
-        self.sessions_by_key: Dict[
-            Tuple[str, IPv4Address, IPv4Address, Optional[int], Optional[int]], Session
-        ] = {}
+        self.sessions_by_key: Dict[Tuple[str, IPv4Address, IPv4Address, Optional[int], Optional[int]], Session] = {}
         self.sessions_by_uuid: Dict[str, Session] = {}
         self.sys_log: SysLog = sys_log
         self.software_manager: SoftwareManager = None  # Noqa

@@ -31,8 +31,8 @@ def test_firewall_observation():
         num_rules=7,
         ip_list=["10.0.0.1", "10.0.0.2"],
         wildcard_list=["0.0.0.255", "0.0.0.1"],
-        port_list=["HTTP", "DNS"],
-        protocol_list=["TCP"],
+        port_list=[80, 53],
+        protocol_list=["tcp"],
         include_users=False,
     )
 

@@ -49,7 +49,7 @@ additional steps to configure wireless settings:
     wireless_router.configure_wireless_access_point(
         port=1, ip_address="192.168.2.1",
         subnet_mask="255.255.255.0",
-        frequency=AirSpaceFrequency["WIFI_2_4"],
+        frequency="WIFI_2_4",
     )
 
 
@@ -130,13 +130,13 @@ ICMP traffic, ensuring basic network connectivity and ping functionality.
         port=1,
         ip_address="192.168.1.1",
         subnet_mask="255.255.255.0",
-        frequency=AirSpaceFrequency["WIFI_2_4"],
+        frequency="WIFI_2_4",
     )
     router_2.configure_wireless_access_point(
         port=1,
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
-        frequency=AirSpaceFrequency["WIFI_2_4"],
+        frequency="WIFI_2_4",
     )
 
     # Configure routes for inter-router communication

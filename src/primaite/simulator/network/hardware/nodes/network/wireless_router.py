@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional, Union
 
 from pydantic import validate_call
 
-from primaite.simulator.network.airspace import AirSpace, AirSpaceFrequency, IPWirelessNetworkInterface
+from primaite.simulator.network.airspace import AirSpace, IPWirelessNetworkInterface
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router, RouterInterface
 from primaite.simulator.network.transmission.data_link_layer import Frame
@@ -116,7 +116,7 @@ class WirelessRouter(Router):
         >>> wireless_router.configure_wireless_access_point(
         ...     ip_address="10.10.10.1",
         ...     subnet_mask="255.255.255.0"
-        ...     frequency=AirSpaceFrequency["WIFI_2_4"]
+        ...     frequency="WIFI_2_4"
         ... )
     """
 
@@ -153,7 +153,7 @@ class WirelessRouter(Router):
         self,
         ip_address: IPV4Address,
         subnet_mask: IPV4Address,
-        frequency: Optional[int] = AirSpaceFrequency["WIFI_2_4"],
+        frequency: Optional[str] = "WIFI_2_4",
     ):
         """
         Configures a wireless access point (WAP).
@@ -166,12 +166,12 @@ class WirelessRouter(Router):
 
         :param ip_address: The IP address to be assigned to the wireless access point.
         :param subnet_mask: The subnet mask associated with the IP address
-        :param frequency: The operating frequency of the wireless access point, defined by the AirSpaceFrequency
+        :param frequency: The operating frequency of the wireless access point, defined by the air space frequency
             enum. This determines the frequency band (e.g., 2.4 GHz or 5 GHz) the access point will use for wireless
-            communication. Default is AirSpaceFrequency["WIFI_2_4"].
+            communication. Default is "WIFI_2_4".
         """
         if not frequency:
-            frequency = AirSpaceFrequency["WIFI_2_4"]
+            frequency = "WIFI_2_4"
         self.sys_log.info("Configuring wireless access point")
 
         self.wireless_access_point.disable()  # Temporarily disable the WAP for reconfiguration
@@ -264,7 +264,7 @@ class WirelessRouter(Router):
         if "wireless_access_point" in cfg:
             ip_address = cfg["wireless_access_point"]["ip_address"]
             subnet_mask = cfg["wireless_access_point"]["subnet_mask"]
-            frequency = AirSpaceFrequency[cfg["wireless_access_point"]["frequency"]]
+            frequency = cfg["wireless_access_point"]["frequency"]
             router.configure_wireless_access_point(ip_address=ip_address, subnet_mask=subnet_mask, frequency=frequency)
 
         if "acl" in cfg:

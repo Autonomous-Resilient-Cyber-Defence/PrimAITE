@@ -63,8 +63,14 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         num_rules: Optional[int] = None
         """Number of rules ACL rules to show."""
 
-        @field_validator('monitored_traffic', mode='before')
-        def traffic_lookup(cls, val:Optional[Dict]) -> Optional[Dict]:
+        @field_validator("monitored_traffic", mode="before")
+        def traffic_lookup(cls, val: Optional[Dict]) -> Optional[Dict]:
+            """
+            Convert monitored_traffic by lookup against Port and Protocol dicts.
+
+            This is necessary for retaining compatiblility with configs written for PrimAITE <=3.3.
+            This method will be removed in PrimAITE >= 4.0
+            """
             if val is None:
                 return val
             new_val = {}

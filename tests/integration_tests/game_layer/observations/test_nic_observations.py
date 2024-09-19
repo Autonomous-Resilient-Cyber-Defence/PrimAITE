@@ -152,7 +152,12 @@ def test_config_nic_categories(simulation):
 
 
 def test_nic_monitored_traffic(simulation):
-    monitored_traffic = {"icmp": ["NONE"], "tcp": [53,]}
+    monitored_traffic = {
+        "icmp": ["NONE"],
+        "tcp": [
+            53,
+        ],
+    }
 
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
     pc2: Computer = simulation.network.get_node_by_hostname("client_2")

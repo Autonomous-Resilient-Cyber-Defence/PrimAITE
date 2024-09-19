@@ -130,18 +130,19 @@ class ACLRule(SimComponent):
     dst_port: Optional[int] = None
     match_count: int = 0
 
-    @field_validator('protocol', mode='before')
-    def protocol_valid(cls, val:Optional[str]) -> Optional[str]:
+    @field_validator("protocol", mode="before")
+    def protocol_valid(cls, val: Optional[str]) -> Optional[str]:
+        """Assert that the protocol for the rule is predefined in the IPProtocol lookup."""
         if val is not None:
             assert val in IPProtocol.values(), f"Cannot create ACL rule with invalid protocol {val}"
         return val
 
-    @field_validator('src_port', 'dst_port', mode='before')
-    def ports_valid(cls, val:Optional[int]) -> Optional[int]:
+    @field_validator("src_port", "dst_port", mode="before")
+    def ports_valid(cls, val: Optional[int]) -> Optional[int]:
+        """Assert that the port for the rule is predefined in the Port lookup."""
         if val is not None:
             assert val in Port.values(), f"Cannot create ACL rule with invalid port {val}"
         return val
-
 
     def __str__(self) -> str:
         rule_strings = []

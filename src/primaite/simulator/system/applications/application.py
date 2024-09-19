@@ -44,7 +44,7 @@ class Application(IOSoftware):
     _registry: ClassVar[Dict[str, Type["Application"]]] = {}
     """Registry of application types. Automatically populated when subclasses are defined."""
 
-    def __init_subclass__(cls, identifier: str = 'default', **kwargs: Any) -> None:
+    def __init_subclass__(cls, identifier: str = "default", **kwargs: Any) -> None:
         """
         Register an application type.
 
@@ -52,7 +52,7 @@ class Application(IOSoftware):
         :type identifier: str
         :raises ValueError: When attempting to register an application with a name that is already allocated.
         """
-        if identifier == 'default':
+        if identifier == "default":
             return
         super().__init_subclass__(**kwargs)
         if identifier in cls._registry:

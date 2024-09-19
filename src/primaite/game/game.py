@@ -17,10 +17,9 @@ from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
-from primaite.simulator.network.airspace import AirSpaceFrequency
 from primaite.simulator.network.hardware.base import NetworkInterface, NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.host.host_node import NIC, HostNode
+from primaite.simulator.network.hardware.nodes.host.host_node import HostNode, NIC
 from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
 from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
@@ -89,8 +88,8 @@ class PrimaiteGameOptions(BaseModel):
     thresholds: Optional[Dict] = {}
     """A dict containing the thresholds used for determining what is acceptable during observations."""
 
-    @field_validator('ports', mode='before')
-    def ports_str2int(cls, vals:Union[List[str],List[int]]) -> List[int]:
+    @field_validator("ports", mode="before")
+    def ports_str2int(cls, vals: Union[List[str], List[int]]) -> List[int]:
         """
         Convert named port strings to port integer values. Integer ports remain unaffected.
 
@@ -102,8 +101,8 @@ class PrimaiteGameOptions(BaseModel):
                 vals[i] = Port[port_val]
         return vals
 
-    @field_validator('protocols', mode='before')
-    def protocols_str2int(cls, vals:List[str]) -> List[str]:
+    @field_validator("protocols", mode="before")
+    def protocols_str2int(cls, vals: List[str]) -> List[str]:
         """
         Convert old-style named protocols to their proper values.
 
@@ -114,7 +113,6 @@ class PrimaiteGameOptions(BaseModel):
             if proto_val in IPProtocol:
                 vals[i] = IPProtocol[proto_val]
         return vals
-
 
 
 class PrimaiteGame:
@@ -294,10 +292,7 @@ class PrimaiteGame:
         network_config = simulation_config.get("network", {})
         airspace_cfg = network_config.get("airspace", {})
         frequency_max_capacity_mbps_cfg = airspace_cfg.get("frequency_max_capacity_mbps", {})
-
-        frequency_max_capacity_mbps_cfg = {AirSpaceFrequency[k]: v for k, v in frequency_max_capacity_mbps_cfg.items()}
-
-        net.airspace.frequency_max_capacity_mbps_ = frequency_max_capacity_mbps_cfg
+        net.airspace.set_frequency_max_capacity_mbps(frequency_max_capacity_mbps_cfg)
 
         nodes_cfg = network_config.get("nodes", [])
         links_cfg = network_config.get("links", [])
@@ -318,11 +313,10 @@ class PrimaiteGame:
                     dns_server=node_cfg.get("dns_server", None),
                     operating_state=NodeOperatingState.ON
                     if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()])
-            elif n_type in NetworkNode._registry:
-                new_node = NetworkNode._registry[n_type](
-                    **node_cfg
+                    else NodeOperatingState[p.upper()],
                 )
+            elif n_type in NetworkNode._registry:
+                new_node = NetworkNode._registry[n_type](**node_cfg)
             # Default PrimAITE nodes
             elif n_type == "computer":
                 new_node = Computer(
@@ -502,7 +496,7 @@ class PrimaiteGame:
                             opt = application_cfg["options"]
                             new_application.configure(
                                 target_ip_address=IPv4Address(opt.get("target_ip_address")),
-                                target_port = Port[opt.get("target_port", "POSTGRES_SERVER")],
+                                target_port=Port[opt.get("target_port", "POSTGRES_SERVER")],
                                 payload=opt.get("payload"),
                                 repeat=bool(opt.get("repeat")),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),

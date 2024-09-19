@@ -65,7 +65,9 @@ def test_uc2_rewards(game_and_agent):
     db_client.run()
 
     router: Router = game.simulation.network.get_node_by_hostname("router")
-    router.acl.add_rule(ACLAction.PERMIT, src_port=Port["POSTGRES_SERVER"], dst_port=Port["POSTGRES_SERVER"], position=2)
+    router.acl.add_rule(
+        ACLAction.PERMIT, src_port=Port["POSTGRES_SERVER"], dst_port=Port["POSTGRES_SERVER"], position=2
+    )
 
     comp = GreenAdminDatabaseUnreachablePenalty("client_1")
 

@@ -1,14 +1,12 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
+import copy
 from abc import ABC, abstractmethod
-from enum import Enum
-from typing import Any, ClassVar, Dict, List, Type
-from pydantic._internal._generics import PydanticGenericMetadata
-from typing_extensions import Unpack
+from typing import Any, Dict, List
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field, validate_call
 
 from primaite import getLogger
 from primaite.simulator.network.hardware.base import Layer3Interface, NetworkInterface, WiredNetworkInterface
@@ -42,29 +40,31 @@ def format_hertz(hertz: float, format_terahertz: bool = False, decimals: int = 3
     else:  # Hertz
         return format_str.format(hertz) + " Hz"
 
-AirSpaceFrequencyRegistry: Dict[str,Dict] = {
-    "WIFI_2_4" : {'frequency': 2.4e9, 'data_rate_bps':100_000_000.0},
-    "WIFI_5" : {'frequency': 5e9, 'data_rate_bps':500_000_000.0},
+
+_default_frequency_set: Dict[str, Dict] = {
+    "WIFI_2_4": {"frequency": 2.4e9, "data_rate_bps": 100_000_000.0},
+    "WIFI_5": {"frequency": 5e9, "data_rate_bps": 500_000_000.0},
 }
+"""Frequency configuration that is automatically used for any new airspace."""
 
-def register_frequency(freq_name: str, freq_hz: int, data_rate_bps: int) -> None:
-    if freq_name in AirSpaceFrequencyRegistry:
-        raise RuntimeError(f"Cannot register new frequency {freq_name} because it's already registered.")
-    AirSpaceFrequencyRegistry.update({freq_name:{'frequency': freq_hz, 'data_rate_bps':data_rate_bps}})
 
-def maximum_data_rate_mbps(frequency_name:str) -> float:
+def register_default_frequency(freq_name: str, freq_hz: float, data_rate_bps: float):
+    """Add to the default frequency configuration. This is intended as a plugin hook.
+
+    If your plugin makes use of bespoke frequencies for wireless communication, you should make a call to this method
+    whereever you define components that rely on the bespoke frequencies. That way, as soon as your components are
+    imported, this function automatically updates the default frequency set.
+
+    This should also be run before instances of AirSpace are created.
+
+    :param freq_name: The frequency name. If this clashes with an existing frequency name, it will be overwritten.
+    :type freq_name: str
+    :param freq_hz: The frequency itself, measured in Hertz.
+    :type freq_hz: float
+    :param data_rate_bps: The transmission capacity over this frequency, in bits per second.
+    :type data_rate_bps: float
     """
-    Retrieves the maximum data transmission rate in megabits per second (Mbps).
-
-    This is derived by converting the maximum data rate from bits per second, as defined
-    in `maximum_data_rate_bps`, to megabits per second.
-
-    :return: The maximum data rate in megabits per second.
-    """
-    return AirSpaceFrequencyRegistry[frequency_name]['data_rate_bps']
-    return data_rate / 1_000_000.0
-
-
+    _default_frequency_set.update({freq_name: {"frequency": freq_hz, "data_rate_bps": data_rate_bps}})
 
 
 class AirSpace(BaseModel):
@@ -77,27 +77,21 @@ class AirSpace(BaseModel):
     """
 
     wireless_interfaces: Dict[str, WirelessNetworkInterface] = Field(default_factory=lambda: {})
-    wireless_interfaces_by_frequency: Dict[int, List[WirelessNetworkInterface]] = Field(
-        default_factory=lambda: {}
-    )
+    wireless_interfaces_by_frequency: Dict[int, List[WirelessNetworkInterface]] = Field(default_factory=lambda: {})
     bandwidth_load: Dict[int, float] = Field(default_factory=lambda: {})
-    frequency_max_capacity_mbps_: Dict[int, float] = Field(default_factory=lambda: {})
+    frequencies: Dict[str, Dict] = Field(default_factory=lambda: copy.deepcopy(_default_frequency_set))
 
-    def get_frequency_max_capacity_mbps(self, frequency: str) -> float:
+    @validate_call
+    def get_frequency_max_capacity_mbps(self, freq_name: str) -> float:
         """
         Retrieves the maximum data transmission capacity for a specified frequency.
 
-        This method checks a dictionary holding custom maximum capacities. If the frequency is found, it returns the
-        custom set maximum capacity. If the frequency is not found in the dictionary, it defaults to the standard
-        maximum data rate associated with that frequency.
-
-        :param frequency: The frequency for which the maximum capacity is queried.
-
+        :param freq_name: The frequency for which the maximum capacity is queried.
         :return: The maximum capacity in Mbps for the specified frequency.
         """
-        if frequency in self.frequency_max_capacity_mbps_:
-            return self.frequency_max_capacity_mbps_[frequency]
-        return maximum_data_rate_mbps(frequency)
+        if freq_name in self.frequencies:
+            return self.frequencies[freq_name]["data_rate_bps"] / (1024.0 * 1024.0)
+        return 0.0
 
     def set_frequency_max_capacity_mbps(self, cfg: Dict[int, float]):
         """
@@ -105,9 +99,28 @@ class AirSpace(BaseModel):
 
         :param cfg: A dictionary mapping frequencies to their new maximum capacities in Mbps.
         """
-        self.frequency_max_capacity_mbps_ = cfg
         for freq, mbps in cfg.items():
+            self.frequencies[freq]["data_rate_bps"] = mbps * 1024 * 1024
             print(f"Overriding {freq} max capacity as {mbps:.3f} mbps")
+
+    def register_frequency(self, freq_name: str, freq_hz: float, data_rate_bps: float) -> None:
+        """
+        Define a new frequency for this airspace.
+
+        :param freq_name: The frequency name. If this clashes with an existing frequency name, it will be overwritten.
+        :type freq_name: str
+        :param freq_hz: The frequency itself, measured in Hertz.
+        :type freq_hz: float
+        :param data_rate_bps: The transmission capacity over this frequency, in bits per second.
+        :type data_rate_bps: float
+        """
+        if freq_name in self.frequencies:
+            _LOGGER.info(
+                f"Overwriting Air space frequency {freq_name}. "
+                f"Previous data rate: {self.frequencies[freq_name]['data_rate_bps']}. "
+                f"Current data rate: {data_rate_bps}."
+            )
+        self.frequencies.update({freq_name: {"frequency": freq_hz, "data_rate_bps": data_rate_bps}})
 
     def show_bandwidth_load(self, markdown: bool = False):
         """
@@ -130,7 +143,13 @@ class AirSpace(BaseModel):
             load_percent = load / maximum_capacity if maximum_capacity > 0 else 0.0
             if load_percent > 1.0:
                 load_percent = 1.0
-            table.add_row([format_hertz(frequency), f"{load_percent:.0%}", f"{maximum_capacity:.3f}"])
+            table.add_row(
+                [
+                    format_hertz(self.frequencies[frequency]["frequency"]),
+                    f"{load_percent:.0%}",
+                    f"{maximum_capacity:.3f}",
+                ]
+            )
         print(table)
 
     def show_wireless_interfaces(self, markdown: bool = False):
@@ -162,7 +181,7 @@ class AirSpace(BaseModel):
                     interface.mac_address,
                     interface.ip_address if hasattr(interface, "ip_address") else None,
                     interface.subnet_mask if hasattr(interface, "subnet_mask") else None,
-                    format_hertz(interface.frequency),
+                    format_hertz(self.frequencies[interface.frequency]["frequency"]),
                     f"{interface.speed:.3f}",
                     status,
                 ]
