@@ -7,9 +7,9 @@ from primaite import getLogger
 from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.services.service import Service
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -26,8 +26,8 @@ class ICMP(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ICMP"
-        kwargs["port"] = Port["NONE"]
-        kwargs["protocol"] = IPProtocol["ICMP"]
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["ICMP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:

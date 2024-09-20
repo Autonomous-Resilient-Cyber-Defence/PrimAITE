@@ -5,9 +5,9 @@ from ipaddress import IPv4Address, IPv4Network
 import yaml
 
 from primaite.game.game import PrimaiteGame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.nmap import NMAP
+from primaite.utils.validators import PROTOCOL_LOOKUP
 from tests import TEST_ASSETS_ROOT
 
 
@@ -74,11 +74,11 @@ def test_port_scan_one_node_one_port(example_network):
 
     actual_result = client_1_nmap.port_scan(
         target_ip_address=client_2.network_interface[1].ip_address,
-        target_port=Port["DNS"],
-        target_protocol=IPProtocol["TCP"],
+        target_port=PORT_LOOKUP["DNS"],
+        target_protocol=PROTOCOL_LOOKUP["TCP"],
     )
 
-    expected_result = {IPv4Address("192.168.10.22"): {IPProtocol["TCP"]: [Port["DNS"]]}}
+    expected_result = {IPv4Address("192.168.10.22"): {PROTOCOL_LOOKUP["TCP"]: [PORT_LOOKUP["DNS"]]}}
 
     assert actual_result == expected_result
 
@@ -103,14 +103,20 @@ def test_port_scan_full_subnet_all_ports_and_protocols(example_network):
 
     actual_result = client_1_nmap.port_scan(
         target_ip_address=IPv4Network("192.168.10.0/24"),
-        target_port=[Port["ARP"], Port["HTTP"], Port["FTP"], Port["DNS"], Port["NTP"]],
+        target_port=[
+            PORT_LOOKUP["ARP"],
+            PORT_LOOKUP["HTTP"],
+            PORT_LOOKUP["FTP"],
+            PORT_LOOKUP["DNS"],
+            PORT_LOOKUP["NTP"],
+        ],
     )
 
     expected_result = {
-        IPv4Address("192.168.10.1"): {IPProtocol["UDP"]: [Port["ARP"]]},
+        IPv4Address("192.168.10.1"): {PROTOCOL_LOOKUP["UDP"]: [PORT_LOOKUP["ARP"]]},
         IPv4Address("192.168.10.22"): {
-            IPProtocol["TCP"]: [Port["HTTP"], Port["FTP"], Port["DNS"]],
-            IPProtocol["UDP"]: [Port["ARP"], Port["NTP"]],
+            PROTOCOL_LOOKUP["TCP"]: [PORT_LOOKUP["HTTP"], PORT_LOOKUP["FTP"], PORT_LOOKUP["DNS"]],
+            PROTOCOL_LOOKUP["UDP"]: [PORT_LOOKUP["ARP"], PORT_LOOKUP["NTP"]],
         },
     }
 
@@ -124,10 +130,12 @@ def test_network_service_recon_all_ports_and_protocols(example_network):
     client_1_nmap: NMAP = client_1.software_manager.software["NMAP"]  # noqa
 
     actual_result = client_1_nmap.network_service_recon(
-        target_ip_address=IPv4Network("192.168.10.0/24"), target_port=Port["HTTP"], target_protocol=IPProtocol["TCP"]
+        target_ip_address=IPv4Network("192.168.10.0/24"),
+        target_port=PORT_LOOKUP["HTTP"],
+        target_protocol=PROTOCOL_LOOKUP["TCP"],
     )
 
-    expected_result = {IPv4Address("192.168.10.22"): {IPProtocol["TCP"]: [Port["HTTP"]]}}
+    expected_result = {IPv4Address("192.168.10.22"): {PROTOCOL_LOOKUP["TCP"]: [PORT_LOOKUP["HTTP"]]}}
 
     assert sort_dict(actual_result) == sort_dict(expected_result)
 

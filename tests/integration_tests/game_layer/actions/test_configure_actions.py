@@ -11,7 +11,7 @@ from primaite.game.agent.actions import (
 )
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.dos_bot import DoSBot
@@ -200,7 +200,7 @@ class TestConfigureDoSBot:
         game.step()
 
         assert dos_bot.target_ip_address == IPv4Address("192.168.1.99")
-        assert dos_bot.target_port == Port["POSTGRES_SERVER"]
+        assert dos_bot.target_port == PORT_LOOKUP["POSTGRES_SERVER"]
         assert dos_bot.payload == "HACC"
         assert not dos_bot.repeat
         assert dos_bot.port_scan_p_of_success == 0.875

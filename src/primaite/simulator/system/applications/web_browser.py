@@ -15,10 +15,10 @@ from primaite.simulator.network.protocols.http import (
     HttpResponsePacket,
     HttpStatusCode,
 )
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -43,10 +43,10 @@ class WebBrowser(Application, identifier="WebBrowser"):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "WebBrowser"
-        kwargs["protocol"] = IPProtocol["TCP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         # default for web is port 80
         if kwargs.get("port") is None:
-            kwargs["port"] = Port["HTTP"]
+            kwargs["port"] = PORT_LOOKUP["HTTP"]
 
         super().__init__(**kwargs)
         self.run()
@@ -126,7 +126,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
         if self.send(
             payload=payload,
             dest_ip_address=self.domain_name_ip_address,
-            dest_port=parsed_url.port if parsed_url.port else Port["HTTP"],
+            dest_port=parsed_url.port if parsed_url.port else PORT_LOOKUP["HTTP"],
         ):
             self.sys_log.info(
                 f"{self.name}: Received HTTP {payload.request_method.name} "
@@ -154,7 +154,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
         self,
         payload: HttpRequestPacket,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[int] = Port["HTTP"],
+        dest_port: Optional[int] = PORT_LOOKUP["HTTP"],
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:

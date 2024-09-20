@@ -4,37 +4,9 @@ from enum import Enum
 from pydantic import BaseModel
 
 from primaite import getLogger
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validators import IPProtocol, IPV4Address, PROTOCOL_LOOKUP
 
 _LOGGER = getLogger(__name__)
-
-
-IPProtocol: dict[str, str] = dict(
-    NONE="none",
-    TCP="tcp",
-    UDP="udp",
-    ICMP="icmp",
-)
-
-# class IPProtocol(Enum):
-#     """
-#     Enum representing transport layer protocols in IP header.
-
-#     .. _List of IPProtocols:
-#     """
-
-#     NONE = "none"
-#     """Placeholder for a non-protocol."""
-#     TCP = "tcp"
-#     """Transmission Control Protocol."""
-#     UDP = "udp"
-#     """User Datagram Protocol."""
-#     ICMP = "icmp"
-#     """Internet Control Message Protocol."""
-
-#     def model_dump(self) -> str:
-#         """Return as JSON-serialisable string."""
-#         return self.name
 
 
 class Precedence(Enum):
@@ -98,7 +70,7 @@ class IPPacket(BaseModel):
     "Source IP address."
     dst_ip_address: IPV4Address
     "Destination IP address."
-    protocol: str = IPProtocol["TCP"]
+    protocol: IPProtocol = PROTOCOL_LOOKUP["TCP"]
     "IPProtocol."
     ttl: int = 64
     "Time to Live (TTL) for the packet."

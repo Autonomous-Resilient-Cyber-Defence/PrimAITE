@@ -8,12 +8,12 @@ from prettytable import MARKDOWN, PrettyTable
 from primaite.simulator.core import RequestType
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.simulator.system.software import IOSoftware
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 if TYPE_CHECKING:
     from primaite.simulator.system.core.session_manager import SessionManager
@@ -191,7 +191,7 @@ class SoftwareManager:
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
         src_port: Optional[int] = None,
         dest_port: Optional[int] = None,
-        ip_protocol: str = IPProtocol["TCP"],
+        ip_protocol: str = PROTOCOL_LOOKUP["TCP"],
         session_id: Optional[str] = None,
     ) -> bool:
         """
@@ -275,7 +275,7 @@ class SoftwareManager:
                     software_type,
                     software.operating_state.name,
                     software.health_state_actual.name,
-                    software.port if software.port != Port["NONE"] else None,
+                    software.port if software.port != PORT_LOOKUP["NONE"] else None,
                     software.protocol,
                 ]
             )

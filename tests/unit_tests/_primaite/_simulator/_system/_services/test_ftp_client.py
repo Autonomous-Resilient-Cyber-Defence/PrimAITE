@@ -8,10 +8,10 @@ from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.service import ServiceOperatingState
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -31,8 +31,8 @@ def test_create_ftp_client(ftp_client):
     assert ftp_client is not None
     ftp_client_service: FTPClient = ftp_client.software_manager.software.get("FTPClient")
     assert ftp_client_service.name is "FTPClient"
-    assert ftp_client_service.port is Port["FTP"]
-    assert ftp_client_service.protocol is IPProtocol["TCP"]
+    assert ftp_client_service.port is PORT_LOOKUP["FTP"]
+    assert ftp_client_service.protocol is PROTOCOL_LOOKUP["TCP"]
 
 
 def test_ftp_client_store_file(ftp_client):
@@ -61,7 +61,7 @@ def test_ftp_should_not_process_commands_if_service_not_running(ftp_client):
     """Method _process_ftp_command should return false if service is not running."""
     payload: FTPPacket = FTPPacket(
         ftp_command=FTPCommand.PORT,
-        ftp_command_args=Port["FTP"],
+        ftp_command_args=PORT_LOOKUP["FTP"],
         status_code=FTPStatusCode.OK,
     )
 
@@ -102,7 +102,7 @@ def test_offline_ftp_client_receives_request(ftp_client):
 
     payload: FTPPacket = FTPPacket(
         ftp_command=FTPCommand.PORT,
-        ftp_command_args=Port["FTP"],
+        ftp_command_args=PORT_LOOKUP["FTP"],
         status_code=FTPStatusCode.OK,
     )
 
@@ -119,7 +119,7 @@ def test_receive_should_ignore_payload_with_none_status_code(ftp_client):
     """Receive should ignore payload with no set status code to prevent infinite send/receive loops."""
     payload: FTPPacket = FTPPacket(
         ftp_command=FTPCommand.PORT,
-        ftp_command_args=Port["FTP"],
+        ftp_command_args=PORT_LOOKUP["FTP"],
         status_code=None,
     )
     ftp_client_service: FTPClient = ftp_client.software_manager.software.get("FTPClient")

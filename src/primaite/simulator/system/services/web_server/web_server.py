@@ -10,11 +10,11 @@ from primaite.simulator.network.protocols.http import (
     HttpResponsePacket,
     HttpStatusCode,
 )
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.database_client import DatabaseClientConnection
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.software import SoftwareHealthState
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -49,10 +49,10 @@ class WebServer(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "WebServer"
-        kwargs["protocol"] = IPProtocol["TCP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         # default for web is port 80
         if kwargs.get("port") is None:
-            kwargs["port"] = Port["HTTP"]
+            kwargs["port"] = PORT_LOOKUP["HTTP"]
 
         super().__init__(**kwargs)
         self._install_web_files()

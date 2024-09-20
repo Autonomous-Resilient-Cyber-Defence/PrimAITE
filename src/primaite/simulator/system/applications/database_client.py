@@ -11,11 +11,10 @@ from pydantic import BaseModel
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.software_manager import SoftwareManager
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validators import IPV4Address, PROTOCOL_LOOKUP
 
 
 class DatabaseClientConnection(BaseModel):
@@ -90,8 +89,8 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseClient"
-        kwargs["port"] = Port["POSTGRES_SERVER"]
-        kwargs["protocol"] = IPProtocol["TCP"]
+        kwargs["port"] = PORT_LOOKUP["POSTGRES_SERVER"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
 
     def _init_request_manager(self) -> RequestManager:

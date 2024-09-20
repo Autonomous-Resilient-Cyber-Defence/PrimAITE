@@ -5,7 +5,6 @@ from typing import Dict, List, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
-from pydantic import field_validator
 
 from primaite import getLogger
 from primaite.game.agent.observations.file_system_observations import FolderObservation
@@ -13,8 +12,7 @@ from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.observations.software_observation import ApplicationObservation, ServiceObservation
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.utils.validators import IPProtocol, Port
 
 _LOGGER = getLogger(__name__)
 
@@ -47,7 +45,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         """Number of spaces for network interface observations on this host."""
         include_nmne: Optional[bool] = None
         """Whether network interface observations should include number of malicious network events."""
-        monitored_traffic: Optional[Dict] = None
+        monitored_traffic: Optional[Dict[IPProtocol, List[Port]]] = None
         """A dict containing which traffic types are to be included in the observation."""
         include_num_access: Optional[bool] = None
         """Whether to include the number of accesses to files observations on this host."""
@@ -58,26 +56,26 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         include_users: Optional[bool] = True
         """If True, report user session information."""
 
-        @field_validator("monitored_traffic", mode="before")
-        def traffic_lookup(cls, val: Optional[Dict]) -> Optional[Dict]:
-            """
-            Convert monitored_traffic by lookup against Port and Protocol dicts.
+        # @field_validator("monitored_traffic", mode="before")
+        # def traffic_lookup(cls, val: Optional[Dict]) -> Optional[Dict]:
+        #     """
+        #     Convert monitored_traffic by lookup against Port and Protocol dicts.
 
-            This is necessary for retaining compatiblility with configs written for PrimAITE <=3.3.
-            This method will be removed in PrimAITE >= 4.0
-            """
-            if val is None:
-                return val
-            new_val = {}
-            for proto, port_list in val.items():
-                # convert protocol, for instance ICMP becomes "icmp"
-                proto = IPProtocol[proto] if proto in IPProtocol else proto
-                new_val[proto] = []
-                for port in port_list:
-                    # convert ports, for instance "HTTP" becomes 80
-                    port = Port[port] if port in Port else port
-                    new_val[proto].append(port)
-            return new_val
+        #     This is necessary for retaining compatiblility with configs written for PrimAITE <=3.3.
+        #     This method will be removed in PrimAITE >= 4.0
+        #     """
+        #     if val is None:
+        #         return val
+        #     new_val = {}
+        #     for proto, port_list in val.items():
+        #         # convert protocol, for instance ICMP becomes "icmp"
+        #         proto = PROTOCOL_LOOKUP[proto] if proto in PROTOCOL_LOOKUP else proto
+        #         new_val[proto] = []
+        #         for port in port_list:
+        #             # convert ports, for instance "HTTP" becomes 80
+        #             port = PORT_LOOKUP[port] if port in PORT_LOOKUP else port
+        #             new_val[proto].append(port)
+        #     return new_val
 
     def __init__(
         self,

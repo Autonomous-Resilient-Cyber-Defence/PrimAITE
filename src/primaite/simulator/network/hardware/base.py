@@ -21,8 +21,7 @@ from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.packet_capture import PacketCapture
 from primaite.simulator.system.core.session_manager import SessionManager
@@ -33,7 +32,7 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.software import IOSoftware, Software
 from primaite.utils.converters import convert_dict_enum_keys_to_enum_values
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validators import IPV4Address, PROTOCOL_LOOKUP
 
 IOSoftwareClass = TypeVar("IOSoftwareClass", bound=IOSoftware)
 
@@ -274,20 +273,20 @@ class NetworkInterface(SimComponent, ABC):
 
         # Identify the protocol and port from the frame
         if frame.tcp:
-            protocol = IPProtocol["TCP"]
+            protocol = PROTOCOL_LOOKUP["TCP"]
             port = frame.tcp.dst_port
         elif frame.udp:
-            protocol = IPProtocol["UDP"]
+            protocol = PROTOCOL_LOOKUP["UDP"]
             port = frame.udp.dst_port
         elif frame.icmp:
-            protocol = IPProtocol["ICMP"]
+            protocol = PROTOCOL_LOOKUP["ICMP"]
 
         # Ensure the protocol is in the capture dict
         if protocol not in self.traffic:
             self.traffic[protocol] = {}
 
         # Handle non-ICMP protocols that use ports
-        if protocol != IPProtocol["ICMP"]:
+        if protocol != PROTOCOL_LOOKUP["ICMP"]:
             if port not in self.traffic[protocol]:
                 self.traffic[protocol][port] = {"inbound": 0, "outbound": 0}
             self.traffic[protocol][port][direction] += frame.size_Mbits
@@ -843,8 +842,8 @@ class UserManager(Service):
         :param password: The password for the default admin user
         """
         kwargs["name"] = "UserManager"
-        kwargs["port"] = Port["NONE"]
-        kwargs["protocol"] = IPProtocol["NONE"]
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
 
         self.start()
@@ -1166,8 +1165,8 @@ class UserSessionManager(Service):
         :param password: The password for the default admin user
         """
         kwargs["name"] = "UserSessionManager"
-        kwargs["port"] = Port["NONE"]
-        kwargs["protocol"] = IPProtocol["NONE"]
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
         self.start()
 
@@ -1312,7 +1311,7 @@ class UserSessionManager(Service):
             software_manager: SoftwareManager = self.software_manager
             software_manager.send_payload_to_session_manager(
                 payload={"type": "user_timeout", "connection_id": session.uuid},
-                dest_port=Port["SSH"],
+                dest_port=PORT_LOOKUP["SSH"],
                 dest_ip_address=session.remote_ip_address,
             )
 

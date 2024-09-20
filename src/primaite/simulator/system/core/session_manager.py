@@ -10,8 +10,9 @@ from primaite.simulator.core import SimComponent
 from primaite.simulator.network.protocols.arp import ARPPacket
 from primaite.simulator.network.protocols.icmp import ICMPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader, UDPHeader
+from primaite.simulator.network.transmission.network_layer import IPPacket
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP, TCPHeader, UDPHeader
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 if TYPE_CHECKING:
     from primaite.simulator.network.hardware.base import NetworkInterface
@@ -117,7 +118,7 @@ class SessionManager:
         """
         protocol = frame.ip.protocol
         with_ip_address = frame.ip.src_ip_address
-        if protocol == IPProtocol["TCP"]:
+        if protocol == PROTOCOL_LOOKUP["TCP"]:
             if inbound_frame:
                 src_port = frame.tcp.src_port
                 dst_port = frame.tcp.dst_port
@@ -125,7 +126,7 @@ class SessionManager:
                 dst_port = frame.tcp.src_port
                 src_port = frame.tcp.dst_port
                 with_ip_address = frame.ip.dst_ip_address
-        elif protocol == IPProtocol["UDP"]:
+        elif protocol == PROTOCOL_LOOKUP["UDP"]:
             if inbound_frame:
                 src_port = frame.udp.src_port
                 dst_port = frame.udp.dst_port
@@ -260,7 +261,7 @@ class SessionManager:
         src_port: Optional[int] = None,
         dst_port: Optional[int] = None,
         session_id: Optional[str] = None,
-        ip_protocol: str = IPProtocol["TCP"],
+        ip_protocol: str = PROTOCOL_LOOKUP["TCP"],
         icmp_packet: Optional[ICMPPacket] = None,
     ) -> Union[Any, None]:
         """
@@ -284,7 +285,7 @@ class SessionManager:
                 dst_mac_address = payload.target_mac_addr
             outbound_network_interface = self.resolve_outbound_network_interface(payload.target_ip_address)
             is_broadcast = payload.request
-            ip_protocol = IPProtocol["UDP"]
+            ip_protocol = PROTOCOL_LOOKUP["UDP"]
         else:
             vals = self.resolve_outbound_transmission_details(
                 dst_ip_address=dst_ip_address,
@@ -316,12 +317,12 @@ class SessionManager:
 
         tcp_header = None
         udp_header = None
-        if ip_protocol == IPProtocol["TCP"]:
+        if ip_protocol == PROTOCOL_LOOKUP["TCP"]:
             tcp_header = TCPHeader(
                 src_port=dst_port,
                 dst_port=dst_port,
             )
-        elif ip_protocol == IPProtocol["UDP"]:
+        elif ip_protocol == PROTOCOL_LOOKUP["UDP"]:
             udp_header = UDPHeader(
                 src_port=dst_port,
                 dst_port=dst_port,
@@ -385,7 +386,7 @@ class SessionManager:
         elif frame.udp:
             dst_port = frame.udp.dst_port
         elif frame.icmp:
-            dst_port = Port["NONE"]
+            dst_port = PORT_LOOKUP["NONE"]
         self.software_manager.receive_payload_from_session_manager(
             payload=frame.payload,
             port=dst_port,

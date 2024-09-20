@@ -4,10 +4,10 @@ from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -22,11 +22,11 @@ class DNSClient(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DNSClient"
-        kwargs["port"] = Port["DNS"]
+        kwargs["port"] = PORT_LOOKUP["DNS"]
         # DNS uses UDP by default
         # it switches to TCP when the bytes exceed 512 (or 4096) bytes
         # TCP for now
-        kwargs["protocol"] = IPProtocol["TCP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self.start()
 
@@ -95,7 +95,7 @@ class DNSClient(Service):
                 # send a request to check if domain name exists in the DNS Server
                 software_manager: SoftwareManager = self.software_manager
                 software_manager.send_payload_to_session_manager(
-                    payload=payload, dest_ip_address=self.dns_server, dest_port=Port["DNS"]
+                    payload=payload, dest_ip_address=self.dns_server, dest_port=PORT_LOOKUP["DNS"]
                 )
 
                 # recursively re-call the function passing is_reattempt=True

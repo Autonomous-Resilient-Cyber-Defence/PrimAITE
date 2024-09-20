@@ -5,8 +5,8 @@ from primaite.simulator.network.hardware.node_operating_state import NodeOperati
 from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 
 def check_default_rules(acl_obs):
@@ -62,13 +62,13 @@ def test_firewall_observation():
     # add a rule to the internal inbound and check that the observation is correct
     firewall.internal_inbound_acl.add_rule(
         action=ACLAction.DENY,
-        protocol=IPProtocol["TCP"],
+        protocol=PROTOCOL_LOOKUP["TCP"],
         src_ip_address="10.0.0.1",
         src_wildcard_mask="0.0.0.1",
         dst_ip_address="10.0.0.2",
         dst_wildcard_mask="0.0.0.1",
-        src_port=Port["HTTP"],
-        dst_port=Port["HTTP"],
+        src_port=PORT_LOOKUP["HTTP"],
+        dst_port=PORT_LOOKUP["HTTP"],
         position=5,
     )
 

@@ -18,13 +18,13 @@ from primaite.simulator.network.protocols.ssh import (
     SSHTransportMessage,
     SSHUserCredentials,
 )
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.service import ServiceOperatingState
 from primaite.simulator.system.services.terminal.terminal import RemoteTerminalConnection, Terminal
 from primaite.simulator.system.services.web_server.web_server import WebServer
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -77,11 +77,15 @@ def wireless_wan_network():
     network.connect(pc_a.network_interface[1], router_1.network_interface[2])
 
     # Configure Router 1 ACLs
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["ARP"], dst_port=Port["ARP"], position=22)
-    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol["ICMP"], position=23)
+    router_1.acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
+    )
+    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
 
     # add ACL rule to allow SSH traffic
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["SSH"], dst_port=Port["SSH"], position=21)
+    router_1.acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["SSH"], dst_port=PORT_LOOKUP["SSH"], position=21
+    )
 
     # Configure PC B
     pc_b = Computer(
@@ -329,7 +333,9 @@ def test_SSH_across_network(wireless_wan_network):
     terminal_a: Terminal = pc_a.software_manager.software.get("Terminal")
     terminal_b: Terminal = pc_b.software_manager.software.get("Terminal")
 
-    router_2.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["SSH"], dst_port=Port["SSH"], position=21)
+    router_2.acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["SSH"], dst_port=PORT_LOOKUP["SSH"], position=21
+    )
 
     assert len(terminal_a._connections) == 0
 

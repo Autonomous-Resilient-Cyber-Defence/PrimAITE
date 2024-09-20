@@ -3,9 +3,9 @@ from typing import Any, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -23,8 +23,8 @@ class FTPServer(FTPServiceABC):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPServer"
-        kwargs["port"] = Port["FTP"]
-        kwargs["protocol"] = IPProtocol["TCP"]
+        kwargs["port"] = PORT_LOOKUP["FTP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self.start()
 

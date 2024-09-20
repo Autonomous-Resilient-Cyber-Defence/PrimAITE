@@ -7,7 +7,7 @@ from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.database_client import DatabaseClient
 
 _LOGGER = getLogger(__name__)
@@ -85,7 +85,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
             if "target_ip_address" in request[-1]:
                 request[-1]["target_ip_address"] = IPv4Address(request[-1]["target_ip_address"])
             if "target_port" in request[-1]:
-                request[-1]["target_port"] = Port[request[-1]["target_port"]]
+                request[-1]["target_port"] = PORT_LOOKUP[request[-1]["target_port"]]
             return RequestResponse.from_bool(self.configure(**request[-1]))
 
         rm.add_request("configure", request_type=RequestType(func=_configure))
@@ -94,7 +94,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
     def configure(
         self,
         target_ip_address: IPv4Address,
-        target_port: Optional[int] = Port["POSTGRES_SERVER"],
+        target_port: Optional[int] = PORT_LOOKUP["POSTGRES_SERVER"],
         payload: Optional[str] = None,
         repeat: bool = False,
         port_scan_p_of_success: float = 0.1,

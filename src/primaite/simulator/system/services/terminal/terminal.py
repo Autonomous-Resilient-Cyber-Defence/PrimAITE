@@ -17,10 +17,10 @@ from primaite.simulator.network.protocols.ssh import (
     SSHTransportMessage,
     SSHUserCredentials,
 )
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 
 # TODO 2824: Since remote terminal connections and remote user sessions are the same thing, we could refactor
@@ -137,8 +137,8 @@ class Terminal(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "Terminal"
-        kwargs["port"] = Port["SSH"]
-        kwargs["protocol"] = IPProtocol["TCP"]
+        kwargs["port"] = PORT_LOOKUP["SSH"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:

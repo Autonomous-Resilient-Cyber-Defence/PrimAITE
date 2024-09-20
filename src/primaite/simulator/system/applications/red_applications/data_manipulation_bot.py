@@ -7,10 +7,10 @@ from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -50,8 +50,8 @@ class DataManipulationBot(Application, identifier="DataManipulationBot"):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DataManipulationBot"
-        kwargs["port"] = Port["NONE"]
-        kwargs["protocol"] = IPProtocol["NONE"]
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
 
         super().__init__(**kwargs)
         self._db_connection: Optional[DatabaseClientConnection] = None

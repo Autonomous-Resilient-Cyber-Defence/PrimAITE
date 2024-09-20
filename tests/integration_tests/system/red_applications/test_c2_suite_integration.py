@@ -13,8 +13,7 @@ from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import AccessControlList, ACLAction, Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
@@ -25,6 +24,7 @@ from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
+from primaite.utils.validators import PROTOCOL_LOOKUP
 from tests import TEST_ASSETS_ROOT
 
 
@@ -227,7 +227,7 @@ def test_c2_suite_acl_block(basic_network):
     assert c2_beacon.c2_connection_active == True
 
     # Now we add a HTTP blocking acl (Thus preventing a keep alive)
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=0)
+    router.acl.add_rule(action=ACLAction.DENY, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=0)
 
     c2_beacon.apply_timestep(2)
     c2_beacon.apply_timestep(3)
@@ -322,8 +322,8 @@ def test_c2_suite_acl_bypass(basic_network):
     ################ Confirm Default Setup #########################
 
     # Permitting all HTTP & FTP traffic
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=0)
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["FTP"], dst_port=Port["FTP"], position=1)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=0)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["FTP"], dst_port=PORT_LOOKUP["FTP"], position=1)
 
     c2_beacon.apply_timestep(0)
     assert c2_beacon.keep_alive_inactivity == 1
@@ -337,7 +337,7 @@ def test_c2_suite_acl_bypass(basic_network):
     ################ Denying HTTP Traffic #########################
 
     # Now we add a HTTP blocking acl (Thus preventing a keep alive)
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=0)
+    router.acl.add_rule(action=ACLAction.DENY, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=0)
     blocking_acl: AccessControlList = router.acl.acl[0]
 
     # Asserts to show the C2 Suite is unable to maintain connection:
@@ -359,8 +359,8 @@ def test_c2_suite_acl_bypass(basic_network):
     c2_beacon.configure(
         c2_server_ip_address="192.168.0.2",
         keep_alive_frequency=2,
-        masquerade_port=Port["FTP"],
-        masquerade_protocol=IPProtocol["TCP"],
+        masquerade_port=PORT_LOOKUP["FTP"],
+        masquerade_protocol=PROTOCOL_LOOKUP["TCP"],
     )
 
     c2_beacon.establish()
@@ -407,8 +407,8 @@ def test_c2_suite_acl_bypass(basic_network):
     ################ Denying FTP Traffic & Enable HTTP #########################
 
     # Blocking FTP and re-permitting HTTP:
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["HTTP"], dst_port=Port["HTTP"], position=0)
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port["FTP"], dst_port=Port["FTP"], position=1)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=0)
+    router.acl.add_rule(action=ACLAction.DENY, src_port=PORT_LOOKUP["FTP"], dst_port=PORT_LOOKUP["FTP"], position=1)
     blocking_acl: AccessControlList = router.acl.acl[1]
 
     # Asserts to show the C2 Suite is unable to maintain connection:
@@ -430,8 +430,8 @@ def test_c2_suite_acl_bypass(basic_network):
     c2_beacon.configure(
         c2_server_ip_address="192.168.0.2",
         keep_alive_frequency=2,
-        masquerade_port=Port["HTTP"],
-        masquerade_protocol=IPProtocol["TCP"],
+        masquerade_port=PORT_LOOKUP["HTTP"],
+        masquerade_protocol=PROTOCOL_LOOKUP["TCP"],
     )
 
     c2_beacon.establish()

@@ -6,9 +6,9 @@ from prettytable import MARKDOWN, PrettyTable
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.dns import DNSPacket
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.services.service import Service
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -21,11 +21,11 @@ class DNSServer(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DNSServer"
-        kwargs["port"] = Port["DNS"]
+        kwargs["port"] = PORT_LOOKUP["DNS"]
         # DNS uses UDP by default
         # it switches to TCP when the bytes exceed 512 (or 4096) bytes
         # TCP for now
-        kwargs["protocol"] = IPProtocol["TCP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self.start()
 

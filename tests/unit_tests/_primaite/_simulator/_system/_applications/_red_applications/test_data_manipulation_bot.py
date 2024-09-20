@@ -3,13 +3,13 @@ import pytest
 
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.networks import arcd_uc2_network
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
     DataManipulationAttackStage,
     DataManipulationBot,
 )
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -27,8 +27,8 @@ def test_create_dm_bot(dm_client):
     data_manipulation_bot: DataManipulationBot = dm_client.software_manager.software.get("DataManipulationBot")
 
     assert data_manipulation_bot.name == "DataManipulationBot"
-    assert data_manipulation_bot.port == Port["NONE"]
-    assert data_manipulation_bot.protocol == IPProtocol["NONE"]
+    assert data_manipulation_bot.port == PORT_LOOKUP["NONE"]
+    assert data_manipulation_bot.protocol == PROTOCOL_LOOKUP["NONE"]
     assert data_manipulation_bot.payload == "DELETE"
 
 

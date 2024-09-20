@@ -4,10 +4,10 @@ import pytest
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.protocols.http import HttpResponsePacket, HttpStatusCode
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.web_browser import WebBrowser
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -39,8 +39,8 @@ def test_create_web_client():
     # Web Browser should be pre-installed in computer
     web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
     assert web_browser.name is "WebBrowser"
-    assert web_browser.port is Port["HTTP"]
-    assert web_browser.protocol is IPProtocol["TCP"]
+    assert web_browser.port is PORT_LOOKUP["HTTP"]
+    assert web_browser.protocol is PROTOCOL_LOOKUP["TCP"]
 
 
 def test_receive_invalid_payload(web_browser):

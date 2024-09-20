@@ -3,11 +3,11 @@ from typing import Dict
 
 import pytest
 
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 
 class TestSoftware(Service):
@@ -19,10 +19,10 @@ class TestSoftware(Service):
 def software(file_system):
     return TestSoftware(
         name="TestSoftware",
-        port=Port["ARP"],
+        port=PORT_LOOKUP["ARP"],
         file_system=file_system,
         sys_log=SysLog(hostname="test_service"),
-        protocol=IPProtocol["TCP"],
+        protocol=PROTOCOL_LOOKUP["TCP"],
     )
 
 

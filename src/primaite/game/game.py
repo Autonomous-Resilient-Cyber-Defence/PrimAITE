@@ -27,8 +27,7 @@ from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.nmne import NMNEConfig
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient  # noqa: F401
@@ -51,6 +50,7 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from primaite.simulator.system.software import Software
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -97,8 +97,8 @@ class PrimaiteGameOptions(BaseModel):
         :warning: This will be deprecated in PrimAITE 4.0 and configs will need to be converted.
         """
         for i, port_val in enumerate(vals):
-            if port_val in Port:
-                vals[i] = Port[port_val]
+            if port_val in PORT_LOOKUP:
+                vals[i] = PORT_LOOKUP[port_val]
         return vals
 
     @field_validator("protocols", mode="before")
@@ -110,8 +110,8 @@ class PrimaiteGameOptions(BaseModel):
         :warning: This will be deprecated in PrimAITE 4.0 and configs will need to be converted.
         """
         for i, proto_val in enumerate(vals):
-            if proto_val in IPProtocol:
-                vals[i] = IPProtocol[proto_val]
+            if proto_val in PROTOCOL_LOOKUP:
+                vals[i] = PROTOCOL_LOOKUP[proto_val]
         return vals
 
 
@@ -381,7 +381,7 @@ class PrimaiteGame:
                     if isinstance(port_id, int):
                         port = port_id
                     elif isinstance(port_id, str):
-                        port = Port[port_id]
+                        port = PORT_LOOKUP[port_id]
                     if port:
                         listen_on_ports.append(port)
                 software.listen_on_ports = set(listen_on_ports)
@@ -496,7 +496,7 @@ class PrimaiteGame:
                             opt = application_cfg["options"]
                             new_application.configure(
                                 target_ip_address=IPv4Address(opt.get("target_ip_address")),
-                                target_port=Port[opt.get("target_port", "POSTGRES_SERVER")],
+                                target_port=PORT_LOOKUP[opt.get("target_port", "POSTGRES_SERVER")],
                                 payload=opt.get("payload"),
                                 repeat=bool(opt.get("repeat")),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
@@ -509,8 +509,10 @@ class PrimaiteGame:
                             new_application.configure(
                                 c2_server_ip_address=IPv4Address(opt.get("c2_server_ip_address")),
                                 keep_alive_frequency=(opt.get("keep_alive_frequency", 5)),
-                                masquerade_protocol=IPProtocol[(opt.get("masquerade_protocol", IPProtocol["TCP"]))],
-                                masquerade_port=Port[(opt.get("masquerade_port", Port["HTTP"]))],
+                                masquerade_protocol=PROTOCOL_LOOKUP[
+                                    (opt.get("masquerade_protocol", PROTOCOL_LOOKUP["TCP"]))
+                                ],
+                                masquerade_port=PORT_LOOKUP[(opt.get("masquerade_port", PORT_LOOKUP["HTTP"]))],
                             )
             if "network_interfaces" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():

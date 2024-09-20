@@ -7,12 +7,12 @@ from primaite import getLogger
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.file_system.folder import Folder
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -38,8 +38,8 @@ class DatabaseService(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseService"
-        kwargs["port"] = Port["POSTGRES_SERVER"]
-        kwargs["protocol"] = IPProtocol["TCP"]
+        kwargs["port"] = PORT_LOOKUP["POSTGRES_SERVER"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self._create_db_file()
 

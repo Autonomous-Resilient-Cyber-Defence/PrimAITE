@@ -4,7 +4,7 @@ import pytest
 from primaite.game.agent.observations.acl_observation import ACLObservation
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.simulator.system.services.ntp.ntp_server import NTPServer
@@ -33,7 +33,7 @@ def test_acl_observations(simulation):
     server.software_manager.install(NTPServer)
 
     # add router acl rule
-    router.acl.add_rule(action=ACLAction.PERMIT, dst_port=Port["NTP"], src_port=Port["NTP"], position=1)
+    router.acl.add_rule(action=ACLAction.PERMIT, dst_port=PORT_LOOKUP["NTP"], src_port=PORT_LOOKUP["NTP"], position=1)
 
     acl_obs = ACLObservation(
         where=["network", "nodes", router.hostname, "acl", "acl"],

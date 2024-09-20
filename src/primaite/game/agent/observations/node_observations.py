@@ -12,8 +12,8 @@ from primaite.game.agent.observations.firewall_observation import FirewallObserv
 from primaite.game.agent.observations.host_observations import HostObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.observations.router_observation import RouterObservation
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -76,11 +76,11 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
             new_val = {}
             for proto, port_list in val.items():
                 # convert protocol, for instance ICMP becomes "icmp"
-                proto = IPProtocol[proto] if proto in IPProtocol else proto
+                proto = PROTOCOL_LOOKUP[proto] if proto in PROTOCOL_LOOKUP else proto
                 new_val[proto] = []
                 for port in port_list:
                     # convert ports, for instance "HTTP" becomes 80
-                    port = Port[port] if port in Port else port
+                    port = PORT_LOOKUP[port] if port in PORT_LOOKUP else port
                     new_val[proto].append(port)
             return new_val
 

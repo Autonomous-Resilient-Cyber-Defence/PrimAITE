@@ -8,9 +8,8 @@ from primaite.simulator.network.airspace import AirSpace, IPWirelessNetworkInter
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router, RouterInterface
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.utils.validators import IPV4Address
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
+from primaite.utils.validators import IPV4Address, PROTOCOL_LOOKUP
 
 
 class WirelessAccessPoint(IPWirelessNetworkInterface):
@@ -271,9 +270,9 @@ class WirelessRouter(Router):
             for r_num, r_cfg in cfg["acl"].items():
                 router.acl.add_rule(
                     action=ACLAction[r_cfg["action"]],
-                    src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                    dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                    protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                    src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
+                    dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
+                    protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
                     src_ip_address=r_cfg.get("src_ip"),
                     dst_ip_address=r_cfg.get("dst_ip"),
                     src_wildcard_mask=r_cfg.get("src_wildcard_mask"),

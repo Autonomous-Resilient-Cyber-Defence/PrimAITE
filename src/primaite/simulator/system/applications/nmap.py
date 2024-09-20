@@ -7,10 +7,9 @@ from pydantic import validate_call
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import Application
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validators import IPV4Address, PROTOCOL_LOOKUP
 
 
 class PortScanPayload(SimComponent):
@@ -64,8 +63,8 @@ class NMAP(Application, identifier="NMAP"):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "NMAP"
-        kwargs["port"] = Port["NONE"]
-        kwargs["protocol"] = IPProtocol["NONE"]
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
 
     def _can_perform_network_action(self) -> bool:
@@ -348,12 +347,12 @@ class NMAP(Application, identifier="NMAP"):
         if isinstance(target_port, int):
             target_port = [target_port]
         elif target_port is None:
-            target_port = [port for port in Port if port not in {Port["NONE"], Port["UNUSED"]}]
+            target_port = [port for port in PORT_LOOKUP if port not in {PORT_LOOKUP["NONE"], PORT_LOOKUP["UNUSED"]}]
 
         if isinstance(target_protocol, str):
             target_protocol = [target_protocol]
         elif target_protocol is None:
-            target_protocol = [IPProtocol["TCP"], IPProtocol["UDP"]]
+            target_protocol = [PROTOCOL_LOOKUP["TCP"], PROTOCOL_LOOKUP["UDP"]]
 
         scan_type = self._determine_port_scan_type(list(ip_addresses), target_port)
         active_ports = {}

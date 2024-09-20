@@ -8,9 +8,9 @@ from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.sim_container import Simulation
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 
 def test_router_observation():
@@ -39,13 +39,13 @@ def test_router_observation():
     # Add an ACL rule to the router
     router.acl.add_rule(
         action=ACLAction.DENY,
-        protocol=IPProtocol["TCP"],
+        protocol=PROTOCOL_LOOKUP["TCP"],
         src_ip_address="10.0.0.1",
         src_wildcard_mask="0.0.0.1",
         dst_ip_address="10.0.0.2",
         dst_wildcard_mask="0.0.0.1",
-        src_port=Port["HTTP"],
-        dst_port=Port["HTTP"],
+        src_port=PORT_LOOKUP["HTTP"],
+        dst_port=PORT_LOOKUP["HTTP"],
         position=5,
     )
     # Observe the state using the RouterObservation instance

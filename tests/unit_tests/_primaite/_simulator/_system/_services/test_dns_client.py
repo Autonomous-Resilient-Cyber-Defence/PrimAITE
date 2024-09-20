@@ -6,10 +6,10 @@ import pytest
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSReply, DNSRequest
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.service import ServiceOperatingState
+from primaite.utils.validators import PROTOCOL_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -28,8 +28,8 @@ def test_create_dns_client(dns_client):
     assert dns_client is not None
     dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
     assert dns_client_service.name is "DNSClient"
-    assert dns_client_service.port is Port["DNS"]
-    assert dns_client_service.protocol is IPProtocol["TCP"]
+    assert dns_client_service.port is PORT_LOOKUP["DNS"]
+    assert dns_client_service.protocol is PROTOCOL_LOOKUP["TCP"]
 
 
 def test_dns_client_add_domain_to_cache_when_not_running(dns_client):

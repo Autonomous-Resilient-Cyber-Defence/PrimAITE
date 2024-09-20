@@ -17,15 +17,14 @@ from primaite.simulator.network.hardware.nodes.network.network_node import Netwo
 from primaite.simulator.network.protocols.arp import ARPPacket
 from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.nmap import NMAP
 from primaite.simulator.system.core.session_manager import SessionManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.arp.arp import ARP
 from primaite.simulator.system.services.icmp.icmp import ICMP
 from primaite.simulator.system.services.terminal.terminal import Terminal
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validators import IPV4Address, PROTOCOL_LOOKUP
 
 
 @validate_call()
@@ -134,14 +133,14 @@ class ACLRule(SimComponent):
     def protocol_valid(cls, val: Optional[str]) -> Optional[str]:
         """Assert that the protocol for the rule is predefined in the IPProtocol lookup."""
         if val is not None:
-            assert val in IPProtocol.values(), f"Cannot create ACL rule with invalid protocol {val}"
+            assert val in PROTOCOL_LOOKUP.values(), f"Cannot create ACL rule with invalid protocol {val}"
         return val
 
     @field_validator("src_port", "dst_port", mode="before")
     def ports_valid(cls, val: Optional[int]) -> Optional[int]:
         """Assert that the port for the rule is predefined in the Port lookup."""
         if val is not None:
-            assert val in Port.values(), f"Cannot create ACL rule with invalid port {val}"
+            assert val in PORT_LOOKUP.values(), f"Cannot create ACL rule with invalid port {val}"
         return val
 
     def __str__(self) -> str:
@@ -1271,8 +1270,10 @@ class Router(NetworkNode):
         Initializes the router's ACL (Access Control List) with default rules, permitting essential protocols like ARP
         and ICMP, which are necessary for basic network operations and diagnostics.
         """
-        self.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["ARP"], dst_port=Port["ARP"], position=22)
-        self.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol["ICMP"], position=23)
+        self.acl.add_rule(
+            action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
+        )
+        self.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
 
     def setup_for_episode(self, episode: int):
         """
@@ -1371,9 +1372,9 @@ class Router(NetworkNode):
         """
         dst_ip_address = frame.ip.dst_ip_address
         dst_port = None
-        if frame.ip.protocol == IPProtocol["TCP"]:
+        if frame.ip.protocol == PROTOCOL_LOOKUP["TCP"]:
             dst_port = frame.tcp.dst_port
-        elif frame.ip.protocol == IPProtocol["UDP"]:
+        elif frame.ip.protocol == PROTOCOL_LOOKUP["UDP"]:
             dst_port = frame.udp.dst_port
 
         if self.ip_is_router_interface(dst_ip_address) and (
@@ -1646,9 +1647,9 @@ class Router(NetworkNode):
             for r_num, r_cfg in cfg["acl"].items():
                 router.acl.add_rule(
                     action=ACLAction[r_cfg["action"]],
-                    src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                    dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                    protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                    src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
+                    dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
+                    protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
                     src_ip_address=r_cfg.get("src_ip"),
                     src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                     dst_ip_address=r_cfg.get("dst_ip"),

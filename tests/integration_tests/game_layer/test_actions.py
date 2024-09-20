@@ -21,11 +21,11 @@ from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.software import SoftwareHealthState
+from primaite.utils.validators import PROTOCOL_LOOKUP
 from tests import TEST_ASSETS_ROOT
 
 FIREWALL_ACTIONS_NETWORK = TEST_ASSETS_ROOT / "configs/firewall_actions_network.yaml"
@@ -608,9 +608,9 @@ def test_firewall_acl_add_remove_rule_integration():
     assert firewall.internal_outbound_acl.acl[1].action.name == "DENY"
     assert firewall.internal_outbound_acl.acl[1].src_ip_address == IPv4Address("192.168.0.10")
     assert firewall.internal_outbound_acl.acl[1].dst_ip_address is None
-    assert firewall.internal_outbound_acl.acl[1].dst_port == Port["DNS"]
-    assert firewall.internal_outbound_acl.acl[1].src_port == Port["ARP"]
-    assert firewall.internal_outbound_acl.acl[1].protocol == IPProtocol["ICMP"]
+    assert firewall.internal_outbound_acl.acl[1].dst_port == PORT_LOOKUP["DNS"]
+    assert firewall.internal_outbound_acl.acl[1].src_port == PORT_LOOKUP["ARP"]
+    assert firewall.internal_outbound_acl.acl[1].protocol == PROTOCOL_LOOKUP["ICMP"]
 
     env.step(4)  # Remove ACL rule from Internal Outbound
     assert firewall.internal_outbound_acl.num_rules == 2
@@ -620,9 +620,9 @@ def test_firewall_acl_add_remove_rule_integration():
     assert firewall.dmz_inbound_acl.acl[1].action.name == "DENY"
     assert firewall.dmz_inbound_acl.acl[1].src_ip_address == IPv4Address("192.168.10.10")
     assert firewall.dmz_inbound_acl.acl[1].dst_ip_address == IPv4Address("192.168.0.10")
-    assert firewall.dmz_inbound_acl.acl[1].dst_port == Port["HTTP"]
-    assert firewall.dmz_inbound_acl.acl[1].src_port == Port["HTTP"]
-    assert firewall.dmz_inbound_acl.acl[1].protocol == IPProtocol["UDP"]
+    assert firewall.dmz_inbound_acl.acl[1].dst_port == PORT_LOOKUP["HTTP"]
+    assert firewall.dmz_inbound_acl.acl[1].src_port == PORT_LOOKUP["HTTP"]
+    assert firewall.dmz_inbound_acl.acl[1].protocol == PROTOCOL_LOOKUP["UDP"]
 
     env.step(6)  # Remove ACL rule from DMZ Inbound
     assert firewall.dmz_inbound_acl.num_rules == 2
@@ -632,9 +632,9 @@ def test_firewall_acl_add_remove_rule_integration():
     assert firewall.dmz_outbound_acl.acl[2].action.name == "DENY"
     assert firewall.dmz_outbound_acl.acl[2].src_ip_address == IPv4Address("192.168.10.10")
     assert firewall.dmz_outbound_acl.acl[2].dst_ip_address == IPv4Address("192.168.0.10")
-    assert firewall.dmz_outbound_acl.acl[2].dst_port == Port["HTTP"]
-    assert firewall.dmz_outbound_acl.acl[2].src_port == Port["HTTP"]
-    assert firewall.dmz_outbound_acl.acl[2].protocol == IPProtocol["TCP"]
+    assert firewall.dmz_outbound_acl.acl[2].dst_port == PORT_LOOKUP["HTTP"]
+    assert firewall.dmz_outbound_acl.acl[2].src_port == PORT_LOOKUP["HTTP"]
+    assert firewall.dmz_outbound_acl.acl[2].protocol == PROTOCOL_LOOKUP["TCP"]
 
     env.step(8)  # Remove ACL rule from DMZ Outbound
     assert firewall.dmz_outbound_acl.num_rules == 2
@@ -644,9 +644,9 @@ def test_firewall_acl_add_remove_rule_integration():
     assert firewall.external_inbound_acl.acl[10].action.name == "DENY"
     assert firewall.external_inbound_acl.acl[10].src_ip_address == IPv4Address("192.168.20.10")
     assert firewall.external_inbound_acl.acl[10].dst_ip_address == IPv4Address("192.168.10.10")
-    assert firewall.external_inbound_acl.acl[10].dst_port == Port["POSTGRES_SERVER"]
-    assert firewall.external_inbound_acl.acl[10].src_port == Port["POSTGRES_SERVER"]
-    assert firewall.external_inbound_acl.acl[10].protocol == IPProtocol["ICMP"]
+    assert firewall.external_inbound_acl.acl[10].dst_port == PORT_LOOKUP["POSTGRES_SERVER"]
+    assert firewall.external_inbound_acl.acl[10].src_port == PORT_LOOKUP["POSTGRES_SERVER"]
+    assert firewall.external_inbound_acl.acl[10].protocol == PROTOCOL_LOOKUP["ICMP"]
 
     env.step(10)  # Remove ACL rule from External Inbound
     assert firewall.external_inbound_acl.num_rules == 1
