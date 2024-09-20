@@ -38,31 +38,31 @@ Implementation
  - Manages remote connections in a dictionary by session ID.
  - Processes commands, forwarding to the ``RequestManager`` or ``SessionManager`` where appropriate.
  - Extends Service class.
-  - A detailed guide on the implementation and functionality of the Terminal class can be found in the "Terminal-Processing" jupyter notebook.
+
+A detailed guide on the implementation and functionality of the Terminal class can be found in the "Terminal-Processing" jupyter notebook.
 
 Command Format
 ^^^^^^^^^^^^^^
 
-``Terminals`` implement their commands through leveraging the pre-existing :doc:`../../request_system`.
+Terminals implement their commands through leveraging the pre-existing :ref:`request_system`.
 
-Due to this ``Terminals`` will only accept commands passed within the ``RequestFormat``.
+Due to this Terminals will only accept commands passed within the ``RequestFormat``.
 
 :py:class:`primaite.game.interface.RequestFormat`
 
 For example, ``terminal`` command actions when used in ``yaml`` format are formatted as follows:
 
 .. code-block:: yaml
+
     command:
         - "file_system"
         - "create"
         - "file"
         - "downloads"
         - "cat.png"
-        - "False"
+        - "False
 
-**This command creates file called ``cat.png`` within the ``downloads`` folder.**
-
-This is then loaded from ``yaml`` into a dictionary containing the terminal command:
+This is then loaded from yaml into a dictionary containing the terminal command:
 
 .. code-block:: python
 
