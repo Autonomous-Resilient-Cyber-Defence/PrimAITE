@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from primaite import DEFAULT_BANDWIDTH, getLogger
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
+from primaite.game.agent.observations import NICObservation
 from primaite.game.agent.observations.observation_manager import ObservationManager
 from primaite.game.agent.rewards import RewardFunction, SharedReward
 from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
@@ -80,6 +81,8 @@ class PrimaiteGameOptions(BaseModel):
 
     seed: int = None
     """Random number seed for RNGs."""
+    generate_seed_value: bool = False
+    """Internally generated seed value."""
     max_episode_length: int = 256
     """Maximum number of episodes for the PrimAITE game."""
     ports: List[str]
@@ -277,6 +280,7 @@ class PrimaiteGame:
         links_cfg = network_config.get("links", [])
         # Set the NMNE capture config
         NetworkInterface.nmne_config = NMNEConfig(**network_config.get("nmne_config", {}))
+        NICObservation.capture_nmne = NMNEConfig(**network_config.get("nmne_config", {})).capture_nmne
 
         for node_cfg in nodes_cfg:
             n_type = node_cfg["type"]

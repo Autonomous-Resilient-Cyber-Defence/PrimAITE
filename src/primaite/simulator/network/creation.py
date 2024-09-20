@@ -7,7 +7,6 @@ from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 
 
 def num_of_switches_required(num_nodes: int, max_network_interface: int = 24) -> int:
@@ -98,7 +97,6 @@ def create_office_lan(
         default_gateway = IPv4Address(f"192.168.{subnet_base}.1")
         router = Router(hostname=f"router_{lan_name}", start_up_duration=0)
         router.power_on()
-        router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
         router.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
         network.add_node(router)
         router.configure_port(port=1, ip_address=default_gateway, subnet_mask="255.255.255.0")

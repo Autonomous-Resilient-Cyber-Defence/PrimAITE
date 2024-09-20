@@ -92,10 +92,6 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: WebBrowser
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``WebBrowser``
 
 ``target_url``
 """"""""""""""
@@ -109,3 +105,9 @@ The domain ``arcd.com`` can be matched by
 - http://arcd.com/
 - http://arcd.com/users/
 - arcd.com
+
+
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
+
+See :ref:`Common Configuration`

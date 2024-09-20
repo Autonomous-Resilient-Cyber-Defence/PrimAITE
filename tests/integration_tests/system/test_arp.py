@@ -1,5 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from primaite.simulator.network.hardware.nodes.network.router import RouterARP
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router, RouterARP
+from primaite.simulator.network.transmission.network_layer import IPProtocol
+from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.arp.arp import ARP
 from tests.integration_tests.network.test_routing import multi_hop_network
 
@@ -46,5 +48,21 @@ def test_arp_fails_for_network_address_between_routers(multi_hop_network):
 
     expected_result = None
     actual_result = router_1_arp.get_arp_cache_mac_address(router_1.network_interface[1].ip_network.network_address)
+
+    assert actual_result == expected_result
+
+
+def test_arp_not_affected_by_acl(multi_hop_network):
+    pc_a = multi_hop_network.get_node_by_hostname("pc_a")
+    router_1: Router = multi_hop_network.get_node_by_hostname("router_1")
+
+    # Add explicit rule to block ARP traffic. This shouldn't actually stop ARP traffic
+    # as it operates a different layer within the network.
+    router_1.acl.add_rule(action=ACLAction.DENY, src_port=Port.ARP, dst_port=Port.ARP, position=23)
+
+    pc_a_arp: ARP = pc_a.software_manager.arp
+
+    expected_result = router_1.network_interface[2].mac_address
+    actual_result = pc_a_arp.get_arp_cache_mac_address(router_1.network_interface[2].ip_address)
 
     assert actual_result == expected_result

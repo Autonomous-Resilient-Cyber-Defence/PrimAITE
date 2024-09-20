@@ -877,7 +877,7 @@ class FirewallACLRemoveRuleAction(AbstractAction):
     """Action which removes a rule from a firewall port's ACL."""
 
     def __init__(self, manager: "ActionManager", max_acl_rules: int, **kwargs) -> None:
-        """Init method for RouterACLRemoveRuleAction.
+        """Init method for FirewallACLRemoveRuleAction.
 
         :param manager: Reference to the ActionManager which created this action.
         :type manager: ActionManager
@@ -1114,6 +1114,38 @@ class ConfigureC2BeaconAction(AbstractAction):
         ConfigureC2BeaconAction._Opts.model_validate(config)  # check that options adhere to schema
 
         return ["network", "node", node_name, "application", "C2Beacon", "configure", config.__dict__]
+
+
+class NodeAccountsAddUserAction(AbstractAction):
+    """Action which changes adds a User."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: str, username: str, password: str, is_admin: bool) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return ["network", "node", node_name, "service", "UserManager", "add_user", username, password, is_admin]
+
+
+class NodeAccountsDisableUserAction(AbstractAction):
+    """Action which disables a user."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: str, username: str) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "UserManager",
+            "disable_user",
+            username,
+        ]
 
 
 class NodeAccountsChangePasswordAction(AbstractAction):
@@ -1390,6 +1422,8 @@ class ActionManager:
         "C2_SERVER_RANSOMWARE_CONFIGURE": RansomwareConfigureC2ServerAction,
         "C2_SERVER_TERMINAL_COMMAND": TerminalC2ServerAction,
         "C2_SERVER_DATA_EXFILTRATE": ExfiltrationC2ServerAction,
+        "NODE_ACCOUNTS_ADD_USER": NodeAccountsAddUserAction,
+        "NODE_ACCOUNTS_DISABLE_USER": NodeAccountsDisableUserAction,
         "NODE_ACCOUNTS_CHANGE_PASSWORD": NodeAccountsChangePasswordAction,
         "SSH_TO_REMOTE": NodeSessionsRemoteLoginAction,
         "SESSIONS_REMOTE_LOGOFF": NodeSessionsRemoteLogoutAction,
@@ -1513,7 +1547,7 @@ class ActionManager:
             "num_nics": max_nics_per_node,
             "num_acl_rules": max_acl_rules,
             "num_protocols": len(self.protocols),
-            "num_ports": len(self.protocols),
+            "num_ports": len(self.ports),
             "num_ips": len(self.ip_address_list),
             "max_acl_rules": max_acl_rules,
             "max_nics_per_node": max_nics_per_node,

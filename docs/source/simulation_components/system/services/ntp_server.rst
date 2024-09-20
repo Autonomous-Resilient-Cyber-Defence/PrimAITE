@@ -75,10 +75,8 @@ Via Configuration
                     - ref: ntp_server
                     type: NTPServer
 
-Configuration
-=============
 
-.. include:: ../common/common_configuration.rst
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
 
-.. |SOFTWARE_NAME| replace:: NTPServer
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``NTPServer``
+See :ref:`Common Configuration`

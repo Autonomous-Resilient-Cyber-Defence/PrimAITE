@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from gymnasium.core import ActType, ObsType
+from prettytable import PrettyTable
 from pydantic import BaseModel, model_validator
 
 from primaite.game.agent.actions import ActionManager
@@ -125,6 +126,37 @@ class AbstractAgent(ABC):
         self.agent_settings = agent_settings or AgentSettings()
         self.history: List[AgentHistoryItem] = []
         self.logger = AgentLog(agent_name)
+
+    def add_agent_action(self, item: AgentHistoryItem, table: PrettyTable) -> PrettyTable:
+        """Update the given table with information from given AgentHistoryItem."""
+        node, application = "unknown", "unknown"
+        if (node_id := item.parameters.get("node_id")) is not None:
+            node = self.action_manager.node_names[node_id]
+        if (application_id := item.parameters.get("application_id")) is not None:
+            application = self.action_manager.application_names[node_id][application_id]
+        if (application_name := item.parameters.get("application_name")) is not None:
+            application = application_name
+        table.add_row([item.timestep, item.action, node, application, item.response.status])
+        return table
+
+    def show_history(self, ignored_actions: Optional[list] = None):
+        """
+        Print an agent action provided it's not the DONOTHING action.
+
+        :param ignored_actions: OPTIONAL: List of actions to be ignored when displaying the history.
+                                If not provided, defaults to ignore DONOTHING actions.
+        """
+        if not ignored_actions:
+            ignored_actions = ["DONOTHING"]
+        table = PrettyTable()
+        table.field_names = ["Step", "Action", "Node", "Application", "Response"]
+        print(f"Actions for '{self.agent_name}':")
+        for item in self.history:
+            if item.action in ignored_actions:
+                pass
+            else:
+                table = self.add_agent_action(item=item, table=table)
+        print(table)
 
     def update_observation(self, state: Dict) -> ObsType:
         """

@@ -97,16 +97,9 @@ we'll use the following Network that has a client, server, two switches, and a r
     network.connect(endpoint_a=switch_2.network_interface[1], endpoint_b=client_1.network_interface[1])
     network.connect(endpoint_a=switch_1.network_interface[1], endpoint_b=server_1.network_interface[1])
 
-8. Add ACL rules on the Router to allow ARP and ICMP traffic.
+8. Add an ACL rule on the Router to allow ICMP traffic.
 
 .. code-block:: python
-
-    router_1.acl.add_rule(
-        action=ACLAction.PERMIT,
-        src_port=Port.ARP,
-        dst_port=Port.ARP,
-        position=22
-    )
 
     router_1.acl.add_rule(
         action=ACLAction.PERMIT,

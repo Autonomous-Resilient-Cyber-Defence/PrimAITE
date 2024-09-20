@@ -91,7 +91,7 @@ List of file types: :py:mod:`primaite.simulator.file_system.file_type.FileType`
 ---------
 
 The list of pre-existing users that are additional to the default admin user (``username=admin``, ``password=admin``).
-Additional users are configured as an array nd must contain a ``username``, ``password``, and can contain an optional
+Additional users are configured as an array and must contain a ``username``, ``password``, and can contain an optional
 boolean ``is_admin``.
 
 Example of adding two additional users to a node:
@@ -101,11 +101,8 @@ Example of adding two additional users to a node:
     simulation:
       network:
         nodes:
-        - hostname: client_1
-          type: computer
-          ip_address: 192.168.10.11
-          subnet_mask: 255.255.255.0
-          default_gateway: 192.168.10.1
+        - hostname: [hostname]
+          type: [Node Type]
           users:
             - username: jane.doe
               password: '1234'

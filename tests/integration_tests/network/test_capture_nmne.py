@@ -1,5 +1,11 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+from itertools import product
+
+import yaml
+
+from primaite.config.load import data_manipulation_config_path
 from primaite.game.agent.observations.nic_observations import NICObservation
+from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.host.server import Server
@@ -277,3 +283,19 @@ def test_capture_nmne_observations(uc2_network: Network):
         assert web_nic_obs["outbound"] == expected_nmne
         assert db_nic_obs["inbound"] == expected_nmne
         uc2_network.apply_timestep(timestep=0)
+
+
+def test_nmne_parameter_settings():
+    """
+    Check that the four permutations of the values of capture_nmne and
+    include_nmne work as expected.
+    """
+
+    with open(data_manipulation_config_path(), "r") as f:
+        cfg = yaml.safe_load(f)
+
+    DEFENDER = 3
+    for capture, include in product([True, False], [True, False]):
+        cfg["simulation"]["network"]["nmne_config"]["capture_nmne"] = capture
+        cfg["agents"][DEFENDER]["observation_space"]["options"]["components"][0]["options"]["include_nmne"] = include
+        PrimaiteGymEnv(env_config=cfg)
