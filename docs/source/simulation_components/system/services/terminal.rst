@@ -26,7 +26,7 @@ Key capabilities
 Usage
 """""
 
- - Pre-Installs on any `Node` (component with the exception of `Switches`).
+ - Pre-Installs on any `Node` component (with the exception of `Switches`).
  - Terminal Clients connect, execute commands and disconnect from remote nodes.
  - Ensures that users are logged in to the component before executing any commands.
  - Service runs on SSH port 22 by default.
@@ -68,7 +68,7 @@ This is then loaded from yaml into a dictionary containing the terminal command:
 
     {"command":["file_system", "create", "file", "downloads", "cat.png", "False"]}
 
-Which is then parsed to the ``Terminals`` Request Manager to be executed.
+Which is then passed to the ``Terminals`` Request Manager to be executed.
 
 Game Layer Usage (Agents)
 ========================
@@ -121,7 +121,7 @@ Agents are able to use the terminal to login into remote nodes via ``SSH`` which
 ``NODE_SEND_REMOTE_COMMAND``
 """"""""""""""""""""""""""""
 
-After remotely login into another host, a agent can use the ``NODE_SEND_REMOTE_COMMAND`` to execute commands across the network remotely.
+After remotely logging into another host, an agent can use the ``NODE_SEND_REMOTE_COMMAND`` to execute commands across the network remotely.
 
 .. code-block:: yaml
 
