@@ -1298,6 +1298,28 @@ class NodeSendRemoteCommandAction(AbstractAction):
         ]
 
 
+class NodeSendLocalCommandAction(AbstractAction):
+    """Action which sends a terminal command using a local terminal session."""
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, node_id: int, username: str, password: str, command: RequestFormat) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        node_name = self.manager.get_node_name_by_idx(node_id)
+        return [
+            "network",
+            "node",
+            node_name,
+            "service",
+            "Terminal",
+            "send_local_command",
+            username,
+            password,
+            {"command": command},
+        ]
+
+
 class TerminalC2ServerAction(AbstractAction):
     """Action which causes the C2 Server to send a command to the C2 Beacon to execute the terminal command passed."""
 
@@ -1406,6 +1428,7 @@ class ActionManager:
         "SSH_TO_REMOTE": NodeSessionsRemoteLoginAction,
         "SESSIONS_REMOTE_LOGOFF": NodeSessionsRemoteLogoutAction,
         "NODE_SEND_REMOTE_COMMAND": NodeSendRemoteCommandAction,
+        "NODE_SEND_LOCAL_COMMAND": NodeSendLocalCommandAction,
     }
     """Dictionary which maps action type strings to the corresponding action class."""
 

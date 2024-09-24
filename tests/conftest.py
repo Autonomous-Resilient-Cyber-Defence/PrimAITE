@@ -466,6 +466,7 @@ def game_and_agent():
         {"type": "SSH_TO_REMOTE"},
         {"type": "SESSIONS_REMOTE_LOGOFF"},
         {"type": "NODE_SEND_REMOTE_COMMAND"},
+        {"type": "NODE_SEND_LOCAL_COMMAND"},
     ]
 
     action_space = ActionManager(
