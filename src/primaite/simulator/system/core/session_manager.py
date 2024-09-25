@@ -413,5 +413,5 @@ class SessionManager:
         table.align = "l"
         table.title = f"{self.sys_log.hostname} Session Manager"
         for session in self.sessions_by_key.values():
-            table.add_row([session.dst_ip_address, session.dst_port.value, session.protocol.name])
+            table.add_row([session.with_ip_address, session.dst_port.value, session.protocol.name])
         print(table)
