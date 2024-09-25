@@ -84,9 +84,9 @@ def test_application_executions_categories(simulation):
         thresholds={"app_executions": {"low": 3, "medium": 6, "high": 9}},
     )
 
-    assert app_obs.high_threshold == 9
-    assert app_obs.med_threshold == 6
-    assert app_obs.low_threshold == 3
+    assert app_obs.high_app_execution_threshold == 9
+    assert app_obs.med_app_execution_threshold == 6
+    assert app_obs.low_app_execution_threshold == 3
 
     with pytest.raises(Exception):
         # should throw an error

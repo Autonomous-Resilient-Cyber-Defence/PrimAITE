@@ -53,9 +53,9 @@ def test_config_file_access_categories(simulation):
         thresholds={"file_access": {"low": 3, "medium": 6, "high": 9}},
     )
 
-    assert file_obs.high_threshold == 9
-    assert file_obs.med_threshold == 6
-    assert file_obs.low_threshold == 3
+    assert file_obs.high_file_access_threshold == 9
+    assert file_obs.med_file_access_threshold == 6
+    assert file_obs.low_file_access_threshold == 3
 
     with pytest.raises(Exception):
         # should throw an error

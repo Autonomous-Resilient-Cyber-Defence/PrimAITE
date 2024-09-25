@@ -97,7 +97,7 @@ class AbstractObservation(ABC):
 
             if thresholds[idx] <= thresholds[idx - 1]:
                 raise Exception(
-                    f"{threshold_identifier} threshold ({thresholds[idx]}) "
-                    f"is greater than or equal to ({thresholds[idx - 1]}.)"
+                    f"{threshold_identifier} threshold ({thresholds[idx - 1]}) "
+                    f"is greater than or equal to ({thresholds[idx]}.)"
                 )
         return True

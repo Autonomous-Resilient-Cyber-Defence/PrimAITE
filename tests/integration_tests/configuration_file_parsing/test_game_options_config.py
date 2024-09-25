@@ -34,9 +34,9 @@ def test_nmne_threshold():
 
     # get NIC observation
     nic_obs = game.agents["defender"].observation_manager.obs.components["NODES"].hosts[0].nics[0]
-    assert nic_obs.low_threshold == 5
-    assert nic_obs.med_threshold == 25
-    assert nic_obs.high_threshold == 100
+    assert nic_obs.low_nmne_threshold == 5
+    assert nic_obs.med_nmne_threshold == 25
+    assert nic_obs.high_nmne_threshold == 100
 
 
 def test_file_access_threshold():
@@ -47,9 +47,9 @@ def test_file_access_threshold():
 
     # get file observation
     file_obs = game.agents["defender"].observation_manager.obs.components["NODES"].hosts[0].folders[0].files[0]
-    assert file_obs.low_threshold == 2
-    assert file_obs.med_threshold == 5
-    assert file_obs.high_threshold == 10
+    assert file_obs.low_file_access_threshold == 2
+    assert file_obs.med_file_access_threshold == 5
+    assert file_obs.high_file_access_threshold == 10
 
 
 def test_app_executions_threshold():
@@ -60,6 +60,6 @@ def test_app_executions_threshold():
 
     # get application observation
     app_obs = game.agents["defender"].observation_manager.obs.components["NODES"].hosts[0].applications[0]
-    assert app_obs.low_threshold == 2
-    assert app_obs.med_threshold == 3
-    assert app_obs.high_threshold == 5
+    assert app_obs.low_app_execution_threshold == 2
+    assert app_obs.med_app_execution_threshold == 3
+    assert app_obs.high_app_execution_threshold == 5

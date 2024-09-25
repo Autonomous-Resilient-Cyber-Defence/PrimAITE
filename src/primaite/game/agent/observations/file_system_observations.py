@@ -55,21 +55,35 @@ class FileObservation(AbstractObservation, identifier="FILE"):
             self.default_observation["num_access"] = 0
 
         if thresholds.get("file_access") is None:
-            self.low_threshold = 0
-            self.med_threshold = 5
-            self.high_threshold = 10
+            self.low_file_access_threshold = 0
+            self.med_file_access_threshold = 5
+            self.high_file_access_threshold = 10
         else:
-            if self._validate_thresholds(
+            self._set_file_access_threshold(
                 thresholds=[
                     thresholds.get("file_access")["low"],
                     thresholds.get("file_access")["medium"],
                     thresholds.get("file_access")["high"],
-                ],
-                threshold_identifier="file_access",
-            ):
-                self.low_threshold = thresholds.get("file_access")["low"]
-                self.med_threshold = thresholds.get("file_access")["medium"]
-                self.high_threshold = thresholds.get("file_access")["high"]
+                ]
+            )
+
+    def _set_file_access_threshold(self, thresholds: List[int]):
+        """
+        Method that validates and then sets the file access threshold.
+
+        :param: thresholds: The file access threshold to validate and set.
+        """
+        if self._validate_thresholds(
+            thresholds=[
+                thresholds[0],
+                thresholds[1],
+                thresholds[2],
+            ],
+            threshold_identifier="file_access",
+        ):
+            self.low_file_access_threshold = thresholds[0]
+            self.med_file_access_threshold = thresholds[1]
+            self.high_file_access_threshold = thresholds[2]
 
     def _categorise_num_access(self, num_access: int) -> int:
         """
@@ -78,11 +92,11 @@ class FileObservation(AbstractObservation, identifier="FILE"):
         :param num_access: Number of file accesses.
         :return: Bin number corresponding to the number of accesses.
         """
-        if num_access > self.high_threshold:
+        if num_access > self.high_file_access_threshold:
             return 3
-        elif num_access > self.med_threshold:
+        elif num_access > self.med_file_access_threshold:
             return 2
-        elif num_access > self.low_threshold:
+        elif num_access > self.low_file_access_threshold:
             return 1
         return 0
 
@@ -189,23 +203,6 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         self.where: WhereType = where
 
         self.file_system_requires_scan: bool = file_system_requires_scan
-
-        if thresholds.get("file_access") is None:
-            self.low_threshold = 0
-            self.med_threshold = 5
-            self.high_threshold = 10
-        else:
-            if self._validate_thresholds(
-                thresholds=[
-                    thresholds.get("file_access")["low"],
-                    thresholds.get("file_access")["medium"],
-                    thresholds.get("file_access")["high"],
-                ],
-                threshold_identifier="file_access",
-            ):
-                self.low_threshold = thresholds.get("file_access")["low"]
-                self.med_threshold = thresholds.get("file_access")["medium"]
-                self.high_threshold = thresholds.get("file_access")["high"]
 
         self.files: List[FileObservation] = files
         while len(self.files) < num_files:

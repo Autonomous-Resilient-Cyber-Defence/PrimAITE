@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from typing import ClassVar, Dict, Optional
+from typing import ClassVar, Dict, List, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -55,21 +55,17 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
             self.nmne_outbound_last_step: int = 0
 
         if thresholds.get("nmne") is None:
-            self.low_threshold = 0
-            self.med_threshold = 5
-            self.high_threshold = 10
+            self.low_nmne_threshold = 0
+            self.med_nmne_threshold = 5
+            self.high_nmne_threshold = 10
         else:
-            if self._validate_thresholds(
+            self._set_nmne_threshold(
                 thresholds=[
                     thresholds.get("nmne")["low"],
                     thresholds.get("nmne")["medium"],
                     thresholds.get("nmne")["high"],
-                ],
-                threshold_identifier="nmne",
-            ):
-                self.low_threshold = thresholds.get("nmne")["low"]
-                self.med_threshold = thresholds.get("nmne")["medium"]
-                self.high_threshold = thresholds.get("nmne")["high"]
+                ]
+            )
 
         self.monitored_traffic = monitored_traffic
         if self.monitored_traffic:
@@ -108,11 +104,11 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
         :param nmne_count: Number of MNEs detected.
         :return: Bin number corresponding to the number of MNEs. Returns 0, 1, 2, or 3 based on the detected MNE count.
         """
-        if nmne_count > self.high_threshold:
+        if nmne_count > self.high_nmne_threshold:
             return 3
-        elif nmne_count > self.med_threshold:
+        elif nmne_count > self.med_nmne_threshold:
             return 2
-        elif nmne_count > self.low_threshold:
+        elif nmne_count > self.low_nmne_threshold:
             return 1
         return 0
 
@@ -125,6 +121,20 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
 
         bandwidth_utilisation = traffic_value / nic_max_bandwidth
         return int(bandwidth_utilisation * 9) + 1
+
+    def _set_nmne_threshold(self, thresholds: List[int]):
+        """
+        Method that validates and then sets the NMNE threshold.
+
+        :param: thresholds: The NMNE threshold to validate and set.
+        """
+        if self._validate_thresholds(
+            thresholds=thresholds,
+            threshold_identifier="nmne",
+        ):
+            self.low_nmne_threshold = thresholds[0]
+            self.med_nmne_threshold = thresholds[1]
+            self.high_nmne_threshold = thresholds[2]
 
     def observe(self, state: Dict) -> ObsType:
         """

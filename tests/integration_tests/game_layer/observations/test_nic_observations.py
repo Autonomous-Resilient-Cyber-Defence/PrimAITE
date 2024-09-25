@@ -118,9 +118,9 @@ def test_nic_categories(simulation):
 
     nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=True)
 
-    assert nic_obs.high_threshold == 10  # default
-    assert nic_obs.med_threshold == 5  # default
-    assert nic_obs.low_threshold == 0  # default
+    assert nic_obs.high_nmne_threshold == 10  # default
+    assert nic_obs.med_nmne_threshold == 5  # default
+    assert nic_obs.low_nmne_threshold == 0  # default
 
 
 def test_config_nic_categories(simulation):
@@ -131,9 +131,9 @@ def test_config_nic_categories(simulation):
         include_nmne=True,
     )
 
-    assert nic_obs.high_threshold == 9
-    assert nic_obs.med_threshold == 6
-    assert nic_obs.low_threshold == 3
+    assert nic_obs.high_nmne_threshold == 9
+    assert nic_obs.med_nmne_threshold == 6
+    assert nic_obs.low_nmne_threshold == 3
 
     with pytest.raises(Exception):
         # should throw an error
