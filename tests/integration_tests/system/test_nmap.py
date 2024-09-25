@@ -5,9 +5,9 @@ from ipaddress import IPv4Address, IPv4Network
 import yaml
 
 from primaite.game.game import PrimaiteGame
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.nmap import NMAP
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 from tests import TEST_ASSETS_ROOT
 
 

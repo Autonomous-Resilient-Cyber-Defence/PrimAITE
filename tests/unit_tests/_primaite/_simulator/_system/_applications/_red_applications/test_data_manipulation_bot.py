@@ -3,13 +3,13 @@ import pytest
 
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.networks import arcd_uc2_network
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
     DataManipulationAttackStage,
     DataManipulationBot,
 )
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")

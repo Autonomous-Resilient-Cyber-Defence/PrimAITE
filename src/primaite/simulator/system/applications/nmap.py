@@ -7,9 +7,10 @@ from pydantic import validate_call
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import Application
-from primaite.utils.validators import IPV4Address, PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import IPProtocol, is_valid_protocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import is_valid_port, Port, PORT_LOOKUP
 
 
 class PortScanPayload(SimComponent):
@@ -23,8 +24,8 @@ class PortScanPayload(SimComponent):
     """
 
     ip_address: IPV4Address
-    port: int
-    protocol: str
+    port: Port
+    protocol: IPProtocol
     request: bool = True
 
     def describe_state(self) -> Dict:
@@ -217,14 +218,14 @@ class NMAP(Application, identifier="NMAP"):
             print(table.get_string(sortby="IP Address"))
         return active_nodes
 
-    def _determine_port_scan_type(self, target_ip_addresses: List[IPV4Address], target_ports: List[int]) -> str:
+    def _determine_port_scan_type(self, target_ip_addresses: List[IPV4Address], target_ports: List[Port]) -> str:
         """
         Determine the type of port scan based on the number of target IP addresses and ports.
 
         :param target_ip_addresses: The list of target IP addresses.
         :type target_ip_addresses: List[IPV4Address]
         :param target_ports: The list of target ports.
-        :type target_ports: List[int]
+        :type target_ports: List[Port]
 
         :return: The type of port scan.
         :rtype: str
@@ -237,8 +238,8 @@ class NMAP(Application, identifier="NMAP"):
     def _check_port_open_on_ip_address(
         self,
         ip_address: IPv4Address,
-        port: int,
-        protocol: str,
+        port: Port,
+        protocol: IPProtocol,
         is_re_attempt: bool = False,
         port_scan_uuid: Optional[str] = None,
     ) -> bool:
@@ -250,7 +251,7 @@ class NMAP(Application, identifier="NMAP"):
         :param port: The target port.
         :type port: Port
         :param protocol: The protocol used for the port scan.
-        :type protocol: str
+        :type protocol: IPProtocol
         :param is_re_attempt: Flag indicating if this is a reattempt. Defaults to False.
         :type is_re_attempt: bool
         :param port_scan_uuid: The UUID of the port scan payload. Defaults to None.
@@ -319,20 +320,20 @@ class NMAP(Application, identifier="NMAP"):
     def port_scan(
         self,
         target_ip_address: Union[IPV4Address, List[IPV4Address], IPv4Network, List[IPv4Network]],
-        target_protocol: Optional[Union[str, List[str]]] = None,
-        target_port: Optional[Union[int, List[int]]] = None,
+        target_protocol: Optional[Union[IPProtocol, List[IPProtocol]]] = None,
+        target_port: Optional[Union[Port, List[Port]]] = None,
         show: bool = True,
         json_serializable: bool = False,
-    ) -> Dict[IPv4Address, Dict[str, List[int]]]:
+    ) -> Dict[IPv4Address, Dict[IPProtocol, List[Port]]]:
         """
         Perform a port scan on the target IP address(es).
 
         :param target_ip_address: The target IP address(es) or network(s) for the port scan.
         :type target_ip_address: Union[IPV4Address, List[IPV4Address], IPv4Network, List[IPv4Network]]
         :param target_protocol: The protocol(s) to use for the port scan. Defaults to None, which includes TCP and UDP.
-        :type target_protocol: Optional[Union[str, List[str]]]
+        :type target_protocol: Optional[Union[IPProtocol, List[IPProtocol]]]
         :param target_port: The port(s) to scan. Defaults to None, which includes all valid ports.
-        :type target_port: Optional[Union[int, List[int]]]
+        :type target_port: Optional[Union[Port, List[Port]]]
         :param show: Flag indicating whether to display the scan results. Defaults to True.
         :type show: bool
         :param json_serializable: Flag indicating whether the return value should be JSON serializable. Defaults to
@@ -340,16 +341,16 @@ class NMAP(Application, identifier="NMAP"):
         :type json_serializable: bool
 
         :return: A dictionary mapping IP addresses to protocols and lists of open ports.
-        :rtype: Dict[IPv4Address, Dict[str, List[int]]]
+        :rtype: Dict[IPv4Address, Dict[IPProtocol, List[Port]]]
         """
         ip_addresses = self._explode_ip_address_network_array(target_ip_address)
 
-        if isinstance(target_port, int):
+        if is_valid_port(target_port):
             target_port = [target_port]
         elif target_port is None:
             target_port = [port for port in PORT_LOOKUP if port not in {PORT_LOOKUP["NONE"], PORT_LOOKUP["UNUSED"]}]
 
-        if isinstance(target_protocol, str):
+        if is_valid_protocol(target_protocol):
             target_protocol = [target_protocol]
         elif target_protocol is None:
             target_protocol = [PROTOCOL_LOOKUP["TCP"], PROTOCOL_LOOKUP["UDP"]]
@@ -389,12 +390,12 @@ class NMAP(Application, identifier="NMAP"):
     def network_service_recon(
         self,
         target_ip_address: Union[IPV4Address, List[IPV4Address], IPv4Network, List[IPv4Network]],
-        target_protocol: Optional[Union[str, List[str]]] = None,
-        target_port: Optional[Union[int, List[int]]] = None,
+        target_protocol: Optional[Union[IPProtocol, List[IPProtocol]]] = None,
+        target_port: Optional[Union[Port, List[Port]]] = None,
         show: bool = True,
         show_online_only: bool = True,
         json_serializable: bool = False,
-    ) -> Dict[IPv4Address, Dict[str, List[int]]]:
+    ) -> Dict[IPv4Address, Dict[IPProtocol, List[Port]]]:
         """
         Perform a network service reconnaissance which includes a ping scan followed by a port scan.
 
@@ -407,9 +408,9 @@ class NMAP(Application, identifier="NMAP"):
         :param target_ip_address: The target IP address(es) or network(s) for the port scan.
         :type target_ip_address: Union[IPV4Address, List[IPV4Address], IPv4Network, List[IPv4Network]]
         :param target_protocol: The protocol(s) to use for the port scan. Defaults to None, which includes TCP and UDP.
-        :type target_protocol: Optional[Union[str, List[str]]]
+        :type target_protocol: Optional[Union[IPProtocol, List[IPProtocol]]]
         :param target_port: The port(s) to scan. Defaults to None, which includes all valid ports.
-        :type target_port: Optional[Union[int, List[int]]]
+        :type target_port: Optional[Union[Port, List[Port]]]
         :param show: Flag indicating whether to display the scan results. Defaults to True.
         :type show: bool
         :param show_online_only: Flag indicating whether to show only the online hosts. Defaults to True.
@@ -419,7 +420,7 @@ class NMAP(Application, identifier="NMAP"):
         :type json_serializable: bool
 
         :return: A dictionary mapping IP addresses to protocols and lists of open ports.
-        :rtype: Dict[IPv4Address, Dict[str, List[int]]]
+        :rtype: Dict[IPv4Address, Dict[IPProtocol, List[Port]]]
         """
         ping_scan_results = self.ping_scan(
             target_ip_address=target_ip_address, show=show, show_online_only=show_online_only, json_serializable=False

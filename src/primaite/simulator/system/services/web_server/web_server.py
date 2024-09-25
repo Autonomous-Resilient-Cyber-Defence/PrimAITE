@@ -10,11 +10,11 @@ from primaite.simulator.network.protocols.http import (
     HttpResponsePacket,
     HttpStatusCode,
 )
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.database_client import DatabaseClientConnection
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.software import SoftwareHealthState
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -145,7 +145,7 @@ class WebServer(Service):
         payload: HttpResponsePacket,
         session_id: Optional[str] = None,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[int] = None,
+        dest_port: Optional[Port] = None,
         **kwargs,
     ) -> bool:
         """

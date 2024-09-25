@@ -8,8 +8,9 @@ from primaite.simulator.network.hardware.nodes.network.router import ACLAction, 
 from primaite.simulator.network.protocols.icmp import ICMPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
 from primaite.simulator.network.transmission.network_layer import IPPacket
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP, TCPHeader, UDPHeader
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.simulator.network.transmission.transport_layer import TCPHeader, UDPHeader
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")

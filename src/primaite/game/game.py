@@ -4,7 +4,7 @@ from ipaddress import IPv4Address
 from typing import Dict, List, Optional, Union
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict
 
 from primaite import DEFAULT_BANDWIDTH, getLogger
 from primaite.game.agent.actions import ActionManager
@@ -27,7 +27,6 @@ from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.nmne import NMNEConfig
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient  # noqa: F401
@@ -50,7 +49,8 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from primaite.simulator.system.software import Software
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -81,38 +81,12 @@ class PrimaiteGameOptions(BaseModel):
     """Random number seed for RNGs."""
     max_episode_length: int = 256
     """Maximum number of episodes for the PrimAITE game."""
-    ports: List[int]
+    ports: List[Port]
     """A whitelist of available ports in the simulation."""
-    protocols: List[str]
+    protocols: List[IPProtocol]
     """A whitelist of available protocols in the simulation."""
     thresholds: Optional[Dict] = {}
     """A dict containing the thresholds used for determining what is acceptable during observations."""
-
-    @field_validator("ports", mode="before")
-    def ports_str2int(cls, vals: Union[List[str], List[int]]) -> List[int]:
-        """
-        Convert named port strings to port integer values. Integer ports remain unaffected.
-
-        This is necessary to retain backwards compatibility with configs written for PrimAITE<=3.3.
-        :warning: This will be deprecated in PrimAITE 4.0 and configs will need to be converted.
-        """
-        for i, port_val in enumerate(vals):
-            if port_val in PORT_LOOKUP:
-                vals[i] = PORT_LOOKUP[port_val]
-        return vals
-
-    @field_validator("protocols", mode="before")
-    def protocols_str2int(cls, vals: List[str]) -> List[str]:
-        """
-        Convert old-style named protocols to their proper values.
-
-        This is necessary to retain backwards compatibility with configs written for PrimAITE<=3.3.
-        :warning: This will be deprecated in PrimAITE 4.0 and configs will need to be converted.
-        """
-        for i, proto_val in enumerate(vals):
-            if proto_val in PROTOCOL_LOOKUP:
-                vals[i] = PROTOCOL_LOOKUP[proto_val]
-        return vals
 
 
 class PrimaiteGame:

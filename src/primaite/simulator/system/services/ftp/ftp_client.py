@@ -7,10 +7,10 @@ from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -104,7 +104,7 @@ class FTPClient(FTPServiceABC):
     def _connect_to_server(
         self,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[int] = PORT_LOOKUP["FTP"],
+        dest_port: Optional[Port] = PORT_LOOKUP["FTP"],
         session_id: Optional[str] = None,
         is_reattempt: Optional[bool] = False,
     ) -> bool:
@@ -114,7 +114,7 @@ class FTPClient(FTPServiceABC):
         :param: dest_ip_address: IP address of the FTP server the client needs to connect to. Optional.
         :type: dest_ip_address: Optional[IPv4Address]
         :param: dest_port: Port of the FTP server the client needs to connect to. Optional.
-        :type: dest_port: Optional[int]
+        :type: dest_port: Optional[Port]
         :param: is_reattempt: Set to True if attempt to connect to FTP Server has been attempted. Default False.
         :type: is_reattempt: Optional[bool]
         """
@@ -152,7 +152,7 @@ class FTPClient(FTPServiceABC):
             return False
 
     def _disconnect_from_server(
-        self, dest_ip_address: Optional[IPv4Address] = None, dest_port: Optional[int] = PORT_LOOKUP["FTP"]
+        self, dest_ip_address: Optional[IPv4Address] = None, dest_port: Optional[Port] = PORT_LOOKUP["FTP"]
     ) -> bool:
         """
         Connects the client from a given FTP server.
@@ -160,7 +160,7 @@ class FTPClient(FTPServiceABC):
         :param: dest_ip_address: IP address of the FTP server the client needs to disconnect from. Optional.
         :type: dest_ip_address: Optional[IPv4Address]
         :param: dest_port: Port of the FTP server the client needs to disconnect from. Optional.
-        :type: dest_port: Optional[int]
+        :type: dest_port: Optional[Port]
         :param: is_reattempt: Set to True if attempt to disconnect from FTP Server has been attempted. Default False.
         :type: is_reattempt: Optional[bool]
         """
@@ -179,7 +179,7 @@ class FTPClient(FTPServiceABC):
         src_file_name: str,
         dest_folder_name: str,
         dest_file_name: str,
-        dest_port: Optional[int] = PORT_LOOKUP["FTP"],
+        dest_port: Optional[Port] = PORT_LOOKUP["FTP"],
         session_id: Optional[str] = None,
     ) -> bool:
         """
@@ -204,7 +204,7 @@ class FTPClient(FTPServiceABC):
         :type: dest_file_name: str
 
         :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port["FTP"].
-        :type: dest_port: Optional[int]
+        :type: dest_port: Optional[Port]
 
         :param: session_id: The id of the session
         :type: session_id: Optional[str]
@@ -241,7 +241,7 @@ class FTPClient(FTPServiceABC):
         src_file_name: str,
         dest_folder_name: str,
         dest_file_name: str,
-        dest_port: Optional[int] = PORT_LOOKUP["FTP"],
+        dest_port: Optional[Port] = PORT_LOOKUP["FTP"],
     ) -> bool:
         """
         Request a file from a target IP address.

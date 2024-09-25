@@ -1,16 +1,15 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
-from pydantic import field_validator
 
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.port import Port
 
 
 class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
@@ -23,29 +22,8 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
         """Number of the network interface."""
         include_nmne: Optional[bool] = None
         """Whether to include number of malicious network events (NMNE) in the observation."""
-        monitored_traffic: Optional[Dict] = None
+        monitored_traffic: Optional[Dict[IPProtocol, List[Port]]] = None
         """A dict containing which traffic types are to be included in the observation."""
-
-        @field_validator("monitored_traffic", mode="before")
-        def traffic_lookup(cls, val: Optional[Dict]) -> Optional[Dict]:
-            """
-            Convert monitored_traffic by lookup against Port and Protocol dicts.
-
-            This is necessary for retaining compatiblility with configs written for PrimAITE <=3.3.
-            This method will be removed in PrimAITE >= 4.0
-            """
-            if val is None:
-                return val
-            new_val = {}
-            for proto, port_list in val.items():
-                # convert protocol, for instance ICMP becomes "icmp"
-                proto = PROTOCOL_LOOKUP[proto] if proto in PROTOCOL_LOOKUP else proto
-                new_val[proto] = []
-                for port in port_list:
-                    # convert ports, for instance "HTTP" becomes 80
-                    port = PORT_LOOKUP[port] if port in PORT_LOOKUP else port
-                    new_val[proto].append(port)
-            return new_val
 
     def __init__(self, where: WhereType, include_nmne: bool, monitored_traffic: Optional[Dict] = None) -> None:
         """

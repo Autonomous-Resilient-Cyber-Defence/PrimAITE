@@ -11,10 +11,11 @@ from pydantic import BaseModel
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.software_manager import SoftwareManager
-from primaite.utils.validators import IPV4Address, PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 class DatabaseClientConnection(BaseModel):

@@ -1,4 +1,6 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+
+
 from ipaddress import IPv4Address
 from typing import Any, Final
 
@@ -37,39 +39,3 @@ will automatically check and convert the input value to an instance of IPv4Addre
 any Pydantic model uses it. This ensures that any field marked with this type is not just
 an IPv4Address in form, but also valid according to the rules defined in ipv4_validator.
 """
-
-# Define a custom port validator
-Port: Final[Annotated] = Annotated[int, BeforeValidator(lambda n: 0 <= n <= 65535)]
-"""Validates that network ports lie in the appropriate range of [0,65535]."""
-
-# Define a custom IP protocol validator
-PROTOCOL_LOOKUP: dict[str, str] = dict(
-    NONE="none",
-    TCP="tcp",
-    UDP="udp",
-    ICMP="icmp",
-)
-"""
-Lookup table used for compatibility with PrimAITE <= 3.3. Configs with the capitalised protocol names are converted
-to lowercase at runtime.
-"""
-VALID_PROTOCOLS = ["none", "tcp", "udp", "icmp"]
-"""Supported protocols."""
-
-
-def protocol_validator(v: Any) -> str:
-    """
-    Validate that IP Protocols are chosen from the list of supported IP Protocols.
-
-    The protocol list is dynamic because plugins are able to extend it, therefore it is necessary to use this custom
-    validator instead of being able to specify a union of string literals.
-    """
-    if v in PROTOCOL_LOOKUP:
-        return PROTOCOL_LOOKUP(v)
-    if v in VALID_PROTOCOLS:
-        return v
-    raise ValueError(f"{v} is not a valid IP Protocol. It must be one of the following: {VALID_PROTOCOLS}")
-
-
-IPProtocol: Final[Annotated] = Annotated[str, BeforeValidator(protocol_validator)]
-"""Validates that IP Protocols used in the simulation belong to the list of supported protocols."""

@@ -4,10 +4,10 @@ from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -110,7 +110,7 @@ class DNSClient(Service):
         payload: DNSPacket,
         session_id: Optional[str] = None,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[int] = None,
+        dest_port: Optional[Port] = None,
         **kwargs,
     ) -> bool:
         """

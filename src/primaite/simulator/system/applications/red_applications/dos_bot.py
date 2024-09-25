@@ -7,8 +7,8 @@ from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -35,7 +35,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
     target_ip_address: Optional[IPv4Address] = None
     """IP address of the target service."""
 
-    target_port: Optional[int] = None
+    target_port: Optional[Port] = None
     """Port of the target service."""
 
     payload: Optional[str] = None

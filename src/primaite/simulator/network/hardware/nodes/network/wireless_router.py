@@ -8,8 +8,9 @@ from primaite.simulator.network.airspace import AirSpace, IPWirelessNetworkInter
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router, RouterInterface
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
-from primaite.utils.validators import IPV4Address, PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 class WirelessAccessPoint(IPWirelessNetworkInterface):

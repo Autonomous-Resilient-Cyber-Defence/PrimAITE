@@ -6,6 +6,7 @@ from typing import Dict, Optional
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.system.services.service import Service
+from primaite.utils.validation.port import Port
 
 
 class FTPServiceABC(Service, ABC):
@@ -77,7 +78,7 @@ class FTPServiceABC(Service, ABC):
         dest_folder_name: str,
         dest_file_name: str,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[int] = None,
+        dest_port: Optional[Port] = None,
         session_id: Optional[str] = None,
         is_response: bool = False,
     ) -> bool:
@@ -97,7 +98,7 @@ class FTPServiceABC(Service, ABC):
         :type: dest_ip_address: Optional[IPv4Address]
 
         :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port["FTP"].
-        :type: dest_port: Optional[int]
+        :type: dest_port: Optional[Port]
 
         :param: session_id: session ID linked to the FTP Packet. Optional.
         :type: session_id: Optional[str]
@@ -167,7 +168,7 @@ class FTPServiceABC(Service, ABC):
         payload: FTPPacket,
         session_id: Optional[str] = None,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[int] = None,
+        dest_port: Optional[Port] = None,
         **kwargs,
     ) -> bool:
         """

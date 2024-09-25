@@ -9,9 +9,10 @@ from primaite.simulator.network.protocols.icmp import ICMPPacket
 from primaite.simulator.network.protocols.packet import DataPacket
 from primaite.simulator.network.transmission.network_layer import IPPacket
 from primaite.simulator.network.transmission.primaite_layer import PrimaiteHeader
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP, TCPHeader, UDPHeader
+from primaite.simulator.network.transmission.transport_layer import TCPHeader, UDPHeader
 from primaite.simulator.network.utils import convert_bytes_to_megabits
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 

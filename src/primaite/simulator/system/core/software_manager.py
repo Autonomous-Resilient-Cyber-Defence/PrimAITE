@@ -8,12 +8,12 @@ from prettytable import MARKDOWN, PrettyTable
 from primaite.simulator.core import RequestType
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.simulator.system.software import IOSoftware
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 if TYPE_CHECKING:
     from primaite.simulator.system.core.session_manager import SessionManager
@@ -52,7 +52,7 @@ class SoftwareManager:
         self.session_manager = session_manager
         self.software: Dict[str, Union[Service, Application]] = {}
         self._software_class_to_name_map: Dict[Type[IOSoftware], str] = {}
-        self.port_protocol_mapping: Dict[Tuple[int, str], Union[Service, Application]] = {}
+        self.port_protocol_mapping: Dict[Tuple[Port, IPProtocol], Union[Service, Application]] = {}
         self.sys_log: SysLog = sys_log
         self.file_system: FileSystem = file_system
         self.dns_server: Optional[IPv4Address] = dns_server
@@ -67,7 +67,7 @@ class SoftwareManager:
         """Provides access to the ICMP service instance, if installed."""
         return self.software.get("ICMP")  # noqa
 
-    def get_open_ports(self) -> List[int]:
+    def get_open_ports(self) -> List[Port]:
         """
         Get a list of open ports.
 
@@ -81,7 +81,7 @@ class SoftwareManager:
                     open_ports += list(software.listen_on_ports)
         return open_ports
 
-    def check_port_is_open(self, port: int, protocol: str) -> bool:
+    def check_port_is_open(self, port: Port, protocol: IPProtocol) -> bool:
         """
         Check if a specific port is open and running a service using the specified protocol.
 
@@ -93,7 +93,7 @@ class SoftwareManager:
         :param port: The port to check.
         :type port: Port
         :param protocol: The protocol to check (e.g., TCP, UDP).
-        :type protocol: str
+        :type protocol: IPProtocol
         :return: True if the port is open and a service is running on it using the specified protocol, False otherwise.
         :rtype: bool
         """
@@ -189,9 +189,9 @@ class SoftwareManager:
         self,
         payload: Any,
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
-        src_port: Optional[int] = None,
-        dest_port: Optional[int] = None,
-        ip_protocol: str = PROTOCOL_LOOKUP["TCP"],
+        src_port: Optional[Port] = None,
+        dest_port: Optional[Port] = None,
+        ip_protocol: IPProtocol = PROTOCOL_LOOKUP["TCP"],
         session_id: Optional[str] = None,
     ) -> bool:
         """
@@ -219,8 +219,8 @@ class SoftwareManager:
     def receive_payload_from_session_manager(
         self,
         payload: Any,
-        port: int,
-        protocol: str,
+        port: Port,
+        protocol: IPProtocol,
         session_id: str,
         from_network_interface: "NIC",
         frame: Frame,

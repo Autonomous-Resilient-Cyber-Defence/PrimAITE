@@ -15,10 +15,10 @@ from primaite.simulator.network.protocols.http import (
     HttpResponsePacket,
     HttpStatusCode,
 )
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.dns.dns_client import DNSClient
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -154,7 +154,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
         self,
         payload: HttpRequestPacket,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[int] = PORT_LOOKUP["HTTP"],
+        dest_port: Optional[Port] = PORT_LOOKUP["HTTP"],
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:

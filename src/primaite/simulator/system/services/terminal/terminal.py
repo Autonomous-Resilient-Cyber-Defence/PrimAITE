@@ -17,10 +17,10 @@ from primaite.simulator.network.protocols.ssh import (
     SSHTransportMessage,
     SSHUserCredentials,
 )
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 # TODO 2824: Since remote terminal connections and remote user sessions are the same thing, we could refactor

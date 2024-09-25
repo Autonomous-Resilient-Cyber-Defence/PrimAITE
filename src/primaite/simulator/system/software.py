@@ -15,7 +15,8 @@ from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port
 
 if TYPE_CHECKING:
     from primaite.simulator.system.core.software_manager import SoftwareManager
@@ -250,11 +251,11 @@ class IOSoftware(Software):
     "Indicates if the software uses TCP protocol for communication. Default is True."
     udp: bool = True
     "Indicates if the software uses UDP protocol for communication. Default is True."
-    port: int
+    port: Port
     "The port to which the software is connected."
-    listen_on_ports: Set[int] = Field(default_factory=set)
+    listen_on_ports: Set[Port] = Field(default_factory=set)
     "The set of ports to listen on."
-    protocol: str
+    protocol: IPProtocol
     "The IP Protocol the Software operates on."
     _connections: Dict[str, Dict] = {}
     "Active connections."
@@ -386,7 +387,7 @@ class IOSoftware(Software):
         session_id: Optional[str] = None,
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
         dest_port: Optional[int] = None,
-        ip_protocol: str = PROTOCOL_LOOKUP["TCP"],
+        ip_protocol: IPProtocol = PROTOCOL_LOOKUP["TCP"],
         **kwargs,
     ) -> bool:
         """

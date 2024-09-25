@@ -9,14 +9,14 @@ from pydantic import BaseModel, Field, validate_call
 from primaite.interface.request import RequestResponse
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.protocols.masquerade import C2Packet
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.service import ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import IPProtocol, is_valid_protocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.port import is_valid_port, Port, PORT_LOOKUP
 
 
 class C2Command(Enum):
@@ -81,10 +81,10 @@ class AbstractC2(Application, identifier="AbstractC2"):
         keep_alive_frequency: int = Field(default=5, ge=1)
         """The frequency at which ``Keep Alive`` packets are sent to the C2 Server from the C2 Beacon."""
 
-        masquerade_protocol: str = Field(default=PROTOCOL_LOOKUP["TCP"])
+        masquerade_protocol: IPProtocol = Field(default=PROTOCOL_LOOKUP["TCP"])
         """The currently chosen protocol that the C2 traffic is masquerading as. Defaults as TCP."""
 
-        masquerade_port: int = Field(default=PORT_LOOKUP["HTTP"])
+        masquerade_port: Port = Field(default=PORT_LOOKUP["HTTP"])
         """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
 
     c2_config: _C2Opts = _C2Opts()
@@ -367,7 +367,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :rtype: bool
         """
         # Validating that they are valid Enums.
-        if not isinstance(payload.masquerade_port, int) or not isinstance(payload.masquerade_protocol, str):
+        if not is_valid_port(payload.masquerade_port) or not is_valid_protocol(payload.masquerade_protocol):
             self.sys_log.warning(
                 f"{self.name}: Received invalid Masquerade Values within Keep Alive."
                 f"Port: {payload.masquerade_port} Protocol: {payload.masquerade_protocol}."

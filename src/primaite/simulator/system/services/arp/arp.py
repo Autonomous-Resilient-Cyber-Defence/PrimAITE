@@ -8,9 +8,10 @@ from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.services.service import Service
-from primaite.utils.validators import IPV4Address, PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 class ARP(Service):

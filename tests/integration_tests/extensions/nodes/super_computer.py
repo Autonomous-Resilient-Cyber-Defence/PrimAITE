@@ -3,7 +3,7 @@ from typing import ClassVar, Dict
 
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode, NIC
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ipv4_address import IPV4Address
 
 
 class SuperComputer(HostNode, identifier="supercomputer"):

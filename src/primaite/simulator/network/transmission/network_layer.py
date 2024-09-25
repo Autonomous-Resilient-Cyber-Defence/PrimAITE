@@ -4,7 +4,8 @@ from enum import Enum
 from pydantic import BaseModel
 
 from primaite import getLogger
-from primaite.utils.validators import IPProtocol, IPV4Address, PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
 
 _LOGGER = getLogger(__name__)
 

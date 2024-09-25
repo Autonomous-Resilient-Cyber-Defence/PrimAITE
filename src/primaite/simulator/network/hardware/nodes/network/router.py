@@ -7,7 +7,7 @@ from ipaddress import IPv4Address, IPv4Network
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import field_validator, validate_call
+from pydantic import validate_call
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
@@ -17,14 +17,15 @@ from primaite.simulator.network.hardware.nodes.network.network_node import Netwo
 from primaite.simulator.network.protocols.arp import ARPPacket
 from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.applications.nmap import NMAP
 from primaite.simulator.system.core.session_manager import SessionManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.arp.arp import ARP
 from primaite.simulator.system.services.icmp.icmp import ICMP
 from primaite.simulator.system.services.terminal.terminal import Terminal
-from primaite.utils.validators import IPV4Address, PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 
 @validate_call()
@@ -120,28 +121,14 @@ class ACLRule(SimComponent):
     """
 
     action: ACLAction = ACLAction.DENY
-    protocol: Optional[str] = None
+    protocol: Optional[IPProtocol] = None
     src_ip_address: Optional[IPV4Address] = None
     src_wildcard_mask: Optional[IPV4Address] = None
     dst_ip_address: Optional[IPV4Address] = None
     dst_wildcard_mask: Optional[IPV4Address] = None
-    src_port: Optional[int] = None
-    dst_port: Optional[int] = None
+    src_port: Optional[Port] = None
+    dst_port: Optional[Port] = None
     match_count: int = 0
-
-    @field_validator("protocol", mode="before")
-    def protocol_valid(cls, val: Optional[str]) -> Optional[str]:
-        """Assert that the protocol for the rule is predefined in the IPProtocol lookup."""
-        if val is not None:
-            assert val in PROTOCOL_LOOKUP.values(), f"Cannot create ACL rule with invalid protocol {val}"
-        return val
-
-    @field_validator("src_port", "dst_port", mode="before")
-    def ports_valid(cls, val: Optional[int]) -> Optional[int]:
-        """Assert that the port for the rule is predefined in the Port lookup."""
-        if val is not None:
-            assert val in PORT_LOOKUP.values(), f"Cannot create ACL rule with invalid port {val}"
-        return val
 
     def __str__(self) -> str:
         rule_strings = []
@@ -390,13 +377,13 @@ class AccessControlList(SimComponent):
     def add_rule(
         self,
         action: ACLAction = ACLAction.DENY,
-        protocol: Optional[str] = None,
+        protocol: Optional[IPProtocol] = None,
         src_ip_address: Optional[IPV4Address] = None,
         src_wildcard_mask: Optional[IPV4Address] = None,
         dst_ip_address: Optional[IPV4Address] = None,
         dst_wildcard_mask: Optional[IPV4Address] = None,
-        src_port: Optional[int] = None,
-        dst_port: Optional[int] = None,
+        src_port: Optional[Port] = None,
+        dst_port: Optional[Port] = None,
         position: int = 0,
     ) -> bool:
         """
@@ -498,11 +485,11 @@ class AccessControlList(SimComponent):
 
     def get_relevant_rules(
         self,
-        protocol: str,
+        protocol: IPProtocol,
         src_ip_address: Union[str, IPv4Address],
-        src_port: int,
+        src_port: Port,
         dst_ip_address: Union[str, IPv4Address],
-        dst_port: int,
+        dst_port: Port,
     ) -> List[ACLRule]:
         """
         Get the list of relevant rules for a packet with given properties.
@@ -1101,17 +1088,17 @@ class RouterSessionManager(SessionManager):
     def resolve_outbound_transmission_details(
         self,
         dst_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
-        src_port: Optional[int] = None,
-        dst_port: Optional[int] = None,
-        protocol: Optional[str] = None,
+        src_port: Optional[Port] = None,
+        dst_port: Optional[Port] = None,
+        protocol: Optional[IPProtocol] = None,
         session_id: Optional[str] = None,
     ) -> Tuple[
         Optional[RouterInterface],
         Optional[str],
         IPv4Address,
-        Optional[int],
-        Optional[int],
-        Optional[str],
+        Optional[Port],
+        Optional[Port],
+        Optional[IPProtocol],
         bool,
     ]:
         """
@@ -1131,19 +1118,19 @@ class RouterSessionManager(SessionManager):
             treats the transmission as a broadcast to that network. Optional.
         :type dst_ip_address: Optional[Union[IPv4Address, IPv4Network]]
         :param src_port: The source port number for the transmission. Optional.
-        :type src_port: Optional[int]
+        :type src_port: Optional[Port]
         :param dst_port: The destination port number for the transmission. Optional.
-        :type dst_port: Optional[int]
+        :type dst_port: Optional[Port]
         :param protocol: The IP protocol to be used for the transmission. Optional.
-        :type protocol: Optional[str]
+        :type protocol: Optional[IPProtocol]
         :param session_id: The session ID associated with the transmission. If provided, the session details override
             other parameters. Optional.
         :type session_id: Optional[str]
         :return: A tuple containing the resolved outbound network interface, destination MAC address, destination IP
             address, source port, destination port, protocol, and a boolean indicating whether the transmission is a
             broadcast.
-        :rtype: Tuple[Optional[RouterInterface], Optional[str], IPv4Address, Optional[int], Optional[int],
-            Optional[str], bool]
+        :rtype: Tuple[Optional[RouterInterface], Optional[str], IPv4Address, Optional[Port], Optional[Port],
+            Optional[IPProtocol], bool]
         """
         if dst_ip_address and not isinstance(dst_ip_address, (IPv4Address, IPv4Network)):
             dst_ip_address = IPv4Address(dst_ip_address)

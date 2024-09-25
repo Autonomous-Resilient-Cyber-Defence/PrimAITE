@@ -5,9 +5,9 @@ from typing import Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.ntp import NTPPacket
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -55,7 +55,7 @@ class NTPClient(Service):
         payload: NTPPacket,
         session_id: Optional[str] = None,
         dest_ip_address: IPv4Address = None,
-        dest_port: int = PORT_LOOKUP["NTP"],
+        dest_port: Port = PORT_LOOKUP["NTP"],
         **kwargs,
     ) -> bool:
         """Requests NTP data from NTP server.

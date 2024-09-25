@@ -12,7 +12,7 @@ from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 from tests.conftest import DummyApplication, DummyService
 
 

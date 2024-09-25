@@ -3,11 +3,11 @@ from typing import Dict
 
 import pytest
 
-from primaite.simulator.network.transmission.transport_layer import PORT_LOOKUP
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.software import IOSoftware, SoftwareHealthState
-from primaite.utils.validators import PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 class TestSoftware(Service):

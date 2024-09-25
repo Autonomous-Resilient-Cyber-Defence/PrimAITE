@@ -12,7 +12,8 @@ from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.observations.software_observation import ApplicationObservation, ServiceObservation
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
-from primaite.utils.validators import IPProtocol, Port
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.port import Port
 
 _LOGGER = getLogger(__name__)
 
