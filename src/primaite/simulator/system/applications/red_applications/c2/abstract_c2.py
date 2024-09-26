@@ -366,7 +366,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :return: True on successful configuration, false otherwise.
         :rtype: bool
         """
-        # Validating that they are valid Enums.
+        # Validating that they are valid Ports and Protocols.
         if not is_valid_port(payload.masquerade_port) or not is_valid_protocol(payload.masquerade_protocol):
             self.sys_log.warning(
                 f"{self.name}: Received invalid Masquerade Values within Keep Alive."

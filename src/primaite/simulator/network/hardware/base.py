@@ -1839,15 +1839,14 @@ class Node(SimComponent):
 
     def show_open_ports(self, markdown: bool = False):
         """Prints a table of the open ports on the Node."""
-        table = PrettyTable(["Port", "Name"])
+        table = PrettyTable(["Port"])
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.hostname} Open Ports"
         for port in self.software_manager.get_open_ports():
             if port > 0:
-                # TODO: do a reverse lookup for port name, or change this to only show port int
-                table.add_row([port, port])
+                table.add_row([port])
         print(table.get_string(sortby="Port"))
 
     @property

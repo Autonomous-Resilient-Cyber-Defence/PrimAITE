@@ -48,11 +48,11 @@ _default_frequency_set: Dict[str, Dict] = {
 """Frequency configuration that is automatically used for any new airspace."""
 
 
-def register_default_frequency(freq_name: str, freq_hz: float, data_rate_bps: float):
+def register_default_frequency(freq_name: str, freq_hz: float, data_rate_bps: float) -> None:
     """Add to the default frequency configuration. This is intended as a plugin hook.
 
     If your plugin makes use of bespoke frequencies for wireless communication, you should make a call to this method
-    whereever you define components that rely on the bespoke frequencies. That way, as soon as your components are
+    wherever you define components that rely on the bespoke frequencies. That way, as soon as your components are
     imported, this function automatically updates the default frequency set.
 
     This should also be run before instances of AirSpace are created.
@@ -93,7 +93,7 @@ class AirSpace(BaseModel):
             return self.frequencies[freq_name]["data_rate_bps"] / (1024.0 * 1024.0)
         return 0.0
 
-    def set_frequency_max_capacity_mbps(self, cfg: Dict[int, float]):
+    def set_frequency_max_capacity_mbps(self, cfg: Dict[int, float]) -> None:
         """
         Sets custom maximum data transmission capacities for multiple frequencies.
 
