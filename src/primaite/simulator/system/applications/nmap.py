@@ -348,7 +348,7 @@ class NMAP(Application, identifier="NMAP"):
         if is_valid_port(target_port):
             target_port = [target_port]
         elif target_port is None:
-            target_port = [port for port in PORT_LOOKUP if port not in {PORT_LOOKUP["NONE"], PORT_LOOKUP["UNUSED"]}]
+            target_port = [PORT_LOOKUP[port] for port in PORT_LOOKUP if port not in {"NONE", "UNUSED"}]
 
         if is_valid_protocol(target_protocol):
             target_protocol = [target_protocol]
@@ -358,7 +358,7 @@ class NMAP(Application, identifier="NMAP"):
         scan_type = self._determine_port_scan_type(list(ip_addresses), target_port)
         active_ports = {}
         if show:
-            table = PrettyTable(["IP Address", "Port", "Name", "Protocol"])
+            table = PrettyTable(["IP Address", "Port", "Protocol"])
             table.align = "l"
             table.title = f"{self.software_manager.node.hostname} NMAP Port Scan ({scan_type})"
         self.sys_log.info(f"{self.name}: Starting port scan")
@@ -369,13 +369,12 @@ class NMAP(Application, identifier="NMAP"):
             for protocol in target_protocol:
                 for port in set(target_port):
                     port_open = self._check_port_open_on_ip_address(ip_address=ip_address, port=port, protocol=protocol)
-
                     if port_open:
                         if show:
-                            table.add_row([ip_address, port, port, protocol])
+                            table.add_row([ip_address, port, protocol])
                         _ip_address = ip_address if not json_serializable else str(ip_address)
-                        _protocol = protocol if not json_serializable else protocol
-                        _port = port if not json_serializable else port
+                        _protocol = protocol
+                        _port = port
                         if _ip_address not in active_ports:
                             active_ports[_ip_address] = dict()
                         if _protocol not in active_ports[_ip_address]:
