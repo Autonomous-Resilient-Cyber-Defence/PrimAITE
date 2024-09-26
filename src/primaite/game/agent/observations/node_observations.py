@@ -205,6 +205,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 host_config.applications_requires_scan = config.applications_requires_scan
             if host_config.include_users is None:
                 host_config.include_users = config.include_users
+            if host_config.thresholds is None:
+                host_config.thresholds = config.thresholds
 
         for router_config in config.routers:
             if router_config.num_ports is None:
@@ -221,6 +223,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 router_config.num_rules = config.num_rules
             if router_config.include_users is None:
                 router_config.include_users = config.include_users
+            if router_config.thresholds is None:
+                router_config.thresholds = config.thresholds
 
         for firewall_config in config.firewalls:
             if firewall_config.ip_list is None:
@@ -235,6 +239,8 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 firewall_config.num_rules = config.num_rules
             if firewall_config.include_users is None:
                 firewall_config.include_users = config.include_users
+            if firewall_config.thresholds is None:
+                firewall_config.thresholds = config.thresholds
 
         hosts = [HostObservation.from_config(config=c, parent_where=where) for c in config.hosts]
         routers = [RouterObservation.from_config(config=c, parent_where=where) for c in config.routers]

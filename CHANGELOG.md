@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Log observation space data by episode and step.
 -   Added `show_history` method to Agents, allowing you to view actions taken by an agent per step. By default, `DONOTHING` actions are omitted.
 -  New ``NODE_SEND_LOCAL_COMMAND`` action implemented which grants agents the ability to execute commands locally. (Previously limited to remote only)
+-  Added ability to set the observation threshold for NMNE, file access and application executions
 
 ### Changed
 -   ACL's are no longer applied to layer-2 traffic.

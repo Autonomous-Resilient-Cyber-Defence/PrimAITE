@@ -535,7 +535,7 @@ class PrimaiteGame:
             reward_function_cfg = agent_cfg["reward_function"]
 
             # CREATE OBSERVATION SPACE
-            obs_space = ObservationManager.from_config(observation_space_cfg)
+            obs_space = ObservationManager.from_config(config=observation_space_cfg, thresholds=game.options.thresholds)
 
             # CREATE ACTION SPACE
             action_space = ActionManager.from_config(game, action_space_cfg)

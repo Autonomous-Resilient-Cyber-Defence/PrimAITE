@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from typing import ClassVar, Dict, Optional
+from typing import ClassVar, Dict, List, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
@@ -28,7 +28,13 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
         monitored_traffic: Optional[Dict] = None
         """A dict containing which traffic types are to be included in the observation."""
 
-    def __init__(self, where: WhereType, include_nmne: bool, monitored_traffic: Optional[Dict] = None) -> None:
+    def __init__(
+        self,
+        where: WhereType,
+        include_nmne: bool,
+        monitored_traffic: Optional[Dict] = None,
+        thresholds: Optional[Dict] = {},
+    ) -> None:
         """
         Initialise a network interface observation instance.
 
@@ -48,10 +54,18 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
             self.nmne_inbound_last_step: int = 0
             self.nmne_outbound_last_step: int = 0
 
-        # TODO: allow these to be configured in yaml
-        self.high_nmne_threshold = 10
-        self.med_nmne_threshold = 5
-        self.low_nmne_threshold = 0
+        if thresholds.get("nmne") is None:
+            self.low_nmne_threshold = 0
+            self.med_nmne_threshold = 5
+            self.high_nmne_threshold = 10
+        else:
+            self._set_nmne_threshold(
+                thresholds=[
+                    thresholds.get("nmne")["low"],
+                    thresholds.get("nmne")["medium"],
+                    thresholds.get("nmne")["high"],
+                ]
+            )
 
         self.monitored_traffic = monitored_traffic
         if self.monitored_traffic:
@@ -107,6 +121,20 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
 
         bandwidth_utilisation = traffic_value / nic_max_bandwidth
         return int(bandwidth_utilisation * 9) + 1
+
+    def _set_nmne_threshold(self, thresholds: List[int]):
+        """
+        Method that validates and then sets the NMNE threshold.
+
+        :param: thresholds: The NMNE threshold to validate and set.
+        """
+        if self._validate_thresholds(
+            thresholds=thresholds,
+            threshold_identifier="nmne",
+        ):
+            self.low_nmne_threshold = thresholds[0]
+            self.med_nmne_threshold = thresholds[1]
+            self.high_nmne_threshold = thresholds[2]
 
     def observe(self, state: Dict) -> ObsType:
         """
@@ -228,6 +256,7 @@ class NICObservation(AbstractObservation, identifier="NETWORK_INTERFACE"):
             where=parent_where + ["NICs", config.nic_num],
             include_nmne=config.include_nmne,
             monitored_traffic=config.monitored_traffic,
+            thresholds=config.thresholds,
         )
 
 
