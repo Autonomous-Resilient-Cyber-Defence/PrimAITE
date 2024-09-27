@@ -555,10 +555,10 @@ class AccessControlList(SimComponent):
                         rule.protocol if rule.protocol else "ANY",
                         rule.src_ip_address if rule.src_ip_address else "ANY",
                         rule.src_wildcard_mask if rule.src_wildcard_mask else "ANY",
-                        f"{rule.src_port} ({rule.src_port})" if rule.src_port else "ANY",
+                        f"{rule.src_port}" if rule.src_port else "ANY",
                         rule.dst_ip_address if rule.dst_ip_address else "ANY",
                         rule.dst_wildcard_mask if rule.dst_wildcard_mask else "ANY",
-                        f"{rule.dst_port} ({rule.dst_port})" if rule.dst_port else "ANY",
+                        f"{rule.dst_port}" if rule.dst_port else "ANY",
                         rule.match_count,
                     ]
                 )
