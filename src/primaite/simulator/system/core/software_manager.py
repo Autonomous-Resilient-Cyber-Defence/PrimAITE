@@ -267,7 +267,7 @@ class SoftwareManager:
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.sys_log.hostname} Software Manager"
-        for software in self.port_protocol_mapping.values():
+        for software in self.software.values():
             software_type = "Service" if isinstance(software, Service) else "Application"
             table.add_row(
                 [
