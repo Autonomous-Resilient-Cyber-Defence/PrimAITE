@@ -18,8 +18,6 @@ from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.networks import arcd_uc2_network
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.web_browser import WebBrowser
@@ -28,6 +26,8 @@ from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.web_server.web_server import WebServer
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 from tests import TEST_ASSETS_ROOT
 
 rayinit()
@@ -45,8 +45,8 @@ class DummyService(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DummyService"
-        kwargs["port"] = Port.HTTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = PORT_LOOKUP["HTTP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
@@ -58,8 +58,8 @@ class DummyApplication(Application, identifier="DummyApplication"):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DummyApplication"
-        kwargs["port"] = Port.HTTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = PORT_LOOKUP["HTTP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:
@@ -77,7 +77,7 @@ def uc2_network() -> Network:
 @pytest.fixture(scope="function")
 def service(file_system) -> DummyService:
     return DummyService(
-        name="DummyService", port=Port.ARP, file_system=file_system, sys_log=SysLog(hostname="dummy_service")
+        name="DummyService", port=PORT_LOOKUP["ARP"], file_system=file_system, sys_log=SysLog(hostname="dummy_service")
     )
 
 
@@ -90,7 +90,7 @@ def service_class():
 def application(file_system) -> DummyApplication:
     return DummyApplication(
         name="DummyApplication",
-        port=Port.ARP,
+        port=PORT_LOOKUP["ARP"],
         file_system=file_system,
         sys_log=SysLog(hostname="dummy_application"),
     )
@@ -350,10 +350,10 @@ def install_stuff_to_sim(sim: Simulation):
     network.connect(endpoint_a=server_2.network_interface[1], endpoint_b=switch_2.network_interface[2])
 
     # 2: Configure base ACL
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
-    router.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.DNS, dst_port=Port.DNS, position=1)
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=3)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22)
+    router.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["DNS"], dst_port=PORT_LOOKUP["DNS"], position=1)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=3)
 
     # 3: Install server software
     server_1.software_manager.install(DNSServer)
@@ -379,13 +379,13 @@ def install_stuff_to_sim(sim: Simulation):
     r = sim.network.router_nodes[0]
     for i, acl_rule in enumerate(r.acl.acl):
         if i == 1:
-            assert acl_rule.src_port == acl_rule.dst_port == Port.DNS
+            assert acl_rule.src_port == acl_rule.dst_port == PORT_LOOKUP["DNS"]
         elif i == 3:
-            assert acl_rule.src_port == acl_rule.dst_port == Port.HTTP
+            assert acl_rule.src_port == acl_rule.dst_port == PORT_LOOKUP["HTTP"]
         elif i == 22:
-            assert acl_rule.src_port == acl_rule.dst_port == Port.ARP
+            assert acl_rule.src_port == acl_rule.dst_port == PORT_LOOKUP["ARP"]
         elif i == 23:
-            assert acl_rule.protocol == IPProtocol.ICMP
+            assert acl_rule.protocol == PROTOCOL_LOOKUP["ICMP"]
         elif i == 24:
             ...
         else:

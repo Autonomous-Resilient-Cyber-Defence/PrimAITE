@@ -9,7 +9,6 @@ from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
@@ -19,6 +18,7 @@ from primaite.simulator.system.applications.red_applications.data_manipulation_b
 from primaite.simulator.system.applications.red_applications.dos_bot import DoSAttackStage, DoSBot
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.software import SoftwareHealthState
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -52,7 +52,10 @@ def data_manipulation_db_server_green_client(example_network) -> Network:
 
     router_1: Router = example_network.get_node_by_hostname("router_1")
     router_1.acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER, position=0
+        action=ACLAction.PERMIT,
+        src_port=PORT_LOOKUP["POSTGRES_SERVER"],
+        dst_port=PORT_LOOKUP["POSTGRES_SERVER"],
+        position=0,
     )
 
     client_1: Computer = network.get_node_by_hostname("client_1")

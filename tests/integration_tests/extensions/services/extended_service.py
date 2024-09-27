@@ -7,17 +7,17 @@ from primaite import getLogger
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.file_system.folder import Folder
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 
-class ExtendedService(Service, identifier='extendedservice'):
+class ExtendedService(Service, identifier="extendedservice"):
     """
     A copy of DatabaseService that uses the extension framework instead of being part of PrimAITE.
 
@@ -38,11 +38,11 @@ class ExtendedService(Service, identifier='extendedservice'):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ExtendedService"
-        kwargs["port"] = Port.POSTGRES_SERVER
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = PORT_LOOKUP["POSTGRES_SERVER"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self._create_db_file()
-        if kwargs.get('options'):
+        if kwargs.get("options"):
             opt = kwargs["options"]
             self.password = opt.get("db_password", None)
             if "backup_server_ip" in opt:
@@ -139,7 +139,9 @@ class ExtendedService(Service, identifier='extendedservice'):
         old_visible_state = SoftwareHealthState.GOOD
 
         # get db file regardless of whether or not it was deleted
-        db_file = self.file_system.get_file(folder_name="database", file_name="extended_service_database.db", include_deleted=True)
+        db_file = self.file_system.get_file(
+            folder_name="database", file_name="extended_service_database.db", include_deleted=True
+        )
 
         if db_file is None:
             self.sys_log.warning("Database file not initialised.")
@@ -153,7 +155,9 @@ class ExtendedService(Service, identifier='extendedservice'):
             self.file_system.delete_file(folder_name="database", file_name="extended_service_database.db")
 
         # replace db file
-        self.file_system.copy_file(src_folder_name="downloads", src_file_name="extended_service_database.db", dst_folder_name="database")
+        self.file_system.copy_file(
+            src_folder_name="downloads", src_file_name="extended_service_database.db", dst_folder_name="database"
+        )
 
         if self.db_file is None:
             self.sys_log.error("Copying database backup failed.")

@@ -17,15 +17,15 @@ from primaite.simulator.network.hardware.nodes.network.network_node import Netwo
 from primaite.simulator.network.protocols.arp import ARPPacket
 from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.nmap import NMAP
 from primaite.simulator.system.core.session_manager import SessionManager
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.arp.arp import ARP
 from primaite.simulator.system.services.icmp.icmp import ICMP
 from primaite.simulator.system.services.terminal.terminal import Terminal
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 
 @validate_call()
@@ -106,7 +106,7 @@ class ACLRule(SimComponent):
 
     :ivar ACLAction action: Specifies whether to `PERMIT` or `DENY` the traffic that matches the rule conditions.
         The default action is `DENY`.
-    :ivar Optional[IPProtocol] protocol: The network protocol (e.g., TCP, UDP, ICMP) to match. If `None`, the rule
+    :ivar Optional[str] protocol: The network protocol (e.g., TCP, UDP, ICMP) to match. If `None`, the rule
         applies to all protocols.
     :ivar Optional[IPV4Address] src_ip_address: The source IP address to match. If combined with `src_wildcard_mask`,
         it specifies the start of an IP range.
@@ -116,8 +116,8 @@ class ACLRule(SimComponent):
         `dst_wildcard_mask`, it specifies the start of an IP range.
     :ivar Optional[IPv4Address] dst_wildcard_mask: The wildcard mask for the destination IP address, defining the
         range of addresses to match.
-    :ivar Optional[Port] src_port: The source port number to match. Relevant for TCP/UDP protocols.
-    :ivar Optional[Port] dst_port: The destination port number to match. Relevant for TCP/UDP protocols.
+    :ivar Optional[int] src_port: The source port number to match. Relevant for TCP/UDP protocols.
+    :ivar Optional[int] dst_port: The destination port number to match. Relevant for TCP/UDP protocols.
     """
 
     action: ACLAction = ACLAction.DENY
@@ -149,13 +149,13 @@ class ACLRule(SimComponent):
         """
         state = super().describe_state()
         state["action"] = self.action.value
-        state["protocol"] = self.protocol.name if self.protocol else None
+        state["protocol"] = self.protocol if self.protocol else None
         state["src_ip_address"] = str(self.src_ip_address) if self.src_ip_address else None
         state["src_wildcard_mask"] = str(self.src_wildcard_mask) if self.src_wildcard_mask else None
-        state["src_port"] = self.src_port.name if self.src_port else None
+        state["src_port"] = self.src_port if self.src_port else None
         state["dst_ip_address"] = str(self.dst_ip_address) if self.dst_ip_address else None
         state["dst_wildcard_mask"] = str(self.dst_wildcard_mask) if self.dst_wildcard_mask else None
-        state["dst_port"] = self.dst_port.name if self.dst_port else None
+        state["dst_port"] = self.dst_port if self.dst_port else None
         state["match_count"] = self.match_count
         return state
 
@@ -265,7 +265,7 @@ class AccessControlList(SimComponent):
         >>> acl = AccessControlList()
         >>> acl.add_rule(
         ...    action=ACLAction.PERMIT,
-        ...    protocol=IPProtocol.TCP,
+        ...    protocol=IPProtocol["TCP"],
         ...    src_ip_address="192.168.1.0",
         ...    src_wildcard_mask="0.0.0.255",
         ...    dst_ip_address="192.168.2.0",
@@ -323,13 +323,13 @@ class AccessControlList(SimComponent):
                 func=lambda request, context: RequestResponse.from_bool(
                     self.add_rule(
                         action=ACLAction[request[0]],
-                        protocol=None if request[1] == "ALL" else IPProtocol[request[1]],
+                        protocol=None if request[1] == "ALL" else request[1],
                         src_ip_address=None if request[2] == "ALL" else IPv4Address(request[2]),
                         src_wildcard_mask=None if request[3] == "NONE" else IPv4Address(request[3]),
-                        src_port=None if request[4] == "ALL" else Port[request[4]],
+                        src_port=None if request[4] == "ALL" else request[4],
                         dst_ip_address=None if request[5] == "ALL" else IPv4Address(request[5]),
                         dst_wildcard_mask=None if request[6] == "NONE" else IPv4Address(request[6]),
-                        dst_port=None if request[7] == "ALL" else Port[request[7]],
+                        dst_port=None if request[7] == "ALL" else request[7],
                         position=int(request[8]),
                     )
                 )
@@ -399,11 +399,11 @@ class AccessControlList(SimComponent):
             >>> router = Router("router")
             >>> router.add_rule(
             ...    action=ACLAction.DENY,
-            ...    protocol=IPProtocol.TCP,
+            ...    protocol=IPProtocol["TCP"],
             ...    src_ip_address="192.168.1.0",
             ...    src_wildcard_mask="0.0.0.255",
             ...    dst_ip_address="10.10.10.5",
-            ...    dst_port=Port.SSH,
+            ...    dst_port=Port["SSH"],
             ...    position=5
             ... )
             >>> # This permits SSH traffic from the 192.168.1.0/24 subnet to the 10.10.10.5 server.
@@ -411,10 +411,10 @@ class AccessControlList(SimComponent):
             >>> # Then if we want to allow a specific IP address from this subnet to SSH into the server
             >>> router.add_rule(
             ...    action=ACLAction.PERMIT,
-            ...    protocol=IPProtocol.TCP,
+            ...    protocol=IPProtocol["TCP"],
             ...    src_ip_address="192.168.1.25",
             ...    dst_ip_address="10.10.10.5",
-            ...    dst_port=Port.SSH,
+            ...    dst_port=Port["SSH"],
             ...    position=4
             ... )
 
@@ -552,13 +552,13 @@ class AccessControlList(SimComponent):
                     [
                         index,
                         rule.action.name if rule.action else "ANY",
-                        rule.protocol.name if rule.protocol else "ANY",
+                        rule.protocol if rule.protocol else "ANY",
                         rule.src_ip_address if rule.src_ip_address else "ANY",
                         rule.src_wildcard_mask if rule.src_wildcard_mask else "ANY",
-                        f"{rule.src_port.value} ({rule.src_port.name})" if rule.src_port else "ANY",
+                        f"{rule.src_port}" if rule.src_port else "ANY",
                         rule.dst_ip_address if rule.dst_ip_address else "ANY",
                         rule.dst_wildcard_mask if rule.dst_wildcard_mask else "ANY",
-                        f"{rule.dst_port.value} ({rule.dst_port.name})" if rule.dst_port else "ANY",
+                        f"{rule.dst_port}" if rule.dst_port else "ANY",
                         rule.match_count,
                     ]
                 )
@@ -1257,8 +1257,10 @@ class Router(NetworkNode):
         Initializes the router's ACL (Access Control List) with default rules, permitting essential protocols like ARP
         and ICMP, which are necessary for basic network operations and diagnostics.
         """
-        self.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
-        self.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+        self.acl.add_rule(
+            action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
+        )
+        self.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
 
     def setup_for_episode(self, episode: int):
         """
@@ -1357,9 +1359,9 @@ class Router(NetworkNode):
         """
         dst_ip_address = frame.ip.dst_ip_address
         dst_port = None
-        if frame.ip.protocol == IPProtocol.TCP:
+        if frame.ip.protocol == PROTOCOL_LOOKUP["TCP"]:
             dst_port = frame.tcp.dst_port
-        elif frame.ip.protocol == IPProtocol.UDP:
+        elif frame.ip.protocol == PROTOCOL_LOOKUP["UDP"]:
             dst_port = frame.udp.dst_port
 
         if self.ip_is_router_interface(dst_ip_address) and (
@@ -1632,9 +1634,9 @@ class Router(NetworkNode):
             for r_num, r_cfg in cfg["acl"].items():
                 router.acl.add_rule(
                     action=ACLAction[r_cfg["action"]],
-                    src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                    dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                    protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                    src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
+                    dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
+                    protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
                     src_ip_address=r_cfg.get("src_ip"),
                     src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                     dst_ip_address=r_cfg.get("dst_ip"),

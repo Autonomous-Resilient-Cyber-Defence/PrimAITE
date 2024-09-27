@@ -6,8 +6,8 @@ from primaite.simulator.network.hardware.node_operating_state import NodeOperati
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 from tests.integration_tests.configuration_file_parsing import DMZ_NETWORK, load_config
 
 
@@ -63,8 +63,8 @@ def test_router_acl_rules_correctly_added(dmz_config):
     # ICMP and ARP should be allowed
     assert router_1.acl.num_rules == 2
     assert router_1.acl.acl[22].action == ACLAction.PERMIT
-    assert router_1.acl.acl[22].src_port == Port.ARP
-    assert router_1.acl.acl[22].dst_port == Port.ARP
+    assert router_1.acl.acl[22].src_port == PORT_LOOKUP["ARP"]
+    assert router_1.acl.acl[22].dst_port == PORT_LOOKUP["ARP"]
     assert router_1.acl.acl[23].action == ACLAction.PERMIT
-    assert router_1.acl.acl[23].protocol == IPProtocol.ICMP
+    assert router_1.acl.acl[23].protocol == PROTOCOL_LOOKUP["ICMP"]
     assert router_1.acl.implicit_action == ACLAction.DENY

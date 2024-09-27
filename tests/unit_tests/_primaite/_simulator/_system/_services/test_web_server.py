@@ -9,9 +9,9 @@ from primaite.simulator.network.protocols.http import (
     HttpResponsePacket,
     HttpStatusCode,
 )
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.web_server.web_server import WebServer
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -33,8 +33,8 @@ def test_create_web_server(web_server):
     assert web_server is not None
     web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
     assert web_server_service.name is "WebServer"
-    assert web_server_service.port is Port.HTTP
-    assert web_server_service.protocol is IPProtocol.TCP
+    assert web_server_service.port is PORT_LOOKUP["HTTP"]
+    assert web_server_service.protocol is PROTOCOL_LOOKUP["TCP"]
 
 
 def test_handling_get_request_not_found_path(web_server):

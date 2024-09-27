@@ -6,10 +6,10 @@ from prettytable import MARKDOWN, PrettyTable
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 class RansomwareScript(Application, identifier="RansomwareScript"):
@@ -27,8 +27,8 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "RansomwareScript"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.NONE
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
 
         super().__init__(**kwargs)
         self._db_connection: Optional[DatabaseClientConnection] = None

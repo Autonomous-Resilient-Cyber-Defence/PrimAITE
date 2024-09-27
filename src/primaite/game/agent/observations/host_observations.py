@@ -12,6 +12,8 @@ from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.observations.software_observation import ApplicationObservation, ServiceObservation
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.port import Port
 
 _LOGGER = getLogger(__name__)
 
@@ -44,7 +46,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         """Number of spaces for network interface observations on this host."""
         include_nmne: Optional[bool] = None
         """Whether network interface observations should include number of malicious network events."""
-        monitored_traffic: Optional[Dict] = None
+        monitored_traffic: Optional[Dict[IPProtocol, List[Port]]] = None
         """A dict containing which traffic types are to be included in the observation."""
         include_num_access: Optional[bool] = None
         """Whether to include the number of accesses to files observations on this host."""

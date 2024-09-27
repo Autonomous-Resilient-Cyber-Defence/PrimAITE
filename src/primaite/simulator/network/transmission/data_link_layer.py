@@ -7,10 +7,12 @@ from pydantic import BaseModel
 from primaite import getLogger
 from primaite.simulator.network.protocols.icmp import ICMPPacket
 from primaite.simulator.network.protocols.packet import DataPacket
-from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
+from primaite.simulator.network.transmission.network_layer import IPPacket
 from primaite.simulator.network.transmission.primaite_layer import PrimaiteHeader
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader, UDPHeader
+from primaite.simulator.network.transmission.transport_layer import TCPHeader, UDPHeader
 from primaite.simulator.network.utils import convert_bytes_to_megabits
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -70,15 +72,15 @@ class Frame(BaseModel):
             msg = "Network Frame cannot have both a TCP header and a UDP header"
             _LOGGER.error(msg)
             raise ValueError(msg)
-        if kwargs["ip"].protocol == IPProtocol.TCP and not kwargs.get("tcp"):
+        if kwargs["ip"].protocol == PROTOCOL_LOOKUP["TCP"] and not kwargs.get("tcp"):
             msg = "Cannot build a Frame using the TCP IP Protocol without a TCPHeader"
             _LOGGER.error(msg)
             raise ValueError(msg)
-        if kwargs["ip"].protocol == IPProtocol.UDP and not kwargs.get("udp"):
+        if kwargs["ip"].protocol == PROTOCOL_LOOKUP["UDP"] and not kwargs.get("udp"):
             msg = "Cannot build a Frame using the UDP IP Protocol without a UDPHeader"
             _LOGGER.error(msg)
             raise ValueError(msg)
-        if kwargs["ip"].protocol == IPProtocol.ICMP and not kwargs.get("icmp"):
+        if kwargs["ip"].protocol == PROTOCOL_LOOKUP["ICMP"] and not kwargs.get("icmp"):
             msg = "Cannot build a Frame using the ICMP IP Protocol without a ICMPPacket"
             _LOGGER.error(msg)
             raise ValueError(msg)
@@ -165,7 +167,7 @@ class Frame(BaseModel):
 
         :return: True if the Frame is an ARP packet, otherwise False.
         """
-        return self.udp.dst_port == Port.ARP
+        return self.udp.dst_port == PORT_LOOKUP["ARP"]
 
     @property
     def is_icmp(self) -> bool:

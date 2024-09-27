@@ -8,10 +8,10 @@ from prettytable import MARKDOWN, PrettyTable
 
 from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import Service
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 class ARP(Service):
@@ -26,8 +26,8 @@ class ARP(Service):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ARP"
-        kwargs["port"] = Port.ARP
-        kwargs["protocol"] = IPProtocol.UDP
+        kwargs["port"] = PORT_LOOKUP["ARP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["UDP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:

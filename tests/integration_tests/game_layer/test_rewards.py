@@ -9,11 +9,11 @@ from primaite.interface.request import RequestResponse
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 from tests import TEST_ASSETS_ROOT
 from tests.conftest import ControlledAgent
 
@@ -42,7 +42,12 @@ def test_WebpageUnavailablePenalty(game_and_agent):
 
     # Block the web traffic, check that failing to fetch the webpage yields a reward of -0.7
     router: Router = game.simulation.network.get_node_by_hostname("router")
-    router.acl.add_rule(action=ACLAction.DENY, protocol=IPProtocol.TCP, src_port=Port.HTTP, dst_port=Port.HTTP)
+    router.acl.add_rule(
+        action=ACLAction.DENY,
+        protocol=PROTOCOL_LOOKUP["TCP"],
+        src_port=PORT_LOOKUP["HTTP"],
+        dst_port=PORT_LOOKUP["HTTP"],
+    )
     agent.store_action(("NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}))
     game.step()
     assert agent.reward_function.current_reward == -0.7
@@ -65,7 +70,9 @@ def test_uc2_rewards(game_and_agent):
     db_client.run()
 
     router: Router = game.simulation.network.get_node_by_hostname("router")
-    router.acl.add_rule(ACLAction.PERMIT, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER, position=2)
+    router.acl.add_rule(
+        ACLAction.PERMIT, src_port=PORT_LOOKUP["POSTGRES_SERVER"], dst_port=PORT_LOOKUP["POSTGRES_SERVER"], position=2
+    )
 
     comp = GreenAdminDatabaseUnreachablePenalty("client_1")
 

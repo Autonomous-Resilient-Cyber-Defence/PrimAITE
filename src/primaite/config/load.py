@@ -60,9 +60,10 @@ def data_manipulation_marl_config_path() -> Path:
         raise FileNotFoundError(msg)
     return path
 
+
 def get_extended_config_path() -> Path:
     """
-    Get the path to an 'extended' example config that contains nodes using the extension framework
+    Get the path to an 'extended' example config that contains nodes using the extension framework.
 
     :return: Path to the extended example config
     :rtype: Path

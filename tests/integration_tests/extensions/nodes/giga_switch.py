@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from typing import Dict
 
 from prettytable import MARKDOWN, PrettyTable
@@ -27,7 +28,7 @@ class GigaSwitch(NetworkNode, identifier="gigaswitch"):
     "A MAC address table mapping destination MAC addresses to corresponding SwitchPorts."
 
     def __init__(self, **kwargs):
-        print('--- Extended Component: GigaSwitch ---')
+        print("--- Extended Component: GigaSwitch ---")
         super().__init__(**kwargs)
         for i in range(1, self.num_ports + 1):
             self.connect_nic(SwitchPort())

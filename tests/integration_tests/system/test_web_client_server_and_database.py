@@ -9,7 +9,6 @@ from primaite.simulator.network.hardware.base import Link
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.services.database.database_service import DatabaseService
@@ -17,6 +16,7 @@ from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from primaite.simulator.system.software import SoftwareHealthState
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -24,17 +24,22 @@ def web_client_web_server_database(example_network) -> Tuple[Network, Computer, 
     # add rules to network router
     router_1: Router = example_network.get_node_by_hostname("router_1")
     router_1.acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER, position=0
+        action=ACLAction.PERMIT,
+        src_port=PORT_LOOKUP["POSTGRES_SERVER"],
+        dst_port=PORT_LOOKUP["POSTGRES_SERVER"],
+        position=0,
     )
 
     # Allow DNS requests
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.DNS, dst_port=Port.DNS, position=1)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["DNS"], dst_port=PORT_LOOKUP["DNS"], position=1)
 
     # Allow FTP requests
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.FTP, dst_port=Port.FTP, position=2)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["FTP"], dst_port=PORT_LOOKUP["FTP"], position=2)
 
     # Open port 80 for web server
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=3)
+    router_1.acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=3
+    )
 
     # Create Computer
     computer: Computer = example_network.get_node_by_hostname("client_1")
@@ -148,7 +153,9 @@ class TestWebBrowserHistory:
         assert web_browser.history[-1].response_code == 200
 
         router = network.get_node_by_hostname("router_1")
-        router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+        router.acl.add_rule(
+            action=ACLAction.DENY, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=0
+        )
         assert not web_browser.get_webpage()
         assert len(web_browser.history) == 3
         # with current NIC behaviour, even if you block communication, you won't get SERVER_UNREACHABLE because
@@ -166,7 +173,9 @@ class TestWebBrowserHistory:
 
         web_browser.get_webpage()
         router = network.get_node_by_hostname("router_1")
-        router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+        router.acl.add_rule(
+            action=ACLAction.DENY, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=0
+        )
         web_browser.get_webpage()
 
         state = computer.describe_state()

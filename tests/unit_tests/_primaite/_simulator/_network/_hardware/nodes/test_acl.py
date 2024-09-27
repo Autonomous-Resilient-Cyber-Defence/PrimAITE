@@ -7,8 +7,10 @@ from primaite.simulator.network.hardware.base import generate_mac_address
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.protocols.icmp import ICMPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader, UDPHeader
+from primaite.simulator.network.transmission.network_layer import IPPacket
+from primaite.simulator.network.transmission.transport_layer import TCPHeader, UDPHeader
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -28,20 +30,20 @@ def router_with_acl_rules():
     # Add rules here as needed
     acl.add_rule(
         action=ACLAction.PERMIT,
-        protocol=IPProtocol.TCP,
+        protocol=PROTOCOL_LOOKUP["TCP"],
         src_ip_address="192.168.1.1",
-        src_port=Port.HTTPS,
+        src_port=PORT_LOOKUP["HTTPS"],
         dst_ip_address="192.168.1.2",
-        dst_port=Port.HTTP,
+        dst_port=PORT_LOOKUP["HTTP"],
         position=1,
     )
     acl.add_rule(
         action=ACLAction.DENY,
-        protocol=IPProtocol.TCP,
+        protocol=PROTOCOL_LOOKUP["TCP"],
         src_ip_address="192.168.1.3",
-        src_port=Port(8080),
+        src_port=8080,
         dst_ip_address="192.168.1.4",
-        dst_port=Port(80),
+        dst_port=80,
         position=2,
     )
     return router
@@ -65,21 +67,21 @@ def router_with_wildcard_acl():
     # Rule to permit traffic from a specific source IP and port to a specific destination IP and port
     acl.add_rule(
         action=ACLAction.PERMIT,
-        protocol=IPProtocol.TCP,
+        protocol=PROTOCOL_LOOKUP["TCP"],
         src_ip_address="192.168.1.1",
-        src_port=Port(8080),
+        src_port=8080,
         dst_ip_address="10.1.1.2",
-        dst_port=Port(80),
+        dst_port=80,
         position=1,
     )
     # Rule to deny traffic from an IP range to a specific destination IP and port
     acl.add_rule(
         action=ACLAction.DENY,
-        protocol=IPProtocol.TCP,
+        protocol=PROTOCOL_LOOKUP["TCP"],
         src_ip_address="192.168.1.0",
         src_wildcard_mask="0.0.0.255",
         dst_ip_address="10.1.1.3",
-        dst_port=Port(443),
+        dst_port=443,
         position=2,
     )
     # Rule to permit any traffic to a range of destination IPs
@@ -109,11 +111,11 @@ def test_add_rule(router_with_acl_rules):
     acl = router_with_acl_rules.acl
 
     assert acl.acl[1].action == ACLAction.PERMIT
-    assert acl.acl[1].protocol == IPProtocol.TCP
+    assert acl.acl[1].protocol == PROTOCOL_LOOKUP["TCP"]
     assert acl.acl[1].src_ip_address == IPv4Address("192.168.1.1")
-    assert acl.acl[1].src_port == Port.HTTPS
+    assert acl.acl[1].src_port == PORT_LOOKUP["HTTPS"]
     assert acl.acl[1].dst_ip_address == IPv4Address("192.168.1.2")
-    assert acl.acl[1].dst_port == Port.HTTP
+    assert acl.acl[1].dst_port == PORT_LOOKUP["HTTP"]
 
 
 def test_remove_rule(router_with_acl_rules):
@@ -136,8 +138,8 @@ def test_traffic_permitted_by_specific_rule(router_with_acl_rules):
     acl = router_with_acl_rules.acl
     permitted_frame = Frame(
         ethernet=EthernetHeader(src_mac_addr=generate_mac_address(), dst_mac_addr=generate_mac_address()),
-        ip=IPPacket(src_ip_address="192.168.1.1", dst_ip_address="192.168.1.2", protocol=IPProtocol.TCP),
-        tcp=TCPHeader(src_port=Port.HTTPS, dst_port=Port.HTTP),
+        ip=IPPacket(src_ip_address="192.168.1.1", dst_ip_address="192.168.1.2", protocol=PROTOCOL_LOOKUP["TCP"]),
+        tcp=TCPHeader(src_port=PORT_LOOKUP["HTTPS"], dst_port=PORT_LOOKUP["HTTP"]),
     )
     is_permitted, _ = acl.is_permitted(permitted_frame)
     assert is_permitted
@@ -153,8 +155,8 @@ def test_traffic_denied_by_specific_rule(router_with_acl_rules):
     acl = router_with_acl_rules.acl
     not_permitted_frame = Frame(
         ethernet=EthernetHeader(src_mac_addr=generate_mac_address(), dst_mac_addr=generate_mac_address()),
-        ip=IPPacket(src_ip_address="192.168.1.3", dst_ip_address="192.168.1.4", protocol=IPProtocol.TCP),
-        tcp=TCPHeader(src_port=Port(8080), dst_port=Port(80)),
+        ip=IPPacket(src_ip_address="192.168.1.3", dst_ip_address="192.168.1.4", protocol=PROTOCOL_LOOKUP["TCP"]),
+        tcp=TCPHeader(src_port=8080, dst_port=80),
     )
     is_permitted, _ = acl.is_permitted(not_permitted_frame)
     assert not is_permitted
@@ -173,8 +175,8 @@ def test_default_rule(router_with_acl_rules):
     acl = router_with_acl_rules.acl
     not_permitted_frame = Frame(
         ethernet=EthernetHeader(src_mac_addr=generate_mac_address(), dst_mac_addr=generate_mac_address()),
-        ip=IPPacket(src_ip_address="192.168.1.5", dst_ip_address="192.168.1.12", protocol=IPProtocol.UDP),
-        udp=UDPHeader(src_port=Port.HTTPS, dst_port=Port.HTTP),
+        ip=IPPacket(src_ip_address="192.168.1.5", dst_ip_address="192.168.1.12", protocol=PROTOCOL_LOOKUP["UDP"]),
+        udp=UDPHeader(src_port=PORT_LOOKUP["HTTPS"], dst_port=PORT_LOOKUP["HTTP"]),
     )
     is_permitted, rule = acl.is_permitted(not_permitted_frame)
     assert not is_permitted
@@ -189,8 +191,8 @@ def test_direct_ip_match_with_acl(router_with_wildcard_acl):
     acl = router_with_wildcard_acl.acl
     frame = Frame(
         ethernet=EthernetHeader(src_mac_addr=generate_mac_address(), dst_mac_addr=generate_mac_address()),
-        ip=IPPacket(src_ip_address="192.168.1.1", dst_ip_address="10.1.1.2", protocol=IPProtocol.TCP),
-        tcp=TCPHeader(src_port=Port(8080), dst_port=Port(80)),
+        ip=IPPacket(src_ip_address="192.168.1.1", dst_ip_address="10.1.1.2", protocol=PROTOCOL_LOOKUP["TCP"]),
+        tcp=TCPHeader(src_port=8080, dst_port=80),
     )
     assert acl.is_permitted(frame)[0], "Direct IP match should be permitted."
 
@@ -204,8 +206,8 @@ def test_ip_range_match_denied_with_acl(router_with_wildcard_acl):
     acl = router_with_wildcard_acl.acl
     frame = Frame(
         ethernet=EthernetHeader(src_mac_addr=generate_mac_address(), dst_mac_addr=generate_mac_address()),
-        ip=IPPacket(src_ip_address="192.168.1.100", dst_ip_address="10.1.1.3", protocol=IPProtocol.TCP),
-        tcp=TCPHeader(src_port=Port(8080), dst_port=Port(443)),
+        ip=IPPacket(src_ip_address="192.168.1.100", dst_ip_address="10.1.1.3", protocol=PROTOCOL_LOOKUP["TCP"]),
+        tcp=TCPHeader(src_port=8080, dst_port=443),
     )
     assert not acl.is_permitted(frame)[0], "IP range match with wildcard mask should be denied."
 
@@ -219,8 +221,8 @@ def test_traffic_permitted_to_destination_range_with_acl(router_with_wildcard_ac
     acl = router_with_wildcard_acl.acl
     frame = Frame(
         ethernet=EthernetHeader(src_mac_addr=generate_mac_address(), dst_mac_addr=generate_mac_address()),
-        ip=IPPacket(src_ip_address="192.168.1.50", dst_ip_address="10.2.200.200", protocol=IPProtocol.UDP),
-        udp=UDPHeader(src_port=Port(1433), dst_port=Port(1433)),
+        ip=IPPacket(src_ip_address="192.168.1.50", dst_ip_address="10.2.200.200", protocol=PROTOCOL_LOOKUP["UDP"]),
+        udp=UDPHeader(src_port=1433, dst_port=1433),
     )
     assert acl.is_permitted(frame)[0], "Traffic to destination IP range should be permitted."
 
@@ -253,23 +255,23 @@ def test_ip_traffic_from_specific_subnet():
 
     permitted_frame_1 = Frame(
         ethernet=EthernetHeader(src_mac_addr=generate_mac_address(), dst_mac_addr=generate_mac_address()),
-        ip=IPPacket(src_ip_address="192.168.1.50", dst_ip_address="10.2.200.200", protocol=IPProtocol.TCP),
-        tcp=TCPHeader(src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER),
+        ip=IPPacket(src_ip_address="192.168.1.50", dst_ip_address="10.2.200.200", protocol=PROTOCOL_LOOKUP["TCP"]),
+        tcp=TCPHeader(src_port=PORT_LOOKUP["POSTGRES_SERVER"], dst_port=PORT_LOOKUP["POSTGRES_SERVER"]),
     )
 
     assert acl.is_permitted(permitted_frame_1)[0]
 
     permitted_frame_2 = Frame(
         ethernet=EthernetHeader(src_mac_addr=generate_mac_address(), dst_mac_addr=generate_mac_address()),
-        ip=IPPacket(src_ip_address="192.168.1.10", dst_ip_address="85.199.214.101", protocol=IPProtocol.UDP),
-        udp=UDPHeader(src_port=Port.NTP, dst_port=Port.NTP),
+        ip=IPPacket(src_ip_address="192.168.1.10", dst_ip_address="85.199.214.101", protocol=PROTOCOL_LOOKUP["UDP"]),
+        udp=UDPHeader(src_port=PORT_LOOKUP["NTP"], dst_port=PORT_LOOKUP["NTP"]),
     )
 
     assert acl.is_permitted(permitted_frame_2)[0]
 
     permitted_frame_3 = Frame(
         ethernet=EthernetHeader(src_mac_addr=generate_mac_address(), dst_mac_addr=generate_mac_address()),
-        ip=IPPacket(src_ip_address="192.168.1.200", dst_ip_address="192.168.1.1", protocol=IPProtocol.ICMP),
+        ip=IPPacket(src_ip_address="192.168.1.200", dst_ip_address="192.168.1.1", protocol=PROTOCOL_LOOKUP["ICMP"]),
         icmp=ICMPPacket(identifier=1),
     )
 
@@ -277,16 +279,16 @@ def test_ip_traffic_from_specific_subnet():
 
     not_permitted_frame_1 = Frame(
         ethernet=EthernetHeader(src_mac_addr=generate_mac_address(), dst_mac_addr=generate_mac_address()),
-        ip=IPPacket(src_ip_address="192.168.0.50", dst_ip_address="10.2.200.200", protocol=IPProtocol.TCP),
-        tcp=TCPHeader(src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER),
+        ip=IPPacket(src_ip_address="192.168.0.50", dst_ip_address="10.2.200.200", protocol=PROTOCOL_LOOKUP["TCP"]),
+        tcp=TCPHeader(src_port=PORT_LOOKUP["POSTGRES_SERVER"], dst_port=PORT_LOOKUP["POSTGRES_SERVER"]),
     )
 
     assert not acl.is_permitted(not_permitted_frame_1)[0]
 
     not_permitted_frame_2 = Frame(
         ethernet=EthernetHeader(src_mac_addr=generate_mac_address(), dst_mac_addr=generate_mac_address()),
-        ip=IPPacket(src_ip_address="192.168.2.10", dst_ip_address="85.199.214.101", protocol=IPProtocol.UDP),
-        udp=UDPHeader(src_port=Port.NTP, dst_port=Port.NTP),
+        ip=IPPacket(src_ip_address="192.168.2.10", dst_ip_address="85.199.214.101", protocol=PROTOCOL_LOOKUP["UDP"]),
+        udp=UDPHeader(src_port=PORT_LOOKUP["NTP"], dst_port=PORT_LOOKUP["NTP"]),
     )
 
     assert not acl.is_permitted(not_permitted_frame_2)[0]

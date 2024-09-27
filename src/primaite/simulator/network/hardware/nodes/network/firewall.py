@@ -14,10 +14,10 @@ from primaite.simulator.network.hardware.nodes.network.router import (
     RouterInterface,
 )
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.sys_log import SysLog
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import PORT_LOOKUP
 
 EXTERNAL_PORT_ID: Final[int] = 1
 """The Firewall port ID of the external port."""
@@ -58,8 +58,8 @@ class Firewall(Router):
         >>> # Permit HTTP traffic to the DMZ
         >>> firewall.dmz_inbound_acl.add_rule(
         ...    action=ACLAction.PERMIT,
-        ...    protocol=IPProtocol.TCP,
-        ...    dst_port=Port.HTTP,
+        ...    protocol=IPProtocol["TCP"],
+        ...    dst_port=Port["HTTP"],
         ...    src_ip_address="0.0.0.0",
         ...    src_wildcard_mask="0.0.0.0",
         ...    dst_ip_address="172.16.0.0",
@@ -596,9 +596,9 @@ class Firewall(Router):
                 for r_num, r_cfg in cfg["acl"]["internal_inbound_acl"].items():
                     firewall.internal_inbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
-                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
                         src_ip_address=r_cfg.get("src_ip"),
                         src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),
@@ -611,9 +611,9 @@ class Firewall(Router):
                 for r_num, r_cfg in cfg["acl"]["internal_outbound_acl"].items():
                     firewall.internal_outbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
-                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
                         src_ip_address=r_cfg.get("src_ip"),
                         src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),
@@ -626,9 +626,9 @@ class Firewall(Router):
                 for r_num, r_cfg in cfg["acl"]["dmz_inbound_acl"].items():
                     firewall.dmz_inbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
-                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
                         src_ip_address=r_cfg.get("src_ip"),
                         src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),
@@ -641,9 +641,9 @@ class Firewall(Router):
                 for r_num, r_cfg in cfg["acl"]["dmz_outbound_acl"].items():
                     firewall.dmz_outbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
-                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
                         src_ip_address=r_cfg.get("src_ip"),
                         src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),
@@ -656,9 +656,9 @@ class Firewall(Router):
                 for r_num, r_cfg in cfg["acl"]["external_inbound_acl"].items():
                     firewall.external_inbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
-                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
                         src_ip_address=r_cfg.get("src_ip"),
                         src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),
@@ -671,9 +671,9 @@ class Firewall(Router):
                 for r_num, r_cfg in cfg["acl"]["external_outbound_acl"].items():
                     firewall.external_outbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
-                        src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                        dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                        protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                        src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
+                        dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
+                        protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
                         src_ip_address=r_cfg.get("src_ip"),
                         src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                         dst_ip_address=r_cfg.get("dst_ip"),

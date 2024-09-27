@@ -3,14 +3,16 @@ from enum import Enum
 from typing import Optional
 
 from primaite.simulator.network.protocols.packet import DataPacket
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.port import Port
 
 
 class MasqueradePacket(DataPacket):
     """Represents an generic malicious packet that is masquerading as another protocol."""
 
-    masquerade_protocol: Enum  # The 'Masquerade' protocol that is currently in use
+    masquerade_protocol: IPProtocol  # The 'Masquerade' protocol that is currently in use
 
-    masquerade_port: Enum  # The 'Masquerade' port that is currently in use
+    masquerade_port: Port  # The 'Masquerade' port that is currently in use
 
 
 class C2Packet(MasqueradePacket):

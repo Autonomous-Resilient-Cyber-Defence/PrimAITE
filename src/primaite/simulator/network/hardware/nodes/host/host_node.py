@@ -22,7 +22,7 @@ from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.icmp.icmp import ICMP
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.simulator.system.services.terminal.terminal import Terminal
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ipv4_address import IPV4Address
 
 _LOGGER = getLogger(__name__)
 
@@ -332,7 +332,7 @@ class HostNode(Node):
         super().__init__(**kwargs)
         self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))
 
-    def __init_subclass__(cls, identifier: str = 'default', **kwargs: Any) -> None:
+    def __init_subclass__(cls, identifier: str = "default", **kwargs: Any) -> None:
         """
         Register a hostnode type.
 
@@ -340,7 +340,7 @@ class HostNode(Node):
         :type identifier: str
         :raises ValueError: When attempting to register an hostnode with a name that is already allocated.
         """
-        if identifier == 'default':
+        if identifier == "default":
             return
         # Enforce lowercase registry entries because it makes comparisons everywhere else much easier.
         identifier = identifier.lower()

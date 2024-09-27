@@ -3,9 +3,9 @@ from typing import Any, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import is_valid_port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -23,8 +23,8 @@ class FTPServer(FTPServiceABC):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPServer"
-        kwargs["port"] = Port.FTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = PORT_LOOKUP["FTP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self.start()
 
@@ -52,7 +52,7 @@ class FTPServer(FTPServiceABC):
         # process server specific commands, otherwise call super
         if payload.ftp_command == FTPCommand.PORT:
             # check that the port is valid
-            if isinstance(payload.ftp_command_args, Port) and payload.ftp_command_args.value in range(0, 65535):
+            if is_valid_port(payload.ftp_command_args):
                 # return successful connection
                 self.add_connection(connection_id=session_id, session_id=session_id)
                 payload.status_code = FTPStatusCode.OK

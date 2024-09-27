@@ -1,5 +1,4 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from enum import Enum
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
@@ -9,12 +8,12 @@ from pydantic import validate_call
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.masquerade import C2Packet
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.red_applications.c2 import ExfilOpts, RansomwareOpts, TerminalOpts
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from primaite.simulator.system.services.terminal.terminal import Terminal, TerminalClientConnection
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 class C2Beacon(AbstractC2, identifier="C2Beacon"):
@@ -112,8 +111,8 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
                 self.configure(
                     c2_server_ip_address=c2_remote_ip,
                     keep_alive_frequency=frequency,
-                    masquerade_protocol=IPProtocol[protocol],
-                    masquerade_port=Port[port],
+                    masquerade_protocol=PROTOCOL_LOOKUP[protocol],
+                    masquerade_port=PORT_LOOKUP[port],
                 )
             )
 
@@ -130,8 +129,8 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         self,
         c2_server_ip_address: IPv4Address = None,
         keep_alive_frequency: int = 5,
-        masquerade_protocol: Enum = IPProtocol.TCP,
-        masquerade_port: Enum = Port.HTTP,
+        masquerade_protocol: str = PROTOCOL_LOOKUP["TCP"],
+        masquerade_port: int = PORT_LOOKUP["HTTP"],
     ) -> bool:
         """
         Configures the C2 beacon to communicate with the C2 server.

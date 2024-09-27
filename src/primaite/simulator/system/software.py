@@ -13,10 +13,10 @@ from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port
 
 if TYPE_CHECKING:
     from primaite.simulator.system.core.software_manager import SoftwareManager
@@ -277,7 +277,7 @@ class IOSoftware(Software):
                 "max_sessions": self.max_sessions,
                 "tcp": self.tcp,
                 "udp": self.udp,
-                "port": self.port.value,
+                "port": self.port,
             }
         )
         return state
@@ -386,8 +386,8 @@ class IOSoftware(Software):
         payload: Any,
         session_id: Optional[str] = None,
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
-        dest_port: Optional[Port] = None,
-        ip_protocol: IPProtocol = IPProtocol.TCP,
+        dest_port: Optional[int] = None,
+        ip_protocol: IPProtocol = PROTOCOL_LOOKUP["TCP"],
         **kwargs,
     ) -> bool:
         """

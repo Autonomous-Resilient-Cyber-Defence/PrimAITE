@@ -7,8 +7,8 @@ from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -85,7 +85,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
             if "target_ip_address" in request[-1]:
                 request[-1]["target_ip_address"] = IPv4Address(request[-1]["target_ip_address"])
             if "target_port" in request[-1]:
-                request[-1]["target_port"] = Port[request[-1]["target_port"]]
+                request[-1]["target_port"] = PORT_LOOKUP[request[-1]["target_port"]]
             return RequestResponse.from_bool(self.configure(**request[-1]))
 
         rm.add_request("configure", request_type=RequestType(func=_configure))
@@ -94,7 +94,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
     def configure(
         self,
         target_ip_address: IPv4Address,
-        target_port: Optional[Port] = Port.POSTGRES_SERVER,
+        target_port: Optional[int] = PORT_LOOKUP["POSTGRES_SERVER"],
         payload: Optional[str] = None,
         repeat: bool = False,
         port_scan_p_of_success: float = 0.1,
@@ -105,7 +105,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
         Configure the Denial of Service bot.
 
         :param: target_ip_address: The IP address of the Node containing the target service.
-        :param: target_port: The port of the target service. Optional - Default is `Port.HTTP`
+        :param: target_port: The port of the target service. Optional - Default is `Port["HTTP"]`
         :param: payload: The payload the DoS Bot will throw at the target service. Optional - Default is `None`
         :param: repeat: If True, the bot will maintain the attack. Optional - Default is `True`
         :param: port_scan_p_of_success: The chance of the port scan being successful. Optional - Default is 0.1 (10%)

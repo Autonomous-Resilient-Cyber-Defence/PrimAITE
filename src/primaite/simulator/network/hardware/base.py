@@ -21,8 +21,6 @@ from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.packet_capture import PacketCapture
 from primaite.simulator.system.core.session_manager import SessionManager
@@ -33,7 +31,9 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.software import IOSoftware, Software
 from primaite.utils.converters import convert_dict_enum_keys_to_enum_values
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import PORT_LOOKUP
 
 IOSoftwareClass = TypeVar("IOSoftwareClass", bound=IOSoftware)
 
@@ -203,16 +203,16 @@ class NetworkInterface(SimComponent, ABC):
         # Initialise basic frame data variables
         direction = "inbound" if inbound else "outbound"  # Direction of the traffic
         ip_address = str(frame.ip.src_ip_address if inbound else frame.ip.dst_ip_address)  # Source or destination IP
-        protocol = frame.ip.protocol.name  # Network protocol used in the frame
+        protocol = frame.ip.protocol  # Network protocol used in the frame
 
         # Initialise port variable; will be determined based on protocol type
         port = None
 
         # Determine the source or destination port based on the protocol (TCP/UDP)
         if frame.tcp:
-            port = frame.tcp.src_port.value if inbound else frame.tcp.dst_port.value
+            port = frame.tcp.src_port if inbound else frame.tcp.dst_port
         elif frame.udp:
-            port = frame.udp.src_port.value if inbound else frame.udp.dst_port.value
+            port = frame.udp.src_port if inbound else frame.udp.dst_port
 
         # Convert frame payload to string for keyword checking
         frame_str = str(frame.payload)
@@ -274,20 +274,20 @@ class NetworkInterface(SimComponent, ABC):
 
         # Identify the protocol and port from the frame
         if frame.tcp:
-            protocol = IPProtocol.TCP
+            protocol = PROTOCOL_LOOKUP["TCP"]
             port = frame.tcp.dst_port
         elif frame.udp:
-            protocol = IPProtocol.UDP
+            protocol = PROTOCOL_LOOKUP["UDP"]
             port = frame.udp.dst_port
         elif frame.icmp:
-            protocol = IPProtocol.ICMP
+            protocol = PROTOCOL_LOOKUP["ICMP"]
 
         # Ensure the protocol is in the capture dict
         if protocol not in self.traffic:
             self.traffic[protocol] = {}
 
         # Handle non-ICMP protocols that use ports
-        if protocol != IPProtocol.ICMP:
+        if protocol != PROTOCOL_LOOKUP["ICMP"]:
             if port not in self.traffic[protocol]:
                 self.traffic[protocol][port] = {"inbound": 0, "outbound": 0}
             self.traffic[protocol][port][direction] += frame.size_Mbits
@@ -843,8 +843,8 @@ class UserManager(Service):
         :param password: The password for the default admin user
         """
         kwargs["name"] = "UserManager"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.NONE
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
 
         self.start()
@@ -1166,8 +1166,8 @@ class UserSessionManager(Service):
         :param password: The password for the default admin user
         """
         kwargs["name"] = "UserSessionManager"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.NONE
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
         self.start()
 
@@ -1312,7 +1312,7 @@ class UserSessionManager(Service):
             software_manager: SoftwareManager = self.software_manager
             software_manager.send_payload_to_session_manager(
                 payload={"type": "user_timeout", "connection_id": session.uuid},
-                dest_port=Port.SSH,
+                dest_port=PORT_LOOKUP["SSH"],
                 dest_ip_address=session.remote_ip_address,
             )
 
@@ -1839,14 +1839,14 @@ class Node(SimComponent):
 
     def show_open_ports(self, markdown: bool = False):
         """Prints a table of the open ports on the Node."""
-        table = PrettyTable(["Port", "Name"])
+        table = PrettyTable(["Port"])
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.hostname} Open Ports"
         for port in self.software_manager.get_open_ports():
-            if port.value > 0:
-                table.add_row([port.value, port.name])
+            if port > 0:
+                table.add_row([port])
         print(table.get_string(sortby="Port"))
 
     @property

@@ -5,8 +5,8 @@ from typing import Dict, Optional
 
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import Service
+from primaite.utils.validation.port import Port
 
 
 class FTPServiceABC(Service, ABC):
@@ -97,7 +97,7 @@ class FTPServiceABC(Service, ABC):
         :param: dest_ip_address: The IP address of the machine that hosts the FTP Server.
         :type: dest_ip_address: Optional[IPv4Address]
 
-        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port.FTP.
+        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port["FTP"].
         :type: dest_port: Optional[Port]
 
         :param: session_id: session ID linked to the FTP Packet. Optional.

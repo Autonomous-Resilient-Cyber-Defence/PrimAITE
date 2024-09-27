@@ -1,9 +1,9 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from typing import ClassVar, Dict
 
-from primaite.simulator.network.hardware.nodes.host.host_node import NIC, HostNode
+from primaite.simulator.network.hardware.nodes.host.host_node import HostNode, NIC
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ipv4_address import IPV4Address
 
 
 class SuperComputer(HostNode, identifier="supercomputer"):
@@ -37,7 +37,7 @@ class SuperComputer(HostNode, identifier="supercomputer"):
     SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "FTPClient": FTPClient}
 
     def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
-        print('--- Extended Component: SuperComputer ---')
+        print("--- Extended Component: SuperComputer ---")
         super().__init__(ip_address=ip_address, subnet_mask=subnet_mask, **kwargs)
 
     pass

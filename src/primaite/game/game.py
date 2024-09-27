@@ -17,10 +17,9 @@ from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
-from primaite.simulator.network.airspace import AirSpaceFrequency
 from primaite.simulator.network.hardware.base import NetworkInterface, NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.host.host_node import NIC, HostNode
+from primaite.simulator.network.hardware.nodes.host.host_node import HostNode, NIC
 from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
 from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
@@ -28,8 +27,6 @@ from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.nmne import NMNEConfig
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient  # noqa: F401
@@ -52,6 +49,8 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from primaite.simulator.system.software import Software
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -82,9 +81,9 @@ class PrimaiteGameOptions(BaseModel):
     """Random number seed for RNGs."""
     max_episode_length: int = 256
     """Maximum number of episodes for the PrimAITE game."""
-    ports: List[str]
+    ports: List[Port]
     """A whitelist of available ports in the simulation."""
-    protocols: List[str]
+    protocols: List[IPProtocol]
     """A whitelist of available protocols in the simulation."""
     thresholds: Optional[Dict] = {}
     """A dict containing the thresholds used for determining what is acceptable during observations."""
@@ -267,10 +266,7 @@ class PrimaiteGame:
         network_config = simulation_config.get("network", {})
         airspace_cfg = network_config.get("airspace", {})
         frequency_max_capacity_mbps_cfg = airspace_cfg.get("frequency_max_capacity_mbps", {})
-
-        frequency_max_capacity_mbps_cfg = {AirSpaceFrequency[k]: v for k, v in frequency_max_capacity_mbps_cfg.items()}
-
-        net.airspace.frequency_max_capacity_mbps_ = frequency_max_capacity_mbps_cfg
+        net.airspace.set_frequency_max_capacity_mbps(frequency_max_capacity_mbps_cfg)
 
         nodes_cfg = network_config.get("nodes", [])
         links_cfg = network_config.get("links", [])
@@ -291,11 +287,10 @@ class PrimaiteGame:
                     dns_server=node_cfg.get("dns_server", None),
                     operating_state=NodeOperatingState.ON
                     if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()])
-            elif n_type in NetworkNode._registry:
-                new_node = NetworkNode._registry[n_type](
-                    **node_cfg
+                    else NodeOperatingState[p.upper()],
                 )
+            elif n_type in NetworkNode._registry:
+                new_node = NetworkNode._registry[n_type](**node_cfg)
             # Default PrimAITE nodes
             elif n_type == "computer":
                 new_node = Computer(
@@ -358,9 +353,9 @@ class PrimaiteGame:
                 for port_id in set(software_cfg.get("options", {}).get("listen_on_ports", [])):
                     port = None
                     if isinstance(port_id, int):
-                        port = Port(port_id)
+                        port = port_id
                     elif isinstance(port_id, str):
-                        port = Port[port_id]
+                        port = PORT_LOOKUP[port_id]
                     if port:
                         listen_on_ports.append(port)
                 software.listen_on_ports = set(listen_on_ports)
@@ -475,7 +470,7 @@ class PrimaiteGame:
                             opt = application_cfg["options"]
                             new_application.configure(
                                 target_ip_address=IPv4Address(opt.get("target_ip_address")),
-                                target_port=Port(opt.get("target_port", Port.POSTGRES_SERVER.value)),
+                                target_port=PORT_LOOKUP[opt.get("target_port", "POSTGRES_SERVER")],
                                 payload=opt.get("payload"),
                                 repeat=bool(opt.get("repeat")),
                                 port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
@@ -488,8 +483,10 @@ class PrimaiteGame:
                             new_application.configure(
                                 c2_server_ip_address=IPv4Address(opt.get("c2_server_ip_address")),
                                 keep_alive_frequency=(opt.get("keep_alive_frequency", 5)),
-                                masquerade_protocol=IPProtocol[(opt.get("masquerade_protocol", IPProtocol.TCP))],
-                                masquerade_port=Port[(opt.get("masquerade_port", Port.HTTP))],
+                                masquerade_protocol=PROTOCOL_LOOKUP[
+                                    (opt.get("masquerade_protocol", PROTOCOL_LOOKUP["TCP"]))
+                                ],
+                                masquerade_port=PORT_LOOKUP[(opt.get("masquerade_port", PORT_LOOKUP["HTTP"]))],
                             )
             if "network_interfaces" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():

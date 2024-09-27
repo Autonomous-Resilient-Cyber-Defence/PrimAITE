@@ -12,6 +12,8 @@ from primaite.game.agent.observations.firewall_observation import FirewallObserv
 from primaite.game.agent.observations.host_observations import HostObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.observations.router_observation import RouterObservation
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.port import Port
 
 _LOGGER = getLogger(__name__)
 
@@ -40,7 +42,7 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         """Number of network interface cards (NICs)."""
         include_nmne: Optional[bool] = None
         """Flag to include nmne."""
-        monitored_traffic: Optional[Dict] = None
+        monitored_traffic: Optional[Dict[IPProtocol, List[Port]]] = None
         """A dict containing which traffic types are to be included in the observation."""
         include_num_access: Optional[bool] = None
         """Flag to include the number of accesses."""

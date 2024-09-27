@@ -8,10 +8,10 @@ from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.service import Service
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 class BroadcastTestService(Service):
@@ -20,8 +20,8 @@ class BroadcastTestService(Service):
     def __init__(self, **kwargs):
         # Set default service properties for broadcasting
         kwargs["name"] = "BroadcastService"
-        kwargs["port"] = Port.HTTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = PORT_LOOKUP["HTTP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:
@@ -33,12 +33,14 @@ class BroadcastTestService(Service):
         super().send(
             payload="unicast",
             dest_ip_address=ip_address,
-            dest_port=Port.HTTP,
+            dest_port=PORT_LOOKUP["HTTP"],
         )
 
     def broadcast(self, ip_network: IPv4Network):
         # Send a broadcast payload to an entire IP network
-        super().send(payload="broadcast", dest_ip_address=ip_network, dest_port=Port.HTTP, ip_protocol=self.protocol)
+        super().send(
+            payload="broadcast", dest_ip_address=ip_network, dest_port=PORT_LOOKUP["HTTP"], ip_protocol=self.protocol
+        )
 
 
 class BroadcastTestClient(Application, identifier="BroadcastTestClient"):
@@ -49,8 +51,8 @@ class BroadcastTestClient(Application, identifier="BroadcastTestClient"):
     def __init__(self, **kwargs):
         # Set default client properties
         kwargs["name"] = "BroadcastTestClient"
-        kwargs["port"] = Port.HTTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["port"] = PORT_LOOKUP["HTTP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:

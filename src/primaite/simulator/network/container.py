@@ -130,15 +130,15 @@ class Network(SimComponent):
     def firewall_nodes(self) -> List[Node]:
         """The Firewalls in the Network."""
         return [node for node in self.nodes.values() if node.__class__.__name__ == "Firewall"]
-    
+
     @property
     def extended_hostnodes(self) -> List[Node]:
-        """Extended nodes that inherited HostNode in the network"""
+        """Extended nodes that inherited HostNode in the network."""
         return [node for node in self.nodes.values() if node.__class__.__name__.lower() in HostNode._registry]
-    
+
     @property
     def extended_networknodes(self) -> List[Node]:
-        """Extended nodes that inherited NetworkNode in the network"""
+        """Extended nodes that inherited NetworkNode in the network."""
         return [node for node in self.nodes.values() if node.__class__.__name__.lower() in NetworkNode._registry]
 
     @property

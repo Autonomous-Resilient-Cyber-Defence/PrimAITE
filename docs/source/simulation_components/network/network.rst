@@ -103,13 +103,13 @@ we'll use the following Network that has a client, server, two switches, and a r
 
     router_1.acl.add_rule(
         action=ACLAction.PERMIT,
-        src_port=Port.ARP,
-        dst_port=Port.ARP,
+        src_port=Port["ARP"],
+        dst_port=Port["ARP"],
         position=22
     )
 
     router_1.acl.add_rule(
         action=ACLAction.PERMIT,
-        protocol=IPProtocol.ICMP,
+        protocol=IPProtocol["ICMP"],
         position=23
     )

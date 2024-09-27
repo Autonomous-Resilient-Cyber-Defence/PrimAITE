@@ -9,14 +9,14 @@ from pydantic import BaseModel, Field, validate_call
 from primaite.interface.request import RequestResponse
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.protocols.masquerade import C2Packet
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.service import ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
+from primaite.utils.validation.ip_protocol import IPProtocol, is_valid_protocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.port import is_valid_port, Port, PORT_LOOKUP
 
 
 class C2Command(Enum):
@@ -81,10 +81,10 @@ class AbstractC2(Application, identifier="AbstractC2"):
         keep_alive_frequency: int = Field(default=5, ge=1)
         """The frequency at which ``Keep Alive`` packets are sent to the C2 Server from the C2 Beacon."""
 
-        masquerade_protocol: IPProtocol = Field(default=IPProtocol.TCP)
+        masquerade_protocol: IPProtocol = Field(default=PROTOCOL_LOOKUP["TCP"])
         """The currently chosen protocol that the C2 traffic is masquerading as. Defaults as TCP."""
 
-        masquerade_port: Port = Field(default=Port.HTTP)
+        masquerade_port: Port = Field(default=PORT_LOOKUP["HTTP"])
         """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
 
     c2_config: _C2Opts = _C2Opts()
@@ -142,9 +142,9 @@ class AbstractC2(Application, identifier="AbstractC2"):
 
     def __init__(self, **kwargs):
         """Initialise the C2 applications to by default listen for HTTP traffic."""
-        kwargs["listen_on_ports"] = {Port.HTTP, Port.FTP, Port.DNS}
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["listen_on_ports"] = {PORT_LOOKUP["HTTP"], PORT_LOOKUP["FTP"], PORT_LOOKUP["DNS"]}
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
 
     @property
@@ -366,8 +366,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :return: True on successful configuration, false otherwise.
         :rtype: bool
         """
-        # Validating that they are valid Enums.
-        if not isinstance(payload.masquerade_port, Port) or not isinstance(payload.masquerade_protocol, IPProtocol):
+        # Validating that they are valid Ports and Protocols.
+        if not is_valid_port(payload.masquerade_port) or not is_valid_protocol(payload.masquerade_protocol):
             self.sys_log.warning(
                 f"{self.name}: Received invalid Masquerade Values within Keep Alive."
                 f"Port: {payload.masquerade_port} Protocol: {payload.masquerade_protocol}."
@@ -410,8 +410,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
         self.keep_alive_inactivity = 0
         self.keep_alive_frequency = 5
         self.c2_remote_connection = None
-        self.c2_config.masquerade_port = Port.HTTP
-        self.c2_config.masquerade_protocol = IPProtocol.TCP
+        self.c2_config.masquerade_port = PORT_LOOKUP["HTTP"]
+        self.c2_config.masquerade_protocol = PROTOCOL_LOOKUP["TCP"]
 
     @abstractmethod
     def _confirm_remote_connection(self, timestep: int) -> bool:

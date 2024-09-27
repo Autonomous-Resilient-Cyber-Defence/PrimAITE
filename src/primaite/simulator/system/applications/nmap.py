@@ -7,10 +7,10 @@ from pydantic import validate_call
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ip_protocol import IPProtocol, is_valid_protocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import is_valid_port, Port, PORT_LOOKUP
 
 
 class PortScanPayload(SimComponent):
@@ -37,8 +37,8 @@ class PortScanPayload(SimComponent):
         """
         state = super().describe_state()
         state["ip_address"] = str(self.ip_address)
-        state["port"] = self.port.value
-        state["protocol"] = self.protocol.value
+        state["port"] = self.port
+        state["protocol"] = self.protocol
         state["request"] = self.request
 
         return state
@@ -64,8 +64,8 @@ class NMAP(Application, identifier="NMAP"):
 
     def __init__(self, **kwargs):
         kwargs["name"] = "NMAP"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.NONE
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
 
     def _can_perform_network_action(self) -> bool:
@@ -272,8 +272,8 @@ class NMAP(Application, identifier="NMAP"):
         payload = PortScanPayload(ip_address=ip_address, port=port, protocol=protocol)
         self._active_port_scans[payload.uuid] = payload
         self.sys_log.info(
-            f"{self.name}: Sending port scan request over {payload.protocol.name} on port {payload.port.value} "
-            f"({payload.port.name}) to {payload.ip_address}"
+            f"{self.name}: Sending port scan request over {payload.protocol} on port {payload.port} "
+            f"({payload.port}) to {payload.ip_address}"
         )
         self.software_manager.send_payload_to_session_manager(
             payload=payload, dest_ip_address=ip_address, src_port=port, dest_port=port, ip_protocol=protocol
@@ -295,8 +295,8 @@ class NMAP(Application, identifier="NMAP"):
             self._active_port_scans.pop(payload.uuid)
             self._port_scan_responses[payload.uuid] = payload
             self.sys_log.info(
-                f"{self.name}: Received port scan response from {payload.ip_address} on port {payload.port.value} "
-                f"({payload.port.name}) over {payload.protocol.name}"
+                f"{self.name}: Received port scan response from {payload.ip_address} on port {payload.port} "
+                f"({payload.port}) over {payload.protocol}"
             )
 
     def _process_port_scan_request(self, payload: PortScanPayload, session_id: str) -> None:
@@ -311,8 +311,8 @@ class NMAP(Application, identifier="NMAP"):
         if self.software_manager.check_port_is_open(port=payload.port, protocol=payload.protocol):
             payload.request = False
             self.sys_log.info(
-                f"{self.name}: Responding to port scan request for port {payload.port.value} "
-                f"({payload.port.name}) over {payload.protocol.name}",
+                f"{self.name}: Responding to port scan request for port {payload.port} "
+                f"({payload.port}) over {payload.protocol}",
             )
             self.software_manager.send_payload_to_session_manager(payload=payload, session_id=session_id)
 
@@ -345,20 +345,20 @@ class NMAP(Application, identifier="NMAP"):
         """
         ip_addresses = self._explode_ip_address_network_array(target_ip_address)
 
-        if isinstance(target_port, Port):
+        if is_valid_port(target_port):
             target_port = [target_port]
         elif target_port is None:
-            target_port = [port for port in Port if port not in {Port.NONE, Port.UNUSED}]
+            target_port = [PORT_LOOKUP[port] for port in PORT_LOOKUP if port not in {"NONE", "UNUSED"}]
 
-        if isinstance(target_protocol, IPProtocol):
+        if is_valid_protocol(target_protocol):
             target_protocol = [target_protocol]
         elif target_protocol is None:
-            target_protocol = [IPProtocol.TCP, IPProtocol.UDP]
+            target_protocol = [PROTOCOL_LOOKUP["TCP"], PROTOCOL_LOOKUP["UDP"]]
 
         scan_type = self._determine_port_scan_type(list(ip_addresses), target_port)
         active_ports = {}
         if show:
-            table = PrettyTable(["IP Address", "Port", "Name", "Protocol"])
+            table = PrettyTable(["IP Address", "Port", "Protocol"])
             table.align = "l"
             table.title = f"{self.software_manager.node.hostname} NMAP Port Scan ({scan_type})"
         self.sys_log.info(f"{self.name}: Starting port scan")
@@ -369,13 +369,12 @@ class NMAP(Application, identifier="NMAP"):
             for protocol in target_protocol:
                 for port in set(target_port):
                     port_open = self._check_port_open_on_ip_address(ip_address=ip_address, port=port, protocol=protocol)
-
                     if port_open:
                         if show:
-                            table.add_row([ip_address, port.value, port.name, protocol.name])
+                            table.add_row([ip_address, port, protocol])
                         _ip_address = ip_address if not json_serializable else str(ip_address)
-                        _protocol = protocol if not json_serializable else protocol.value
-                        _port = port if not json_serializable else port.value
+                        _protocol = protocol
+                        _port = port
                         if _ip_address not in active_ports:
                             active_ports[_ip_address] = dict()
                         if _protocol not in active_ports[_ip_address]:

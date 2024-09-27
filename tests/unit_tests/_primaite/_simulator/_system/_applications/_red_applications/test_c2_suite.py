@@ -4,11 +4,11 @@ import pytest
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
 from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Command, C2Server
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -129,19 +129,19 @@ def test_c2_handle_switching_port(basic_c2_network):
 
     # Assert to confirm that both the C2 server and the C2 beacon are configured correctly.
     assert c2_beacon.c2_config.keep_alive_frequency is 2
-    assert c2_beacon.c2_config.masquerade_port is Port.HTTP
-    assert c2_beacon.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_beacon.c2_config.masquerade_port is PORT_LOOKUP["HTTP"]
+    assert c2_beacon.c2_config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
     assert c2_server.c2_config.keep_alive_frequency is 2
-    assert c2_server.c2_config.masquerade_port is Port.HTTP
-    assert c2_server.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_server.c2_config.masquerade_port is PORT_LOOKUP["HTTP"]
+    assert c2_server.c2_config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
     # Configuring the C2 Beacon.
     c2_beacon.configure(
         c2_server_ip_address="192.168.0.1",
         keep_alive_frequency=2,
-        masquerade_port=Port.FTP,
-        masquerade_protocol=IPProtocol.TCP,
+        masquerade_port=PORT_LOOKUP["FTP"],
+        masquerade_protocol=PROTOCOL_LOOKUP["TCP"],
     )
 
     # Asserting that the c2 applications have established a c2 connection
@@ -150,11 +150,11 @@ def test_c2_handle_switching_port(basic_c2_network):
 
     # Assert to confirm that both the C2 server and the C2 beacon
     # Have reconfigured their C2 settings.
-    assert c2_beacon.c2_config.masquerade_port is Port.FTP
-    assert c2_beacon.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_beacon.c2_config.masquerade_port is PORT_LOOKUP["FTP"]
+    assert c2_beacon.c2_config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
-    assert c2_server.c2_config.masquerade_port is Port.FTP
-    assert c2_server.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_server.c2_config.masquerade_port is PORT_LOOKUP["FTP"]
+    assert c2_server.c2_config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
 
 def test_c2_handle_switching_frequency(basic_c2_network):

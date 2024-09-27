@@ -8,10 +8,10 @@ from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.dns.dns_server import DNSServer
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -32,8 +32,8 @@ def test_create_dns_server(dns_server):
     assert dns_server is not None
     dns_server_service: DNSServer = dns_server.software_manager.software.get("DNSServer")
     assert dns_server_service.name is "DNSServer"
-    assert dns_server_service.port is Port.DNS
-    assert dns_server_service.protocol is IPProtocol.TCP
+    assert dns_server_service.port is PORT_LOOKUP["DNS"]
+    assert dns_server_service.protocol is PROTOCOL_LOOKUP["TCP"]
 
 
 def test_dns_server_domain_name_registration(dns_server):
