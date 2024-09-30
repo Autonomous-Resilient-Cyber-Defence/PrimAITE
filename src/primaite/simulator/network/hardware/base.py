@@ -1711,7 +1711,7 @@ class Node(SimComponent):
             """
             application_name = request[0]
             if self.software_manager.software.get(application_name):
-                self.sys_log.warning(f"Can't install {application_name}. It's already installed.")
+                self.sys_log.info(f"Can't install {application_name}. It's already installed.")
                 return RequestResponse(status="success", data={"reason": "already installed"})
             application_class = Application._application_registry[application_name]
             self.software_manager.install(application_class)
