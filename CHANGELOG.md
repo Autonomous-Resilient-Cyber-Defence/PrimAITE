@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     or `generate_seed_value` is set to `true`.
 -   ARP .show() method will now include the port number associated with each entry.
 -   Added `services_requires_scan` and `applications_requires_scan` to agent observation space config to allow the agents to be able to see actual health states of services and applications without requiring scans (Default `True`, set to `False` to allow agents to see actual health state without scanning).
+-   Updated the `Terminal` class to provide response information when sending remote command execution.
 
 ## [3.3.0] - 2024-09-04
 ### Added
