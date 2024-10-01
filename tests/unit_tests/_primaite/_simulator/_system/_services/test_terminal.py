@@ -440,3 +440,23 @@ def test_terminal_last_response_updates(basic_network):
         status="success",
         data={"file_name": "doggo.pdf", "folder_name": "folder123", "file_type": "PDF", "file_size": 102400},
     )
+
+    remote_connection.execute(
+        command=[
+            "service",
+            "FTPClient",
+            "send",
+            {
+                "dest_ip_address": "192.168.0.2",
+                "src_folder": "folder123",
+                "src_file_name": "cat.pdf",
+                "dest_folder": "root",
+                "dest_file_name": "cat.pdf",
+            },
+        ]
+    )
+
+    assert terminal_a.last_response == RequestResponse(
+        status="failure",
+        data={"reason": "Unable to locate given file on local file system. Perhaps given options are invalid?"},
+    )
