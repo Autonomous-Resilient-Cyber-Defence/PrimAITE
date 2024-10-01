@@ -6,6 +6,7 @@ import pytest
 
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
+from primaite.interface.request import RequestResponse
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
@@ -403,3 +404,39 @@ def test_terminal_connection_timeout(basic_network):
     assert len(computer_b.user_session_manager.remote_sessions) == 0
 
     assert not remote_connection.is_active
+
+
+def test_terminal_last_response_updates(basic_network):
+    """Test that the _last_response within Terminal correctly updates."""
+    network: Network = basic_network
+    computer_a: Computer = network.get_node_by_hostname("node_a")
+    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    computer_b: Computer = network.get_node_by_hostname("node_b")
+
+    assert terminal_a.last_response is None
+
+    remote_connection = terminal_a.login(username="admin", password="admin", ip_address="192.168.0.11")
+
+    # Last response should be a successful logon
+    assert terminal_a.last_response == RequestResponse(status="success", data={"reason": "Login Successful"})
+
+    remote_connection.execute(command=["software_manager", "application", "install", "RansomwareScript"])
+
+    # Last response should now update following successful install
+    assert terminal_a.last_response == RequestResponse(status="success", data={})
+
+    remote_connection.execute(command=["software_manager", "application", "install", "RansomwareScript"])
+
+    # Last response should now update to success, but with supplied reason.
+    assert terminal_a.last_response == RequestResponse(status="success", data={"reason": "already installed"})
+
+    remote_connection.execute(command=["file_system", "create", "file", "folder123", "doggo.pdf", False])
+
+    # Check file was created.
+    assert computer_b.file_system.access_file(folder_name="folder123", file_name="doggo.pdf")
+
+    # Last response should be confirmation of file creation.
+    assert terminal_a.last_response == RequestResponse(
+        status="success",
+        data={"file_name": "doggo.pdf", "folder_name": "folder123", "file_type": "PDF", "file_size": 102400},
+    )

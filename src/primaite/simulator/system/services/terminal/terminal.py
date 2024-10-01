@@ -214,7 +214,7 @@ class Terminal(Service):
                 return self.last_response if not None else RequestResponse(status="failure", data={})
             return RequestResponse(
                 status="failure",
-                data={},
+                data={"reason": "Failed to execute command."},
             )
 
         rm.add_request(
