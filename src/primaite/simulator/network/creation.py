@@ -40,7 +40,7 @@ class NetworkNodeAdder(BaseModel):
         by the from_config method to select the correct node adder at runtime.
         """
 
-        identifier: str
+        type: str
         """Uniquely identifies the node adder class to use for adding nodes to network."""
 
     _registry: ClassVar[Dict[str, Type["NetworkNodeAdder"]]] = {}
