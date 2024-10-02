@@ -17,6 +17,7 @@ from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 from primaite.game.agent.scripted_agents.tap001 import TAP001
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
+from primaite.simulator.network.creation import NetworkNodeAdder
 from primaite.simulator.network.hardware.base import NetworkInterface, NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode, NIC
@@ -270,6 +271,7 @@ class PrimaiteGame:
 
         nodes_cfg = network_config.get("nodes", [])
         links_cfg = network_config.get("links", [])
+        node_sets_cfg = network_config.get("node_sets", [])
         # Set the NMNE capture config
         NetworkInterface.nmne_config = NMNEConfig(**network_config.get("nmne_config", {}))
 
@@ -504,6 +506,10 @@ class PrimaiteGame:
             # set start up and shut down duration
             new_node.start_up_duration = int(node_cfg.get("start_up_duration", 3))
             new_node.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
+
+        # 1.1 Create Node Sets
+        for node_set_cfg in node_sets_cfg:
+            NetworkNodeAdder.from_config(node_set_cfg, network=net)
 
         # 2. create links between nodes
         for link_cfg in links_cfg:

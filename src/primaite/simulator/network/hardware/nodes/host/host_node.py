@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ipaddress import IPv4Address
-from typing import Any, ClassVar, Dict, Optional, Type
+from typing import Any, ClassVar, Dict, Optional
 
 from primaite import getLogger
 from primaite.simulator.network.hardware.base import (
@@ -325,29 +325,9 @@ class HostNode(Node):
     network_interface: Dict[int, NIC] = {}
     "The NICs on the node by port id."
 
-    _registry: ClassVar[Dict[str, Type["HostNode"]]] = {}
-    """Registry of application types. Automatically populated when subclasses are defined."""
-
     def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
         super().__init__(**kwargs)
         self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))
-
-    def __init_subclass__(cls, identifier: str = "default", **kwargs: Any) -> None:
-        """
-        Register a hostnode type.
-
-        :param identifier: Uniquely specifies an hostnode class by name. Used for finding items by config.
-        :type identifier: str
-        :raises ValueError: When attempting to register an hostnode with a name that is already allocated.
-        """
-        if identifier == "default":
-            return
-        # Enforce lowercase registry entries because it makes comparisons everywhere else much easier.
-        identifier = identifier.lower()
-        super().__init_subclass__(**kwargs)
-        if identifier in cls._registry:
-            raise ValueError(f"Tried to define new hostnode {identifier}, but this name is already reserved.")
-        cls._registry[identifier] = cls
 
     @property
     def nmap(self) -> Optional[NMAP]:
