@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from abc import ABC, abstractmethod
 from ipaddress import IPv4Address
-from typing import Any, ClassVar, Dict, Type
+from typing import Any, ClassVar, Dict, Literal, Type
 
 from pydantic import BaseModel
 
@@ -98,6 +98,7 @@ class OfficeLANAdder(NetworkNodeAdder, identifier="office_lan"):
     class ConfigSchema(NetworkNodeAdder.ConfigSchema):
         """Configuration schema for OfficeLANAdder."""
 
+        type: Literal["office_lan"] = "office_lan"
         lan_name: str
         """Name of lan used for generating hostnames for new nodes."""
         subnet_base: int
@@ -197,6 +198,7 @@ class OfficeLANAdder(NetworkNodeAdder, identifier="office_lan"):
             # Create and add a PC to the network
             pc = Computer(
                 hostname=f"pc_{i}_{config.lan_name}",
+                # TODO: what happens when ip_block_start + num_pcs exceeds 254?
                 ip_address=f"192.168.{config.subnet_base}.{i+config.pcs_ip_block_start-1}",
                 subnet_mask="255.255.255.0",
                 default_gateway=default_gateway,
