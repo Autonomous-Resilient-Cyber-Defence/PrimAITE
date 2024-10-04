@@ -262,7 +262,7 @@ class NIC(IPWiredNetworkInterface):
         return f"Port {self.port_name if self.port_name else self.port_num}: {self.mac_address}/{self.ip_address}"
 
 
-class HostNode(Node):
+class HostNode(Node, identifier="HostNode"):
     """
     Represents a host node in the network.
 

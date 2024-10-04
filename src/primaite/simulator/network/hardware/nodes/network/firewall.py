@@ -27,7 +27,7 @@ DMZ_PORT_ID: Final[int] = 3
 """The Firewall port ID of the DMZ port."""
 
 
-class Firewall(Router):
+class Firewall(Router, identifier="firewall"):
     """
     A Firewall class that extends the functionality of a Router.
 

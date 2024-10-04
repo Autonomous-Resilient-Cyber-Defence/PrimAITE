@@ -179,9 +179,8 @@ class Network(SimComponent):
                 table.set_style(MARKDOWN)
             table.align = "l"
             table.title = "Nodes"
-            for node_type, nodes in nodes_type_map.items():
-                for node in nodes:
-                    table.add_row([node.hostname, node_type, node.operating_state.name])
+            for node in self.nodes.values():
+                table.add_row((node.hostname, type(node)._identifier, node.operating_state.name))
             print(table)
 
         if ip_addresses:

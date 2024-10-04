@@ -1542,6 +1542,9 @@ class Node(SimComponent):
     _registry: ClassVar[Dict[str, Type["Node"]]] = {}
     """Registry of application types. Automatically populated when subclasses are defined."""
 
+    _identifier: ClassVar[str] = "unknown"
+    """Identifier for this particular class, used for printing and logging. Each subclass redefines this."""
+
     def __init_subclass__(cls, identifier: str = "default", **kwargs: Any) -> None:
         """
         Register a node type.
@@ -1557,6 +1560,7 @@ class Node(SimComponent):
         if identifier in cls._registry:
             raise ValueError(f"Tried to define new node {identifier}, but this name is already reserved.")
         cls._registry[identifier] = cls
+        cls._identifier = identifier
 
     def __init__(self, **kwargs):
         """

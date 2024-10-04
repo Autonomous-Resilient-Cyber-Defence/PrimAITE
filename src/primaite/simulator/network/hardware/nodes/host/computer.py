@@ -5,7 +5,7 @@ from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 
 
-class Computer(HostNode):
+class Computer(HostNode, identifier="computer"):
     """
     A basic Computer class.
 

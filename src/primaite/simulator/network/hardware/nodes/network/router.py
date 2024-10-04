@@ -1184,7 +1184,7 @@ class RouterSessionManager(SessionManager):
         return outbound_network_interface, dst_mac_address, dst_ip_address, src_port, dst_port, protocol, is_broadcast
 
 
-class Router(NetworkNode):
+class Router(NetworkNode, identifier="router"):
     """
     Represents a network router, managing routing and forwarding of IP packets across network interfaces.
 

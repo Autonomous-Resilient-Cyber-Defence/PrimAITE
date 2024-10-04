@@ -7,7 +7,7 @@ from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.system.services.arp.arp import ARP
 
 
-class NetworkNode(Node):
+class NetworkNode(Node, identifier="NetworkNode"):
     """
     Represents an abstract base class for a network node that can receive and process network frames.
 

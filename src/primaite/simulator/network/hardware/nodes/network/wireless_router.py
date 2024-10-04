@@ -91,7 +91,7 @@ class WirelessAccessPoint(IPWirelessNetworkInterface):
         )
 
 
-class WirelessRouter(Router):
+class WirelessRouter(Router, identifier="wireless_router"):
     """
     A WirelessRouter class that extends the functionality of a standard Router to include wireless capabilities.
 
