@@ -30,6 +30,7 @@ What is PrimAITE?
    source/varying_config_files
    source/environment
    source/action_masking
+   source/node_sets
 
 .. toctree::
    :caption: Notebooks:

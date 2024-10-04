@@ -19,12 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added reward calculation details to AgentHistoryItem.
 -   Added a new Privilege-Escalation-and Data-Loss-Example.ipynb notebook with a realistic cyber scenario focusing on
     internal privilege escalation and data loss through the manipulation of SSH access and Access Control Lists (ACLs).
+-   Added a new extendible `NetworkNodeAdder` class for convenient addition of sets of nodes based on a simplified config.
 
 ### Changed
 -   File and folder observations can now be configured to always show the true health status, or require scanning like before.
 -   It's now possible to disable stickiness on reward components, meaning their value returns to 0 during timesteps where agent don't issue the corresponding action. Affects `GreenAdminDatabaseUnreachablePenalty`, `WebpageUnavailablePenalty`, `WebServer404Penalty`
 -   Node observations can now be configured to show the number of active local and remote logins.
--   Ports, IP Protocols, and airspace frequencies no longer use enums. They are defined in dictionary lookups and are handled by custom validation to enable extendability with plugins.
+-   Ports and IP Protocolsno longer use enums. They are defined in dictionary lookups and are handled by custom validation to enable extendability with plugins.
+-   Changed AirSpaceFrequency to a data transfer object with a registry to allow extendability
+-   Changed the Office LAN creation convenience function to follow the new `NetworkNodeAdder` pattern. Office LANs can now also be defined in YAML config.
 
 ### Fixed
 -   Folder observations showing the true health state without scanning (the old behaviour can be reenabled via config)
@@ -32,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     and `uninstall` methods in the `Node` class.
 -   Updated the `receive_payload_from_session_manager` method in `SoftwareManager` so that it now sends a copy of the
     payload to any software listening on the destination port of the `Frame`.
+-   Made the `show` method of `Network` show all node types, including ones registered at runtime
 
 ### Removed
 -   Removed the `install` and `uninstall` methods in the `Node` class.
