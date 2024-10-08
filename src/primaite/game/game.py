@@ -279,7 +279,7 @@ class PrimaiteGame:
             n_type = node_cfg["type"]
 
             new_node = None
-            # Handle extended nodes
+            # Default PrimAITE nodes
             if n_type == "computer":
                 new_node = Computer(
                     hostname=node_cfg["hostname"],
@@ -325,6 +325,7 @@ class PrimaiteGame:
                     if not (p := node_cfg.get("operating_state"))
                     else NodeOperatingState[p.upper()],
                 )
+            # Handle extended nodes
             elif n_type.lower() in Node._registry:
                 new_node = HostNode._registry[n_type](
                     hostname=node_cfg["hostname"],
@@ -338,7 +339,6 @@ class PrimaiteGame:
                 )
             elif n_type in NetworkNode._registry:
                 new_node = NetworkNode._registry[n_type](**node_cfg)
-            # Default PrimAITE nodes
             else:
                 msg = f"invalid node type {n_type} in config"
                 _LOGGER.error(msg)

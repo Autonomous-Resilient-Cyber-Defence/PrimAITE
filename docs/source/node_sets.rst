@@ -93,7 +93,7 @@ Here is an example of creating a custom node adder, DataCenterAdder:
             for i in range(config.num_servers):
                 server = Computer(
                     hostname=f"server_{i}_{config.data_center_name}",
-                    ip_address=f"192.168.100.{i + 1}",
+                    ip_address=f"192.168.100.{i + 8}",
                     subnet_mask="255.255.255.0",
                     default_gateway="192.168.100.1",
                     start_up_duration=0

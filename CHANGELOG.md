@@ -19,14 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added reward calculation details to AgentHistoryItem.
 -   Added a new Privilege-Escalation-and Data-Loss-Example.ipynb notebook with a realistic cyber scenario focusing on
     internal privilege escalation and data loss through the manipulation of SSH access and Access Control Lists (ACLs).
--   Added a new extendible `NetworkNodeAdder` class for convenient addition of sets of nodes based on a simplified config.
+-   Added a new extensible `NetworkNodeAdder` class for convenient addition of sets of nodes based on a simplified config.
 
 ### Changed
 -   File and folder observations can now be configured to always show the true health status, or require scanning like before.
 -   It's now possible to disable stickiness on reward components, meaning their value returns to 0 during timesteps where agent don't issue the corresponding action. Affects `GreenAdminDatabaseUnreachablePenalty`, `WebpageUnavailablePenalty`, `WebServer404Penalty`
 -   Node observations can now be configured to show the number of active local and remote logins.
--   Ports and IP Protocolsno longer use enums. They are defined in dictionary lookups and are handled by custom validation to enable extendability with plugins.
--   Changed AirSpaceFrequency to a data transfer object with a registry to allow extendability
+-   Ports and IP Protocols no longer use enums. They are defined in dictionary lookups and are handled by custom validation to enable extensibility with plugins.
+-   Changed AirSpaceFrequency to a data transfer object with a registry to allow extensibility
 -   Changed the Office LAN creation convenience function to follow the new `NetworkNodeAdder` pattern. Office LANs can now also be defined in YAML config.
 
 ### Fixed
