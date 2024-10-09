@@ -212,7 +212,6 @@ class OfficeLANAdder(NetworkNodeAdder, identifier="office_lan"):
             # Create and add a PC to the network
             pc = Computer(
                 hostname=f"pc_{i}_{config.lan_name}",
-                # TODO: what happens when ip_block_start + num_pcs exceeds 254?
                 ip_address=f"192.168.{config.subnet_base}.{i+config.pcs_ip_block_start-1}",
                 subnet_mask="255.255.255.0",
                 default_gateway=default_gateway,
