@@ -1539,6 +1539,29 @@ class Node(SimComponent):
     SYSTEM_SOFTWARE: ClassVar[Dict[str, Type[Software]]] = {}
     "Base system software that must be preinstalled."
 
+    _registry: ClassVar[Dict[str, Type["Node"]]] = {}
+    """Registry of application types. Automatically populated when subclasses are defined."""
+
+    _identifier: ClassVar[str] = "unknown"
+    """Identifier for this particular class, used for printing and logging. Each subclass redefines this."""
+
+    def __init_subclass__(cls, identifier: str = "default", **kwargs: Any) -> None:
+        """
+        Register a node type.
+
+        :param identifier: Uniquely specifies an node class by name. Used for finding items by config.
+        :type identifier: str
+        :raises ValueError: When attempting to register an node with a name that is already allocated.
+        """
+        if identifier == "default":
+            return
+        identifier = identifier.lower()
+        super().__init_subclass__(**kwargs)
+        if identifier in cls._registry:
+            raise ValueError(f"Tried to define new node {identifier}, but this name is already reserved.")
+        cls._registry[identifier] = cls
+        cls._identifier = identifier
+
     def __init__(self, **kwargs):
         """
         Initialize the Node with various components and managers.

@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional, Union
 
 from pydantic import validate_call
 
-from primaite.simulator.network.airspace import AirSpace, IPWirelessNetworkInterface
+from primaite.simulator.network.airspace import AirSpace, AirSpaceFrequency, FREQ_WIFI_2_4, IPWirelessNetworkInterface
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router, RouterInterface
 from primaite.simulator.network.transmission.data_link_layer import Frame
@@ -91,7 +91,7 @@ class WirelessAccessPoint(IPWirelessNetworkInterface):
         )
 
 
-class WirelessRouter(Router):
+class WirelessRouter(Router, identifier="wireless_router"):
     """
     A WirelessRouter class that extends the functionality of a standard Router to include wireless capabilities.
 
@@ -153,7 +153,7 @@ class WirelessRouter(Router):
         self,
         ip_address: IPV4Address,
         subnet_mask: IPV4Address,
-        frequency: Optional[str] = "WIFI_2_4",
+        frequency: Optional[AirSpaceFrequency] = FREQ_WIFI_2_4,
     ):
         """
         Configures a wireless access point (WAP).
@@ -171,7 +171,7 @@ class WirelessRouter(Router):
             communication. Default is "WIFI_2_4".
         """
         if not frequency:
-            frequency = "WIFI_2_4"
+            frequency = FREQ_WIFI_2_4
         self.sys_log.info("Configuring wireless access point")
 
         self.wireless_access_point.disable()  # Temporarily disable the WAP for reconfiguration
@@ -264,7 +264,7 @@ class WirelessRouter(Router):
         if "wireless_access_point" in cfg:
             ip_address = cfg["wireless_access_point"]["ip_address"]
             subnet_mask = cfg["wireless_access_point"]["subnet_mask"]
-            frequency = cfg["wireless_access_point"]["frequency"]
+            frequency = AirSpaceFrequency._registry[cfg["wireless_access_point"]["frequency"]]
             router.configure_wireless_access_point(ip_address=ip_address, subnet_mask=subnet_mask, frequency=frequency)
 
         if "acl" in cfg:

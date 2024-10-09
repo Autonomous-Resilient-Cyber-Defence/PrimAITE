@@ -2,7 +2,7 @@
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 
 
-class Server(HostNode):
+class Server(HostNode, identifier="server"):
     """
     A basic Server class.
 
@@ -31,7 +31,7 @@ class Server(HostNode):
     """
 
 
-class Printer(HostNode):
+class Printer(HostNode, identifier="printer"):
     """Printer? I don't even know her!."""
 
     # TODO: Implement printer-specific behaviour
