@@ -1,9 +1,9 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from abc import ABC, abstractmethod
 from ipaddress import IPv4Address
-from typing import Any, ClassVar, Dict, Literal, Type
+from typing import Any, ClassVar, Dict, Literal, Self, Type
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -27,8 +27,12 @@ class NetworkNodeAdder(BaseModel):
             property_1 : str
             property_2 : int
 
-        @classmetho
-        def __call__()
+        @classmethod
+        def add_nodes_to_net(cls, config: ConfigSchema, network: Network) -> None:
+            node_1 = Node(property_1, ...)
+            node_2 = Node(...)
+            network.connect(node_1.network_interface[1], node_2.network_interface[1])
+            ...
     ```
     """
 
@@ -111,6 +115,16 @@ class OfficeLANAdder(NetworkNodeAdder, identifier="office_lan"):
         """Whether to include a router in the new office LAN."""
         bandwidth: int = 100
         """Data bandwidth to the LAN measured in Mbps."""
+
+        @model_validator(mode="after")
+        def check_ip_range(self) -> Self:
+            """Make sure the ip addresses of hosts don't exceed the maximum possible ip address."""
+            if self.pcs_ip_block_start + self.num_pcs >= 254:
+                raise ValueError(
+                    f"Cannot create {self.num_pcs} pcs starting at ip block {self.pcs_ip_block_start} "
+                    f"because ip address octets cannot exceed 254."
+                )
+            return self
 
     @classmethod
     def add_nodes_to_net(cls, config: ConfigSchema, network: Network) -> None:
