@@ -80,11 +80,6 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: NTPClient
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``NTPClient``
-
 ``ntp_server_ip``
 """""""""""""""""
 
@@ -93,3 +88,8 @@ Optional. Default value is ``None``.
 The IP address of an NTP Server which provides a time that the ``NTPClient`` can synchronise to.
 
 This must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.255``.
+
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
+
+See :ref:`Common Configuration`

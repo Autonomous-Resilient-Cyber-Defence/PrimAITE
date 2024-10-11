@@ -158,10 +158,6 @@ If not using the data manipulation bot manually, it needs to be used with a data
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: DataManipulationBot
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``DataManipulationBot``
 
 ``server_ip``
 """""""""""""
@@ -203,3 +199,8 @@ Optional. Default value is ``0.1``.
 The chance of the ``DataManipulationBot`` to succeed with a data manipulation attack.
 
 This must be a float value between ``0`` and ``1``.
+
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
+
+See :ref:`Common Configuration`

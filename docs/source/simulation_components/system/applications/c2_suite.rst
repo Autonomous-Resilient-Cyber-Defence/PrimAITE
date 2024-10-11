@@ -7,8 +7,8 @@
 Command and Control Application Suite
 #####################################
 
-Comprising of two applications, the Command and Control (C2) suites intends to introduce
-malicious network architecture and begin to further the realism of red agents within primAITE.
+Comprising of two applications, the Command and Control (C2) suite intends to introduce
+malicious network architecture and further the realism of red agents within PrimAITE.
 
 Overview:
 =========
@@ -24,7 +24,7 @@ The C2 Server application is intended to represent the malicious infrastructure 
 
 The C2 Server is configured to listen and await ``keep alive`` traffic from a C2 beacon. Once received the C2 Server is able to send and receive C2 commands.
 
-Currently, the C2 Server offers three commands:
+Currently, the C2 Server offers four commands:
 
 +---------------------+---------------------------------------------------------------------------+
 |C2 Command           | Meaning                                                                   |
@@ -40,12 +40,12 @@ Currently, the C2 Server offers three commands:
 
 
 It's important to note that in order to keep PrimAITE realistic from a cyber perspective,
-The C2 Server application should never be visible or actionable upon directly by the blue agent.
+the C2 Server application should never be visible or actionable upon directly by the blue agent.
 
 This is because in the real world, C2 servers are hosted on ephemeral public domains that would not be accessible by private network blue agent.
 Therefore granting blue agent(s) the ability to perform counter measures directly against the application would be unrealistic.
 
-It is more accurate to see the host that the C2 Server is installed on as being able to route to the C2 Server (Internet Access).
+It is more accurate to see the host that the C2 Beacon is installed on as being able to route to the C2 Server (Internet Access).
 
 ``C2 Beacon``
 """""""""""""
@@ -54,19 +54,19 @@ The C2 Beacon application is intended to represent malware that is used to estab
 
 A C2 Beacon will need to be first configured with the C2 Server IP Address which can be done via the ``configure`` method.
 
-Once installed and configured; the c2 beacon can establish connection with the C2 Server via executing the application.
+Once installed and configured; the C2 beacon can establish connection with the C2 Server via executing the application.
 
 This will send an initial ``keep alive`` to the given C2 Server (The C2 Server IPv4Address must be given upon C2 Beacon configuration).
-Which is then resolved and responded by another ``Keep Alive`` by the c2 server back to the C2 beacon to confirm connection.
+Which is then resolved and responded by another ``Keep Alive`` by the C2 server back to the C2 beacon to confirm connection.
 
-The C2 Beacon will send out periodic keep alive based on it's configuration parameters to configure it's active connection with the c2 server.
+The C2 Beacon will send out periodic keep alive based on its configuration parameters to configure it's active connection with the C2 server.
 
 It's recommended that a C2 Beacon is installed and configured mid episode by a Red Agent for a more cyber realistic simulation.
 
 Usage
 =====
 
-As mentioned, the C2 Suite is intended to grant Red Agents further flexibility whilst also expanding a blue agent's observation_space.
+As mentioned, the C2 Suite is intended to grant Red Agents further flexibility whilst also expanding a blue agent's observation space.
 
 Adding to this, the following behaviour of the C2 beacon can be configured by users for increased domain randomisation:
 
@@ -254,11 +254,6 @@ Via Configuration
 C2 Beacon Configuration
 =======================
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: C2Beacon
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``C2Beacon``
-
 ``c2_server_ip_address``
 """"""""""""""""""""""""
 
@@ -275,7 +270,7 @@ How often should the C2 Beacon confirm it's connection in timesteps.
 For example, if the keep alive Frequency is set to one then every single timestep
 the C2 connection will be confirmed.
 
-It's worth noting that this may be useful option when investigating
+It's worth noting that this may be a useful option when investigating
 network blue agent observation space.
 
 This must be a valid integer i.e ``10``. Defaults to ``5``.
@@ -288,7 +283,7 @@ The protocol that the C2 Beacon will use to communicate to the C2 Server with.
 
 Currently only ``TCP`` and ``UDP`` are valid masquerade protocol options.
 
-It's worth noting that this may be useful option to bypass ACL rules.
+It's worth noting that this may be a useful option to bypass ACL rules.
 
 This must be a string i.e *UDP*. Defaults to ``TCP``.
 
@@ -301,19 +296,24 @@ What port that the C2 Beacon will use to communicate to the C2 Server with.
 
 Currently only ``FTP``, ``HTTP`` and ``DNS`` are valid masquerade port options.
 
-It's worth noting that this may be useful option to bypass ACL rules.
+It's worth noting that this may be a useful option to bypass ACL rules.
 
 This must be a string i.e ``DNS``. Defaults to ``HTTP``.
 
 *Please refer to the ``IPProtocol`` class for further reference.*
+
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
+
+See :ref:`Common Configuration`
+
 
 C2 Server Configuration
 =======================
 
 *The C2 Server does not currently offer any unique configuration options and will configure itself to match the C2 beacon's network behaviour.*
 
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
 
-.. include:: ../common/common_configuration.rst
-
-.. |SOFTWARE_NAME| replace:: C2Server
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``C2Server``
+See :ref:`Common Configuration`

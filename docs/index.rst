@@ -61,6 +61,8 @@ The ARCD Primary-level AI Training Environment (**PrimAITE**) provides an effect
 - Modelling background (green) pattern-of-life;
 - Operates at machine-speed to enable fast training cycles via Reinforcement Learning (RL).
 
+PrimAITE has been designed as an extensible environment and toolkit to support the development, test, training and evaluation of AI-based cyber defensive agents. Whilst PrimAITE ships with a number of example modelled scenarios (a.k.a. Use Cases), it has not been developed to mandate the solving of a single cyber challenge, and instead provides a highly flexible environment application that can be extended and reconfigured by the user to suit their specific cyber defence training and evaluation needs. PrimAITE provides default networks, red agent and green agent behaviour, reward functions, and action / observation space configuration, all of which can be utilised out of the box, but which ultimately can (and in some instances should) be built upon and / or reconfigured to meet the needs of different defensive agent developers. The PrimAITE user guide provides comprehensive instruction on all PrimAITE features, functionality and components, and can be consulted in order to help guide users in any reconfiguration or enhancements they wish to undertake; a library of example Jupyter notebooks are also provided to support such work.
+
 Features
 ^^^^^^^^
 

@@ -83,7 +83,7 @@ Via Configuration
 Configuration
 =============
 
-.. include:: ../common/common_configuration.rst
+``Common Attributes``
+^^^^^^^^^^^^^^^^^^^^^
 
-.. |SOFTWARE_NAME| replace:: FTPClient
-.. |SOFTWARE_NAME_BACKTICK| replace:: ``FTPClient``
+See :ref:`Common Configuration`
