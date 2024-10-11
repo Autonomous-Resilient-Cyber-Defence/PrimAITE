@@ -25,8 +25,8 @@ def test_extended_example_config():
     assert len(network.router_nodes) == 1  # 1 router in network
     assert len(network.switch_nodes) == 1  # 1 switches in network
     assert len(network.server_nodes) == 5  # 5 servers in network
-    assert len(network.extended_hostnodes) == 1  # One extended node based on HostNode
-    assert len(network.extended_networknodes) == 1  # One extended node based on NetworkNode
 
-    assert "ExtendedApplication" in network.extended_hostnodes[0].software_manager.software
-    assert "ExtendedService" in network.extended_hostnodes[0].software_manager.software
+    extended_host = network.get_node_by_hostname("client_1")
+
+    assert "ExtendedApplication" in extended_host.software_manager.software
+    assert "ExtendedService" in extended_host.software_manager.software

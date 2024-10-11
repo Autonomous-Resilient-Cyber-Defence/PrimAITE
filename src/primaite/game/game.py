@@ -329,7 +329,7 @@ class PrimaiteGame:
             elif n_type.lower() in Node._registry:
                 new_node = HostNode._registry[n_type](
                     hostname=node_cfg["hostname"],
-                    ip_address=node_cfg["ip_address"],
+                    ip_address=node_cfg.get("ip_address"),
                     subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
                     default_gateway=node_cfg.get("default_gateway"),
                     dns_server=node_cfg.get("dns_server", None),

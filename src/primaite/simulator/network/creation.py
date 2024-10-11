@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from abc import ABC, abstractmethod
 from ipaddress import IPv4Address
-from typing import Any, ClassVar, Dict, Literal, Self, Type
+from typing import Any, ClassVar, Dict, Literal, Type
 
 from pydantic import BaseModel, model_validator
 
@@ -117,7 +117,7 @@ class OfficeLANAdder(NetworkNodeAdder, identifier="office_lan"):
         """Data bandwidth to the LAN measured in Mbps."""
 
         @model_validator(mode="after")
-        def check_ip_range(self) -> Self:
+        def check_ip_range(self) -> "OfficeLANAdder.ConfigSchema":
             """Make sure the ip addresses of hosts don't exceed the maximum possible ip address."""
             if self.pcs_ip_block_start + self.num_pcs >= 254:
                 raise ValueError(

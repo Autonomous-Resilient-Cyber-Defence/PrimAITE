@@ -137,14 +137,16 @@ class AirSpace(BaseModel):
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = "Airspace Frequency Channel Loads"
-        for frequency, load in self.bandwidth_load.items():
-            maximum_capacity = self.get_frequency_max_capacity_mbps(frequency)
-            load_percent = load / maximum_capacity if maximum_capacity > 0 else 0.0
+        for freq_name, freq_obj in self.frequencies.items():
+            maximum_capacity = self.get_frequency_max_capacity_mbps(freq_name)
+            load_percent = (
+                self.bandwidth_load.get(freq_obj.frequency_hz, 0.0) / maximum_capacity if maximum_capacity > 0 else 0.0
+            )
             if load_percent > 1.0:
                 load_percent = 1.0
             table.add_row(
                 [
-                    format_hertz(self.frequencies[frequency].frequency_hz),
+                    format_hertz(self.frequencies[freq_name].frequency_hz),
                     f"{load_percent:.0%}",
                     f"{maximum_capacity:.3f}",
                 ]
@@ -180,7 +182,7 @@ class AirSpace(BaseModel):
                     interface.mac_address,
                     interface.ip_address if hasattr(interface, "ip_address") else None,
                     interface.subnet_mask if hasattr(interface, "subnet_mask") else None,
-                    format_hertz(self.frequencies[interface.frequency].frequency_hz),
+                    format_hertz(self.frequencies[interface.frequency.name].frequency_hz),
                     f"{interface.speed:.3f}",
                     status,
                 ]
@@ -253,11 +255,11 @@ class AirSpace(BaseModel):
              relevant frequency and its current bandwidth load.
         :return: True if the frame can be transmitted within the bandwidth limit, False if it would exceed the limit.
         """
-        if sender_network_interface.frequency not in self.bandwidth_load:
-            self.bandwidth_load[sender_network_interface.frequency] = 0.0
+        if sender_network_interface.frequency.frequency_hz not in self.bandwidth_load:
+            self.bandwidth_load[sender_network_interface.frequency.frequency_hz] = 0.0
         return self.bandwidth_load[
-            sender_network_interface.frequency
-        ] + frame.size_Mbits <= self.get_frequency_max_capacity_mbps(sender_network_interface.frequency)
+            sender_network_interface.frequency.frequency_hz
+        ] + frame.size_Mbits <= self.get_frequency_max_capacity_mbps(sender_network_interface.frequency.name)
 
     def transmit(self, frame: Frame, sender_network_interface: WirelessNetworkInterface):
         """
@@ -269,8 +271,10 @@ class AirSpace(BaseModel):
         :param sender_network_interface: The wireless network interface sending the frame. This interface will be
             excluded from the list of receivers to prevent it from receiving its own transmission.
         """
-        self.bandwidth_load[sender_network_interface.frequency] += frame.size_Mbits
-        for wireless_interface in self.wireless_interfaces_by_frequency.get(sender_network_interface.frequency, []):
+        self.bandwidth_load[sender_network_interface.frequency.frequency_hz] += frame.size_Mbits
+        for wireless_interface in self.wireless_interfaces_by_frequency.get(
+            sender_network_interface.frequency.frequency_hz, []
+        ):
             if wireless_interface != sender_network_interface and wireless_interface.enabled:
                 wireless_interface.receive_frame(frame)
 
@@ -428,7 +432,7 @@ class IPWirelessNetworkInterface(WirelessNetworkInterface, Layer3Interface, ABC)
         # Update the state with information from Layer3Interface
         state.update(Layer3Interface.describe_state(self))
 
-        state["frequency"] = self.frequency
+        state["frequency"] = self.frequency.name
 
         return state
 
