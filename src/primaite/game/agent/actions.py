@@ -10,13 +10,12 @@ AbstractAction. The ActionManager is responsible for:
         ensures that requests conform to the simulator's request format.
 """
 from abc import abstractmethod
-from typing import Dict, List, Literal, Optional, TYPE_CHECKING, Union
+from typing import Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
 
 from primaite import getLogger
-from primaite.game.agent.actions.manager import ActionManager
-from primaite.game.agent.actions.manager import AbstractAction
+from primaite.game.agent.actions.manager import AbstractAction, ActionManager
 from primaite.game.agent.actions.service import NodeServiceAbstractAction
 from primaite.interface.request import RequestFormat
 
@@ -1238,4 +1237,3 @@ class RansomwareLaunchC2ServerAction(AbstractAction):
             return ["do_nothing"]
         # This action currently doesn't require any further configuration options.
         return ["network", "node", node_name, "application", "C2Server", "ransomware_launch"]
-
