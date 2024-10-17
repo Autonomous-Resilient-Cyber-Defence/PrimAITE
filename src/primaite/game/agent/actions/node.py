@@ -14,6 +14,8 @@ class NodeAbstractAction(AbstractAction):
     """
 
     class ConfigSchema(AbstractAction.ConfigSchema):
+        """Base Configuration schema for Node actions."""
+
         node_name: str
 
     verb: ClassVar[str]
@@ -28,6 +30,8 @@ class NodeOSScanAction(NodeAbstractAction, identifier="node_os_scan"):
     """Action which scans a node's OS."""
 
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
+        """Configuration schema for NodeOSScanAction."""
+
         verb: str = "scan"
 
 
@@ -35,6 +39,8 @@ class NodeShutdownAction(NodeAbstractAction, identifier="node_shutdown"):
     """Action which shuts down a node."""
 
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
+        """Configuration schema for NodeShutdownAction."""
+
         verb: str = "shutdown"
 
 
@@ -42,6 +48,8 @@ class NodeStartupAction(NodeAbstractAction, identifier="node_startup"):
     """Action which starts up a node."""
 
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
+        """Configuration schema for NodeStartupAction."""
+
         verb: str = "startup"
 
 
@@ -49,4 +57,6 @@ class NodeResetAction(NodeAbstractAction, identifier="node_reset"):
     """Action which resets a node."""
 
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
+        """Configuration schema for NodeResetAction."""
+
         verb: str = "reset"

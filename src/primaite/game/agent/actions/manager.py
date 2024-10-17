@@ -14,13 +14,13 @@ agents:
 from __future__ import annotations
 
 import itertools
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple, Type
 
 from gymnasium import spaces
 from pydantic import BaseModel, ConfigDict
 
-from primaite.game.game import _LOGGER, PrimaiteGame
+from primaite.game.game import PrimaiteGame
 from primaite.interface.request import RequestFormat
 
 
@@ -57,6 +57,7 @@ class DoNothingAction(AbstractAction):
         type: Literal["do_nothing"] = "do_nothing"
 
     def form_request(self, options: ConfigSchema) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return ["do_nothing"]
 
 

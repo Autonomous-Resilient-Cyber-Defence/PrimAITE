@@ -15,6 +15,8 @@ class NodeFolderAbstractAction(AbstractAction):
     """
 
     class ConfigSchema(AbstractAction.ConfigSchema):
+        """Base configuration schema for NodeFolder actions."""
+
         node_name: str
         folder_name: str
 
@@ -34,6 +36,8 @@ class NodeFolderScanAction(NodeFolderAbstractAction, identifier="node_folder_sca
     """Action which scans a folder."""
 
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
+        """Configuration schema for NodeFolderScanAction."""
+
         verb: str = "scan"
 
 
@@ -41,6 +45,8 @@ class NodeFolderCheckhashAction(NodeFolderAbstractAction, identifier="node_folde
     """Action which checks the hash of a folder."""
 
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
+        """Configuration schema for NodeFolderCheckhashAction."""
+
         verb: str = "checkhash"
 
 
@@ -48,6 +54,8 @@ class NodeFolderRepairAction(NodeFolderAbstractAction, identifier="node_folder_r
     """Action which repairs a folder."""
 
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
+        """Configuration schema for NodeFolderRepairAction."""
+
         verb: str = "repair"
 
 
@@ -55,6 +63,8 @@ class NodeFolderRestoreAction(NodeFolderAbstractAction, identifier="node_folder_
     """Action which restores a folder."""
 
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
+        """Configuration schema for NodeFolderRestoreAction."""
+
         verb: str = "restore"
 
 
@@ -62,4 +72,6 @@ class NodeFolderCreateAction(AbstractAction, identifier="node_folder_create"):
     """Action which creates a new folder."""
 
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
+        """Configuration schema for NodeFolderCreateAction."""
+
         verb: str = "create"

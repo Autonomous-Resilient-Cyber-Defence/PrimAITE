@@ -8,11 +8,13 @@ from primaite.interface.request import RequestFormat
 class NodeFileAbstractAction(AbstractAction):
     """Abstract base class for file actions.
 
-    Any action which applies to a file and uses node_name, folder_name, and file_name as its only three parameters can inherit
-    from this base class.
+    Any action which applies to a file and uses node_name, folder_name, and file_name as its
+    only three parameters can inherit from this base class.
     """
 
     class ConfigSchema(AbstractAction.ConfigSchema):
+        """Configuration Schema for NodeFileAbstractAction."""
+
         node_name: str
         folder_name: str
         file_name: str
@@ -41,6 +43,8 @@ class NodeFileCreateAction(NodeFileAbstractAction, identifier="node_file_create"
     """Action which creates a new file in a given folder."""
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
+        """Configuration schema for NodeFileCreateAction."""
+
         verb: str = "create"
 
 
@@ -48,6 +52,8 @@ class NodeFileScanAction(NodeFileAbstractAction, identifier="node_file_scan"):
     """Action which scans a file."""
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
+        """Configuration schema for NodeFileScanAction."""
+
         verb: str = "scan"
 
 
@@ -55,6 +61,8 @@ class NodeFileDeleteAction(NodeFileAbstractAction, identifier="node_file_delete"
     """Action which deletes a file."""
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
+        """Configuration schema for NodeFileDeleteAction."""
+
         verb: str = "delete"
 
 
@@ -62,6 +70,8 @@ class NodeFileRestoreAction(NodeFileAbstractAction, identifier="node_file_restor
     """Action which restores a file."""
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
+        """Configuration schema for NodeFileRestoreAction."""
+
         verb: str = "restore"
 
 
@@ -69,6 +79,8 @@ class NodeFileCorruptAction(NodeFileAbstractAction, identifier="node_file_corrup
     """Action which corrupts a file."""
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
+        """Configuration schema for NodeFileCorruptAction."""
+
         verb: str = "corrupt"
 
 
@@ -76,4 +88,6 @@ class NodeFileAccessAction(NodeFileAbstractAction, identifier="node_file_access"
     """Action which increases a file's access count."""
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
+        """Configuration schema for NodeFileAccessAction."""
+
         verb: str = "access"

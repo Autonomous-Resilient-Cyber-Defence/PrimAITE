@@ -1,7 +1,5 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from abc import abstractmethod
-from typing import ClassVar, Dict
+from typing import ClassVar
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
@@ -16,6 +14,8 @@ class NodeApplicationAbstractAction(AbstractAction):
     """
 
     class ConfigSchema(AbstractAction.ConfigSchema):
+        """Base Configuration schema for Node Application actions."""
+
         node_name: str
         application_name: str
 
@@ -33,6 +33,8 @@ class NodeApplicationExecuteAction(NodeApplicationAbstractAction, identifier="no
     """Action which executes an application."""
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
+        """Configuration schema for NodeApplicationExecuteAction."""
+
         verb: str = "execute"
 
 
@@ -40,6 +42,8 @@ class NodeApplicationScanAction(NodeApplicationAbstractAction, identifier="node_
     """Action which scans an application."""
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
+        """Configuration schema for NodeApplicationScanAction."""
+
         verb: str = "scan"
 
 
@@ -47,6 +51,8 @@ class NodeApplicationCloseAction(NodeApplicationAbstractAction, identifier="node
     """Action which closes an application."""
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
+        """Configuration schema for NodeApplicationCloseAction."""
+
         verb: str = "close"
 
 
@@ -54,11 +60,28 @@ class NodeApplicationFixAction(NodeApplicationAbstractAction, identifier="node_a
     """Action which fixes an application."""
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
+        """Configuration schema for NodeApplicationFixAction."""
+
         verb: str = "fix"
 
 
-class NodeApplicationInstallAction(AbstractAction):
+class NodeApplicationInstallAction(NodeApplicationAbstractAction):
     """Action which installs an application."""
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
+        """Configuration schema for NodeApplicationInstallAction."""
+
         verb: str = "install"
+
+    # TODO: Either changes to application form_request bits, or add that here.
+
+class NodeApplicationRemoveAction(NodeApplicationAbstractAction):
+    """Action which removes/uninstalls an application"""
+
+    class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
+        """Configuration schema for NodeApplicationRemoveAction."""
+
+        verb: str = "uninstall"
+
+    # TODO: Either changes to application form_request bits, or add that here.
+
