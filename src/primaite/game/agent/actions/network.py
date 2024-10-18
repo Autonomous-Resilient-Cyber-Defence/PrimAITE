@@ -1,6 +1,6 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
-from typing import Dict, Optional
+from typing import ClassVar, Dict, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -8,39 +8,37 @@ from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
 
-class NetworkPortEnableAction(AbstractAction):
+class NetworkPortAbstractAction(AbstractAction):
+    """Base class for Network port actions"""
+
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        """Base configuration schema for NetworkPort actions."""
+        target_nodename: str
+        port_id: str
+
+    verb: ClassVar[str]
+
+    @classmethod
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        if config.target_nodename is None or  config.port_id is None:
+            return ["do_nothing"]
+        return ["network", "node", config.target_nodename, "network_interface", config.port_id, cls.verb]
+
+
+class NetworkPortEnableAction(NetworkPortAbstractAction, identifier="network_port_enable"):
     """Action which enables are port on a router or a firewall."""
 
-    def __init__(self, manager: "ActionManager", max_nics_per_node: int, **kwargs) -> None:
-        """Init method for NetworkPortEnableAction.
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        """Configuration schema for NetworkPortEnableAction."""
 
-        :param max_nics_per_node: Maximum number of NICs per node.
-        :type max_nics_per_node: int
-        """
-        super().__init__(manager=manager)
-        self.shape: Dict[str, int] = {"port_id": max_nics_per_node}
+        verb: str = "enable"
 
-    def form_request(self, target_nodename: str, port_id: int) -> RequestFormat:
-        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        if target_nodename is None or port_id is None:
-            return ["do_nothing"]
-        return ["network", "node", target_nodename, "network_interface", port_id, "enable"]
-
-
-class NetworkPortDisableAction(AbstractAction):
+class NetworkPortDisableAction(NetworkPortAbstractAction, identifier="network_port_disable"):
     """Action which disables are port on a router or a firewall."""
 
-    def __init__(self, manager: "ActionManager", max_nics_per_node: int, **kwargs) -> None:
-        """Init method for NetworkPortDisableAction.
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        """Configuration schema for NetworkPortDisableAction"""
 
-        :param max_nics_per_node: Maximum number of NICs per node.
-        :type max_nics_per_node: int
-        """
-        super().__init__(manager=manager)
-        self.shape: Dict[str, int] = {"port_id": max_nics_per_node}
+        verb: str = "disable"
 
-    def form_request(self, target_nodename: str, port_id: int) -> RequestFormat:
-        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        if target_nodename is None or port_id is None:
-            return ["do_nothing"]
-        return ["network", "node", target_nodename, "network_interface", port_id, "disable"]

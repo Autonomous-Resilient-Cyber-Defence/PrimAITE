@@ -32,7 +32,7 @@ class HostNICAbstractAction(AbstractAction):
         return ["network", "node", config.node_name, "network_interface", config.nic_num, cls.verb]
 
 
-class HostNICEnableAction(HostNICAbstractAction):
+class HostNICEnableAction(HostNICAbstractAction, identifier="host_nic_enable"):
     """Action which enables a NIC."""
 
     class ConfigSchema(HostNICAbstractAction.ConfigSchema):
@@ -41,7 +41,7 @@ class HostNICEnableAction(HostNICAbstractAction):
         verb: str = "enable"
 
 
-class HostNICDisableAction(HostNICAbstractAction):
+class HostNICDisableAction(HostNICAbstractAction, identifier="host_nic_disable"):
     """Action which disables a NIC."""
 
     class ConfigSchema(HostNICAbstractAction.ConfigSchema):
