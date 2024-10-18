@@ -23,6 +23,8 @@ from pydantic import BaseModel, ConfigDict
 from primaite.game.game import PrimaiteGame
 from primaite.interface.request import RequestFormat
 
+# TODO: Make sure that actions are backwards compatible where the old YAML format is used.
+
 
 class AbstractAction(BaseModel):
     """Base class for actions."""

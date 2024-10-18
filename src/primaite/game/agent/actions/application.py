@@ -75,6 +75,7 @@ class NodeApplicationInstallAction(NodeApplicationAbstractAction):
 
     # TODO: Either changes to application form_request bits, or add that here.
 
+
 class NodeApplicationRemoveAction(NodeApplicationAbstractAction):
     """Action which removes/uninstalls an application"""
 
@@ -84,4 +85,3 @@ class NodeApplicationRemoveAction(NodeApplicationAbstractAction):
         verb: str = "uninstall"
 
     # TODO: Either changes to application form_request bits, or add that here.
-

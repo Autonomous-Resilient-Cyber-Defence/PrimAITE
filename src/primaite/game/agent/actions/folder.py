@@ -23,13 +23,11 @@ class NodeFolderAbstractAction(AbstractAction):
     verb: ClassVar[str]
 
     @classmethod
-    def form_request(cls, node_id: int, folder_id: int) -> RequestFormat:
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_name = cls.manager.get_node_name_by_idx(node_id)
-        folder_name = cls.manager.get_folder_name_by_idx(node_idx=node_id, folder_idx=folder_id)
-        if node_name is None or folder_name is None:
+        if config.node_name is None or config.folder_name is None:
             return ["do_nothing"]
-        return ["network", "node", node_name, "file_system", "folder", folder_name, cls.verb]
+        return ["network", "node", config.node_name, "file_system", "folder", config.folder_name, cls.verb]
 
 
 class NodeFolderScanAction(NodeFolderAbstractAction, identifier="node_folder_scan"):

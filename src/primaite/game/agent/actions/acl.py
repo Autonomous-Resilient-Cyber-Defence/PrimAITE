@@ -171,7 +171,7 @@ class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
         ]
 
 
-class RouterACLRemoveRuleAction(AbstractAction):
+class RouterACLRemoveRuleAction(AbstractAction, identifier="router_acl_remove_rule"):
     """Action which removes a rule from a router's ACL."""
 
     class ConfigSchema(AbstractAction.ConfigSchema):
@@ -186,7 +186,7 @@ class RouterACLRemoveRuleAction(AbstractAction):
         return ["network", "node", config.target_router, "acl", "remove_rule", config.position]
 
 
-class FirewallACLAddRuleAction(AbstractAction):
+class FirewallACLAddRuleAction(AbstractAction, identifier="firewall_acl_add_rule"):
     """Action which adds a rule to a firewall port's ACL."""
 
     def __init__(
@@ -310,8 +310,9 @@ class FirewallACLAddRuleAction(AbstractAction):
             dst_port,
             position,
         ]
-    
-class FirewallACLRemoveRuleAction(AbstractAction):
+
+
+class FirewallACLRemoveRuleAction(AbstractAction, identifier="firewall_acl_remove_rule"):
     """Action which removes a rule from a firewall port's ACL."""
 
     def __init__(self, manager: "ActionManager", max_acl_rules: int, **kwargs) -> None:
@@ -325,8 +326,9 @@ class FirewallACLRemoveRuleAction(AbstractAction):
         super().__init__(manager=manager)
         self.shape: Dict[str, int] = {"position": max_acl_rules}
 
+    @classmethod
     def form_request(
-        self, target_firewall_nodename: str, firewall_port_name: str, firewall_port_direction: str, position: int
+        cls, target_firewall_nodename: str, firewall_port_name: str, firewall_port_direction: str, position: int
     ) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return [

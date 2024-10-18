@@ -1,7 +1,9 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
 from typing import Dict, Optional
-from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
+
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
@@ -28,6 +30,7 @@ class ConfigureRansomwareScriptAction(AbstractAction):
         ConfigureRansomwareScriptAction._Opts.model_validate(config)  # check that options adhere to schema
         return ["network", "node", node_name, "application", "RansomwareScript", "configure", config]
 
+
 class ConfigureDoSBotAction(AbstractAction):
     """Action which sets config parameters for a DoS bot on a node."""
 
@@ -53,7 +56,7 @@ class ConfigureDoSBotAction(AbstractAction):
             return ["do_nothing"]
         self._Opts.model_validate(config)  # check that options adhere to schema
         return ["network", "node", node_name, "application", "DoSBot", "configure", config]
-    
+
 
 class ConfigureC2BeaconAction(AbstractAction):
     """Action which configures a C2 Beacon based on the parameters given."""
@@ -66,7 +69,6 @@ class ConfigureC2BeaconAction(AbstractAction):
         keep_alive_frequency: int = Field(default=5, ge=1)
         masquerade_protocol: str = Field(default="TCP")
         masquerade_port: str = Field(default="HTTP")
-
 
     class _Opts(BaseModel):
         """Schema for options that can be passed to this action."""
