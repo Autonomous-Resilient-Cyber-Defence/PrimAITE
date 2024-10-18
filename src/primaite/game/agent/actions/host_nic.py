@@ -1,9 +1,4 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-
-from typing import Dict, Optional
-
-from pydantic import BaseModel, ConfigDict
-
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
