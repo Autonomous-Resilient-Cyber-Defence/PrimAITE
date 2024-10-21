@@ -4,12 +4,27 @@ from typing import Dict, List, Literal
 from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
 from primaite.game.agent.actions.manager import AbstractAction
-from primaite.game.game import _LOGGER
 from primaite.interface.request import RequestFormat
 
+__all__ = ("RouterACLAddRuleAction", "RouterACLRemoveRuleAction", "FirewallACLAddRuleAction", "FirewallACLRemoveRuleAction")
 
 class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
     """Action which adds a rule to a router's ACL."""
+
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        """Configuration Schema for RouterACLAddRuleAction."""
+
+        target_router: str
+        position: int
+        permission: Literal[1, 2]
+        source_ip_id: int
+        source_wildcard_id: int
+        source_port_id: int
+        dest_ip_id: int
+        dest_wildcard_id: int
+        dest_port_id: int
+        protocol_id: int
+
 
     class ACLRuleOptions(BaseModel):
         """Validator for ACL_ADD_RULE options."""
@@ -52,73 +67,31 @@ class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
                 return cls.model_fields[info.field_name].default
             return v
 
-    def __init__(
-        self,
-        manager: "ActionManager",
-        max_acl_rules: int,
-        num_ips: int,
-        num_ports: int,
-        num_protocols: int,
-        **kwargs,
-    ) -> None:
-        """Init method for RouterACLAddRuleAction.
-
-        :param manager: Reference to the ActionManager which created this action.
-        :type manager: ActionManager
-        :param max_acl_rules: Maximum number of ACL rules that can be added to the router.
-        :type max_acl_rules: int
-        :param num_ips: Number of IP addresses in the simulation.
-        :type num_ips: int
-        :param num_ports: Number of ports in the simulation.
-        :type num_ports: int
-        :param num_protocols: Number of protocols in the simulation.
-        :type num_protocols: int
-        """
-        super().__init__(manager=manager)
-        num_permissions = 3
-        self.shape: Dict[str, int] = {
-            "position": max_acl_rules,
-            "permission": num_permissions,
-            "source_ip_id": num_ips,
-            "dest_ip_id": num_ips,
-            "source_port_id": num_ports,
-            "dest_port_id": num_ports,
-            "protocol_id": num_protocols,
-        }
-
+    @classmethod
     def form_request(
-        self,
-        target_router: str,
-        position: int,
-        permission: int,
-        source_ip_id: int,
-        source_wildcard_id: int,
-        dest_ip_id: int,
-        dest_wildcard_id: int,
-        source_port_id: int,
-        dest_port_id: int,
-        protocol_id: int,
+        cls,
+        config: ConfigSchema
     ) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         # Validate incoming data.
         parsed_options = RouterACLAddRuleAction.ACLRuleOptions(
-            target_router=target_router,
-            position=position,
-            permission=permission,
-            source_ip_id=source_ip_id,
-            source_wildcard_id=source_wildcard_id,
-            dest_ip_id=dest_ip_id,
-            dest_wildcard_id=dest_wildcard_id,
-            source_port_id=source_port_id,
-            dest_port_id=dest_port_id,
-            protocol_id=protocol_id,
+            target_router=config.target_router,
+            position=config.position,
+            permission=config.permission,
+            source_ip_id=config.source_ip_id,
+            source_wildcard_id=config.source_wildcard_id,
+            dest_ip_id=config.dest_ip_id,
+            dest_wildcard_id=config.dest_wildcard_id,
+            source_port_id=config.source_port_id,
+            dest_port_id=config.dest_port_id,
+            protocol_id=config.protocol_id,
         )
         if parsed_options.permission == 1:
             permission_str = "PERMIT"
         elif parsed_options.permission == 2:
             permission_str = "DENY"
-        else:
-            _LOGGER.warning(f"{self.__class__} received permission {permission}, expected 0 or 1.")
+        # else:
+        #     _LOGGER.warning(f"{self.__class__} received permission {permission}, expected 0 or 1.")
 
         if parsed_options.protocol_id == 1:
             protocol = "ALL"
@@ -246,8 +219,8 @@ class FirewallACLAddRuleAction(AbstractAction, identifier="firewall_acl_add_rule
             permission_str = "PERMIT"
         elif permission == 2:
             permission_str = "DENY"
-        else:
-            _LOGGER.warning(f"{self.__class__} received permission {permission}, expected 0 or 1.")
+        # else:
+        #     _LOGGER.warning(f"{self.__class__} received permission {permission}, expected 0 or 1.")
 
         if protocol_id == 0:
             return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS

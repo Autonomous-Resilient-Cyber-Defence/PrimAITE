@@ -4,8 +4,17 @@ from typing import ClassVar
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
+__all__ = (
+    "NodeApplicationExecuteAction",
+    "NodeApplicationScanAction",
+    "NodeApplicationCloseAction",
+    "NodeApplicationFixAction",
+    "NodeApplicationInstallAction",
+    "NodeApplicationRemoveAction",
+)
 
-class NodeApplicationAbstractAction(AbstractAction):
+
+class NodeApplicationAbstractAction(AbstractAction, identifier="node_application_abstract_action"):
     """
     Base class for application actions.
 
@@ -65,7 +74,7 @@ class NodeApplicationFixAction(NodeApplicationAbstractAction, identifier="node_a
         verb: str = "fix"
 
 
-class NodeApplicationInstallAction(NodeApplicationAbstractAction):
+class NodeApplicationInstallAction(NodeApplicationAbstractAction, identifier="node_application_install"):
     """Action which installs an application."""
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
@@ -76,12 +85,10 @@ class NodeApplicationInstallAction(NodeApplicationAbstractAction):
     # TODO: Either changes to application form_request bits, or add that here.
 
 
-class NodeApplicationRemoveAction(NodeApplicationAbstractAction):
-    """Action which removes/uninstalls an application"""
+class NodeApplicationRemoveAction(NodeApplicationAbstractAction, identifier="node_application_remove"):
+    """Action which removes/uninstalls an application."""
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
         """Configuration schema for NodeApplicationRemoveAction."""
 
         verb: str = "uninstall"
-
-    # TODO: Either changes to application form_request bits, or add that here.

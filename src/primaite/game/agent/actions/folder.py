@@ -1,16 +1,23 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from abc import abstractmethod
-from typing import ClassVar, Dict
+from typing import ClassVar
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
+__all__ = (
+    "NodeFolderScanAction",
+    "NodeFolderCheckhashAction",
+    "NodeFolderRepairAction",
+    "NodeFolderRestoreAction",
+    "NodeFolderCreateAction",
+)
 
-class NodeFolderAbstractAction(AbstractAction):
+
+class NodeFolderAbstractAction(AbstractAction, identifier="node_folder_abstract"):
     """
     Base class for folder actions.
 
-    Any action which applies to a folder and uses node_id and folder_id as its only two parameters can inherit from
+    Any action which applies to a folder and uses node_name and folder_name as its only two parameters can inherit from
     this base class.
     """
 

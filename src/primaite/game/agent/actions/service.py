@@ -4,8 +4,20 @@ from typing import ClassVar
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
+__all__ = (
+    "NodeServiceScanAction",
+    "NodeServiceStopAction",
+    "NodeServiceStartAction",
+    "NodeServicePauseAction",
+    "NodeServiceResumeAction",
+    "NodeServiceRestartAction",
+    "NodeServiceDisableAction",
+    "NodeServiceEnableAction",
+    "NodeServiceFixAction",
+)
 
-class NodeServiceAbstractAction(AbstractAction):
+
+class NodeServiceAbstractAction(AbstractAction, identifier="node_service_abstract"):
     class ConfigSchema(AbstractAction.ConfigSchema):
         node_name: str
         service_name: str
@@ -22,6 +34,8 @@ class NodeServiceScanAction(NodeServiceAbstractAction, identifier="node_service_
     """Action which scans a service."""
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
+        """Configuration Schema for NodeServiceScanAction"""
+
         verb: str = "scan"
 
 
@@ -29,6 +43,8 @@ class NodeServiceStopAction(NodeServiceAbstractAction, identifier="node_service_
     """Action which stops a service."""
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
+        """Configuration Schema for NodeServiceStopAction."""
+
         verb: str = "stop"
 
 
@@ -36,6 +52,8 @@ class NodeServiceStartAction(NodeServiceAbstractAction, identifier="node_service
     """Action which starts a service."""
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
+        """Configuration Schema for NodeServiceStartAction."""
+
         verb: str = "start"
 
 
@@ -43,6 +61,8 @@ class NodeServicePauseAction(NodeServiceAbstractAction, identifier="node_service
     """Action which pauses a service."""
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
+        """Configuration Schema for NodeServicePauseAction."""
+
         verb: str = "pause"
 
 
@@ -50,6 +70,8 @@ class NodeServiceResumeAction(NodeServiceAbstractAction, identifier="node_servic
     """Action which resumes a service."""
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
+        """Configuration Schema for NodeServiceResumeAction."""
+
         verb: str = "resume"
 
 
@@ -57,6 +79,8 @@ class NodeServiceRestartAction(NodeServiceAbstractAction, identifier="node_servi
     """Action which restarts a service."""
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
+        """Configuration Schema for NodeServiceRestartAction."""
+
         verb: str = "restart"
 
 
@@ -64,6 +88,8 @@ class NodeServiceDisableAction(NodeServiceAbstractAction, identifier="node_servi
     """Action which disables a service."""
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
+        """Configuration Schema for NodeServiceDisableAction."""
+
         verb: str = "disable"
 
 
@@ -71,6 +97,8 @@ class NodeServiceEnableAction(NodeServiceAbstractAction, identifier="node_servic
     """Action which enables a service."""
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
+        """Configuration Schema for NodeServiceEnableAction."""
+
         verb: str = "enable"
 
 
@@ -78,4 +106,6 @@ class NodeServiceFixAction(NodeServiceAbstractAction, identifier="node_service_f
     """Action which fixes a service."""
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
+        """Configuration Schema for NodeServiceFixAction."""
+
         verb: str = "fix"

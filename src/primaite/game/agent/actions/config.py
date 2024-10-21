@@ -7,31 +7,39 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationIn
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
+__all__ = (
+    "ConfigureRansomwareScriptAction",
+    "ConfigureDoSBotAction",
+    "ConfigureC2BeaconAction",
+    "NodeSendRemoteCommandAction",
+    "TerminalC2ServerAction",
+    "RansomwareLaunchC2ServerAction",
+    "ExfiltrationC2ServerAction",
+)
 
-class ConfigureRansomwareScriptAction(AbstractAction):
+
+class ConfigureRansomwareScriptAction(AbstractAction, identifier="configure_ransomware"):
     """Action which sets config parameters for a ransomware script on a node."""
 
-    class _Opts(BaseModel):
-        """Schema for options that can be passed to this option."""
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        """Configuration schema for ConfigureRansomwareScriptAction."""
 
         model_config = ConfigDict(extra="forbid")
-        server_ip_address: Optional[str] = None
-        server_password: Optional[str] = None
-        payload: Optional[str] = None
+        node_name: str
+        server_ip_address: Optional[str]
+        server_password: Optional[str]
+        payload: Optional[str]
 
-    def __init__(self, manager: "ActionManager", **kwargs) -> None:
-        super().__init__(manager=manager)
-
-    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
+    @classmethod
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
-        node_name = self.manager.get_node_name_by_idx(node_id)
-        if node_name is None:
+        if config.node_name is None:
             return ["do_nothing"]
         ConfigureRansomwareScriptAction._Opts.model_validate(config)  # check that options adhere to schema
-        return ["network", "node", node_name, "application", "RansomwareScript", "configure", config]
+        return ["network", "node", config.node_name, "application", "RansomwareScript", "configure", config]
 
 
-class ConfigureDoSBotAction(AbstractAction):
+class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):
     """Action which sets config parameters for a DoS bot on a node."""
 
     class _Opts(BaseModel):
@@ -58,7 +66,7 @@ class ConfigureDoSBotAction(AbstractAction):
         return ["network", "node", node_name, "application", "DoSBot", "configure", config]
 
 
-class ConfigureC2BeaconAction(AbstractAction):
+class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2"):
     """Action which configures a C2 Beacon based on the parameters given."""
 
     class ConfigSchema(AbstractAction.ConfigSchema):
@@ -109,28 +117,32 @@ class ConfigureC2BeaconAction(AbstractAction):
         return ["network", "node", config.node_name, "application", "C2Beacon", "configure", config.__dict__]
 
 
-class NodeSendRemoteCommandAction(AbstractAction):
+class NodeSendRemoteCommandAction(AbstractAction, identifier="node_send_remote_command"):
     """Action which sends a terminal command to a remote node via SSH."""
 
-    def __init__(self, manager: "ActionManager", **kwargs) -> None:
-        super().__init__(manager=manager)
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        """Configuration schema for NodeSendRemoteCommandAction."""
 
-    def form_request(self, node_id: int, remote_ip: str, command: RequestFormat) -> RequestFormat:
+        node_name: str
+        remote_ip: str
+        command: RequestFormat
+
+    @classmethod
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        node_name = self.manager.get_node_name_by_idx(node_id)
         return [
             "network",
             "node",
-            node_name,
+            config.node_name,
             "service",
             "Terminal",
             "send_remote_command",
-            remote_ip,
-            {"command": command},
+            config.remote_ip,
+            {"command": config.command},
         ]
 
 
-class TerminalC2ServerAction(AbstractAction):
+class TerminalC2ServerAction(AbstractAction, identifier="terminal_c2_server"):
     """Action which causes the C2 Server to send a command to the C2 Beacon to execute the terminal command passed."""
 
     class _Opts(BaseModel):
@@ -161,11 +173,12 @@ class TerminalC2ServerAction(AbstractAction):
         return ["network", "node", node_name, "application", "C2Server", "terminal_command", command_model]
 
 
-class RansomwareLaunchC2ServerAction(AbstractAction):
+class RansomwareLaunchC2ServerAction(AbstractAction, identifier="ransomware_launch"):
     """Action which causes the C2 Server to send a command to the C2 Beacon to launch the RansomwareScript."""
 
-    class ConfigSchema(AbstractAction):
+    class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for RansomwareLaunchC2ServerAction."""
+
         node_name: str
 
     @classmethod
@@ -175,8 +188,9 @@ class RansomwareLaunchC2ServerAction(AbstractAction):
             return ["do_nothing"]
         # This action currently doesn't require any further configuration options.
         return ["network", "node", config.node_name, "application", "C2Server", "ransomware_launch"]
-    
-class ExfiltrationC2ServerAction(AbstractAction):
+
+
+class ExfiltrationC2ServerAction(AbstractAction, identifier="exfiltration_c2_server"):
     """Action which exfiltrates a target file from a certain node onto the C2 beacon and then the C2 Server."""
 
     class _Opts(BaseModel):

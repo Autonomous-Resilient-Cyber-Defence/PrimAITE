@@ -2,8 +2,10 @@
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
+__all__ = ("HostNICEnableAction", "HostNICDisableAction")
 
-class HostNICAbstractAction(AbstractAction):
+
+class HostNICAbstractAction(AbstractAction, identifier="host_nic_abstract"):
     """
     Abstract base class for NIC actions.
 

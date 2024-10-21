@@ -17,5 +17,5 @@ from primaite.game.agent.observations.software_observation import ApplicationObs
 __all__ = [
     "ACLObservation", "FileObservation", "FolderObservation", "FirewallObservation", "HostObservation",
     "LinksObservation", "NICObservation", "PortObservation", "NodesObservation", "NestedObservation",
-    "ObservationManager", "ApplicationObservation", "ServiceObservation",]
+    "ObservationManager", "ApplicationObservation", "ServiceObservation", "RouterObservation", "LinkObservation",]
 # fmt: on

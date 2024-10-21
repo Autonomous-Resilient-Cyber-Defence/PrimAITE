@@ -1,12 +1,13 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from abc import abstractmethod
-from typing import ClassVar, Dict
+from typing import ClassVar
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
+__all__ = ("NodeOSScanAction", "NodeShutdownAction", "NodeStartupAction", "NodeResetAction")
 
-class NodeAbstractAction(AbstractAction):
+
+class NodeAbstractAction(AbstractAction, identifier="node_abstract"):
     """
     Abstract base class for node actions.
 

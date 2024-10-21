@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-"""yaml example
+"""yaml example.
 
 agents:
   - name: agent_1
@@ -20,7 +20,7 @@ from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple, Type
 from gymnasium import spaces
 from pydantic import BaseModel, ConfigDict
 
-from primaite.game.game import PrimaiteGame
+# from primaite.game.game import PrimaiteGame # TODO: Breaks things
 from primaite.interface.request import RequestFormat
 
 # TODO: Make sure that actions are backwards compatible where the old YAML format is used.
@@ -37,6 +37,8 @@ class AbstractAction(BaseModel):
     # CAOS actions to requests for simulator. Similar to the network node adder, that class also doesn't need to be
     # instantiated.)
     class ConfigSchema(BaseModel, ABC):  # TODO: not sure if this better named something like `Options`
+        """Base configuration schema for Actions."""
+
         model_config = ConfigDict(extra="forbid")
         type: str
 
@@ -54,8 +56,12 @@ class AbstractAction(BaseModel):
         return []
 
 
-class DoNothingAction(AbstractAction):
+class DoNothingAction(AbstractAction, identifier="do_nothing"):
+    """Do Nothing Action."""
+
     class ConfigSchema(AbstractAction.ConfigSchema):
+        """Configuration Schema for DoNothingAction."""
+
         type: Literal["do_nothing"] = "do_nothing"
 
     def form_request(self, options: ConfigSchema) -> RequestFormat:

@@ -4,8 +4,17 @@ from typing import ClassVar
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
+__all__ = (
+    "NodeFileCreateAction",
+    "NodeFileScanAction",
+    "NodeFileDeleteAction",
+    "NodeFileRestoreAction",
+    "NodeFileCorruptAction",
+    "NodeFileAccessAction",
+)
 
-class NodeFileAbstractAction(AbstractAction):
+
+class NodeFileAbstractAction(AbstractAction, identifier="node_file_abstract_action"):
     """Abstract base class for file actions.
 
     Any action which applies to a file and uses node_name, folder_name, and file_name as its
