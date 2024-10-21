@@ -74,7 +74,7 @@ def test_uc2_rewards(game_and_agent):
         ACLAction.PERMIT, src_port=PORT_LOOKUP["POSTGRES_SERVER"], dst_port=PORT_LOOKUP["POSTGRES_SERVER"], position=2
     )
 
-    comp = GreenAdminDatabaseUnreachablePenalty("client_1")
+    comp = GreenAdminDatabaseUnreachablePenalty(node_hostname="client_1")
 
     request = ["network", "node", "client_1", "application", "DatabaseClient", "execute"]
     response = game.simulation.apply_request(request)
