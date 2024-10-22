@@ -272,7 +272,6 @@ class WebpageUnavailablePenalty(AbstractReward, identifier="WebpageUnavailablePe
     sticky: bool = True
     reward: float = 0.0
     location_in_state: List[str] = [""]
-    _node: str = node_hostname
 
     class ConfigSchema(AbstractReward.ConfigSchema):
         """ConfigSchema for WebpageUnavailablePenalty."""
@@ -311,7 +310,7 @@ class WebpageUnavailablePenalty(AbstractReward, identifier="WebpageUnavailablePe
         request_attempted = last_action_response.request == [
             "network",
             "node",
-            self._node,
+            self.node_hostname,
             "application",
             "WebBrowser",
             "execute",
@@ -326,7 +325,7 @@ class WebpageUnavailablePenalty(AbstractReward, identifier="WebpageUnavailablePe
         elif web_browser_state is NOT_PRESENT_IN_STATE or not web_browser_state["history"]:
             _LOGGER.debug(
                 "Web browser reward could not be calculated because the web browser history on node",
-                f"{self._node} was not reported in the simulation state. Returning 0.0",
+                f"{self.node_hostname} was not reported in the simulation state. Returning 0.0",
             )
             self.reward = 0.0
         else:
@@ -357,7 +356,6 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward, identifier="GreenAdmi
     """Penalises the agent when the green db clients fail to connect to the database."""
 
     node_hostname: str = ""
-    _node: str = node_hostname
     sticky: bool = True
     reward: float = 0.0
 
@@ -385,7 +383,7 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward, identifier="GreenAdmi
         request_attempted = last_action_response.request == [
             "network",
             "node",
-            self._node,
+            self.node_hostname,
             "application",
             "DatabaseClient",
             "execute",
