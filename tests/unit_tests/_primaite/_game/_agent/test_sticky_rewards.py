@@ -11,7 +11,7 @@ from primaite.interface.request import RequestResponse
 
 class TestWebServer404PenaltySticky:
     def test_non_sticky(self):
-        reward = WebServer404Penalty("computer", "WebService", sticky=False)
+        reward = WebServer404Penalty(node_hostname="computer", service_name="WebService", sticky=False)
 
         # no response codes yet, reward is 0
         codes = []
@@ -38,7 +38,7 @@ class TestWebServer404PenaltySticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
     def test_sticky(self):
-        reward = WebServer404Penalty("computer", "WebService", sticky=True)
+        reward = WebServer404Penalty(node_hostname="computer", service_name="WebService", sticky=True)
 
         # no response codes yet, reward is 0
         codes = []
@@ -67,7 +67,7 @@ class TestWebServer404PenaltySticky:
 
 class TestWebpageUnavailabilitySticky:
     def test_non_sticky(self):
-        reward = WebpageUnavailablePenalty("computer", sticky=False)
+        reward = WebpageUnavailablePenalty(node_hostname="computer", sticky=False)
 
         # no response codes yet, reward is 0
         action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
@@ -127,7 +127,7 @@ class TestWebpageUnavailabilitySticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
     def test_sticky(self):
-        reward = WebpageUnavailablePenalty("computer", sticky=True)
+        reward = WebpageUnavailablePenalty(node_hostname="computer", sticky=True)
 
         # no response codes yet, reward is 0
         action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
@@ -188,7 +188,7 @@ class TestWebpageUnavailabilitySticky:
 
 class TestGreenAdminDatabaseUnreachableSticky:
     def test_non_sticky(self):
-        reward = GreenAdminDatabaseUnreachablePenalty("computer", sticky=False)
+        reward = GreenAdminDatabaseUnreachablePenalty(node_hostname="computer", sticky=False)
 
         # no response codes yet, reward is 0
         action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
@@ -244,7 +244,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
     def test_sticky(self):
-        reward = GreenAdminDatabaseUnreachablePenalty("computer", sticky=True)
+        reward = GreenAdminDatabaseUnreachablePenalty(node_hostname="computer", sticky=True)
 
         # no response codes yet, reward is 0
         action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
