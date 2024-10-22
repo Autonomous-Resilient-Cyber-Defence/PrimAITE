@@ -3,10 +3,16 @@ from typing import Dict, List, Literal
 
 from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
-from primaite.game.agent.actions.manager import AbstractAction
+from primaite.game.agent.actions.manager import AbstractAction, ActionManager
 from primaite.interface.request import RequestFormat
 
-__all__ = ("RouterACLAddRuleAction", "RouterACLRemoveRuleAction", "FirewallACLAddRuleAction", "FirewallACLRemoveRuleAction")
+__all__ = (
+    "RouterACLAddRuleAction",
+    "RouterACLRemoveRuleAction",
+    "FirewallACLAddRuleAction",
+    "FirewallACLRemoveRuleAction",
+)
+
 
 class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
     """Action which adds a rule to a router's ACL."""
@@ -23,8 +29,7 @@ class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
         dest_ip_id: int
         dest_wildcard_id: int
         dest_port_id: int
-        protocol_id: int
-
+        protocol_name: str
 
     class ACLRuleOptions(BaseModel):
         """Validator for ACL_ADD_RULE options."""
@@ -68,10 +73,7 @@ class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
             return v
 
     @classmethod
-    def form_request(
-        cls,
-        config: ConfigSchema
-    ) -> List[str]:
+    def form_request(cls, config: ConfigSchema) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         # Validate incoming data.
         parsed_options = RouterACLAddRuleAction.ACLRuleOptions(
@@ -84,7 +86,7 @@ class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
             dest_wildcard_id=config.dest_wildcard_id,
             source_port_id=config.source_port_id,
             dest_port_id=config.dest_port_id,
-            protocol_id=config.protocol_id,
+            protocol=config.protocol_name,
         )
         if parsed_options.permission == 1:
             permission_str = "PERMIT"
@@ -96,40 +98,40 @@ class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
         if parsed_options.protocol_id == 1:
             protocol = "ALL"
         else:
-            protocol = self.manager.get_internet_protocol_by_idx(parsed_options.protocol_id - 2)
+            protocol = cls.manager.get_internet_protocol_by_idx(parsed_options.protocol_id - 2)
             # subtract 2 to account for UNUSED=0 and ALL=1.
 
         if parsed_options.source_ip_id == 1:
             src_ip = "ALL"
         else:
-            src_ip = self.manager.get_ip_address_by_idx(parsed_options.source_ip_id - 2)
+            src_ip = cls.manager.get_ip_address_by_idx(parsed_options.source_ip_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
-        src_wildcard = self.manager.get_wildcard_by_idx(parsed_options.source_wildcard_id)
+        src_wildcard = cls.manager.get_wildcard_by_idx(parsed_options.source_wildcard_id)
 
         if parsed_options.source_port_id == 1:
             src_port = "ALL"
         else:
-            src_port = self.manager.get_port_by_idx(parsed_options.source_port_id - 2)
+            src_port = cls.manager.get_port_by_idx(parsed_options.source_port_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
         if parsed_options.dest_ip_id == 1:
             dst_ip = "ALL"
         else:
-            dst_ip = self.manager.get_ip_address_by_idx(parsed_options.dest_ip_id - 2)
+            dst_ip = cls.manager.get_ip_address_by_idx(parsed_options.dest_ip_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
-        dst_wildcard = self.manager.get_wildcard_by_idx(parsed_options.dest_wildcard_id)
+        dst_wildcard = cls.manager.get_wildcard_by_idx(parsed_options.dest_wildcard_id)
 
         if parsed_options.dest_port_id == 1:
             dst_port = "ALL"
         else:
-            dst_port = self.manager.get_port_by_idx(parsed_options.dest_port_id - 2)
+            dst_port = cls.manager.get_port_by_idx(parsed_options.dest_port_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
 
         return [
             "network",
             "node",
-            target_router,
+            config.target_router,
             "acl",
             "add_rule",
             permission_str,
@@ -140,7 +142,7 @@ class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
             str(dst_ip),
             dst_wildcard,
             dst_port,
-            position,
+            config.position,
         ]
 
 

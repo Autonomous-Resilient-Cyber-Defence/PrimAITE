@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
 
-from primaite.game.agent.actions.manager import AbstractAction
+from primaite.game.agent.actions.manager import AbstractAction, ActionManager
 from primaite.interface.request import RequestFormat
 
 __all__ = (

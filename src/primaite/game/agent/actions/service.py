@@ -18,6 +18,11 @@ __all__ = (
 
 
 class NodeServiceAbstractAction(AbstractAction, identifier="node_service_abstract"):
+    """Abstract Action for Node Service related actions.
+
+    Any actions which use node_name and service_name can inherit from this class.
+    """
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         node_name: str
         service_name: str
@@ -34,7 +39,7 @@ class NodeServiceScanAction(NodeServiceAbstractAction, identifier="node_service_
     """Action which scans a service."""
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
-        """Configuration Schema for NodeServiceScanAction"""
+        """Configuration Schema for NodeServiceScanAction."""
 
         verb: str = "scan"
 

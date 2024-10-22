@@ -87,6 +87,8 @@ class ActionManager:
         # ip_list: List[str] = [],  # to allow us to map an index to an ip address.
         # wildcard_list: List[str] = [],  # to allow mapping from wildcard index to
         act_map: Optional[Dict[int, Dict]] = None,  # allows restricting set of possible actions
+        *args,
+        **kwargs,
     ) -> None:
         """Init method for ActionManager.
 
@@ -116,27 +118,27 @@ class ActionManager:
         :param act_map: Action map which maps integers to actions. Used for restricting the set of possible actions.
         :type act_map: Optional[Dict[int, Dict]]
         """
-        self.node_names: List[str] = [n["node_name"] for n in nodes]
+        # self.node_names: List[str] = [n["node_name"] for n in nodes]
         """List of node names in this action space. The list order is the mapping between node index and node name."""
-        self.application_names: List[List[str]] = []
+        # self.application_names: List[List[str]] = []
         """
         List of applications per node. The list order gives the two-index mapping between (node_id, app_id) to app name.
         The first index corresponds to node id, the second index is the app id on that particular node.
         For instance, self.application_names[0][2] is the name of the third application on the first node.
         """
-        self.service_names: List[List[str]] = []
+        # self.service_names: List[List[str]] = []
         """
         List of services per node. The list order gives the two-index mapping between (node_id, svc_id) to svc name.
         The first index corresponds to node id, the second index is the service id on that particular node.
         For instance, self.service_names[0][2] is the name of the third service on the first node.
         """
-        self.folder_names: List[List[str]] = []
+        # self.folder_names: List[List[str]] = []
         """
         List of folders per node. The list order gives the two-index mapping between (node_id, folder_id) to folder
         name. The first index corresponds to node id, the second index is the folder id on that particular node.
         For instance, self.folder_names[0][2] is the name of the third folder on the first node.
         """
-        self.file_names: List[List[List[str]]] = []
+        # self.file_names: List[List[List[str]]] = []
         """
         List of files per folder per node. The list order gives the three-index mapping between
         (node_id, folder_id, file_id) to file name. The first index corresponds to node id, the second index is the
@@ -203,7 +205,7 @@ class ActionManager:
             # and `options` is an optional dict of options to pass to the init method of the action class
             act_type = act_spec.get("type")
             act_options = act_spec.get("options", {})
-            self.actions[act_type] = self.act_class_identifiers[act_type](self, **global_action_args, **act_options)
+            # self.actions[act_type] = self.act_class_identifiers[act_type](self, **global_action_args, **act_options)
 
         self.action_map: Dict[int, Tuple[str, Dict]] = {}
         """

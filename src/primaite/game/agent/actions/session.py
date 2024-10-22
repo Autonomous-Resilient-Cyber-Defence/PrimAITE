@@ -19,8 +19,11 @@ class NodeSessionAbstractAction(AbstractAction, identifier="node_session_abstrac
     @classmethod
     @abstractmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
-        """Abstract method. Should return the action formatted as a request which 
-            can be ingested by the PrimAITE simulation."""
+        """
+        Abstract method for request forming.
+
+        Should return the action formatted as a request which can be ingested by the PrimAITE simulation.
+        """
         pass
 
 

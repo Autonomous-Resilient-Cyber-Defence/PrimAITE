@@ -1,5 +1,6 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from typing import ClassVar
+from abc import abstractmethod
+from typing import ClassVar, List, Optional, Union
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
@@ -61,3 +62,97 @@ class NodeResetAction(NodeAbstractAction, identifier="node_reset"):
         """Configuration schema for NodeResetAction."""
 
         verb: str = "reset"
+
+
+class NodeNMAPAbstractAction(AbstractAction, identifier="node_nmap_abstract_action"):
+    """Base class for NodeNMAP actions."""
+
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        """Base Configuration Schema for NodeNMAP actions."""
+
+        target_ip_address: Union[str, List[str]]
+        show: bool = False
+        node_name: str
+
+    @classmethod
+    @abstractmethod
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
+        pass
+
+
+class NodeNMAPPingScanAction(NodeNMAPAbstractAction, identifier="node_nmap_ping_scan"):
+    class ConfigSchema(NodeNMAPAbstractAction.ConfigSchema):
+        pass
+
+    @classmethod
+    def form_request(cls, config: ConfigSchema) -> List[str]:  # noqa
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        return [
+            "network",
+            "node",
+            config.node_name,
+            "application",
+            "NMAP",
+            "ping_scan",
+            {"target_ip_address": config.target_ip_address, "show": config.show},
+        ]
+
+
+class NodeNMAPPortScanAction(NodeNMAPAbstractAction, identifier="node_nmap_port_scan"):
+    """Action which performs an NMAP port scan."""
+
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        target_protocol: Optional[Union[str, List[str]]] = (None,)
+        target_port: Optional[Union[str, List[str]]] = (None,)
+        show: Optional[bool] = (False,)
+
+    @classmethod
+    def form_request(
+        cls,
+        config: ConfigSchema,
+    ) -> List[str]:  # noqa
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        return [
+            "network",
+            "node",
+            config.source_node,
+            "application",
+            "NMAP",
+            "port_scan",
+            {
+                "target_ip_address": config.target_ip_address,
+                "target_port": config.target_port,
+                "target_protocol": config.target_protocol,
+                "show": config.show,
+            },
+        ]
+
+
+class NodeNetworkServiceReconAction(NodeNMAPAbstractAction, identifier="node_network_service_recon"):
+    """Action which performs an NMAP network service recon (ping scan followed by port scan)."""
+
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        target_protocol: Optional[Union[str, List[str]]] = (None,)
+        target_port: Optional[Union[str, List[str]]] = (None,)
+        show: Optional[bool] = (False,)
+
+    @classmethod
+    def form_request(
+        cls,
+        config: ConfigSchema,
+    ) -> List[str]:  # noqa
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        return [
+            "network",
+            "node",
+            config.source_node,
+            "application",
+            "NMAP",
+            "network_service_recon",
+            {
+                "target_ip_address": config.target_ip_address,
+                "target_port": config.target_port,
+                "target_protocol": config.target_protocol,
+                "show": config.show,
+            },
+        ]
