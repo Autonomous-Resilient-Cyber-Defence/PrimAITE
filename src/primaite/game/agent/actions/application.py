@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from typing import ClassVar
 
-from primaite.game.agent.actions.manager import AbstractAction
+from primaite.game.agent.actions.abstract import AbstractAction
 from primaite.interface.request import RequestFormat
 
 __all__ = (

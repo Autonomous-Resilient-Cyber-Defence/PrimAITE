@@ -1,6 +1,7 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
 from primaite.game.agent.actions import (
+    abstract,
     acl,
     application,
     config,
@@ -17,6 +18,7 @@ from primaite.game.agent.actions.manager import ActionManager
 
 __all__ = (
     "acl",
+    "abstract",
     "application",
     "config",
     "file",

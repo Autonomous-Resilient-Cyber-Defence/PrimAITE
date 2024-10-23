@@ -14,46 +14,15 @@ agents:
 from __future__ import annotations
 
 import itertools
-from abc import ABC
-from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple, Type
+from typing import Dict, List, Literal, Optional, Tuple
 
 from gymnasium import spaces
-from pydantic import BaseModel, ConfigDict
 
 # from primaite.game.game import PrimaiteGame # TODO: Breaks things
+from primaite.game.agent.actions.abstract import AbstractAction
 from primaite.interface.request import RequestFormat
 
 # TODO: Make sure that actions are backwards compatible where the old YAML format is used.
-
-
-class AbstractAction(BaseModel):
-    """Base class for actions."""
-
-    # notes:
-    # we actually don't need to hold any state in actions, so there's no need to define any __init__ logic.
-    # all the init methods in the old actions are just used for holding a verb and shape, which are not really used.
-    # the config schema should be used to the actual parameters for formatting the action itself.
-    # (therefore there's no need for creating action instances, just the action class contains logic for converting
-    # CAOS actions to requests for simulator. Similar to the network node adder, that class also doesn't need to be
-    # instantiated.)
-    class ConfigSchema(BaseModel, ABC):  # TODO: not sure if this better named something like `Options`
-        """Base configuration schema for Actions."""
-
-        model_config = ConfigDict(extra="forbid")
-        type: str
-
-    _registry: ClassVar[Dict[str, Type[AbstractAction]]] = {}
-
-    def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
-        if identifier in cls._registry:
-            raise ValueError(f"Cannot create new action under reserved name {identifier}")
-        cls._registry[identifier] = cls
-
-    @classmethod
-    def form_request(self, config: ConfigSchema) -> RequestFormat:
-        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return []
 
 
 class DoNothingAction(AbstractAction, identifier="do_nothing"):
@@ -204,8 +173,8 @@ class ActionManager:
             # where `type` decides which AbstractAction subclass should be used
             # and `options` is an optional dict of options to pass to the init method of the action class
             act_type = act_spec.get("type")
-            act_options = act_spec.get("options", {})
-            # self.actions[act_type] = self.act_class_identifiers[act_type](self, **global_action_args, **act_options)
+            # act_options = act_spec.get("options", {}) # Don't need this anymore I think?
+            self.actions[act_type] = AbstractAction._registry[act_type]
 
         self.action_map: Dict[int, Tuple[str, Dict]] = {}
         """
@@ -235,10 +204,10 @@ class ActionManager:
 
         :return: An action map maps consecutive integers to a combination of Action type and parameter choices.
             An example output could be:
-            {0: ("DONOTHING", {'dummy': 0}),
-            1: ("NODE_OS_SCAN", {'node_id': 0}),
-            2: ("NODE_OS_SCAN", {'node_id': 1}),
-            3: ("NODE_FOLDER_SCAN", {'node_id:0, folder_id:0}),
+            {0: ("do_nothing", {'dummy': 0}),
+            1: ("node_os_scan", {'node_name': computer}),
+            2: ("node_os_scan", {'node_name': server}),
+            3: ("node_folder_scan", {'node_name:computer, folder_name:downloads}),
             ... #etc...
             }
         :rtype: Dict[int, Tuple[AbstractAction, Dict]]
@@ -269,7 +238,7 @@ class ActionManager:
     def form_request(self, action_identifier: str, action_options: Dict) -> RequestFormat:
         """Take action in CAOS format and use the execution definition to change it into PrimAITE request format."""
         act_obj = self.actions[action_identifier]
-        return act_obj.form_request(**action_options)
+        return act_obj.form_request(action_options)
 
     @property
     def space(self) -> spaces.Space:
