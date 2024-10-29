@@ -16,7 +16,7 @@ from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
 from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 if TYPE_CHECKING:
-    from primaite.simulator.network.hardware.base import NetworkInterface
+    from primaite.simulator.network.hardware.base import NetworkInterface, Node
     from primaite.simulator.system.core.software_manager import SoftwareManager
     from primaite.simulator.system.core.sys_log import SysLog
 
