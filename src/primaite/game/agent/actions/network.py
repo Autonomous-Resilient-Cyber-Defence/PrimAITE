@@ -24,11 +24,20 @@ class NetworkPortAbstractAction(AbstractAction, identifier="network_port_abstrac
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.target_nodename is None or config.port_id is None:
             return ["do_nothing"]
-        return ["network", "node", config.target_nodename, "network_interface", config.port_id, cls.verb]
+        return [
+            "network",
+            "node",
+            config.target_nodename,
+            "network_interface",
+            config.port_id,
+            cls.model_fields["verb"].default,
+        ]
 
 
 class NetworkPortEnableAction(NetworkPortAbstractAction, identifier="network_port_enable"):
     """Action which enables are port on a router or a firewall."""
+
+    verb: str = "enable"
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for NetworkPortEnableAction."""
@@ -38,6 +47,8 @@ class NetworkPortEnableAction(NetworkPortAbstractAction, identifier="network_por
 
 class NetworkPortDisableAction(NetworkPortAbstractAction, identifier="network_port_disable"):
     """Action which disables are port on a router or a firewall."""
+
+    verb: str = "disable"
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for NetworkPortDisableAction."""

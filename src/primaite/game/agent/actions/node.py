@@ -101,7 +101,8 @@ class NodeNMAPPingScanAction(NodeNMAPAbstractAction, identifier="node_nmap_ping_
 class NodeNMAPPortScanAction(NodeNMAPAbstractAction, identifier="node_nmap_port_scan"):
     """Action which performs an NMAP port scan."""
 
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(NodeNMAPAbstractAction.ConfigSchema):
+        source_node: str
         target_protocol: Optional[Union[str, List[str]]] = (None,)
         target_port: Optional[Union[str, List[str]]] = (None,)
         show: Optional[bool] = (False,)

@@ -34,13 +34,14 @@ agents:
         max_services_per_node: 1
         max_applications_per_node: 1
       action_list:
-        - type: NODE_NMAP_PING_SCAN
+        - type: node_nmap_ping_scan
       action_map:
         0:
-          action: NODE_NMAP_PING_SCAN
+          action: node_nmap_ping_scan
           options:
-            source_node: client_1
+            node_name: client_1
             target_ip_address: 192.168.1.0/24
+            show: False
 
     reward_function:
       reward_components:

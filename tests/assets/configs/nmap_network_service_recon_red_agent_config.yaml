@@ -34,15 +34,16 @@ agents:
         max_services_per_node: 1
         max_applications_per_node: 1
       action_list:
-        - type: NODE_NMAP_NETWORK_SERVICE_RECON
+        - type: node_network_service_recon
       action_map:
         0:
-          action: NODE_NMAP_NETWORK_SERVICE_RECON
+          action: node_network_service_recon
           options:
             source_node: client_1
             target_ip_address: 192.168.10.0/24
             target_port: 80
             target_protocol: tcp
+            show: false
 
     reward_function:
       reward_components:

@@ -1,11 +1,13 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
+
 from abc import ABC
 from typing import Any, ClassVar, Dict, Type
 
 from pydantic import BaseModel, ConfigDict
 
 from primaite.interface.request import RequestFormat
+
 
 class AbstractAction(BaseModel):
     """Base class for actions."""
@@ -34,15 +36,17 @@ class AbstractAction(BaseModel):
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return []
-    
+        pass
+
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractAction":
-        """Create an action component from a config dictionary"""
-        
-        type_id = config.get("type")
+        """Create an action component from a config dictionary."""
+        # set attributes for action based off config dict
+        # if config["type"] not in cls._registry:
+        #     raise ValueError(f"Invalid action reward type {config['type']}")
 
-        if type_id in cls._registry:
-            return cls(type=type_id, model_config=config)    
-        else:
-            return []
+        for attribute, value in config.items():
+            if not hasattr(cls.ConfigSchema, attribute):
+                setattr(cls.ConfigSchema, attribute, value)
+
+        return cls

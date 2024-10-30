@@ -18,7 +18,7 @@ __all__ = (
 )
 
 
-class ConfigureRansomwareScriptAction(AbstractAction, identifier="configure_ransomware"):
+class ConfigureRansomwareScriptAction(AbstractAction, identifier="c2_server_ransomware_configure"):
     """Action which sets config parameters for a ransomware script on a node."""
 
     class ConfigSchema(AbstractAction.ConfigSchema):
@@ -66,7 +66,7 @@ class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):
         return ["network", "node", node_name, "application", "DoSBot", "configure", config]
 
 
-class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2"):
+class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2_beacon"):
     """Action which configures a C2 Beacon based on the parameters given."""
 
     class ConfigSchema(AbstractAction.ConfigSchema):
@@ -105,14 +105,14 @@ class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2"):
         """Return the action formatted as a request that can be ingested by the simulation."""
         if config.node_name is None:
             return ["do_nothing"]
-        config = ConfigureC2BeaconAction._Opts(
-            c2_server_ip_address=config["c2_server_ip_address"],
-            keep_alive_frequency=config["keep_alive_frequency"],
-            masquerade_port=config["masquerade_port"],
-            masquerade_protocol=config["masquerade_protocol"],
+        configuration = ConfigureC2BeaconAction._Opts(
+            c2_server_ip_address=config.c2_server_ip_address,
+            keep_alive_frequency=config.keep_alive_frequency,
+            masquerade_port=config.masquerade_port,
+            masquerade_protocol=config.masquerade_protocol,
         )
 
-        ConfigureC2BeaconAction._Opts.model_validate(config)  # check that options adhere to schema
+        ConfigureC2BeaconAction._Opts.model_validate(configuration)  # check that options adhere to schema
 
         return ["network", "node", config.node_name, "application", "C2Beacon", "configure", config.__dict__]
 
@@ -142,7 +142,7 @@ class NodeSendRemoteCommandAction(AbstractAction, identifier="node_send_remote_c
         ]
 
 
-class TerminalC2ServerAction(AbstractAction, identifier="terminal_c2_server"):
+class TerminalC2ServerAction(AbstractAction, identifier="c2_server_terminal_command"):
     """Action which causes the C2 Server to send a command to the C2 Beacon to execute the terminal command passed."""
 
     class _Opts(BaseModel):
@@ -173,7 +173,7 @@ class TerminalC2ServerAction(AbstractAction, identifier="terminal_c2_server"):
         return ["network", "node", node_name, "application", "C2Server", "terminal_command", command_model]
 
 
-class RansomwareLaunchC2ServerAction(AbstractAction, identifier="ransomware_launch"):
+class RansomwareLaunchC2ServerAction(AbstractAction, identifier="c2_server_ransomware_launch"):
     """Action which causes the C2 Server to send a command to the C2 Beacon to launch the RansomwareScript."""
 
     class ConfigSchema(AbstractAction.ConfigSchema):
@@ -190,7 +190,7 @@ class RansomwareLaunchC2ServerAction(AbstractAction, identifier="ransomware_laun
         return ["network", "node", config.node_name, "application", "C2Server", "ransomware_launch"]
 
 
-class ExfiltrationC2ServerAction(AbstractAction, identifier="exfiltration_c2_server"):
+class ExfiltrationC2ServerAction(AbstractAction, identifier="c2_server_data_exfiltrate"):
     """Action which exfiltrates a target file from a certain node onto the C2 beacon and then the C2 Server."""
 
     class _Opts(BaseModel):

@@ -96,8 +96,8 @@ agents:
 
     action_space:
       action_list:
-        - type: DONOTHING
-        - type: FIREWALL_ACL_ADDRULE
+        - type: do_nothing
+        - type: FIREWALL_ACL_ADDRULE firewall_acl_add_rule
         - type: FIREWALL_ACL_REMOVERULE
         - type: NETWORK_PORT_DISABLE
         - type: NETWORK_PORT_ENABLE
