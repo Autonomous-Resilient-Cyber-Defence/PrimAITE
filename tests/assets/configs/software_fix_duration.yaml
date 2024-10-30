@@ -209,7 +209,7 @@ simulation:
       services:
       - type: DNSClient
         options:
-          dns_server: 192.168.1.10
+          # dns_server: 192.168.1.10
           fix_duration: 3
       - type: DNSServer
         options:
@@ -250,8 +250,6 @@ simulation:
             server_password: arcd
       services:
         - type: DNSClient
-          options:
-            dns_server: 192.168.1.10
 
     links:
     - endpoint_a_hostname: switch_1
