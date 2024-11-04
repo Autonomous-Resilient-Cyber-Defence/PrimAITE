@@ -23,7 +23,9 @@ def test_WebpageUnavailablePenalty(game_and_agent):
     # set up the scenario, configure the web browser to the correct url
     game, agent = game_and_agent
     agent: ControlledAgent
-    comp = WebpageUnavailablePenalty(node_hostname="client_1")
+    schema = WebpageUnavailablePenalty.ConfigSchema(node_hostname="client_1", sticky=True)
+    comp = WebpageUnavailablePenalty(config=schema)
+    
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
     browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
     browser.run()
@@ -74,7 +76,8 @@ def test_uc2_rewards(game_and_agent):
         ACLAction.PERMIT, src_port=PORT_LOOKUP["POSTGRES_SERVER"], dst_port=PORT_LOOKUP["POSTGRES_SERVER"], position=2
     )
 
-    comp = GreenAdminDatabaseUnreachablePenalty(node_hostname="client_1")
+    schema = GreenAdminDatabaseUnreachablePenalty.ConfigSchema(node_hostname="client_1", sticky=True)
+    comp = GreenAdminDatabaseUnreachablePenalty(config=schema)
 
     request = ["network", "node", "client_1", "application", "DatabaseClient", "execute"]
     response = game.simulation.apply_request(request)
@@ -147,7 +150,9 @@ def test_action_penalty():
     """Test that the action penalty is correctly applied when agent performs any action"""
 
     # Create an ActionPenalty Reward
-    Penalty = ActionPenalty(action_penalty=-0.75, do_nothing_penalty=0.125)
+    schema = ActionPenalty.ConfigSchema(action_penalty=-0.75, do_nothing_penalty=0.125)
+    # Penalty = ActionPenalty(action_penalty=-0.75, do_nothing_penalty=0.125)
+    Penalty = ActionPenalty(schema)
 
     # Assert that penalty is applied if action isn't DONOTHING
     reward_value = Penalty.calculate(
