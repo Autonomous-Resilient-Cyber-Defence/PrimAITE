@@ -25,7 +25,7 @@ def test_WebpageUnavailablePenalty(game_and_agent):
     agent: ControlledAgent
     schema = WebpageUnavailablePenalty.ConfigSchema(node_hostname="client_1", sticky=True)
     comp = WebpageUnavailablePenalty(config=schema)
-    
+
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
     browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
     browser.run()

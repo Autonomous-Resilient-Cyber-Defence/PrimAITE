@@ -629,7 +629,7 @@ class PrimaiteGame:
             for comp, weight in agent.reward_function.reward_components:
                 if isinstance(comp, SharedReward):
                     comp: SharedReward
-                    graph[name].add(comp.agent_name)
+                    graph[name].add(comp.config.agent_name)
 
                     # while constructing the graph, we might as well set up the reward sharing itself.
                     comp.callback = lambda agent_name: self.agents[agent_name].reward_function.current_reward
