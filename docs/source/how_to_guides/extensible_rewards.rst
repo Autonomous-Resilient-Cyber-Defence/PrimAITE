@@ -11,10 +11,13 @@ Changes to reward class structure.
 ==================================
 
 Reward classes are inherited from AbstractReward (a sub-class of Pydantic's BaseModel).
-Within the reward class is a ConfigSchema class responsible for ensuring config file data is in the
-correct format. The `.from_config()` method is generally unchanged.
+Within the reward class there is a ConfigSchema class responsible for ensuring config file data is
+in the correct format. The `.from_config()` method is generally unchanged but should initialise the
+attributes edfined in the ConfigSchema.
+Each class requires an identifier string which is used by the ConfigSchema class to verify that it
+hasn't previously been added to the registry.
 
-Inheriting from `BaseModel` removes the need for an `__init__` method bu means that object
+Inheriting from `BaseModel` removes the need for an `__init__` method but means that object
 attributes need to be passed by keyword.
 
 .. code:: Python
