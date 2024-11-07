@@ -6,65 +6,47 @@
 
 Extensible Rewards
 ******************
+Extensible Rewards differ from the previous reward mechanism used in PrimAITE v3.x as new reward
+types can be added without requiring a change to the RewardFunction class in rewards.py (PrimAITE
+core repository).
 
 Changes to reward class structure.
 ==================================
 
 Reward classes are inherited from AbstractReward (a sub-class of Pydantic's BaseModel).
-Within the reward class there is a ConfigSchema class responsible for ensuring config file data is
-in the correct format. The `.from_config()` method is generally unchanged but should initialise the
-attributes edfined in the ConfigSchema.
+Within the reward class there is a ConfigSchema class responsible for ensuring the config file data
+is in the correct format. This also means there is little (if no) requirement for and `__init__`
+method. The `.from_config` method is no longer required as it's inherited from `AbstractReward`.
 Each class requires an identifier string which is used by the ConfigSchema class to verify that it
 hasn't previously been added to the registry.
 
 Inheriting from `BaseModel` removes the need for an `__init__` method but means that object
 attributes need to be passed by keyword.
 
-.. code:: Python
+To add a new reward class follow the example below. Note that the type attribute in the
+`ConfigSchema` class should match the type used in the config file to define the reward.
 
-class AbstractReward(BaseModel):
-    """Base class for reward function components."""
+.. code-block:: Python
 
-    class ConfigSchema(BaseModel, ABC):
-        """Config schema for AbstractReward."""
+class DatabaseFileIntegrity(AbstractReward, identifier="DATABASE_FILE_INTEGRITY"):
+    """Reward function component which rewards the agent for maintaining the integrity of a database file."""
 
-        type: str
+    config: "DatabaseFileIntegrity.ConfigSchema"
+    location_in_state: List[str] = [""]
+    reward: float = 0.0
 
-    _registry: ClassVar[Dict[str, Type["AbstractReward"]]] = {}
+    class ConfigSchema(AbstractReward.ConfigSchema):
+        """ConfigSchema for DatabaseFileIntegrity."""
 
-    def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
-        if identifier in cls._registry:
-            raise ValueError(f"Duplicate node adder {identifier}")
-        cls._registry[identifier] = cls
+        type: str = "DATABASE_FILE_INTEGRITY"
+        node_hostname: str
+        folder_name: str
+        file_name: str
 
-    @classmethod
-    def from_config(cls, config: Dict) -> "AbstractReward":
-        """Create a reward function component from a config dictionary.
-
-        :param config: dict of options for the reward component's constructor
-        :type config: dict
-        :return: The reward component.
-        :rtype: AbstractReward
-        """
-        if config["type"] not in cls._registry:
-            raise ValueError(f"Invalid reward type {config['type']}")
-        adder_class = cls._registry[config["type"]]
-        adder_class.add_nodes_to_net(config=adder_class.ConfigSchema(**config))
-        return cls
-
-    @abstractmethod
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Calculate the reward for the current state.
+        pass
 
-        :param state: Current simulation state
-        :type state: Dict
-        :param last_action_response: Current agent history state
-        :type last_action_response: AgentHistoryItem state
-        :return: Reward value
-        :rtype: float
-        """
-        return 0.0
 
 
 Changes to YAML file.
