@@ -11,7 +11,12 @@ from primaite.interface.request import RequestResponse
 
 class TestWebServer404PenaltySticky:
     def test_non_sticky(self):
-        reward = WebServer404Penalty(node_hostname="computer", service_name="WebService", sticky=False)
+        schema = WebServer404Penalty.ConfigSchema(
+            node_hostname="computer",
+            service_name="WebService",
+            sticky=False,
+        )
+        reward = WebServer404Penalty(config=schema)
 
         # no response codes yet, reward is 0
         codes = []
@@ -38,7 +43,12 @@ class TestWebServer404PenaltySticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
     def test_sticky(self):
-        reward = WebServer404Penalty(node_hostname="computer", service_name="WebService", sticky=True)
+        schema = WebServer404Penalty.ConfigSchema(
+            node_hostname="computer",
+            service_name="WebService",
+            sticky=True,
+        )
+        reward = WebServer404Penalty(config=schema)
 
         # no response codes yet, reward is 0
         codes = []
@@ -67,7 +77,8 @@ class TestWebServer404PenaltySticky:
 
 class TestWebpageUnavailabilitySticky:
     def test_non_sticky(self):
-        reward = WebpageUnavailablePenalty(node_hostname="computer", sticky=False)
+        schema = WebpageUnavailablePenalty.ConfigSchema(node_hostname="computer", sticky=False)
+        reward = WebpageUnavailablePenalty(config=schema)
 
         # no response codes yet, reward is 0
         action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
@@ -127,7 +138,8 @@ class TestWebpageUnavailabilitySticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
     def test_sticky(self):
-        reward = WebpageUnavailablePenalty(node_hostname="computer", sticky=True)
+        schema = WebpageUnavailablePenalty.ConfigSchema(node_hostname="computer", sticky=True)
+        reward = WebpageUnavailablePenalty(config=schema)
 
         # no response codes yet, reward is 0
         action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
@@ -188,7 +200,11 @@ class TestWebpageUnavailabilitySticky:
 
 class TestGreenAdminDatabaseUnreachableSticky:
     def test_non_sticky(self):
-        reward = GreenAdminDatabaseUnreachablePenalty(node_hostname="computer", sticky=False)
+        schema = GreenAdminDatabaseUnreachablePenalty.ConfigSchema(
+            node_hostname="computer",
+            sticky=False,
+        )
+        reward = GreenAdminDatabaseUnreachablePenalty(config=schema)
 
         # no response codes yet, reward is 0
         action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
@@ -214,7 +230,6 @@ class TestGreenAdminDatabaseUnreachableSticky:
         # agent did nothing, because reward is not sticky, it goes back to 0
         action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
         response = RequestResponse(status="success", data={})
-        browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(
             timestep=0, action=action, parameters=params, request=request, response=response
@@ -244,7 +259,11 @@ class TestGreenAdminDatabaseUnreachableSticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
     def test_sticky(self):
-        reward = GreenAdminDatabaseUnreachablePenalty(node_hostname="computer", sticky=True)
+        schema = GreenAdminDatabaseUnreachablePenalty.ConfigSchema(
+            node_hostname="computer",
+            sticky=True,
+        )
+        reward = GreenAdminDatabaseUnreachablePenalty(config=schema)
 
         # no response codes yet, reward is 0
         action, params, request = "DO_NOTHING", {}, ["DONOTHING"]

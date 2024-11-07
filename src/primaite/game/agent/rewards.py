@@ -211,7 +211,7 @@ class WebServer404Penalty(AbstractReward, identifier="WEB_SERVER_404_PENALTY"):
                 return 1.0 if status == 200 else -1.0 if status == 404 else 0.0
 
             self.reward = sum(map(status2rew, codes)) / len(codes)  # convert form HTTP codes to rewards and average
-        elif not self.sticky:  # there are no codes, but reward is not sticky, set reward to 0
+        elif not self.config.sticky:  # there are no codes, but reward is not sticky, set reward to 0
             self.reward = 0.0
         else:  # skip calculating if sticky and no new codes. instead, reuse last step's value
             pass
@@ -278,7 +278,7 @@ class WebpageUnavailablePenalty(AbstractReward, identifier="WEBPAGE_UNAVAILABLE_
         elif web_browser_state is NOT_PRESENT_IN_STATE or not web_browser_state["history"]:
             _LOGGER.debug(
                 "Web browser reward could not be calculated because the web browser history on node",
-                f"{self.node_hostname} was not reported in the simulation state. Returning 0.0",
+                f"{self.config.node_hostname} was not reported in the simulation state. Returning 0.0",
             )
             self.reward = 0.0
         else:
