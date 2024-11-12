@@ -24,6 +24,8 @@ from primaite.interface.request import RequestFormat
 
 # TODO: Make sure that actions are backwards compatible where the old YAML format is used.
 
+__all__ = "DoNothingAction"
+
 
 class DoNothingAction(AbstractAction, identifier="do_nothing"):
     """Do Nothing Action."""
@@ -69,7 +71,7 @@ class ActionManager:
         Action mapping that converts an integer to a specific action and parameter choice.
 
         For example :
-        {0: ("NODE_SERVICE_SCAN", {node_id:0, service_id:2})}
+        {0: ("node_service_scan", {node_name:"client_1", service_name:"WebBrowser"})}
         """
         if act_map is None:
             # raise RuntimeError("Action map must be specified in the config file.")
@@ -147,7 +149,7 @@ class ActionManager:
                 Since the agent uses a discrete action space which acts as a flattened version of the component-based
                 action space, action_map provides a mapping between an integer (chosen by the agent) and a meaningful
                 action and values of parameters. For example action 0 can correspond to do nothing, action 1 can
-                correspond to "NODE_SERVICE_SCAN" with ``node_id=1`` and ``service_id=1``, action 2 can be "
+                correspond to "node_service_scan" with ``node_name="server"`` and ``service_name="WebBrowser"``, action 2 can be "
             3. ``options``
                 ``options`` contains a dictionary of options which are passed to the ActionManager's __init__ method.
                 These options are used to calculate the shape of the action space, and to provide additional information

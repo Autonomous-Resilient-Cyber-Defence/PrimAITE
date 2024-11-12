@@ -11,6 +11,8 @@ __all__ = (
     "NodeFileRestoreAction",
     "NodeFileCorruptAction",
     "NodeFileAccessAction",
+    "NodeFileCheckhashAction",
+    "NodeFileRepairAction",
 )
 
 

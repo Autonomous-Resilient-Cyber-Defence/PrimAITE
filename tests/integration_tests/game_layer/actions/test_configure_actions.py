@@ -4,7 +4,7 @@ from ipaddress import IPv4Address
 import pytest
 from pydantic import ValidationError
 
-from primaite.game.agent.actions import (
+from primaite.game.agent.actions.config import (
     ConfigureDatabaseClientAction,
     ConfigureDoSBotAction,
     ConfigureRansomwareScriptAction,
@@ -35,10 +35,10 @@ class TestConfigureDatabaseAction:
         db_client: DatabaseClient = client_1.software_manager.software["DatabaseClient"]
 
         action = (
-            "CONFIGURE_DATABASE_CLIENT",
+            "configure_database_client",
             {
-                "node_id": 0,
-                "config": {
+                "node_name": "client_1",
+                "model_config": {
                     "server_ip_address": "192.168.1.99",
                     "server_password": "admin123",
                 },
@@ -53,7 +53,7 @@ class TestConfigureDatabaseAction:
     def test_configure_ip(self, game_and_agent):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["CONFIGURE_DATABASE_CLIENT"] = ConfigureDatabaseClientAction(agent.action_manager)
+        agent.action_manager.actions["configure_database_client"] = ConfigureDatabaseClientAction(agent.action_manager)
 
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")

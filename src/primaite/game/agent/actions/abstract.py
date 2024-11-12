@@ -8,17 +8,18 @@ from pydantic import BaseModel, ConfigDict
 
 from primaite.interface.request import RequestFormat
 
+# notes:
+# we actually don't need to hold any state in actions, so there's no need to define any __init__ logic.
+# all the init methods in the old actions are just used for holding a verb and shape, which are not really used.
+# the config schema should be used to the actual parameters for formatting the action itself.
+# (therefore there's no need for creating action instances, just the action class contains logic for converting
+# CAOS actions to requests for simulator. Similar to the network node adder, that class also doesn't need to be
+# instantiated.)
+
 
 class AbstractAction(BaseModel):
     """Base class for actions."""
 
-    # notes:
-    # we actually don't need to hold any state in actions, so there's no need to define any __init__ logic.
-    # all the init methods in the old actions are just used for holding a verb and shape, which are not really used.
-    # the config schema should be used to the actual parameters for formatting the action itself.
-    # (therefore there's no need for creating action instances, just the action class contains logic for converting
-    # CAOS actions to requests for simulator. Similar to the network node adder, that class also doesn't need to be
-    # instantiated.)
     class ConfigSchema(BaseModel, ABC):
         """Base configuration schema for Actions."""
 
@@ -41,12 +42,7 @@ class AbstractAction(BaseModel):
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractAction":
         """Create an action component from a config dictionary."""
-        # set attributes for action based off config dict
-        # if config["type"] not in cls._registry:
-        #     raise ValueError(f"Invalid action reward type {config['type']}")
-
         for attribute, value in config.items():
             if not hasattr(cls.ConfigSchema, attribute):
                 setattr(cls.ConfigSchema, attribute, value)
-
         return cls

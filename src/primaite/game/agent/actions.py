@@ -175,6 +175,10 @@ class NodeApplicationInstallAction(AbstractAction):
 class ConfigureDatabaseClientAction(AbstractAction):
     """Action which sets config parameters for a database client on a node."""
 
+    model_config = ConfigDict(extra="forbid")
+    server_ip_address: Optional[str] = None
+    server_password: Optional[str] = None
+
     class _Opts(BaseModel):
         """Schema for options that can be passed to this action."""
 
@@ -197,9 +201,10 @@ class ConfigureDatabaseClientAction(AbstractAction):
 class ConfigureRansomwareScriptAction(AbstractAction):
     """Action which sets config parameters for a ransomware script on a node."""
 
-    class _Opts(BaseModel):
+    class _Opts(BaseModel, AbstractAction.ConfigSchema):
         """Schema for options that can be passed to this option."""
 
+        node_name: str
         model_config = ConfigDict(extra="forbid")
         server_ip_address: Optional[str] = None
         server_password: Optional[str] = None
@@ -208,13 +213,20 @@ class ConfigureRansomwareScriptAction(AbstractAction):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
+    def form_request(self, config: _Opts) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
-        node_name = self.manager.get_node_name_by_idx(node_id)
-        if node_name is None:
+        if config.node_name is None:
             return ["do_nothing"]
         ConfigureRansomwareScriptAction._Opts.model_validate(config)  # check that options adhere to schema
-        return ["network", "node", node_name, "application", "RansomwareScript", "configure", config]
+        return [
+            "network",
+            "node",
+            config.node_name,
+            "application",
+            "RansomwareScript",
+            "configure",
+            config.model_config,
+        ]
 
 
 class ConfigureDoSBotAction(AbstractAction):
@@ -285,8 +297,8 @@ class NodeFolderAbstractAction(AbstractAction):
 class NodeFolderScanAction(NodeFolderAbstractAction):
     """Action which scans a folder."""
 
-    def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
-        super().__init__(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
+    def __init__(self, manager: "ActionManager", node_name: str, folder_name, **kwargs) -> None:
+        super().__init__(manager, node_name=node_name, folder_name=folder_name, **kwargs)
         self.verb: str = "scan"
 
 

@@ -124,15 +124,15 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
         "router_acl_add_rule",
         {
             "target_router": "router",
-            "position": 4,  # 4th rule
-            "permission": 2,  # DENY
-            "source_ip_id": 3,  # 10.0.1.2 (client_1)
-            "dest_ip_id": 6,  # 10.0.2.3 (server_2)
-            "dest_port_id": 1,  # ALL
-            "source_port_id": 1,  # ALL
-            "protocol_name": "ALL",  # ALL
-            "source_wildcard_id": 0,
-            "dest_wildcard_id": 0,
+            "position": 4,
+            "permission": "DENY",
+            "src_ip": "10.0.1.2",
+            "src_wildcard": 0,
+            "source_port": "ALL",
+            "dst_ip": "10.0.2.3",
+            "dst_wildcard": 0,
+            "dst_port": "ALL",
+            "protocol_name": "ALL",
         },
     )
     agent.store_action(action)
@@ -148,18 +148,18 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
 
     # 4: Add a rule to block server_1 from reaching server_2 on router (this should not affect comms as they are on same subnet)
     action = (
-        "ROUTER_ACL_ADDRULE",
+        "router_acl_add_rule",
         {
             "target_router": "router",
             "position": 5,  # 5th rule
-            "permission": 2,  # DENY
-            "source_ip_id": 5,  # 10.0.2.2 (server_1)
-            "dest_ip_id": 6,  # 10.0.2.3 (server_2)
-            "dest_port_id": 1,  # ALL
-            "source_port_id": 1,  # ALL
-            "protocol_id": 1,  # ALL
-            "source_wildcard_id": 0,
-            "dest_wildcard_id": 0,
+            "permission": "DENY",  # DENY
+            "src_ip": "10.0.2.2",  # 10.0.2.2 (server_1)
+            "src_wildcard": 0,
+            "source_port": "ALL",  # ALL
+            "dst_ip": "10.0.2.3",  # 10.0.2.3 (server_2)
+            "dst_wildcard": 0,
+            "dst_port": "ALL",  # ALL
+            "protocol_name": "ALL",  # ALL
         },
     )
     agent.store_action(action)

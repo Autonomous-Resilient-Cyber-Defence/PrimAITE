@@ -97,16 +97,16 @@ agents:
     action_space:
       action_list:
         - type: do_nothing
-        - type: FIREWALL_ACL_ADDRULE firewall_acl_add_rule
-        - type: FIREWALL_ACL_REMOVERULE
-        - type: NETWORK_PORT_DISABLE
-        - type: NETWORK_PORT_ENABLE
+        - type: firewall_acl_add_rule
+        - type: firewall_acl_remove_rule
+        - type: network_port_disable
+        - type: network_port_enable
       action_map:
           0:
-            action: DONOTHING
+            action: do_nothing
             options: {}
           1:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall_acl_add_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: internal
@@ -121,14 +121,14 @@ agents:
               source_wildcard_id: 0
               dest_wildcard_id: 0
           2:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall_acl_remove_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: internal
               firewall_port_direction: inbound
               position: 1
           3:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall_acl_add_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: internal
@@ -143,14 +143,14 @@ agents:
               source_wildcard_id: 0
               dest_wildcard_id: 0
           4:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall_acl_remove_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: internal
               firewall_port_direction: outbound
               position: 1
           5:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall_acl_add_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
@@ -165,14 +165,14 @@ agents:
               source_wildcard_id: 0
               dest_wildcard_id: 0
           6:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall_acl_remove_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
               firewall_port_direction: inbound
               position: 1
           7:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall_acl_add_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
@@ -187,14 +187,14 @@ agents:
               source_wildcard_id: 0
               dest_wildcard_id: 0
           8:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall_acl_remove_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
               firewall_port_direction: outbound
               position: 2
           9:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall_acl_add_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
@@ -209,14 +209,14 @@ agents:
               source_wildcard_id: 0
               dest_wildcard_id: 0
           10:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall_acl_remove_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
               firewall_port_direction: inbound
               position: 10
           11:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall_acl_add_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
@@ -231,19 +231,19 @@ agents:
               source_wildcard_id: 0
               dest_wildcard_id: 0
           12:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall_acl_remove_rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
               firewall_port_direction: outbound
               position: 1
           13:
-            action: NETWORK_PORT_DISABLE
+            action: network_port_disable
             options:
               target_nodename: firewall
               port_id: 3
           14:
-            action: NETWORK_PORT_ENABLE
+            action: network_port_enable
             options:
               target_nodename: firewall
               port_id: 3

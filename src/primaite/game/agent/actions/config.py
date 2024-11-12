@@ -15,6 +15,7 @@ __all__ = (
     "TerminalC2ServerAction",
     "RansomwareLaunchC2ServerAction",
     "ExfiltrationC2ServerAction",
+    "ConfigureDatabaseClientAction",
 )
 
 
@@ -230,3 +231,26 @@ class ExfiltrationC2ServerAction(AbstractAction, identifier="c2_server_data_exfi
         }
         ExfiltrationC2ServerAction._Opts.model_validate(command_model)
         return ["network", "node", node_name, "application", "C2Server", "exfiltrate", command_model]
+
+
+class ConfigureDatabaseClientAction(AbstractAction, identifier="configure_database_client"):
+    """Action which sets config parameters for a database client on a node."""
+
+    node_name: str
+    model_config: ConfigDict = ConfigDict(extra="forbid")
+
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        """Schema for options that can be passed to this action."""
+
+        node_name: str
+        model_config = ConfigDict(extra="forbid")
+
+    def __init__(self, manager: "ActionManager", **kwargs) -> None:
+        super().__init__(manager=manager)
+
+    def form_request(self, config: ConfigSchema) -> RequestFormat:
+        """Return the action formatted as a request that can be ingested by the simulation."""
+
+        if config.node_name is None:
+            return ["do_nothing"]
+        return ["network", "node", config.node_name, "application", "DatabaseClient", "configure", config.model_config]

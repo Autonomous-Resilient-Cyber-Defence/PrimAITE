@@ -17,8 +17,8 @@ from primaite.game.agent.actions import (
 from primaite.game.agent.actions.manager import ActionManager
 
 __all__ = (
-    "acl",
     "abstract",
+    "acl",
     "application",
     "config",
     "file",

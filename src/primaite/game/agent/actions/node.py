@@ -5,7 +5,15 @@ from typing import ClassVar, List, Optional, Union
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
-__all__ = ("NodeOSScanAction", "NodeShutdownAction", "NodeStartupAction", "NodeResetAction")
+__all__ = (
+    "NodeOSScanAction",
+    "NodeShutdownAction",
+    "NodeStartupAction",
+    "NodeResetAction",
+    "NodeNMAPPingScanAction",
+    "NodeNMAPPortScanAction",
+    "NodeNetworkServiceReconAction",
+)
 
 
 class NodeAbstractAction(AbstractAction, identifier="node_abstract"):

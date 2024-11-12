@@ -4,7 +4,11 @@ from abc import abstractmethod
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
-__all__ = ("NodeSessionsRemoteLoginAction", "NodeSessionsRemoteLogoutAction")
+__all__ = (
+    "NodeSessionsRemoteLoginAction",
+    "NodeSessionsRemoteLogoutAction",
+    "NodeAccountChangePasswordAction",
+)
 
 
 class NodeSessionAbstractAction(AbstractAction, identifier="node_session_abstract"):
@@ -73,7 +77,7 @@ class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, identifier="node
         return ["network", "node", config.node_name, "service", "Terminal", "remote_logoff", config.remote_ip]
 
 
-class NodeAccountsChangePasswordAction(NodeSessionAbstractAction, identifier="node_accounts_change_password"):
+class NodeAccountChangePasswordAction(NodeSessionAbstractAction, identifier="node_account_change_password"):
     """Action which changes the password for a user."""
 
     username: str

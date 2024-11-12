@@ -463,7 +463,7 @@ def game_and_agent():
         {"type": "c2_server_ransomware_configure"},
         {"type": "c2_server_terminal_command"},
         {"type": "c2_server_data_exfiltrate"},
-        {"type": "node_accounts_change_password"},
+        {"type": "node_account_change_password"},
         {"type": "node_session_remote_login"},
         {"type": "node_session_remote_logoff"},
         {"type": "node_send_remote_command"},

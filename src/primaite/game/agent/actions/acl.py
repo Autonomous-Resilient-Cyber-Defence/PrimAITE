@@ -17,15 +17,23 @@ __all__ = (
 class ACLAbstractAction(AbstractAction, identifier="acl_abstract_action"):
     """Base class for ACL actions."""
 
-
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration Schema base for ACL abstract actions."""
 
 
-
-
 class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
     """Action which adds a rule to a router's ACL."""
+
+    target_router: str
+    position: int
+    permission: Literal[1, 2]
+    src_ip: str
+    source_wildcard_id: int
+    source_port: str
+    dst_ip: str
+    dst_wildcard: int
+    dst_port: int
+    protocol_name: str
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration Schema for RouterACLAddRuleAction."""
@@ -33,11 +41,11 @@ class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
         target_router: str
         position: int
         permission: Literal[1, 2]
-        source_ip_id: int
-        source_wildcard_id: int
-        source_port_id: int
+        src_ip: str
+        src_wildcard: int
+        source_port: str
         dst_ip: str
-        dst_wildcard_id: int
+        dst_wildcard: int
         dst_port: int
         protocol_name: str
 
@@ -50,95 +58,54 @@ class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
         """At what position to add the rule, must be specified."""
         permission: Literal[1, 2]
         """Whether to allow or deny traffic, must be specified. 1 = PERMIT, 2 = DENY."""
-        source_ip_id: int = Field(default=1, ge=1)
+        src_ip: str
         """Rule source IP address. By default, all ip addresses."""
         source_wildcard_id: int = Field(default=0, ge=0)
         """Rule source IP wildcard. By default, use the wildcard at index 0 from action manager."""
-        source_port_id: int = Field(default=1, ge=1)
+        source_port: int = Field(default=1, ge=1)
         """Rule source port. By default, all source ports."""
         dst_ip_id: int = Field(default=1, ge=1)
         """Rule destination IP address. By default, all ip addresses."""
-        dst_wildcard_id: int = Field(default=0, ge=0)
+        dst_wildcard: int = Field(default=0, ge=0)
         """Rule destination IP wildcard. By default, use the wildcard at index 0 from action manager."""
         dst_port_id: int = Field(default=1, ge=1)
         """Rule destination port. By default, all destination ports."""
         protocol_name: str = "ALL"
         """Rule protocol. By default, all protocols."""
 
-        @field_validator(
-            "source_ip_id",
-            "source_port_id",
-            "source_wildcard_id",
-            "dest_ip_id",
-            "dest_port_id",
-            "dest_wildcard_id",
-            "protocol_name",
-            mode="before",
-        )
-        @classmethod
-        def not_none(cls, v: str, info: ValidationInfo) -> int:
-            """If None is passed, use the default value instead."""
-            if v is None:
-                return cls.model_fields[info.field_name].default
-            return v
+    #     @field_validator(
+    #         "source_ip_id",
+    #         "source_port_id",
+    #         "source_wildcard_id",
+    #         "dest_ip_id",
+    #         "dest_port_id",
+    #         "dest_wildcard_id",
+    #         "protocol_name",
+    #         mode="before",
+    #     )
+    # @classmethod
+    # def not_none(cls, v: str, info: ValidationInfo) -> int:
+    #     """If None is passed, use the default value instead."""
+    #     if v is None:
+    #         return cls.model_fields[info.field_name].default
+    #     return v
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         # Validate incoming data.
-        parsed_options = RouterACLAddRuleAction.ACLRuleOptions(
-            target_router=config.target_router,
-            position=config.position,
-            permission=config.permission,
-            source_ip_id=config.source_ip_id,
-            source_wildcard_id=config.source_wildcard_id,
-            dest_ip_id=config.dst_ip,
-            dest_wildcard_id=config.dest_wildcard_id,
-            source_port_id=config.source_port_id,
-            dest_port_id=config.dst_port_id,
-            protocol=config.protocol_name,
-        )
-        if parsed_options.permission == 1:
-            permission_str = "PERMIT"
-        elif parsed_options.permission == 2:
-            permission_str = "DENY"
-        # else:
-        #     _LOGGER.warning(f"{self.__class__} received permission {permission}, expected 0 or 1.")
-
-        if parsed_options.protocol_name == "ALL":
-            protocol = "ALL"
-        else:
-            protocol = parsed_options.protocol_name
-            # subtract 2 to account for UNUSED=0 and ALL=1.
-
-        if parsed_options.source_ip_id == 1:
-            src_ip = "ALL"
-        else:
-            src_ip = cls.manager.get_ip_address_by_idx(parsed_options.source_ip_id - 2)
-            # subtract 2 to account for UNUSED=0, and ALL=1
-
-        src_wildcard = cls.manager.get_wildcard_by_idx(parsed_options.source_wildcard_id)
-
-        if parsed_options.source_port_id == 1:
-            src_port = "ALL"
-        else:
-            src_port = cls.manager.get_port_by_idx(parsed_options.source_port_id - 2)
-            # subtract 2 to account for UNUSED=0, and ALL=1
-
-        if parsed_options.dest_ip_id == 1:
-            dst_ip = "ALL"
-        else:
-            dst_ip = cls.manager.get_ip_address_by_idx(parsed_options.dest_ip_id - 2)
-            # subtract 2 to account for UNUSED=0, and ALL=1
-        dst_ip=config.dst_ip
-
-        dst_wildcard = config.dest_wildcard_id
-
-        if parsed_options.dest_port_id == 1:
-            dst_port = "ALL"
-        else:
-            dst_port = cls.manager.get_port_by_idx(parsed_options.dest_port_id - 2)
-            # subtract 2 to account for UNUSED=0, and ALL=1
+        # parsed_options = RouterACLAddRuleAction.ACLRuleOptions(
+        #     target_router=config.target_router,
+        #     position=config.position,
+        #     permission=config.permission,
+        #     src_ip=config.src_ip,
+        #     source_wildcard_id=config.source_wildcard_id,
+        #     dst_ip_id=config.dst_ip,
+        #     dst_wildcard=config.dst_wildcard,
+        #     source_port_id=config.source_port_id,
+        #     dest_port=config.dst_port,
+        #     protocol=config.protocol_name,
+        # )
 
         return [
             "network",
@@ -146,11 +113,11 @@ class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
             config.target_router,
             "acl",
             "add_rule",
-            config.permission_str,
-            protocol,
-            str(src_ip),
+            config.permission,
+            config.protocol_name,
+            config.src_ip,
             config.src_wildcard,
-            config.src_port,
+            config.source_port,
             str(config.dst_ip),
             config.dst_wildcard,
             config.dst_port,
@@ -193,7 +160,6 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
         num_permissions: int = 3
         permission: str
 
-
     def __init__(
         self,
         manager: "ActionManager",
@@ -228,10 +194,8 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
             "protocol_id": num_protocols,
         }
 
-
-    
     @classmethod
-    def form_request(cls, config:ConfigSchema) -> List[str]:
+    def form_request(cls, config: ConfigSchema) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.permission == 0:
             permission_str = "UNUSED"
@@ -260,6 +224,7 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
         else:
             # src_ip = self.manager.get_ip_address_by_idx(source_ip_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
+            pass
 
         if config.source_port_id == 0:
             return ["do_nothing"]  # invalid formulation
@@ -286,8 +251,8 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
         else:
             # dst_port = self.manager.get_port_by_idx(dest_port_id - 2)
             # subtract 2 to account for UNUSED=0, and ALL=1
-        # src_wildcard = self.manager.get_wildcard_by_idx(source_wildcard_id)
-        # dst_wildcard = self.manager.get_wildcard_by_idx(dest_wildcard_id)
+            # src_wildcard = self.manager.get_wildcard_by_idx(source_wildcard_id)
+            # dst_wildcard = self.manager.get_wildcard_by_idx(dest_wildcard_id)
             pass
 
         return [
@@ -298,7 +263,7 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
             config.firewall_port_direction,
             "acl",
             "add_rule",
-            permission_str,
+            config.permission,
             protocol,
             str(src_ip),
             config.src_wildcard,
