@@ -250,7 +250,6 @@ class ConfigureDatabaseClientAction(AbstractAction, identifier="configure_databa
 
     def form_request(self, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
-
         if config.node_name is None:
             return ["do_nothing"]
         return ["network", "node", config.node_name, "application", "DatabaseClient", "configure", config.model_config]

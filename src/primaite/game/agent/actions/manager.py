@@ -149,7 +149,8 @@ class ActionManager:
                 Since the agent uses a discrete action space which acts as a flattened version of the component-based
                 action space, action_map provides a mapping between an integer (chosen by the agent) and a meaningful
                 action and values of parameters. For example action 0 can correspond to do nothing, action 1 can
-                correspond to "node_service_scan" with ``node_name="server"`` and ``service_name="WebBrowser"``, action 2 can be "
+                correspond to "node_service_scan" with ``node_name="server"`` and
+                ``service_name="WebBrowser"``, action 2 can be "
             3. ``options``
                 ``options`` contains a dictionary of options which are passed to the ActionManager's __init__ method.
                 These options are used to calculate the shape of the action space, and to provide additional information

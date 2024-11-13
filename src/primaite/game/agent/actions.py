@@ -297,7 +297,7 @@ class NodeFolderAbstractAction(AbstractAction):
 class NodeFolderScanAction(NodeFolderAbstractAction):
     """Action which scans a folder."""
 
-    def __init__(self, manager: "ActionManager", node_name: str, folder_name, **kwargs) -> None:
+    def __init__(self, manager: "ActionManager", node_name: str, folder_name: str, **kwargs) -> None:
         super().__init__(manager, node_name=node_name, folder_name=folder_name, **kwargs)
         self.verb: str = "scan"
 

@@ -29,7 +29,7 @@ New actions to be used within PrimAITE require:
         class ConfigSchema(AbstractAction.ConfigSchema):
             target_application: str
 
-   The ConfigSchema is used when the class is called to form the action.
+   The ConfigSchema is used when the class is called to form the action, within the `form_request` method, detailed below.
 
 
 #. **Unique Identifier**:

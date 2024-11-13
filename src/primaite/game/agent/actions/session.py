@@ -67,14 +67,14 @@ class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, identifier="node
     class ConfigSchema(NodeSessionAbstractAction.ConfigSchema):
         """Configuration schema for NodeSessionsRemoteLogoutAction."""
 
-        pass
+        verb: str = "remote_logoff"
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.node_name is None or config.remote_ip is None:
             return ["do_nothing"]
-        return ["network", "node", config.node_name, "service", "Terminal", "remote_logoff", config.remote_ip]
+        return ["network", "node", config.node_name, "service", "Terminal", config.verb, config.remote_ip]
 
 
 class NodeAccountChangePasswordAction(NodeSessionAbstractAction, identifier="node_account_change_password"):

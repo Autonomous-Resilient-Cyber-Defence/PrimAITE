@@ -178,7 +178,7 @@ class NodeFileCheckhashAction(NodeFileAbstractAction, identifier="node_file_chec
 
 
 class NodeFileRepairAction(NodeFileAbstractAction, identifier="node_file_repair"):
-    """Action which repairs a file"""
+    """Action which repairs a file."""
 
     verb: str = "repair"
 

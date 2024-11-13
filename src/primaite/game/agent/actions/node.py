@@ -89,7 +89,11 @@ class NodeNMAPAbstractAction(AbstractAction, identifier="node_nmap_abstract_acti
 
 
 class NodeNMAPPingScanAction(NodeNMAPAbstractAction, identifier="node_nmap_ping_scan"):
+    """Action which performs an NMAP ping scan."""
+
     class ConfigSchema(NodeNMAPAbstractAction.ConfigSchema):
+        """Configuration schema for NodeNMAPPingScanAction."""
+
         pass
 
     @classmethod
@@ -110,6 +114,8 @@ class NodeNMAPPortScanAction(NodeNMAPAbstractAction, identifier="node_nmap_port_
     """Action which performs an NMAP port scan."""
 
     class ConfigSchema(NodeNMAPAbstractAction.ConfigSchema):
+        """Configuration Schema for NodeNMAPPortScanAction."""
+
         source_node: str
         target_protocol: Optional[Union[str, List[str]]] = (None,)
         target_port: Optional[Union[str, List[str]]] = (None,)
@@ -141,6 +147,8 @@ class NodeNetworkServiceReconAction(NodeNMAPAbstractAction, identifier="node_net
     """Action which performs an NMAP network service recon (ping scan followed by port scan)."""
 
     class ConfigSchema(AbstractAction.ConfigSchema):
+        """Configuration schema for NodeNetworkServiceReconAction."""
+
         target_protocol: Optional[Union[str, List[str]]] = (None,)
         target_port: Optional[Union[str, List[str]]] = (None,)
         show: Optional[bool] = (False,)

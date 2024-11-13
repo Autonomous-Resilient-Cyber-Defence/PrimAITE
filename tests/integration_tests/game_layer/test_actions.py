@@ -166,6 +166,7 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     game.step()
 
     # 5: Check that the ACL now has 6 rules, but that server_1 can still ping server_2
+    print(router.acl.show())
     assert router.acl.num_rules == 6
     assert server_1.ping("10.0.2.3")  # Can ping server_2
 
