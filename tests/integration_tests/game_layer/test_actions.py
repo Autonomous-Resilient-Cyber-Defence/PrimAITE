@@ -163,8 +163,9 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
         },
     )
     agent.store_action(action)
+    print(agent.most_recent_action)
     game.step()
-
+    print(agent.most_recent_action)
     # 5: Check that the ACL now has 6 rules, but that server_1 can still ping server_2
     print(router.acl.show())
     assert router.acl.num_rules == 6
@@ -653,9 +654,9 @@ def test_firewall_acl_add_remove_rule_integration():
     assert firewall.external_outbound_acl.acl[1].action.name == "DENY"
     assert firewall.external_outbound_acl.acl[1].src_ip_address == IPv4Address("192.168.20.10")
     assert firewall.external_outbound_acl.acl[1].dst_ip_address == IPv4Address("192.168.0.10")
-    assert firewall.external_outbound_acl.acl[1].dst_port is None
-    assert firewall.external_outbound_acl.acl[1].src_port is None
-    assert firewall.external_outbound_acl.acl[1].protocol is None
+    assert firewall.external_outbound_acl.acl[1].dst_port == PORT_LOOKUP["NONE"]
+    assert firewall.external_outbound_acl.acl[1].src_port == PORT_LOOKUP["NONE"]
+    assert firewall.external_outbound_acl.acl[1].protocol == PROTOCOL_LOOKUP["NONE"]
 
     env.step(12)  # Remove ACL rule from External Outbound
     assert firewall.external_outbound_acl.num_rules == 1

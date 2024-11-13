@@ -43,6 +43,5 @@ class AbstractAction(BaseModel):
     def from_config(cls, config: Dict) -> "AbstractAction":
         """Create an action component from a config dictionary."""
         for attribute, value in config.items():
-            if not hasattr(cls.ConfigSchema, attribute):
-                setattr(cls.ConfigSchema, attribute, value)
+            setattr(cls.ConfigSchema, attribute, value)
         return cls

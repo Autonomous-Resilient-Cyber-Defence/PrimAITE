@@ -175,10 +175,6 @@ class NodeApplicationInstallAction(AbstractAction):
 class ConfigureDatabaseClientAction(AbstractAction):
     """Action which sets config parameters for a database client on a node."""
 
-    model_config = ConfigDict(extra="forbid")
-    server_ip_address: Optional[str] = None
-    server_password: Optional[str] = None
-
     class _Opts(BaseModel):
         """Schema for options that can be passed to this action."""
 
@@ -204,7 +200,6 @@ class ConfigureRansomwareScriptAction(AbstractAction):
     class _Opts(BaseModel, AbstractAction.ConfigSchema):
         """Schema for options that can be passed to this option."""
 
-        node_name: str
         model_config = ConfigDict(extra="forbid")
         server_ip_address: Optional[str] = None
         server_password: Optional[str] = None

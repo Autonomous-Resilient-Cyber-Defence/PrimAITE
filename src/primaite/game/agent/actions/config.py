@@ -37,7 +37,7 @@ class ConfigureRansomwareScriptAction(AbstractAction, identifier="c2_server_rans
         if config.node_name is None:
             return ["do_nothing"]
         ConfigureRansomwareScriptAction._Opts.model_validate(config)  # check that options adhere to schema
-        return ["network", "node", config.node_name, "application", "RansomwareScript", "configure", config]
+        return ["network", "node", config.node_name, "application", "RansomwareScript", "configure", config.model_config]
 
 
 class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):

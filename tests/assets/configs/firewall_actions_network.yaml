@@ -112,14 +112,14 @@ agents:
               firewall_port_name: internal
               firewall_port_direction: inbound
               position: 1
-              permission: 1
-              source_ip_id: 2 # client 1
-              dest_ip_id: 1 # ALL
-              source_port_id: 1
-              dest_port_id: 1
-              protocol_id: 1
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              permission: PERMIT
+              src_ip: 192.168.0.10
+              dst_ip: ALL
+              src_port: ALL
+              dst_port: ALL
+              protocol_name: ALL
+              src_wildcard: 0
+              dst_wildcard: 0
           2:
             action: firewall_acl_remove_rule
             options:
@@ -134,12 +134,12 @@ agents:
               firewall_port_name: internal
               firewall_port_direction: outbound
               position: 1
-              permission: 2
-              source_ip_id: 2 # client 1
-              dest_ip_id: 1 # ALL
-              source_port_id: 2
-              dest_port_id: 3
-              protocol_id: 2
+              permission: DENY
+              src_ip: 192.168.0.10 # client 1
+              dest_ip: ALL # ALL
+              src_port: ARP
+              dst_port: DNS
+              protocol_name: ICMP
               source_wildcard_id: 0
               dest_wildcard_id: 0
           4:
@@ -156,12 +156,12 @@ agents:
               firewall_port_name: dmz
               firewall_port_direction: inbound
               position: 1
-              permission: 2
-              source_ip_id: 3 # dmz_server
-              dest_ip_id: 2 # client_1
-              source_port_id: 4
-              dest_port_id: 4
-              protocol_id: 4
+              permission: DENY
+              src_ip: 192.168.10.10 # dmz_server
+              dst_ip: 192.168.0.10 # client_1
+              src_port: HTTP
+              dst_port: HTTP
+              protocol_name: UDP
               source_wildcard_id: 0
               dest_wildcard_id: 0
           6:
@@ -178,12 +178,12 @@ agents:
               firewall_port_name: dmz
               firewall_port_direction: outbound
               position: 2
-              permission: 2
-              source_ip_id: 3 # dmz_server
-              dest_ip_id: 2 # client_1
-              source_port_id: 4
-              dest_port_id: 4
-              protocol_id: 3
+              permission: DENY
+              src_ip: 192.168.10.10 # dmz_server
+              dst_ip: 192.168.0.10 # client_1
+              src_port: HTTP
+              dst_port: HTTP
+              protocol_name: TCP
               source_wildcard_id: 0
               dest_wildcard_id: 0
           8:
@@ -200,12 +200,12 @@ agents:
               firewall_port_name: external
               firewall_port_direction: inbound
               position: 10
-              permission: 2
-              source_ip_id: 4 # external_computer
-              dest_ip_id: 3 # dmz
-              source_port_id: 5
-              dest_port_id: 5
-              protocol_id: 2
+              permission: DENY
+              src_ip: 192.168.20.10 # external_computer
+              dst_ip: 192.168.10.10 # dmz
+              src_port: POSTGRES_SERVER
+              dst_port: POSTGRES_SERVER
+              protocol_name: ICMP
               source_wildcard_id: 0
               dest_wildcard_id: 0
           10:
@@ -222,12 +222,12 @@ agents:
               firewall_port_name: external
               firewall_port_direction: outbound
               position: 1
-              permission: 2
-              source_ip_id: 4 # external_computer
-              dest_ip_id: 2 # client_1
-              source_port_id: 1
-              dest_port_id: 1
-              protocol_id: 1
+              permission: DENY
+              src_ip: 192.168.20.10 # external_computer
+              dst_ip: 192.168.0.10 # client_1
+              src_port: NONE
+              dst_port: NONE
+              protocol_name: none
               source_wildcard_id: 0
               dest_wildcard_id: 0
           12:

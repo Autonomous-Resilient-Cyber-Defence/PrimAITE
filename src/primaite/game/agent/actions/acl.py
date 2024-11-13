@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from typing import List, Literal
+from typing import List, Literal, Union
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
@@ -92,6 +92,12 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
     num_protocols: int
     num_permissions: int = 3
     permission: str
+    target_firewall_nodename: str
+    src_ip: str
+    dst_ip: str
+    dst_wildcard: str
+    src_port: Union[int| None]
+    dst_port: Union[int | None]
 
     class ConfigSchema(ACLAbstractAction.ConfigSchema):
         """Configuration schema for FirewallACLAddRuleAction."""
@@ -102,29 +108,22 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
         num_protocols: int
         num_permissions: int = 3
         permission: str
+        target_firewall_nodename: str
+        src_ip: str
+        dst_ip: str
+        dst_wildcard: str
+        src_port: Union[int| None]
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        if config.protocol_id == 0:
+        if config.protocol_name == None:
             return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
-        if config.source_ip_id == 0:
+        if config.src_ip == 0:
             return ["do_nothing"]  # invalid formulation
-        elif config.source_ip_id == 1:
-            src_ip = "ALL"
-        else:
-            # src_ip = self.manager.get_ip_address_by_idx(source_ip_id - 2)
-            # subtract 2 to account for UNUSED=0, and ALL=1
-            pass
+        if config.src_port == 0:
+            return ["do_nothing"] # invalid configuration.
 
-        if config.source_port_id == 0:
-            return ["do_nothing"]  # invalid formulation
-        elif config.source_port_id == 1:
-            src_port = "ALL"
-        else:
-            # src_port = self.manager.get_port_by_idx(source_port_id - 2)
-            # subtract 2 to account for UNUSED=0, and ALL=1
-            pass
 
         return [
             "network",
@@ -136,9 +135,9 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
             "add_rule",
             config.permission,
             config.protocol_name,
-            str(src_ip),
+            config.src_ip,
             config.src_wildcard,
-            src_port,
+            config.src_port,
             config.dst_ip,
             config.dst_wildcard,
             config.dst_port,
