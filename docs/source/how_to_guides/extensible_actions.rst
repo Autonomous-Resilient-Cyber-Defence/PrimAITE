@@ -25,8 +25,10 @@ New actions to be used within PrimAITE require:
    .. code-block:: python
 
     class ExampleAction(AbstractAction, identifier="Example_action"):
+        """An example action for demonstration purposes."""
 
         class ConfigSchema(AbstractAction.ConfigSchema):
+            """The configuration schema with all attributes expected goes here."""
             target_application: str
 
    The ConfigSchema is used when the class is called to form the action, within the `form_request` method, detailed below.
