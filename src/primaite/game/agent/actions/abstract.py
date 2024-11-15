@@ -8,15 +8,6 @@ from pydantic import BaseModel, ConfigDict
 
 from primaite.interface.request import RequestFormat
 
-# notes:
-# we actually don't need to hold any state in actions, so there's no need to define any __init__ logic.
-# all the init methods in the old actions are just used for holding a verb and shape, which are not really used.
-# the config schema should be used to the actual parameters for formatting the action itself.
-# (therefore there's no need for creating action instances, just the action class contains logic for converting
-# CAOS actions to requests for simulator. Similar to the network node adder, that class also doesn't need to be
-# instantiated.)
-
-
 class AbstractAction(BaseModel):
     """Base class for actions."""
 
