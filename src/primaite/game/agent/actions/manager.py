@@ -22,9 +22,7 @@ from gymnasium import spaces
 from primaite.game.agent.actions.abstract import AbstractAction
 from primaite.interface.request import RequestFormat
 
-# TODO: Make sure that actions are backwards compatible where the old YAML format is used.
-
-__all__ = "DoNothingAction"
+__all__ = ("DoNothingAction", "ActionManager")
 
 
 class DoNothingAction(AbstractAction, identifier="do_nothing"):
