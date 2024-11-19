@@ -90,7 +90,7 @@ class NodeNMAPAbstractAction(AbstractAction, identifier="node_nmap_abstract_acti
         """Base Configuration Schema for NodeNMAP actions."""
 
         target_ip_address: Union[str, List[str]]
-        show: bool = False 
+        show: bool = False
         node_name: str
 
     @classmethod

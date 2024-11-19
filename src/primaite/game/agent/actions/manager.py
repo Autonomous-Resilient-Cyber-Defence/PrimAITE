@@ -31,7 +31,6 @@ class DoNothingAction(AbstractAction, identifier="do_nothing"):
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration Schema for DoNothingAction."""
 
-        # type: Literal["do_nothing"] = "do_nothing"
         type: str = "do_nothing"
 
     @classmethod
@@ -133,7 +132,7 @@ class ActionManager:
     def space(self) -> spaces.Space:
         """Return the gymnasium action space for this agent."""
         return spaces.Discrete(len(self.action_map))
-                        
+
     @classmethod
     def from_config(cls, game: "PrimaiteGame", cfg: Dict) -> "ActionManager":
         """

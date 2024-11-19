@@ -38,7 +38,15 @@ class ConfigureRansomwareScriptAction(AbstractAction, identifier="c2_server_rans
         """Return the action formatted as a request that can be ingested by the simulation."""
         if config.node_name is None:
             return ["do_nothing"]
-        return ["network", "node", config.node_name, "application", "RansomwareScript", "configure", config.model_config]
+        return [
+            "network",
+            "node",
+            config.node_name,
+            "application",
+            "RansomwareScript",
+            "configure",
+            config.model_config,
+        ]
 
 
 class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):
@@ -207,10 +215,7 @@ class ExfiltrationC2ServerAction(AbstractAction, identifier="c2_server_data_exfi
         exfiltration_folder_name: Optional[str]
 
     @classmethod
-    def form_request(
-        cls,
-        config: ConfigSchema
-    ) -> RequestFormat:
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
         if config.node_name is None:
             return ["do_nothing"]

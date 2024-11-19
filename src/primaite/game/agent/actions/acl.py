@@ -127,8 +127,7 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
         if config.src_ip == 0:
             return ["do_nothing"]  # invalid formulation
         if config.src_port == 0:
-            return ["do_nothing"] # invalid configuration.
-
+            return ["do_nothing"]  # invalid configuration.
 
         return [
             "network",
@@ -153,7 +152,7 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
 class FirewallACLRemoveRuleAction(AbstractAction, identifier="firewall_acl_remove_rule"):
     """Action which removes a rule from a firewall port's ACL."""
 
-    config:"FirewallACLRemoveRuleAction.ConfigSchema"
+    config: "FirewallACLRemoveRuleAction.ConfigSchema"
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for FirewallACLRemoveRuleAction."""

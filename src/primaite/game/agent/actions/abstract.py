@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict
 
 from primaite.interface.request import RequestFormat
 
+
 class AbstractAction(BaseModel):
     """Base class for actions."""
 
@@ -37,6 +38,4 @@ class AbstractAction(BaseModel):
         """Create an action component from a config dictionary."""
         if not config.get("type"):
             config.update({"type": cls.__name__})
-        print("oooh")
-        print(config)
         return cls(config=cls.ConfigSchema(**config))
