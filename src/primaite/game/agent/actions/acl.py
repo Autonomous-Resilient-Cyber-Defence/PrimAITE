@@ -84,19 +84,6 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
 
     config: "FirewallACLAddRuleAction.ConfigSchema"
 
-    # max_acl_rules: int
-    # num_ips: int
-    # num_ports: int
-    # num_protocols: int
-    # num_permissions: int = 3
-    # permission: str
-    # target_firewall_nodename: str
-    # src_ip: str
-    # dst_ip: str
-    # dst_wildcard: str
-    # src_port: Union[int| None]
-    # dst_port: Union[int | None]
-
     class ConfigSchema(ACLAbstractAction.ConfigSchema):
         """Configuration schema for FirewallACLAddRuleAction."""
 
@@ -112,12 +99,6 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
         protocol_name: str
         source_wildcard_id: int
         dest_wildcard_id: int
-
-        # max_acl_rules: int
-        # num_ips: int
-        # num_ports: int
-        # num_protocols: int
-        # num_permissions: int = 3
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> List[str]:

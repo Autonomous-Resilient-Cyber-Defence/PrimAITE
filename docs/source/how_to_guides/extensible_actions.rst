@@ -27,6 +27,8 @@ New actions to be used within PrimAITE require:
     class ExampleAction(AbstractAction, identifier="Example_action"):
         """An example action for demonstration purposes."""
 
+        config: "ExampleAction.ConfigSchema"
+
         class ConfigSchema(AbstractAction.ConfigSchema):
             """The configuration schema with all attributes expected goes here."""
             target_application: str
@@ -55,7 +57,7 @@ New actions to be used within PrimAITE require:
             "node",
             config.node_name,
             "file_system",
-            cls.model_fields["verb"].default,
+            config.verb,
             "folder",
             config.folder_name,
         ]
