@@ -21,13 +21,14 @@ class NodeFolderAbstractAction(AbstractAction, identifier="node_folder_abstract"
     this base class.
     """
 
+    config: "NodeFolderAbstractAction.ConfigSchema"
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Base configuration schema for NodeFolder actions."""
 
         node_name: str
         folder_name: str
-
-    verb: ClassVar[str]
+        verb: ClassVar[str]
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
@@ -41,14 +42,14 @@ class NodeFolderAbstractAction(AbstractAction, identifier="node_folder_abstract"
             "file_system",
             "folder",
             config.folder_name,
-            cls.model_fields["verb"].default,
+            config.verb,
         ]
 
 
 class NodeFolderScanAction(NodeFolderAbstractAction, identifier="node_folder_scan"):
     """Action which scans a folder."""
 
-    verb: str = "scan"
+    config: "NodeFolderScanAction.ConfigSchema"
 
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
         """Configuration schema for NodeFolderScanAction."""
@@ -59,7 +60,7 @@ class NodeFolderScanAction(NodeFolderAbstractAction, identifier="node_folder_sca
 class NodeFolderCheckhashAction(NodeFolderAbstractAction, identifier="node_folder_checkhash"):
     """Action which checks the hash of a folder."""
 
-    verb: str = "checkhash"
+    config: "NodeFolderCheckhashAction.ConfigSchema"
 
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
         """Configuration schema for NodeFolderCheckhashAction."""
@@ -70,7 +71,7 @@ class NodeFolderCheckhashAction(NodeFolderAbstractAction, identifier="node_folde
 class NodeFolderRepairAction(NodeFolderAbstractAction, identifier="node_folder_repair"):
     """Action which repairs a folder."""
 
-    verb: str = "repair"
+    config: "NodeFolderRepairAction.ConfigSchema"
 
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
         """Configuration schema for NodeFolderRepairAction."""
@@ -81,7 +82,7 @@ class NodeFolderRepairAction(NodeFolderAbstractAction, identifier="node_folder_r
 class NodeFolderRestoreAction(NodeFolderAbstractAction, identifier="node_folder_restore"):
     """Action which restores a folder."""
 
-    verb: str = "restore"
+    config: "NodeFolderRestoreAction.ConfigSchema"
 
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
         """Configuration schema for NodeFolderRestoreAction."""
@@ -92,7 +93,7 @@ class NodeFolderRestoreAction(NodeFolderAbstractAction, identifier="node_folder_
 class NodeFolderCreateAction(NodeFolderAbstractAction, identifier="node_folder_create"):
     """Action which creates a new folder."""
 
-    verb: str = "create"
+    config: "NodeFolderCreateAction.ConfigSchema"
 
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
         """Configuration schema for NodeFolderCreateAction."""
@@ -109,7 +110,7 @@ class NodeFolderCreateAction(NodeFolderAbstractAction, identifier="node_folder_c
             "node",
             config.node_name,
             "file_system",
-            cls.model_fields["verb"].default,
+            config.verb,
             "folder",
             config.folder_name,
         ]

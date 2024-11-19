@@ -23,22 +23,23 @@ class NodeServiceAbstractAction(AbstractAction, identifier="node_service_abstrac
     Any actions which use node_name and service_name can inherit from this class.
     """
 
+    config: "NodeServiceAbstractAction.ConfigSchema"
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         node_name: str
         service_name: str
-
-    verb: ClassVar[str]
+        verb: ClassVar[str]
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["network", "node", config.node_name, "service", config.service_name, cls.model_fields["verb"].default]
+        return ["network", "node", config.node_name, "service", config.service_name, config.verb]
 
 
 class NodeServiceScanAction(NodeServiceAbstractAction, identifier="node_service_scan"):
     """Action which scans a service."""
 
-    verb: str = "scan"
+    config: "NodeServiceScanAction.ConfigSchema"
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceScanAction."""
@@ -49,7 +50,7 @@ class NodeServiceScanAction(NodeServiceAbstractAction, identifier="node_service_
 class NodeServiceStopAction(NodeServiceAbstractAction, identifier="node_service_stop"):
     """Action which stops a service."""
 
-    verb: str = "stop"
+    config: "NodeServiceStopAction.ConfigSchema"
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceStopAction."""
@@ -60,7 +61,7 @@ class NodeServiceStopAction(NodeServiceAbstractAction, identifier="node_service_
 class NodeServiceStartAction(NodeServiceAbstractAction, identifier="node_service_start"):
     """Action which starts a service."""
 
-    verb: str = "start"
+    config: "NodeServiceStartAction.ConfigSchema"
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceStartAction."""
@@ -71,7 +72,7 @@ class NodeServiceStartAction(NodeServiceAbstractAction, identifier="node_service
 class NodeServicePauseAction(NodeServiceAbstractAction, identifier="node_service_pause"):
     """Action which pauses a service."""
 
-    verb: str = "pause"
+    config: "NodeServicePauseAction.ConfigSchema"
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServicePauseAction."""
@@ -82,7 +83,7 @@ class NodeServicePauseAction(NodeServiceAbstractAction, identifier="node_service
 class NodeServiceResumeAction(NodeServiceAbstractAction, identifier="node_service_resume"):
     """Action which resumes a service."""
 
-    verb: str = "resume"
+    config: "NodeServiceResumeAction.ConfigSchema"
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceResumeAction."""
@@ -93,7 +94,7 @@ class NodeServiceResumeAction(NodeServiceAbstractAction, identifier="node_servic
 class NodeServiceRestartAction(NodeServiceAbstractAction, identifier="node_service_restart"):
     """Action which restarts a service."""
 
-    verb: str = "restart"
+    config: "NodeServiceRestartAction.ConfigSchema"
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceRestartAction."""
@@ -104,7 +105,7 @@ class NodeServiceRestartAction(NodeServiceAbstractAction, identifier="node_servi
 class NodeServiceDisableAction(NodeServiceAbstractAction, identifier="node_service_disable"):
     """Action which disables a service."""
 
-    verb: str = "disable"
+    config: "NodeServiceDisableAction.ConfigSchema"
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceDisableAction."""
@@ -115,7 +116,7 @@ class NodeServiceDisableAction(NodeServiceAbstractAction, identifier="node_servi
 class NodeServiceEnableAction(NodeServiceAbstractAction, identifier="node_service_enable"):
     """Action which enables a service."""
 
-    verb: str = "enable"
+    config: "NodeServiceEnableAction.ConfigSchema"
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceEnableAction."""
@@ -126,7 +127,7 @@ class NodeServiceEnableAction(NodeServiceAbstractAction, identifier="node_servic
 class NodeServiceFixAction(NodeServiceAbstractAction, identifier="node_service_fix"):
     """Action which fixes a service."""
 
-    verb: str = "fix"
+    config: "NodeServiceFixAction.ConfigSchema"
 
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceFixAction."""

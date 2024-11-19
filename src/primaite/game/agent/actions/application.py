@@ -22,13 +22,14 @@ class NodeApplicationAbstractAction(AbstractAction, identifier="node_application
     inherit from this base class.
     """
 
+    config: "NodeApplicationAbstractAction.ConfigSchema"
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Base Configuration schema for Node Application actions."""
 
         node_name: str
         application_name: str
-
-    verb: ClassVar[str]
+        verb: ClassVar[str]
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
@@ -41,14 +42,14 @@ class NodeApplicationAbstractAction(AbstractAction, identifier="node_application
             config.node_name,
             "application",
             config.application_name,
-            cls.model_fields["verb"].default,
+            config.verb,
         ]
 
 
 class NodeApplicationExecuteAction(NodeApplicationAbstractAction, identifier="node_application_execute"):
     """Action which executes an application."""
 
-    verb: str = "execute"
+    config: "NodeApplicationExecuteAction.ConfigSchema"
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
         """Configuration schema for NodeApplicationExecuteAction."""
@@ -59,7 +60,7 @@ class NodeApplicationExecuteAction(NodeApplicationAbstractAction, identifier="no
 class NodeApplicationScanAction(NodeApplicationAbstractAction, identifier="node_application_scan"):
     """Action which scans an application."""
 
-    verb: str = "scan"
+    config: "NodeApplicationScanAction.ConfigSchema"
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
         """Configuration schema for NodeApplicationScanAction."""
@@ -70,7 +71,7 @@ class NodeApplicationScanAction(NodeApplicationAbstractAction, identifier="node_
 class NodeApplicationCloseAction(NodeApplicationAbstractAction, identifier="node_application_close"):
     """Action which closes an application."""
 
-    verb: str = "close"
+    config: "NodeApplicationCloseAction.ConfigSchema"
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
         """Configuration schema for NodeApplicationCloseAction."""
@@ -81,7 +82,7 @@ class NodeApplicationCloseAction(NodeApplicationAbstractAction, identifier="node
 class NodeApplicationFixAction(NodeApplicationAbstractAction, identifier="node_application_fix"):
     """Action which fixes an application."""
 
-    verb: str = "fix"
+    config: "NodeApplicationFixAction.ConfigSchema"
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
         """Configuration schema for NodeApplicationFixAction."""
@@ -92,7 +93,7 @@ class NodeApplicationFixAction(NodeApplicationAbstractAction, identifier="node_a
 class NodeApplicationInstallAction(NodeApplicationAbstractAction, identifier="node_application_install"):
     """Action which installs an application."""
 
-    verb: str = "install"
+    config: "NodeApplicationInstallAction.ConfigSchema"
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
         """Configuration schema for NodeApplicationInstallAction."""
@@ -110,7 +111,7 @@ class NodeApplicationInstallAction(NodeApplicationAbstractAction, identifier="no
             config.node_name,
             "software_manager",
             "application",
-            cls.model_fields["verb"].default,
+            config.verb,
             config.application_name,
         ]
 
@@ -118,7 +119,7 @@ class NodeApplicationInstallAction(NodeApplicationAbstractAction, identifier="no
 class NodeApplicationRemoveAction(NodeApplicationAbstractAction, identifier="node_application_remove"):
     """Action which removes/uninstalls an application."""
 
-    verb: str = "uninstall"
+    config: "NodeApplicationRemoveAction.ConfigSchema"
 
     class ConfigSchema(NodeApplicationAbstractAction.ConfigSchema):
         """Configuration schema for NodeApplicationRemoveAction."""
@@ -136,6 +137,6 @@ class NodeApplicationRemoveAction(NodeApplicationAbstractAction, identifier="nod
             config.node_name,
             "software_manager",
             "application",
-            cls.model_fields["verb"].default,
+            config.verb,
             config.application_name,
         ]

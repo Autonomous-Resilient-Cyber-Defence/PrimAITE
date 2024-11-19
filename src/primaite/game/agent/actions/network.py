@@ -11,13 +11,14 @@ __all__ = ("NetworkPortEnableAction", "NetworkPortDisableAction")
 class NetworkPortAbstractAction(AbstractAction, identifier="network_port_abstract"):
     """Base class for Network port actions."""
 
+    config: "NetworkPortAbstractAction.ConfigSchema"
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Base configuration schema for NetworkPort actions."""
 
         target_nodename: str
-        port_id: str
-
-    verb: ClassVar[str]
+        port_id: int
+        verb: ClassVar[str]
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
@@ -30,16 +31,16 @@ class NetworkPortAbstractAction(AbstractAction, identifier="network_port_abstrac
             config.target_nodename,
             "network_interface",
             config.port_id,
-            cls.model_fields["verb"].default,
+            config.verb,
         ]
 
 
 class NetworkPortEnableAction(NetworkPortAbstractAction, identifier="network_port_enable"):
     """Action which enables are port on a router or a firewall."""
 
-    verb: str = "enable"
+    config: "NetworkPortEnableAction.ConfigSchema"
 
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(NetworkPortAbstractAction.ConfigSchema):
         """Configuration schema for NetworkPortEnableAction."""
 
         verb: str = "enable"
@@ -48,9 +49,9 @@ class NetworkPortEnableAction(NetworkPortAbstractAction, identifier="network_por
 class NetworkPortDisableAction(NetworkPortAbstractAction, identifier="network_port_disable"):
     """Action which disables are port on a router or a firewall."""
 
-    verb: str = "disable"
+    config: "NetworkPortDisableAction.ConfigSchema"
 
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(NetworkPortAbstractAction.ConfigSchema):
         """Configuration schema for NetworkPortDisableAction."""
 
         verb: str = "disable"

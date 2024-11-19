@@ -114,12 +114,12 @@ agents:
               position: 1
               permission: PERMIT
               src_ip: 192.168.0.10
-              dst_ip: ALL
+              dest_ip: ALL
               src_port: ALL
               dst_port: ALL
               protocol_name: ALL
-              src_wildcard: 0
-              dst_wildcard: 0
+              source_wildcard_id: 0
+              dest_wildcard_id: 0
           2:
             action: firewall_acl_remove_rule
             options:
@@ -158,7 +158,7 @@ agents:
               position: 1
               permission: DENY
               src_ip: 192.168.10.10 # dmz_server
-              dst_ip: 192.168.0.10 # client_1
+              dest_ip: 192.168.0.10 # client_1
               src_port: HTTP
               dst_port: HTTP
               protocol_name: UDP
@@ -180,7 +180,7 @@ agents:
               position: 2
               permission: DENY
               src_ip: 192.168.10.10 # dmz_server
-              dst_ip: 192.168.0.10 # client_1
+              dest_ip: 192.168.0.10 # client_1
               src_port: HTTP
               dst_port: HTTP
               protocol_name: TCP
@@ -202,7 +202,7 @@ agents:
               position: 10
               permission: DENY
               src_ip: 192.168.20.10 # external_computer
-              dst_ip: 192.168.10.10 # dmz
+              dest_ip: 192.168.10.10 # dmz
               src_port: POSTGRES_SERVER
               dst_port: POSTGRES_SERVER
               protocol_name: ICMP
@@ -224,7 +224,7 @@ agents:
               position: 1
               permission: DENY
               src_ip: 192.168.20.10 # external_computer
-              dst_ip: 192.168.0.10 # client_1
+              dest_ip: 192.168.0.10 # client_1
               src_port: NONE
               dst_port: NONE
               protocol_name: none

@@ -14,6 +14,8 @@ __all__ = (
 class NodeSessionAbstractAction(AbstractAction, identifier="node_session_abstract"):
     """Base class for NodeSession actions."""
 
+    config: "NodeSessionAbstractAction.ConfigSchema"
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Base configuration schema for NodeSessionAbstractActions."""
 
@@ -34,8 +36,7 @@ class NodeSessionAbstractAction(AbstractAction, identifier="node_session_abstrac
 class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, identifier="node_session_remote_login"):
     """Action which performs a remote session login."""
 
-    username: str
-    password: str
+    config: "NodeSessionsRemoteLoginAction.ConfigSchema"
 
     class ConfigSchema(NodeSessionAbstractAction.ConfigSchema):
         """Configuration schema for NodeSessionsRemoteLoginAction."""
@@ -64,6 +65,8 @@ class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, identifier="node_
 class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, identifier="node_session_remote_logoff"):
     """Action which performs a remote session logout."""
 
+    config: "NodeSessionsRemoteLogoutAction.ConfigSchema"
+
     class ConfigSchema(NodeSessionAbstractAction.ConfigSchema):
         """Configuration schema for NodeSessionsRemoteLogoutAction."""
 
@@ -80,9 +83,7 @@ class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, identifier="node
 class NodeAccountChangePasswordAction(NodeSessionAbstractAction, identifier="node_account_change_password"):
     """Action which changes the password for a user."""
 
-    username: str
-    current_password: str
-    new_password: str
+    config: "NodeAccountChangePasswordAction.ConfigSchema"
 
     class ConfigSchema(NodeSessionAbstractAction.ConfigSchema):
         """Configuration schema for NodeAccountsChangePasswordAction."""
@@ -103,5 +104,5 @@ class NodeAccountChangePasswordAction(NodeSessionAbstractAction, identifier="nod
             "change_password",
             config.username,
             config.current_password,
-            cls.new_password,
+            config.new_password,
         ]

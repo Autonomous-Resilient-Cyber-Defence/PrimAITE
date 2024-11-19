@@ -23,14 +23,15 @@ class NodeFileAbstractAction(AbstractAction, identifier="node_file_abstract_acti
     only three parameters can inherit from this base class.
     """
 
+    config: "NodeFileAbstractAction.ConfigSchema"
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration Schema for NodeFileAbstractAction."""
 
         node_name: str
         folder_name: str
         file_name: str
-
-    verb: ClassVar[str]
+        verb: ClassVar[str]
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
@@ -46,15 +47,14 @@ class NodeFileAbstractAction(AbstractAction, identifier="node_file_abstract_acti
             config.folder_name,
             "file",
             config.file_name,
-            cls.model_fields["verb"].default,
+            config.verb,
         ]
 
 
 class NodeFileCreateAction(NodeFileAbstractAction, identifier="node_file_create"):
     """Action which creates a new file in a given folder."""
 
-    verb: str = "create"
-    force: bool = False
+    config: "NodeFileCreateAction.ConfigSchema"
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileCreateAction."""
@@ -72,18 +72,18 @@ class NodeFileCreateAction(NodeFileAbstractAction, identifier="node_file_create"
             "node",
             config.node_name,
             "file_system",
-            cls.model_fields["verb"].default,
+            config.verb,
             "file",
             config.folder_name,
             config.file_name,
-            cls.model_fields["force"].default,
+            config.verb,
         ]
 
 
 class NodeFileScanAction(NodeFileAbstractAction, identifier="node_file_scan"):
     """Action which scans a file."""
 
-    verb: str = "scan"
+    config: "NodeFileScanAction.ConfigSchema"
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileScanAction."""
@@ -94,7 +94,7 @@ class NodeFileScanAction(NodeFileAbstractAction, identifier="node_file_scan"):
 class NodeFileDeleteAction(NodeFileAbstractAction, identifier="node_file_delete"):
     """Action which deletes a file."""
 
-    verb: str = "delete"
+    config: "NodeFileDeleteAction.ConfigSchema"
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileDeleteAction."""
@@ -111,7 +111,7 @@ class NodeFileDeleteAction(NodeFileAbstractAction, identifier="node_file_delete"
             "node",
             config.node_name,
             "file_system",
-            cls.model_fields["verb"].default,
+            config.verb,
             "file",
             config.folder_name,
             config.file_name,
@@ -121,7 +121,7 @@ class NodeFileDeleteAction(NodeFileAbstractAction, identifier="node_file_delete"
 class NodeFileRestoreAction(NodeFileAbstractAction, identifier="node_file_restore"):
     """Action which restores a file."""
 
-    verb: str = "restore"
+    config: "NodeFileRestoreAction.ConfigSchema"
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileRestoreAction."""
@@ -132,7 +132,7 @@ class NodeFileRestoreAction(NodeFileAbstractAction, identifier="node_file_restor
 class NodeFileCorruptAction(NodeFileAbstractAction, identifier="node_file_corrupt"):
     """Action which corrupts a file."""
 
-    verb: str = "corrupt"
+    config: "NodeFileCorruptAction.ConfigSchema"
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileCorruptAction."""
@@ -143,7 +143,7 @@ class NodeFileCorruptAction(NodeFileAbstractAction, identifier="node_file_corrup
 class NodeFileAccessAction(NodeFileAbstractAction, identifier="node_file_access"):
     """Action which increases a file's access count."""
 
-    verb: str = "access"
+    config: "NodeFileAccessAction.ConfigSchema"
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileAccessAction."""
@@ -160,7 +160,7 @@ class NodeFileAccessAction(NodeFileAbstractAction, identifier="node_file_access"
             "node",
             config.node_name,
             "file_system",
-            cls.model_fields["verb"].default,
+            config.verb,
             config.folder_name,
             config.file_name,
         ]
@@ -169,7 +169,7 @@ class NodeFileAccessAction(NodeFileAbstractAction, identifier="node_file_access"
 class NodeFileCheckhashAction(NodeFileAbstractAction, identifier="node_file_checkhash"):
     """Action which checks the hash of a file."""
 
-    verb: str = "checkhash"
+    config: "NodeFileCheckhashAction.ConfigSchema"
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileCheckhashAction."""
@@ -180,7 +180,7 @@ class NodeFileCheckhashAction(NodeFileAbstractAction, identifier="node_file_chec
 class NodeFileRepairAction(NodeFileAbstractAction, identifier="node_file_repair"):
     """Action which repairs a file."""
 
-    verb: str = "repair"
+    config: "NodeFileRepairAction.ConfigSchema"
 
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration Schema for NodeFileRepairAction."""

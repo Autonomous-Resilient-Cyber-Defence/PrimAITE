@@ -14,6 +14,7 @@ from primaite.game.agent.actions import (
     service,
     session,
 )
+from primaite.game.agent.actions.manager import ActionManager
 
 __all__ = (
     "abstract",

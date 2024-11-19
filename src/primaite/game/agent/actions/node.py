@@ -23,21 +23,24 @@ class NodeAbstractAction(AbstractAction, identifier="node_abstract"):
     Any action which applies to a node and uses node_name as its only parameter can inherit from this base class.
     """
 
+    config: "NodeAbstractAction.ConfigSchema"
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Base Configuration schema for Node actions."""
 
         node_name: str
-
-    verb: ClassVar[str]
+        verb: ClassVar[str]
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["network", "node", config.node_name, cls.verb]
+        return ["network", "node", config.node_name, cls.config.verb]
 
 
 class NodeOSScanAction(NodeAbstractAction, identifier="node_os_scan"):
     """Action which scans a node's OS."""
+
+    config: "NodeOSScanAction.ConfigSchema"
 
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
         """Configuration schema for NodeOSScanAction."""
@@ -48,6 +51,8 @@ class NodeOSScanAction(NodeAbstractAction, identifier="node_os_scan"):
 class NodeShutdownAction(NodeAbstractAction, identifier="node_shutdown"):
     """Action which shuts down a node."""
 
+    config: "NodeShutdownAction.ConfigSchema"
+
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
         """Configuration schema for NodeShutdownAction."""
 
@@ -56,6 +61,8 @@ class NodeShutdownAction(NodeAbstractAction, identifier="node_shutdown"):
 
 class NodeStartupAction(NodeAbstractAction, identifier="node_startup"):
     """Action which starts up a node."""
+
+    config: "NodeStartupAction.ConfigSchema"
 
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
         """Configuration schema for NodeStartupAction."""
@@ -66,6 +73,8 @@ class NodeStartupAction(NodeAbstractAction, identifier="node_startup"):
 class NodeResetAction(NodeAbstractAction, identifier="node_reset"):
     """Action which resets a node."""
 
+    config: "NodeResetAction.ConfigSchema"
+
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
         """Configuration schema for NodeResetAction."""
 
@@ -75,21 +84,27 @@ class NodeResetAction(NodeAbstractAction, identifier="node_reset"):
 class NodeNMAPAbstractAction(AbstractAction, identifier="node_nmap_abstract_action"):
     """Base class for NodeNMAP actions."""
 
+    config: "NodeNMAPAbstractAction.ConfigSchema"
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Base Configuration Schema for NodeNMAP actions."""
 
         target_ip_address: Union[str, List[str]]
-        show: bool = False
+        show: bool = False 
         node_name: str
 
     @classmethod
     @abstractmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
+        # NMAP action requests don't share a common format for their requests
+        # This is just a placeholder to ensure the method is defined.
         pass
 
 
 class NodeNMAPPingScanAction(NodeNMAPAbstractAction, identifier="node_nmap_ping_scan"):
     """Action which performs an NMAP ping scan."""
+
+    config: "NodeNMAPPingScanAction.ConfigSchema"
 
     class ConfigSchema(NodeNMAPAbstractAction.ConfigSchema):
         """Configuration schema for NodeNMAPPingScanAction."""
@@ -112,6 +127,8 @@ class NodeNMAPPingScanAction(NodeNMAPAbstractAction, identifier="node_nmap_ping_
 
 class NodeNMAPPortScanAction(NodeNMAPAbstractAction, identifier="node_nmap_port_scan"):
     """Action which performs an NMAP port scan."""
+
+    config: "NodeNMAPPortScanAction.ConfigSchema"
 
     class ConfigSchema(NodeNMAPAbstractAction.ConfigSchema):
         """Configuration Schema for NodeNMAPPortScanAction."""
@@ -145,6 +162,8 @@ class NodeNMAPPortScanAction(NodeNMAPAbstractAction, identifier="node_nmap_port_
 
 class NodeNetworkServiceReconAction(NodeNMAPAbstractAction, identifier="node_network_service_recon"):
     """Action which performs an NMAP network service recon (ping scan followed by port scan)."""
+
+    config: "NodeNetworkServiceReconAction.ConfigSchema"
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for NodeNetworkServiceReconAction."""

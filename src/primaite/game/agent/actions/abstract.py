@@ -11,6 +11,8 @@ from primaite.interface.request import RequestFormat
 class AbstractAction(BaseModel):
     """Base class for actions."""
 
+    config: "AbstractAction.ConfigSchema"
+
     class ConfigSchema(BaseModel, ABC):
         """Base configuration schema for Actions."""
 
@@ -33,6 +35,8 @@ class AbstractAction(BaseModel):
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractAction":
         """Create an action component from a config dictionary."""
-        for attribute, value in config.items():
-            setattr(cls.ConfigSchema, attribute, value)
-        return cls
+        if not config.get("type"):
+            config.update({"type": cls.__name__})
+        print("oooh")
+        print(config)
+        return cls(config=cls.ConfigSchema(**config))

@@ -22,6 +22,8 @@ __all__ = (
 class ConfigureRansomwareScriptAction(AbstractAction, identifier="c2_server_ransomware_configure"):
     """Action which sets config parameters for a ransomware script on a node."""
 
+    config: "ConfigureRansomwareScriptAction.ConfigSchema"
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for ConfigureRansomwareScriptAction."""
 
@@ -36,16 +38,18 @@ class ConfigureRansomwareScriptAction(AbstractAction, identifier="c2_server_rans
         """Return the action formatted as a request that can be ingested by the simulation."""
         if config.node_name is None:
             return ["do_nothing"]
-        ConfigureRansomwareScriptAction._Opts.model_validate(config)  # check that options adhere to schema
         return ["network", "node", config.node_name, "application", "RansomwareScript", "configure", config.model_config]
 
 
 class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):
     """Action which sets config parameters for a DoS bot on a node."""
 
-    class _Opts(BaseModel):
+    config: "ConfigureDoSBotAction.ConfigSchema"
+
+    class ConfigSchema(AbstractAction.ConfigSchema):
         """Schema for options that can be passed to this action."""
 
+        node_name: str
         model_config = ConfigDict(extra="forbid")
         target_ip_address: Optional[str] = None
         target_port: Optional[str] = None
@@ -58,30 +62,23 @@ class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):
     def __init__(self, manager: "ActionManager", **kwargs) -> None:
         super().__init__(manager=manager)
 
-    def form_request(self, node_id: int, config: Dict) -> RequestFormat:
+    def form_request(self, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
-        node_name = self.manager.get_node_name_by_idx(node_id)
-        if node_name is None:
+        if config.node_name is None:
             return ["do_nothing"]
-        self._Opts.model_validate(config)  # check that options adhere to schema
-        return ["network", "node", node_name, "application", "DoSBot", "configure", config]
+        self.ConfigSchema.model_validate(config)  # check that options adhere to schema
+        return ["network", "node", config.node_name, "application", "DoSBot", "configure", config]
 
 
 class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2_beacon"):
     """Action which configures a C2 Beacon based on the parameters given."""
 
+    config: "ConfigureC2BeaconAction.ConfigSchema"
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for ConfigureC2BeaconAction."""
 
         node_name: str
-        c2_server_ip_address: str
-        keep_alive_frequency: int = Field(default=5, ge=1)
-        masquerade_protocol: str = Field(default="TCP")
-        masquerade_port: str = Field(default="HTTP")
-
-    class _Opts(BaseModel):
-        """Schema for options that can be passed to this action."""
-
         c2_server_ip_address: str
         keep_alive_frequency: int = Field(default=5, ge=1)
         masquerade_protocol: str = Field(default="TCP")
@@ -106,20 +103,22 @@ class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2_beacon"):
         """Return the action formatted as a request that can be ingested by the simulation."""
         if config.node_name is None:
             return ["do_nothing"]
-        configuration = ConfigureC2BeaconAction._Opts(
+        configuration = ConfigureC2BeaconAction.ConfigSchema(
             c2_server_ip_address=config.c2_server_ip_address,
             keep_alive_frequency=config.keep_alive_frequency,
             masquerade_port=config.masquerade_port,
             masquerade_protocol=config.masquerade_protocol,
         )
 
-        ConfigureC2BeaconAction._Opts.model_validate(configuration)  # check that options adhere to schema
+        ConfigureC2BeaconAction.ConfigSchema.model_validate(configuration)  # check that options adhere to schema
 
-        return ["network", "node", config.node_name, "application", "C2Beacon", "configure", config.__dict__]
+        return ["network", "node", config.node_name, "application", "C2Beacon", "configure", configuration]
 
 
 class NodeSendRemoteCommandAction(AbstractAction, identifier="node_send_remote_command"):
     """Action which sends a terminal command to a remote node via SSH."""
+
+    config: "NodeSendRemoteCommandAction.ConfigSchema"
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for NodeSendRemoteCommandAction."""
@@ -146,36 +145,36 @@ class NodeSendRemoteCommandAction(AbstractAction, identifier="node_send_remote_c
 class TerminalC2ServerAction(AbstractAction, identifier="c2_server_terminal_command"):
     """Action which causes the C2 Server to send a command to the C2 Beacon to execute the terminal command passed."""
 
-    class _Opts(BaseModel):
+    config: "TerminalC2ServerAction.ConfigSchema"
+
+    class ConfigSchema(AbstractAction.ConfigSchema):
         """Schema for options that can be passed to this action."""
 
+        node_name: str
         commands: Union[List[RequestFormat], RequestFormat]
         ip_address: Optional[str]
         username: Optional[str]
         password: Optional[str]
 
-    def __init__(self, manager: "ActionManager", **kwargs) -> None:
-        super().__init__(manager=manager)
-
-    def form_request(self, node_id: int, commands: List, ip_address: Optional[str], account: dict) -> RequestFormat:
+    @classmethod
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
-        node_name = self.manager.get_node_name_by_idx(node_id)
-        if node_name is None:
+        if config.node_name is None:
             return ["do_nothing"]
 
         command_model = {
-            "commands": commands,
-            "ip_address": ip_address,
-            "username": account["username"],
-            "password": account["password"],
+            "commands": config.commands,
+            "ip_address": config.ip_address,
+            "username": config.username,
+            "password": config.password,
         }
-
-        TerminalC2ServerAction._Opts.model_validate(command_model)
-        return ["network", "node", node_name, "application", "C2Server", "terminal_command", command_model]
+        return ["network", "node", config.node_name, "application", "C2Server", "terminal_command", command_model]
 
 
 class RansomwareLaunchC2ServerAction(AbstractAction, identifier="c2_server_ransomware_launch"):
     """Action which causes the C2 Server to send a command to the C2 Beacon to launch the RansomwareScript."""
+
+    config: "RansomwareLaunchC2ServerAction.ConfigSchema"
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for RansomwareLaunchC2ServerAction."""
@@ -194,9 +193,12 @@ class RansomwareLaunchC2ServerAction(AbstractAction, identifier="c2_server_ranso
 class ExfiltrationC2ServerAction(AbstractAction, identifier="c2_server_data_exfiltrate"):
     """Action which exfiltrates a target file from a certain node onto the C2 beacon and then the C2 Server."""
 
-    class _Opts(BaseModel):
+    config: "ExfiltrationC2ServerAction.ConfigSchema"
+
+    class ConfigSchema(AbstractAction.ConfigSchema):
         """Schema for options that can be passed to this action."""
 
+        node_name: str
         username: Optional[str]
         password: Optional[str]
         target_ip_address: str
@@ -204,40 +206,30 @@ class ExfiltrationC2ServerAction(AbstractAction, identifier="c2_server_data_exfi
         target_folder_name: str
         exfiltration_folder_name: Optional[str]
 
-    def __init__(self, manager: "ActionManager", **kwargs) -> None:
-        super().__init__(manager=manager)
-
+    @classmethod
     def form_request(
-        self,
-        node_id: int,
-        account: dict,
-        target_ip_address: str,
-        target_file_name: str,
-        target_folder_name: str,
-        exfiltration_folder_name: Optional[str],
+        cls,
+        config: ConfigSchema
     ) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
-        node_name = self.manager.get_node_name_by_idx(node_id)
-        if node_name is None:
+        if config.node_name is None:
             return ["do_nothing"]
 
         command_model = {
-            "target_file_name": target_file_name,
-            "target_folder_name": target_folder_name,
-            "exfiltration_folder_name": exfiltration_folder_name,
-            "target_ip_address": target_ip_address,
-            "username": account["username"],
-            "password": account["password"],
+            "target_file_name": config.target_file_name,
+            "target_folder_name": config.target_folder_name,
+            "exfiltration_folder_name": config.exfiltration_folder_name,
+            "target_ip_address": config.target_ip_address,
+            "username": config.username,
+            "password": config.password,
         }
-        ExfiltrationC2ServerAction._Opts.model_validate(command_model)
-        return ["network", "node", node_name, "application", "C2Server", "exfiltrate", command_model]
+        return ["network", "node", config.node_name, "application", "C2Server", "exfiltrate", command_model]
 
 
 class ConfigureDatabaseClientAction(AbstractAction, identifier="configure_database_client"):
     """Action which sets config parameters for a database client on a node."""
 
-    node_name: str
-    model_config: ConfigDict = ConfigDict(extra="forbid")
+    config: "ConfigureDatabaseClientAction.ConfigSchema"
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Schema for options that can be passed to this action."""
@@ -245,10 +237,8 @@ class ConfigureDatabaseClientAction(AbstractAction, identifier="configure_databa
         node_name: str
         model_config = ConfigDict(extra="forbid")
 
-    def __init__(self, manager: "ActionManager", **kwargs) -> None:
-        super().__init__(manager=manager)
-
-    def form_request(self, config: ConfigSchema) -> RequestFormat:
+    @classmethod
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
         if config.node_name is None:
             return ["do_nothing"]

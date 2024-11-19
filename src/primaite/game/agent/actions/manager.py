@@ -31,7 +31,8 @@ class DoNothingAction(AbstractAction, identifier="do_nothing"):
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration Schema for DoNothingAction."""
 
-        type: Literal["do_nothing"] = "do_nothing"
+        # type: Literal["do_nothing"] = "do_nothing"
+        type: str = "do_nothing"
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
@@ -126,13 +127,13 @@ class ActionManager:
     def form_request(self, action_identifier: str, action_options: Dict) -> RequestFormat:
         """Take action in CAOS format and use the execution definition to change it into PrimAITE request format."""
         act_obj = self.actions[action_identifier].from_config(config=action_options)
-        return act_obj.form_request(config=act_obj.ConfigSchema)
+        return act_obj.form_request(config=act_obj.config)
 
     @property
     def space(self) -> spaces.Space:
         """Return the gymnasium action space for this agent."""
         return spaces.Discrete(len(self.action_map))
-
+                        
     @classmethod
     def from_config(cls, game: "PrimaiteGame", cfg: Dict) -> "ActionManager":
         """

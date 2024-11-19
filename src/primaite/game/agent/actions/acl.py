@@ -25,27 +25,21 @@ class ACLAbstractAction(AbstractAction, identifier="acl_abstract_action"):
 class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
     """Action which adds a rule to a router's ACL."""
 
-    target_router: str
-    position: int
-    permission: Literal[1, 2]
-    source_wildcard_id: int
-    source_port: str
-    dst_ip: str
-    dst_wildcard: int
-    dst_port: int
+    config: "RouterACLAddRuleAction.ConfigSchema"
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration Schema for RouterACLAddRuleAction."""
 
         target_router: str
+        permission: str
+        protocol_name: str
         position: int
-        permission: Literal[1, 2]
         src_ip: str
         src_wildcard: int
         source_port: str
         dst_ip: str
         dst_wildcard: int
-        dst_port: int
+        dst_port: str
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> List[str]:
@@ -71,11 +65,13 @@ class RouterACLAddRuleAction(AbstractAction, identifier="router_acl_add_rule"):
 class RouterACLRemoveRuleAction(AbstractAction, identifier="router_acl_remove_rule"):
     """Action which removes a rule from a router's ACL."""
 
+    config: "RouterACLRemoveRuleAction.ConfigSchema"
+
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for RouterACLRemoveRuleAction."""
 
         target_router: str
-        position: str
+        position: int
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
@@ -86,33 +82,42 @@ class RouterACLRemoveRuleAction(AbstractAction, identifier="router_acl_remove_ru
 class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_rule"):
     """Action which adds a rule to a firewall port's ACL."""
 
-    max_acl_rules: int
-    num_ips: int
-    num_ports: int
-    num_protocols: int
-    num_permissions: int = 3
-    permission: str
-    target_firewall_nodename: str
-    src_ip: str
-    dst_ip: str
-    dst_wildcard: str
-    src_port: Union[int| None]
-    dst_port: Union[int | None]
+    config: "FirewallACLAddRuleAction.ConfigSchema"
+
+    # max_acl_rules: int
+    # num_ips: int
+    # num_ports: int
+    # num_protocols: int
+    # num_permissions: int = 3
+    # permission: str
+    # target_firewall_nodename: str
+    # src_ip: str
+    # dst_ip: str
+    # dst_wildcard: str
+    # src_port: Union[int| None]
+    # dst_port: Union[int | None]
 
     class ConfigSchema(ACLAbstractAction.ConfigSchema):
         """Configuration schema for FirewallACLAddRuleAction."""
 
-        max_acl_rules: int
-        num_ips: int
-        num_ports: int
-        num_protocols: int
-        num_permissions: int = 3
-        permission: str
         target_firewall_nodename: str
+        firewall_port_name: str
+        firewall_port_direction: str
+        position: int
+        permission: str
         src_ip: str
-        dst_ip: str
-        dst_wildcard: str
-        src_port: Union[int| None]
+        dest_ip: str
+        src_port: str
+        dst_port: str
+        protocol_name: str
+        source_wildcard_id: int
+        dest_wildcard_id: int
+
+        # max_acl_rules: int
+        # num_ips: int
+        # num_ports: int
+        # num_protocols: int
+        # num_permissions: int = 3
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> List[str]:
@@ -136,10 +141,10 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
             config.permission,
             config.protocol_name,
             config.src_ip,
-            config.src_wildcard,
+            config.source_wildcard_id,
             config.src_port,
-            config.dst_ip,
-            config.dst_wildcard,
+            config.dest_ip,
+            config.dest_wildcard_id,
             config.dst_port,
             config.position,
         ]
@@ -147,6 +152,8 @@ class FirewallACLAddRuleAction(ACLAbstractAction, identifier="firewall_acl_add_r
 
 class FirewallACLRemoveRuleAction(AbstractAction, identifier="firewall_acl_remove_rule"):
     """Action which removes a rule from a firewall port's ACL."""
+
+    config:"FirewallACLRemoveRuleAction.ConfigSchema"
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for FirewallACLRemoveRuleAction."""

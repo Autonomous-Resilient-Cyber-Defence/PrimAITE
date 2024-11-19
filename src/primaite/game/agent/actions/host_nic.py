@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+from typing import ClassVar
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
@@ -13,14 +14,14 @@ class HostNICAbstractAction(AbstractAction, identifier="host_nic_abstract"):
     class.
     """
 
-    node_name: str
-    nic_num: str
+    config: "HostNICAbstractAction.ConfigSchema"
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Base Configuration schema for HostNIC actions."""
 
         node_name: str
-        nic_num: str
+        nic_num: int
+        verb: ClassVar[str]
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
@@ -33,14 +34,14 @@ class HostNICAbstractAction(AbstractAction, identifier="host_nic_abstract"):
             config.node_name,
             "network_interface",
             config.nic_num,
-            cls.model_fields["verb"].default,
+            config.verb,
         ]
 
 
 class HostNICEnableAction(HostNICAbstractAction, identifier="host_nic_enable"):
     """Action which enables a NIC."""
 
-    verb: str = "enable"
+    config: "HostNICEnableAction.ConfigSchema"
 
     class ConfigSchema(HostNICAbstractAction.ConfigSchema):
         """Configuration schema for HostNICEnableAction."""
@@ -51,7 +52,7 @@ class HostNICEnableAction(HostNICAbstractAction, identifier="host_nic_enable"):
 class HostNICDisableAction(HostNICAbstractAction, identifier="host_nic_disable"):
     """Action which disables a NIC."""
 
-    verb: str = "disable"
+    config: "HostNICDisableAction.ConfigSchema"
 
     class ConfigSchema(HostNICAbstractAction.ConfigSchema):
         """Configuration schema for HostNICDisableAction."""

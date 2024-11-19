@@ -56,7 +56,7 @@ def test_node_service_scan_integration(game_and_agent: Tuple[PrimaiteGame, Proxy
     assert svc.health_state_visible == SoftwareHealthState.UNUSED
 
     # 2: Scan and check that the visible state is now correct
-    action = ("node_service_scan", {"node_name": "server_1", "service_name": "DNSServer"})
+    action = ("node_service_scan", {"type":"node_service_scan" ,"node_name": "server_1", "service_name": "DNSServer"})
     agent.store_action(action)
     game.step()
     assert svc.health_state_actual == SoftwareHealthState.GOOD
@@ -67,7 +67,7 @@ def test_node_service_scan_integration(game_and_agent: Tuple[PrimaiteGame, Proxy
     assert svc.health_state_visible == SoftwareHealthState.GOOD
 
     # 4: Scan and check that the visible state is now correct
-    action = ("node_service_scan", {"node_name": "server_1", "service_name": "DNSServer"})
+    action = ("node_service_scan", {"type":"node_service_scan", "node_name": "server_1", "service_name": "DNSServer"})
     agent.store_action(action)
     game.step()
     assert svc.health_state_actual == SoftwareHealthState.COMPROMISED
