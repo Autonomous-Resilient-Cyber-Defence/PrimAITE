@@ -7,11 +7,21 @@ from gymnasium.core import ObsType
 from primaite.game.agent.interface import AbstractScriptedAgent
 
 
-class DataManipulationAgent(AbstractScriptedAgent):
+class DataManipulationAgent(AbstractScriptedAgent, identifier="Data_Manipulation_Agent"):
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
 
     next_execution_timestep: int = 0
     starting_node_idx: int = 0
+
+    config: "DataManipulationAgent.ConfigSchema"
+
+    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+        """Configuration Schema for DataManipulationAgent."""
+
+        # TODO: Could be worth moving this to a "AbstractTAPAgent"
+        starting_node_name: str
+        starting_application_name: str
+        next_execution_timestep: int
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -38,12 +48,15 @@ class DataManipulationAgent(AbstractScriptedAgent):
         :rtype: Tuple[str, Dict]
         """
         if timestep < self.next_execution_timestep:
-            self.logger.debug(msg="Performing do NOTHING")
-            return "DONOTHING", {}
+            self.logger.debug(msg="Performing do nothing action")
+            return "do_nothing", {}
 
         self._set_next_execution_timestep(timestep + self.agent_settings.start_settings.frequency)
         self.logger.info(msg="Performing a data manipulation attack!")
-        return "NODE_APPLICATION_EXECUTE", {"node_id": self.starting_node_idx, "application_id": 0}
+        return "node_application_execute", {
+            "node_name": self.config.starting_node_name,
+            "application_name": self.config.starting_application_name,
+        }
 
     def setup_agent(self) -> None:
         """Set the next execution timestep when the episode resets."""

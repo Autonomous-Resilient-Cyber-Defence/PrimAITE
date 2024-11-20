@@ -12,7 +12,7 @@ from primaite.game.agent.observations.observation_manager import ObservationMana
 from primaite.game.agent.rewards import RewardFunction
 
 
-class ProbabilisticAgent(AbstractScriptedAgent):
+class ProbabilisticAgent(AbstractScriptedAgent, identifier="Probabilistic_Agent"):
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
     class Settings(pydantic.BaseModel):

@@ -264,7 +264,7 @@ def example_network() -> Network:
     return network
 
 
-class ControlledAgent(AbstractAgent):
+class ControlledAgent(AbstractAgent, identifier="Controlled_Agent"):
     """Agent that can be controlled by the tests."""
 
     def __init__(

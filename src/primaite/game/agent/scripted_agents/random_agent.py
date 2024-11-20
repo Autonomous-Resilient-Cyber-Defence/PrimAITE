@@ -11,7 +11,7 @@ from primaite.game.agent.observations.observation_manager import ObservationMana
 from primaite.game.agent.rewards import RewardFunction
 
 
-class RandomAgent(AbstractScriptedAgent):
+class RandomAgent(AbstractScriptedAgent, identifier="Random_Agent"):
     """Agent that ignores its observation and acts completely at random."""
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
@@ -27,7 +27,7 @@ class RandomAgent(AbstractScriptedAgent):
         return self.action_manager.get_action(self.action_manager.space.sample())
 
 
-class PeriodicAgent(AbstractScriptedAgent):
+class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
     """Agent that does nothing most of the time, but executes application at regular intervals (with variance)."""
 
     class Settings(BaseModel):

@@ -547,6 +547,26 @@ class PrimaiteGame:
             reward_function = RewardFunction.from_config(reward_function_cfg)
 
             # CREATE AGENT
+
+            # TODO: MAKE THIS BIT WORK AND NOT THE IF/ELSE CHAIN OF HORRORS
+
+            # Pass through:
+            #   config
+            #   action manager
+            #   observation_manager
+            #   reward_function
+
+            new_agent_cfg = {
+                "action_manager": action_space,
+                "agent_name": agent_cfg["ref"],
+                "observation_manager": obs_space,
+                "agent_settings": agent_cfg.get("agent_settings", {}),
+                "reward_function": reward_function,
+            }
+            new_agent_cfg = agent_cfg["settings"]
+            # new_agent_cfg.update{}
+            new_agent = AbstractAgent._registry[agent_cfg["type"]].from_config(config=new_agent_cfg)
+
             if agent_type == "ProbabilisticAgent":
                 # TODO: implement non-random agents and fix this parsing
                 settings = agent_cfg.get("agent_settings", {})
