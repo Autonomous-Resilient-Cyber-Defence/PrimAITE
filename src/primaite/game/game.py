@@ -555,17 +555,16 @@ class PrimaiteGame:
             #   action manager
             #   observation_manager
             #   reward_function
-
-            new_agent_cfg = {
-                "action_manager": action_space,
-                "agent_name": agent_cfg["ref"],
-                "observation_manager": obs_space,
-                "agent_settings": agent_cfg.get("agent_settings", {}),
-                "reward_function": reward_function,
-            }
-            new_agent_cfg = agent_cfg["settings"]
+            agent_config = agent_cfg.get("agent_settings", {})
+            agent_config.update({"action_manager": action_space,
+                                   "observation_manager": obs_space,
+                                   "reward_function":reward_function})
             # new_agent_cfg.update{}
-            new_agent = AbstractAgent._registry[agent_cfg["type"]].from_config(config=new_agent_cfg)
+            new_agent = AbstractAgent._registry[agent_cfg["type"]].from_config(config=agent_config)
+
+            # If blue agent is created, add to game.rl_agents
+            if agent_type == "ProxyAgent":
+                game.rl_agents[agent_cfg["ref"]] = new_agent
 
             if agent_type == "ProbabilisticAgent":
                 # TODO: implement non-random agents and fix this parsing

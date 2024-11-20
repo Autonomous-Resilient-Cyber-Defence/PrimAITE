@@ -15,7 +15,7 @@ from primaite.game.agent.rewards import RewardFunction
 class ProbabilisticAgent(AbstractScriptedAgent, identifier="Probabilistic_Agent"):
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
-    class Settings(pydantic.BaseModel):
+    class ConfigSchema(pydantic.BaseModel):
         """Config schema for Probabilistic agent settings."""
 
         model_config = pydantic.ConfigDict(extra="forbid")
@@ -60,7 +60,7 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="Probabilistic_Agent"
         # The random number seed for np.random is dependent on whether a random number seed is set
         # in the config file. If there is one it is processed by set_random_seed() in environment.py
         # and as a consequence the the sequence of rng_seed's used here will be repeatable.
-        self.settings = ProbabilisticAgent.Settings(**settings)
+        self.settings = ProbabilisticAgent.ConfigSchema(**settings)
         rng_seed = np.random.randint(0, 65535)
         self.rng = np.random.default_rng(rng_seed)
 

@@ -16,7 +16,7 @@ class TAP001(AbstractScriptedAgent, identifier="TAP001"):
     Scripted Red Agent. Capable of one action; launching the kill-chain (Ransomware Application)
     """
 
-    # TODO: Link with DataManipulationAgent via a parent "TAP" agent class.
+    # TODO: Link with DataManipulationAgent class via a parent "TAP" agent class.
 
     config: "TAP001.ConfigSchema"
 
