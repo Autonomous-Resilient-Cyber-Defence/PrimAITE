@@ -96,11 +96,6 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
     """Base class for scripted and RL agents."""
 
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
-
-    action_manager: Optional[ActionManager]
-    observation_manager: Optional[ObservationManager]
-    reward_function: Optional[RewardFunction]
-
     config: "AbstractAgent.ConfigSchema"
 
     class ConfigSchema(BaseModel):
@@ -121,39 +116,12 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
 
         type: str
         agent_name: ClassVar[str]
-        agent_settings = Optional[AgentSettings] = None
-        history: List[AgentHistoryItem] = []
         logger: AgentLog = AgentLog(agent_name)
-
-    # def __init__(
-    #     self,
-    #     agent_name: Optional[str],
-    #     action_space: Optional[ActionManager],
-    #     observation_space: Optional[ObservationManager],
-    #     reward_function: Optional[RewardFunction],
-    #     agent_settings: Optional[AgentSettings] = None,
-    # ) -> None:
-    #     """
-    #     Initialize an agent.
-
-    #     :param agent_name: Unique string identifier for the agent, for reporting and multi-agent purposes.
-    #     :type agent_name: Optional[str]
-    #     :param action_space: Action space for the agent.
-    #     :type action_space: Optional[ActionManager]
-    #     :param observation_space: Observation space for the agent.
-    #     :type observation_space: Optional[ObservationSpace]
-    #     :param reward_function: Reward function for the agent.
-    #     :type reward_function: Optional[RewardFunction]
-    #     :param agent_settings: Configurable Options for Abstracted Agents
-    #     :type agent_settings: Optional[AgentSettings]
-    #     """
-    #     self.agent_name: str = agent_name or "unnamed_agent"
-    #     self.action_manager: Optional[ActionManager] = action_space
-    #     self.observation_manager: Optional[ObservationManager] = observation_space
-    #     self.reward_function: Optional[RewardFunction] = reward_function
-    #     self.agent_settings = agent_settings or AgentSettings()
-    #     self.history: List[AgentHistoryItem] = []
-    #     self.logger = AgentLog(agent_name)
+        history: List[AgentHistoryItem] = []
+        action_manager: Optional[ActionManager] = None
+        observation_manager: Optional[ObservationManager] = None
+        reward_function: Optional[RewardFunction] = None
+        agent_settings = Optional[AgentSettings] = None
 
     def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -161,16 +129,25 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
             raise ValueError(f"Cannot create a new agent under reserved name {identifier}")
         cls._registry[identifier] = cls
 
+    @property
+    def observation_manager(self) -> ObservationManager:
+        """Returns the agents observation manager."""
+        return self.config.observation_manager
+
+    @property
+    def action_manager(self) -> ActionManager:
+        """Returns the agents action manager."""
+        return self.config.action_manager
+
+    @property
+    def reward_function(self) -> RewardFunction:
+        """Returns the agents reward function."""
+        return self.config.reward_function
+
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractAgent":
         """Creates an agent component from a configuration dictionary."""
         obj = cls(config=cls.ConfigSchema(**config))
-
-        # Pull managers out of config section for ease of use (?)
-        obj.observation_manager = obj.config.observation_manager
-        obj.action_manager = obj.config.action_manager
-        obj.reward_function = obj.config.reward_function
-
         return obj
 
     def update_observation(self, state: Dict) -> ObsType:
