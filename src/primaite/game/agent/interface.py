@@ -222,6 +222,8 @@ class AbstractScriptedAgent(AbstractAgent, identifier="Abstract_Scripted_Agent")
 class ProxyAgent(AbstractAgent, identifier="Proxy_Agent"):
     """Agent that sends observations to an RL model and receives actions from that model."""
 
+    config: "ProxyAgent.ConfigSchema"
+
     class ConfigSchema(AbstractAgent.ConfigSchema):
         """Configuration Schema for Proxy Agent."""
 
@@ -230,23 +232,10 @@ class ProxyAgent(AbstractAgent, identifier="Proxy_Agent"):
         flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False
         action_masking: bool = agent_settings.action_masking if agent_settings else False
 
-    # def __init__(
-    #     self,
-    #     agent_name: Optional[str],
-    #     action_space: Optional[ActionManager],
-    #     observation_space: Optional[ObservationManager],
-    #     reward_function: Optional[RewardFunction],
-    #     agent_settings: Optional[AgentSettings] = None,
-    # ) -> None:
-    #     super().__init__(
-    #         agent_name=agent_name,
-    #         action_space=action_space,
-    #         observation_space=observation_space,
-    #         reward_function=reward_function,
-    #     )
-    #     self.most_recent_action: ActType
-    #     self.flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False
-    #     self.action_masking: bool = agent_settings.action_masking if agent_settings else False
+    @property
+    def most_recent_action(self) -> ActType:
+        """Convenience method to access the agents most recent action."""
+        return self.config.most_recent_action
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
@@ -267,4 +256,4 @@ class ProxyAgent(AbstractAgent, identifier="Proxy_Agent"):
 
         The environment is responsible for calling this method when it receives an action from the agent policy.
         """
-        self.config.most_recent_action = action
+        self.most_recent_action = action

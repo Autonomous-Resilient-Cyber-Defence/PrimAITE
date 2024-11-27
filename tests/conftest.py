@@ -267,20 +267,12 @@ def example_network() -> Network:
 class ControlledAgent(AbstractAgent, identifier="Controlled_Agent"):
     """Agent that can be controlled by the tests."""
 
-    def __init__(
-        self,
-        agent_name: str,
-        action_space: ActionManager,
-        observation_space: ObservationManager,
-        reward_function: RewardFunction,
-    ) -> None:
-        super().__init__(
-            agent_name=agent_name,
-            action_space=action_space,
-            observation_space=observation_space,
-            reward_function=reward_function,
-        )
-        self.most_recent_action: Tuple[str, Dict]
+    config: "ControlledAgent.ConfigSchema"
+
+    class ConfigSchema(AbstractAgent.ConfigSchema):
+        """Configuration Schema for Abstract Agent used in tests."""
+
+        most_recent_action: Tuple[str, Dict]
 
     def get_action(self, obs: None, timestep: int = 0) -> Tuple[str, Dict]:
         """Return the agent's most recent action, formatted in CAOS format."""

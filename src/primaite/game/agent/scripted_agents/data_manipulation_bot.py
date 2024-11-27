@@ -4,45 +4,28 @@ from typing import Dict, Tuple
 
 from gymnasium.core import ObsType
 
-from primaite.game.agent.interface import AbstractScriptedAgent
+from primaite.game.agent.scripted_agents.abstract_tap import AbstractTAPAgent
 
 
-class DataManipulationAgent(AbstractScriptedAgent, identifier="Data_Manipulation_Agent"):
+class DataManipulationAgent(AbstractTAPAgent, identifier="Data_Manipulation_Agent"):
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
 
     config: "DataManipulationAgent.ConfigSchema"
 
-    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+    class ConfigSchema(AbstractTAPAgent.ConfigSchema):
         """Configuration Schema for DataManipulationAgent."""
 
-        # TODO: Could be worth moving this to a "AbstractTAPAgent"
-        starting_node_name: str
         starting_application_name: str
-        next_execution_timestep: int
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setup_agent()
 
     @property
-    def next_execution_timestep(self):
+    def next_execution_timestep(self) -> int:
         """Returns the agents next execution timestep."""
         return self.config.next_execution_timestep
 
     @property
-    def starting_node_name(self):
+    def starting_node_name(self) -> str:
         """Returns the agents starting node name."""
         return self.config.starting_node_name
-
-    def _set_next_execution_timestep(self, timestep: int) -> None:
-        """Set the next execution timestep with a configured random variance.
-
-        :param timestep: The timestep to add variance to.
-        """
-        random_timestep_increment = random.randint(
-            -self.config.agent_settings.start_settings.variance, self.config.agent_settings.start_settings.variance
-        )
-        self.next_execution_timestep = timestep + random_timestep_increment
 
     def get_action(self, obs: ObsType, timestep: int) -> Tuple[str, Dict]:
         """Waits until a specific timestep, then attempts to execute its data manipulation application.
@@ -68,7 +51,7 @@ class DataManipulationAgent(AbstractScriptedAgent, identifier="Data_Manipulation
     def setup_agent(self) -> None:
         """Set the next execution timestep when the episode resets."""
         self._select_start_node()
-        self._set_next_execution_timestep(self.agent_settings.start_settings.start_step)
+        self._set_next_execution_timestep(self.config.agent_settings.start_settings.start_step)
 
     def _select_start_node(self) -> None:
         """Set the starting starting node of the agent to be a random node from this agent's action manager."""

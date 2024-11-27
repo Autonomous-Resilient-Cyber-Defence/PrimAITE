@@ -1,14 +1,10 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import random
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 from gymnasium.core import ObsType
-from pydantic import BaseModel
 
-from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractScriptedAgent
-from primaite.game.agent.observations.observation_manager import ObservationManager
-from primaite.game.agent.rewards import RewardFunction
 
 
 class RandomAgent(AbstractScriptedAgent, identifier="Random_Agent"):
@@ -30,8 +26,10 @@ class RandomAgent(AbstractScriptedAgent, identifier="Random_Agent"):
 class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
     """Agent that does nothing most of the time, but executes application at regular intervals (with variance)."""
 
-    class Settings(BaseModel):
-        """Configuration values for when an agent starts performing actions."""
+    config: "PeriodicAgent.ConfigSchema"
+
+    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+        """Configuration Schema for Periodic Agent."""
 
         start_step: int = 20
         "The timestep at which an agent begins performing it's actions."
@@ -43,25 +41,20 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
         "The amount the frequency can randomly change to."
         max_executions: int = 999999
         "Maximum number of times the agent can execute its action."
+        num_executions: int = 0
+        """Number of times the agent has executed an action."""
+        next_execution_timestep: int = 0
+        """Timestep of the next action execution by the agent."""
 
-    def __init__(
-        self,
-        agent_name: str,
-        action_space: ActionManager,
-        observation_space: ObservationManager,
-        reward_function: RewardFunction,
-        settings: Optional[Settings] = None,
-    ) -> None:
-        """Initialise PeriodicAgent."""
-        super().__init__(
-            agent_name=agent_name,
-            action_space=action_space,
-            observation_space=observation_space,
-            reward_function=reward_function,
-        )
-        self.settings = settings or PeriodicAgent.Settings()
-        self._set_next_execution_timestep(timestep=self.settings.start_step, variance=self.settings.start_variance)
-        self.num_executions = 0
+    @property
+    def num_executions(self) -> int:
+        """Convenience method for accessing num_executions from config."""
+        return self.config.num_executions
+
+    @property
+    def next_execution_timestep(self) -> int:
+        """Convenience method for accessing next_execution_timestep from config."""
+        return self.config.next_execution_timestep
 
     def _set_next_execution_timestep(self, timestep: int, variance: int) -> None:
         """Set the next execution timestep with a configured random variance.

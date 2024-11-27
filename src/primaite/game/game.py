@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict
 
 from primaite import DEFAULT_BANDWIDTH, getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
+from primaite.game.agent.interface import AbstractAgent, ProxyAgent
 from primaite.game.agent.observations.observation_manager import ObservationManager
 from primaite.game.agent.rewards import RewardFunction, SharedReward
 from primaite.game.science import graph_has_cycle, topological_sort
