@@ -97,6 +97,7 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
 
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
     config: "AbstractAgent.ConfigSchema"
+    agent_name = "Abstract_Agent"
 
     class ConfigSchema(BaseModel):
         """
@@ -115,13 +116,13 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
         """
 
         type: str
-        agent_name: ClassVar[str]
+        agent_name: str = "Abstact_Agent"
         logger: AgentLog = AgentLog(agent_name)
         history: List[AgentHistoryItem] = []
         action_manager: Optional[ActionManager] = None
         observation_manager: Optional[ObservationManager] = None
         reward_function: Optional[RewardFunction] = None
-        agent_settings = Optional[AgentSettings] = None
+        agent_settings: Optional[AgentSettings] = None
 
     def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -213,6 +214,11 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
 class AbstractScriptedAgent(AbstractAgent, identifier="Abstract_Scripted_Agent"):
     """Base class for actors which generate their own behaviour."""
 
+    class ConfigSchema(AbstractAgent.ConfigSchema):
+        """Configuration Schema for AbstractScriptedAgents."""
+
+        agent_name: str = "Abstract_Scripted_Agent"
+
     @abstractmethod
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """Return an action to be taken in the environment."""
@@ -227,6 +233,7 @@ class ProxyAgent(AbstractAgent, identifier="Proxy_Agent"):
     class ConfigSchema(AbstractAgent.ConfigSchema):
         """Configuration Schema for Proxy Agent."""
 
+        agent_name: str = "Proxy_Agent"
         agent_settings = Union[AgentSettings | None] = None
         most_reason_action: ActType
         flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False

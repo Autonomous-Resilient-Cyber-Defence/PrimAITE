@@ -558,7 +558,6 @@ class PrimaiteGame:
                 msg = f"Configuration error: {agent_type} is not a valid agent type."
                 _LOGGER.error(msg)
                 raise ValueError(msg)
-
             game.agents[agent_cfg["ref"]] = new_agent
 
         # Validate that if any agents are sharing rewards, they aren't forming an infinite loop.

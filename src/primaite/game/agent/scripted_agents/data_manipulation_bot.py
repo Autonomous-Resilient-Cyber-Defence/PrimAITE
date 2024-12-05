@@ -16,6 +16,11 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="Data_Manipulation_Agen
         """Configuration Schema for DataManipulationAgent."""
 
         starting_application_name: str
+        agent_name: str = "Data_Manipulation_Agent"
+
+    def __init__(self) -> None:
+        """Meh."""
+        self.setup_agent()
 
     @property
     def next_execution_timestep(self) -> int:
@@ -52,10 +57,3 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="Data_Manipulation_Agen
         """Set the next execution timestep when the episode resets."""
         self._select_start_node()
         self._set_next_execution_timestep(self.config.agent_settings.start_settings.start_step)
-
-    def _select_start_node(self) -> None:
-        """Set the starting starting node of the agent to be a random node from this agent's action manager."""
-        # we are assuming that every node in the node manager has a data manipulation application at idx 0
-        num_nodes = len(self.action_manager.node_names)
-        self.starting_node_idx = random.randint(0, num_nodes - 1)
-        self.config.logger.debug(msg=f"Select Start Node ID: {self.starting_node_idx}")

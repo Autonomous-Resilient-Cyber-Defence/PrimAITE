@@ -272,6 +272,7 @@ class ControlledAgent(AbstractAgent, identifier="Controlled_Agent"):
     class ConfigSchema(AbstractAgent.ConfigSchema):
         """Configuration Schema for Abstract Agent used in tests."""
 
+        agent_name: str = "Controlled_Agent"
         most_recent_action: Tuple[str, Dict]
 
     def get_action(self, obs: None, timestep: int = 0) -> Tuple[str, Dict]:

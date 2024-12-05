@@ -1,8 +1,11 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import logging
+from abc import ABC
 from pathlib import Path
+from typing import Optional
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import BaseModel
 
 from primaite.simulator import LogLevel, SIM_OUTPUT
 
@@ -18,22 +21,27 @@ class _NotJSONFilter(logging.Filter):
         return not record.getMessage().startswith("{") and not record.getMessage().endswith("}")
 
 
-class AgentLog:
+class AgentLog(BaseModel):
     """
     A Agent Log class is a simple logger dedicated to managing and writing logging updates and information for an agent.
 
     Each log message is written to a file located at: <simulation output directory>/agent_name/agent_name.log
     """
 
-    def __init__(self, agent_name: str):
+    agent_name: str = "unnamed_agent"
+    current_episode: int = 1
+    current_timestep: int = 0
+
+    def __init__(self, agent_name: Optional[str]):
         """
         Constructs a Agent Log instance for a given hostname.
 
         :param hostname: The hostname associated with the system logs being recorded.
         """
-        self.agent_name = agent_name
-        self.current_episode: int = 1
-        self.current_timestep: int = 0
+        super().__init__()
+        self.agent_name = agent_name or "unnamed_agent"
+        # self.current_episode: int = 1
+        # self.current_timestep: int = 0
         self.setup_logger()
 
     @property

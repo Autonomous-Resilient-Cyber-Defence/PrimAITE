@@ -18,6 +18,7 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="Probabilistic_Agent"
     class ConfigSchema(pydantic.BaseModel):
         """Config schema for Probabilistic agent settings."""
 
+        agent_name: str = "Probabilistic_Agent"
         model_config = pydantic.ConfigDict(extra="forbid")
         """Strict validation."""
         action_probabilities: Dict[int, float]

@@ -19,19 +19,18 @@ class TAP001(AbstractTAPAgent, identifier="TAP001"):
     class ConfigSchema(AbstractTAPAgent.ConfigSchema):
         """Configuration Schema for TAP001 Agent."""
 
+        agent_name: str = "TAP001"
         installed: bool = False
+
+    def __init__(self) -> None:
+        """___init___ bruv. Restecpa."""
+        super().__init__()
+        self.setup_agent()
 
     @property
     def starting_node_name(self) -> str:
         """Node that TAP001 starts from."""
         return self.config.starting_node_name
-
-    @classmethod
-    def from_config(cls, config: Dict) -> TAP001:
-        """Override the base from_config method to ensure successful agent setup."""
-        obj: TAP001 = cls(config=cls.ConfigSchema(**config))
-        obj.setup_agent()
-        return obj
 
     def get_action(self, timestep: int) -> Tuple[str, Dict]:
         """Waits until a specific timestep, then attempts to execute the ransomware application.
@@ -72,11 +71,3 @@ class TAP001(AbstractTAPAgent, identifier="TAP001"):
                 self.ip_address = act[1]["ip_address"]
                 return
         raise RuntimeError("TAP001 agent could not find database server ip address in action map")
-
-    def _select_start_node(self) -> None:
-        """Set the starting starting node of the agent to be a random node from this agent's action manager."""
-        # we are assuming that every node in the node manager has a data manipulation application at idx 0
-        num_nodes = len(self.config.action_manager.node_names)
-        starting_node_idx = random.randint(0, num_nodes - 1)
-        self.starting_node_name = self.config.action_manager.node_names[starting_node_idx]
-        self.config.logger.debug(f"Selected Starting node ID: {self.starting_node_name}")

@@ -10,7 +10,12 @@ from primaite.game.agent.interface import AbstractScriptedAgent
 class RandomAgent(AbstractScriptedAgent, identifier="Random_Agent"):
     """Agent that ignores its observation and acts completely at random."""
 
-    def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
+    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+        """Configuration Schema for Random Agents."""
+
+        agent_name = "Random_Agent"
+
+    def get_action(self) -> Tuple[str, Dict]:
         """Sample the action space randomly.
 
         :param obs: Current observation for this agent, not used in RandomAgent
@@ -31,6 +36,8 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Periodic Agent."""
 
+        agent_name = "Periodic_Agent"
+        """Name of the agent."""
         start_step: int = 20
         "The timestep at which an agent begins performing it's actions."
         start_variance: int = 5
@@ -69,9 +76,9 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
 
     def get_action(self, obs: ObsType, timestep: int) -> Tuple[str, Dict]:
         """Do nothing, unless the current timestep is the next execution timestep, in which case do the action."""
-        if timestep == self.next_execution_timestep and self.num_executions < self.settings.max_executions:
+        if timestep == self.next_execution_timestep and self.num_executions < self.config.max_executions:
             self.num_executions += 1
-            self._set_next_execution_timestep(timestep + self.settings.frequency, self.settings.variance)
+            self._set_next_execution_timestep(timestep + self.config.frequency, self.config.variance)
             return "NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}
 
         return "DONOTHING", {}
