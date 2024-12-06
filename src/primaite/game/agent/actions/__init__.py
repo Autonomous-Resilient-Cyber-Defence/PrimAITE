@@ -29,4 +29,5 @@ __all__ = (
     "node",
     "service",
     "session",
+    "ActionManager",
 )

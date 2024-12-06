@@ -36,6 +36,4 @@ class AbstractAction(BaseModel):
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractAction":
         """Create an action component from a config dictionary."""
-        if not config.get("type"):
-            config.update({"type": cls.__name__})
         return cls(config=cls.ConfigSchema(**config))

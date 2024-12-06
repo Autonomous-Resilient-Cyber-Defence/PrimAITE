@@ -1,8 +1,8 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, ValidationInfo
+from pydantic import ConfigDict, Field, field_validator, ValidationInfo
 
 from primaite.game.agent.actions.manager import AbstractAction, ActionManager
 from primaite.interface.request import RequestFormat
@@ -27,7 +27,6 @@ class ConfigureRansomwareScriptAction(AbstractAction, identifier="c2_server_rans
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for ConfigureRansomwareScriptAction."""
 
-        model_config = ConfigDict(extra="forbid")
         node_name: str
         server_ip_address: Optional[str]
         server_password: Optional[str]
@@ -109,17 +108,7 @@ class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2_beacon"):
     @classmethod
     def form_request(self, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
-        if config.node_name is None:
-            return ["do_nothing"]
-        configuration = ConfigureC2BeaconAction.ConfigSchema(
-            c2_server_ip_address=config.c2_server_ip_address,
-            keep_alive_frequency=config.keep_alive_frequency,
-            masquerade_port=config.masquerade_port,
-            masquerade_protocol=config.masquerade_protocol,
-        )
-
-        ConfigureC2BeaconAction.ConfigSchema.model_validate(configuration)  # check that options adhere to schema
-
+        configuration = []
         return ["network", "node", config.node_name, "application", "C2Beacon", "configure", configuration]
 
 

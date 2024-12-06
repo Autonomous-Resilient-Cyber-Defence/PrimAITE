@@ -13,8 +13,7 @@ agents:
 
 from __future__ import annotations
 
-import itertools
-from typing import Dict, List, Literal, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from gymnasium import spaces
 
@@ -45,7 +44,9 @@ class ActionManager:
     def __init__(
         self,
         actions: List[Dict],  # stores list of actions available to agent
-        act_map: Optional[Dict[int, Dict]] = None,  # allows restricting set of possible actions
+        act_map: Optional[
+            Dict[int, Dict]
+        ] = None,  # allows restricting set of possible actions - TODO: Refactor to be a list?
         *args,
         **kwargs,
     ) -> None:
@@ -79,43 +80,6 @@ class ActionManager:
         # make sure all numbers between 0 and N are represented as dict keys in action map
         assert all([i in self.action_map.keys() for i in range(len(self.action_map))])
 
-    def _enumerate_actions(
-        self,
-    ) -> Dict[int, Tuple[str, Dict]]:
-        """Generate a list of all the possible actions that could be taken.
-
-        This enumerates all actions all combinations of parameters you could choose for those actions. The output
-        of this function is intended to populate the self.action_map parameter in the situation where the user provides
-        a list of action types, but doesn't specify any subset of actions that should be made available to the agent.
-
-        The enumeration relies on the Actions' `shape` attribute.
-
-        :return: An action map maps consecutive integers to a combination of Action type and parameter choices.
-            An example output could be:
-            {0: ("do_nothing", {'dummy': 0}),
-            1: ("node_os_scan", {'node_name': computer}),
-            2: ("node_os_scan", {'node_name': server}),
-            3: ("node_folder_scan", {'node_name:computer, folder_name:downloads}),
-            ... #etc...
-            }
-        :rtype: Dict[int, Tuple[AbstractAction, Dict]]
-        """
-        all_action_possibilities = []
-        for act_name, action in self.actions.items():
-            param_names = list(action.shape.keys())
-            num_possibilities = list(action.shape.values())
-            possibilities = [range(n) for n in num_possibilities]
-
-            param_combinations = list(itertools.product(*possibilities))
-            all_action_possibilities.extend(
-                [
-                    (act_name, {param_names[i]: param_combinations[j][i] for i in range(len(param_names))})
-                    for j in range(len(param_combinations))
-                ]
-            )
-
-        return {i: p for i, p in enumerate(all_action_possibilities)}
-
     def get_action(self, action: int) -> Tuple[str, Dict]:
         """Produce action in CAOS format."""
         """the agent chooses an action (as an integer), this is converted into an action in CAOS format"""
@@ -125,8 +89,9 @@ class ActionManager:
 
     def form_request(self, action_identifier: str, action_options: Dict) -> RequestFormat:
         """Take action in CAOS format and use the execution definition to change it into PrimAITE request format."""
-        act_obj = self.actions[action_identifier].from_config(config=action_options)
-        return act_obj.form_request(config=act_obj.config)
+        act_class = AbstractAction._registry[action_identifier]
+        config = act_class.ConfigSchema(**action_options)
+        return act_class.form_request(config=config)
 
     @property
     def space(self) -> spaces.Space:
@@ -134,7 +99,7 @@ class ActionManager:
         return spaces.Discrete(len(self.action_map))
 
     @classmethod
-    def from_config(cls, game: "PrimaiteGame", cfg: Dict) -> "ActionManager":
+    def from_config(cls, game: "PrimaiteGame", cfg: Dict) -> "ActionManager":  # noqa: F821
         """
         Construct an ActionManager from a config definition.
 

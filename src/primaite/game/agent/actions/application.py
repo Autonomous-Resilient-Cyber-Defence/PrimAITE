@@ -34,8 +34,6 @@ class NodeApplicationAbstractAction(AbstractAction, identifier="node_application
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        if config.node_name is None or config.application_name is None:
-            return ["do_nothing"]
         return [
             "network",
             "node",
@@ -103,8 +101,6 @@ class NodeApplicationInstallAction(NodeApplicationAbstractAction, identifier="no
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        if config.node_name is None:
-            return ["do_nothing"]
         return [
             "network",
             "node",
@@ -129,8 +125,6 @@ class NodeApplicationRemoveAction(NodeApplicationAbstractAction, identifier="nod
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        if config.node_name is None:
-            return ["do_nothing"]
         return [
             "network",
             "node",
