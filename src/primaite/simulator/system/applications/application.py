@@ -1,9 +1,11 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, ClassVar, Dict, Optional, Set, Type
+
+from pydantic import BaseModel
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType
@@ -27,6 +29,7 @@ class Application(IOSoftware):
 
     Applications are user-facing programs that may perform input/output operations.
     """
+    config: "Application.ConfigSchema"
 
     operating_state: ApplicationOperatingState = ApplicationOperatingState.CLOSED
     "The current operating state of the Application."
@@ -44,6 +47,11 @@ class Application(IOSoftware):
     _registry: ClassVar[Dict[str, Type["Application"]]] = {}
     """Registry of application types. Automatically populated when subclasses are defined."""
 
+    class ConfigSchema(BaseModel, ABC):
+        """Config Schema for Application class."""
+
+        type: str
+
     def __init_subclass__(cls, identifier: str = "default", **kwargs: Any) -> None:
         """
         Register an application type.
@@ -58,6 +66,21 @@ class Application(IOSoftware):
         if identifier in cls._registry:
             raise ValueError(f"Tried to define new application {identifier}, but this name is already reserved.")
         cls._registry[identifier] = cls
+
+    @classmethod
+    def from_config(cls, config: Dict) -> "Application":
+        """Create an application from a config dictionary.
+
+        :param config: dict of options for application components constructor
+        :type config: dict
+        :return: The application component.
+        :rtype: Application
+        """
+        if config["type"] not in cls._registry:
+            raise ValueError(f"Invalid Application type {config['type']}")
+        application_class = cls._registry[config["type"]]
+        application_object = application_class(config=application_class.ConfigSchema(**config))
+        return application_object
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
