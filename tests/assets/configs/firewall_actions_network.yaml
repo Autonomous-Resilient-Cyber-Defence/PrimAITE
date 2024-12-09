@@ -108,18 +108,19 @@ agents:
           1:
             action: firewall_acl_add_rule
             options:
+              type: firewall_acl_add_rule
               target_firewall_nodename: firewall
               firewall_port_name: internal
               firewall_port_direction: inbound
               position: 1
               permission: PERMIT
               src_ip: 192.168.0.10
-              dest_ip: ALL
-              src_port: ALL
-              dst_port: ALL
-              protocol_name: ALL
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              dst_ip: 0.0.0.0
+              src_port: 80
+              dst_port: HTTP
+              protocol_name: TCP
+              src_wildcard: 0
+              dst_wildcard: 0
           2:
             action: firewall_acl_remove_rule
             options:
@@ -136,7 +137,7 @@ agents:
               position: 1
               permission: DENY
               src_ip: 192.168.0.10 # client 1
-              dest_ip: ALL # ALL
+              dest_ip: ALL
               src_port: ARP
               dst_port: DNS
               protocol_name: ICMP
@@ -240,11 +241,13 @@ agents:
           13:
             action: network_port_disable
             options:
+              type: network_port_disable
               target_nodename: firewall
               port_id: 3
           14:
             action: network_port_enable
             options:
+              type: network_port_enable
               target_nodename: firewall
               port_id: 3
       options:

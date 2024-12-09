@@ -1,14 +1,16 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
+from ipaddress import IPv4Address
 from typing import List
 
 from pydantic import field_validator
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
-from primaite.utils.validation.ip_protocol import is_valid_protocol, protocol_validator
-from primaite.utils.validation.port import is_valid_port
+from primaite.utils.validation.ip_protocol import protocol_validator
+from primaite.utils.validation.ipv4_address import ipv4_validator
+from primaite.utils.validation.port import port_validator
 
 __all__ = (
     "RouterACLAddRuleAction",
@@ -26,39 +28,38 @@ class ACLAddRuleAbstractAction(AbstractAction, identifier="acl_add_rule_abstract
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration Schema base for ACL add rule abstract actions."""
 
-        src_ip: str
+        src_ip: IPv4Address
         protocol_name: str
         permission: str
         position: int
-        src_ip: str
-        dst_ip: str
-        src_port: str
-        dst_port: str
+        dst_ip: IPv4Address
+        src_port: int
+        dst_port: int
         src_wildcard: int
         dst_wildcard: int
 
         @field_validator(
-            src_port,
-            dst_port,
+            "src_port",
+            "dst_port",
             mode="before",
         )
         @classmethod
         def valid_port(cls, v: str) -> int:
             """Check that inputs are valid."""
-            return is_valid_port(v)
+            return port_validator(v)
 
         @field_validator(
-            src_ip,
-            dst_ip,
+            "src_ip",
+            "dst_ip",
             mode="before",
         )
         @classmethod
         def valid_ip(cls, v: str) -> str:
             """Check that a valid IP has been provided for src and dst."""
-            return is_valid_protocol(v)
+            return ipv4_validator(v)
 
         @field_validator(
-            protocol_name,
+            "protocol_name",
             mode="before",
         )
         @classmethod
@@ -80,16 +81,16 @@ class ACLRemoveRuleAbstractAction(AbstractAction, identifier="acl_remove_rule_ab
         position: int
 
         @field_validator(
-            src_ip,
+            "src_ip",
             mode="before",
         )
         @classmethod
         def valid_ip(cls, v: str) -> str:
             """Check that a valid IP has been provided for src and dst."""
-            return is_valid_protocol(v)
+            return ipv4_validator(v)
 
         @field_validator(
-            protocol_name,
+            "protocol_name",
             mode="before",
         )
         @classmethod

@@ -88,7 +88,7 @@ def test_node_service_fix_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
     svc.health_state_actual = SoftwareHealthState.COMPROMISED
 
     # 2: Apply a patch action
-    action = ("node_service_fix", {"node_name": "server_1", "service_name": "DNSServer"})
+    action = ("node_service_fix", {"type": "node_service_fix", "node_name": "server_1", "service_name": "DNSServer"})
     agent.store_action(action)
     game.step()
 
@@ -123,16 +123,17 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     action = (
         "router_acl_add_rule",
         {
+            "type": "router_acl_add_rule",
             "target_router": "router",
             "position": 4,
             "permission": "DENY",
             "src_ip": "10.0.1.2",
             "src_wildcard": 0,
-            "source_port": "ALL",
+            "src_port": "HTTP",
             "dst_ip": "10.0.2.3",
             "dst_wildcard": 0,
-            "dst_port": "ALL",
-            "protocol_name": "ALL",
+            "dst_port": "HTTP",
+            "protocol_name": "udp",
         },
     )
     agent.store_action(action)
@@ -150,6 +151,7 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     action = (
         "router_acl_add_rule",
         {
+            "type": "router_acl_add_rule",
             "target_router": "router",
             "position": 5,  # 5th rule
             "permission": "DENY",  # DENY
@@ -190,6 +192,7 @@ def test_router_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, P
     action = (
         "router_acl_remove_rule",
         {
+            "type": "router_acl_remove_rule",
             "target_router": "router",
             "position": 3,  # 4th rule
         },
@@ -223,6 +226,7 @@ def test_host_nic_disable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
     action = (
         "host_nic_disable",
         {
+            "type": "host_nic_disable",
             "node_name": "client_1",  # client_1
             "nic_num": 1,  # the only nic (eth-1)
         },
@@ -254,6 +258,7 @@ def test_host_nic_enable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAg
     action = (
         "host_nic_enable",
         {
+            "type": "host_nic_enable",
             "node_name": "client_1",  # client_1
             "nic_num": 1,  # the only nic (eth-1)
         },
@@ -281,6 +286,7 @@ def test_node_file_scan_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAge
     action = (
         "node_file_scan",
         {
+            "type": "node_file_scan",
             "node_name": "client_1",  # client_1,
             "folder_name": "downloads",  # downloads,
             "file_name": "cat.png",  # cat.png
@@ -318,6 +324,7 @@ def test_node_file_delete_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
     action = (
         "node_file_delete",
         {
+            "type": "node_file_delete",
             "node_name": "client_1",  # client_1
             "folder_name": "downloads",  # downloads
             "file_name": "cat.png",  # cat.png
@@ -340,7 +347,13 @@ def test_node_file_create(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
 
     action = (
         "node_file_create",
-        {"node_name": "client_1", "folder_name": "test", "file_name": "file.txt", "force": "False"},
+        {
+            "type": "node_file_create",
+            "node_name": "client_1",
+            "folder_name": "test",
+            "file_name": "file.txt",
+            "force": "False",
+        },
     )
     agent.store_action(action)
     game.step()
@@ -357,6 +370,7 @@ def test_node_file_access(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     action = (
         "node_file_create",
         {
+            "type": "node_file_create",
             "node_name": "client_1",
             "folder_name": "test",
             "file_name": "file.txt",
@@ -370,6 +384,7 @@ def test_node_file_access(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     action = (
         "node_file_access",
         {
+            "type": "node_file_access",
             "node_name": "client_1",
             "folder_name": "test",
             "file_name": "file.txt",
@@ -390,6 +405,7 @@ def test_node_folder_create(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     action = (
         "node_folder_create",
         {
+            "type": "node_folder_create",
             "node_name": "client_1",
             "folder_name": "test",
         },
@@ -418,6 +434,7 @@ def test_network_router_port_disable_integration(game_and_agent: Tuple[PrimaiteG
     action = (
         "network_port_disable",
         {
+            "type": "network_port_disable",
             "target_nodename": "router",  # router
             "port_id": 1,  # port 1
         },
@@ -450,6 +467,7 @@ def test_network_router_port_enable_integration(game_and_agent: Tuple[PrimaiteGa
     action = (
         "network_port_enable",
         {
+            "type": "network_port_enable",
             "target_nodename": "router",  # router
             "port_id": 1,  # port 1
         },
@@ -478,7 +496,10 @@ def test_node_application_scan_integration(game_and_agent: Tuple[PrimaiteGame, P
     assert browser.health_state_visible == SoftwareHealthState.UNUSED
 
     # 2: Scan and check that the visible state is now correct
-    action = ("node_application_scan", {"node_name": "client_1", "application_name": "WebBrowser"})
+    action = (
+        "node_application_scan",
+        {"type": "node_application_scan", "node_name": "client_1", "application_name": "WebBrowser"},
+    )
     agent.store_action(action)
     game.step()
     assert browser.health_state_actual == SoftwareHealthState.GOOD
@@ -489,7 +510,10 @@ def test_node_application_scan_integration(game_and_agent: Tuple[PrimaiteGame, P
     assert browser.health_state_visible == SoftwareHealthState.GOOD
 
     # 4: Scan and check that the visible state is now correct
-    action = ("node_application_scan", {"node_name": "client_1", "application_name": "WebBrowser"})
+    action = (
+        "node_application_scan",
+        {"type": "node_application_scan", "node_name": "client_1", "application_name": "WebBrowser"},
+    )
     agent.store_action(action)
     game.step()
     assert browser.health_state_actual == SoftwareHealthState.COMPROMISED
@@ -510,7 +534,10 @@ def test_node_application_fix_integration(game_and_agent: Tuple[PrimaiteGame, Pr
     browser.health_state_actual = SoftwareHealthState.COMPROMISED
 
     # 2: Apply a fix action
-    action = ("node_application_fix", {"node_name": "client_1", "application_name": "WebBrowser"})
+    action = (
+        "node_application_fix",
+        {"type": "node_application_fix", "node_name": "client_1", "application_name": "WebBrowser"},
+    )
     agent.store_action(action)
     game.step()
 
@@ -536,7 +563,10 @@ def test_node_application_close_integration(game_and_agent: Tuple[PrimaiteGame, 
     assert browser.operating_state == ApplicationOperatingState.RUNNING
 
     # 2: Apply a close action
-    action = ("node_application_close", {"node_name": "client_1", "application_name": "WebBrowser"})
+    action = (
+        "node_application_close",
+        {"type": "node_application_close", "node_name": "client_1", "application_name": "WebBrowser"},
+    )
     agent.store_action(action)
     game.step()
 
@@ -555,13 +585,19 @@ def test_node_application_install_and_uninstall_integration(game_and_agent: Tupl
 
     assert client_1.software_manager.software.get("DoSBot") is None
 
-    action = ("node_application_install", {"node_name": "client_1", "application_name": "DoSBot"})
+    action = (
+        "node_application_install",
+        {"type": "node_application_install", "node_name": "client_1", "application_name": "DoSBot"},
+    )
     agent.store_action(action)
     game.step()
 
     assert client_1.software_manager.software.get("DoSBot") is not None
 
-    action = ("node_application_remove", {"node_name": "client_1", "application_name": "DoSBot"})
+    action = (
+        "node_application_remove",
+        {"type": "node_application_remove", "node_name": "client_1", "application_name": "DoSBot"},
+    )
     agent.store_action(action)
     game.step()
 
