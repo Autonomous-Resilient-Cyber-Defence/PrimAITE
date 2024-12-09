@@ -32,8 +32,3 @@ class AbstractAction(BaseModel):
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         pass
-
-    @classmethod
-    def from_config(cls, config: Dict) -> "AbstractAction":
-        """Create an action component from a config dictionary."""
-        return cls(config=cls.ConfigSchema(**config))
