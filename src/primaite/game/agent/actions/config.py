@@ -108,8 +108,7 @@ class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2_beacon"):
     @classmethod
     def form_request(self, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
-        configuration = []
-        return ["network", "node", config.node_name, "application", "C2Beacon", "configure", configuration]
+        return ["network", "node", config.node_name, "application", "C2Beacon", "configure", config]
 
 
 class NodeSendRemoteCommandAction(AbstractAction, identifier="node_send_remote_command"):

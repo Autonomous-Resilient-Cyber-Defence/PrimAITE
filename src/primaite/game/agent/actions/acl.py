@@ -3,8 +3,12 @@ from __future__ import annotations
 
 from typing import List
 
+from pydantic import field_validator
+
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
+from primaite.utils.validation.ip_protocol import is_valid_protocol, protocol_validator
+from primaite.utils.validation.port import is_valid_port
 
 __all__ = (
     "RouterACLAddRuleAction",
@@ -32,6 +36,35 @@ class ACLAddRuleAbstractAction(AbstractAction, identifier="acl_add_rule_abstract
         dst_port: str
         src_wildcard: int
         dst_wildcard: int
+
+        @field_validator(
+            src_port,
+            dst_port,
+            mode="before",
+        )
+        @classmethod
+        def valid_port(cls, v: str) -> int:
+            """Check that inputs are valid."""
+            return is_valid_port(v)
+
+        @field_validator(
+            src_ip,
+            dst_ip,
+            mode="before",
+        )
+        @classmethod
+        def valid_ip(cls, v: str) -> str:
+            """Check that a valid IP has been provided for src and dst."""
+            return is_valid_protocol(v)
+
+        @field_validator(
+            protocol_name,
+            mode="before",
+        )
+        @classmethod
+        def is_valid_protocol(cls, v: str) -> bool:
+            """Check that we are using a valid protocol."""
+            return protocol_validator(v)
 
 
 class ACLRemoveRuleAbstractAction(AbstractAction, identifier="acl_remove_rule_abstract_action"):
@@ -70,7 +103,7 @@ class RouterACLAddRuleAction(ACLAddRuleAbstractAction, identifier="router_acl_ad
             config.protocol_name,
             config.src_ip,
             config.src_wildcard,
-            config.source_port,
+            config.src_port,
             config.dst_ip,
             config.dst_wildcard,
             config.dst_port,
@@ -109,13 +142,6 @@ class FirewallACLAddRuleAction(ACLAddRuleAbstractAction, identifier="firewall_ac
     @classmethod
     def form_request(cls, config: ConfigSchema) -> List[str]:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        if config.protocol_name is None:
-            return ["do_nothing"]  # NOT SUPPORTED, JUST DO NOTHING IF WE COME ACROSS THIS
-        if config.src_ip == 0:
-            return ["do_nothing"]  # invalid formulation
-        if config.src_port == 0:
-            return ["do_nothing"]  # invalid configuration.
-
         return [
             "network",
             "node",
