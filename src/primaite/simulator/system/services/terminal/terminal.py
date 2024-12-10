@@ -132,8 +132,15 @@ class RemoteTerminalConnection(TerminalClientConnection):
 class Terminal(Service):
     """Class used to simulate a generic terminal service. Can be interacted with by other terminals via SSH."""
 
+    config: "Terminal.ConfigSchema"
+
     _client_connection_requests: Dict[str, Optional[Union[str, TerminalClientConnection]]] = {}
     """Dictionary of connect requests made to remote nodes."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for Terminal."""
+
+        type: str = "TERMINAL"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "Terminal"

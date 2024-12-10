@@ -22,7 +22,14 @@ _LOGGER = getLogger(__name__)
 class WebServer(Service):
     """Class used to represent a Web Server Service in simulation."""
 
+    config: "WebServer.ConfigSchema"
+
     response_codes_this_timestep: List[HttpStatusCode] = []
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for WebServer."""
+
+        type: str = "WEBSERVER"
 
     def describe_state(self) -> Dict:
         """

@@ -22,7 +22,14 @@ class ICMP(Service):
     network diagnostics, notably the ping command.
     """
 
+    config: "ICMP.ConfigSchema"
+
     request_replies: Dict = {}
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for ICMP."""
+
+        type: str = "ICMP"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ICMP"

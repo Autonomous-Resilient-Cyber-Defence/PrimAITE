@@ -4,6 +4,7 @@ from typing import Any, Optional
 from primaite import getLogger
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
+from primaite.simulator.system.services.service import Service
 from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import is_valid_port, PORT_LOOKUP
 
@@ -14,12 +15,19 @@ class FTPServer(FTPServiceABC):
     """
     A class for simulating an FTP server service.
 
-    This class inherits from the `Service` class and provides methods to emulate FTP
+    This class inherits from the `FTPServiceABC` class and provides methods to emulate FTP
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
 
+    config: "FTPServer.ConfigSchema"
+
     server_password: Optional[str] = None
     """Password needed to connect to FTP server. Default is None."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for FTPServer."""
+
+        type: str = "FTPServer"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPServer"

@@ -14,6 +14,13 @@ _LOGGER = getLogger(__name__)
 class NTPServer(Service):
     """Represents a NTP server as a service."""
 
+    config: "NTPServer.ConfigSchema"
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for NTPServer."""
+
+        type: str = "NTPSERVER"
+
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPServer"
         kwargs["port"] = PORT_LOOKUP["NTP"]

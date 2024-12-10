@@ -22,7 +22,14 @@ class ARP(Service):
     sends ARP requests and replies, and processes incoming ARP packets.
     """
 
+    config: "ARP.ConfigSchema"
+
     arp: Dict[IPV4Address, ARPEntry] = {}
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for ARP."""
+
+        type: str = "ARP"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ARP"

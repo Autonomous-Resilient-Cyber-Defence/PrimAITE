@@ -24,6 +24,8 @@ class DatabaseService(Service):
     This class inherits from the `Service` class and provides methods to simulate a SQL database.
     """
 
+    config: "DatabaseService.ConfigSchema"
+
     password: Optional[str] = None
     """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
 
@@ -35,6 +37,11 @@ class DatabaseService(Service):
 
     latest_backup_file_name: str = None
     """File name of latest backup."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for DatabaseService."""
+
+        type: str = "DATABASESERVICE"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseService"

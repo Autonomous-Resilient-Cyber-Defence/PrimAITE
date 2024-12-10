@@ -15,9 +15,16 @@ _LOGGER = getLogger(__name__)
 class NTPClient(Service):
     """Represents a NTP client as a service."""
 
+    config: "NTPClient.ConfigSchema"
+
     ntp_server: Optional[IPv4Address] = None
     "The NTP server the client sends requests to."
     time: Optional[datetime] = None
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for NTPClient."""
+
+        type: str = "NTPCLIENT"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPClient"
