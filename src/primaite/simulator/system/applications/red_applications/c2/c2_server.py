@@ -7,6 +7,7 @@ from pydantic import validate_call
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.masquerade import C2Packet
+from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.red_applications.c2 import (
     CommandOpts,
     ExfilOpts,
@@ -34,8 +35,15 @@ class C2Server(AbstractC2, identifier="C2Server"):
     Please refer to the Command-&-Control notebook for an in-depth example of the C2 Suite.
     """
 
+    config: "C2Server.ConfigSchema"
+
     current_command_output: RequestResponse = None
     """The Request Response by the last command send. This attribute is updated by the method _handle_command_output."""
+
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for C2Server."""
+
+        type: str = "C2SERVER"
 
     def _init_request_manager(self) -> RequestManager:
         """

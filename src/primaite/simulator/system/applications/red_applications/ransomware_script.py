@@ -18,12 +18,19 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
     :ivar payload: The attack stage query payload. (Default ENCRYPT)
     """
 
+    config: "RansomwareScript.ConfigSchema"
+
     server_ip_address: Optional[IPv4Address] = None
     """IP address of node which hosts the database."""
     server_password: Optional[str] = None
     """Password required to access the database."""
     payload: Optional[str] = "ENCRYPT"
     "Payload String for the payload stage"
+
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for RansomwareScript."""
+
+        type: str = "RANSOMWARE_SCRIPT"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "RansomwareScript"

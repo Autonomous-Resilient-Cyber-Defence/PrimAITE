@@ -7,6 +7,7 @@ from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
+from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.utils.validation.port import Port, PORT_LOOKUP
 
@@ -32,6 +33,8 @@ class DoSAttackStage(IntEnum):
 class DoSBot(DatabaseClient, identifier="DoSBot"):
     """A bot that simulates a Denial of Service attack."""
 
+    config: "DoSBot.ConfigSchema"
+
     target_ip_address: Optional[IPv4Address] = None
     """IP address of the target service."""
 
@@ -52,6 +55,11 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
 
     dos_intensity: float = 1.0
     """How much of the max sessions will be used by the DoS when attacking."""
+
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for DoSBot."""
+
+        type: str = "DOSBOT"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

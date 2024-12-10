@@ -45,7 +45,7 @@ class C2Payload(Enum):
     """C2 Input Command payload. Used by the C2 Server to send a command to the c2 beacon."""
 
     OUTPUT = "output_command"
-    """C2 Output Command. Used by the C2 Beacon to send the results of a Input command to the c2 server."""
+    """C2 Output Command. Used by the C2 Beacon to send the results of an Input command to the c2 server."""
 
 
 class AbstractC2(Application, identifier="AbstractC2"):
@@ -63,6 +63,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
     Please refer to the Command-&-Control notebook for an in-depth example of the C2 Suite.
     """
 
+    config: "AbstractC2"
+
     c2_connection_active: bool = False
     """Indicates if the c2 server and c2 beacon are currently connected."""
 
@@ -74,6 +76,11 @@ class AbstractC2(Application, identifier="AbstractC2"):
 
     keep_alive_inactivity: int = 0
     """Indicates how many timesteps since the last time the c2 application received a keep alive."""
+
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for AbstractC2."""
+
+        type: str = "ABSTRACTC2"
 
     class _C2Opts(BaseModel):
         """A Pydantic Schema for the different C2 configuration options."""
@@ -118,7 +125,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :type c2_command: C2Command.
         :param command_options: The relevant C2 Beacon parameters.F
         :type command_options: Dict
-        :return: Returns the construct C2Packet
+        :return: Returns the constructed C2Packet
         :rtype: C2Packet
         """
         constructed_packet = C2Packet(

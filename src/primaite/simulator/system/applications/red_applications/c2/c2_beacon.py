@@ -8,6 +8,7 @@ from pydantic import validate_call
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.masquerade import C2Packet
+from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.red_applications.c2 import ExfilOpts, RansomwareOpts, TerminalOpts
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
@@ -32,14 +33,21 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     2. Leveraging the terminal application to execute requests (dependent on the command given)
     3. Sending the RequestResponse back to the C2 Server (Command output)
 
-    Please refer to the Command-&-Control notebook for an in-depth example of the C2 Suite.
+    Please refer to the Command-and-Control notebook for an in-depth example of the C2 Suite.
     """
+
+    config: "C2Beacon.ConfigSchema"
 
     keep_alive_attempted: bool = False
     """Indicates if a keep alive has been attempted to be sent this timestep. Used to prevent packet storms."""
 
     terminal_session: TerminalClientConnection = None
     "The currently in use terminal session."
+
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for C2Beacon."""
+
+        type: str = "C2BEACON"
 
     @property
     def _host_terminal(self) -> Optional[Terminal]:

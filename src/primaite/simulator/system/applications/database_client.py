@@ -68,10 +68,12 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
     Extends the Application class to provide functionality for connecting, querying, and disconnecting from a
     Database Service. It mainly operates over TCP protocol.
 
-    :ivar server_ip_address: The IPv4 address of the Database Service server, defaults to None.
     """
 
+    config: "DatabaseClient.ConfigSchema"
+
     server_ip_address: Optional[IPv4Address] = None
+    """The IPv4 address of the Database Service server, defaults to None."""
     server_password: Optional[str] = None
     _query_success_tracker: Dict[str, bool] = {}
     """Keep track of connections that were established or verified during this step. Used for rewards."""
@@ -87,6 +89,11 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
     """Boolean Value for whether connected to DB Server."""
     native_connection: Optional[DatabaseClientConnection] = None
     """Native Client Connection for using the client directly (similar to psql in a terminal)."""
+
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for DatabaseClient."""
+
+        type: str = "DATABASE_CLIENT"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseClient"

@@ -52,6 +52,8 @@ class NMAP(Application, identifier="NMAP"):
     as ping scans to discover active hosts and port scans to detect open ports on those hosts.
     """
 
+    config: "NMAP.ConfigSchema"
+
     _active_port_scans: Dict[str, PortScanPayload] = {}
     _port_scan_responses: Dict[str, PortScanPayload] = {}
 
@@ -61,6 +63,11 @@ class NMAP(Application, identifier="NMAP"):
         (False, True): "Vertical",
         (False, False): "Port",
     }
+
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for NMAP."""
+
+        type: str = "NMAP"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "NMAP"

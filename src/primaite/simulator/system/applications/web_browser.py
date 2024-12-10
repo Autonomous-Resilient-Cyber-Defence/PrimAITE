@@ -30,6 +30,8 @@ class WebBrowser(Application, identifier="WebBrowser"):
     The application requests and loads web pages using its domain name and requesting IP addresses using DNS.
     """
 
+    config: "WebBrowser.ConfigSchema"
+
     target_url: Optional[str] = None
 
     domain_name_ip_address: Optional[IPv4Address] = None
@@ -40,6 +42,11 @@ class WebBrowser(Application, identifier="WebBrowser"):
 
     history: List["BrowserHistoryItem"] = []
     """Keep a log of visited websites and information about the visit, such as response code."""
+
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for WebBrowser."""
+
+        type: str = "WEB_BROWSER"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "WebBrowser"
