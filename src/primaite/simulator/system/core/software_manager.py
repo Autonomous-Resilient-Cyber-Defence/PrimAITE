@@ -207,6 +207,10 @@ class SoftwareManager:
         :param session_id: The Session ID from which the payload originates. Optional.
         :return: True if the payload was successfully sent, False otherwise.
         """
+        print(payload)
+        print(dest_ip_address)
+        print(src_port)
+        print(session_id)
         return self.session_manager.receive_payload_from_software_manager(
             payload=payload,
             dst_ip_address=dest_ip_address,
