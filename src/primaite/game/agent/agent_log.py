@@ -1,6 +1,5 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import logging
-from abc import ABC
 from pathlib import Path
 from typing import Optional
 
