@@ -14,8 +14,15 @@ from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class BroadcastTestService(Service):
+class BroadcastTestService(Service, identifier="BroadcastTestService"):
     """A service for sending broadcast and unicast messages over a network."""
+
+    config: "BroadcastTestService.ConfigSchema"
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for BroadcastTestService."""
+
+        type: str = "BROADCASTTESTSERVICE"
 
     def __init__(self, **kwargs):
         # Set default service properties for broadcasting
