@@ -12,7 +12,7 @@ from primaite.utils.validation.port import Port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class NTPClient(Service):
+class NTPClient(Service, identifier="NTPClient"):
     """Represents a NTP client as a service."""
 
     config: "NTPClient.ConfigSchema"

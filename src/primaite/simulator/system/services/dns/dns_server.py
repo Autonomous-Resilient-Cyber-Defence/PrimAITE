@@ -13,7 +13,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class DNSServer(Service):
+class DNSServer(Service, identifier="DNSServer"):
     """Represents a DNS Server as a Service."""
 
     config: "DNSServer.ConfigSchema"

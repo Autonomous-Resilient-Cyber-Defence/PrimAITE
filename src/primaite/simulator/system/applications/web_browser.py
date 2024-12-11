@@ -46,7 +46,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for WebBrowser."""
 
-        type: str = "WEB_BROWSER"
+        type: str = "WEBBROWSER"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "WebBrowser"

@@ -11,7 +11,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class NTPServer(Service):
+class NTPServer(Service, identifier="NTPServer"):
     """Represents a NTP server as a service."""
 
     config: "NTPServer.ConfigSchema"

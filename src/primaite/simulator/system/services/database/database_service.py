@@ -17,7 +17,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class DatabaseService(Service):
+class DatabaseService(Service, identifier="DatabaseService"):
     """
     A class for simulating a generic SQL Server service.
 
