@@ -96,8 +96,8 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
     """Base class for scripted and RL agents."""
 
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
+
     config: "AbstractAgent.ConfigSchema"
-    agent_name = "Abstract_Agent"
 
     class ConfigSchema(BaseModel):
         """
@@ -129,6 +129,11 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
         if identifier in cls._registry:
             raise ValueError(f"Cannot create a new agent under reserved name {identifier}")
         cls._registry[identifier] = cls
+
+    @property
+    def logger(self) -> AgentLog:
+        """Return the AgentLog."""
+        return self.config.logger
 
     @property
     def observation_manager(self) -> ObservationManager:
