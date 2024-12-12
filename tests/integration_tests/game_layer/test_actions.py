@@ -32,7 +32,7 @@ FIREWALL_ACTIONS_NETWORK = TEST_ASSETS_ROOT / "configs/firewall_actions_network.
 
 
 def test_do_nothing_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
-    """Test that the DoNothingAction can form a request and that it is accepted by the simulation."""
+    """Test that the do_nothingAction can form a request and that it is accepted by the simulation."""
     game, agent = game_and_agent
 
     action = ("do_nothing", {})

@@ -447,7 +447,7 @@ class SharedReward(AbstractReward):
 
 
 class ActionPenalty(AbstractReward):
-    """Apply a negative reward when taking any action except DONOTHING."""
+    """Apply a negative reward when taking any action except do_nothing."""
 
     def __init__(self, action_penalty: float, do_nothing_penalty: float) -> None:
         """
@@ -455,9 +455,9 @@ class ActionPenalty(AbstractReward):
 
         Reward or penalise agents for doing nothing or taking actions.
 
-        :param action_penalty: Reward to give agents for taking any action except DONOTHING
+        :param action_penalty: Reward to give agents for taking any action except do_nothing
         :type action_penalty: float
-        :param do_nothing_penalty: Reward to give agent for taking the DONOTHING action
+        :param do_nothing_penalty: Reward to give agent for taking the do_nothing action
         :type do_nothing_penalty: float
         """
         self.action_penalty = action_penalty
@@ -473,7 +473,7 @@ class ActionPenalty(AbstractReward):
         :return: Reward value
         :rtype: float
         """
-        if last_action_response.action == "DONOTHING":
+        if last_action_response.action == "do_nothing":
             return self.do_nothing_penalty
         else:
             return self.action_penalty

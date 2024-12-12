@@ -39,7 +39,7 @@ class DataManipulationAgent(AbstractScriptedAgent):
         """
         if timestep < self.next_execution_timestep:
             self.logger.debug(msg="Performing do NOTHING")
-            return "DONOTHING", {}
+            return "do_nothing", {}
 
         self._set_next_execution_timestep(timestep + self.agent_settings.start_settings.frequency)
         self.logger.info(msg="Performing a data manipulation attack!")

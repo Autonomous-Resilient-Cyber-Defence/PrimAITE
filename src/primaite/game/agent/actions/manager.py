@@ -28,7 +28,7 @@ class DoNothingAction(AbstractAction, identifier="do_nothing"):
     """Do Nothing Action."""
 
     class ConfigSchema(AbstractAction.ConfigSchema):
-        """Configuration Schema for DoNothingAction."""
+        """Configuration Schema for do_nothingAction."""
 
         type: str = "do_nothing"
 
@@ -44,6 +44,7 @@ class ActionManager:
     def __init__(
         self,
         actions: List[Dict],  # stores list of actions available to agent
+        nodes: List[Dict],  # extra configuration for each node
         act_map: Optional[
             Dict[int, Dict]
         ] = None,  # allows restricting set of possible actions - TODO: Refactor to be a list?
@@ -79,6 +80,8 @@ class ActionManager:
             self.action_map = {i: (a["action"], a["options"]) for i, a in act_map.items()}
         # make sure all numbers between 0 and N are represented as dict keys in action map
         assert all([i in self.action_map.keys() for i in range(len(self.action_map))])
+        self.node_names: List[str] = [n["node_name"] for n in nodes]
+        """List of node names in this action space. The list order is the mapping between node index and node name."""
 
     def get_action(self, action: int) -> Tuple[str, Dict]:
         """Produce action in CAOS format."""

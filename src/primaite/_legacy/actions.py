@@ -455,11 +455,12 @@ class NodeAbstractAction(AbstractAction):
     Any action which applies to a node and uses node_id as its only parameter can inherit from this base class.
     """
 
-    @abstractmethod
-    def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
-        super().__init__(manager=manager)
-        self.shape: Dict[str, int] = {"node_id": num_nodes}
-        self.verb: str  # define but don't initialise: defends against children classes not defining this
+    config: "NodeAbstractAction.ConfigSchema"
+
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        """Configuration schema for NodeAbstractAction."""
+
+        verb: str = "Node_Abstract_Action"
 
     def form_request(self, node_id: int) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
@@ -478,9 +479,12 @@ class NodeOSScanAction(NodeAbstractAction):
 class NodeShutdownAction(NodeAbstractAction):
     """Action which shuts down a node."""
 
-    def __init__(self, manager: "ActionManager", num_nodes: int, **kwargs) -> None:
-        super().__init__(manager=manager, num_nodes=num_nodes)
-        self.verb: str = "shutdown"
+    config: "NodeShutdownAction.ConfigSchema"
+
+    class ConfigSchema(NodeAbstractAction.ConfigSchema):
+        """Configuration Schema for NodeShutdownAction."""
+
+        verb: str = "shutdown"
 
 
 class NodeStartupAction(NodeAbstractAction):

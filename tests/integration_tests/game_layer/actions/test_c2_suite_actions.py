@@ -134,7 +134,7 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
 
     # Stepping a few timesteps to allow for the RansowmareScript to finish installing.
 
-    action = ("DONOTHING", {})
+    action = ("do_nothing", {})
     agent.store_action(action)
     game.step()
     game.step()

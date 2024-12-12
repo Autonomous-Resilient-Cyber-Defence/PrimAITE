@@ -31,7 +31,7 @@ def test_WebpageUnavailablePenalty(game_and_agent):
     agent.reward_function.register_component(comp, 0.7)
 
     # Check that before trying to fetch the webpage, the reward is 0.0
-    agent.store_action(("DONOTHING", {}))
+    agent.store_action(("do_nothing", {}))
     game.step()
     assert agent.reward_function.current_reward == 0.0
 
@@ -149,7 +149,7 @@ def test_action_penalty():
     # Create an ActionPenalty Reward
     Penalty = ActionPenalty(action_penalty=-0.75, do_nothing_penalty=0.125)
 
-    # Assert that penalty is applied if action isn't DONOTHING
+    # Assert that penalty is applied if action isn't do_nothing
     reward_value = Penalty.calculate(
         state={},
         last_action_response=AgentHistoryItem(
@@ -163,12 +163,12 @@ def test_action_penalty():
 
     assert reward_value == -0.75
 
-    # Assert that no penalty applied for a DONOTHING action
+    # Assert that no penalty applied for a do_nothing action
     reward_value = Penalty.calculate(
         state={},
         last_action_response=AgentHistoryItem(
             timestep=0,
-            action="DONOTHING",
+            action="do_nothing",
             parameters={},
             request=["do_nothing"],
             response=RequestResponse.from_bool(True),
@@ -186,7 +186,7 @@ def test_action_penalty_e2e(game_and_agent):
 
     agent.reward_function.register_component(comp, 1.0)
 
-    action = ("DONOTHING", {})
+    action = ("do_nothing", {})
     agent.store_action(action)
     game.step()
     assert agent.reward_function.current_reward == 0.125

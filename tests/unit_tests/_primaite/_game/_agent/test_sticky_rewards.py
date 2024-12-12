@@ -70,7 +70,7 @@ class TestWebpageUnavailabilitySticky:
         reward = WebpageUnavailablePenalty("computer", sticky=False)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
@@ -93,7 +93,7 @@ class TestWebpageUnavailabilitySticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is not sticky, it goes back to 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
@@ -130,7 +130,7 @@ class TestWebpageUnavailabilitySticky:
         reward = WebpageUnavailablePenalty("computer", sticky=True)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
@@ -153,7 +153,7 @@ class TestWebpageUnavailabilitySticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is sticky, it stays at 1.0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
         last_action_response = AgentHistoryItem(
@@ -191,7 +191,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
         reward = GreenAdminDatabaseUnreachablePenalty("computer", sticky=False)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(
@@ -212,7 +212,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is not sticky, it goes back to 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
@@ -247,7 +247,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
         reward = GreenAdminDatabaseUnreachablePenalty("computer", sticky=True)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(
@@ -268,7 +268,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is not sticky, it goes back to 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(

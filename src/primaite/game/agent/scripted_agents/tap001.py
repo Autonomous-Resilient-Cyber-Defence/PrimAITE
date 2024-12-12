@@ -46,7 +46,7 @@ class TAP001(AbstractScriptedAgent):
         :rtype: Tuple[str, Dict]
         """
         if timestep < self.next_execution_timestep:
-            return "DONOTHING", {}
+            return "do_nothing", {}
 
         self._set_next_execution_timestep(timestep + self.agent_settings.start_settings.frequency)
 

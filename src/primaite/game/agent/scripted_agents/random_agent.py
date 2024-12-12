@@ -81,4 +81,4 @@ class PeriodicAgent(AbstractScriptedAgent):
             self._set_next_execution_timestep(timestep + self.settings.frequency, self.settings.variance)
             return "NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}
 
-        return "DONOTHING", {}
+        return "do_nothing", {}
