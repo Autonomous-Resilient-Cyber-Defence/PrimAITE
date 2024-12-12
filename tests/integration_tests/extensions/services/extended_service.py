@@ -17,12 +17,14 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class ExtendedService(Service, identifier="extendedservice"):
+class ExtendedService(Service, identifier="ExtendedService"):
     """
     A copy of DatabaseService that uses the extension framework instead of being part of PrimAITE.
 
     This class inherits from the `Service` class and provides methods to simulate a SQL database.
     """
+
+    config: "ExtendedService.ConfigSchema" = None
 
     password: Optional[str] = None
     """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
@@ -35,6 +37,11 @@ class ExtendedService(Service, identifier="extendedservice"):
 
     latest_backup_file_name: str = None
     """File name of latest backup."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for ExtendedService."""
+
+        type: str = "EXTENDED_SERVICE"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ExtendedService"

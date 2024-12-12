@@ -10,7 +10,15 @@ from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class TestSoftware(Service):
+class TestSoftware(Service, identifier="TestSoftware"):
+
+    config: "TestSoftware.ConfigSchema" = None
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSChema for TestSoftware."""
+
+        type: str = "TEST_SOFTWARE"
+
     def describe_state(self) -> Dict:
         pass
 
