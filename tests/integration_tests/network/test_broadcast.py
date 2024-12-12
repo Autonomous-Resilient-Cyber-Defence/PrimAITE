@@ -17,12 +17,12 @@ from primaite.utils.validation.port import PORT_LOOKUP
 class BroadcastTestService(Service, identifier="BroadcastTestService"):
     """A service for sending broadcast and unicast messages over a network."""
 
-    config: "BroadcastTestService.ConfigSchema"
+    config: "BroadcastTestService.ConfigSchema" = None
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for BroadcastTestService."""
 
-        type: str = "BROADCASTTESTSERVICE"
+        type: str = "BROADCAST_TEST_SERVICE"
 
     def __init__(self, **kwargs):
         # Set default service properties for broadcasting

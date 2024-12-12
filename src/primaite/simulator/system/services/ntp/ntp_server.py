@@ -14,12 +14,12 @@ _LOGGER = getLogger(__name__)
 class NTPServer(Service, identifier="NTPServer"):
     """Represents a NTP server as a service."""
 
-    config: "NTPServer.ConfigSchema"
+    config: "NTPServer.ConfigSchema" = None
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for NTPServer."""
 
-        type: str = "NTPSERVER"
+        type: str = "NTP_SERVER"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPServer"

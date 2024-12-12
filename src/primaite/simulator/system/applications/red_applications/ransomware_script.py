@@ -18,7 +18,7 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
     :ivar payload: The attack stage query payload. (Default ENCRYPT)
     """
 
-    config: "RansomwareScript.ConfigSchema"
+    config: "RansomwareScript.ConfigSchema" = None
 
     server_ip_address: Optional[IPv4Address] = None
     """IP address of node which hosts the database."""

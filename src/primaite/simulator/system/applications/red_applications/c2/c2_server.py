@@ -32,10 +32,10 @@ class C2Server(AbstractC2, identifier="C2Server"):
     1. Sending commands to the C2 Beacon. (Command input)
     2. Parsing terminal RequestResponses back to the Agent.
 
-    Please refer to the Command-&-Control notebook for an in-depth example of the C2 Suite.
+    Please refer to the Command-and-Control notebook for an in-depth example of the C2 Suite.
     """
 
-    config: "C2Server.ConfigSchema"
+    config: "C2Server.ConfigSchema" = None
 
     current_command_output: RequestResponse = None
     """The Request Response by the last command send. This attribute is updated by the method _handle_command_output."""
@@ -43,7 +43,7 @@ class C2Server(AbstractC2, identifier="C2Server"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for C2Server."""
 
-        type: str = "C2SERVER"
+        type: str = "C2_SERVER"
 
     def _init_request_manager(self) -> RequestManager:
         """

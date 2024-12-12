@@ -70,7 +70,7 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
 
     """
 
-    config: "DatabaseClient.ConfigSchema"
+    config: "DatabaseClient.ConfigSchema" = None
 
     server_ip_address: Optional[IPv4Address] = None
     """The IPv4 address of the Database Service server, defaults to None."""

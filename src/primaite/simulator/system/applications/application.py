@@ -30,7 +30,7 @@ class Application(IOSoftware):
     Applications are user-facing programs that may perform input/output operations.
     """
 
-    config: "Application.ConfigSchema"
+    config: "Application.ConfigSchema" = None
 
     operating_state: ApplicationOperatingState = ApplicationOperatingState.CLOSED
     "The current operating state of the Application."

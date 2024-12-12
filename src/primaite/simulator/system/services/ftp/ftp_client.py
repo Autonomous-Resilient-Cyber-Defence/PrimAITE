@@ -24,12 +24,12 @@ class FTPClient(FTPServiceABC, identifier="FTPClient"):
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
 
-    config: "FTPClient.ConfigSchema"
+    config: "FTPClient.ConfigSchema" = None
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for FTPClient."""
 
-        type: str = "FTPCLIENT"
+        type: str = "FTP_CLIENT"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPClient"

@@ -31,7 +31,7 @@ class ExtendedApplication(Application, identifier="ExtendedApplication"):
     The application requests and loads web pages using its domain name and requesting IP addresses using DNS.
     """
 
-    config: "ExtendedApplication.ConfigSchema"
+    config: "ExtendedApplication.ConfigSchema" = None
 
     target_url: Optional[str] = None
 
@@ -47,7 +47,7 @@ class ExtendedApplication(Application, identifier="ExtendedApplication"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for ExtendedApplication."""
 
-        type: str = "EXTENDEDAPPLICATION"
+        type: str = "EXTENDED_APPLICATION"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ExtendedApplication"

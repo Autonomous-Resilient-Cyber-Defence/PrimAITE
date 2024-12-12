@@ -16,7 +16,7 @@ _LOGGER = getLogger(__name__)
 class DNSServer(Service, identifier="DNSServer"):
     """Represents a DNS Server as a Service."""
 
-    config: "DNSServer.ConfigSchema"
+    config: "DNSServer.ConfigSchema" = None
 
     dns_table: Dict[str, IPv4Address] = {}
     "A dict of mappings between domain names and IPv4 addresses."
@@ -24,7 +24,7 @@ class DNSServer(Service, identifier="DNSServer"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for DNSServer."""
 
-        type: str = "DNSSERVER"
+        type: str = "DNS_SERVER"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DNSServer"

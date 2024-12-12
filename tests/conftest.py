@@ -40,12 +40,12 @@ _LOGGER = getLogger(__name__)
 class DummyService(Service, identifier="DummyService"):
     """Test Service class"""
 
-    config: "DummyService.ConfigSchema"
+    config: "DummyService.ConfigSchema" = None
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for DummyService."""
 
-        type: str = "DUMMYSERVICE"
+        type: str = "DUMMY_SERVICE"
 
     def describe_state(self) -> Dict:
         return super().describe_state()
@@ -63,12 +63,12 @@ class DummyService(Service, identifier="DummyService"):
 class DummyApplication(Application, identifier="DummyApplication"):
     """Test Application class"""
 
-    config: "DummyApplication.ConfigSchema"
+    config: "DummyApplication.ConfigSchema" = None
 
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for DummyApplication."""
 
-        type: str = "DUMMYAPPLICATION"
+        type: str = "DUMMY_APPLICATION"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DummyApplication"

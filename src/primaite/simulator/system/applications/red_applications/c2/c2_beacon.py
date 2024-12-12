@@ -36,7 +36,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     Please refer to the Command-and-Control notebook for an in-depth example of the C2 Suite.
     """
 
-    config: "C2Beacon.ConfigSchema"
+    config: "C2Beacon.ConfigSchema" = None
 
     keep_alive_attempted: bool = False
     """Indicates if a keep alive has been attempted to be sent this timestep. Used to prevent packet storms."""
@@ -47,7 +47,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for C2Beacon."""
 
-        type: str = "C2BEACON"
+        type: str = "C2_BEACON"
 
     @property
     def _host_terminal(self) -> Optional[Terminal]:

@@ -14,12 +14,18 @@ from primaite.utils.validation.port import PORT_LOOKUP
 from tests import TEST_ASSETS_ROOT
 
 
-class _DatabaseListener(Service):
+class _DatabaseListener(Service, identifier="_DatabaseListener"):
+    config: "_DatabaseListener.ConfigSchema" = None
     name: str = "DatabaseListener"
     protocol: str = PROTOCOL_LOOKUP["TCP"]
     port: int = PORT_LOOKUP["NONE"]
     listen_on_ports: Set[int] = {PORT_LOOKUP["POSTGRES_SERVER"]}
     payloads_received: List[Any] = Field(default_factory=list)
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for _DatabaseListener."""
+
+        type: str = "_DATABASE_LISTENER"
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         self.payloads_received.append(payload)

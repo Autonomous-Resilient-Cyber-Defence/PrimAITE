@@ -60,10 +60,10 @@ class AbstractC2(Application, identifier="AbstractC2"):
 
     Defaults to masquerading as HTTP (Port 80) via TCP.
 
-    Please refer to the Command-&-Control notebook for an in-depth example of the C2 Suite.
+    Please refer to the Command-and-Control notebook for an in-depth example of the C2 Suite.
     """
 
-    config: "AbstractC2"
+    config: "AbstractC2.ConfigSchema" = None
 
     c2_connection_active: bool = False
     """Indicates if the c2 server and c2 beacon are currently connected."""
@@ -80,7 +80,7 @@ class AbstractC2(Application, identifier="AbstractC2"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for AbstractC2."""
 
-        type: str = "ABSTRACTC2"
+        type: str = "ABSTRACT_C2"
 
     class _C2Opts(BaseModel):
         """A Pydantic Schema for the different C2 configuration options."""

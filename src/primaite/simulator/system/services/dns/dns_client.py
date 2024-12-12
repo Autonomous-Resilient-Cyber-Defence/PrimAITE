@@ -15,10 +15,16 @@ _LOGGER = getLogger(__name__)
 class DNSClient(Service):
     """Represents a DNS Client as a Service."""
 
+    config: "DNSClient.ConfigSchema" = None
     dns_cache: Dict[str, IPv4Address] = {}
     "A dict of known mappings between domain/URLs names and IPv4 addresses."
     dns_server: Optional[IPv4Address] = None
     "The DNS Server the client sends requests to."
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for DNSClient."""
+
+        type: str = "DNS_CLIENT"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DNSClient"

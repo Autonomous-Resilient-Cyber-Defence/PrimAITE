@@ -24,7 +24,7 @@ class DatabaseService(Service, identifier="DatabaseService"):
     This class inherits from the `Service` class and provides methods to simulate a SQL database.
     """
 
-    config: "DatabaseService.ConfigSchema"
+    config: "DatabaseService.ConfigSchema" = None
 
     password: Optional[str] = None
     """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
@@ -41,7 +41,7 @@ class DatabaseService(Service, identifier="DatabaseService"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for DatabaseService."""
 
-        type: str = "DATABASESERVICE"
+        type: str = "DATABASE_SERVICE"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseService"

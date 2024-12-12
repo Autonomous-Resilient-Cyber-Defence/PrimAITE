@@ -22,7 +22,7 @@ class ICMP(Service, identifier="ICMP"):
     network diagnostics, notably the ping command.
     """
 
-    config: "ICMP.ConfigSchema"
+    config: "ICMP.ConfigSchema" = None
 
     request_replies: Dict = {}
 

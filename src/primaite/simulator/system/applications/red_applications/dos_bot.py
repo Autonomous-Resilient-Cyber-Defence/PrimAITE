@@ -33,7 +33,7 @@ class DoSAttackStage(IntEnum):
 class DoSBot(DatabaseClient, identifier="DoSBot"):
     """A bot that simulates a Denial of Service attack."""
 
-    config: "DoSBot.ConfigSchema"
+    config: "DoSBot.ConfigSchema" = None
 
     target_ip_address: Optional[IPv4Address] = None
     """IP address of the target service."""
@@ -59,7 +59,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for DoSBot."""
 
-        type: str = "DOSBOT"
+        type: str = "DOS_BOT"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

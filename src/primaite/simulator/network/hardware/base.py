@@ -833,18 +833,18 @@ class UserManager(Service, identifier="UserManager"):
     :param disabled_admins: A dictionary of currently disabled admin users by their usernames
     """
 
-    config: "UserManager.ConfigSchema"
+    config: "UserManager.ConfigSchema" = None
 
     users: Dict[str, User] = {}
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for UserManager."""
 
-        type: str = "USERMANAGER"
+        type: str = "USER_MANAGER"
 
     def __init__(self, **kwargs):
         """
-        Initializes a UserManager instanc.
+        Initializes a UserManager instance.
 
         :param username: The username for the default admin user
         :param password: The password for the default admin user
@@ -1144,7 +1144,7 @@ class UserSessionManager(Service, identifier="UserSessionManager"):
     This class handles authentication, session management, and session timeouts for users interacting with the Node.
     """
 
-    config: "UserSessionManager.ConfigSchema"
+    config: "UserSessionManager.ConfigSchema" = None
 
     local_session: Optional[UserSession] = None
     """The current local user session, if any."""
@@ -1170,7 +1170,7 @@ class UserSessionManager(Service, identifier="UserSessionManager"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for UserSessionManager."""
 
-        type: str = "USERSESSIONMANAGER"
+        type: str = "USER_SESSION_MANAGER"
 
     def __init__(self, **kwargs):
         """

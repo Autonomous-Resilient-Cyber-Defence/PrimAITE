@@ -22,7 +22,7 @@ class ARP(Service, identifier="ARP"):
     sends ARP requests and replies, and processes incoming ARP packets.
     """
 
-    config: "ARP.ConfigSchema"
+    config: "ARP.ConfigSchema" = None
 
     arp: Dict[IPV4Address, ARPEntry] = {}
 
