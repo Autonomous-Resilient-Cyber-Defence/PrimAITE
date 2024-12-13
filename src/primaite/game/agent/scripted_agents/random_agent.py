@@ -53,16 +53,6 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
     next_execution_timestep: int = 0
     """Timestep of the next action execution by the agent."""
 
-    @property
-    def num_executions(self) -> int:
-        """Convenience method for accessing num_executions from config."""
-        return self.config.num_executions
-
-    @property
-    def next_execution_timestep(self) -> int:
-        """Convenience method for accessing next_execution_timestep from config."""
-        return self.config.next_execution_timestep
-
     def _set_next_execution_timestep(self, timestep: int, variance: int) -> None:
         """Set the next execution timestep with a configured random variance.
 
@@ -78,7 +68,8 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
         """Do nothing, unless the current timestep is the next execution timestep, in which case do the action."""
         if timestep == self.next_execution_timestep and self.num_executions < self.config.max_executions:
             self.num_executions += 1
-            self._set_next_execution_timestep(timestep + self.config.frequency, self.config.variance)
-            return "NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}
+            self._set_next_execution_timestep(timestep + self.frequency, self.variance)
+            self.target_node = self.action_manager.node_names[0]
+            return "node_application_execute", {"node_name": self.target_node, "application_name": 0}
 
         return "DONOTHING", {}

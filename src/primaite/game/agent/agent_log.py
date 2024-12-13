@@ -30,6 +30,7 @@ class AgentLog(BaseModel):
     agent_name: str = "unnamed_agent"
     current_episode: int = 1
     current_timestep: int = 0
+    logger: logging
 
     def __init__(self, agent_name: Optional[str]):
         """
