@@ -76,27 +76,7 @@ class ACLRemoveRuleAbstractAction(AbstractAction, identifier="acl_remove_rule_ab
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration Schema base for ACL remove rule abstract actions."""
 
-        src_ip: str
-        protocol_name: str
         position: int
-
-        @field_validator(
-            "src_ip",
-            mode="before",
-        )
-        @classmethod
-        def valid_ip(cls, v: str) -> str:
-            """Check that a valid IP has been provided for src and dst."""
-            return ipv4_validator(v)
-
-        @field_validator(
-            "protocol_name",
-            mode="before",
-        )
-        @classmethod
-        def is_valid_protocol(cls, v: str) -> bool:
-            """Check that we are using a valid protocol."""
-            return protocol_validator(v)
 
 
 class RouterACLAddRuleAction(ACLAddRuleAbstractAction, identifier="router_acl_add_rule"):

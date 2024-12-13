@@ -38,12 +38,18 @@ class DataManipulationAgent(AbstractScriptedAgent):
         :rtype: Tuple[str, Dict]
         """
         if timestep < self.next_execution_timestep:
-            self.logger.debug(msg="Performing do NOTHING")
+            self.logger.debug(msg="Performing do nothing")
             return "do_nothing", {}
 
         self._set_next_execution_timestep(timestep + self.agent_settings.start_settings.frequency)
         self.logger.info(msg="Performing a data manipulation attack!")
-        return "NODE_APPLICATION_EXECUTE", {"node_id": self.starting_node_idx, "application_id": 0}
+        self.logger.info(msg=f"Chosen to attack {self.starting_node}")
+        # TODO: Why is the application_id hardcoded to target application 0?
+        return "node_application_execute", {
+            "type": "node_application_execute",
+            "node_name": self.starting_node,
+            "application_name": "test",
+        }
 
     def setup_agent(self) -> None:
         """Set the next execution timestep when the episode resets."""
@@ -55,4 +61,5 @@ class DataManipulationAgent(AbstractScriptedAgent):
         # we are assuming that every node in the node manager has a data manipulation application at idx 0
         num_nodes = len(self.action_manager.node_names)
         self.starting_node_idx = random.randint(0, num_nodes - 1)
+        self.starting_node = self.action_manager.node_names[self.starting_node_idx]
         self.logger.debug(msg=f"Select Start Node ID: {self.starting_node_idx}")
