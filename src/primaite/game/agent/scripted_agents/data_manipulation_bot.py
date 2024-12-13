@@ -42,11 +42,11 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="Data_Manipulation_Agen
         :rtype: Tuple[str, Dict]
         """
         if timestep < self.next_execution_timestep:
-            self.config.logger.debug(msg="Performing do nothing action")
+            self.logger.debug(msg="Performing do nothing action")
             return "do_nothing", {}
 
-        self._set_next_execution_timestep(timestep + self.config.agent_settings.start_settings.frequency)
-        self.config.logger.info(msg="Performing a data manipulation attack!")
+        self._set_next_execution_timestep(timestep + self.config._agent_settings.start_settings.frequency)
+        self.logger.info(msg="Performing a data manipulation attack!")
         return "node_application_execute", {
             "node_name": self.config.starting_node_name,
             "application_name": self.config.starting_application_name,
@@ -55,4 +55,4 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="Data_Manipulation_Agen
     def setup_agent(self) -> None:
         """Set the next execution timestep when the episode resets."""
         self._select_start_node()
-        self._set_next_execution_timestep(self.config.agent_settings.start_settings.start_step)
+        self._set_next_execution_timestep(self.config._agent_settings.start_settings.start_step)

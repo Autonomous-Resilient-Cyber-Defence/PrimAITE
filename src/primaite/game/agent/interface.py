@@ -2,7 +2,7 @@
 """Interface for agents."""
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Type, TYPE_CHECKING, Union
 
 from gymnasium.core import ActType, ObsType
@@ -92,14 +92,12 @@ class AgentSettings(BaseModel):
         return cls(**config)
 
 
-class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
+class AbstractAgent(BaseModel, identifier="Abstract_Agent"):
     """Base class for scripted and RL agents."""
 
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
 
     config: "AbstractAgent.ConfigSchema"
-    agent_name: str = "Abstact_Agent"
-    logger: AgentLog = AgentLog(agent_name)
 
     class ConfigSchema(BaseModel):
         """
@@ -117,11 +115,13 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
         :type agent_settings: Optional[AgentSettings]
         """
 
+        agent_name: str = "Abstract_Agent"
         history: List[AgentHistoryItem] = []
-        action_manager: Optional[ActionManager] = None
-        observation_manager: Optional[ObservationManager] = None
-        reward_function: Optional[RewardFunction] = None
-        agent_settings: Optional[AgentSettings] = None
+        _logger: AgentLog = AgentLog(agent_name=agent_name)
+        _action_manager: Optional[ActionManager] = None
+        _observation_manager: Optional[ObservationManager] = None
+        _reward_function: Optional[RewardFunction] = None
+        _agent_settings: Optional[AgentSettings] = None
 
     def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -132,22 +132,22 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
     @property
     def logger(self) -> AgentLog:
         """Return the AgentLog."""
-        return self.config.logger
+        return self.config._logger
 
     @property
     def observation_manager(self) -> ObservationManager:
         """Returns the agents observation manager."""
-        return self.config.observation_manager
+        return self.config._observation_manager
 
     @property
     def action_manager(self) -> ActionManager:
         """Returns the agents action manager."""
-        return self.config.action_manager
+        return self.config._action_manager
 
     @property
     def reward_function(self) -> RewardFunction:
         """Returns the agents reward function."""
-        return self.config.reward_function
+        return self.config._reward_function
 
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractAgent":

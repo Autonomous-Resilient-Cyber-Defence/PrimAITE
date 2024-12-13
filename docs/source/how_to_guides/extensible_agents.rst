@@ -42,7 +42,6 @@ AbstractAgent
 
     Configurable items within a new agent within PrimAITE should contain a ``ConfigSchema`` which holds all configurable variables of the agent. This should not include parameters related to its *state*.
 
-
     .. code-block:: python
 
         class ExampleAgent(AbstractAgent, identifier = "example_agent"):
@@ -63,7 +62,7 @@ AbstractAgent
 
 #. **identifier**:
 
-    All agent classes should have a unique ``identifier`` attribute, for when they are added to the base ``AbstractAgent`` registry. PrimAITE notation is for these to be written in snake_case
+    All agent classes should have a ``identifier`` attribute, a unique snake_case string, for when they are added to the base ``AbstractAgent`` registry.
 
 Changes to YAML file
 ====================
