@@ -31,27 +31,27 @@ class RandomAgent(AbstractScriptedAgent, identifier="Random_Agent"):
 class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
     """Agent that does nothing most of the time, but executes application at regular intervals (with variance)."""
 
-    config: "PeriodicAgent.ConfigSchema"
+    config: "PeriodicAgent.ConfigSchema" = {}
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Periodic Agent."""
 
-        agent_name = "Periodic_Agent"
-        """Name of the agent."""
-        start_step: int = 20
-        "The timestep at which an agent begins performing it's actions."
-        start_variance: int = 5
-        "Deviation around the start step."
-        frequency: int = 5
-        "The number of timesteps to wait between performing actions."
-        variance: int = 0
-        "The amount the frequency can randomly change to."
-        max_executions: int = 999999
-        "Maximum number of times the agent can execute its action."
-        num_executions: int = 0
-        """Number of times the agent has executed an action."""
-        next_execution_timestep: int = 0
-        """Timestep of the next action execution by the agent."""
+    agent_name = "Periodic_Agent"
+    """Name of the agent."""
+    start_step: int = 20
+    "The timestep at which an agent begins performing it's actions."
+    start_variance: int = 5
+    "Deviation around the start step."
+    frequency: int = 5
+    "The number of timesteps to wait between performing actions."
+    variance: int = 0
+    "The amount the frequency can randomly change to."
+    max_executions: int = 999999
+    "Maximum number of times the agent can execute its action."
+    num_executions: int = 0
+    """Number of times the agent has executed an action."""
+    next_execution_timestep: int = 0
+    """Timestep of the next action execution by the agent."""
 
     @property
     def num_executions(self) -> int:

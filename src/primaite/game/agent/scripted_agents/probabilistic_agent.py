@@ -14,11 +14,11 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="Probabilistic_Agent"
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
     config: "ProbabilisticAgent.ConfigSchema"
+    agent_name: str = "Probabilistic_Agent"
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration schema for Probabilistic Agent."""
 
-        agent_name: str = "Probabilistic_Agent"
         action_space: ActionManager
         action_probabilities: Dict[int, float]
         """Probability to perform each action in the action map. The sum of probabilities should sum to 1."""

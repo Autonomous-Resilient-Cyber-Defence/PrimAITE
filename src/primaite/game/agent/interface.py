@@ -98,6 +98,8 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
 
     config: "AbstractAgent.ConfigSchema"
+    agent_name: str = "Abstact_Agent"
+    logger: AgentLog = AgentLog(agent_name)
 
     class ConfigSchema(BaseModel):
         """
@@ -115,9 +117,6 @@ class AbstractAgent(BaseModel, ABC, identifier="Abstract_Agent"):
         :type agent_settings: Optional[AgentSettings]
         """
 
-        type: str
-        agent_name: str = "Abstact_Agent"
-        logger: AgentLog = AgentLog(agent_name)
         history: List[AgentHistoryItem] = []
         action_manager: Optional[ActionManager] = None
         observation_manager: Optional[ObservationManager] = None

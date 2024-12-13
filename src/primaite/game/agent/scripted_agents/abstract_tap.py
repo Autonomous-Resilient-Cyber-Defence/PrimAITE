@@ -11,11 +11,11 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
     """Base class for TAP agents to inherit from."""
 
     config: "AbstractTAPAgent.ConfigSchema"
+    agent_name: str = "Abstract_TAP"
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration schema for Abstract TAP agents."""
 
-        agent_name: str = "Abstract_TAP"
         starting_node_name: str
         next_execution_timestep: int
 
@@ -40,4 +40,4 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
         num_nodes = len(self.config.action_manager.node_names)
         starting_node_idx = random.randint(0, num_nodes - 1)
         self.starting_node_name = self.config.action_manager.node_names[starting_node_idx]
-        self.config.logger.debug(f"Selected Starting node ID: {self.starting_node_name}")
+        self.logger.debug(f"Selected Starting node ID: {self.starting_node_name}")

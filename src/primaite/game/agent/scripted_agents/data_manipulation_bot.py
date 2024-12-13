@@ -10,15 +10,15 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="Data_Manipulation_Agen
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
 
     config: "DataManipulationAgent.ConfigSchema"
+    agent_name: str = "Data_Manipulation_Agent"
 
     class ConfigSchema(AbstractTAPAgent.ConfigSchema):
         """Configuration Schema for DataManipulationAgent."""
 
         starting_application_name: str
-        agent_name: str = "Data_Manipulation_Agent"
 
     def __init__(self) -> None:
-        """Meh."""
+        """Initialise DataManipulationAgent."""
         self.setup_agent()
 
     @property
