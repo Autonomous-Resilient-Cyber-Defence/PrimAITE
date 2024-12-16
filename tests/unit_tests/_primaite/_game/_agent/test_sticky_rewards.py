@@ -1,11 +1,11 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
-from primaite.game.agent.interface import AgentHistoryItem
 from primaite.game.agent.rewards import (
     GreenAdminDatabaseUnreachablePenalty,
     WebpageUnavailablePenalty,
     WebServer404Penalty,
 )
+from primaite.game.agent.scripted_agents.interface import AgentHistoryItem
 from primaite.interface.request import RequestResponse
 
 

@@ -6,8 +6,8 @@ from typing import Union
 import yaml
 
 from primaite.config.load import data_manipulation_config_path
-from primaite.game.agent.interface import ProxyAgent
 from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
+from primaite.game.agent.scripted_agents.interface import ProxyAgent
 from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
 from primaite.game.game import PrimaiteGame, SERVICE_TYPES_MAPPING
 from primaite.simulator.network.container import Network

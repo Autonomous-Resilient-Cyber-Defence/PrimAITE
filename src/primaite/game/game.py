@@ -8,9 +8,9 @@ from pydantic import BaseModel, ConfigDict
 
 from primaite import DEFAULT_BANDWIDTH, getLogger
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, ProxyAgent
 from primaite.game.agent.observations.observation_manager import ObservationManager
 from primaite.game.agent.rewards import RewardFunction, SharedReward
+from primaite.game.agent.scripted_agents.interface import AbstractAgent, ProxyAgent
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.creation import NetworkNodeAdder
@@ -549,6 +549,8 @@ class PrimaiteGame:
                 {"action_manager": action_space, "observation_manager": obs_space, "reward_function": reward_function}
             )
             # new_agent_cfg.update{}
+            print(AbstractAgent._registry)
+
             if agent_type in AbstractAgent._registry:
                 new_agent = AbstractAgent._registry[agent_cfg["type"]].from_config(config=agent_config)
                 # If blue agent is created, add to game.rl_agents

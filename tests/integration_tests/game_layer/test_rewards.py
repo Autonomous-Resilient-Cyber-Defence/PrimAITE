@@ -2,8 +2,8 @@
 import pytest
 import yaml
 
-from primaite.game.agent.interface import AgentHistoryItem
 from primaite.game.agent.rewards import ActionPenalty, GreenAdminDatabaseUnreachablePenalty, WebpageUnavailablePenalty
+from primaite.game.agent.scripted_agents.interface import AgentHistoryItem
 from primaite.game.game import PrimaiteGame
 from primaite.interface.request import RequestResponse
 from primaite.session.environment import PrimaiteGymEnv

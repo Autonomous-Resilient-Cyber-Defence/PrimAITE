@@ -24,7 +24,7 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="Data_Manipulation_Agen
     @property
     def next_execution_timestep(self) -> int:
         """Returns the agents next execution timestep."""
-        return self.config.next_execution_timestep
+        return self._next_execution_timestep
 
     @property
     def starting_node_name(self) -> str:

@@ -5,7 +5,7 @@ from typing import Tuple
 import pytest
 import yaml
 
-from primaite.game.agent.interface import ProxyAgent
+from primaite.game.agent.scripted_agents.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.network.container import Network

@@ -4,7 +4,7 @@ from typing import Dict, Tuple
 
 from gymnasium.core import ObsType
 
-from primaite.game.agent.interface import AbstractScriptedAgent
+from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent
 
 
 class RandomAgent(AbstractScriptedAgent, identifier="Random_Agent"):

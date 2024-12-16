@@ -7,14 +7,14 @@ import pydantic
 from gymnasium.core import ObsType
 
 from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractScriptedAgent
+from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent
 
 
-class ProbabilisticAgent(AbstractScriptedAgent, identifier="Probabilistic_Agent"):
+class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent"):
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
     config: "ProbabilisticAgent.ConfigSchema"
-    agent_name: str = "Probabilistic_Agent"
+    agent_name: str = "ProbabilisticAgent"
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration schema for Probabilistic Agent."""
@@ -42,10 +42,11 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="Probabilistic_Agent"
                 )
             return v
 
-    def __init__(self) -> None:
-        rng_seed = np.random.randint(0, 65535)
-        self.rng = np.random.default_rng(rng_seed)
-        self.logger.debug(f"ProbabilisticAgent RNG seed: {rng_seed}")
+    # def __init__(self, **kwargs) -> None:
+    #     rng_seed = np.random.randint(0, 65535)
+    #     self.rng = np.random.default_rng(rng_seed)
+    #     self.logger.debug(f"ProbabilisticAgent RNG seed: {rng_seed}")
+    #     super().__init_subclass__(**kwargs)
 
     @property
     def probabilities(self) -> Dict[str, int]:

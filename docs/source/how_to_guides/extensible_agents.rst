@@ -69,4 +69,7 @@ Changes to YAML file
 
 Agent configurations specified within YAML files used for earlier versions of PrimAITE will need updating to be compatible with PrimAITE v4.0.0+.
 
+Agents now follow a more standardised settings definition, so should be more consistent across YAML.
+
+
 # TODO: Show changes to YAML config needed here

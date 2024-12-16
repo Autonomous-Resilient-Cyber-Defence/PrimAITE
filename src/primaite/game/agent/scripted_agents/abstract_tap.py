@@ -3,8 +3,11 @@ from __future__ import annotations
 
 import random
 from abc import abstractmethod
+from typing import Dict, Tuple
 
-from primaite.game.agent.interface import AbstractScriptedAgent
+from gymnasium.core import ObsType
+
+from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent
 
 
 class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
@@ -12,12 +15,17 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
 
     config: "AbstractTAPAgent.ConfigSchema"
     agent_name: str = "Abstract_TAP"
+    _next_execution_timestep: int
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration schema for Abstract TAP agents."""
 
         starting_node_name: str
-        next_execution_timestep: int
+
+    @abstractmethod
+    def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
+        """Return an action to be taken in the environment."""
+        return super().get_action(obs=obs, timestep=timestep)
 
     @abstractmethod
     def setup_agent(self) -> None:
@@ -32,7 +40,7 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
         random_timestep_increment = random.randint(
             -self.config.agent_settings.start_settings.variance, self.config.agent_settings.start_settings.variance
         )
-        self.config.next_execution_timestep = timestep + random_timestep_increment
+        self._next_execution_timestep = timestep + random_timestep_increment
 
     def _select_start_node(self) -> None:
         """Set the starting starting node of the agent to be a random node from this agent's action manager."""

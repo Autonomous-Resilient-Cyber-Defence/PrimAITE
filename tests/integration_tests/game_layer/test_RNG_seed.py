@@ -5,7 +5,7 @@ import pytest
 import yaml
 
 from primaite.config.load import data_manipulation_config_path
-from primaite.game.agent.interface import AgentHistoryItem
+from primaite.game.agent.scripted_agents.interface import AgentHistoryItem
 from primaite.session.environment import PrimaiteGymEnv
 
 

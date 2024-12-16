@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Type, TYPE_CHECKING, Union
+from typing import Any, ClassVar, Dict, List, Optional, Tuple, Type, TYPE_CHECKING
 
 from gymnasium.core import ActType, ObsType
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.agent_log import AgentLog
@@ -92,7 +92,7 @@ class AgentSettings(BaseModel):
         return cls(**config)
 
 
-class AbstractAgent(BaseModel, identifier="Abstract_Agent"):
+class AbstractAgent(BaseModel):
     """Base class for scripted and RL agents."""
 
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
@@ -116,6 +116,7 @@ class AbstractAgent(BaseModel, identifier="Abstract_Agent"):
         """
 
         agent_name: str = "Abstract_Agent"
+        model_config = ConfigDict(extra="forbid")
         history: List[AgentHistoryItem] = []
         _logger: AgentLog = AgentLog(agent_name=agent_name)
         _action_manager: Optional[ActionManager] = None
@@ -124,10 +125,10 @@ class AbstractAgent(BaseModel, identifier="Abstract_Agent"):
         _agent_settings: Optional[AgentSettings] = None
 
     def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
         if identifier in cls._registry:
             raise ValueError(f"Cannot create a new agent under reserved name {identifier}")
         cls._registry[identifier] = cls
+        super().__init_subclass__(**kwargs)
 
     @property
     def logger(self) -> AgentLog:
@@ -218,6 +219,8 @@ class AbstractAgent(BaseModel, identifier="Abstract_Agent"):
 class AbstractScriptedAgent(AbstractAgent, identifier="Abstract_Scripted_Agent"):
     """Base class for actors which generate their own behaviour."""
 
+    config: "AbstractScriptedAgent.ConfigSchema"
+
     class ConfigSchema(AbstractAgent.ConfigSchema):
         """Configuration Schema for AbstractScriptedAgents."""
 
@@ -233,20 +236,20 @@ class ProxyAgent(AbstractAgent, identifier="Proxy_Agent"):
     """Agent that sends observations to an RL model and receives actions from that model."""
 
     config: "ProxyAgent.ConfigSchema"
+    _most_recent_action: ActType
 
     class ConfigSchema(AbstractAgent.ConfigSchema):
         """Configuration Schema for Proxy Agent."""
 
         agent_name: str = "Proxy_Agent"
-        agent_settings = Union[AgentSettings | None] = None
-        most_reason_action: ActType
+        agent_settings: AgentSettings = None
         flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False
         action_masking: bool = agent_settings.action_masking if agent_settings else False
 
     @property
     def most_recent_action(self) -> ActType:
         """Convenience method to access the agents most recent action."""
-        return self.config.most_recent_action
+        return self._most_recent_action
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
