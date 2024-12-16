@@ -13,7 +13,7 @@ class RandomAgent(AbstractScriptedAgent, identifier="Random_Agent"):
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Random Agents."""
 
-        agent_name = "Random_Agent"
+        agent_name: str = "Random_Agent"
 
     def get_action(self) -> Tuple[str, Dict]:
         """Sample the action space randomly.
@@ -36,7 +36,7 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Periodic Agent."""
 
-    agent_name = "Periodic_Agent"
+    agent_name: str = "Periodic_Agent"
     """Name of the agent."""
     start_step: int = 20
     "The timestep at which an agent begins performing it's actions."

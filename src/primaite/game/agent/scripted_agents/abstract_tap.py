@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import random
 from abc import abstractmethod
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from gymnasium.core import ObsType
 
-from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent
+from primaite.game.agent.scripted_agents.interface import AbstractAgent, AbstractScriptedAgent
 
 
 class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
@@ -20,7 +20,7 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration schema for Abstract TAP agents."""
 
-        starting_node_name: str
+        starting_node_name: Optional[str] = None
 
     @abstractmethod
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:

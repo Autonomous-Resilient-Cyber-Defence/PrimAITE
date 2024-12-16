@@ -1,12 +1,12 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from typing import Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from gymnasium.core import ObsType
 
 from primaite.game.agent.scripted_agents.abstract_tap import AbstractTAPAgent
 
 
-class DataManipulationAgent(AbstractTAPAgent, identifier="Data_Manipulation_Agent"):
+class DataManipulationAgent(AbstractTAPAgent, identifier="RedDatabaseCorruptingAgent"):
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
 
     config: "DataManipulationAgent.ConfigSchema"
@@ -14,12 +14,12 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="Data_Manipulation_Agen
 
     class ConfigSchema(AbstractTAPAgent.ConfigSchema):
         """Configuration Schema for DataManipulationAgent."""
+        starting_application_name: Optional[str] = None
 
-        starting_application_name: str
-
-    def __init__(self) -> None:
-        """Initialise DataManipulationAgent."""
-        self.setup_agent()
+    # def __init__(self, **kwargs: Any) -> None:
+    #     """Initialise DataManipulationAgent."""
+    #     # self.setup_agent()
+    #     super().__init_subclass__(**kwargs)
 
     @property
     def next_execution_timestep(self) -> int:
@@ -41,11 +41,15 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="Data_Manipulation_Agen
         :return: Action formatted in CAOS format
         :rtype: Tuple[str, Dict]
         """
+        if self.starting_node_name or self.config is None:
+            self.setup_agent()
+            self.get_action(obs=obs, timestep=timestep)
+
         if timestep < self.next_execution_timestep:
             self.logger.debug(msg="Performing do nothing action")
             return "do_nothing", {}
 
-        self._set_next_execution_timestep(timestep + self.config._agent_settings.start_settings.frequency)
+        self._set_next_execution_timestep(timestep + self.config.agent_settings.start_settings.frequency)
         self.logger.info(msg="Performing a data manipulation attack!")
         return "node_application_execute", {
             "node_name": self.config.starting_node_name,
@@ -55,4 +59,4 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="Data_Manipulation_Agen
     def setup_agent(self) -> None:
         """Set the next execution timestep when the episode resets."""
         self._select_start_node()
-        self._set_next_execution_timestep(self.config._agent_settings.start_settings.start_step)
+        self._set_next_execution_timestep(self.config.agent_settings.start_settings.start_step)

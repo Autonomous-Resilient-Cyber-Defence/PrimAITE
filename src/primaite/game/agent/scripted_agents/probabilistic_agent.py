@@ -1,28 +1,23 @@
 # © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 """Agents with predefined behaviours."""
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 import numpy as np
 import pydantic
 from gymnasium.core import ObsType
 
-from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent
+from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent, AgentSettings
 
 
 class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent"):
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
     config: "ProbabilisticAgent.ConfigSchema"
-    agent_name: str = "ProbabilisticAgent"
+    rng: Any = np.random.default_rng(np.random.randint(0, 65535))
 
-    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
-        """Configuration schema for Probabilistic Agent."""
-
-        action_space: ActionManager
+    class AgentSettings(AgentSettings):
         action_probabilities: Dict[int, float]
         """Probability to perform each action in the action map. The sum of probabilities should sum to 1."""
-
         @pydantic.field_validator("action_probabilities", mode="after")
         @classmethod
         def probabilities_sum_to_one(cls, v: Dict[int, float]) -> Dict[int, float]:
@@ -42,16 +37,17 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent")
                 )
             return v
 
-    # def __init__(self, **kwargs) -> None:
-    #     rng_seed = np.random.randint(0, 65535)
-    #     self.rng = np.random.default_rng(rng_seed)
-    #     self.logger.debug(f"ProbabilisticAgent RNG seed: {rng_seed}")
-    #     super().__init_subclass__(**kwargs)
+    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+        """Configuration schema for Probabilistic Agent."""
+
+        agent_name: str = "ProbabilisticAgent"
+        agent_settings: "ProbabilisticAgent.AgentSettings"
+
 
     @property
     def probabilities(self) -> Dict[str, int]:
         """Convenience method to view the probabilities of the Agent."""
-        return np.asarray(list(self.config.action_probabilities.values()))
+        return np.asarray(list(self.config.agent_settings.action_probabilities.values()))
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """

@@ -174,7 +174,7 @@ class PrimaiteGame:
             obs = agent.observation_manager.current_observation
             action_choice, parameters = agent.get_action(obs, timestep=self.step_counter)
             if SIM_OUTPUT.save_agent_logs:
-                agent.config.logger.debug(f"Chosen Action: {action_choice}")
+                agent.logger.debug(f"Chosen Action: {action_choice}")
             request = agent.format_request(action_choice, parameters)
             response = self.simulation.apply_request(request)
             agent.process_action_response(
@@ -544,14 +544,20 @@ class PrimaiteGame:
 
             # CREATE AGENT
 
-            agent_config = agent_cfg.get("agent_settings", {})
-            agent_config.update(
-                {"action_manager": action_space, "observation_manager": obs_space, "reward_function": reward_function}
-            )
-            # new_agent_cfg.update{}
-            print(AbstractAgent._registry)
+            agent_settings = agent_cfg["agent_settings"]
+            agent_config = {
+                "agent_name": agent_ref,
+                "action_manager": action_space,
+                "observation_manager": obs_space,
+                "reward_function": reward_function,
+                "agent_settings": agent_settings,
+            }
 
+            # new_agent_cfg.update{}
             if agent_type in AbstractAgent._registry:
+                print(agent_type)
+                print(agent_config)
+                print(AbstractAgent._registry)
                 new_agent = AbstractAgent._registry[agent_cfg["type"]].from_config(config=agent_config)
                 # If blue agent is created, add to game.rl_agents
                 if agent_type == "ProxyAgent":

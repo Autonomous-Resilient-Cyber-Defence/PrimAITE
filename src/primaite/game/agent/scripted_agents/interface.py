@@ -115,14 +115,14 @@ class AbstractAgent(BaseModel):
         :type agent_settings: Optional[AgentSettings]
         """
 
-        agent_name: str = "Abstract_Agent"
-        model_config = ConfigDict(extra="forbid")
+        model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+        agent_name: Optional[str] = "Abstract_Agent"
         history: List[AgentHistoryItem] = []
         _logger: AgentLog = AgentLog(agent_name=agent_name)
-        _action_manager: Optional[ActionManager] = None
-        _observation_manager: Optional[ObservationManager] = None
-        _reward_function: Optional[RewardFunction] = None
-        _agent_settings: Optional[AgentSettings] = None
+        action_manager: ActionManager
+        observation_manager: ObservationManager
+        reward_function: RewardFunction
+        agent_settings: Optional[AgentSettings] = None
 
     def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
         if identifier in cls._registry:
@@ -138,17 +138,17 @@ class AbstractAgent(BaseModel):
     @property
     def observation_manager(self) -> ObservationManager:
         """Returns the agents observation manager."""
-        return self.config._observation_manager
+        return self.config.observation_manager
 
     @property
     def action_manager(self) -> ActionManager:
         """Returns the agents action manager."""
-        return self.config._action_manager
+        return self.config.action_manager
 
     @property
     def reward_function(self) -> RewardFunction:
         """Returns the agents reward function."""
-        return self.config._reward_function
+        return self.config.reward_function
 
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractAgent":
@@ -232,7 +232,7 @@ class AbstractScriptedAgent(AbstractAgent, identifier="Abstract_Scripted_Agent")
         return super().get_action(obs=obs, timestep=timestep)
 
 
-class ProxyAgent(AbstractAgent, identifier="Proxy_Agent"):
+class ProxyAgent(AbstractAgent, identifier="ProxyAgent"):
     """Agent that sends observations to an RL model and receives actions from that model."""
 
     config: "ProxyAgent.ConfigSchema"
