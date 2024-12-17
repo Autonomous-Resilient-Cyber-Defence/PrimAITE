@@ -136,6 +136,15 @@ class AbstractAgent(BaseModel):
         return self.config._logger
 
     @property
+    def flatten_obs(self) -> bool:
+        return self.config.agent_settings.flatten_obs
+
+    @property
+    def history(self) -> List[AgentHistoryItem]:
+        """Return the agent history"""
+        return self.config.history
+
+    @property
     def observation_manager(self) -> ObservationManager:
         """Returns the agents observation manager."""
         return self.config.observation_manager
@@ -236,7 +245,7 @@ class ProxyAgent(AbstractAgent, identifier="ProxyAgent"):
     """Agent that sends observations to an RL model and receives actions from that model."""
 
     config: "ProxyAgent.ConfigSchema"
-    _most_recent_action: ActType
+    most_recent_action: ActType = None
 
     class ConfigSchema(AbstractAgent.ConfigSchema):
         """Configuration Schema for Proxy Agent."""
@@ -246,10 +255,10 @@ class ProxyAgent(AbstractAgent, identifier="ProxyAgent"):
         flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False
         action_masking: bool = agent_settings.action_masking if agent_settings else False
 
-    @property
-    def most_recent_action(self) -> ActType:
-        """Convenience method to access the agents most recent action."""
-        return self._most_recent_action
+    # @property
+    # def most_recent_action(self) -> ActType:
+    #     """Convenience method to access the agents most recent action."""
+    #     return self._most_recent_action
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """

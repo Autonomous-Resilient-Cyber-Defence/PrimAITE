@@ -14,17 +14,13 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="RedDatabaseCorruptingA
 
     class ConfigSchema(AbstractTAPAgent.ConfigSchema):
         """Configuration Schema for DataManipulationAgent."""
+
         starting_application_name: Optional[str] = None
 
     # def __init__(self, **kwargs: Any) -> None:
     #     """Initialise DataManipulationAgent."""
-    #     # self.setup_agent()
+    #     self.setup_agent()
     #     super().__init_subclass__(**kwargs)
-
-    @property
-    def next_execution_timestep(self) -> int:
-        """Returns the agents next execution timestep."""
-        return self._next_execution_timestep
 
     @property
     def starting_node_name(self) -> str:

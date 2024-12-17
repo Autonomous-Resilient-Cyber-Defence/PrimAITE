@@ -47,6 +47,8 @@ agents:
         start_step: 25
         frequency: 20
         variance: 5
+      action_probabilities:
+        0: 1.0
 
   - ref: data_manipulation_attacker
     team: RED

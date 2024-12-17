@@ -15,12 +15,17 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
 
     config: "AbstractTAPAgent.ConfigSchema"
     agent_name: str = "Abstract_TAP"
-    _next_execution_timestep: int
+    next_execution_timestep: int = 0
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration schema for Abstract TAP agents."""
 
         starting_node_name: Optional[str] = None
+
+    # @property
+    # def next_execution_timestep(self) -> int:
+    #     """Returns the agents next execution timestep."""
+    #     return self.next_execution_timestep
 
     @abstractmethod
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
@@ -40,7 +45,7 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
         random_timestep_increment = random.randint(
             -self.config.agent_settings.start_settings.variance, self.config.agent_settings.start_settings.variance
         )
-        self._next_execution_timestep = timestep + random_timestep_increment
+        self.next_execution_timestep = timestep + random_timestep_increment
 
     def _select_start_node(self) -> None:
         """Set the starting starting node of the agent to be a random node from this agent's action manager."""
