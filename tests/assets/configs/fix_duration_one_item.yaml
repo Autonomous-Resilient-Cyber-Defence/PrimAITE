@@ -60,7 +60,9 @@ agents:
         start_step: 5
         frequency: 4
         variance: 3
-
+      action_probabilities:
+        0: 0.4
+        1: 0.6
 
 
   - ref: defender

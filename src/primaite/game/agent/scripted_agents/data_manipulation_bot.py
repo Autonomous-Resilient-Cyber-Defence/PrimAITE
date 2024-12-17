@@ -5,6 +5,7 @@ from gymnasium.core import ObsType
 
 from primaite.game.agent.scripted_agents.abstract_tap import AbstractTAPAgent
 
+__all__ = ("DataManipulationAgent")
 
 class DataManipulationAgent(AbstractTAPAgent, identifier="RedDatabaseCorruptingAgent"):
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
@@ -16,11 +17,6 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="RedDatabaseCorruptingA
         """Configuration Schema for DataManipulationAgent."""
 
         starting_application_name: Optional[str] = None
-
-    # def __init__(self, **kwargs: Any) -> None:
-    #     """Initialise DataManipulationAgent."""
-    #     self.setup_agent()
-    #     super().__init_subclass__(**kwargs)
 
     @property
     def starting_node_name(self) -> str:

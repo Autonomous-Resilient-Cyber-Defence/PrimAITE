@@ -9,6 +9,7 @@ from gymnasium.core import ObsType
 
 from primaite.game.agent.scripted_agents.interface import AbstractAgent, AbstractScriptedAgent
 
+__all__ = ("AbstractTAPAgent")
 
 class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
     """Base class for TAP agents to inherit from."""
@@ -21,11 +22,6 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
         """Configuration schema for Abstract TAP agents."""
 
         starting_node_name: Optional[str] = None
-
-    # @property
-    # def next_execution_timestep(self) -> int:
-    #     """Returns the agents next execution timestep."""
-    #     return self.next_execution_timestep
 
     @abstractmethod
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:

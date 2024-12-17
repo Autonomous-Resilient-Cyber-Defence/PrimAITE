@@ -8,6 +8,7 @@ from gymnasium.core import ObsType
 
 from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent, AgentSettings
 
+__all__ = ("ProbabilisticAgent")
 
 class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent"):
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""

@@ -17,6 +17,11 @@ from primaite.interface.request import RequestFormat, RequestResponse
 if TYPE_CHECKING:
     pass
 
+__all__ = ("AgentHistoryItem",
+           "AgentStartSettings",
+           "AbstractAgent",
+           "AbstractScriptedAgent",
+           "ProxyAgent")
 
 class AgentHistoryItem(BaseModel):
     """One entry of an agent's action log - what the agent did and how the simulator responded in 1 step."""
@@ -116,7 +121,7 @@ class AbstractAgent(BaseModel):
         """
 
         model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-        agent_name: Optional[str] = "Abstract_Agent"
+        agent_name: ClassVar[str] = "Abstract_Agent" # TODO: Make this a ClassVar[str] like verb in actions?
         history: List[AgentHistoryItem] = []
         _logger: AgentLog = AgentLog(agent_name=agent_name)
         action_manager: ActionManager
