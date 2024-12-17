@@ -497,12 +497,11 @@ def game_and_agent():
     observation_space = ObservationManager(NestedObservation(components={}))
     reward_function = RewardFunction()
 
-
     config = {
-        "agent_name":"test_agent",
-        "action_manager":action_space,
-        "observation_manager":observation_space,
-        "reward_function":reward_function,
+        "agent_name": "test_agent",
+        "action_manager": action_space,
+        "observation_manager": observation_space,
+        "reward_function": reward_function,
     }
 
     test_agent = ControlledAgent.from_config(config=config)

@@ -7,9 +7,10 @@ from typing import Dict, Optional, Tuple
 
 from gymnasium.core import ObsType
 
-from primaite.game.agent.scripted_agents.interface import AbstractAgent, AbstractScriptedAgent
+from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent
 
-__all__ = ("AbstractTAPAgent")
+__all__ = "AbstractTAPAgent"
+
 
 class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
     """Base class for TAP agents to inherit from."""

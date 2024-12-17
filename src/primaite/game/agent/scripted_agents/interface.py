@@ -17,11 +17,8 @@ from primaite.interface.request import RequestFormat, RequestResponse
 if TYPE_CHECKING:
     pass
 
-__all__ = ("AgentHistoryItem",
-           "AgentStartSettings",
-           "AbstractAgent",
-           "AbstractScriptedAgent",
-           "ProxyAgent")
+__all__ = ("AgentHistoryItem", "AgentStartSettings", "AbstractAgent", "AbstractScriptedAgent", "ProxyAgent")
+
 
 class AgentHistoryItem(BaseModel):
     """One entry of an agent's action log - what the agent did and how the simulator responded in 1 step."""
@@ -121,7 +118,7 @@ class AbstractAgent(BaseModel):
         """
 
         model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-        agent_name: ClassVar[str] = "Abstract_Agent" # TODO: Make this a ClassVar[str] like verb in actions?
+        agent_name: ClassVar[str] = "Abstract_Agent"  # TODO: Make this a ClassVar[str] like verb in actions?
         history: List[AgentHistoryItem] = []
         _logger: AgentLog = AgentLog(agent_name=agent_name)
         action_manager: ActionManager
@@ -142,11 +139,12 @@ class AbstractAgent(BaseModel):
 
     @property
     def flatten_obs(self) -> bool:
+        """Return agent flatten_obs param."""
         return self.config.agent_settings.flatten_obs
 
     @property
     def history(self) -> List[AgentHistoryItem]:
-        """Return the agent history"""
+        """Return the agent history."""
         return self.config.history
 
     @property

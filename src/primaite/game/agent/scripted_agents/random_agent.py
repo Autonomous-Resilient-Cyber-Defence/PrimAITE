@@ -8,6 +8,7 @@ from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent
 
 __all__ = ("RandomAgent", "PeriodicAgent")
 
+
 class RandomAgent(AbstractScriptedAgent, identifier="Random_Agent"):
     """Agent that ignores its observation and acts completely at random."""
 
@@ -45,11 +46,11 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
     "The timestep at which an agent begins performing it's actions."
     start_variance: int = 5
     "Deviation around the start step."
-    
+
     # TODO: This is available in config.agent_settings.start_settings.frequency
     frequency: int = 5
     "The number of timesteps to wait between performing actions."
-    
+
     # TODO: This is available in config.agent_settings.start_settings.variance
     variance: int = 0
     "The amount the frequency can randomly change to."
@@ -57,7 +58,7 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
     "Maximum number of times the agent can execute its action."
     num_executions: int = 0
     """Number of times the agent has executed an action."""
-    #TODO: Also in abstract_tap - move up and inherit? Add to AgentStartSettings?
+    # TODO: Also in abstract_tap - move up and inherit? Add to AgentStartSettings?
     next_execution_timestep: int = 0
     """Timestep of the next action execution by the agent."""
 

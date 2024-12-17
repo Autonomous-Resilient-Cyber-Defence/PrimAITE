@@ -65,13 +65,15 @@ def test_probabilistic_agent():
     #     },
     # )
 
-    pa_config = {"agent_name":"test_agent",
-                 "action_manager": action_space,
-                 "observation_manager": observation_space,
-                 "reward_function": reward_function,
-                 "agent_settings": {
-                     "action_probabilities": {0: P_DO_NOTHING, 1: P_NODE_APPLICATION_EXECUTE, 2: P_NODE_FILE_DELETE},
-                 }}
+    pa_config = {
+        "agent_name": "test_agent",
+        "action_manager": action_space,
+        "observation_manager": observation_space,
+        "reward_function": reward_function,
+        "agent_settings": {
+            "action_probabilities": {0: P_DO_NOTHING, 1: P_NODE_APPLICATION_EXECUTE, 2: P_NODE_FILE_DELETE},
+        },
+    }
 
     pa = ProbabilisticAgent.from_config(config=pa_config)
 

@@ -8,7 +8,8 @@ from gymnasium.core import ObsType
 
 from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent, AgentSettings
 
-__all__ = ("ProbabilisticAgent")
+__all__ = "ProbabilisticAgent"
+
 
 class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent"):
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
@@ -17,8 +18,11 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent")
     rng: Any = np.random.default_rng(np.random.randint(0, 65535))
 
     class AgentSettings(AgentSettings):
+        """ProbabilisticAgent settings."""
+
         action_probabilities: Dict[int, float]
         """Probability to perform each action in the action map. The sum of probabilities should sum to 1."""
+
         @pydantic.field_validator("action_probabilities", mode="after")
         @classmethod
         def probabilities_sum_to_one(cls, v: Dict[int, float]) -> Dict[int, float]:
@@ -43,7 +47,6 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent")
 
         agent_name: str = "ProbabilisticAgent"
         agent_settings: "ProbabilisticAgent.AgentSettings"
-
 
     @property
     def probabilities(self) -> Dict[str, int]:
