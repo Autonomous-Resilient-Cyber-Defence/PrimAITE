@@ -92,6 +92,9 @@ agents:
     reward_function:
       reward_components:
         - type: DUMMY
+    agent_settings:
+      flatten_obs: True
+      action_masking: False
 
 simulation:
   network:

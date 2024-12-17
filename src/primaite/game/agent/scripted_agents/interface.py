@@ -260,11 +260,6 @@ class ProxyAgent(AbstractAgent, identifier="ProxyAgent"):
         flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False
         action_masking: bool = agent_settings.action_masking if agent_settings else False
 
-    # @property
-    # def most_recent_action(self) -> ActType:
-    #     """Convenience method to access the agents most recent action."""
-    #     return self._most_recent_action
-
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
         Return the agent's most recent action, formatted in CAOS format.
