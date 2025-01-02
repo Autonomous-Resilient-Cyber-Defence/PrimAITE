@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 """Test that we can create a primaite environment and train sb3 agent with no crash."""
 import tempfile
 from pathlib import Path

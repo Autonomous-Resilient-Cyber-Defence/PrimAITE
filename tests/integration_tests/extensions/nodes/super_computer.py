@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import ClassVar, Dict
 
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode, NIC

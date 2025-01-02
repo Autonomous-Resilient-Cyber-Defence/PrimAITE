@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 # some test cases:
 # 0. test that sending a request to a valid target results in a success
 # 1. test that sending a request to a component that doesn't exist results in a failure
