@@ -6,7 +6,7 @@ import numpy as np
 import pydantic
 from gymnasium.core import ObsType
 
-from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent, AgentSettings
+from primaite.game.agent.interface import AbstractScriptedAgent, AgentSettings
 
 __all__ = "ProbabilisticAgent"
 

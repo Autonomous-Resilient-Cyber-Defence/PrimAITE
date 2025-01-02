@@ -7,7 +7,7 @@ from gymnasium import spaces
 from gymnasium.core import ActType, ObsType
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
-from primaite.game.agent.scripted_agents.interface import ProxyAgent
+from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
 from primaite.session.environment import _LOGGER, PrimaiteGymEnv
 from primaite.session.episode_schedule import build_scheduler, EpisodeScheduler

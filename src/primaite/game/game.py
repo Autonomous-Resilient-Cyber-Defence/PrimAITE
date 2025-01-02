@@ -10,7 +10,7 @@ from primaite import DEFAULT_BANDWIDTH, getLogger
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.observations.observation_manager import ObservationManager
 from primaite.game.agent.rewards import RewardFunction, SharedReward
-from primaite.game.agent.scripted_agents.interface import AbstractAgent, ProxyAgent
+from primaite.game.agent.interface import AbstractAgent, ProxyAgent
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.creation import NetworkNodeAdder
@@ -555,9 +555,6 @@ class PrimaiteGame:
 
             # new_agent_cfg.update{}
             if agent_type in AbstractAgent._registry:
-                print(agent_type)
-                print(agent_config)
-                print(AbstractAgent._registry)
                 new_agent = AbstractAgent._registry[agent_cfg["type"]].from_config(config=agent_config)
                 # If blue agent is created, add to game.rl_agents
                 if agent_type == "ProxyAgent":

@@ -9,7 +9,7 @@ from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
-from primaite.game.agent.scripted_agents.interface import AbstractAgent
+from primaite.game.agent.interface import AbstractAgent
 from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
 from primaite.game.game import PrimaiteGame
 from primaite.simulator.file_system.file_system import FileSystem

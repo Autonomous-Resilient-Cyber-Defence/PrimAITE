@@ -36,7 +36,7 @@ from primaite import getLogger
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 
 if TYPE_CHECKING:
-    from primaite.game.agent.scripted_agents.interface import AgentHistoryItem
+    from primaite.game.agent.interface import AgentHistoryItem
 
 _LOGGER = getLogger(__name__)
 WhereType = Optional[Iterable[Union[str, int]]]

@@ -17,7 +17,7 @@ from primaite.interface.request import RequestFormat, RequestResponse
 if TYPE_CHECKING:
     pass
 
-__all__ = ("AgentHistoryItem", "AgentStartSettings", "AbstractAgent", "AbstractScriptedAgent", "ProxyAgent")
+__all__ = ("AgentHistoryItem", "AbstractAgent", "AbstractScriptedAgent", "ProxyAgent")
 
 
 class AgentHistoryItem(BaseModel):
@@ -43,63 +43,18 @@ class AgentHistoryItem(BaseModel):
     reward_info: Dict[str, Any] = {}
 
 
-class AgentStartSettings(BaseModel):
-    """Configuration values for when an agent starts performing actions."""
-
-    start_step: int = 5
-    "The timestep at which an agent begins performing it's actions"
-    frequency: int = 5
-    "The number of timesteps to wait between performing actions"
-    variance: int = 0
-    "The amount the frequency can randomly change to"
-
-    @model_validator(mode="after")
-    def check_variance_lt_frequency(self) -> "AgentStartSettings":
-        """
-        Make sure variance is equal to or lower than frequency.
-
-        This is because the calculation for the next execution time is now + (frequency +- variance). If variance were
-        greater than frequency, sometimes the bracketed term would be negative and the attack would never happen again.
-        """
-        if self.variance > self.frequency:
-            raise ValueError(
-                f"Agent start settings error: variance must be lower than frequency "
-                f"{self.variance=}, {self.frequency=}"
-            )
-        return self
-
-
-class AgentSettings(BaseModel):
-    """Settings for configuring the operation of an agent."""
-
-    start_settings: Optional[AgentStartSettings] = None
-    "Configuration for when an agent begins performing it's actions."
-    flatten_obs: bool = True
-    "Whether to flatten the observation space before passing it to the agent. True by default."
-    action_masking: bool = False
-    "Whether to return action masks at each step."
-
-    @classmethod
-    def from_config(cls, config: Optional[Dict]) -> "AgentSettings":
-        """Construct agent settings from a config dictionary.
-
-        :param config: A dict of options for the agent settings.
-        :type config: Dict
-        :return: The agent settings.
-        :rtype: AgentSettings
-        """
-        if config is None:
-            return cls()
-
-        return cls(**config)
-
-
 class AbstractAgent(BaseModel):
     """Base class for scripted and RL agents."""
 
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
+    _logger: AgentLog = AgentLog(agent_name="Abstract_Agent")
 
     config: "AbstractAgent.ConfigSchema"
+    history: List[AgentHistoryItem] = []
+    action_manager: ActionManager
+    observation_manager: ObservationManager
+    reward_function: RewardFunction
+
 
     class ConfigSchema(BaseModel):
         """
@@ -118,13 +73,34 @@ class AbstractAgent(BaseModel):
         """
 
         model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-        agent_name: ClassVar[str] = "Abstract_Agent"  # TODO: Make this a ClassVar[str] like verb in actions?
-        history: List[AgentHistoryItem] = []
-        _logger: AgentLog = AgentLog(agent_name=agent_name)
-        action_manager: ActionManager
-        observation_manager: ObservationManager
-        reward_function: RewardFunction
-        agent_settings: Optional[AgentSettings] = None
+        agent_name: str = "Abstract_Agent"
+        flatten_obs: bool = True
+        "Whether to flatten the observation space before passing it to the agent. True by default."
+        action_masking: bool = False
+        "Whether to return action masks at each step."
+        start_step: int = 5
+        "The timestep at which an agent begins performing it's actions"
+        frequency: int = 5
+        "The number of timesteps to wait between performing actions"
+        variance: int = 0
+        "The amount the frequency can randomly change to"
+
+
+        @model_validator(mode="after")
+        def check_variance_lt_frequency(self) -> "AbstractAgent.ConfigSchema":
+            """
+            Make sure variance is equal to or lower than frequency.
+
+            This is because the calculation for the next execution time is now + (frequency +- variance). If variance were
+            greater than frequency, sometimes the bracketed term would be negative and the attack would never happen again.
+            """
+            if self.variance > self.frequency:
+                raise ValueError(
+                    f"Agent start settings error: variance must be lower than frequency "
+                    f"{self.variance=}, {self.frequency=}"
+                )
+            return self
+
 
     def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
         if identifier in cls._registry:
@@ -132,35 +108,11 @@ class AbstractAgent(BaseModel):
         cls._registry[identifier] = cls
         super().__init_subclass__(**kwargs)
 
-    @property
-    def logger(self) -> AgentLog:
-        """Return the AgentLog."""
-        return self.config._logger
 
     @property
     def flatten_obs(self) -> bool:
         """Return agent flatten_obs param."""
-        return self.config.agent_settings.flatten_obs
-
-    @property
-    def history(self) -> List[AgentHistoryItem]:
-        """Return the agent history."""
-        return self.config.history
-
-    @property
-    def observation_manager(self) -> ObservationManager:
-        """Returns the agents observation manager."""
-        return self.config.observation_manager
-
-    @property
-    def action_manager(self) -> ActionManager:
-        """Returns the agents action manager."""
-        return self.config.action_manager
-
-    @property
-    def reward_function(self) -> RewardFunction:
-        """Returns the agents reward function."""
-        return self.config.reward_function
+        return self.config.flatten_obs
 
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractAgent":
@@ -217,7 +169,7 @@ class AbstractAgent(BaseModel):
         self, timestep: int, action: str, parameters: Dict[str, Any], request: RequestFormat, response: RequestResponse
     ) -> None:
         """Process the response from the most recent action."""
-        self.config.history.append(
+        self.history.append(
             AgentHistoryItem(
                 timestep=timestep, action=action, parameters=parameters, request=request, response=response
             )
@@ -225,7 +177,7 @@ class AbstractAgent(BaseModel):
 
     def save_reward_to_history(self) -> None:
         """Update the most recent history item with the reward value."""
-        self.config.history[-1].reward = self.reward_function.current_reward
+        self.history[-1].reward = self.reward_function.current_reward
 
 
 class AbstractScriptedAgent(AbstractAgent, identifier="Abstract_Scripted_Agent"):

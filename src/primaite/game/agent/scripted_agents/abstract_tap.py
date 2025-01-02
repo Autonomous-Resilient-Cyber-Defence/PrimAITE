@@ -7,7 +7,7 @@ from typing import Dict, Optional, Tuple
 
 from gymnasium.core import ObsType
 
-from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent
+from primaite.game.agent.interface import AbstractScriptedAgent
 
 __all__ = "AbstractTAPAgent"
 
@@ -50,4 +50,4 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
         num_nodes = len(self.config.action_manager.node_names)
         starting_node_idx = random.randint(0, num_nodes - 1)
         self.starting_node_name = self.config.action_manager.node_names[starting_node_idx]
-        self.logger.debug(f"Selected Starting node ID: {self.starting_node_name}")
+        self.logger.debug(f"Selected starting node: {self.starting_node_name}")

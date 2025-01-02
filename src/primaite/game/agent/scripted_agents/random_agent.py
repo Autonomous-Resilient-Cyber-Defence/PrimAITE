@@ -4,7 +4,7 @@ from typing import Dict, Tuple
 
 from gymnasium.core import ObsType
 
-from primaite.game.agent.scripted_agents.interface import AbstractScriptedAgent
+from primaite.game.agent.interface import AbstractScriptedAgent
 
 __all__ = ("RandomAgent", "PeriodicAgent")
 
@@ -37,23 +37,9 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Periodic Agent."""
+        agent_name: str = "Periodic_Agent"
+        """Name of the agent."""
 
-    agent_name: str = "Periodic_Agent"
-    """Name of the agent."""
-
-    # TODO: This is available in config.agent_settings.start_settings.start_step
-    start_step: int = 20
-    "The timestep at which an agent begins performing it's actions."
-    start_variance: int = 5
-    "Deviation around the start step."
-
-    # TODO: This is available in config.agent_settings.start_settings.frequency
-    frequency: int = 5
-    "The number of timesteps to wait between performing actions."
-
-    # TODO: This is available in config.agent_settings.start_settings.variance
-    variance: int = 0
-    "The amount the frequency can randomly change to."
     max_executions: int = 999999
     "Maximum number of times the agent can execute its action."
     num_executions: int = 0
@@ -61,6 +47,22 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
     # TODO: Also in abstract_tap - move up and inherit? Add to AgentStartSettings?
     next_execution_timestep: int = 0
     """Timestep of the next action execution by the agent."""
+
+    @property
+    def start_step(self) -> int:
+        """Return the timestep at which an agent begins performing it's actions."""
+        return self.config.agent_settings.start_settings.start_step
+
+    @property
+    def start_variance(self) -> int:
+        """Returns the deviation around the start step."""
+        return self.config.agent_settings.start_settings.variance
+    
+    @property
+    def frequency(self) -> int:
+        """Returns the number of timesteps to wait between performing actions."""
+        return self.config.agent_settings.start_settings.frequency
+
 
     def _set_next_execution_timestep(self, timestep: int, variance: int) -> None:
         """Set the next execution timestep with a configured random variance.
@@ -75,9 +77,9 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
 
     def get_action(self, obs: ObsType, timestep: int) -> Tuple[str, Dict]:
         """Do nothing, unless the current timestep is the next execution timestep, in which case do the action."""
-        if timestep == self.next_execution_timestep and self.num_executions < self.config.max_executions:
+        if timestep == self.next_execution_timestep and self.num_executions < self.max_executions:
             self.num_executions += 1
-            self._set_next_execution_timestep(timestep + self.frequency, self.variance)
+            self._set_next_execution_timestep(timestep + self.frequency, self.start_variance)
             self.target_node = self.action_manager.node_names[0]
             return "node_application_execute", {"node_name": self.target_node, "application_name": 0}
 
