@@ -7,10 +7,8 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from primaite import DEFAULT_BANDWIDTH, getLogger
-from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.observations.observation_manager import ObservationManager
-from primaite.game.agent.rewards import RewardFunction, SharedReward
 from primaite.game.agent.interface import AbstractAgent, ProxyAgent
+from primaite.game.agent.rewards import SharedReward
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.creation import NetworkNodeAdder
@@ -532,24 +530,14 @@ class PrimaiteGame:
             action_space_cfg = agent_cfg["action_space"]
             observation_space_cfg = agent_cfg["observation_space"]
             reward_function_cfg = agent_cfg["reward_function"]
-
-            # CREATE OBSERVATION SPACE
-            obs_space = ObservationManager.from_config(observation_space_cfg)
-
-            # CREATE ACTION SPACE
-            action_space = ActionManager.from_config(game, action_space_cfg)
-
-            # CREATE REWARD FUNCTION
-            reward_function = RewardFunction.from_config(reward_function_cfg)
+            agent_settings = agent_cfg["agent_settings"]
 
             # CREATE AGENT
-
-            agent_settings = agent_cfg["agent_settings"]
             agent_config = {
                 "agent_name": agent_ref,
-                "action_manager": action_space,
-                "observation_manager": obs_space,
-                "reward_function": reward_function,
+                "action_manager": action_space_cfg,
+                "observation_manager": observation_space_cfg,
+                "reward_function": reward_function_cfg,
                 "agent_settings": agent_settings,
             }
 
