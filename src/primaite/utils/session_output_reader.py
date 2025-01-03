@@ -1,9 +1,8 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 # flake8: noqa
 raise DeprecationWarning(
     "Benchmarking depends on deprecated functionality and it has not been updated to primaite v3 yet."
 )
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from pathlib import Path
 from typing import Any, Dict, Tuple, Union
 

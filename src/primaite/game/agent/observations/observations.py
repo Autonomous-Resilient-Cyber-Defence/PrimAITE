@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 """Manages the observation space for the agent."""
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Iterable, Optional, Type, Union

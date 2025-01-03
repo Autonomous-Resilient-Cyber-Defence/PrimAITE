@@ -1,5 +1,5 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from typing import Any, Dict, Optional, Tuple
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+from typing import Any, Dict, Tuple
 
 import pytest
 import yaml
