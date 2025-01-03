@@ -223,7 +223,7 @@ class WebpageUnavailablePenalty(AbstractReward, identifier="WEBPAGE_UNAVAILABLE_
     """Penalises the agent when the web browser fails to fetch a webpage."""
 
     config: "WebpageUnavailablePenalty.ConfigSchema"
-    reward: float = 0.0  # XXX: Private attribute?
+    reward: float = 0.0
     location_in_state: List[str] = [""]  # Calculate in __init__()?
 
     class ConfigSchema(AbstractReward.ConfigSchema):
