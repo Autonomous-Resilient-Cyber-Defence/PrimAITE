@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 # Plan for creating integration tests for the actions:
 # I need to test that the requests coming out of the actions have the intended effect on the simulation.
 # I can do this by creating a simulation, and then running the action on the simulation, and then checking
