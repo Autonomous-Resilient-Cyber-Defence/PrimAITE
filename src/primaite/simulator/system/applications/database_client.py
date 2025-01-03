@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from ipaddress import IPv4Address
@@ -307,6 +307,9 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         :return: DatabaseClientConnection object
         """
         if not self._can_perform_action():
+            return None
+        if self.server_ip_address is None:
+            self.sys_log.warning(f"{self.name}: Database server IP address not provided.")
             return None
 
         connection_request_id = str(uuid4())
