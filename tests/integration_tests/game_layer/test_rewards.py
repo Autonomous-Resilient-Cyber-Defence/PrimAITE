@@ -18,12 +18,14 @@ from tests import TEST_ASSETS_ROOT
 from tests.conftest import ControlledAgent
 
 
-def test_WebpageUnavailablePenalty(game_and_agent):
+def test_WebpageUnavailablePenalty(game_and_agent: tuple[PrimaiteGame, ControlledAgent]):
     """Test that we get the right reward for failing to fetch a website."""
     # set up the scenario, configure the web browser to the correct url
     game, agent = game_and_agent
     agent: ControlledAgent
-    comp = WebpageUnavailablePenalty(node_hostname="client_1")
+    schema = WebpageUnavailablePenalty.ConfigSchema(node_hostname="client_1", sticky=True)
+    comp = WebpageUnavailablePenalty(config=schema)
+
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
     browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
     browser.run()
@@ -53,7 +55,7 @@ def test_WebpageUnavailablePenalty(game_and_agent):
     assert agent.reward_function.current_reward == -0.7
 
 
-def test_uc2_rewards(game_and_agent):
+def test_uc2_rewards(game_and_agent: tuple[PrimaiteGame, ControlledAgent]):
     """Test that the reward component correctly applies a penalty when the selected client cannot reach the database."""
     game, agent = game_and_agent
     agent: ControlledAgent
@@ -74,7 +76,8 @@ def test_uc2_rewards(game_and_agent):
         ACLAction.PERMIT, src_port=PORT_LOOKUP["POSTGRES_SERVER"], dst_port=PORT_LOOKUP["POSTGRES_SERVER"], position=2
     )
 
-    comp = GreenAdminDatabaseUnreachablePenalty("client_1")
+    schema = GreenAdminDatabaseUnreachablePenalty.ConfigSchema(node_hostname="client_1", sticky=True)
+    comp = GreenAdminDatabaseUnreachablePenalty(config=schema)
 
     request = ["network", "node", "client_1", "application", "DatabaseClient", "execute"]
     response = game.simulation.apply_request(request)
@@ -139,15 +142,17 @@ def test_action_penalty_loads_from_config():
             act_penalty_obj = comp[0]
     if act_penalty_obj is None:
         pytest.fail("Action penalty reward component was not added to the agent from config.")
-    assert act_penalty_obj.action_penalty == -0.75
-    assert act_penalty_obj.do_nothing_penalty == 0.125
+    assert act_penalty_obj.config.action_penalty == -0.75
+    assert act_penalty_obj.config.do_nothing_penalty == 0.125
 
 
 def test_action_penalty():
     """Test that the action penalty is correctly applied when agent performs any action"""
 
     # Create an ActionPenalty Reward
-    Penalty = ActionPenalty(action_penalty=-0.75, do_nothing_penalty=0.125)
+    schema = ActionPenalty.ConfigSchema(action_penalty=-0.75, do_nothing_penalty=0.125)
+    # Penalty = ActionPenalty(action_penalty=-0.75, do_nothing_penalty=0.125)
+    Penalty = ActionPenalty(config=schema)
 
     # Assert that penalty is applied if action isn't DONOTHING
     reward_value = Penalty.calculate(
@@ -178,11 +183,12 @@ def test_action_penalty():
     assert reward_value == 0.125
 
 
-def test_action_penalty_e2e(game_and_agent):
+def test_action_penalty_e2e(game_and_agent: tuple[PrimaiteGame, ControlledAgent]):
     """Test that we get the right reward for doing actions to fetch a website."""
     game, agent = game_and_agent
     agent: ControlledAgent
-    comp = ActionPenalty(action_penalty=-0.75, do_nothing_penalty=0.125)
+    schema = ActionPenalty.ConfigSchema(action_penalty=-0.75, do_nothing_penalty=0.125)
+    comp = ActionPenalty(config=schema)
 
     agent.reward_function.register_component(comp, 1.0)
 

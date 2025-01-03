@@ -376,7 +376,7 @@ class PrimaiteGame:
 
                     if service_class is not None:
                         _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
-                        new_node.software_manager.install(service_class)
+                        new_node.software_manager.install(service_class, **service_cfg.get("options", {}))
                         new_service = new_node.software_manager.software[service_class.__name__]
 
                         # fixing duration for the service
@@ -629,7 +629,7 @@ class PrimaiteGame:
             for comp, weight in agent.reward_function.reward_components:
                 if isinstance(comp, SharedReward):
                     comp: SharedReward
-                    graph[name].add(comp.agent_name)
+                    graph[name].add(comp.config.agent_name)
 
                     # while constructing the graph, we might as well set up the reward sharing itself.
                     comp.callback = lambda agent_name: self.agents[agent_name].reward_function.current_reward

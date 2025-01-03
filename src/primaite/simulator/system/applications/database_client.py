@@ -308,6 +308,9 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         """
         if not self._can_perform_action():
             return None
+        if self.server_ip_address is None:
+            self.sys_log.warning(f"{self.name}: Database server IP address not provided.")
+            return None
 
         connection_request_id = str(uuid4())
         self._client_connection_requests[connection_request_id] = None
