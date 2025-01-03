@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from pprint import pprint
 
 from primaite.game.agent.observations.acl_observation import ACLObservation

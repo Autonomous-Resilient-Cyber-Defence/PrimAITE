@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 
 .. _common_node_attributes:
 

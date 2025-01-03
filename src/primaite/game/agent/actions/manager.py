@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 """yaml example.
 
 agents:
@@ -80,6 +80,8 @@ class ActionManager:
             self.action_map = {i: (a["action"], a["options"]) for i, a in act_map.items()}
         # make sure all numbers between 0 and N are represented as dict keys in action map
         assert all([i in self.action_map.keys() for i in range(len(self.action_map))])
+        self.node_names: List[str] = [n["node_name"] for n in nodes]
+        """List of node names in this action space. The list order is the mapping between node index and node name."""
 
     def get_action(self, action: int) -> Tuple[str, Dict]:
         """Produce action in CAOS format."""

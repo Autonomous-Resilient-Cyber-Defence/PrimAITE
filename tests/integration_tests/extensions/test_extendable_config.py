@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 import os
 
 from primaite.config.load import get_extended_config_path

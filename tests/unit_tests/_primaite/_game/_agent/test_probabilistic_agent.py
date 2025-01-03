@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction

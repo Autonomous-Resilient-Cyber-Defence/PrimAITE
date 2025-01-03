@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode

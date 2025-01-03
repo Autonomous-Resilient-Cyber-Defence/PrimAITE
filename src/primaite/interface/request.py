@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 from typing import Dict, ForwardRef, List, Literal, Union
 
 from pydantic import BaseModel, ConfigDict, StrictBool  # , validate_call

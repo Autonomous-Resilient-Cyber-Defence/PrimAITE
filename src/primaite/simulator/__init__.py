@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
 """Warning: SIM_OUTPUT is a mutable global variable for the simulation output directory."""
 from datetime import datetime
 from enum import IntEnum
