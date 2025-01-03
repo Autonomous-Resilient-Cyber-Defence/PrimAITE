@@ -3,6 +3,8 @@ from enum import IntEnum
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestFormat, RequestResponse
@@ -33,7 +35,7 @@ class DoSAttackStage(IntEnum):
 class DoSBot(DatabaseClient, identifier="DoSBot"):
     """A bot that simulates a Denial of Service attack."""
 
-    config: "DoSBot.ConfigSchema" = None
+    config: "DoSBot.ConfigSchema" = Field(default_factory=lambda: DoSBot.ConfigSchema())
 
     target_ip_address: Optional[IPv4Address] = None
     """IP address of the target service."""
@@ -59,7 +61,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for DoSBot."""
 
-        type: str = "DOS_BOT"
+        type: str = "DoSBot"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

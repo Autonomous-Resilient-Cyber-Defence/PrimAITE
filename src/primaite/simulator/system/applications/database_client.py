@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Union
 from uuid import uuid4
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
@@ -67,10 +67,14 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
 
     Extends the Application class to provide functionality for connecting, querying, and disconnecting from a
     Database Service. It mainly operates over TCP protocol.
-
     """
 
-    config: "DatabaseClient.ConfigSchema" = None
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for DatabaseClient."""
+
+        type: str = "DatabaseClient"
+
+    config: ConfigSchema = Field(default_factory=lambda: DatabaseClient.ConfigSchema())
 
     server_ip_address: Optional[IPv4Address] = None
     """The IPv4 address of the Database Service server, defaults to None."""
@@ -89,11 +93,6 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
     """Boolean Value for whether connected to DB Server."""
     native_connection: Optional[DatabaseClientConnection] = None
     """Native Client Connection for using the client directly (similar to psql in a terminal)."""
-
-    class ConfigSchema(Application.ConfigSchema):
-        """ConfigSchema for DatabaseClient."""
-
-        type: str = "DATABASE_CLIENT"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DatabaseClient"

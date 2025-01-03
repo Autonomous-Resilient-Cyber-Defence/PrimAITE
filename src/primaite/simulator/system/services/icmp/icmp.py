@@ -3,6 +3,8 @@ import secrets
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional, Tuple, Union
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
@@ -22,14 +24,14 @@ class ICMP(Service, identifier="ICMP"):
     network diagnostics, notably the ping command.
     """
 
-    config: "ICMP.ConfigSchema" = None
-
-    request_replies: Dict = {}
-
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for ICMP."""
 
         type: str = "ICMP"
+
+    config: "ICMP.ConfigSchema" = Field(default_factory=lambda: ICMP.ConfigSchema())
+
+    request_replies: Dict = {}
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ICMP"

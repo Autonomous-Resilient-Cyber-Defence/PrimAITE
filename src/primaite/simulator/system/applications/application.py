@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, ClassVar, Dict, Optional, Set, Type
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType
@@ -23,14 +23,19 @@ class ApplicationOperatingState(Enum):
     "The application is being installed or updated."
 
 
-class Application(IOSoftware):
+class Application(IOSoftware, ABC):
     """
     Represents an Application in the simulation environment.
 
     Applications are user-facing programs that may perform input/output operations.
     """
 
-    config: "Application.ConfigSchema" = None
+    class ConfigSchema(BaseModel, ABC):
+        """Config Schema for Application class."""
+
+        type: str
+
+    config: ConfigSchema = Field(default_factory=lambda: Application.ConfigSchema())
 
     operating_state: ApplicationOperatingState = ApplicationOperatingState.CLOSED
     "The current operating state of the Application."
@@ -48,20 +53,15 @@ class Application(IOSoftware):
     _registry: ClassVar[Dict[str, Type["Application"]]] = {}
     """Registry of application types. Automatically populated when subclasses are defined."""
 
-    class ConfigSchema(BaseModel, ABC):
-        """Config Schema for Application class."""
-
-        type: str
-
-    def __init_subclass__(cls, identifier: str = "default", **kwargs: Any) -> None:
+    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
         """
         Register an application type.
 
         :param identifier: Uniquely specifies an application class by name. Used for finding items by config.
-        :type identifier: str
+        :type identifier: Optional[str]
         :raises ValueError: When attempting to register an application with a name that is already allocated.
         """
-        if identifier == "default":
+        if identifier is None:
             return
         super().__init_subclass__(**kwargs)
         if identifier in cls._registry:

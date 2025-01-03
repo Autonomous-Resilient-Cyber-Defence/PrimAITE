@@ -5,6 +5,7 @@ from abc import abstractmethod
 from typing import Any, Dict, Optional, Union
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import Field
 
 from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
@@ -22,14 +23,14 @@ class ARP(Service, identifier="ARP"):
     sends ARP requests and replies, and processes incoming ARP packets.
     """
 
-    config: "ARP.ConfigSchema" = None
-
-    arp: Dict[IPV4Address, ARPEntry] = {}
-
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for ARP."""
 
         type: str = "ARP"
+
+    config: "ARP.ConfigSchema" = Field(default_factory=lambda: ARP.ConfigSchema())
+
+    arp: Dict[IPV4Address, ARPEntry] = {}
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ARP"

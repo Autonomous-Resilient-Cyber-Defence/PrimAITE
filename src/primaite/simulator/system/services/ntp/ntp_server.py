@@ -2,6 +2,8 @@
 from datetime import datetime
 from typing import Dict, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.simulator.network.protocols.ntp import NTPPacket
 from primaite.simulator.system.services.service import Service
@@ -14,12 +16,12 @@ _LOGGER = getLogger(__name__)
 class NTPServer(Service, identifier="NTPServer"):
     """Represents a NTP server as a service."""
 
-    config: "NTPServer.ConfigSchema" = None
-
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for NTPServer."""
 
-        type: str = "NTP_SERVER"
+        type: str = "NTPServer"
+
+    config: "NTPServer.ConfigSchema" = Field(default_factory=lambda: NTPServer.ConfigSchema())
 
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPServer"

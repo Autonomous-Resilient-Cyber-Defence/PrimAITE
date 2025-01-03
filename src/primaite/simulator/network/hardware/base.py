@@ -833,14 +833,14 @@ class UserManager(Service, identifier="UserManager"):
     :param disabled_admins: A dictionary of currently disabled admin users by their usernames
     """
 
-    config: "UserManager.ConfigSchema" = None
-
-    users: Dict[str, User] = {}
-
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for UserManager."""
 
-        type: str = "USER_MANAGER"
+        type: str = "UserManager"
+
+    config: "UserManager.ConfigSchema" = Field(default_factory=lambda: UserManager.ConfigSchema())
+
+    users: Dict[str, User] = {}
 
     def __init__(self, **kwargs):
         """
@@ -1144,7 +1144,12 @@ class UserSessionManager(Service, identifier="UserSessionManager"):
     This class handles authentication, session management, and session timeouts for users interacting with the Node.
     """
 
-    config: "UserSessionManager.ConfigSchema" = None
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for UserSessionManager."""
+
+        type: str = "UserSessionManager"
+
+    config: "UserSessionManager.ConfigSchema" = Field(default_factory=lambda: UserSessionManager.ConfigSchema())
 
     local_session: Optional[UserSession] = None
     """The current local user session, if any."""
@@ -1166,11 +1171,6 @@ class UserSessionManager(Service, identifier="UserSessionManager"):
 
     current_timestep: int = 0
     """The current timestep in the simulation."""
-
-    class ConfigSchema(Service.ConfigSchema):
-        """ConfigSchema for UserSessionManager."""
-
-        type: str = "USER_SESSION_MANAGER"
 
     def __init__(self, **kwargs):
         """

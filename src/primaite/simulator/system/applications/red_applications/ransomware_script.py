@@ -3,6 +3,7 @@ from ipaddress import IPv4Address
 from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import Field
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
@@ -18,7 +19,12 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
     :ivar payload: The attack stage query payload. (Default ENCRYPT)
     """
 
-    config: "RansomwareScript.ConfigSchema" = None
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for RansomwareScript."""
+
+        type: str = "RansomwareScript"
+
+    config: "RansomwareScript.ConfigSchema" = Field(default_factory=lambda: RansomwareScript.ConfigSchema())
 
     server_ip_address: Optional[IPv4Address] = None
     """IP address of node which hosts the database."""
@@ -26,11 +32,6 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
     """Password required to access the database."""
     payload: Optional[str] = "ENCRYPT"
     "Payload String for the payload stage"
-
-    class ConfigSchema(Application.ConfigSchema):
-        """ConfigSchema for RansomwareScript."""
-
-        type: str = "RANSOMWARE_SCRIPT"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "RansomwareScript"

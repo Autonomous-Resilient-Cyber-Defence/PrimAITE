@@ -3,6 +3,8 @@ from ipaddress import IPv4Address
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
@@ -24,7 +26,12 @@ class ExtendedService(Service, identifier="ExtendedService"):
     This class inherits from the `Service` class and provides methods to simulate a SQL database.
     """
 
-    config: "ExtendedService.ConfigSchema" = None
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for ExtendedService."""
+
+        type: str = "ExtendedService"
+
+    config: "ExtendedService.ConfigSchema" = Field(default_factory=lambda: ExtendedService.ConfigSchema())
 
     password: Optional[str] = None
     """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
@@ -37,11 +44,6 @@ class ExtendedService(Service, identifier="ExtendedService"):
 
     latest_backup_file_name: str = None
     """File name of latest backup."""
-
-    class ConfigSchema(Service.ConfigSchema):
-        """ConfigSchema for ExtendedService."""
-
-        type: str = "EXTENDED_SERVICE"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ExtendedService"

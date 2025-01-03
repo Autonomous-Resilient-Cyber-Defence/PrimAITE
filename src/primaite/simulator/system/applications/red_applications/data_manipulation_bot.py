@@ -3,6 +3,8 @@ from enum import IntEnum
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestResponse
@@ -39,6 +41,13 @@ class DataManipulationAttackStage(IntEnum):
 
 class DataManipulationBot(Application, identifier="DataManipulationBot"):
     """A bot that simulates a script which performs a SQL injection attack."""
+
+    class ConfigSchema(Application.ConfigSchema):
+        """Configuration schema for DataManipulationBot."""
+
+        type: str = "DataManipulationBot"
+
+    config: "DataManipulationBot.ConfigSchema" = Field(default_factory=lambda: DataManipulationBot.ConfigSchema())
 
     payload: Optional[str] = None
     port_scan_p_of_success: float = 0.1

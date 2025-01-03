@@ -2,6 +2,8 @@
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
@@ -24,12 +26,12 @@ class FTPClient(FTPServiceABC, identifier="FTPClient"):
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
 
-    config: "FTPClient.ConfigSchema" = None
+    config: "FTPClient.ConfigSchema" = Field(default_factory=lambda: FTPClient.ConfigSchema())
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for FTPClient."""
 
-        type: str = "FTP_CLIENT"
+        type: str = "FTPClient"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPClient"

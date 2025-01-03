@@ -3,12 +3,11 @@ from ipaddress import IPv4Address
 from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import validate_call
+from pydantic import Field, validate_call
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.masquerade import C2Packet
-from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.red_applications.c2 import ExfilOpts, RansomwareOpts, TerminalOpts
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
@@ -36,18 +35,18 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     Please refer to the Command-and-Control notebook for an in-depth example of the C2 Suite.
     """
 
-    config: "C2Beacon.ConfigSchema" = None
+    class ConfigSchema(AbstractC2.ConfigSchema):
+        """ConfigSchema for C2Beacon."""
+
+        type: str = "C2Beacon"
+
+    config: ConfigSchema = Field(default_factory=lambda: C2Beacon.ConfigSchema())
 
     keep_alive_attempted: bool = False
     """Indicates if a keep alive has been attempted to be sent this timestep. Used to prevent packet storms."""
 
     terminal_session: TerminalClientConnection = None
     "The currently in use terminal session."
-
-    class ConfigSchema(Application.ConfigSchema):
-        """ConfigSchema for C2Beacon."""
-
-        type: str = "C2_BEACON"
 
     @property
     def _host_terminal(self) -> Optional[Terminal]:
@@ -154,7 +153,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         masquerade_port      | What port should the C2 traffic use? (TCP or UDP)
 
         These configuration options are used to reassign the fields in the inherited inner class
-        ``c2_config``.
+        ``config``.
 
         If a connection is already in progress then this method also sends a keep alive to the C2
         Server in order for the C2 Server to sync with the new configuration settings.
@@ -170,9 +169,9 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :return: Returns True if the configuration was successful, False otherwise.
         """
         self.c2_remote_connection = IPv4Address(c2_server_ip_address)
-        self.c2_config.keep_alive_frequency = keep_alive_frequency
-        self.c2_config.masquerade_port = masquerade_port
-        self.c2_config.masquerade_protocol = masquerade_protocol
+        self.config.keep_alive_frequency = keep_alive_frequency
+        self.config.masquerade_port = masquerade_port
+        self.config.masquerade_protocol = masquerade_protocol
         self.sys_log.info(
             f"{self.name}: Configured {self.name} with remote C2 server connection: {c2_server_ip_address=}."
         )
@@ -271,14 +270,12 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         if self.send(
             payload=output_packet,
             dest_ip_address=self.c2_remote_connection,
-            dest_port=self.c2_config.masquerade_port,
-            ip_protocol=self.c2_config.masquerade_protocol,
+            dest_port=self.config.masquerade_port,
+            ip_protocol=self.config.masquerade_protocol,
             session_id=session_id,
         ):
             self.sys_log.info(f"{self.name}: Command output sent to {self.c2_remote_connection}")
-            self.sys_log.debug(
-                f"{self.name}: on {self.c2_config.masquerade_port} via {self.c2_config.masquerade_protocol}"
-            )
+            self.sys_log.debug(f"{self.name}: on {self.config.masquerade_port} via {self.config.masquerade_protocol}")
             return True
         else:
             self.sys_log.warning(
@@ -570,7 +567,7 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         :rtype bool:
         """
         self.keep_alive_attempted = False  # Resetting keep alive sent.
-        if self.keep_alive_inactivity == self.c2_config.keep_alive_frequency:
+        if self.keep_alive_inactivity == self.config.keep_alive_frequency:
             self.sys_log.info(
                 f"{self.name}: Attempting to Send Keep Alive to {self.c2_remote_connection} at timestep {timestep}."
             )
@@ -635,9 +632,9 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
                 self.c2_connection_active,
                 self.c2_remote_connection,
                 self.keep_alive_inactivity,
-                self.c2_config.keep_alive_frequency,
-                self.c2_config.masquerade_protocol,
-                self.c2_config.masquerade_port,
+                self.config.keep_alive_frequency,
+                self.config.masquerade_protocol,
+                self.config.masquerade_port,
             ]
         )
         print(table)

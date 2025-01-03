@@ -2,12 +2,11 @@
 from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import validate_call
+from pydantic import Field, validate_call
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.protocols.masquerade import C2Packet
-from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.red_applications.c2 import (
     CommandOpts,
     ExfilOpts,
@@ -35,15 +34,15 @@ class C2Server(AbstractC2, identifier="C2Server"):
     Please refer to the Command-and-Control notebook for an in-depth example of the C2 Suite.
     """
 
-    config: "C2Server.ConfigSchema" = None
+    class ConfigSchema(AbstractC2.ConfigSchema):
+        """ConfigSchema for C2Server."""
+
+        type: str = "C2Server"
+
+    config: ConfigSchema = Field(default_factory=lambda: C2Server.ConfigSchema())
 
     current_command_output: RequestResponse = None
     """The Request Response by the last command send. This attribute is updated by the method _handle_command_output."""
-
-    class ConfigSchema(Application.ConfigSchema):
-        """ConfigSchema for C2Server."""
-
-        type: str = "C2_SERVER"
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -259,8 +258,8 @@ class C2Server(AbstractC2, identifier="C2Server"):
             payload=command_packet,
             dest_ip_address=self.c2_remote_connection,
             session_id=self.c2_session.uuid,
-            dest_port=self.c2_config.masquerade_port,
-            ip_protocol=self.c2_config.masquerade_protocol,
+            dest_port=self.config.masquerade_port,
+            ip_protocol=self.config.masquerade_protocol,
         ):
             self.sys_log.info(f"{self.name}: Successfully sent {given_command}.")
             self.sys_log.info(f"{self.name}: Awaiting command response {given_command}.")
@@ -342,11 +341,11 @@ class C2Server(AbstractC2, identifier="C2Server"):
         :return: Returns False if the C2 beacon is considered dead. Otherwise True.
         :rtype bool:
         """
-        if self.keep_alive_inactivity > self.c2_config.keep_alive_frequency:
+        if self.keep_alive_inactivity > self.config.keep_alive_frequency:
             self.sys_log.info(f"{self.name}: C2 Beacon connection considered dead due to inactivity.")
             self.sys_log.debug(
                 f"{self.name}: Did not receive expected keep alive connection from {self.c2_remote_connection}"
-                f"{self.name}: Expected at timestep: {timestep} due to frequency: {self.c2_config.keep_alive_frequency}"
+                f"{self.name}: Expected at timestep: {timestep} due to frequency: {self.config.keep_alive_frequency}"
                 f"{self.name}: Last Keep Alive received at {(timestep - self.keep_alive_inactivity)}"
             )
             self._reset_c2_connection()
@@ -397,8 +396,8 @@ class C2Server(AbstractC2, identifier="C2Server"):
             [
                 self.c2_connection_active,
                 self.c2_remote_connection,
-                self.c2_config.masquerade_protocol,
-                self.c2_config.masquerade_port,
+                self.config.masquerade_protocol,
+                self.config.masquerade_port,
             ]
         )
         print(table)

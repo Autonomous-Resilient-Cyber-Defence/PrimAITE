@@ -128,13 +128,13 @@ def test_c2_handle_switching_port(basic_c2_network):
     assert c2_server.c2_connection_active is True
 
     # Assert to confirm that both the C2 server and the C2 beacon are configured correctly.
-    assert c2_beacon.c2_config.keep_alive_frequency is 2
-    assert c2_beacon.c2_config.masquerade_port is PORT_LOOKUP["HTTP"]
-    assert c2_beacon.c2_config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
+    assert c2_beacon.config.keep_alive_frequency is 2
+    assert c2_beacon.config.masquerade_port is PORT_LOOKUP["HTTP"]
+    assert c2_beacon.config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
-    assert c2_server.c2_config.keep_alive_frequency is 2
-    assert c2_server.c2_config.masquerade_port is PORT_LOOKUP["HTTP"]
-    assert c2_server.c2_config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
+    assert c2_server.config.keep_alive_frequency is 2
+    assert c2_server.config.masquerade_port is PORT_LOOKUP["HTTP"]
+    assert c2_server.config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
     # Configuring the C2 Beacon.
     c2_beacon.configure(
@@ -150,11 +150,11 @@ def test_c2_handle_switching_port(basic_c2_network):
 
     # Assert to confirm that both the C2 server and the C2 beacon
     # Have reconfigured their C2 settings.
-    assert c2_beacon.c2_config.masquerade_port is PORT_LOOKUP["FTP"]
-    assert c2_beacon.c2_config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
+    assert c2_beacon.config.masquerade_port is PORT_LOOKUP["FTP"]
+    assert c2_beacon.config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
-    assert c2_server.c2_config.masquerade_port is PORT_LOOKUP["FTP"]
-    assert c2_server.c2_config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
+    assert c2_server.config.masquerade_port is PORT_LOOKUP["FTP"]
+    assert c2_server.config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
 
 def test_c2_handle_switching_frequency(basic_c2_network):
@@ -174,8 +174,8 @@ def test_c2_handle_switching_frequency(basic_c2_network):
     assert c2_server.c2_connection_active is True
 
     # Assert to confirm that both the C2 server and the C2 beacon are configured correctly.
-    assert c2_beacon.c2_config.keep_alive_frequency is 2
-    assert c2_server.c2_config.keep_alive_frequency is 2
+    assert c2_beacon.config.keep_alive_frequency is 2
+    assert c2_server.config.keep_alive_frequency is 2
 
     # Configuring the C2 Beacon.
     c2_beacon.configure(c2_server_ip_address="192.168.0.1", keep_alive_frequency=10)
@@ -186,8 +186,8 @@ def test_c2_handle_switching_frequency(basic_c2_network):
 
     # Assert to confirm that both the C2 server and the C2 beacon
     # Have reconfigured their C2 settings.
-    assert c2_beacon.c2_config.keep_alive_frequency is 10
-    assert c2_server.c2_config.keep_alive_frequency is 10
+    assert c2_beacon.config.keep_alive_frequency is 10
+    assert c2_server.config.keep_alive_frequency is 10
 
     # Now skipping 9 time steps to confirm keep alive inactivity
     for i in range(9):

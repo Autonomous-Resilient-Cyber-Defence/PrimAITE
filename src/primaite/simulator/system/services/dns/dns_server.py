@@ -3,6 +3,7 @@ from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.dns import DNSPacket
@@ -16,15 +17,15 @@ _LOGGER = getLogger(__name__)
 class DNSServer(Service, identifier="DNSServer"):
     """Represents a DNS Server as a Service."""
 
-    config: "DNSServer.ConfigSchema" = None
-
-    dns_table: Dict[str, IPv4Address] = {}
-    "A dict of mappings between domain names and IPv4 addresses."
-
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for DNSServer."""
 
-        type: str = "DNS_SERVER"
+        type: str = "DNSServer"
+
+    config: "DNSServer.ConfigSchema" = Field(default_factory=lambda: DNSServer.ConfigSchema())
+
+    dns_table: Dict[str, IPv4Address] = {}
+    "A dict of mappings between domain names and IPv4 addresses."
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DNSServer"

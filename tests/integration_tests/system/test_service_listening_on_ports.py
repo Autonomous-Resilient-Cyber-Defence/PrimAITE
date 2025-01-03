@@ -15,17 +15,17 @@ from tests import TEST_ASSETS_ROOT
 
 
 class _DatabaseListener(Service, identifier="_DatabaseListener"):
-    config: "_DatabaseListener.ConfigSchema" = None
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for _DatabaseListener."""
+
+        type: str = "_DatabaseListener"
+
+    config: "_DatabaseListener.ConfigSchema" = Field(default_factory=lambda: _DatabaseListener.ConfigSchema())
     name: str = "DatabaseListener"
     protocol: str = PROTOCOL_LOOKUP["TCP"]
     port: int = PORT_LOOKUP["NONE"]
     listen_on_ports: Set[int] = {PORT_LOOKUP["POSTGRES_SERVER"]}
     payloads_received: List[Any] = Field(default_factory=list)
-
-    class ConfigSchema(Service.ConfigSchema):
-        """ConfigSchema for _DatabaseListener."""
-
-        type: str = "_DATABASE_LISTENER"
 
     def receive(self, payload: Any, session_id: str, **kwargs) -> bool:
         self.payloads_received.append(payload)

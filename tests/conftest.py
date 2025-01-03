@@ -3,6 +3,7 @@ from typing import Any, Dict, Tuple
 
 import pytest
 import yaml
+from pydantic import Field
 from ray import init as rayinit
 
 from primaite import getLogger, PRIMAITE_PATHS
@@ -40,12 +41,12 @@ _LOGGER = getLogger(__name__)
 class DummyService(Service, identifier="DummyService"):
     """Test Service class"""
 
-    config: "DummyService.ConfigSchema" = None
-
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for DummyService."""
 
-        type: str = "DUMMY_SERVICE"
+        type: str = "DummyService"
+
+    config: "DummyService.ConfigSchema" = Field(default_factory=lambda: DummyService.ConfigSchema())
 
     def describe_state(self) -> Dict:
         return super().describe_state()
@@ -63,12 +64,12 @@ class DummyService(Service, identifier="DummyService"):
 class DummyApplication(Application, identifier="DummyApplication"):
     """Test Application class"""
 
-    config: "DummyApplication.ConfigSchema" = None
-
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for DummyApplication."""
 
-        type: str = "DUMMY_APPLICATION"
+        type: str = "DummyApplication"
+
+    config: "DummyApplication.ConfigSchema" = Field(default_factory=lambda: DummyApplication.ConfigSchema())
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DummyApplication"

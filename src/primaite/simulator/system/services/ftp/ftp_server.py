@@ -1,6 +1,8 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import Any, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
@@ -19,7 +21,7 @@ class FTPServer(FTPServiceABC, identifier="FTPServer"):
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
 
-    config: "FTPServer.ConfigSchema" = None
+    config: "FTPServer.ConfigSchema" = Field(default_factory=lambda: FTPServer.ConfigSchema())
 
     server_password: Optional[str] = None
     """Password needed to connect to FTP server. Default is None."""
@@ -27,7 +29,7 @@ class FTPServer(FTPServiceABC, identifier="FTPServer"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for FTPServer."""
 
-        type: str = "FTP_Server"
+        type: str = "FTPServer"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPServer"

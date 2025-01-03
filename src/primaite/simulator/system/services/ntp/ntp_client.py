@@ -3,6 +3,8 @@ from datetime import datetime
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.simulator.network.protocols.ntp import NTPPacket
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
@@ -15,16 +17,16 @@ _LOGGER = getLogger(__name__)
 class NTPClient(Service, identifier="NTPClient"):
     """Represents a NTP client as a service."""
 
-    config: "NTPClient.ConfigSchema" = None
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for NTPClient."""
+
+        type: str = "NTPClient"
+
+    config: "NTPClient.ConfigSchema" = Field(default_factory=lambda: NTPClient.ConfigSchema())
 
     ntp_server: Optional[IPv4Address] = None
     "The NTP server the client sends requests to."
     time: Optional[datetime] = None
-
-    class ConfigSchema(Service.ConfigSchema):
-        """ConfigSchema for NTPClient."""
-
-        type: str = "NTP_CLIENT"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "NTPClient"
