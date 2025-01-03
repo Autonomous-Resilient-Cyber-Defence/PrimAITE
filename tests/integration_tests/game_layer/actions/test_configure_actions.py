@@ -4,7 +4,7 @@ from ipaddress import IPv4Address
 import pytest
 from pydantic import ValidationError
 
-from primaite.game.agent.actions.config import (
+from primaite.game.agent.actions.software import (
     ConfigureDatabaseClientAction,
     ConfigureDoSBotAction,
     ConfigureRansomwareScriptAction,

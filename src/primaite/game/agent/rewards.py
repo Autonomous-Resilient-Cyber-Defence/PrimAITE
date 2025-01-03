@@ -381,14 +381,15 @@ class ActionPenalty(AbstractReward, identifier="ACTION_PENALTY"):
 
     class ConfigSchema(AbstractReward.ConfigSchema):
         """Config schema for ActionPenalty.
+
         :param action_penalty: Reward to give agents for taking any action except do_nothing
         :type action_penalty: float
         :param do_nothing_penalty: Reward to give agent for taking the do_nothing action
         :type do_nothing_penalty: float
         """
+
         action_penalty: float = -1.0
         do_nothing_penalty: float = 0.0
-
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Calculate the penalty to be applied.

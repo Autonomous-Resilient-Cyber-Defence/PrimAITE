@@ -1,10 +1,9 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 from primaite.game.agent.actions import (
     abstract,
     acl,
     application,
-    config,
     file,
     folder,
     host_nic,
@@ -13,6 +12,7 @@ from primaite.game.agent.actions import (
     node,
     service,
     session,
+    software,
 )
 from primaite.game.agent.actions.manager import ActionManager
 
@@ -20,7 +20,7 @@ __all__ = (
     "abstract",
     "acl",
     "application",
-    "config",
+    "software",
     "file",
     "folder",
     "host_nic",
