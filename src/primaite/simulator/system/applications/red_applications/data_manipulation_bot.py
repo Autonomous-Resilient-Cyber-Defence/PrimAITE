@@ -12,6 +12,7 @@ from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
@@ -46,6 +47,11 @@ class DataManipulationBot(Application, identifier="DataManipulationBot"):
         """Configuration schema for DataManipulationBot."""
 
         type: str = "DataManipulationBot"
+        server_ip: Optional[IPV4Address] = None
+        server_password: Optional[str] = None
+        payload: str = "DELETE"
+        port_scan_p_of_success: float = 0.1
+        data_manipulation_p_of_success: float = 0.1
 
     config: "DataManipulationBot.ConfigSchema" = Field(default_factory=lambda: DataManipulationBot.ConfigSchema())
 
@@ -64,6 +70,12 @@ class DataManipulationBot(Application, identifier="DataManipulationBot"):
 
         super().__init__(**kwargs)
         self._db_connection: Optional[DatabaseClientConnection] = None
+
+        self.server_ip_address = self.config.server_ip
+        self.server_password = self.config.server_password
+        self.payload = self.config.payload
+        self.port_scan_p_of_success = self.config.port_scan_p_of_success
+        self.data_manipulation_p_of_success = self.config.data_manipulation_p_of_success
 
     def describe_state(self) -> Dict:
         """

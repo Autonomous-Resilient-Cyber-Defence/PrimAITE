@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, ClassVar, Dict, Optional, Type
 
-from pydantic import BaseModel
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.interface.request import RequestFormat, RequestResponse
@@ -39,7 +39,12 @@ class Service(IOSoftware):
     Services are programs that run in the background and may perform input/output operations.
     """
 
-    config: "Service.ConfigSchema"
+    class ConfigSchema(IOSoftware.ConfigSchema, ABC):
+        """Config Schema for Service class."""
+
+        type: str
+
+    config: "Service.ConfigSchema" = Field(default_factory=lambda: Service.ConfigSchema())
 
     operating_state: ServiceOperatingState = ServiceOperatingState.STOPPED
     "The current operating state of the Service."
@@ -52,11 +57,6 @@ class Service(IOSoftware):
 
     _registry: ClassVar[Dict[str, Type["Service"]]] = {}
     """Registry of service types. Automatically populated when subclasses are defined."""
-
-    class ConfigSchema(BaseModel, ABC):
-        """Config Schema for Service class."""
-
-        type: str
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

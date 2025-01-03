@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, ClassVar, Dict, Optional, Set, Type
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType
@@ -30,7 +30,7 @@ class Application(IOSoftware, ABC):
     Applications are user-facing programs that may perform input/output operations.
     """
 
-    class ConfigSchema(BaseModel, ABC):
+    class ConfigSchema(IOSoftware.ConfigSchema, ABC):
         """Config Schema for Application class."""
 
         type: str

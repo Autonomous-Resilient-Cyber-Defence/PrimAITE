@@ -2,7 +2,7 @@
 from abc import abstractmethod
 from enum import Enum
 from ipaddress import IPv4Address
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Set, Union
 
 from pydantic import Field, validate_call
 
@@ -75,6 +75,8 @@ class AbstractC2(Application):
         masquerade_port: Port = Field(default=PORT_LOOKUP["HTTP"])
         """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
 
+        listen_on_ports: Set[Port] = {PORT_LOOKUP["HTTP"], PORT_LOOKUP["FTP"], PORT_LOOKUP["DNS"]}
+
     config: ConfigSchema = Field(default_factory=lambda: AbstractC2.ConfigSchema())
 
     c2_connection_active: bool = False
@@ -100,6 +102,12 @@ class AbstractC2(Application):
     If the C2 Beacon is reconfigured then a new keep alive is set which causes the
     C2 beacon to reconfigure it's configuration settings.
     """
+
+    def __init__(self, **kwargs):
+        """Initialise the C2 applications to by default listen for HTTP traffic."""
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
+        super().__init__(**kwargs)
 
     def _craft_packet(
         self, c2_payload: C2Payload, c2_command: Optional[C2Command] = None, command_options: Optional[Dict] = {}
@@ -140,13 +148,6 @@ class AbstractC2(Application):
         :rtype: Dict
         """
         return super().describe_state()
-
-    def __init__(self, **kwargs):
-        """Initialise the C2 applications to by default listen for HTTP traffic."""
-        kwargs["listen_on_ports"] = {PORT_LOOKUP["HTTP"], PORT_LOOKUP["FTP"], PORT_LOOKUP["DNS"]}
-        kwargs["port"] = PORT_LOOKUP["NONE"]
-        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
-        super().__init__(**kwargs)
 
     @property
     def _host_ftp_client(self) -> Optional[FTPClient]:

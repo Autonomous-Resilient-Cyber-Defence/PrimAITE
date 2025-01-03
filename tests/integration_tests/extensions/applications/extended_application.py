@@ -35,6 +35,7 @@ class ExtendedApplication(Application, identifier="ExtendedApplication"):
         """ConfigSchema for ExtendedApplication."""
 
         type: str = "ExtendedApplication"
+        target_url: Optional[str] = None
 
     config: "ExtendedApplication.ConfigSchema" = Field(default_factory=lambda: ExtendedApplication.ConfigSchema())
 
@@ -57,6 +58,7 @@ class ExtendedApplication(Application, identifier="ExtendedApplication"):
             kwargs["port"] = PORT_LOOKUP["HTTP"]
 
         super().__init__(**kwargs)
+        self.target_url = self.config.target_url
         self.run()
 
     def _init_request_manager(self) -> RequestManager:

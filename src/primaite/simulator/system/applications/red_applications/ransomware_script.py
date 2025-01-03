@@ -10,6 +10,7 @@ from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
@@ -23,6 +24,9 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
         """ConfigSchema for RansomwareScript."""
 
         type: str = "RansomwareScript"
+        server_ip: Optional[IPV4Address] = None
+        server_password: Optional[str] = None
+        payload: str = "ENCRYPT"
 
     config: "RansomwareScript.ConfigSchema" = Field(default_factory=lambda: RansomwareScript.ConfigSchema())
 
@@ -40,6 +44,9 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
 
         super().__init__(**kwargs)
         self._db_connection: Optional[DatabaseClientConnection] = None
+        self.server_ip_address = self.config.server_ip
+        self.server_password = self.config.server_password
+        self.payload = self.config.payload
 
     def describe_state(self) -> Dict:
         """

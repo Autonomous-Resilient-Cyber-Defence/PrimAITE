@@ -1,13 +1,13 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import copy
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, Optional, Set, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
@@ -70,13 +70,23 @@ class SoftwareCriticality(Enum):
     "The highest level of criticality."
 
 
-class Software(SimComponent):
+class Software(SimComponent, ABC):
     """
     A base class representing software in a simulator environment.
 
     This class is intended to be subclassed by specific types of software entities.
     It outlines the fundamental attributes and behaviors expected of any software in the simulation.
     """
+
+    class ConfigSchema(BaseModel, ABC):
+        """Configurable options for all software."""
+
+        model_config = ConfigDict(extra="forbid")
+        starting_health_state: SoftwareHealthState = SoftwareHealthState.UNUSED
+        criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
+        fixing_duration: int = 2
+
+    config: ConfigSchema = Field(default_factory=lambda: Software.ConfigSchema())
 
     name: str
     "The name of the software."
@@ -104,6 +114,12 @@ class Software(SimComponent):
     "The number of ticks it takes to patch the software."
     _fixing_countdown: Optional[int] = None
     "Current number of ticks left to patch the software."
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.health_state_actual = self.config.starting_health_state
+        self.criticality = self.config.criticality
+        self.fixing_duration = self.config.fixing_duration
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -233,7 +249,7 @@ class Software(SimComponent):
         super().pre_timestep(timestep)
 
 
-class IOSoftware(Software):
+class IOSoftware(Software, ABC):
     """
     Represents software in a simulator environment that is capable of input/output operations.
 
@@ -242,6 +258,13 @@ class IOSoftware(Software):
     OSI Model), process them according to their internals, and send a response payload back to the SessionManager if
     required.
     """
+
+    class ConfigSchema(Software.ConfigSchema, ABC):
+        """Configuration options for all IO Software."""
+
+        listen_on_ports: Set[Port] = Field(default_factory=set)
+
+    config: ConfigSchema = Field(default_factory=lambda: IOSoftware.ConfigSchema())
 
     installing_count: int = 0
     "The number of times the software has been installed. Default is 0."
@@ -259,6 +282,10 @@ class IOSoftware(Software):
     "The IP Protocol the Software operates on."
     _connections: Dict[str, Dict] = {}
     "Active connections."
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.listen_on_ports = self.config.listen_on_ports
 
     @abstractmethod
     def describe_state(self) -> Dict:

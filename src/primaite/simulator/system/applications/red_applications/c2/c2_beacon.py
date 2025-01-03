@@ -12,8 +12,9 @@ from primaite.simulator.system.applications.red_applications.c2 import ExfilOpts
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
 from primaite.simulator.system.services.terminal.terminal import Terminal, TerminalClientConnection
-from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
-from primaite.utils.validation.port import PORT_LOOKUP
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 
 class C2Beacon(AbstractC2, identifier="C2Beacon"):
@@ -39,6 +40,10 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
         """ConfigSchema for C2Beacon."""
 
         type: str = "C2Beacon"
+        c2_server_ip_address: Optional[IPV4Address] = None
+        keep_alive_frequency: int = 5
+        masquerade_protocol: IPProtocol = PROTOCOL_LOOKUP["TCP"]
+        masquerade_port: Port = PORT_LOOKUP["HTTP"]
 
     config: ConfigSchema = Field(default_factory=lambda: C2Beacon.ConfigSchema())
 

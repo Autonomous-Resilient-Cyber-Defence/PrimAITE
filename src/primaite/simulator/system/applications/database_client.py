@@ -73,6 +73,8 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         """ConfigSchema for DatabaseClient."""
 
         type: str = "DatabaseClient"
+        db_server_ip: Optional[IPV4Address] = None
+        server_password: Optional[str] = None
 
     config: ConfigSchema = Field(default_factory=lambda: DatabaseClient.ConfigSchema())
 
@@ -99,6 +101,8 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         kwargs["port"] = PORT_LOOKUP["POSTGRES_SERVER"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
+        self.server_ip_address = self.config.db_server_ip
+        self.server_password = self.config.server_password
 
     def _init_request_manager(self) -> RequestManager:
         """

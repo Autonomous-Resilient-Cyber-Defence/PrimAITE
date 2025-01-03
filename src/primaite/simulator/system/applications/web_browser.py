@@ -34,6 +34,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
         """ConfigSchema for WebBrowser."""
 
         type: str = "WebBrowser"
+        target_url: Optional[str] = None
 
     config: "WebBrowser.ConfigSchema" = Field(default_factory=lambda: WebBrowser.ConfigSchema())
 
@@ -56,6 +57,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
             kwargs["port"] = PORT_LOOKUP["HTTP"]
 
         super().__init__(**kwargs)
+        self.target_url = self.config.target_url
         self.run()
 
     def _init_request_manager(self) -> RequestManager:
