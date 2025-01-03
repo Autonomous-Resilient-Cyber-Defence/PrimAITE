@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from gymnasium import spaces
 
 from primaite.game.agent.observations.file_system_observations import FileObservation

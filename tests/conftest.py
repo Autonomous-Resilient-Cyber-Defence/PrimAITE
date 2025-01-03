@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import Any, Dict, Tuple
 
 import pytest
@@ -471,33 +471,6 @@ def game_and_agent():
 
     action_space = ActionManager(
         actions=actions,  # ALL POSSIBLE ACTIONS
-        nodes=[
-            {
-                "node_name": "client_1",
-                "applications": [
-                    {"application_name": "WebBrowser"},
-                    {"application_name": "DoSBot"},
-                    {"application_name": "C2Server"},
-                ],
-                "folders": [{"folder_name": "downloads", "files": [{"file_name": "cat.png"}]}],
-            },
-            {
-                "node_name": "server_1",
-                "services": [{"service_name": "DNSServer"}],
-                "applications": [{"application_name": "C2Beacon"}],
-            },
-            {"node_name": "server_2", "services": [{"service_name": "WebServer"}]},
-            {"node_name": "router"},
-        ],
-        max_folders_per_node=2,
-        max_files_per_folder=2,
-        max_services_per_node=2,
-        max_applications_per_node=3,
-        max_nics_per_node=2,
-        max_acl_rules=10,
-        protocols=["TCP", "UDP", "ICMP"],
-        ports=["HTTP", "DNS", "ARP"],
-        ip_list=["10.0.1.1", "10.0.1.2", "10.0.2.1", "10.0.2.2", "10.0.2.3"],
         act_map={},
     )
     observation_space = ObservationManager(NestedObservation(components={}))
