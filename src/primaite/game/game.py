@@ -380,8 +380,8 @@ class PrimaiteGame:
                         new_service = new_node.software_manager.software[service_class.__name__]
 
                         # fixing duration for the service
-                        if "fix_duration" in service_cfg.get("options", {}):
-                            new_service.fixing_duration = service_cfg["options"]["fix_duration"]
+                        if "fixing_duration" in service_cfg.get("options", {}):
+                            new_service.config.fixing_duration = service_cfg["options"]["fixing_duration"]
 
                         _set_software_listen_on_ports(new_service, service_cfg)
                         # start the service

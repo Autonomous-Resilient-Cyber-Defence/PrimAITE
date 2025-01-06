@@ -84,7 +84,7 @@ class Software(SimComponent, ABC):
         model_config = ConfigDict(extra="forbid")
         starting_health_state: SoftwareHealthState = SoftwareHealthState.UNUSED
         criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
-        fix_duration: int = 2
+        fixing_duration: int = 2
 
     config: ConfigSchema = Field(default_factory=lambda: Software.ConfigSchema())
 
@@ -94,8 +94,6 @@ class Software(SimComponent, ABC):
     "The actual health state of the software."
     health_state_visible: SoftwareHealthState = SoftwareHealthState.UNUSED
     "The health state of the software visible to the red agent."
-    criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
-    "The criticality level of the software."
     fixing_count: int = 0
     "The count of patches applied to the software, defaults to 0."
     scanning_count: int = 0
@@ -110,16 +108,12 @@ class Software(SimComponent, ABC):
     "The FileSystem of the Node the Software is installed on."
     folder: Optional[Folder] = None
     "The folder on the file system the Software uses."
-    fixing_duration: int = 2
-    "The number of ticks it takes to patch the software."
     _fixing_countdown: Optional[int] = None
     "Current number of ticks left to patch the software."
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.health_state_actual = self.config.starting_health_state  # don't remove this
-        self.criticality = self.config.criticality
-        self.fixing_duration = self.config.fix_duration
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -168,7 +162,7 @@ class Software(SimComponent, ABC):
             {
                 "health_state_actual": self.health_state_actual.value,
                 "health_state_visible": self.health_state_visible.value,
-                "criticality": self.criticality.value,
+                "criticality": self.config.criticality.value,
                 "fixing_count": self.fixing_count,
                 "scanning_count": self.scanning_count,
                 "revealed_to_red": self.revealed_to_red,
@@ -217,7 +211,7 @@ class Software(SimComponent, ABC):
     def fix(self) -> bool:
         """Perform a fix on the software."""
         if self.health_state_actual in (SoftwareHealthState.COMPROMISED, SoftwareHealthState.GOOD):
-            self._fixing_countdown = self.fixing_duration
+            self._fixing_countdown = self.config.fixing_duration
             self.set_health_state(SoftwareHealthState.FIXING)
             return True
         return False
