@@ -7,13 +7,13 @@
 Extensible Agents
 *****************
 
-Agents defined within PrimAITE have been updated to allow for easier creation of new bespoke agents. 
+Agents defined within PrimAITE have been updated to allow for easier creation of new bespoke agents.
 
 
 Developing Agents for PrimAITE
 ==============================
 
-Agents within PrimAITE, follow the shown inheritance structure below. 
+Agents within PrimAITE, follow the shown inheritance structure below.
 
 # TODO: Turn this into an inheritance diagram
 

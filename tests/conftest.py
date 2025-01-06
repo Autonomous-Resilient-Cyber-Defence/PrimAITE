@@ -7,9 +7,9 @@ from ray import init as rayinit
 
 from primaite import getLogger, PRIMAITE_PATHS
 from primaite.game.agent.actions import ActionManager
+from primaite.game.agent.interface import AbstractAgent
 from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
-from primaite.game.agent.interface import AbstractAgent
 from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
 from primaite.game.game import PrimaiteGame
 from primaite.simulator.file_system.file_system import FileSystem
@@ -369,6 +369,7 @@ def install_stuff_to_sim(sim: Simulation):
     # 5: Assert that the simulation starts off in the state that we expect
     assert len(sim.network.nodes) == 6
     assert len(sim.network.links) == 5
+
     # 5.1: Assert the router is correctly configured
     r = sim.network.router_nodes[0]
     for i, acl_rule in enumerate(r.acl.acl):

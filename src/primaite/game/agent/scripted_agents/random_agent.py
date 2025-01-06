@@ -37,6 +37,7 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Periodic Agent."""
+
         agent_name: str = "Periodic_Agent"
         """Name of the agent."""
 
@@ -57,12 +58,11 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
     def start_variance(self) -> int:
         """Returns the deviation around the start step."""
         return self.config.agent_settings.start_settings.variance
-    
+
     @property
     def frequency(self) -> int:
         """Returns the number of timesteps to wait between performing actions."""
         return self.config.agent_settings.start_settings.frequency
-
 
     def _set_next_execution_timestep(self, timestep: int, variance: int) -> None:
         """Set the next execution timestep with a configured random variance.

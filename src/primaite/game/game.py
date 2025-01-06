@@ -525,23 +525,22 @@ class PrimaiteGame:
         agents_cfg = cfg.get("agents", [])
 
         for agent_cfg in agents_cfg:
-            agent_ref = agent_cfg["ref"]  # noqa: F841
+            agent_name = agent_cfg["ref"]  # noqa: F841
             agent_type = agent_cfg["type"]
             action_space_cfg = agent_cfg["action_space"]
             observation_space_cfg = agent_cfg["observation_space"]
             reward_function_cfg = agent_cfg["reward_function"]
             agent_settings = agent_cfg["agent_settings"]
 
-            # CREATE AGENT
             agent_config = {
-                "agent_name": agent_ref,
+                "agent_name": agent_name,
                 "action_manager": action_space_cfg,
                 "observation_manager": observation_space_cfg,
                 "reward_function": reward_function_cfg,
                 "agent_settings": agent_settings,
             }
 
-            # new_agent_cfg.update{}
+            # CREATE AGENT
             if agent_type in AbstractAgent._registry:
                 new_agent = AbstractAgent._registry[agent_cfg["type"]].from_config(config=agent_config)
                 # If blue agent is created, add to game.rl_agents

@@ -1,7 +1,6 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import Dict, Optional, Tuple
 
-
 from gymnasium.core import ObsType
 
 from primaite.game.agent.scripted_agents.abstract_tap import AbstractTAPAgent

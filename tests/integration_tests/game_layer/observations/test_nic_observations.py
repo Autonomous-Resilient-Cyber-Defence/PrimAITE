@@ -6,8 +6,8 @@ import pytest
 import yaml
 from gymnasium import spaces
 
-from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.game.agent.interface import ProxyAgent
+from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.game.game import PrimaiteGame
 from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.hardware.nodes.host.computer import Computer

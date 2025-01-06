@@ -51,9 +51,9 @@ class AbstractAgent(BaseModel):
 
     history: List[AgentHistoryItem] = []
     config: "AbstractAgent.ConfigSchema"
-    action_manager: ActionManager
-    observation_manager: ObservationManager
-    reward_function: RewardFunction
+    action_manager: "ActionManager"
+    observation_manager: "ObservationManager"
+    reward_function: "RewardFunction"
 
     class ConfigSchema(BaseModel):
         """
