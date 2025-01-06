@@ -84,7 +84,7 @@ class Software(SimComponent, ABC):
         model_config = ConfigDict(extra="forbid")
         starting_health_state: SoftwareHealthState = SoftwareHealthState.UNUSED
         criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
-        fixing_duration: int = 2
+        fix_duration: int = 2
 
     config: ConfigSchema = Field(default_factory=lambda: Software.ConfigSchema())
 
@@ -117,9 +117,9 @@ class Software(SimComponent, ABC):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.health_state_actual = self.config.starting_health_state
+        self.health_state_actual = self.config.starting_health_state  # don't remove this
         self.criticality = self.config.criticality
-        self.fixing_duration = self.config.fixing_duration
+        self.fixing_duration = self.config.fix_duration
 
     def _init_request_manager(self) -> RequestManager:
         """
