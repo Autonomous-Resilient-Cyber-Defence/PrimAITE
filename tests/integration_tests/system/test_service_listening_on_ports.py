@@ -19,6 +19,7 @@ class _DatabaseListener(Service, identifier="_DatabaseListener"):
         """ConfigSchema for _DatabaseListener."""
 
         type: str = "_DatabaseListener"
+        listen_on_ports: Set[int] = {PORT_LOOKUP["POSTGRES_SERVER"]}
 
     config: "_DatabaseListener.ConfigSchema" = Field(default_factory=lambda: _DatabaseListener.ConfigSchema())
     name: str = "DatabaseListener"
