@@ -56,12 +56,6 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
     def __init__(self, **kwargs):
         kwargs["name"] = "C2Beacon"
         super().__init__(**kwargs)
-        self.configure(
-            c2_server_ip_address=self.config.c2_server_ip_address,
-            keep_alive_frequency=self.config.keep_alive_frequency,
-            masquerade_port=self.config.masquerade_port,
-            masquerade_protocol=self.config.masquerade_protocol,
-        )
 
     @property
     def _host_terminal(self) -> Optional[Terminal]:
