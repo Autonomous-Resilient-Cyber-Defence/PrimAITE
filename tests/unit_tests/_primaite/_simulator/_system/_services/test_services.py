@@ -148,7 +148,7 @@ def test_service_fixing(service):
     service.fix()
     assert service.health_state_actual == SoftwareHealthState.FIXING
 
-    for i in range(service.fixing_duration + 1):
+    for i in range(service.config.fixing_duration + 1):
         service.apply_timestep(i)
 
     assert service.health_state_actual == SoftwareHealthState.GOOD

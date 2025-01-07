@@ -13,8 +13,8 @@ from primaite.simulator.system.services.database.database_service import Databas
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from tests import TEST_ASSETS_ROOT
 
-TEST_CONFIG = TEST_ASSETS_ROOT / "configs/software_fix_duration.yaml"
-ONE_ITEM_CONFIG = TEST_ASSETS_ROOT / "configs/fix_duration_one_item.yaml"
+TEST_CONFIG = TEST_ASSETS_ROOT / "configs/software_fixing_duration.yaml"
+ONE_ITEM_CONFIG = TEST_ASSETS_ROOT / "configs/fixing_duration_one_item.yaml"
 
 TestApplications = ["DummyApplication", "BroadcastTestClient"]
 

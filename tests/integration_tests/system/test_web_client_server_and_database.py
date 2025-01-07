@@ -131,7 +131,7 @@ def test_database_fix_disrupts_web_client(uc2_network):
 
     assert web_browser.get_webpage() is False
 
-    for i in range(database_service.fixing_duration + 1):
+    for i in range(database_service.config.fixing_duration + 1):
         uc2_network.apply_timestep(i)
 
     assert database_service.health_state_actual == SoftwareHealthState.GOOD
