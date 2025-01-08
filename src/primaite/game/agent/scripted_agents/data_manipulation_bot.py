@@ -42,7 +42,7 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="RedDatabaseCorruptingA
             self.logger.debug(msg="Performing do nothing action")
             return "do_nothing", {}
 
-        self._set_next_execution_timestep(timestep + self.config.agent_settings.start_settings.frequency)
+        self._set_next_execution_timestep(timestep + self.config.frequency)
         self.logger.info(msg="Performing a data manipulation attack!")
         return "node_application_execute", {
             "node_name": self.config.starting_node_name,
@@ -52,4 +52,4 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="RedDatabaseCorruptingA
     def setup_agent(self) -> None:
         """Set the next execution timestep when the episode resets."""
         self._select_start_node()
-        self._set_next_execution_timestep(self.config.agent_settings.start_settings.start_step)
+        self._set_next_execution_timestep(self.config.start_step)

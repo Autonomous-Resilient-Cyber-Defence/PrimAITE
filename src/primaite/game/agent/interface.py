@@ -47,13 +47,14 @@ class AbstractAgent(BaseModel):
     """Base class for scripted and RL agents."""
 
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
-    _logger: AgentLog = AgentLog(agent_name="Abstract_Agent")
+    logger: AgentLog = AgentLog(agent_name="Abstract_Agent")
 
     history: List[AgentHistoryItem] = []
     config: "AbstractAgent.ConfigSchema"
     action_manager: "ActionManager"
     observation_manager: "ObservationManager"
     reward_function: "RewardFunction"
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
     class ConfigSchema(BaseModel):
         """
@@ -114,11 +115,12 @@ class AbstractAgent(BaseModel):
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractAgent":
         """Creates an agent component from a configuration dictionary."""
+        print(config)
         obj = cls(
             config=cls.ConfigSchema(**config["agent_settings"]),
-            action_manager=ActionManager.from_config(**config["action_manager"]),
-            observation_manager=ObservationManager.from_config(**config["observation_space"]),
-            reward_function=RewardFunction.from_config(**config["reward_function"]),
+            action_manager=ActionManager.from_config(config["game"], config["action_manager"]),
+            observation_manager=ObservationManager.from_config(config["observation_manager"]),
+            reward_function=RewardFunction.from_config(config["reward_function"]),
         )
         return obj
 
@@ -140,7 +142,7 @@ class AbstractAgent(BaseModel):
         :return: Reward from the state.
         :rtype: float
         """
-        return self.reward_function.update(state=state, last_action_response=self.config.history[-1])
+        return self.reward_function.update(state=state, last_action_response=self.history[-1])
 
     @abstractmethod
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:

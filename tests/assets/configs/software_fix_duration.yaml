@@ -56,10 +56,9 @@ agents:
         - type: DUMMY
 
     agent_settings:
-      start_settings:
-        start_step: 5
-        frequency: 4
-        variance: 3
+      start_step: 5
+      frequency: 4
+      variance: 3
       action_probabilities:
         0: 0.4
         1: 0.6

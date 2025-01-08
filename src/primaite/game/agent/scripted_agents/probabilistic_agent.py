@@ -6,7 +6,7 @@ import numpy as np
 import pydantic
 from gymnasium.core import ObsType
 
-from primaite.game.agent.interface import AbstractScriptedAgent, AgentSettings
+from primaite.game.agent.interface import AbstractScriptedAgent
 
 __all__ = "ProbabilisticAgent"
 
@@ -17,8 +17,10 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent")
     config: "ProbabilisticAgent.ConfigSchema"
     rng: Any = np.random.default_rng(np.random.randint(0, 65535))
 
-    class AgentSettings(AgentSettings):
-        """ProbabilisticAgent settings."""
+    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+        """Configuration schema for Probabilistic Agent."""
+
+        agent_name: str = "ProbabilisticAgent"
 
         action_probabilities: Dict[int, float]
         """Probability to perform each action in the action map. The sum of probabilities should sum to 1."""
@@ -42,16 +44,10 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent")
                 )
             return v
 
-    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
-        """Configuration schema for Probabilistic Agent."""
-
-        agent_name: str = "ProbabilisticAgent"
-        agent_settings: "ProbabilisticAgent.AgentSettings"
-
     @property
     def probabilities(self) -> Dict[str, int]:
         """Convenience method to view the probabilities of the Agent."""
-        return np.asarray(list(self.config.agent_settings.action_probabilities.values()))
+        return np.asarray(list(self.config.action_probabilities.values()))
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """

@@ -31,10 +31,9 @@ agents:
         - type: DUMMY
 
     agent_settings: # options specific to this particular agent type, basically args of __init__(self)
-      start_settings:
-        start_step: 25
-        frequency: 20
-        variance: 5
+      start_step: 25
+      frequency: 20
+      variance: 5
 
   - ref: data_manipulation_attacker
     team: RED
@@ -63,10 +62,9 @@ agents:
         - type: DUMMY
 
     agent_settings: # options specific to this particular agent type, basically args of __init__(self)
-      start_settings:
-        start_step: 25
-        frequency: 20
-        variance: 5
+      start_step: 25
+      frequency: 20
+      variance: 5
 
   - ref: defender
     team: BLUE

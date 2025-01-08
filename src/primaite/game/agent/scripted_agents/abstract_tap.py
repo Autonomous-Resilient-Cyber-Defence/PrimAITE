@@ -39,9 +39,7 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
 
         :param timestep: The timestep to add variance to.
         """
-        random_timestep_increment = random.randint(
-            -self.config.agent_settings.start_settings.variance, self.config.agent_settings.start_settings.variance
-        )
+        random_timestep_increment = random.randint(-self.config.variance, self.config.variance)
         self.next_execution_timestep = timestep + random_timestep_increment
 
     def _select_start_node(self) -> None:

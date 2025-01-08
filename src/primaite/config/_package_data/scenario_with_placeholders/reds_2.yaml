@@ -20,7 +20,6 @@ reds: &reds
         - type: DUMMY
 
     agent_settings:
-      start_settings:
-        start_step: 3
-        frequency: 2
-        variance: 1
+      start_step: 3
+      frequency: 2
+      variance: 1

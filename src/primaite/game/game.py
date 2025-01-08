@@ -538,6 +538,7 @@ class PrimaiteGame:
                 "observation_manager": observation_space_cfg,
                 "reward_function": reward_function_cfg,
                 "agent_settings": agent_settings,
+                "game": game,
             }
 
             # CREATE AGENT
