@@ -17,12 +17,12 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="AbstractTAP"):
     """Base class for TAP agents to inherit from."""
 
     config: "AbstractTAPAgent.ConfigSchema" = Field(default_factory=lambda: AbstractTAPAgent.ConfigSchema())
-    agent_name: str = "Abstract_TAP"
     next_execution_timestep: int = 0
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration schema for Abstract TAP agents."""
 
+        type: str = "AbstractTAP"
         starting_node_name: Optional[str] = None
 
     @abstractmethod

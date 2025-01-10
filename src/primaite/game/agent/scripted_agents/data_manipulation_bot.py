@@ -13,11 +13,11 @@ class DataManipulationAgent(AbstractTAPAgent, identifier="RedDatabaseCorruptingA
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
 
     config: "DataManipulationAgent.ConfigSchema" = Field(default_factory=lambda: DataManipulationAgent.ConfigSchema())
-    agent_name: str = "Data_Manipulation_Agent"
 
     class ConfigSchema(AbstractTAPAgent.ConfigSchema):
         """Configuration Schema for DataManipulationAgent."""
 
+        type: str = "RedDatabaseCorruptingAgent"
         starting_application_name: Optional[str] = None
 
     @property

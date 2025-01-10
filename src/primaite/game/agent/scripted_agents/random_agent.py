@@ -18,7 +18,7 @@ class RandomAgent(AbstractScriptedAgent, identifier="RandomAgent"):
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Random Agents."""
 
-        agent_name: str = "Random_Agent"
+        type: str = "RandomAgent"
 
     def get_action(self) -> Tuple[str, Dict]:
         """Sample the action space randomly.
@@ -41,7 +41,7 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Periodic Agent."""
 
-        agent_name: str = "Periodic_Agent"
+        type: str = "PeriodicAgent"
         """Name of the agent."""
 
     max_executions: int = 999999
