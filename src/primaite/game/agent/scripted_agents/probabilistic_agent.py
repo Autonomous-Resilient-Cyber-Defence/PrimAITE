@@ -5,6 +5,7 @@ from typing import Any, Dict, Tuple
 import numpy as np
 import pydantic
 from gymnasium.core import ObsType
+from pydantic import Field
 
 from primaite.game.agent.interface import AbstractScriptedAgent
 
@@ -14,7 +15,7 @@ __all__ = "ProbabilisticAgent"
 class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent"):
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
-    config: "ProbabilisticAgent.ConfigSchema"
+    config: "ProbabilisticAgent.ConfigSchema" = Field(default_factory=lambda: ProbabilisticAgent.ConfigSchema())
     rng: Any = np.random.default_rng(np.random.randint(0, 65535))
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
@@ -22,7 +23,7 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent")
 
         agent_name: str = "ProbabilisticAgent"
 
-        action_probabilities: Dict[int, float]
+        action_probabilities: Dict[int, float] = None
         """Probability to perform each action in the action map. The sum of probabilities should sum to 1."""
 
         @pydantic.field_validator("action_probabilities", mode="after")

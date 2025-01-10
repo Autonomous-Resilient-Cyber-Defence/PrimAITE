@@ -115,7 +115,6 @@ class AbstractAgent(BaseModel):
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractAgent":
         """Creates an agent component from a configuration dictionary."""
-        print(config)
         obj = cls(
             config=cls.ConfigSchema(**config["agent_settings"]),
             action_manager=ActionManager.from_config(config["game"], config["action_manager"]),

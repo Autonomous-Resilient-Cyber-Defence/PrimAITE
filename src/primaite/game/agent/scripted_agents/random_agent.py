@@ -3,14 +3,17 @@ import random
 from typing import Dict, Tuple
 
 from gymnasium.core import ObsType
+from pydantic import Field
 
 from primaite.game.agent.interface import AbstractScriptedAgent
 
 __all__ = ("RandomAgent", "PeriodicAgent")
 
 
-class RandomAgent(AbstractScriptedAgent, identifier="Random_Agent"):
+class RandomAgent(AbstractScriptedAgent, identifier="RandomAgent"):
     """Agent that ignores its observation and acts completely at random."""
+
+    config: "RandomAgent.ConfigSchema" = Field(default_factory=lambda: RandomAgent.ConfigSchema())
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Random Agents."""
@@ -30,10 +33,10 @@ class RandomAgent(AbstractScriptedAgent, identifier="Random_Agent"):
         return self.action_manager.get_action(self.action_manager.space.sample())
 
 
-class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
+class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
     """Agent that does nothing most of the time, but executes application at regular intervals (with variance)."""
 
-    config: "PeriodicAgent.ConfigSchema" = {}
+    config: "PeriodicAgent.ConfigSchema" = Field(default_factory=lambda: PeriodicAgent.ConfigSchema())
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Periodic Agent."""
@@ -45,24 +48,8 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
     "Maximum number of times the agent can execute its action."
     num_executions: int = 0
     """Number of times the agent has executed an action."""
-    # TODO: Also in abstract_tap - move up and inherit? Add to AgentStartSettings?
     next_execution_timestep: int = 0
     """Timestep of the next action execution by the agent."""
-
-    @property
-    def start_step(self) -> int:
-        """Return the timestep at which an agent begins performing it's actions."""
-        return self.config.agent_settings.start_settings.start_step
-
-    @property
-    def start_variance(self) -> int:
-        """Returns the deviation around the start step."""
-        return self.config.agent_settings.start_settings.variance
-
-    @property
-    def frequency(self) -> int:
-        """Returns the number of timesteps to wait between performing actions."""
-        return self.config.agent_settings.start_settings.frequency
 
     def _set_next_execution_timestep(self, timestep: int, variance: int) -> None:
         """Set the next execution timestep with a configured random variance.
@@ -79,8 +66,8 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="Periodic_Agent"):
         """Do nothing, unless the current timestep is the next execution timestep, in which case do the action."""
         if timestep == self.next_execution_timestep and self.num_executions < self.max_executions:
             self.num_executions += 1
-            self._set_next_execution_timestep(timestep + self.frequency, self.start_variance)
+            self._set_next_execution_timestep(timestep + self.config.frequency, self.config.variance)
             self.target_node = self.action_manager.node_names[0]
             return "node_application_execute", {"node_name": self.target_node, "application_name": 0}
 
-        return "DONOTHING", {}
+        return "do_nothing", {}

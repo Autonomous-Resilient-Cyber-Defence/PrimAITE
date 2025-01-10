@@ -2,6 +2,7 @@
 from typing import Dict, Optional, Tuple
 
 from gymnasium.core import ObsType
+from pydantic import Field
 
 from primaite.game.agent.scripted_agents.abstract_tap import AbstractTAPAgent
 
@@ -11,7 +12,7 @@ __all__ = "DataManipulationAgent"
 class DataManipulationAgent(AbstractTAPAgent, identifier="RedDatabaseCorruptingAgent"):
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
 
-    config: "DataManipulationAgent.ConfigSchema"
+    config: "DataManipulationAgent.ConfigSchema" = Field(default_factory=lambda: DataManipulationAgent.ConfigSchema())
     agent_name: str = "Data_Manipulation_Agent"
 
     class ConfigSchema(AbstractTAPAgent.ConfigSchema):

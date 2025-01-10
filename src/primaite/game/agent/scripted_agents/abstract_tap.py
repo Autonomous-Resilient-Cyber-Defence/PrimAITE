@@ -6,16 +6,17 @@ from abc import abstractmethod
 from typing import Dict, Optional, Tuple
 
 from gymnasium.core import ObsType
+from pydantic import Field
 
 from primaite.game.agent.interface import AbstractScriptedAgent
 
 __all__ = "AbstractTAPAgent"
 
 
-class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
+class AbstractTAPAgent(AbstractScriptedAgent, identifier="AbstractTAP"):
     """Base class for TAP agents to inherit from."""
 
-    config: "AbstractTAPAgent.ConfigSchema"
+    config: "AbstractTAPAgent.ConfigSchema" = Field(default_factory=lambda: AbstractTAPAgent.ConfigSchema())
     agent_name: str = "Abstract_TAP"
     next_execution_timestep: int = 0
 
@@ -45,7 +46,7 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="Abstract_TAP"):
     def _select_start_node(self) -> None:
         """Set the starting starting node of the agent to be a random node from this agent's action manager."""
         # we are assuming that every node in the node manager has a data manipulation application at idx 0
-        num_nodes = len(self.config.action_manager.node_names)
+        num_nodes = len(self.action_manager.node_names)
         starting_node_idx = random.randint(0, num_nodes - 1)
-        self.starting_node_name = self.config.action_manager.node_names[starting_node_idx]
-        self.logger.debug(f"Selected starting node: {self.starting_node_name}")
+        self.config.starting_node_name = self.action_manager.node_names[starting_node_idx]
+        self.logger.debug(f"Selected starting node: {self.config.starting_node_name}")

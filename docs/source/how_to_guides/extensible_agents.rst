@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _about:
 
@@ -15,7 +15,12 @@ Developing Agents for PrimAITE
 
 Agents within PrimAITE, follow the shown inheritance structure below.
 
+The inheritance structure of agents within PrimAITE are shown below. When developing custom agents for use with PrimAITE, please see the relevant documentation for each agent type to determine which is most relevant for your implementation.
+
+All agent types within PrimAITE are listed under the ``_registry`` attribute of the parent class, ``AbstractAgent``.
+
 # TODO: Turn this into an inheritance diagram
+# TODO: Would this be necessary?
 
 AbstractAgent
 	|
@@ -40,12 +45,12 @@ AbstractAgent
 #. **ConfigSchema**:
 
     Configurable items within a new agent within PrimAITE should contain a ``ConfigSchema`` which holds all configurable variables of the agent. This should not include parameters related to its *state*.
-	Agent generation will fail if incorrect parameters are passed to the ConfigSchema, for the chosen Agent.
+	Agent generation will fail if incorrect or invalid parameters are passed to the ConfigSchema, of the chosen Agent.
 
 
     .. code-block:: python
 
-        class ExampleAgent(AbstractAgent, identifier = "example_agent"):
+        class ExampleAgent(AbstractAgent, identifier = "ExampleAgent"):
             """An example agent for demonstration purposes."""
 
             config: "ExampleAgent.ConfigSchema"
@@ -56,10 +61,10 @@ AbstractAgent
             class ConfigSchema(AbstractAgent.ConfigSchema):
                 """ExampleAgent configuration schema"""
 
-                agent_name: str
+                agent_name: str = "ExampleAgent
                 """Name of agent"""
-                action_interval: int
-                """Number of steps between agent actions"""
+                starting_host: int
+                """Host node that this agent should start from in the given environment."""
 
 
 	.. code-block:: YAML
@@ -89,22 +94,24 @@ AbstractAgent
 				- type: DUMMY
 
 		  agent_settings:
-		  	start_settings:
-				start_step: 25
-				frequency: 20
-				variance: 5
+			start_step: 25
+			frequency: 20
+			variance: 5
+			agent_name: "Example Agent"
+			starting_host: "Server_1"
 
 
-#. **identifier**:
+#. **Identifiers**:
 
-    All agent classes should have a ``identifier`` attribute, a unique snake_case string, for when they are added to the base ``AbstractAgent`` registry. This is then specified in your configuration YAML, and used by PrimAITE to generate the correct Agent.
+    All agent classes should have a ``identifier`` attribute, a unique kebab-case string, for when they are added to the base ``AbstractAgent`` registry. This is then specified in your configuration YAML, and used by PrimAITE to generate the correct Agent.
 
 Changes to YAML file
 ====================
 
-Agent configurations specified within YAML files used for earlier versions of PrimAITE will need updating to be compatible with PrimAITE v4.0.0+.
+PrimAITE v4.0.0 introduces some breaking changes to how environment configuration yaml files are created. YAML files created for Primaite versions 3.3.0 should be compatible through a translation function, though it is encouraged that these are updated to reflect the updated format of 4.0.0+.
 
-Agents now follow a more standardised settings definition, so should be more consistent across YAML.
-
+Agents now follow a more standardised settings definition, so should be more consistent across YAML files and the available agent types with PrimAITE.
 
 # TODO: Show changes to YAML config needed here
+
+All configurable items for agents sit under the ``agent_settings`` heading within your YAML files. There is no need for the inclusion of  a ``start_settings``.
