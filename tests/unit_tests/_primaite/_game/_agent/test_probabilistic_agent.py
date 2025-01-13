@@ -3,7 +3,7 @@ from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
-from primaite.game.game import PrimaiteGame
+from primaite.game.game import PrimaiteGame, PrimaiteGameOptions
 
 
 def test_probabilistic_agent():
@@ -54,16 +54,17 @@ def test_probabilistic_agent():
         },
         "options": {},
     }
-    observation_space = ObservationManager(NestedObservation(components={}))
-    reward_function = RewardFunction()
+
+    game = PrimaiteGame()
+    game.options = PrimaiteGameOptions(ports=[], protocols=[])
 
     observation_space_cfg = None
 
     reward_function_cfg = {}
 
     pa_config = {
-        "agent_name": "test_agent",
-        "game": PrimaiteGame(),
+        "type": "ProbabilisticAgent",
+        "game": game,
         "action_manager": action_space_cfg,
         "observation_manager": observation_space_cfg,
         "reward_function": reward_function_cfg,

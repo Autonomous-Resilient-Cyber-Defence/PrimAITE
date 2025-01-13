@@ -1,10 +1,11 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 """Agents with predefined behaviours."""
-from typing import Any, Dict, Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 import pydantic
 from gymnasium.core import ObsType
+from numpy.random import Generator
 from pydantic import Field
 
 from primaite.game.agent.interface import AbstractScriptedAgent
@@ -16,7 +17,7 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent")
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
     config: "ProbabilisticAgent.ConfigSchema" = Field(default_factory=lambda: ProbabilisticAgent.ConfigSchema())
-    rng: Any = np.random.default_rng(np.random.randint(0, 65535))
+    rng: Generator = np.random.default_rng(np.random.randint(0, 65535))
 
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration schema for Probabilistic Agent."""

@@ -3,7 +3,7 @@ import random
 from typing import Dict, Tuple
 
 from gymnasium.core import ObsType
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from primaite.game.agent.interface import AbstractScriptedAgent
 
@@ -43,6 +43,28 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
 
         type: str = "PeriodicAgent"
         """Name of the agent."""
+        start_step: int = 5
+        "The timestep at which an agent begins performing it's actions"
+        frequency: int = 5
+        "The number of timesteps to wait between performing actions"
+        variance: int = 0
+        "The amount the frequency can randomly change to"
+
+        @model_validator(mode="after")
+        def check_variance_lt_frequency(self) -> "PeriodicAgent.ConfigSchema":
+            """
+            Make sure variance is equal to or lower than frequency.
+
+            This is because the calculation for the next execution time is now + (frequency +- variance).
+            If variance were greater than frequency, sometimes the bracketed term would be negative
+            and the attack would never happen again.
+            """
+            if self.variance > self.frequency:
+                raise ValueError(
+                    f"Agent start settings error: variance must be lower than frequency "
+                    f"{self.variance=}, {self.frequency=}"
+                )
+            return self
 
     max_executions: int = 999999
     "Maximum number of times the agent can execute its action."
