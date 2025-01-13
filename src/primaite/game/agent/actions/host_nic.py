@@ -48,7 +48,7 @@ class HostNICEnableAction(HostNICAbstractAction, identifier="host_nic_enable"):
     class ConfigSchema(HostNICAbstractAction.ConfigSchema):
         """Configuration schema for HostNICEnableAction."""
 
-        verb: str = "enable"
+        verb: ClassVar[str] = "enable"
 
 
 class HostNICDisableAction(HostNICAbstractAction, identifier="host_nic_disable"):
@@ -59,4 +59,4 @@ class HostNICDisableAction(HostNICAbstractAction, identifier="host_nic_disable")
     class ConfigSchema(HostNICAbstractAction.ConfigSchema):
         """Configuration schema for HostNICDisableAction."""
 
-        verb: str = "disable"
+        verb: ClassVar[str] = "disable"

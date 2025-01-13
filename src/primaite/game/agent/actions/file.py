@@ -60,7 +60,7 @@ class NodeFileCreateAction(NodeFileAbstractAction, identifier="node_file_create"
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileCreateAction."""
 
-        verb: str = "create"
+        verb: ClassVar[str] = "create"
         force: bool = False
 
     @classmethod
@@ -89,7 +89,7 @@ class NodeFileScanAction(NodeFileAbstractAction, identifier="node_file_scan"):
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileScanAction."""
 
-        verb: str = "scan"
+        verb: ClassVar[str] = "scan"
 
 
 class NodeFileDeleteAction(NodeFileAbstractAction, identifier="node_file_delete"):
@@ -100,7 +100,7 @@ class NodeFileDeleteAction(NodeFileAbstractAction, identifier="node_file_delete"
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileDeleteAction."""
 
-        verb: str = "delete"
+        verb: ClassVar[str] = "delete"
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
@@ -127,7 +127,7 @@ class NodeFileRestoreAction(NodeFileAbstractAction, identifier="node_file_restor
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileRestoreAction."""
 
-        verb: str = "restore"
+        verb: ClassVar[str] = "restore"
 
 
 class NodeFileCorruptAction(NodeFileAbstractAction, identifier="node_file_corrupt"):
@@ -138,7 +138,7 @@ class NodeFileCorruptAction(NodeFileAbstractAction, identifier="node_file_corrup
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileCorruptAction."""
 
-        verb: str = "corrupt"
+        verb: ClassVar[str] = "corrupt"
 
 
 class NodeFileAccessAction(NodeFileAbstractAction, identifier="node_file_access"):
@@ -149,7 +149,7 @@ class NodeFileAccessAction(NodeFileAbstractAction, identifier="node_file_access"
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileAccessAction."""
 
-        verb: str = "access"
+        verb: ClassVar[str] = "access"
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
@@ -175,7 +175,7 @@ class NodeFileCheckhashAction(NodeFileAbstractAction, identifier="node_file_chec
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration schema for NodeFileCheckhashAction."""
 
-        verb: str = "checkhash"
+        verb: ClassVar[str] = "checkhash"
 
 
 class NodeFileRepairAction(NodeFileAbstractAction, identifier="node_file_repair"):
@@ -186,4 +186,4 @@ class NodeFileRepairAction(NodeFileAbstractAction, identifier="node_file_repair"
     class ConfigSchema(NodeFileAbstractAction.ConfigSchema):
         """Configuration Schema for NodeFileRepairAction."""
 
-        verb: str = "repair"
+        verb: ClassVar[str] = "repair"

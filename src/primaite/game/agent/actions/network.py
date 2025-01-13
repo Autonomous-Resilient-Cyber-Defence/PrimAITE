@@ -43,7 +43,7 @@ class NetworkPortEnableAction(NetworkPortAbstractAction, identifier="network_por
     class ConfigSchema(NetworkPortAbstractAction.ConfigSchema):
         """Configuration schema for NetworkPortEnableAction."""
 
-        verb: str = "enable"
+        verb: ClassVar[str] = "enable"
 
 
 class NetworkPortDisableAction(NetworkPortAbstractAction, identifier="network_port_disable"):
@@ -54,4 +54,4 @@ class NetworkPortDisableAction(NetworkPortAbstractAction, identifier="network_po
     class ConfigSchema(NetworkPortAbstractAction.ConfigSchema):
         """Configuration schema for NetworkPortDisableAction."""
 
-        verb: str = "disable"
+        verb: ClassVar[str] = "disable"

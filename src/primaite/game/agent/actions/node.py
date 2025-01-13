@@ -46,7 +46,7 @@ class NodeOSScanAction(NodeAbstractAction, identifier="node_os_scan"):
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
         """Configuration schema for NodeOSScanAction."""
 
-        verb: str = "scan"
+        verb: ClassVar[str] = "scan"
 
 
 class NodeShutdownAction(NodeAbstractAction, identifier="node_shutdown"):
@@ -57,7 +57,7 @@ class NodeShutdownAction(NodeAbstractAction, identifier="node_shutdown"):
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
         """Configuration schema for NodeShutdownAction."""
 
-        verb: str = "shutdown"
+        verb: ClassVar[str] = "shutdown"
 
 
 class NodeStartupAction(NodeAbstractAction, identifier="node_startup"):
@@ -68,7 +68,7 @@ class NodeStartupAction(NodeAbstractAction, identifier="node_startup"):
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
         """Configuration schema for NodeStartupAction."""
 
-        verb: str = "startup"
+        verb: ClassVar[str] = "startup"
 
 
 class NodeResetAction(NodeAbstractAction, identifier="node_reset"):
@@ -79,7 +79,7 @@ class NodeResetAction(NodeAbstractAction, identifier="node_reset"):
     class ConfigSchema(NodeAbstractAction.ConfigSchema):
         """Configuration schema for NodeResetAction."""
 
-        verb: str = "reset"
+        verb: ClassVar[str] = "reset"
 
 
 class NodeNMAPAbstractAction(AbstractAction, identifier="node_nmap_abstract_action"):

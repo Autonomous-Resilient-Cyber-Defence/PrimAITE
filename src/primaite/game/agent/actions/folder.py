@@ -55,7 +55,7 @@ class NodeFolderScanAction(NodeFolderAbstractAction, identifier="node_folder_sca
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
         """Configuration schema for NodeFolderScanAction."""
 
-        verb: str = "scan"
+        verb: ClassVar[str] = "scan"
 
 
 class NodeFolderCheckhashAction(NodeFolderAbstractAction, identifier="node_folder_checkhash"):
@@ -66,7 +66,7 @@ class NodeFolderCheckhashAction(NodeFolderAbstractAction, identifier="node_folde
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
         """Configuration schema for NodeFolderCheckhashAction."""
 
-        verb: str = "checkhash"
+        verb: ClassVar[str] = "checkhash"
 
 
 class NodeFolderRepairAction(NodeFolderAbstractAction, identifier="node_folder_repair"):
@@ -77,7 +77,7 @@ class NodeFolderRepairAction(NodeFolderAbstractAction, identifier="node_folder_r
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
         """Configuration schema for NodeFolderRepairAction."""
 
-        verb: str = "repair"
+        verb: ClassVar[str] = "repair"
 
 
 class NodeFolderRestoreAction(NodeFolderAbstractAction, identifier="node_folder_restore"):
@@ -88,7 +88,7 @@ class NodeFolderRestoreAction(NodeFolderAbstractAction, identifier="node_folder_
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
         """Configuration schema for NodeFolderRestoreAction."""
 
-        verb: str = "restore"
+        verb: ClassVar[str] = "restore"
 
 
 class NodeFolderCreateAction(NodeFolderAbstractAction, identifier="node_folder_create"):
@@ -99,7 +99,7 @@ class NodeFolderCreateAction(NodeFolderAbstractAction, identifier="node_folder_c
     class ConfigSchema(NodeFolderAbstractAction.ConfigSchema):
         """Configuration schema for NodeFolderCreateAction."""
 
-        verb: str = "create"
+        verb: ClassVar[str] = "create"
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:

@@ -44,7 +44,7 @@ class NodeServiceScanAction(NodeServiceAbstractAction, identifier="node_service_
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceScanAction."""
 
-        verb: str = "scan"
+        verb: ClassVar[str] = "scan"
 
 
 class NodeServiceStopAction(NodeServiceAbstractAction, identifier="node_service_stop"):
@@ -55,7 +55,7 @@ class NodeServiceStopAction(NodeServiceAbstractAction, identifier="node_service_
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceStopAction."""
 
-        verb: str = "stop"
+        verb: ClassVar[str] = "stop"
 
 
 class NodeServiceStartAction(NodeServiceAbstractAction, identifier="node_service_start"):
@@ -66,7 +66,7 @@ class NodeServiceStartAction(NodeServiceAbstractAction, identifier="node_service
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceStartAction."""
 
-        verb: str = "start"
+        verb: ClassVar[str] = "start"
 
 
 class NodeServicePauseAction(NodeServiceAbstractAction, identifier="node_service_pause"):
@@ -77,7 +77,7 @@ class NodeServicePauseAction(NodeServiceAbstractAction, identifier="node_service
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServicePauseAction."""
 
-        verb: str = "pause"
+        verb: ClassVar[str] = "pause"
 
 
 class NodeServiceResumeAction(NodeServiceAbstractAction, identifier="node_service_resume"):
@@ -88,7 +88,7 @@ class NodeServiceResumeAction(NodeServiceAbstractAction, identifier="node_servic
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceResumeAction."""
 
-        verb: str = "resume"
+        verb: ClassVar[str] = "resume"
 
 
 class NodeServiceRestartAction(NodeServiceAbstractAction, identifier="node_service_restart"):
@@ -99,7 +99,7 @@ class NodeServiceRestartAction(NodeServiceAbstractAction, identifier="node_servi
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceRestartAction."""
 
-        verb: str = "restart"
+        verb: ClassVar[str] = "restart"
 
 
 class NodeServiceDisableAction(NodeServiceAbstractAction, identifier="node_service_disable"):
@@ -110,7 +110,7 @@ class NodeServiceDisableAction(NodeServiceAbstractAction, identifier="node_servi
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceDisableAction."""
 
-        verb: str = "disable"
+        verb: ClassVar[str] = "disable"
 
 
 class NodeServiceEnableAction(NodeServiceAbstractAction, identifier="node_service_enable"):
@@ -121,7 +121,7 @@ class NodeServiceEnableAction(NodeServiceAbstractAction, identifier="node_servic
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceEnableAction."""
 
-        verb: str = "enable"
+        verb: ClassVar[str] = "enable"
 
 
 class NodeServiceFixAction(NodeServiceAbstractAction, identifier="node_service_fix"):
@@ -132,4 +132,4 @@ class NodeServiceFixAction(NodeServiceAbstractAction, identifier="node_service_f
     class ConfigSchema(NodeServiceAbstractAction.ConfigSchema):
         """Configuration Schema for NodeServiceFixAction."""
 
-        verb: str = "fix"
+        verb: ClassVar[str] = "fix"
