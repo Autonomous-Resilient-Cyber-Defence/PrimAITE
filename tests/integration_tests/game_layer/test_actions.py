@@ -181,7 +181,7 @@ def test_router_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, P
 
     browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
     browser.run()
-    browser.target_url = "http://www.example.com"
+    browser.config.target_url = "http://www.example.com"
     assert browser.get_webpage()  # check that the browser can access example.com before we block it
 
     # 2: Remove rule that allows HTTP traffic across the network
@@ -214,7 +214,7 @@ def test_host_nic_disable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
 
     browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
     browser.run()
-    browser.target_url = "http://www.example.com"
+    browser.config.target_url = "http://www.example.com"
     assert browser.get_webpage()  # check that the browser can access example.com before we block it
 
     # 2: Disable the NIC on client_1
@@ -413,7 +413,7 @@ def test_network_router_port_disable_integration(game_and_agent: Tuple[PrimaiteG
 
     browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
     browser.run()
-    browser.target_url = "http://www.example.com"
+    browser.config.target_url = "http://www.example.com"
     assert browser.get_webpage()  # check that the browser can access example.com before we block it
 
     # 2: Disable the NIC on client_1
@@ -473,7 +473,7 @@ def test_node_application_scan_integration(game_and_agent: Tuple[PrimaiteGame, P
 
     browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
     browser.run()
-    browser.target_url = "http://www.example.com"
+    browser.config.target_url = "http://www.example.com"
     assert browser.get_webpage()  # check that the browser can access example.com
 
     assert browser.health_state_actual == SoftwareHealthState.GOOD

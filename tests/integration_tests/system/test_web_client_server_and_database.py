@@ -74,7 +74,7 @@ def web_client_web_server_database(example_network) -> Tuple[Network, Computer, 
     # Install Web Browser on computer
     computer.software_manager.install(WebBrowser)
     web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
-    web_browser.target_url = "http://arcd.com/users/"
+    web_browser.config.target_url = "http://arcd.com/users/"
     web_browser.run()
 
     # Install DNS Client service on computer

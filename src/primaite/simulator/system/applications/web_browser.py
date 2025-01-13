@@ -38,8 +38,6 @@ class WebBrowser(Application, identifier="WebBrowser"):
 
     config: "WebBrowser.ConfigSchema" = Field(default_factory=lambda: WebBrowser.ConfigSchema())
 
-    target_url: Optional[str] = None
-
     domain_name_ip_address: Optional[IPv4Address] = None
     "The IP address of the domain name for the webpage."
 
@@ -57,7 +55,6 @@ class WebBrowser(Application, identifier="WebBrowser"):
             kwargs["port"] = PORT_LOOKUP["HTTP"]
 
         super().__init__(**kwargs)
-        self.target_url = self.config.target_url
         self.run()
 
     def _init_request_manager(self) -> RequestManager:
@@ -95,7 +92,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
         :param: url: The address of the web page the browser requests
         :type: url: str
         """
-        url = url or self.target_url
+        url = url or self.config.target_url
         if not self._can_perform_action():
             return False
 
