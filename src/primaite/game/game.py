@@ -533,7 +533,7 @@ class PrimaiteGame:
             agent_settings = agent_cfg["agent_settings"]
 
             agent_config = {
-                "agent_name": agent_name,
+                "type": agent_type,
                 "action_manager": action_space_cfg,
                 "observation_manager": observation_space_cfg,
                 "reward_function": reward_function_cfg,
