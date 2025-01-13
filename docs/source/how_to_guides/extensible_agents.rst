@@ -20,7 +20,6 @@ The inheritance structure of agents within PrimAITE are shown below. When develo
 All agent types within PrimAITE are listed under the ``_registry`` attribute of the parent class, ``AbstractAgent``.
 
 # TODO: Turn this into an inheritance diagram
-# TODO: Would this be necessary?
 
 AbstractAgent
 	|
@@ -61,7 +60,7 @@ AbstractAgent
             class ConfigSchema(AbstractAgent.ConfigSchema):
                 """ExampleAgent configuration schema"""
 
-                agent_name: str = "ExampleAgent
+                type: str = "ExampleAgent
                 """Name of agent"""
                 starting_host: int
                 """Host node that this agent should start from in the given environment."""
@@ -97,7 +96,6 @@ AbstractAgent
 			start_step: 25
 			frequency: 20
 			variance: 5
-			agent_name: "Example Agent"
 			starting_host: "Server_1"
 
 

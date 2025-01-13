@@ -21,9 +21,10 @@ class _NotJSONFilter(logging.Filter):
 
 class AgentLog:
     """
-    A Agent Log class is a simple logger dedicated to managing and writing logging updates and information for an agent.
+    An Agent Log class is a simple logger dedicated to managing and writing updates and information for an agent.
 
-    Each log message is written to a file located at: <simulation output directory>/agent_name/agent_name.log
+    Each log message is written to a file located at:
+    <simulation output directory>/agent_name/agent_name.log
     """
 
     def __init__(self, agent_name: Optional[str]):

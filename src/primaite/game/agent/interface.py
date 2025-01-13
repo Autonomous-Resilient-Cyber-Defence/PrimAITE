@@ -115,6 +115,8 @@ class AbstractAgent(BaseModel):
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractAgent":
         """Creates an agent component from a configuration dictionary."""
+        if config["type"] not in cls._registry:
+            return ValueError(f"Invalid Agent Type: {config['type']}")
         obj = cls(
             config=cls.ConfigSchema(**config["agent_settings"]),
             action_manager=ActionManager.from_config(config["game"], config["action_manager"]),

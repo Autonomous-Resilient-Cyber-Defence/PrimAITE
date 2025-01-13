@@ -61,16 +61,6 @@ def test_probabilistic_agent():
 
     reward_function_cfg = {}
 
-    # pa = ProbabilisticAgent(
-    #     agent_name="test_agent",
-    #     action_space=action_space,
-    #     observation_space=observation_space,
-    #     reward_function=reward_function,
-    #     settings={
-    #         "action_probabilities": {0: P_DO_NOTHING, 1: P_NODE_APPLICATION_EXECUTE, 2: P_NODE_FILE_DELETE},
-    #     },
-    # )
-
     pa_config = {
         "agent_name": "test_agent",
         "game": PrimaiteGame(),

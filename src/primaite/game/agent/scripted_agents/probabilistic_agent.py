@@ -21,7 +21,7 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent")
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration schema for Probabilistic Agent."""
 
-        agent_name: str = "ProbabilisticAgent"
+        type: str = "ProbabilisticAgent"
 
         action_probabilities: Dict[int, float] = None
         """Probability to perform each action in the action map. The sum of probabilities should sum to 1."""
