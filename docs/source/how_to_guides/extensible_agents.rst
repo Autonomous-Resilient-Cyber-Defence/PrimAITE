@@ -7,44 +7,20 @@
 Extensible Agents
 *****************
 
-Agents defined within PrimAITE have been updated to allow for easier creation of new bespoke agents.
+Agents defined within PrimAITE have been updated to allow for easier creation of new bespoke agents for use in custom environments.
 
 
 Developing Agents for PrimAITE
 ==============================
 
-Agents within PrimAITE, follow the shown inheritance structure below.
+All agent types within PrimAITE must be subclassed from ``AbstractAgent`` in order to be used from configuration YAML files. This then allows you to implement any custom agent logic for the new agent in your training scenario. Examples of implementing custom agent logic can be seen in pre-existing agents, such as the ``DataManipulationBot`` and ``RandomAgent``.
 
-The inheritance structure of agents within PrimAITE are shown below. When developing custom agents for use with PrimAITE, please see the relevant documentation for each agent type to determine which is most relevant for your implementation.
-
-All agent types within PrimAITE are listed under the ``_registry`` attribute of the parent class, ``AbstractAgent``.
-
-# TODO: Turn this into an inheritance diagram
-
-AbstractAgent
-	|
-	| - AbstractScriptedAgent
-	|		|
-	|	    | - AbstractTAPAgent
-	|		|		|
-	|		|		| - DataManipulationAgent
-	|		|
-	|		|
-	|		| - RandomAgent
-	|		|
-	|		| - PeriodicAgent
-	|		|
-	|		| - RandomAgent
-	|
-	| - ProxyAgent
-	|
-	| - ControlledAgent
-
+The core features that should be implemented in any new agent are detailed below:
 
 #. **ConfigSchema**:
 
-    Configurable items within a new agent within PrimAITE should contain a ``ConfigSchema`` which holds all configurable variables of the agent. This should not include parameters related to its *state*.
-	Agent generation will fail if incorrect or invalid parameters are passed to the ConfigSchema, of the chosen Agent.
+    Configurable items within a new agent within PrimAITE should contain a ``ConfigSchema`` which holds all configurable variables of the agent. This should not include parameters related to its *state*, these would be listed seperately.
+	Agent generation will fail pydantic checks if incorrect or invalid parameters are passed to the ConfigSchema of the chosen Agent.
 
 
     .. code-block:: python
@@ -52,7 +28,7 @@ AbstractAgent
         class ExampleAgent(AbstractAgent, identifier = "ExampleAgent"):
             """An example agent for demonstration purposes."""
 
-            config: "ExampleAgent.ConfigSchema"
+            config: "ExampleAgent.ConfigSchema" = Field(default_factory= lambda: ExampleAgent.ConfigSchema())
             """Agent configuration"""
             num_executions: int = 0
             """Number of action executions by agent"""
@@ -110,6 +86,4 @@ PrimAITE v4.0.0 introduces some breaking changes to how environment configuratio
 
 Agents now follow a more standardised settings definition, so should be more consistent across YAML files and the available agent types with PrimAITE.
 
-# TODO: Show changes to YAML config needed here
-
-All configurable items for agents sit under the ``agent_settings`` heading within your YAML files. There is no need for the inclusion of  a ``start_settings``.
+All configurable items for agents sit under the ``agent_settings`` heading within your YAML files. There is no need for the inclusion of  a ``start_settings``. Please see the above YAML example for full changes to agents.
