@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+from abc import ABC
 from typing import ClassVar
 
 from primaite.game.agent.actions.abstract import AbstractAction
@@ -14,7 +15,7 @@ __all__ = (
 )
 
 
-class NodeApplicationAbstractAction(AbstractAction, identifier="node_application_abstract_action"):
+class NodeApplicationAbstractAction(AbstractAction, ABC):
     """
     Base class for application actions.
 

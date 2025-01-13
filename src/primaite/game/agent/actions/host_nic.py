@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+from abc import ABC
 from typing import ClassVar
 
 from primaite.game.agent.actions.manager import AbstractAction
@@ -7,7 +8,7 @@ from primaite.interface.request import RequestFormat
 __all__ = ("HostNICEnableAction", "HostNICDisableAction")
 
 
-class HostNICAbstractAction(AbstractAction, identifier="host_nic_abstract"):
+class HostNICAbstractAction(AbstractAction, ABC):
     """
     Abstract base class for NIC actions.
 

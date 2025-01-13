@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from primaite.interface.request import RequestFormat
 
 
-class AbstractAction(BaseModel):
+class AbstractAction(BaseModel, ABC):
     """Base class for actions."""
 
     config: "AbstractAction.ConfigSchema"

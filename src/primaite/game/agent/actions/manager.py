@@ -127,9 +127,6 @@ class ActionManager:
         :return: The constructed ActionManager.
         :rtype: ActionManager
         """
-        if "ip_list" not in cfg["options"]:
-            cfg["options"]["ip_list"] = []
-
         obj = cls(
             actions=cfg["action_list"],
             **cfg["options"],

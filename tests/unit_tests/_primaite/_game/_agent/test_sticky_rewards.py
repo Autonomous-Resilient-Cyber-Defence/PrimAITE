@@ -81,7 +81,7 @@ class TestWebpageUnavailabilitySticky:
         reward = WebpageUnavailablePenalty(config=schema)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
+        action, params, request = "do_nothing", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}

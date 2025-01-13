@@ -5,7 +5,7 @@ import pytest
 
 from primaite.game.agent.actions import (
     ActionManager,
-    do_nothingAction,
+    DoNothingAction,
     NodeServiceDisableAction,
     NodeServiceEnableAction,
     NodeServicePauseAction,

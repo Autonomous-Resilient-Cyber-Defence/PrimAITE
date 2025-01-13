@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from ipaddress import IPv4Address
+from abc import ABC
 from typing import List
 
 from pydantic import field_validator
@@ -9,7 +9,7 @@ from pydantic import field_validator
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 from primaite.utils.validation.ip_protocol import protocol_validator
-from primaite.utils.validation.ipv4_address import ipv4_validator
+from primaite.utils.validation.ipv4_address import ipv4_validator, IPV4Address
 from primaite.utils.validation.port import port_validator
 
 __all__ = (
@@ -20,7 +20,7 @@ __all__ = (
 )
 
 
-class ACLAddRuleAbstractAction(AbstractAction, identifier="acl_add_rule_abstract_action"):
+class ACLAddRuleAbstractAction(AbstractAction, ABC):
     """Base abstract class for ACL add rule actions."""
 
     config: ConfigSchema = "ACLAddRuleAbstractAction.ConfigSchema"
@@ -28,11 +28,11 @@ class ACLAddRuleAbstractAction(AbstractAction, identifier="acl_add_rule_abstract
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration Schema base for ACL add rule abstract actions."""
 
-        src_ip: IPv4Address
+        src_ip: IPV4Address
         protocol_name: str
         permission: str
         position: int
-        dst_ip: IPv4Address
+        dst_ip: IPV4Address
         src_port: int
         dst_port: int
         src_wildcard: int

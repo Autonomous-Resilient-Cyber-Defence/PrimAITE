@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+from abc import ABC
 from typing import ClassVar
 
 from primaite.game.agent.actions.manager import AbstractAction
@@ -13,7 +14,7 @@ __all__ = (
 )
 
 
-class NodeFolderAbstractAction(AbstractAction, identifier="node_folder_abstract"):
+class NodeFolderAbstractAction(AbstractAction, ABC):
     """
     Base class for folder actions.
 
