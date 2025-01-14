@@ -149,7 +149,9 @@ agents:
       reward_components:
         - type: DUMMY
 
-    agent_settings: # options specific to this particular agent type, basically args of __init__(self)
+    agent_settings:
+      possible_start_nodes: [client_1, client_2]
+      starting_application_name: DataManipulationBot
       start_step: 25
       frequency: 20
       variance: 5
