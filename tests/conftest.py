@@ -500,10 +500,12 @@ def game_and_agent():
     reward_function = RewardFunction()
 
     config = {
+        "type": "ControlledAgent",
         "agent_name": "test_agent",
         "action_manager": action_space,
         "observation_manager": observation_space,
         "reward_function": reward_function,
+        "agent_settings": {},
     }
 
     test_agent = ControlledAgent.from_config(config=config)
