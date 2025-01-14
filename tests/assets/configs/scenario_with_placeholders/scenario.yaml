@@ -54,12 +54,6 @@ agents:
                 - server:eth-1<->switch_1:eth-2
 
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_SHUTDOWN
-        - type: NODE_STARTUP
-        - type: HOST_NIC_ENABLE
-        - type: HOST_NIC_DISABLE
       action_map:
         0:
           action: DONOTHING
@@ -100,19 +94,6 @@ agents:
           options:
             node_id: 1
             nic_id: 0
-      options:
-        nodes:
-        - node_name: client
-        - node_name: server
-
-        max_folders_per_node: 0
-        max_files_per_folder: 0
-        max_services_per_node: 0
-        max_nics_per_node: 1
-        max_acl_rules: 0
-        ip_list:
-          - 192.168.1.2
-          - 192.168.1.3
 
     reward_function:
       reward_components:

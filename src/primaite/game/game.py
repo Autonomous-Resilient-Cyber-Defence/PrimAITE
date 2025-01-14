@@ -534,8 +534,8 @@ class PrimaiteGame:
 
             agent_config = {
                 "type": agent_type,
-                "action_manager": action_space_cfg,
-                "observation_manager": observation_space_cfg,
+                "action_space": action_space_cfg,
+                "observation_space": observation_space_cfg,
                 "reward_function": reward_function_cfg,
                 "agent_settings": agent_settings,
                 "game": game,

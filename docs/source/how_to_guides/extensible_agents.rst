@@ -42,28 +42,17 @@ The core features that should be implemented in any new agent are detailed below
                 """Host node that this agent should start from in the given environment."""
 
 
-	.. code-block:: YAML
+	.. code-block:: yaml
 
 		- ref: example_green_agent
 		  team: GREEN
 		  type: ExampleAgent
 		  observation_space: null
 		  action_space:
-		  	action_list:
-				- type: do_nothing
 			action_map:
 				0:
 					action: do_nothing
 					options: {}
-			options:
-				nodes:
-					- node_name: client_1
-				max_folders_per_node: 1
-				max_files_per_folder: 1
-				max_services_per_node: 1
-				max_nics_per_node: 2
-				max_acl_rules: 10
-
 		  reward_function:
 		  	reward_components:
 				- type: DUMMY

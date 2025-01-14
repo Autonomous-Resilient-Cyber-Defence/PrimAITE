@@ -3,9 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from primaite.game.agent.actions import (  # DoNothingAction,; NodeServiceDisableAction,; NodeServiceEnableAction,; NodeServicePauseAction,; NodeServiceRestartAction,; NodeServiceResumeAction,; NodeServiceScanAction,; NodeServiceStartAction,; NodeServiceStopAction,
-    ActionManager,
-)
+from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.actions.manager import DoNothingAction
 from primaite.game.agent.actions.service import (
     NodeServiceDisableAction,

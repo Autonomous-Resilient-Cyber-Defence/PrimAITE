@@ -95,12 +95,6 @@ agents:
             options: {}
 
     action_space:
-      action_list:
-        - type: do_nothing
-        - type: firewall_acl_add_rule
-        - type: firewall_acl_remove_rule
-        - type: network_port_disable
-        - type: network_port_enable
       action_map:
           0:
             action: do_nothing
@@ -250,20 +244,6 @@ agents:
               type: network_port_enable
               target_nodename: firewall
               port_id: 3
-      options:
-        nodes:
-        - node_name: client_1
-        - node_name: dmz_server
-        - node_name: external_computer
-        ip_list:
-          - 192.168.0.10
-          - 192.168.10.10
-          - 192.168.20.10
-        max_folders_per_node: 2
-        max_files_per_folder: 2
-        max_services_per_node: 2
-        max_nics_per_node: 8
-        max_acl_rules: 10
     reward_function:
       reward_components:
         - type: DUMMY

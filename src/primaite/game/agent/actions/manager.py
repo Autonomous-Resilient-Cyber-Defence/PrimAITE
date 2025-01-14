@@ -13,7 +13,7 @@ agents:
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from gymnasium import spaces
 
@@ -41,31 +41,12 @@ class DoNothingAction(AbstractAction, identifier="do_nothing"):
 class ActionManager:
     """Class which manages the action space for an agent."""
 
-    def __init__(
-        self,
-        actions: List[Dict],  # stores list of actions available to agent
-        nodes: List[Dict],  # extra configuration for each node
-        act_map: Optional[
-            Dict[int, Dict]
-        ] = None,  # allows restricting set of possible actions - TODO: Refactor to be a list?
-        *args,
-        **kwargs,
-    ) -> None:
+    def __init__(self, act_map: Optional[Dict[int, Dict]] = None) -> None:
         """Init method for ActionManager.
 
-        :param game: Reference to the game to which the agent belongs.
-        :type game: PrimaiteGame
-        :param actions: List of action specs which should be made available to the agent. The keys of each spec are:
-            'type' and 'options' for passing any options to the action class's init method
-        :type actions: List[dict]
         :param act_map: Action map which maps integers to actions. Used for restricting the set of possible actions.
         :type act_map: Optional[Dict[int, Dict]]
         """
-        self.actions: Dict[str, AbstractAction] = {}
-        for act_spec in actions:
-            act_type = act_spec.get("type")
-            self.actions[act_type] = AbstractAction._registry[act_type]
-
         self.action_map: Dict[int, Tuple[str, Dict]] = {}
         """
         Action mapping that converts an integer to a specific action and parameter choice.
@@ -73,6 +54,7 @@ class ActionManager:
         For example :
         {0: ("node_service_scan", {node_name:"client_1", service_name:"WebBrowser"})}
         """
+        # allows restricting set of possible actions - TODO: Refactor to be a list?
         if act_map is None:
             # raise RuntimeError("Action map must be specified in the config file.")
             pass
@@ -100,39 +82,17 @@ class ActionManager:
         return spaces.Discrete(len(self.action_map))
 
     @classmethod
-    def from_config(cls, game: "PrimaiteGame", cfg: Dict) -> "ActionManager":  # noqa: F821
+    def from_config(cls, cfg: Dict) -> "ActionManager":
         """
-        Construct an ActionManager from a config definition.
+        Construct an ActionManager from a config dictionary.
 
-        The action space config supports the following three sections:
-            1. ``action_list``
-                ``action_list`` contains a list action components which need to be included in the action space.
-                Each action component has a ``type`` which maps to a subclass of AbstractAction, and additional options
-                which will be passed to the action class's __init__ method during initialisation.
-            2. ``action_map``
-                Since the agent uses a discrete action space which acts as a flattened version of the component-based
-                action space, action_map provides a mapping between an integer (chosen by the agent) and a meaningful
-                action and values of parameters. For example action 0 can correspond to do nothing, action 1 can
-                correspond to "node_service_scan" with ``node_name="server"`` and
-                ``service_name="WebBrowser"``, action 2 can be "
-            3. ``options``
-                ``options`` contains a dictionary of options which are passed to the ActionManager's __init__ method.
-                These options are used to calculate the shape of the action space, and to provide additional information
-                to the ActionManager which is required to convert the agent's action choice into a CAOS request.
+        The action space config supports must contain the following key:
+            ``action_map`` - List of actions available to the agent, formatted as a dictionary where the key is the
+            action number between 0 - N, and the value is the CAOS-formatted action.
 
-        :param game: The Primaite Game to which the agent belongs.
-        :type game: PrimaiteGame
         :param cfg: The action space config.
         :type cfg: Dict
         :return: The constructed ActionManager.
         :rtype: ActionManager
         """
-        obj = cls(
-            actions=cfg["action_list"],
-            **cfg["options"],
-            protocols=game.options.protocols,
-            ports=game.options.ports,
-            act_map=cfg.get("action_map"),
-        )
-
-        return obj
+        return cls(**cfg.get("options", {}), act_map=cfg.get("action_map"))

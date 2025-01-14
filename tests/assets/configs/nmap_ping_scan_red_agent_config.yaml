@@ -24,17 +24,6 @@ agents:
     type: ProbabilisticAgent
     observation_space: null
     action_space:
-      options:
-        nodes:
-        - node_name: client_1
-          applications:
-            - application_name: NMAP
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-        max_applications_per_node: 1
-      action_list:
-        - type: node_nmap_ping_scan
       action_map:
         0:
           action: node_nmap_ping_scan

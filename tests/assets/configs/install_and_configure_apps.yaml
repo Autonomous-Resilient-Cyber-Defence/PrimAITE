@@ -20,13 +20,6 @@ agents:
 
     observation_space: null
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_INSTALL
-        - type: CONFIGURE_DATABASE_CLIENT
-        - type: CONFIGURE_DOSBOT
-        - type: CONFIGURE_RANSOMWARE_SCRIPT
-        - type: NODE_APPLICATION_REMOVE
       action_map:
         0:
           action: DONOTHING
@@ -83,12 +76,6 @@ agents:
           options:
             node_id: 1
             application_name: DatabaseClient
-      options:
-        nodes:
-          - node_name: client_1
-          - node_name: client_2
-          - node_name: client_3
-        ip_list: []
     reward_function:
       reward_components:
         - type: DUMMY

@@ -29,9 +29,6 @@ agents:
     type: ProbabilisticAgent
     observation_space: null
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
       action_map:
         0:
           action: DONOTHING
@@ -41,15 +38,6 @@ agents:
           options:
             node_id: 0
             application_id: 0
-      options:
-        nodes:
-          - node_name: client_2
-            applications:
-              - application_name: WebBrowser
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-        max_applications_per_node: 1
 
     reward_function:
       reward_components:

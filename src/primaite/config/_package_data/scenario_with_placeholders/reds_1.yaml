@@ -6,14 +6,6 @@ reds: &reds
     observation_space: null
 
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
-      options:
-        nodes:
-        - node_name: client
-          applications:
-            - application_name: DataManipulationBot
 
     reward_function:
       reward_components:

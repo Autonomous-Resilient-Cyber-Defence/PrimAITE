@@ -93,8 +93,8 @@ class AbstractAgent(BaseModel):
             return ValueError(f"Invalid Agent Type: {config['type']}")
         obj = cls(
             config=cls.ConfigSchema(**config["agent_settings"]),
-            action_manager=ActionManager.from_config(config["game"], config["action_manager"]),
-            observation_manager=ObservationManager.from_config(config["observation_manager"]),
+            action_manager=ActionManager.from_config(config["action_space"]),
+            observation_manager=ObservationManager.from_config(config["observation_space"]),
             reward_function=RewardFunction.from_config(config["reward_function"]),
         )
         return obj

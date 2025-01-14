@@ -8,14 +8,6 @@ agents: &greens
         1: 0.05
     observation_space: null
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
-      options:
-        nodes:
-        - node_name: client
-          applications:
-            - application_name: DatabaseClient
       action_map:
         0:
           action: DONOTHING

@@ -27,26 +27,6 @@ def test_probabilistic_agent():
     MAX_NODE_FILE_DELETE = 6250
 
     action_space_cfg = {
-        "action_list": [
-            {"type": "do_nothing"},
-            {"type": "node_application_execute"},
-            {"type": "node_file_delete"},
-        ],
-        "nodes": [
-            {
-                "node_name": "client_1",
-                "applications": [{"application_name": "WebBrowser"}],
-                "folders": [{"folder_name": "downloads", "files": [{"file_name": "cat.png"}]}],
-            },
-        ],
-        "max_folders_per_node": 2,
-        "max_files_per_folder": 2,
-        "max_services_per_node": 2,
-        "max_applications_per_node": 2,
-        "max_nics_per_node": 2,
-        "max_acl_rules": 10,
-        "protocols": ["TCP", "UDP", "ICMP"],
-        "ports": ["HTTP", "DNS", "ARP"],
         "act_map": {
             0: {"action": "do_nothing", "options": {}},
             1: {"action": "node_application_execute", "options": {"node_id": 0, "application_id": 0}},
@@ -65,8 +45,8 @@ def test_probabilistic_agent():
     pa_config = {
         "type": "ProbabilisticAgent",
         "game": game,
-        "action_manager": action_space_cfg,
-        "observation_manager": observation_space_cfg,
+        "action_space": action_space_cfg,
+        "observation_space": observation_space_cfg,
         "reward_function": reward_function_cfg,
         "agent_settings": {
             "action_probabilities": {0: P_DO_NOTHING, 1: P_NODE_APPLICATION_EXECUTE, 2: P_NODE_FILE_DELETE},
