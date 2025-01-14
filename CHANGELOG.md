@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 -   Agents now follow a common configuration format, simplifying the configuration of agents and their extensibilty.
+-   Actions within PrimAITE are now extensible, allowing for plugin support.
+
 
 ## [3.3.0] - 2024-09-04
 

@@ -3,9 +3,11 @@ from unittest.mock import Mock
 
 import pytest
 
-from primaite.game.agent.actions import (
+from primaite.game.agent.actions import (  # DoNothingAction,; NodeServiceDisableAction,; NodeServiceEnableAction,; NodeServicePauseAction,; NodeServiceRestartAction,; NodeServiceResumeAction,; NodeServiceScanAction,; NodeServiceStartAction,; NodeServiceStopAction,
     ActionManager,
-    DoNothingAction,
+)
+from primaite.game.agent.actions.manager import DoNothingAction
+from primaite.game.agent.actions.service import (
     NodeServiceDisableAction,
     NodeServiceEnableAction,
     NodeServicePauseAction,
@@ -18,7 +20,7 @@ from primaite.game.agent.actions import (
 
 
 def test_do_nothing_action_form_request():
-    """Test that the DoNothingAction can form a request and that it is correct."""
+    """Test that the do_nothingAction can form a request and that it is correct."""
     manager = Mock()
 
     action = DoNothingAction(manager=manager)

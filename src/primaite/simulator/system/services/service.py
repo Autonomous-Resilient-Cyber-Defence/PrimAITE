@@ -52,7 +52,7 @@ class Service(IOSoftware):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def __init_subclass__(cls, identifier: str = "default", **kwargs: Any) -> None:
+    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
         """
         Register a hostnode type.
 
@@ -60,11 +60,11 @@ class Service(IOSoftware):
         :type identifier: str
         :raises ValueError: When attempting to register an hostnode with a name that is already allocated.
         """
-        if identifier == "default":
+        super().__init_subclass__(**kwargs)
+        if identifier is None:
             return
         # Enforce lowercase registry entries because it makes comparisons everywhere else much easier.
         identifier = identifier.lower()
-        super().__init_subclass__(**kwargs)
         if identifier in cls._registry:
             raise ValueError(f"Tried to define new hostnode {identifier}, but this name is already reserved.")
         cls._registry[identifier] = cls

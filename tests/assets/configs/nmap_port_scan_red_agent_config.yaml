@@ -34,19 +34,21 @@ agents:
         max_services_per_node: 1
         max_applications_per_node: 1
       action_list:
-        - type: NODE_NMAP_PORT_SCAN
+        - type: node_nmap_port_scan
       action_map:
         0:
-          action: NODE_NMAP_PORT_SCAN
+          action: node_nmap_port_scan
           options:
             source_node: client_1
             target_ip_address: 192.168.10.0/24
+            target_protocol: tcp
             target_port:
               - 21
               - 53
               - 80
               - 123
               - 219
+            show: false
 
     reward_function:
       reward_components:

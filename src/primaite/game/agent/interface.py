@@ -73,11 +73,13 @@ class AbstractAgent(BaseModel):
         model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
         type: str = "AbstractAgent"
 
-    def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
+    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        if identifier is None:
+            return
         if identifier in cls._registry:
             raise ValueError(f"Cannot create a new agent under reserved name {identifier}")
         cls._registry[identifier] = cls
-        super().__init_subclass__(**kwargs)
 
     @property
     def flatten_obs(self) -> bool:

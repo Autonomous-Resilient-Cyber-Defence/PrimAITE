@@ -28,9 +28,9 @@ def test_probabilistic_agent():
 
     action_space_cfg = {
         "action_list": [
-            {"type": "DONOTHING"},
-            {"type": "NODE_APPLICATION_EXECUTE"},
-            {"type": "NODE_FILE_DELETE"},
+            {"type": "do_nothing"},
+            {"type": "node_application_execute"},
+            {"type": "node_file_delete"},
         ],
         "nodes": [
             {
@@ -48,9 +48,9 @@ def test_probabilistic_agent():
         "protocols": ["TCP", "UDP", "ICMP"],
         "ports": ["HTTP", "DNS", "ARP"],
         "act_map": {
-            0: {"action": "DONOTHING", "options": {}},
-            1: {"action": "NODE_APPLICATION_EXECUTE", "options": {"node_id": 0, "application_id": 0}},
-            2: {"action": "NODE_FILE_DELETE", "options": {"node_id": 0, "folder_id": 0, "file_id": 0}},
+            0: {"action": "do_nothing", "options": {}},
+            1: {"action": "node_application_execute", "options": {"node_id": 0, "application_id": 0}},
+            2: {"action": "node_file_delete", "options": {"node_id": 0, "folder_id": 0, "file_id": 0}},
         },
         "options": {},
     }
@@ -80,11 +80,11 @@ def test_probabilistic_agent():
     node_file_delete_count = 0
     for _ in range(N_TRIALS):
         a = pa.get_action(0)
-        if a == ("DONOTHING", {}):
+        if a == ("do_nothing", {}):
             do_nothing_count += 1
-        elif a == ("NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}):
+        elif a == ("node_application_execute", {"node_name": "client_1", "application_name": "WebBrowser"}):
             node_application_execute_count += 1
-        elif a == ("NODE_FILE_DELETE", {"node_id": 0, "folder_id": 0, "file_id": 0}):
+        elif a == ("node_file_delete", {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"}):
             node_file_delete_count += 1
         else:
             raise AssertionError("Probabilistic agent produced an unexpected action.")

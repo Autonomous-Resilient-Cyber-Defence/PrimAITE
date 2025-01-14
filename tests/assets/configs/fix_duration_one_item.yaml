@@ -201,8 +201,6 @@ simulation:
           port_scan_p_of_success: 0.8
       services:
       - type: DNSClient
-        options:
-          dns_server: 192.168.1.10
       - type: DNSServer
         options:
           domain_mapping:
@@ -233,8 +231,6 @@ simulation:
             server_password: arcd
       services:
         - type: DNSClient
-          options:
-            dns_server: 192.168.1.10
 
     links:
     - endpoint_a_hostname: switch_1

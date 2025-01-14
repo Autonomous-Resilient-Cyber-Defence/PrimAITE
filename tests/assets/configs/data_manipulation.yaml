@@ -33,7 +33,7 @@ agents:
     observation_space: null
     action_space:
       action_list:
-        - type: DONOTHING
+        - type: do_nothing
         - type: NODE_APPLICATION_EXECUTE
       options:
         nodes:
@@ -47,7 +47,7 @@ agents:
         max_applications_per_node: 2
       action_map:
         0:
-          action: DONOTHING
+          action: do_nothing
           options: {}
         1:
           action: NODE_APPLICATION_EXECUTE
@@ -82,7 +82,7 @@ agents:
     observation_space: null
     action_space:
       action_list:
-        - type: DONOTHING
+        - type: do_nothing
         - type: NODE_APPLICATION_EXECUTE
       options:
         nodes:
@@ -96,7 +96,7 @@ agents:
         max_applications_per_node: 2
       action_map:
         0:
-          action: DONOTHING
+          action: do_nothing
           options: {}
         1:
           action: NODE_APPLICATION_EXECUTE
@@ -132,7 +132,7 @@ agents:
 
     action_space:
       action_list:
-        - type: DONOTHING
+        - type: do_nothing
         - type: NODE_APPLICATION_EXECUTE
       options:
         nodes:
@@ -235,7 +235,7 @@ agents:
 
     action_space:
       action_list:
-        - type: DONOTHING
+        - type: do_nothing
         - type: NODE_SERVICE_SCAN
         - type: NODE_SERVICE_STOP
         - type: NODE_SERVICE_START
@@ -265,7 +265,7 @@ agents:
 
       action_map:
           0:
-            action: DONOTHING
+            action: do_nothing
             options: {}
           # scan webapp service
           1:

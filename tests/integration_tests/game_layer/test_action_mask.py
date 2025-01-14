@@ -91,7 +91,7 @@ def test_mask_contents_correct():
             assert mask[action_num]
             node_obj.operating_state = NodeOperatingState.ON
 
-        if act_type == "DONOTHING":
+        if act_type == "do_nothing":
             assert mask[action_num]
 
         if act_type == "NODE_SERVICE_DISABLE":

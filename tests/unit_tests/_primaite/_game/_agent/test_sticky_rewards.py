@@ -11,7 +11,12 @@ from primaite.interface.request import RequestResponse
 
 class TestWebServer404PenaltySticky:
     def test_non_sticky(self):
-        reward = WebServer404Penalty("computer", "WebService", sticky=False)
+        schema = WebServer404Penalty.ConfigSchema(
+            node_hostname="computer",
+            service_name="WebService",
+            sticky=False,
+        )
+        reward = WebServer404Penalty(config=schema)
 
         # no response codes yet, reward is 0
         codes = []
@@ -38,7 +43,12 @@ class TestWebServer404PenaltySticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
     def test_sticky(self):
-        reward = WebServer404Penalty("computer", "WebService", sticky=True)
+        schema = WebServer404Penalty.ConfigSchema(
+            node_hostname="computer",
+            service_name="WebService",
+            sticky=True,
+        )
+        reward = WebServer404Penalty(config=schema)
 
         # no response codes yet, reward is 0
         codes = []
@@ -67,10 +77,11 @@ class TestWebServer404PenaltySticky:
 
 class TestWebpageUnavailabilitySticky:
     def test_non_sticky(self):
-        reward = WebpageUnavailablePenalty("computer", sticky=False)
+        schema = WebpageUnavailablePenalty.ConfigSchema(node_hostname="computer", sticky=False)
+        reward = WebpageUnavailablePenalty(config=schema)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "do_nothing", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
@@ -93,7 +104,7 @@ class TestWebpageUnavailabilitySticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is not sticky, it goes back to 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
@@ -127,10 +138,11 @@ class TestWebpageUnavailabilitySticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
     def test_sticky(self):
-        reward = WebpageUnavailablePenalty("computer", sticky=True)
+        schema = WebpageUnavailablePenalty.ConfigSchema(node_hostname="computer", sticky=True)
+        reward = WebpageUnavailablePenalty(config=schema)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
@@ -153,7 +165,7 @@ class TestWebpageUnavailabilitySticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is sticky, it stays at 1.0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
         last_action_response = AgentHistoryItem(
@@ -188,10 +200,14 @@ class TestWebpageUnavailabilitySticky:
 
 class TestGreenAdminDatabaseUnreachableSticky:
     def test_non_sticky(self):
-        reward = GreenAdminDatabaseUnreachablePenalty("computer", sticky=False)
+        schema = GreenAdminDatabaseUnreachablePenalty.ConfigSchema(
+            node_hostname="computer",
+            sticky=False,
+        )
+        reward = GreenAdminDatabaseUnreachablePenalty(config=schema)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(
@@ -212,9 +228,8 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is not sticky, it goes back to 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
-        browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(
             timestep=0, action=action, parameters=params, request=request, response=response
@@ -244,10 +259,14 @@ class TestGreenAdminDatabaseUnreachableSticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
     def test_sticky(self):
-        reward = GreenAdminDatabaseUnreachablePenalty("computer", sticky=True)
+        schema = GreenAdminDatabaseUnreachablePenalty.ConfigSchema(
+            node_hostname="computer",
+            sticky=True,
+        )
+        reward = GreenAdminDatabaseUnreachablePenalty(config=schema)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(
@@ -268,7 +287,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is not sticky, it goes back to 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "DO_NOTHING", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(
