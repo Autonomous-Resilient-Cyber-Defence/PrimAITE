@@ -59,7 +59,7 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
             If variance were greater than frequency, sometimes the bracketed term would be negative
             and the attack would never happen again.
             """
-            if self.variance > self.frequency:
+            if self.variance >= self.frequency:
                 raise ValueError(
                     f"Agent start settings error: variance must be lower than frequency "
                     f"{self.variance=}, {self.frequency=}"
