@@ -2,7 +2,7 @@
 """Interface for agents."""
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Type, TYPE_CHECKING
 
 from gymnasium.core import ActType, ObsType
@@ -43,35 +43,31 @@ class AgentHistoryItem(BaseModel):
     reward_info: Dict[str, Any] = {}
 
 
-class AbstractAgent(BaseModel):
+class AbstractAgent(BaseModel, ABC):
     """Base class for scripted and RL agents."""
 
-    _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
-    logger: AgentLog = AgentLog(agent_name="Abstract_Agent")
-
-    history: List[AgentHistoryItem] = []
-    config: "AbstractAgent.ConfigSchema" = Field(default_factory=lambda: AbstractAgent.ConfigSchema())
-    action_manager: "ActionManager"
-    observation_manager: "ObservationManager"
-    reward_function: "RewardFunction"
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
-    class ConfigSchema(BaseModel):
-        """
-        Configuration Schema for AbstractAgents.
-
-        :param type: Type of agent being generated.
-        :type type: str
-        :param observation_space: Observation space for the agent.
-        :type observation_space: Optional[ObservationSpace]
-        :param reward_function: Reward function for the agent.
-        :type reward_function: Optional[RewardFunction]
-        :param agent_settings: Configurable Options for Abstracted Agents.
-        :type agent_settings: Optional[AgentSettings]
-        """
+    class ConfigSchema(BaseModel, ABC):
+        """Configuration Schema for AbstractAgents."""
 
         model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
         type: str = "AbstractAgent"
+        action_space: ActionManager.ConfigSchema = Field(default_factory=lambda: ActionManager.ConfigSchema())
+        observation_space: ObservationManager.ConfigSchema = Field(
+            default_factory=lambda: ObservationManager.ConfigSchema()
+        )
+        reward_function: RewardFunction.ConfigSchema = Field(default_factory=lambda: RewardFunction.ConfigSchema())
+
+    config: "AbstractAgent.ConfigSchema" = Field(default_factory=lambda: AbstractAgent.ConfigSchema())
+
+    logger: AgentLog = AgentLog(agent_name="Abstract_Agent")
+    history: List[AgentHistoryItem] = []
+    action_manager: "ActionManager"
+    observation_manager: "ObservationManager"
+    reward_function: "RewardFunction"
+
+    _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
 
     def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
@@ -80,6 +76,14 @@ class AbstractAgent(BaseModel):
         if identifier in cls._registry:
             raise ValueError(f"Cannot create a new agent under reserved name {identifier}")
         cls._registry[identifier] = cls
+
+    def __init__(self, config: ConfigSchema, **kwargs):
+        kwargs["action_manager"] = kwargs.get("action_manager") or ActionManager.from_config(config.action_space)
+        kwargs["observation_manager"] = kwargs.get("observation_manager") or ObservationManager(
+            config.observation_space
+        )
+        kwargs["reward_function"] = kwargs.get("reward_function") or RewardFunction.from_config(config.reward_function)
+        super().__init__(config=config, **kwargs)
 
     @property
     def flatten_obs(self) -> bool:
@@ -94,7 +98,7 @@ class AbstractAgent(BaseModel):
         obj = cls(
             config=cls.ConfigSchema(**config["agent_settings"]),
             action_manager=ActionManager.from_config(config["action_space"]),
-            observation_manager=ObservationManager.from_config(config["observation_space"]),
+            observation_manager=ObservationManager(config["observation_space"]),
             reward_function=RewardFunction.from_config(config["reward_function"]),
         )
         return obj

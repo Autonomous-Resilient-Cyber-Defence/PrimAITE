@@ -13,9 +13,10 @@ agents:
 
 from __future__ import annotations
 
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 from gymnasium import spaces
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # from primaite.game.game import PrimaiteGame # TODO: Breaks things
 from primaite.game.agent.actions.abstract import AbstractAction
@@ -38,35 +39,35 @@ class DoNothingAction(AbstractAction, identifier="do_nothing"):
         return ["do_nothing"]
 
 
-class ActionManager:
+class ActionManager(BaseModel):
     """Class which manages the action space for an agent."""
 
-    def __init__(self, act_map: Optional[Dict[int, Dict]] = None) -> None:
-        """Init method for ActionManager.
+    class ConfigSchema(BaseModel):
+        """Config Schema for ActionManager."""
 
-        :param act_map: Action map which maps integers to actions. Used for restricting the set of possible actions.
-        :type act_map: Optional[Dict[int, Dict]]
-        """
-        self.action_map: Dict[int, Tuple[str, Dict]] = {}
-        """
-        Action mapping that converts an integer to a specific action and parameter choice.
+        model_config = ConfigDict(extra="forbid")
+        action_map: Dict[int, Tuple[str, Dict]] = {}
+        """Mapping between integer action choices and CAOS actions."""
 
-        For example :
-        {0: ("node_service_scan", {node_name:"client_1", service_name:"WebBrowser"})}
-        """
-        # allows restricting set of possible actions - TODO: Refactor to be a list?
-        if act_map is None:
-            # raise RuntimeError("Action map must be specified in the config file.")
-            pass
-        else:
-            self.action_map = {i: (a["action"], a["options"]) for i, a in act_map.items()}
-        # make sure all numbers between 0 and N are represented as dict keys in action map
-        assert all([i in self.action_map.keys() for i in range(len(self.action_map))])
+        @field_validator("action_map", mode="after")
+        def consecutive_action_nums(cls, v: Dict) -> Dict:
+            """Make sure all numbers between 0 and N are represented as dict keys in action map."""
+            assert all([i in v.keys() for i in range(len(v))])
+
+    config: ActionManager.ConfigSchema = Field(default_factory=lambda: ActionManager.ConfigSchema())
+
+    @property
+    def action_map(self) -> Dict[int, Tuple[str, Dict]]:
+        """Convenience method for accessing the action map."""
+        return self.config.action_map
 
     def get_action(self, action: int) -> Tuple[str, Dict]:
-        """Produce action in CAOS format."""
-        """the agent chooses an action (as an integer), this is converted into an action in CAOS format"""
-        """The CAOS format is basically a action identifier, followed by parameters stored in a dictionary"""
+        """
+        Produce action in CAOS format.
+
+        The agent chooses an action (as an integer), this is converted into an action in CAOS format
+        The CAOS format is basically an action identifier, followed by parameters stored in a dictionary.
+        """
         act_identifier, act_options = self.action_map[action]
         return act_identifier, act_options
 
