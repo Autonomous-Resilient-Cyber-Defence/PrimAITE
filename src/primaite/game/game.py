@@ -19,14 +19,8 @@ from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.creation import NetworkNodeAdder
 from primaite.simulator.network.hardware.base import NetworkInterface, Node, NodeOperatingState, UserManager
-from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.host.host_node import HostNode, NIC
-from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
-from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
-from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
-from primaite.simulator.network.hardware.nodes.network.router import Router
+from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
-from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
@@ -277,68 +271,73 @@ class PrimaiteGame:
 
         for node_cfg in nodes_cfg:
             n_type = node_cfg["type"]
+            node_config: dict = node_cfg["config"]
 
             new_node = None
+            if n_type in Node._registry:
+                # simplify down Node creation:
+                new_node = Node._registry["n_type"].from_config(config=node_config)
+
             # Default PrimAITE nodes
-            if n_type == "computer":
-                new_node = Computer(
-                    hostname=node_cfg["hostname"],
-                    ip_address=node_cfg["ip_address"],
-                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
-                    default_gateway=node_cfg.get("default_gateway"),
-                    dns_server=node_cfg.get("dns_server", None),
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            elif n_type == "server":
-                new_node = Server(
-                    hostname=node_cfg["hostname"],
-                    ip_address=node_cfg["ip_address"],
-                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
-                    default_gateway=node_cfg.get("default_gateway"),
-                    dns_server=node_cfg.get("dns_server", None),
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            elif n_type == "switch":
-                new_node = Switch(
-                    hostname=node_cfg["hostname"],
-                    num_ports=int(node_cfg.get("num_ports", "8")),
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            elif n_type == "router":
-                new_node = Router.from_config(node_cfg)
-            elif n_type == "firewall":
-                new_node = Firewall.from_config(node_cfg)
-            elif n_type == "wireless_router":
-                new_node = WirelessRouter.from_config(node_cfg, airspace=net.airspace)
-            elif n_type == "printer":
-                new_node = Printer(
-                    hostname=node_cfg["hostname"],
-                    ip_address=node_cfg["ip_address"],
-                    subnet_mask=node_cfg["subnet_mask"],
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            # Handle extended nodes
-            elif n_type.lower() in Node._registry:
-                new_node = HostNode._registry[n_type](
-                    hostname=node_cfg["hostname"],
-                    ip_address=node_cfg.get("ip_address"),
-                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
-                    default_gateway=node_cfg.get("default_gateway"),
-                    dns_server=node_cfg.get("dns_server", None),
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            elif n_type in NetworkNode._registry:
-                new_node = NetworkNode._registry[n_type](**node_cfg)
+            # if n_type == "computer":
+            #     new_node = Computer(
+            #         hostname=node_cfg["hostname"],
+            #         ip_address=node_cfg["ip_address"],
+            #         subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
+            #         default_gateway=node_cfg.get("default_gateway"),
+            #         dns_server=node_cfg.get("dns_server", None),
+            #         operating_state=NodeOperatingState.ON
+            #         if not (p := node_cfg.get("operating_state"))
+            #         else NodeOperatingState[p.upper()],
+            #     )
+            # elif n_type == "server":
+            #     new_node = Server(
+            #         hostname=node_cfg["hostname"],
+            #         ip_address=node_cfg["ip_address"],
+            #         subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
+            #         default_gateway=node_cfg.get("default_gateway"),
+            #         dns_server=node_cfg.get("dns_server", None),
+            #         operating_state=NodeOperatingState.ON
+            #         if not (p := node_cfg.get("operating_state"))
+            #         else NodeOperatingState[p.upper()],
+            #     )
+            # elif n_type == "switch":
+            #     new_node = Switch(
+            #         hostname=node_cfg["hostname"],
+            #         num_ports=int(node_cfg.get("num_ports", "8")),
+            #         operating_state=NodeOperatingState.ON
+            #         if not (p := node_cfg.get("operating_state"))
+            #         else NodeOperatingState[p.upper()],
+            #     )
+            # elif n_type == "router":
+            #     new_node = Router.from_config(node_cfg)
+            # elif n_type == "firewall":
+            #     new_node = Firewall.from_config(node_cfg)
+            # elif n_type == "wireless_router":
+            #     new_node = WirelessRouter.from_config(node_cfg, airspace=net.airspace)
+            # elif n_type == "printer":
+            #     new_node = Printer(
+            #         hostname=node_cfg["hostname"],
+            #         ip_address=node_cfg["ip_address"],
+            #         subnet_mask=node_cfg["subnet_mask"],
+            #         operating_state=NodeOperatingState.ON
+            #         if not (p := node_cfg.get("operating_state"))
+            #         else NodeOperatingState[p.upper()],
+            #     )
+            # # Handle extended nodes
+            # elif n_type.lower() in Node._registry:
+            #     new_node = HostNode._registry[n_type](
+            #         hostname=node_cfg["hostname"],
+            #         ip_address=node_cfg.get("ip_address"),
+            #         subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
+            #         default_gateway=node_cfg.get("default_gateway"),
+            #         dns_server=node_cfg.get("dns_server", None),
+            #         operating_state=NodeOperatingState.ON
+            #         if not (p := node_cfg.get("operating_state"))
+            #         else NodeOperatingState[p.upper()],
+            #     )
+            # elif n_type in NetworkNode._registry:
+            #     new_node = NetworkNode._registry[n_type](**node_cfg)
             else:
                 msg = f"invalid node type {n_type} in config"
                 _LOGGER.error(msg)

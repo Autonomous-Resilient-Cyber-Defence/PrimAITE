@@ -2,7 +2,7 @@
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional, Union
 
-from pydantic import validate_call
+from pydantic import Field, validate_call
 
 from primaite.simulator.network.airspace import AirSpace, AirSpaceFrequency, FREQ_WIFI_2_4, IPWirelessNetworkInterface
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
@@ -123,6 +123,13 @@ class WirelessRouter(Router, identifier="wireless_router"):
     network_interfaces: Dict[str, Union[RouterInterface, WirelessAccessPoint]] = {}
     network_interface: Dict[int, Union[RouterInterface, WirelessAccessPoint]] = {}
     airspace: AirSpace
+
+    config: "WirelessRouter.ConfigSchema" = Field(default_factory=lambda: WirelessRouter.Configschema())
+
+    class ConfigSchema(Router.ConfigSChema):
+        """Configuration Schema for WirelessRouter nodes within PrimAITE."""
+
+        pass
 
     def __init__(self, hostname: str, airspace: AirSpace, **kwargs):
         super().__init__(hostname=hostname, num_ports=0, airspace=airspace, **kwargs)

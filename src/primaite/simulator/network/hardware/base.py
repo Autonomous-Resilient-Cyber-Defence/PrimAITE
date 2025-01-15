@@ -1469,7 +1469,7 @@ class UserSessionManager(Service):
         return self.local_session is not None
 
 
-class Node(SimComponent):
+class Node(SimComponent, ABC):
     """
     A basic Node class that represents a node on the network.
 
@@ -1492,7 +1492,6 @@ class Node(SimComponent):
     "The Network Interfaces on the node by port id."
     dns_server: Optional[IPv4Address] = None
     "List of IP addresses of DNS servers used for name resolution."
-
     accounts: Dict[str, Account] = {}
     "All accounts on the node."
     applications: Dict[str, Application] = {}
@@ -1509,33 +1508,6 @@ class Node(SimComponent):
     session_manager: SessionManager
     software_manager: SoftwareManager
 
-    revealed_to_red: bool = False
-    "Informs whether the node has been revealed to a red agent."
-
-    start_up_duration: int = 3
-    "Time steps needed for the node to start up."
-
-    start_up_countdown: int = 0
-    "Time steps needed until node is booted up."
-
-    shut_down_duration: int = 3
-    "Time steps needed for the node to shut down."
-
-    shut_down_countdown: int = 0
-    "Time steps needed until node is shut down."
-
-    is_resetting: bool = False
-    "If true, the node will try turning itself off then back on again."
-
-    node_scan_duration: int = 10
-    "How many timesteps until the whole node is scanned. Default 10 time steps."
-
-    node_scan_countdown: int = 0
-    "Time steps until scan is complete"
-
-    red_scan_countdown: int = 0
-    "Time steps until reveal to red scan is complete."
-
     SYSTEM_SOFTWARE: ClassVar[Dict[str, Type[Software]]] = {}
     "Base system software that must be preinstalled."
 
@@ -1544,6 +1516,46 @@ class Node(SimComponent):
 
     _identifier: ClassVar[str] = "unknown"
     """Identifier for this particular class, used for printing and logging. Each subclass redefines this."""
+
+    config: Node.ConfigSchema = Field(default_factory=lambda: Node.ConfigSchema())
+
+    class ConfigSchema:
+        """Configuration Schema for Node based classes."""
+
+        revealed_to_red: bool = False
+        "Informs whether the node has been revealed to a red agent."
+
+        start_up_duration: int = 3
+        "Time steps needed for the node to start up."
+
+        start_up_countdown: int = 0
+        "Time steps needed until node is booted up."
+
+        shut_down_duration: int = 3
+        "Time steps needed for the node to shut down."
+
+        shut_down_countdown: int = 0
+        "Time steps needed until node is shut down."
+
+        is_resetting: bool = False
+        "If true, the node will try turning itself off then back on again."
+
+        node_scan_duration: int = 10
+        "How many timesteps until the whole node is scanned. Default 10 time steps."
+
+        node_scan_countdown: int = 0
+        "Time steps until scan is complete"
+
+        red_scan_countdown: int = 0
+        "Time steps until reveal to red scan is complete."
+
+    def from_config(cls, config: Dict) -> Node:
+        """Create Node object from a given configuration."""
+        if config["type"] not in cls._registry:
+            msg = f"Configuration contains an invalid Node type: {config['type']}"
+            return ValueError(msg)
+        obj = cls(config=cls.ConfigSchema(**config))
+        return obj
 
     def __init_subclass__(cls, identifier: str = "default", **kwargs: Any) -> None:
         """
@@ -1850,7 +1862,7 @@ class Node(SimComponent):
                 "applications": {app.name: app.describe_state() for app in self.applications.values()},
                 "services": {svc.name: svc.describe_state() for svc in self.services.values()},
                 "process": {proc.name: proc.describe_state() for proc in self.processes.values()},
-                "revealed_to_red": self.revealed_to_red,
+                "revealed_to_red": self.config.revealed_to_red,
             }
         )
         return state
@@ -1928,8 +1940,8 @@ class Node(SimComponent):
             network_interface.apply_timestep(timestep=timestep)
 
         # count down to boot up
-        if self.start_up_countdown > 0:
-            self.start_up_countdown -= 1
+        if self.config.start_up_countdown > 0:
+            self.config.start_up_countdown -= 1
         else:
             if self.operating_state == NodeOperatingState.BOOTING:
                 self.operating_state = NodeOperatingState.ON
@@ -1940,8 +1952,8 @@ class Node(SimComponent):
                 self._start_up_actions()
 
         # count down to shut down
-        if self.shut_down_countdown > 0:
-            self.shut_down_countdown -= 1
+        if self.config.shut_down_countdown > 0:
+            self.config.shut_down_countdown -= 1
         else:
             if self.operating_state == NodeOperatingState.SHUTTING_DOWN:
                 self.operating_state = NodeOperatingState.OFF
@@ -1949,17 +1961,17 @@ class Node(SimComponent):
                 self._shut_down_actions()
 
                 # if resetting turn back on
-                if self.is_resetting:
-                    self.is_resetting = False
+                if self.config.is_resetting:
+                    self.config.is_resetting = False
                     self.power_on()
 
         # time steps which require the node to be on
         if self.operating_state == NodeOperatingState.ON:
             # node scanning
-            if self.node_scan_countdown > 0:
-                self.node_scan_countdown -= 1
+            if self.config.node_scan_countdown > 0:
+                self.config.node_scan_countdown -= 1
 
-                if self.node_scan_countdown == 0:
+                if self.config.node_scan_countdown == 0:
                     # scan everything!
                     for process_id in self.processes:
                         self.processes[process_id].scan()
@@ -1975,10 +1987,10 @@ class Node(SimComponent):
                     # scan file system
                     self.file_system.scan(instant_scan=True)
 
-            if self.red_scan_countdown > 0:
-                self.red_scan_countdown -= 1
+            if self.config.red_scan_countdown > 0:
+                self.config.red_scan_countdown -= 1
 
-                if self.red_scan_countdown == 0:
+                if self.config.red_scan_countdown == 0:
                     # scan processes
                     for process_id in self.processes:
                         self.processes[process_id].reveal_to_red()
@@ -2035,7 +2047,7 @@ class Node(SimComponent):
 
         to the red agent.
         """
-        self.node_scan_countdown = self.node_scan_duration
+        self.config.node_scan_countdown = self.config.node_scan_duration
         return True
 
     def reveal_to_red(self) -> bool:
@@ -2051,12 +2063,12 @@ class Node(SimComponent):
 
         `revealed_to_red` to `True`.
         """
-        self.red_scan_countdown = self.node_scan_duration
+        self.config.red_scan_countdown = self.config.node_scan_duration
         return True
 
     def power_on(self) -> bool:
         """Power on the Node, enabling its NICs if it is in the OFF state."""
-        if self.start_up_duration <= 0:
+        if self.config.start_up_duration <= 0:
             self.operating_state = NodeOperatingState.ON
             self._start_up_actions()
             self.sys_log.info("Power on")
@@ -2065,14 +2077,14 @@ class Node(SimComponent):
             return True
         if self.operating_state == NodeOperatingState.OFF:
             self.operating_state = NodeOperatingState.BOOTING
-            self.start_up_countdown = self.start_up_duration
+            self.config.start_up_countdown = self.config.start_up_duration
             return True
 
         return False
 
     def power_off(self) -> bool:
         """Power off the Node, disabling its NICs if it is in the ON state."""
-        if self.shut_down_duration <= 0:
+        if self.config.shut_down_duration <= 0:
             self._shut_down_actions()
             self.operating_state = NodeOperatingState.OFF
             self.sys_log.info("Power off")
@@ -2081,7 +2093,7 @@ class Node(SimComponent):
             for network_interface in self.network_interfaces.values():
                 network_interface.disable()
             self.operating_state = NodeOperatingState.SHUTTING_DOWN
-            self.shut_down_countdown = self.shut_down_duration
+            self.config.shut_down_countdown = self.config.shut_down_duration
             return True
         return False
 
@@ -2093,7 +2105,7 @@ class Node(SimComponent):
         Applying more timesteps will eventually turn the node back on.
         """
         if self.operating_state.ON:
-            self.is_resetting = True
+            self.config.is_resetting = True
             self.sys_log.info("Resetting")
             self.power_off()
             return True

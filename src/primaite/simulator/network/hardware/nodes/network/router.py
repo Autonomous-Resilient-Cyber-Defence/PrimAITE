@@ -7,7 +7,7 @@ from ipaddress import IPv4Address, IPv4Network
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import validate_call
+from pydantic import Field, validate_call
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
@@ -1207,13 +1207,21 @@ class Router(NetworkNode, identifier="router"):
         "Terminal": Terminal,
     }
 
-    num_ports: int
     network_interfaces: Dict[str, RouterInterface] = {}
     "The Router Interfaces on the node."
     network_interface: Dict[int, RouterInterface] = {}
     "The Router Interfaces on the node by port id."
     acl: AccessControlList
     route_table: RouteTable
+
+    config: "Router.ConfigSchema" = Field(default_factory=lambda: Router.ConfigSChema())
+
+    class ConfigSChema(NetworkNode.ConfigSchema):
+        """Configuration Schema for Router Objects."""
+
+        num_ports: int = 10
+        hostname: str = "Router"
+        ports: list = []
 
     def __init__(self, hostname: str, num_ports: int = 5, **kwargs):
         if not kwargs.get("sys_log"):
@@ -1227,11 +1235,11 @@ class Router(NetworkNode, identifier="router"):
         self.session_manager.node = self
         self.software_manager.session_manager = self.session_manager
         self.session_manager.software_manager = self.software_manager
-        for i in range(1, self.num_ports + 1):
+        for i in range(1, self.config.num_ports + 1):
             network_interface = RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
             self.connect_nic(network_interface)
             self.network_interface[i] = network_interface
-
+        self.operating_state = NodeOperatingState.ON
         self._set_default_acl()
 
     def _install_system_software(self):
@@ -1337,7 +1345,7 @@ class Router(NetworkNode, identifier="router"):
         :return: A dictionary representing the current state.
         """
         state = super().describe_state()
-        state["num_ports"] = self.num_ports
+        state["num_ports"] = self.config.num_ports
         state["acl"] = self.acl.describe_state()
         return state
 
@@ -1557,6 +1565,8 @@ class Router(NetworkNode, identifier="router"):
                 ]
             )
         print(table)
+
+    # TODO: Remove - Cover normal config items with ConfigSchema. Move additional setup components to __init__ ?
 
     @classmethod
     def from_config(cls, cfg: dict, **kwargs) -> "Router":

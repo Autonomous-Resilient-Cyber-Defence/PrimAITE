@@ -4,6 +4,8 @@ from __future__ import annotations
 from ipaddress import IPv4Address
 from typing import Any, ClassVar, Dict, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.simulator.network.hardware.base import (
     IPWiredNetworkInterface,
@@ -324,6 +326,13 @@ class HostNode(Node, identifier="HostNode"):
     "The Network Interfaces on the node."
     network_interface: Dict[int, NIC] = {}
     "The NICs on the node by port id."
+
+    config: HostNode.ConfigSchema = Field(default_factory=lambda: HostNode.ConfigSchema())
+
+    class ConfigSchema(Node.ConfigSchema):
+        """Configuration Schema for HostNode class."""
+
+        pass
 
     def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
         super().__init__(**kwargs)

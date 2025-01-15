@@ -99,6 +99,13 @@ class Firewall(Router, identifier="firewall"):
     )
     """Access Control List for managing traffic leaving towards an external network."""
 
+    config: "Firewall.ConfigSchema" = Field(default_factory=lambda: Firewall.ConfigSchema())
+
+    class ConfigSchema(Router.ConfigSChema):
+        """Configuration Schema for Firewall 'Nodes' within PrimAITE."""
+
+        pass
+
     def __init__(self, hostname: str, **kwargs):
         if not kwargs.get("sys_log"):
             kwargs["sys_log"] = SysLog(hostname)
