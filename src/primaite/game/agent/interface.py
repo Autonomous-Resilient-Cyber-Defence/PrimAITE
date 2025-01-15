@@ -52,7 +52,7 @@ class AbstractAgent(BaseModel, ABC):
         """Configuration Schema for AbstractAgents."""
 
         model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-        type: str = "AbstractAgent"
+        type: str
         action_space: ActionManager.ConfigSchema = Field(default_factory=lambda: ActionManager.ConfigSchema())
         observation_space: ObservationManager.ConfigSchema = Field(
             default_factory=lambda: ObservationManager.ConfigSchema()
@@ -63,9 +63,10 @@ class AbstractAgent(BaseModel, ABC):
 
     logger: AgentLog = AgentLog(agent_name="Abstract_Agent")
     history: List[AgentHistoryItem] = []
-    action_manager: "ActionManager"
-    observation_manager: "ObservationManager"
-    reward_function: "RewardFunction"
+
+    action_manager: ActionManager = Field(default_factory=lambda: ActionManager())
+    observation_manager: ObservationManager = Field(default_factory=lambda: ObservationManager())
+    reward_function: RewardFunction = Field(default_factory=lambda: RewardFunction())
 
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
 
@@ -77,31 +78,17 @@ class AbstractAgent(BaseModel, ABC):
             raise ValueError(f"Cannot create a new agent under reserved name {identifier}")
         cls._registry[identifier] = cls
 
-    def __init__(self, config: ConfigSchema, **kwargs):
-        kwargs["action_manager"] = kwargs.get("action_manager") or ActionManager.from_config(config.action_space)
-        kwargs["observation_manager"] = kwargs.get("observation_manager") or ObservationManager(
-            config.observation_space
-        )
-        kwargs["reward_function"] = kwargs.get("reward_function") or RewardFunction.from_config(config.reward_function)
-        super().__init__(config=config, **kwargs)
+    def model_post_init(self, __context: Any) -> None:
+        """Overwrite the default empty action, observation, and rewards with ones defined through the config."""
+        self.action_manager = ActionManager(config=self.config.action_space)
+        self.observation_manager = ObservationManager(config=self.config.observation_space)
+        self.reward_function = RewardFunction(config=self.config.reward_function)
+        return super().model_post_init(__context)
 
     @property
     def flatten_obs(self) -> bool:
         """Return agent flatten_obs param."""
         return self.config.flatten_obs
-
-    @classmethod
-    def from_config(cls, config: Dict) -> "AbstractAgent":
-        """Creates an agent component from a configuration dictionary."""
-        if config["type"] not in cls._registry:
-            return ValueError(f"Invalid Agent Type: {config['type']}")
-        obj = cls(
-            config=cls.ConfigSchema(**config["agent_settings"]),
-            action_manager=ActionManager.from_config(config["action_space"]),
-            observation_manager=ObservationManager(config["observation_space"]),
-            reward_function=RewardFunction.from_config(config["reward_function"]),
-        )
-        return obj
 
     def update_observation(self, state: Dict) -> ObsType:
         """

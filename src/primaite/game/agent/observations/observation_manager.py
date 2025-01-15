@@ -194,7 +194,7 @@ class ObservationManager(BaseModel):
             if "options" not in data:
                 data["options"] = obs_class.ConfigSchema()
 
-            # if options passed as a dict, convert to a schema
+            # if options passed as a dict, validate against schema
             elif isinstance(data["options"], dict):
                 data["options"] = obs_class.ConfigSchema(**data["options"])
 

@@ -30,7 +30,7 @@ the structure:
 from abc import ABC, abstractmethod
 from typing import Any, Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Type, TYPE_CHECKING, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing_extensions import Never
 
 from primaite import getLogger
@@ -410,15 +410,74 @@ class ActionPenalty(AbstractReward, identifier="ACTION_PENALTY"):
             return self.config.action_penalty
 
 
-class RewardFunction:
+class _SingleComponentConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: str
+    options: AbstractReward.ConfigSchema
+    weight: float = 1.0
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_obs_options_type(cls, data: Any) -> Any:
+        """
+        When constructing the model from a dict, resolve the correct reward class based on `type` field.
+
+        Workaround: The `options` field is statically typed as AbstractReward. Therefore, it falls over when
+        passing in data that adheres to a subclass schema rather than the plain AbstractReward schema. There is
+        a way to do this properly using discriminated union, but most advice on the internet assumes that the full
+        list of types between which to discriminate is known ahead-of-time. That is not the case for us, because of
+        our plugin architecture.
+
+        We may be able to revisit and implement a better solution when needed using the following resources as
+        research starting points:
+        https://docs.pydantic.dev/latest/concepts/unions/#discriminated-unions
+        https://github.com/pydantic/pydantic/issues/7366
+        https://github.com/pydantic/pydantic/issues/7462
+        https://github.com/pydantic/pydantic/pull/7983
+        """
+        if not isinstance(data, dict):
+            return data
+
+        assert "type" in data, ValueError('Reward component definition is missing the "type" key.')
+        rew_type = data["type"]
+        rew_class = AbstractReward._registry[rew_type]
+
+        # if no options are passed in, try to create a default schema. Only works if there are no mandatory fields.
+        if "options" not in data:
+            data["options"] = rew_class.ConfigSchema()
+
+        # if options are passed as a dict, validate against schema
+        elif isinstance(data["options"], dict):
+            data["options"] = rew_class.ConfigSchema(**data["options"])
+
+        return data
+
+
+class RewardFunction(BaseModel):
     """Manages the reward function for the agent."""
 
-    def __init__(self):
-        """Initialise the reward function object."""
-        self.reward_components: List[Tuple[AbstractReward, float]] = []
-        "attribute reward_components keeps track of reward components and the weights assigned to each."
-        self.current_reward: float = 0.0
-        self.total_reward: float = 0.0
+    model_config = ConfigDict(extra="forbid")
+
+    class ConfigSchema(BaseModel):
+        """Config Schema for RewardFunction."""
+
+        model_config = ConfigDict(extra="forbid")
+
+        reward_components: Iterable[_SingleComponentConfig] = []
+
+    config: ConfigSchema = Field(default_factory=lambda: RewardFunction.ConfigSchema())
+
+    reward_components: List[Tuple[AbstractReward, float]] = []
+
+    current_reward: float = 0.0
+    total_reward: float = 0.0
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        for rew_config in self.config.reward_components:
+            rew_class = AbstractReward._registry[rew_config.type]
+            rew_instance = rew_class(config=rew_config.options)
+            self.register_component(component=rew_instance, weight=rew_config.weight)
 
     def register_component(self, component: AbstractReward, weight: float = 1.0) -> None:
         """Add a reward component to the reward function.

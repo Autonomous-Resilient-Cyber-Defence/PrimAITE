@@ -39,6 +39,13 @@ class DoNothingAction(AbstractAction, identifier="do_nothing"):
         return ["do_nothing"]
 
 
+class _ActionMapItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    action: str
+    options: Dict
+
+
 class ActionManager(BaseModel):
     """Class which manages the action space for an agent."""
 
@@ -46,20 +53,23 @@ class ActionManager(BaseModel):
         """Config Schema for ActionManager."""
 
         model_config = ConfigDict(extra="forbid")
-        action_map: Dict[int, Tuple[str, Dict]] = {}
+        action_map: Dict[int, _ActionMapItem] = {}
         """Mapping between integer action choices and CAOS actions."""
 
         @field_validator("action_map", mode="after")
         def consecutive_action_nums(cls, v: Dict) -> Dict:
             """Make sure all numbers between 0 and N are represented as dict keys in action map."""
             assert all([i in v.keys() for i in range(len(v))])
+            return v
 
     config: ActionManager.ConfigSchema = Field(default_factory=lambda: ActionManager.ConfigSchema())
 
-    @property
-    def action_map(self) -> Dict[int, Tuple[str, Dict]]:
-        """Convenience method for accessing the action map."""
-        return self.config.action_map
+    action_map: Dict[int, Tuple[str, Dict]] = {}
+    """Init as empty, populate after model validation."""
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.action_map = {n: (v.action, v.options) for n, v in self.config.action_map.items()}
 
     def get_action(self, action: int) -> Tuple[str, Dict]:
         """
