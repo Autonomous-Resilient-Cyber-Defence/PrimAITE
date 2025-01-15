@@ -104,13 +104,14 @@ class Firewall(Router, identifier="firewall"):
     class ConfigSchema(Router.ConfigSChema):
         """Configuration Schema for Firewall 'Nodes' within PrimAITE."""
 
-        pass
+        hostname: str = "Firewall"
+        num_ports: int = 0
 
-    def __init__(self, hostname: str, **kwargs):
+    def __init__(self, **kwargs):
         if not kwargs.get("sys_log"):
-            kwargs["sys_log"] = SysLog(hostname)
+            kwargs["sys_log"] = SysLog(self.config.hostname)
 
-        super().__init__(hostname=hostname, num_ports=0, **kwargs)
+        super().__init__(hostname=self.config.hostname, num_ports=self.config.num_ports, **kwargs)
 
         self.connect_nic(
             RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", port_name="external")

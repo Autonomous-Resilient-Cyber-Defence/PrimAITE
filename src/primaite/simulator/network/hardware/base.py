@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import BaseModel, Field, validate_call
+from pydantic import BaseModel, ConfigDict, Field, validate_call
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
@@ -1480,8 +1480,6 @@ class Node(SimComponent, ABC):
     :param operating_state: The node operating state, either ON or OFF.
     """
 
-    hostname: str
-    "The node hostname on the network."
     default_gateway: Optional[IPV4Address] = None
     "The default gateway IP address for forwarding network traffic to other networks."
     operating_state: NodeOperatingState = NodeOperatingState.OFF
@@ -1519,13 +1517,18 @@ class Node(SimComponent, ABC):
 
     config: Node.ConfigSchema = Field(default_factory=lambda: Node.ConfigSchema())
 
-    class ConfigSchema:
+    class ConfigSchema(BaseModel, ABC):
         """Configuration Schema for Node based classes."""
+
+        model_config = ConfigDict(arbitrary_types_allowed=True)
+        """Configure pydantic to allow arbitrary types and to let the instance have attributes not present in the model."""
+        hostname: str
+        "The node hostname on the network."
 
         revealed_to_red: bool = False
         "Informs whether the node has been revealed to a red agent."
 
-        start_up_duration: int = 3
+        start_up_duration: int = 0
         "Time steps needed for the node to start up."
 
         start_up_countdown: int = 0
@@ -1549,8 +1552,9 @@ class Node(SimComponent, ABC):
         red_scan_countdown: int = 0
         "Time steps until reveal to red scan is complete."
 
-    def from_config(cls, config: Dict) -> Node:
-        """Create Node object from a given configuration."""
+    @classmethod
+    def from_config(cls, config: Dict) -> "Node":
+        """Create Node object from a given configuration dictionary."""
         if config["type"] not in cls._registry:
             msg = f"Configuration contains an invalid Node type: {config['type']}"
             return ValueError(msg)

@@ -107,8 +107,9 @@ class Switch(NetworkNode, identifier="switch"):
     class ConfigSchema(NetworkNode.ConfigSchema):
         """Configuration Schema for Switch nodes within PrimAITE."""
 
+        hostname: str = "Switch"
         num_ports: int = 24
-        "The number of ports on the switch."
+        "The number of ports on the switch. Default is 24."
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -195,12 +195,14 @@ def example_network() -> Network:
     network = Network()
 
     # Router 1
+    # router_1 = Router(hostname="router_1", start_up_duration=0)
     router_1 = Router(hostname="router_1", start_up_duration=0)
     router_1.power_on()
     router_1.configure_port(port=1, ip_address="192.168.1.1", subnet_mask="255.255.255.0")
     router_1.configure_port(port=2, ip_address="192.168.10.1", subnet_mask="255.255.255.0")
 
     # Switch 1
+    # switch_1_config = Switch.ConfigSchema()
     switch_1 = Switch(hostname="switch_1", num_ports=8, start_up_duration=0)
     switch_1.power_on()
 
@@ -208,6 +210,7 @@ def example_network() -> Network:
     router_1.enable_port(1)
 
     # Switch 2
+    # switch_2_config = Switch.ConfigSchema()
     switch_2 = Switch(hostname="switch_2", num_ports=8, start_up_duration=0)
     switch_2.power_on()
     network.connect(endpoint_a=router_1.network_interface[2], endpoint_b=switch_2.network_interface[8])

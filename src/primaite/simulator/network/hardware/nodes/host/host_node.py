@@ -332,7 +332,7 @@ class HostNode(Node, identifier="HostNode"):
     class ConfigSchema(Node.ConfigSchema):
         """Configuration Schema for HostNode class."""
 
-        pass
+        hostname: str = "HostNode"
 
     def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
         super().__init__(**kwargs)

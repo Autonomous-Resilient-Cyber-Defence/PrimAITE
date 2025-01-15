@@ -42,6 +42,6 @@ class Computer(HostNode, identifier="computer"):
     class ConfigSchema(HostNode.ConfigSchema):
         """Configuration Schema for Computer class."""
 
-        pass
+        hostname: str = "Computer"
 
     pass
