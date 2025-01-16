@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Type, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple, Type, TYPE_CHECKING
 
 from gymnasium.core import ActType, ObsType
 from pydantic import BaseModel, ConfigDict, Field
@@ -48,11 +48,20 @@ class AbstractAgent(BaseModel, ABC):
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
+    class AgentSettingsSchema(BaseModel, ABC):
+        """Schema for the 'agent_settings' key."""
+
+        model_config = ConfigDict(extra="forbid")
+
     class ConfigSchema(BaseModel, ABC):
         """Configuration Schema for AbstractAgents."""
 
         model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
         type: str
+        ref: str
+        """name of the agent."""
+        team: Optional[Literal["BLUE", "GREEN", "RED"]]
+        agent_settings: AbstractAgent.AgentSettingsSchema = Field(default=lambda: AbstractAgent.AgentSettingsSchema())
         action_space: ActionManager.ConfigSchema = Field(default_factory=lambda: ActionManager.ConfigSchema())
         observation_space: ObservationManager.ConfigSchema = Field(
             default_factory=lambda: ObservationManager.ConfigSchema()
@@ -84,11 +93,6 @@ class AbstractAgent(BaseModel, ABC):
         self.observation_manager = ObservationManager(config=self.config.observation_space)
         self.reward_function = RewardFunction(config=self.config.reward_function)
         return super().model_post_init(__context)
-
-    @property
-    def flatten_obs(self) -> bool:
-        """Return agent flatten_obs param."""
-        return self.config.flatten_obs
 
     def update_observation(self, state: Dict) -> ObsType:
         """
@@ -149,6 +153,13 @@ class AbstractAgent(BaseModel, ABC):
         """Update the most recent history item with the reward value."""
         self.history[-1].reward = self.reward_function.current_reward
 
+    @classmethod
+    def from_config(cls, config: Dict) -> AbstractAgent:
+        """Grab the relevatn agent class and construct an instance from a config dict."""
+        agent_type = config["type"]
+        agent_class = cls._registry[agent_type]
+        return agent_class(config=config)
+
 
 class AbstractScriptedAgent(AbstractAgent, identifier="AbstractScriptedAgent"):
     """Base class for actors which generate their own behaviour."""
@@ -172,12 +183,17 @@ class ProxyAgent(AbstractAgent, identifier="ProxyAgent"):
     config: "ProxyAgent.ConfigSchema" = Field(default_factory=lambda: ProxyAgent.ConfigSchema())
     most_recent_action: ActType = None
 
+    class AgentSettingsSchema(AbstractAgent.AgentSettingsSchema):
+        """Schema for the `agent_settings` part of the agent config."""
+
+        flatten_obs: bool = False
+        action_masking: bool = False
+
     class ConfigSchema(AbstractAgent.ConfigSchema):
         """Configuration Schema for Proxy Agent."""
 
         type: str = "Proxy_Agent"
-        flatten_obs: bool = False
-        action_masking: bool = False
+        agent_settings: ProxyAgent.AgentSettingsSchema = Field(default_factory=lambda: ProxyAgent.AgentSettingsSchema())
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
@@ -199,3 +215,8 @@ class ProxyAgent(AbstractAgent, identifier="ProxyAgent"):
         The environment is responsible for calling this method when it receives an action from the agent policy.
         """
         self.most_recent_action = action
+
+    @property
+    def flatten_obs(self) -> bool:
+        """Return agent flatten_obs param."""
+        return self.config.agent_settings.flatten_obs

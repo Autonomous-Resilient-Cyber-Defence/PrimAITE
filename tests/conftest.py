@@ -414,74 +414,13 @@ def game_and_agent():
     sim = game.simulation
     install_stuff_to_sim(sim)
 
-    actions = [
-        {"type": "do_nothing"},
-        {"type": "node_service_scan"},
-        {"type": "node_service_stop"},
-        {"type": "node_service_start"},
-        {"type": "node_service_pause"},
-        {"type": "node_service_resume"},
-        {"type": "node_service_restart"},
-        {"type": "node_service_disable"},
-        {"type": "node_service_enable"},
-        {"type": "node_service_fix"},
-        {"type": "node_application_execute"},
-        {"type": "node_application_scan"},
-        {"type": "node_application_close"},
-        {"type": "node_application_fix"},
-        {"type": "node_application_install"},
-        {"type": "node_application_remove"},
-        {"type": "node_file_create"},
-        {"type": "node_file_scan"},
-        {"type": "node_file_checkhash"},
-        {"type": "node_file_delete"},
-        {"type": "node_file_repair"},
-        {"type": "node_file_restore"},
-        {"type": "node_file_corrupt"},
-        {"type": "node_file_access"},
-        {"type": "node_folder_create"},
-        {"type": "node_folder_scan"},
-        {"type": "node_folder_checkhash"},
-        {"type": "node_folder_repair"},
-        {"type": "node_folder_restore"},
-        {"type": "node_os_scan"},
-        {"type": "node_shutdown"},
-        {"type": "node_startup"},
-        {"type": "node_reset"},
-        {"type": "router_acl_add_rule"},
-        {"type": "router_acl_remove_rule"},
-        {"type": "host_nic_enable"},
-        {"type": "host_nic_disable"},
-        {"type": "network_port_enable"},
-        {"type": "network_port_disable"},
-        {"type": "configure_c2_beacon"},
-        {"type": "c2_server_ransomware_launch"},
-        {"type": "c2_server_ransomware_configure"},
-        {"type": "c2_server_terminal_command"},
-        {"type": "c2_server_data_exfiltrate"},
-        {"type": "node_account_change_password"},
-        {"type": "node_session_remote_login"},
-        {"type": "node_session_remote_logoff"},
-        {"type": "node_send_remote_command"},
-    ]
-
-    action_space = ActionManager(
-        actions=actions,  # ALL POSSIBLE ACTIONS
-        act_map={},
-    )
-    observation_space = ObservationManager(NestedObservation(components={}))
-    reward_function = RewardFunction()
-
     config = {
         "type": "ControlledAgent",
-        "agent_name": "test_agent",
-        "action_manager": action_space,
-        "observation_manager": observation_space,
-        "reward_function": reward_function,
-        "agent_settings": {},
+        "ref": "test_agent",
+        "team": "BLUE",
     }
 
-    test_agent = ControlledAgent.from_config(config=config)
+    test_agent = ControlledAgent(config=config)
 
     game.agents["test_agent"] = test_agent
 

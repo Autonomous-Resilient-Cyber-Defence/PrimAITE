@@ -1,9 +1,10 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import random
-from typing import Dict, Tuple
+from functools import cached_property
+from typing import Dict, List, Tuple
 
 from gymnasium.core import ObsType
-from pydantic import Field, model_validator
+from pydantic import computed_field, Field, model_validator
 
 from primaite.game.agent.interface import AbstractScriptedAgent
 
@@ -38,17 +39,17 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
 
     config: "PeriodicAgent.ConfigSchema" = Field(default_factory=lambda: PeriodicAgent.ConfigSchema())
 
-    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
-        """Configuration Schema for Periodic Agent."""
+    class AgentSettingsSchema(AbstractScriptedAgent.AgentSettingsSchema):
+        """Schema for the `agent_settings` part of the agent config."""
 
-        type: str = "PeriodicAgent"
-        """Name of the agent."""
         start_step: int = 5
         "The timestep at which an agent begins performing it's actions"
         frequency: int = 5
         "The number of timesteps to wait between performing actions"
         variance: int = 0
         "The amount the frequency can randomly change to"
+        possible_start_nodes: List[str]
+        target_application: str
 
         @model_validator(mode="after")
         def check_variance_lt_frequency(self) -> "PeriodicAgent.ConfigSchema":
@@ -66,12 +67,27 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
                 )
             return self
 
+    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+        """Configuration Schema for Periodic Agent."""
+
+        type: str = "PeriodicAgent"
+        """Name of the agent."""
+        agent_settings: "PeriodicAgent.AgentSettingsSchema" = Field(
+            default_factory=lambda: PeriodicAgent.AgentSettingsSchema()
+        )
+
     max_executions: int = 999999
     "Maximum number of times the agent can execute its action."
     num_executions: int = 0
     """Number of times the agent has executed an action."""
     next_execution_timestep: int = 0
     """Timestep of the next action execution by the agent."""
+
+    @computed_field
+    @cached_property
+    def start_node(self) -> str:
+        """On instantiation, randomly select a start node."""
+        return random.choice(self.config.agent_settings.possible_start_nodes)
 
     def _set_next_execution_timestep(self, timestep: int, variance: int) -> None:
         """Set the next execution timestep with a configured random variance.
@@ -88,8 +104,12 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
         """Do nothing, unless the current timestep is the next execution timestep, in which case do the action."""
         if timestep == self.next_execution_timestep and self.num_executions < self.max_executions:
             self.num_executions += 1
-            self._set_next_execution_timestep(timestep + self.config.frequency, self.config.variance)
-            self.target_node = self.action_manager.node_names[0]
-            return "node_application_execute", {"node_name": self.target_node, "application_name": 0}
+            self._set_next_execution_timestep(
+                timestep + self.config.agent_settings.frequency, self.config.agent_settings.variance
+            )
+            return "node_application_execute", {
+                "node_name": self.start_node,
+                "application_name": self.config.agent_settings.target_application,
+            }
 
         return "do_nothing", {}

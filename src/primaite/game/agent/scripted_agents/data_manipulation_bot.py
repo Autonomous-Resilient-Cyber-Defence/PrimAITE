@@ -1,6 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-import random
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 from gymnasium.core import ObsType
 from pydantic import Field
@@ -13,21 +12,24 @@ __all__ = "DataManipulationAgent"
 class DataManipulationAgent(PeriodicAgent, identifier="RedDatabaseCorruptingAgent"):
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
 
+    class AgentSettingsSchema(PeriodicAgent.AgentSettingsSchema):
+        """Schema for the `agent_settings` part of the agent config."""
+
+        target_application: str = "DataManipulationBot"
+
     class ConfigSchema(PeriodicAgent.ConfigSchema):
         """Configuration Schema for DataManipulationAgent."""
 
         type: str = "RedDatabaseCorruptingAgent"
-        starting_application_name: str = "DataManipulationBot"
-        possible_start_nodes: List[str]
+        agent_settings: "DataManipulationAgent.AgentSettingsSchema" = Field(
+            default_factory=lambda: DataManipulationAgent.AgentSettingsSchema()
+        )
 
     config: "DataManipulationAgent.ConfigSchema" = Field(default_factory=lambda: DataManipulationAgent.ConfigSchema())
 
-    start_node: str
-
     def __init__(self, **kwargs):
-        kwargs["start_node"] = random.choice(kwargs["config"].possible_start_nodes)
         super().__init__(**kwargs)
-        self._set_next_execution_timestep(timestep=self.config.start_step, variance=0)
+        self._set_next_execution_timestep(timestep=self.config.agent_settings.start_step, variance=0)
 
     def get_action(self, obs: ObsType, timestep: int) -> Tuple[str, Dict]:
         """Waits until a specific timestep, then attempts to execute its data manipulation application.
@@ -43,9 +45,11 @@ class DataManipulationAgent(PeriodicAgent, identifier="RedDatabaseCorruptingAgen
             self.logger.debug(msg="Performing do nothing action")
             return "do_nothing", {}
 
-        self._set_next_execution_timestep(timestep=timestep + self.config.frequency, variance=self.config.variance)
+        self._set_next_execution_timestep(
+            timestep=timestep + self.config.agent_settings.frequency, variance=self.config.agent_settings.variance
+        )
         self.logger.info(msg="Performing a data manipulation attack!")
         return "node_application_execute", {
             "node_name": self.start_node,
-            "application_name": self.config.starting_application_name,
+            "application_name": self.config.agent_settings.target_application,
         }

@@ -3,27 +3,36 @@ from __future__ import annotations
 
 import random
 from abc import abstractmethod
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from gymnasium.core import ObsType
 from pydantic import Field
 
-from primaite.game.agent.interface import AbstractScriptedAgent
+from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 
 __all__ = "AbstractTAPAgent"
 
 
-class AbstractTAPAgent(AbstractScriptedAgent, identifier="AbstractTAP"):
+class AbstractTAPAgent(PeriodicAgent, identifier="AbstractTAP"):
     """Base class for TAP agents to inherit from."""
 
     config: "AbstractTAPAgent.ConfigSchema" = Field(default_factory=lambda: AbstractTAPAgent.ConfigSchema())
     next_execution_timestep: int = 0
 
-    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+    class AgentSettingsSchema(PeriodicAgent.AgentSettingsSchema):
+        """Schema for the `agent_settings` part of the agent config."""
+
+        possible_starting_nodes: List[str] = Field(default_factory=list)
+
+    class ConfigSchema(PeriodicAgent.ConfigSchema):
         """Configuration schema for Abstract TAP agents."""
 
         type: str = "AbstractTAP"
-        starting_node_name: Optional[str] = None
+        agent_settings: AbstractTAPAgent.AgentSettingsSchema = Field(
+            default_factory=lambda: AbstractTAPAgent.AgentSettingsSchema()
+        )
+
+    starting_node: Optional[str] = None
 
     @abstractmethod
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
@@ -40,13 +49,13 @@ class AbstractTAPAgent(AbstractScriptedAgent, identifier="AbstractTAP"):
 
         :param timestep: The timestep to add variance to.
         """
-        random_timestep_increment = random.randint(-self.config.variance, self.config.variance)
+        random_timestep_increment = random.randint(
+            -self.config.agent_settings.variance, self.config.agent_settings.variance
+        )
         self.next_execution_timestep = timestep + random_timestep_increment
 
     def _select_start_node(self) -> None:
         """Set the starting starting node of the agent to be a random node from this agent's action manager."""
         # we are assuming that every node in the node manager has a data manipulation application at idx 0
-        num_nodes = len(self.action_manager.node_names)
-        starting_node_idx = random.randint(0, num_nodes - 1)
-        self.config.starting_node_name = self.action_manager.node_names[starting_node_idx]
-        self.logger.debug(f"Selected starting node: {self.config.starting_node_name}")
+        self.starting_node = random.choice(self.config.agent_settings.possible_starting_nodes)
+        self.logger.debug(f"Selected starting node: {self.starting_node}")

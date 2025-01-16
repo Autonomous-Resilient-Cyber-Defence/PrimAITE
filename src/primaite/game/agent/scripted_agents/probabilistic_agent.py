@@ -19,10 +19,8 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent")
     config: "ProbabilisticAgent.ConfigSchema" = Field(default_factory=lambda: ProbabilisticAgent.ConfigSchema())
     rng: Generator = np.random.default_rng(np.random.randint(0, 65535))
 
-    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
-        """Configuration schema for Probabilistic Agent."""
-
-        type: str = "ProbabilisticAgent"
+    class AgentSettingsSchema(AbstractScriptedAgent.AgentSettingsSchema):
+        """Schema for the `agent_settings` part of the agent config."""
 
         action_probabilities: Dict[int, float] = None
         """Probability to perform each action in the action map. The sum of probabilities should sum to 1."""
@@ -46,10 +44,18 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent")
                 )
             return v
 
+    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+        """Configuration schema for Probabilistic Agent."""
+
+        type: str = "ProbabilisticAgent"
+        agent_settings: "ProbabilisticAgent.AgentSettingsSchema" = Field(
+            default_factory=lambda: ProbabilisticAgent.AgentSettingsSchema()
+        )
+
     @property
     def probabilities(self) -> Dict[str, int]:
         """Convenience method to view the probabilities of the Agent."""
-        return np.asarray(list(self.config.action_probabilities.values()))
+        return np.asarray(list(self.config.agent_settings.action_probabilities.values()))
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """

@@ -44,7 +44,7 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
         )
         for agent_name in self._agent_ids:
             agent = self.game.rl_agents[agent_name]
-            if agent.config.action_masking:
+            if agent.config.agent_settings.action_masking:
                 self.observation_space[agent_name] = spaces.Dict(
                     {
                         "action_mask": spaces.MultiBinary(agent.action_manager.space.n),
@@ -143,7 +143,7 @@ class PrimaiteRayMARLEnv(MultiAgentEnv):
             unflat_space = agent.observation_manager.space
             unflat_obs = agent.observation_manager.current_observation
             obs = gymnasium.spaces.flatten(unflat_space, unflat_obs)
-            if agent.config.action_masking:
+            if agent.config.agent_settings.action_masking:
                 all_obs[agent_name] = {"action_mask": self.game.action_mask(agent_name), "observations": obs}
             else:
                 all_obs[agent_name] = obs
@@ -178,7 +178,7 @@ class PrimaiteRayEnv(gymnasium.Env):
     def reset(self, *, seed: int = None, options: dict = None) -> Tuple[ObsType, Dict]:
         """Reset the environment."""
         super().reset()  # Ensure PRNG seed is set everywhere
-        if self.env.agent.config.action_masking:
+        if self.env.agent.config.agent_settings.action_masking:
             obs, *_ = self.env.reset(seed=seed)
             new_obs = {"action_mask": self.env.action_masks(), "observations": obs}
             return new_obs, *_
@@ -187,7 +187,7 @@ class PrimaiteRayEnv(gymnasium.Env):
     def step(self, action: ActType) -> Tuple[ObsType, SupportsFloat, bool, bool, Dict]:
         """Perform a step in the environment."""
         # if action masking is enabled, intercept the step method and add action mask to observation
-        if self.env.agent.config.action_masking:
+        if self.env.agent.config.agent_settings.action_masking:
             obs, *_ = self.env.step(action)
             new_obs = {"action_mask": self.game.action_mask(self.env._agent_name), "observations": obs}
             return new_obs, *_

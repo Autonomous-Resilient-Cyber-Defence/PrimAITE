@@ -525,33 +525,37 @@ class PrimaiteGame:
         agents_cfg = cfg.get("agents", [])
 
         for agent_cfg in agents_cfg:
-            agent_name = agent_cfg["ref"]  # noqa: F841
-            agent_type = agent_cfg["type"]
-            action_space_cfg = agent_cfg["action_space"]
-            observation_space_cfg = agent_cfg["observation_space"]
-            reward_function_cfg = agent_cfg["reward_function"]
-            agent_settings = agent_cfg["agent_settings"]
-
-            agent_config = {
-                "type": agent_type,
-                "action_space": action_space_cfg,
-                "observation_space": observation_space_cfg,
-                "reward_function": reward_function_cfg,
-                "agent_settings": agent_settings,
-                "game": game,
-            }
-
-            # CREATE AGENT
-            if agent_type in AbstractAgent._registry:
-                new_agent = AbstractAgent._registry[agent_cfg["type"]].from_config(config=agent_config)
-                # If blue agent is created, add to game.rl_agents
-                if agent_type == "ProxyAgent":
-                    game.rl_agents[agent_cfg["ref"]] = new_agent
-            else:
-                msg = f"Configuration error: {agent_type} is not a valid agent type."
-                _LOGGER.error(msg)
-                raise ValueError(msg)
+            new_agent = AbstractAgent.from_config(agent_cfg)
             game.agents[agent_cfg["ref"]] = new_agent
+            if isinstance(new_agent, ProxyAgent):
+                game.rl_agents[agent_cfg["ref"]] = new_agent
+
+            # agent_name = agent_cfg["ref"]  # noqa: F841
+            # agent_type = agent_cfg["type"]
+            # action_space_cfg = agent_cfg["action_space"]
+            # observation_space_cfg = agent_cfg["observation_space"]
+            # reward_function_cfg = agent_cfg["reward_function"]
+            # agent_settings = agent_cfg["agent_settings"]
+
+            # agent_config = {
+            #     "type": agent_type,
+            #     "action_space": action_space_cfg,
+            #     "observation_space": observation_space_cfg,
+            #     "reward_function": reward_function_cfg,
+            #     "agent_settings": agent_settings,
+            #     "game": game,
+            # }
+
+            # # CREATE AGENT
+            # if agent_type in AbstractAgent._registry:
+            #     new_agent = AbstractAgent._registry[agent_cfg["type"]].from_config(config=agent_config)
+            #     # If blue agent is created, add to game.rl_agents
+            #     if agent_type == "ProxyAgent":
+            #         game.rl_agents[agent_cfg["ref"]] = new_agent
+            # else:
+            #     msg = f"Configuration error: {agent_type} is not a valid agent type."
+            #     _LOGGER.error(msg)
+            #     raise ValueError(msg)
 
         # Validate that if any agents are sharing rewards, they aren't forming an infinite loop.
         game.setup_reward_sharing()

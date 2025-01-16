@@ -377,7 +377,7 @@ class SharedReward(AbstractReward, identifier="SHARED_REWARD"):
 
 
 class ActionPenalty(AbstractReward, identifier="ACTION_PENALTY"):
-    """Apply a negative reward when taking any action except DONOTHING."""
+    """Apply a negative reward when taking any action except do_nothing."""
 
     config: "ActionPenalty.ConfigSchema"
 

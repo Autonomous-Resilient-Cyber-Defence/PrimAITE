@@ -2,15 +2,13 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import List
-
-from pydantic import field_validator
+from typing import List, Literal, Union
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
-from primaite.utils.validation.ip_protocol import protocol_validator
-from primaite.utils.validation.ipv4_address import ipv4_validator, IPV4Address
-from primaite.utils.validation.port import port_validator
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import Port
 
 __all__ = (
     "RouterACLAddRuleAction",
@@ -29,43 +27,14 @@ class ACLAddRuleAbstractAction(AbstractAction, ABC):
         """Configuration Schema base for ACL add rule abstract actions."""
 
         src_ip: IPV4Address
-        protocol_name: str
-        permission: str
+        protocol_name: Union[IPProtocol, Literal["ALL"]]
+        permission: Literal["ALLOW", "DENY"]
         position: int
-        dst_ip: IPV4Address
-        src_port: int
-        dst_port: int
-        src_wildcard: int
-        dst_wildcard: int
-
-        @field_validator(
-            "src_port",
-            "dst_port",
-            mode="before",
-        )
-        @classmethod
-        def valid_port(cls, v: str) -> int:
-            """Check that inputs are valid."""
-            return port_validator(v)
-
-        @field_validator(
-            "src_ip",
-            "dst_ip",
-            mode="before",
-        )
-        @classmethod
-        def valid_ip(cls, v: str) -> str:
-            """Check that a valid IP has been provided for src and dst."""
-            return ipv4_validator(v)
-
-        @field_validator(
-            "protocol_name",
-            mode="before",
-        )
-        @classmethod
-        def is_valid_protocol(cls, v: str) -> bool:
-            """Check that we are using a valid protocol."""
-            return protocol_validator(v)
+        dst_ip: Union[IPV4Address, Literal["ALL"]]
+        src_port: Union[Port, Literal["ALL"]]
+        dst_port: Union[Port, Literal["ALL"]]
+        src_wildcard: Union[IPV4Address, Literal["NONE"]]
+        dst_wildcard: Union[IPV4Address, Literal["NONE"]]
 
 
 class ACLRemoveRuleAbstractAction(AbstractAction, identifier="acl_remove_rule_abstract_action"):
@@ -100,10 +69,10 @@ class RouterACLAddRuleAction(ACLAddRuleAbstractAction, identifier="router_acl_ad
             "add_rule",
             config.permission,
             config.protocol_name,
-            config.src_ip,
+            str(config.src_ip),
             config.src_wildcard,
             config.src_port,
-            config.dst_ip,
+            str(config.dst_ip),
             config.dst_wildcard,
             config.dst_port,
             config.position,
@@ -139,7 +108,7 @@ class FirewallACLAddRuleAction(ACLAddRuleAbstractAction, identifier="firewall_ac
         firewall_port_direction: str
 
     @classmethod
-    def form_request(cls, config: ConfigSchema) -> List[str]:
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return [
             "network",
@@ -151,10 +120,10 @@ class FirewallACLAddRuleAction(ACLAddRuleAbstractAction, identifier="firewall_ac
             "add_rule",
             config.permission,
             config.protocol_name,
-            config.src_ip,
+            str(config.src_ip),
             config.src_wildcard,
             config.src_port,
-            config.dst_ip,
+            str(config.dst_ip),
             config.dst_wildcard,
             config.dst_port,
             config.position,
