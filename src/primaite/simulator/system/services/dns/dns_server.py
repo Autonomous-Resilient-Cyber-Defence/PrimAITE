@@ -21,6 +21,7 @@ class DNSServer(Service, identifier="DNSServer"):
         """ConfigSchema for DNSServer."""
 
         type: str = "DNSServer"
+        domain_mapping: dict = {}
 
     config: "DNSServer.ConfigSchema" = Field(default_factory=lambda: DNSServer.ConfigSchema())
 

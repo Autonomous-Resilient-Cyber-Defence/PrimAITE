@@ -30,6 +30,7 @@ class DatabaseService(Service, identifier="DatabaseService"):
         """ConfigSchema for DatabaseService."""
 
         type: str = "DatabaseService"
+        backup_server_ip: Optional[IPv4Address] = None
 
     config: "DatabaseService.ConfigSchema" = Field(default_factory=lambda: DatabaseService.ConfigSchema())
 
@@ -51,6 +52,7 @@ class DatabaseService(Service, identifier="DatabaseService"):
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self._create_db_file()
+        self.backup_server_ip = self.config.backup_server_ip
 
     def install(self):
         """
