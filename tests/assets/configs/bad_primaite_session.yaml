@@ -588,9 +588,9 @@ simulation:
       default_gateway: 192.168.1.1
       services:
       - type: DNSServer
-        # options:
-        #   domain_mapping:
-        #     arcd.com: 192.168.1.12 # web server
+        options:
+          domain_mapping:
+            arcd.com: 192.168.1.12 # web server
 
     - type: server
       hostname: web_server
