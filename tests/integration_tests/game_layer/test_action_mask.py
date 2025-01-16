@@ -15,7 +15,6 @@ def test_mask_contents_correct():
     net = sim.network
     mask = game.action_mask("defender")
     agent = env.agent
-    node_list = agent.action_manager.node_names
     action_map = agent.action_manager.action_map
 
     # CHECK NIC ENABLE/DISABLE ACTIONS
@@ -23,8 +22,8 @@ def test_mask_contents_correct():
         mask = game.action_mask("defender")
         act_type, act_params = action
 
-        if act_type == "NODE_NIC_ENABLE":
-            node_name = node_list[act_params["node_id"]]
+        if act_type == "node_nic_enable":
+            node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
             nic_obj = node_obj.network_interface[act_params["nic_id"] + 1]
             assert nic_obj.enabled
@@ -34,8 +33,8 @@ def test_mask_contents_correct():
             assert mask[action_num]
             nic_obj.enable()
 
-        if act_type == "NODE_NIC_DISABLE":
-            node_name = node_list[act_params["node_id"]]
+        if act_type == "node_nic_disable":
+            node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
             nic_obj = node_obj.network_interface[act_params["nic_id"] + 1]
             assert nic_obj.enabled
@@ -45,14 +44,14 @@ def test_mask_contents_correct():
             assert not mask[action_num]
             nic_obj.enable()
 
-        if act_type == "ROUTER_ACL_ADDRULE":
+        if act_type == "router_acl_add_rule":
             assert mask[action_num]
 
-        if act_type == "ROUTER_ACL_REMOVERULE":
+        if act_type == "router_acl_remove_rule":
             assert mask[action_num]
 
-        if act_type == "NODE_RESET":
-            node_name = node_list[act_params["node_id"]]
+        if act_type == "node_reset":
+            node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
             assert node_obj.operating_state is NodeOperatingState.ON
             assert mask[action_num]
@@ -61,8 +60,8 @@ def test_mask_contents_correct():
             assert not mask[action_num]
             node_obj.operating_state = NodeOperatingState.ON
 
-        if act_type == "NODE_SHUTDOWN":
-            node_name = node_list[act_params["node_id"]]
+        if act_type == "node_shutdown":
+            node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
             assert node_obj.operating_state is NodeOperatingState.ON
             assert mask[action_num]
@@ -71,8 +70,8 @@ def test_mask_contents_correct():
             assert not mask[action_num]
             node_obj.operating_state = NodeOperatingState.ON
 
-        if act_type == "NODE_OS_SCAN":
-            node_name = node_list[act_params["node_id"]]
+        if act_type == "node_os_scan":
+            node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
             assert node_obj.operating_state is NodeOperatingState.ON
             assert mask[action_num]
@@ -81,8 +80,8 @@ def test_mask_contents_correct():
             assert not mask[action_num]
             node_obj.operating_state = NodeOperatingState.ON
 
-        if act_type == "NODE_STARTUP":
-            node_name = node_list[act_params["node_id"]]
+        if act_type == "node_startup":
+            node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
             assert node_obj.operating_state is NodeOperatingState.ON
             assert not mask[action_num]
@@ -94,12 +93,12 @@ def test_mask_contents_correct():
         if act_type == "do_nothing":
             assert mask[action_num]
 
-        if act_type == "NODE_SERVICE_DISABLE":
+        if act_type == "node_service_disable":
             assert mask[action_num]
 
-        if act_type in ["NODE_SERVICE_SCAN", "NODE_SERVICE_STOP", "NODE_SERVICE_PAUSE"]:
-            node_name = node_list[act_params["node_id"]]
-            service_name = agent.action_manager.service_names[act_params["node_id"]][act_params["service_id"]]
+        if act_type in ["node_service_scan", "node_service_stop", "node_service_pause"]:
+            node_name = act_params["node_name"]
+            service_name = act_params["service_name"]
             node_obj = net.get_node_by_hostname(node_name)
             service_obj = node_obj.software_manager.software.get(service_name)
             assert service_obj.operating_state is ServiceOperatingState.RUNNING
@@ -109,9 +108,9 @@ def test_mask_contents_correct():
             assert not mask[action_num]
             service_obj.operating_state = ServiceOperatingState.RUNNING
 
-        if act_type == "NODE_SERVICE_RESUME":
-            node_name = node_list[act_params["node_id"]]
-            service_name = agent.action_manager.service_names[act_params["node_id"]][act_params["service_id"]]
+        if act_type == "node_service_resume":
+            node_name = act_params["node_name"]
+            service_name = act_params["service_name"]
             node_obj = net.get_node_by_hostname(node_name)
             service_obj = node_obj.software_manager.software.get(service_name)
             assert service_obj.operating_state is ServiceOperatingState.RUNNING
@@ -121,9 +120,9 @@ def test_mask_contents_correct():
             assert mask[action_num]
             service_obj.operating_state = ServiceOperatingState.RUNNING
 
-        if act_type == "NODE_SERVICE_START":
-            node_name = node_list[act_params["node_id"]]
-            service_name = agent.action_manager.service_names[act_params["node_id"]][act_params["service_id"]]
+        if act_type == "node_service_start":
+            node_name = act_params["node_name"]
+            service_name = act_params["service_name"]
             node_obj = net.get_node_by_hostname(node_name)
             service_obj = node_obj.software_manager.software.get(service_name)
             assert service_obj.operating_state is ServiceOperatingState.RUNNING
@@ -133,9 +132,9 @@ def test_mask_contents_correct():
             assert mask[action_num]
             service_obj.operating_state = ServiceOperatingState.RUNNING
 
-        if act_type == "NODE_SERVICE_ENABLE":
-            node_name = node_list[act_params["node_id"]]
-            service_name = agent.action_manager.service_names[act_params["node_id"]][act_params["service_id"]]
+        if act_type == "node_service_enable":
+            node_name = act_params["node_name"]
+            service_name = act_params["service_name"]
             node_obj = net.get_node_by_hostname(node_name)
             service_obj = node_obj.software_manager.software.get(service_name)
             assert service_obj.operating_state is ServiceOperatingState.RUNNING
@@ -145,12 +144,10 @@ def test_mask_contents_correct():
             assert mask[action_num]
             service_obj.operating_state = ServiceOperatingState.RUNNING
 
-        if act_type in ["NODE_FILE_SCAN", "NODE_FILE_CHECKHASH", "NODE_FILE_DELETE"]:
-            node_name = node_list[act_params["node_id"]]
-            folder_name = agent.action_manager.get_folder_name_by_idx(act_params["node_id"], act_params["folder_id"])
-            file_name = agent.action_manager.get_file_name_by_idx(
-                act_params["node_id"], act_params["folder_id"], act_params["file_id"]
-            )
+        if act_type in ["node_file_scan", "node_file_checkhash", "node_file_delete"]:
+            node_name = act_params["node_name"]
+            folder_name = act_params["folder_name"]
+            file_name = act_params["file_name"]
             node_obj = net.get_node_by_hostname(node_name)
             file_obj = node_obj.file_system.get_file(folder_name, file_name, include_deleted=True)
             assert not file_obj.deleted

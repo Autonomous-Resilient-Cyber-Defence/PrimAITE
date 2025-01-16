@@ -6,50 +6,48 @@ game:
 agents:
   - ref: RL_Agent
     type: ProxyAgent
-    observation_space: null
+
     action_space:
       action_map:
         0:
-          action: DONOTHING
+          action: do_nothing
           options: {}
         1:
-          action: NODE_SHUTDOWN
+          action: node_shutdown
           options:
-            node_id: 0
+            node_name: client_1
         2:
-          action: NODE_SHUTDOWN
+          action: node_shutdown
           options:
-            node_id: 1
+            node_name: server
         3:
-          action: NODE_STARTUP
+          action: node_startup
           options:
-            node_id: 0
+            node_name: client_1
         4:
-          action: NODE_STARTUP
+          action: node_startup
           options:
-            node_id: 1
+            node_name: server
         5:
-          action: HOST_NIC_DISABLE
+          action: host_nic_disable
           options:
-            node_id: 0
-            nic_id: 0
+            node_name: client_1
+            nic_num: 1
         6:
-          action: HOST_NIC_DISABLE
+          action: host_nic_disable
           options:
-            node_id: 1
-            nic_id: 0
+            node_name: server
+            nic_num: 1
         7:
-          action: HOST_NIC_ENABLE
+          action: host_nic_enable
           options:
-            node_id: 0
-            nic_id: 0
+            node_name: client_1
+            nic_num: 1
         8:
-          action: HOST_NIC_ENABLE
+          action: host_nic_enable
           options:
-            node_id: 1
-            nic_id: 0
-    reward_function:
-      reward_components: []
+            node_name: server
+            nic_num: 1
 
 simulation:
   network:

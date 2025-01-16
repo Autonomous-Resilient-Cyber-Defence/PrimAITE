@@ -29,7 +29,7 @@ def test_node_startup_shutdown(game_and_agent_fixture: Tuple[PrimaiteGame, Proxy
     assert client_1.operating_state == NodeOperatingState.ON
 
     # turn it off
-    action = ("NODE_SHUTDOWN", {"node_id": 0})
+    action = ("node_shutdown", {"node_id": 0})
     agent.store_action(action)
     game.step()
 
@@ -43,7 +43,7 @@ def test_node_startup_shutdown(game_and_agent_fixture: Tuple[PrimaiteGame, Proxy
     assert client_1.operating_state == NodeOperatingState.OFF
 
     # turn it on
-    action = ("NODE_STARTUP", {"node_id": 0})
+    action = ("node_startup", {"node_id": 0})
     agent.store_action(action)
     game.step()
 
@@ -65,7 +65,7 @@ def test_node_cannot_be_started_up_if_node_is_already_on(game_and_agent_fixture:
     assert client_1.operating_state == NodeOperatingState.ON
 
     # turn it on
-    action = ("NODE_STARTUP", {"node_id": 0})
+    action = ("node_startup", {"node_id": 0})
     agent.store_action(action)
     game.step()
 
@@ -87,7 +87,7 @@ def test_node_cannot_be_shut_down_if_node_is_already_off(game_and_agent_fixture:
     assert client_1.operating_state == NodeOperatingState.OFF
 
     # turn it ff
-    action = ("NODE_SHUTDOWN", {"node_id": 0})
+    action = ("node_shutdown", {"node_id": 0})
     agent.store_action(action)
     game.step()
 

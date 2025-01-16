@@ -49,7 +49,7 @@ def test_application_install_uninstall_on_uc2():
         cfg = yaml.safe_load(f)
 
     env = PrimaiteGymEnv(env_config=cfg)
-    env.agent.config.flatten_obs = False
+    env.agent.config.agent_settings.flatten_obs = False
     env.reset()
 
     _, _, _, _, _ = env.step(0)

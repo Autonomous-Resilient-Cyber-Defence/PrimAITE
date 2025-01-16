@@ -19,12 +19,7 @@ from primaite.game.agent.actions.service import (
 
 def test_do_nothing_action_form_request():
     """Test that the do_nothingAction can form a request and that it is correct."""
-    manager = Mock()
-
-    action = DoNothingAction(manager=manager)
-
-    request = action.form_request()
-
+    request = DoNothingAction.form_request(DoNothingAction.ConfigSchema())
     assert request == ["do_nothing"]
 
 
@@ -52,13 +47,9 @@ def test_do_nothing_action_form_request():
 )  # flake8: noqa
 def test_service_action_form_request(node_name, service_name, expect_to_do_nothing, action_class, action_verb):
     """Test that the ServiceScanAction can form a request and that it is correct."""
-    manager: ActionManager = Mock()
-    manager.get_node_name_by_idx.return_value = node_name
-    manager.get_service_name_by_idx.return_value = service_name
-
-    action = action_class(manager=manager, num_nodes=1, num_services=1)
-
-    request = action.form_request(node_id=0, service_id=0)
+    request = action_class.form_request(
+        config=action_class.ConfigSchema(node_name=node_name, service_name=service_name)
+    )
 
     if expect_to_do_nothing:
         assert request == ["do_nothing"]
@@ -77,13 +68,9 @@ def test_service_action_form_request(node_name, service_name, expect_to_do_nothi
 )  # flake8: noqa
 def test_service_scan_form_request(node_name, service_name, expect_to_do_nothing):
     """Test that the ServiceScanAction can form a request and that it is correct."""
-    manager: ActionManager = Mock()
-    manager.get_node_name_by_idx.return_value = node_name
-    manager.get_service_name_by_idx.return_value = service_name
-
-    action = NodeServiceScanAction(manager=manager, num_nodes=1, num_services=1)
-
-    request = action.form_request(node_id=0, service_id=0)
+    request = NodeServiceScanAction.form_request(
+        NodeServiceScanAction.ConfigSchema(node_id=node_name, service_id=service_name)
+    )
 
     if expect_to_do_nothing:
         assert request == ["do_nothing"]

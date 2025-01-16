@@ -27,26 +27,18 @@ agents:
   - ref: client_2_green_user
     team: GREEN
     type: ProbabilisticAgent
-    observation_space: null
+
     action_space:
       action_map:
         0:
-          action: DONOTHING
+          action: do_nothing
           options: {}
         1:
-          action: NODE_APPLICATION_EXECUTE
+          action: node_application_execute
           options:
-            node_id: 0
-            application_id: 0
-
-    reward_function:
-      reward_components:
-        - type: DUMMY
-
+            node_name: client_1
+            application_name: WebBrowser
     agent_settings:
-      start_step: 5
-      frequency: 4
-      variance: 3
       action_probabilities:
         0: 0.4
         1: 0.6
@@ -110,7 +102,7 @@ agents:
     action_space:
       action_map:
           0:
-            action: DONOTHING
+            action: do_nothing
             options: {}
 
     reward_function:

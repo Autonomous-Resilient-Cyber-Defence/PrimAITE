@@ -22,7 +22,7 @@ agents:
   - ref: client_1_red_nmap
     team: RED
     type: ProbabilisticAgent
-    observation_space: null
+
     action_space:
       action_map:
         0:
@@ -33,11 +33,6 @@ agents:
             target_port: 80
             target_protocol: tcp
             show: false
-
-    reward_function:
-      reward_components:
-        - type: DUMMY
-
     agent_settings:
       action_probabilities:
         0: 1.0

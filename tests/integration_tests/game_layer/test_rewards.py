@@ -38,7 +38,7 @@ def test_WebpageUnavailablePenalty(game_and_agent: tuple[PrimaiteGame, Controlle
     assert agent.reward_function.current_reward == 0.0
 
     # Check that successfully fetching the webpage yields a reward of 0.7
-    agent.store_action(("NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}))
+    agent.store_action(("node_application_execute", {"node_id": 0, "application_id": 0}))
     game.step()
     assert agent.reward_function.current_reward == 0.7
 
@@ -50,7 +50,7 @@ def test_WebpageUnavailablePenalty(game_and_agent: tuple[PrimaiteGame, Controlle
         src_port=PORT_LOOKUP["HTTP"],
         dst_port=PORT_LOOKUP["HTTP"],
     )
-    agent.store_action(("NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}))
+    agent.store_action(("node_application_execute", {"node_id": 0, "application_id": 0}))
     game.step()
     assert agent.reward_function.current_reward == -0.7
 
@@ -83,7 +83,7 @@ def test_uc2_rewards(game_and_agent: tuple[PrimaiteGame, ControlledAgent]):
     response = game.simulation.apply_request(request)
     state = game.get_sim_state()
     ahi = AgentHistoryItem(
-        timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=request, response=response
+        timestep=0, action="node_application_execute", parameters={}, request=request, response=response
     )
     reward_value = comp.calculate(state, last_action_response=ahi)
     assert reward_value == 1.0
@@ -94,7 +94,7 @@ def test_uc2_rewards(game_and_agent: tuple[PrimaiteGame, ControlledAgent]):
     response = game.simulation.apply_request(request)
     state = game.get_sim_state()
     ahi = AgentHistoryItem(
-        timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=request, response=response
+        timestep=0, action="node_application_execute", parameters={}, request=request, response=response
     )
     reward_value = comp.calculate(
         state,
@@ -159,7 +159,7 @@ def test_action_penalty():
         state={},
         last_action_response=AgentHistoryItem(
             timestep=0,
-            action="NODE_APPLICATION_EXECUTE",
+            action="node_application_execute",
             parameters={"node_id": 0, "application_id": 1},
             request=["execute"],
             response=RequestResponse.from_bool(True),
@@ -197,7 +197,7 @@ def test_action_penalty_e2e(game_and_agent: tuple[PrimaiteGame, ControlledAgent]
     game.step()
     assert agent.reward_function.current_reward == 0.125
 
-    action = ("NODE_FILE_SCAN", {"node_id": 0, "folder_id": 0, "file_id": 0})
+    action = ("node_file_scan", {"node_id": 0, "folder_id": 0, "file_id": 0})
     agent.store_action(action)
     game.step()
     assert agent.reward_function.current_reward == -0.75

@@ -47,7 +47,7 @@ The core features that should be implemented in any new agent are detailed below
 		- ref: example_green_agent
 		  team: GREEN
 		  type: ExampleAgent
-		  observation_space: null
+
 		  action_space:
 			action_map:
 				0:

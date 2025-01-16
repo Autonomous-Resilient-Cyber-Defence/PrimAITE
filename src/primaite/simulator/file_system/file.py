@@ -130,8 +130,8 @@ class File(FileSystemItemABC):
 
         Return False if corruption is detected, otherwise True
         """
-        warnings.warn("NODE_FILE_CHECKHASH is currently not implemented.")
-        self.sys_log.warning("NODE_FILE_CHECKHASH is currently not implemented.")
+        warnings.warn("node_file_checkhash is currently not implemented.")
+        self.sys_log.warning("node_file_checkhash is currently not implemented.")
         return False
 
         if self.deleted:

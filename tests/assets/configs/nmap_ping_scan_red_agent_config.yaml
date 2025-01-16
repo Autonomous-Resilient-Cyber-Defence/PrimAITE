@@ -22,7 +22,7 @@ agents:
   - ref: client_1_red_nmap
     team: RED
     type: ProbabilisticAgent
-    observation_space: null
+
     action_space:
       action_map:
         0:
@@ -31,10 +31,6 @@ agents:
             node_name: client_1
             target_ip_address: 192.168.1.0/24
             show: False
-
-    reward_function:
-      reward_components:
-        - type: DUMMY
 
     agent_settings:
       action_probabilities:

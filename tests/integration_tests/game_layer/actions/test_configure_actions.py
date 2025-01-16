@@ -27,7 +27,7 @@ class TestConfigureDatabaseAction:
     def test_configure_ip_password(self, game_and_agent):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["CONFIGURE_DATABASE_CLIENT"] = ConfigureDatabaseClientAction(agent.action_manager)
+        agent.action_manager.actions["configure_database_client"] = ConfigureDatabaseClientAction(agent.action_manager)
 
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
@@ -61,7 +61,7 @@ class TestConfigureDatabaseAction:
         db_client: DatabaseClient = client_1.software_manager.software["DatabaseClient"]
 
         action = (
-            "CONFIGURE_DATABASE_CLIENT",
+            "configure_database_client",
             {
                 "node_id": 0,
                 "config": {
@@ -78,7 +78,7 @@ class TestConfigureDatabaseAction:
     def test_configure_password(self, game_and_agent):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["CONFIGURE_DATABASE_CLIENT"] = ConfigureDatabaseClientAction(agent.action_manager)
+        agent.action_manager.actions["configure_database_client"] = ConfigureDatabaseClientAction(agent.action_manager)
 
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
@@ -87,7 +87,7 @@ class TestConfigureDatabaseAction:
         old_ip = db_client.server_ip_address
 
         action = (
-            "CONFIGURE_DATABASE_CLIENT",
+            "configure_database_client",
             {
                 "node_id": 0,
                 "config": {
@@ -120,7 +120,7 @@ class TestConfigureRansomwareScriptAction:
     def test_configure_ip_password(self, game_and_agent, config):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["CONFIGURE_RANSOMWARE_SCRIPT"] = ConfigureRansomwareScriptAction(
+        agent.action_manager.actions["c2_server_ransomware_configure"] = ConfigureRansomwareScriptAction(
             agent.action_manager
         )
 
@@ -134,7 +134,7 @@ class TestConfigureRansomwareScriptAction:
         old_payload = ransomware_script.payload
 
         action = (
-            "CONFIGURE_RANSOMWARE_SCRIPT",
+            "c2_server_ransomware_configure",
             {"node_id": 0, "config": config},
         )
         agent.store_action(action)
@@ -151,7 +151,7 @@ class TestConfigureRansomwareScriptAction:
     def test_invalid_config(self, game_and_agent):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["CONFIGURE_RANSOMWARE_SCRIPT"] = ConfigureRansomwareScriptAction(
+        agent.action_manager.actions["c2_server_ransomware_configure"] = ConfigureRansomwareScriptAction(
             agent.action_manager
         )
 
@@ -160,7 +160,7 @@ class TestConfigureRansomwareScriptAction:
         client_1.software_manager.install(RansomwareScript)
         ransomware_script: RansomwareScript = client_1.software_manager.software["RansomwareScript"]
         action = (
-            "CONFIGURE_RANSOMWARE_SCRIPT",
+            "c2_server_ransomware_configure",
             {
                 "node_id": 0,
                 "config": {"server_password": "admin123", "bad_option": 70},
@@ -172,17 +172,17 @@ class TestConfigureRansomwareScriptAction:
 
 
 class TestConfigureDoSBot:
-    def test_configure_DoSBot(self, game_and_agent):
+    def test_configure_dos_bot(self, game_and_agent):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["CONFIGURE_DOSBOT"] = ConfigureDoSBotAction(agent.action_manager)
+        agent.action_manager.actions["configure_dos_bot"] = ConfigureDoSBotAction(agent.action_manager)
 
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
         client_1.software_manager.install(DoSBot)
         dos_bot: DoSBot = client_1.software_manager.software["DoSBot"]
 
         action = (
-            "CONFIGURE_DOSBOT",
+            "configure_dos_bot",
             {
                 "node_id": 0,
                 "config": {
@@ -239,7 +239,7 @@ class TestConfigureYAML:
         assert db_client.server_password == "correct_password"
         assert db_client.connect()
 
-    def test_configure_ransomware_script(self):
+    def test_c2_server_ransomware_configure(self):
         env = PrimaiteGymEnv(env_config=APP_CONFIG_YAML)
         client_2 = env.game.simulation.network.get_node_by_hostname("client_2")
         assert client_2.software_manager.software.get("RansomwareScript") is None

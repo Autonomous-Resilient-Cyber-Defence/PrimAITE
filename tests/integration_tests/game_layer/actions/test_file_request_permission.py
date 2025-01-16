@@ -33,7 +33,7 @@ def test_create_file(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
     assert client_1.file_system.get_file(folder_name=random_folder, file_name=random_file) is None
 
     action = (
-        "NODE_FILE_CREATE",
+        "node_file_create",
         {"node_id": 0, "folder_name": random_folder, "file_name": random_file},
     )
     agent.store_action(action)
@@ -51,7 +51,7 @@ def test_file_delete_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAge
     assert file.deleted is False
 
     action = (
-        "NODE_FILE_DELETE",
+        "node_file_delete",
         {"node_id": 0, "folder_id": 0, "file_id": 0},
     )
     agent.store_action(action)
@@ -72,7 +72,7 @@ def test_file_scan_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent
     assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
 
     action = (
-        "NODE_FILE_SCAN",
+        "node_file_scan",
         {"node_id": 0, "folder_id": 0, "file_id": 0},
     )
     agent.store_action(action)
@@ -93,7 +93,7 @@ def test_file_repair_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAge
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
 
     action = (
-        "NODE_FILE_REPAIR",
+        "node_file_repair",
         {"node_id": 0, "folder_id": 0, "file_id": 0},
     )
     agent.store_action(action)
@@ -113,7 +113,7 @@ def test_file_restore_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAg
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
 
     action = (
-        "NODE_FILE_RESTORE",
+        "node_file_restore",
         {"node_id": 0, "folder_id": 0, "file_id": 0},
     )
     agent.store_action(action)
@@ -132,7 +132,7 @@ def test_file_corrupt_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAg
     assert file.health_status == FileSystemItemHealthStatus.GOOD
 
     action = (
-        "NODE_FILE_CORRUPT",
+        "node_file_corrupt",
         {"node_id": 0, "folder_id": 0, "file_id": 0},
     )
     agent.store_action(action)
@@ -150,7 +150,7 @@ def test_file_access_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAge
     assert file.num_access == 0
 
     action = (
-        "NODE_FILE_ACCESS",
+        "node_file_access",
         {"node_id": 0, "folder_name": file.folder_name, "file_name": file.name},
     )
     agent.store_action(action)

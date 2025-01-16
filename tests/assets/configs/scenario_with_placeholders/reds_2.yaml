@@ -2,16 +2,9 @@ reds: &reds
   - ref: red_B
     team: RED
     type: RedDatabaseCorruptingAgent
-
-    observation_space: null
-
-    action_space:
-
-    reward_function:
-      reward_components:
-        - type: DUMMY
-
     agent_settings:
+      possible_start_nodes: [client_1,]
+      target_application: DataManipulationBot
       start_step: 3
       frequency: 2
       variance: 1

@@ -46,7 +46,7 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
     server_1: Server = game.simulation.network.get_node_by_hostname("server_1")
 
     action = (
-        "NODE_APPLICATION_INSTALL",
+        "node_application_install",
         {"node_id": 1, "application_name": "C2Beacon"},
     )
     agent.store_action(action)
@@ -54,7 +54,7 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "CONFIGURE_C2_BEACON",
+        "configure_c2_beacon",
         {
             "node_id": 1,
             "config": {
@@ -70,7 +70,7 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "NODE_APPLICATION_EXECUTE",
+        "node_application_execute",
         {"node_id": 1, "application_id": 0},
     )
     agent.store_action(action)
@@ -122,7 +122,7 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "C2_SERVER_RANSOMWARE_CONFIGURE",
+        "c2_server_ransomware_configure",
         {
             "node_id": 0,
             "config": {"server_ip_address": "10.0.2.3", "payload": "ENCRYPT"},
@@ -141,7 +141,7 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     game.step()
 
     action = (
-        "C2_SERVER_RANSOMWARE_LAUNCH",
+        "c2_server_ransomware_launch",
         {
             "node_id": 0,
         },
@@ -181,7 +181,7 @@ def test_c2_server_data_exfiltration(game_and_agent_fixture: Tuple[PrimaiteGame,
     # C2 Action: Data exfiltrate.
 
     action = (
-        "C2_SERVER_DATA_EXFILTRATE",
+        "c2_server_data_exfiltrate",
         {
             "node_id": 0,
             "target_file_name": "database.db",

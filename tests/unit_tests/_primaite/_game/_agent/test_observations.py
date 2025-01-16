@@ -98,7 +98,7 @@ class TestFileSystemRequiresScan:
         """
 
         cfg = yaml.safe_load(obs_cfg_yaml)
-        manager = ObservationManager.from_config(cfg)
+        manager = ObservationManager(cfg)
 
         hosts: List[HostObservation] = manager.obs.components["NODES"].hosts
         for i, host in enumerate(hosts):

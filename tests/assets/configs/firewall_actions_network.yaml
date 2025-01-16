@@ -244,10 +244,6 @@ agents:
               type: network_port_enable
               target_nodename: firewall
               port_id: 3
-    reward_function:
-      reward_components:
-        - type: DUMMY
-
     agent_settings:
       start_step: 5
       frequency: 4

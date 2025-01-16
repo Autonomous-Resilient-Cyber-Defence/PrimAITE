@@ -17,39 +17,39 @@ def test_probabilistic_agent():
     """
     N_TRIALS = 10_000
     P_DO_NOTHING = 0.1
-    P_NODE_APPLICATION_EXECUTE = 0.3
-    P_NODE_FILE_DELETE = 0.6
+    P_node_application_execute = 0.3
+    P_node_file_delete = 0.6
     MIN_DO_NOTHING = 850
     MAX_DO_NOTHING = 1150
-    MIN_NODE_APPLICATION_EXECUTE = 2800
-    MAX_NODE_APPLICATION_EXECUTE = 3200
-    MIN_NODE_FILE_DELETE = 5750
-    MAX_NODE_FILE_DELETE = 6250
+    MIN_node_application_execute = 2800
+    MAX_node_application_execute = 3200
+    MIN_node_file_delete = 5750
+    MAX_node_file_delete = 6250
 
     action_space_cfg = {
-        "act_map": {
+        "action_map": {
             0: {"action": "do_nothing", "options": {}},
-            1: {"action": "node_application_execute", "options": {"node_id": 0, "application_id": 0}},
-            2: {"action": "node_file_delete", "options": {"node_id": 0, "folder_id": 0, "file_id": 0}},
+            1: {
+                "action": "node_application_execute",
+                "options": {"node_name": "client_1", "application_name": "WebBrowser"},
+            },
+            2: {
+                "action": "node_file_delete",
+                "options": {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"},
+            },
         },
-        "options": {},
     }
 
     game = PrimaiteGame()
     game.options = PrimaiteGameOptions(ports=[], protocols=[])
 
-    observation_space_cfg = None
-
-    reward_function_cfg = {}
-
     pa_config = {
         "type": "ProbabilisticAgent",
-        "game": game,
+        "ref": "ProbabilisticAgent",
+        "team": "BLUE",
         "action_space": action_space_cfg,
-        "observation_space": observation_space_cfg,
-        "reward_function": reward_function_cfg,
         "agent_settings": {
-            "action_probabilities": {0: P_DO_NOTHING, 1: P_NODE_APPLICATION_EXECUTE, 2: P_NODE_FILE_DELETE},
+            "action_probabilities": {0: P_DO_NOTHING, 1: P_node_application_execute, 2: P_node_file_delete},
         },
     }
 
@@ -70,5 +70,5 @@ def test_probabilistic_agent():
             raise AssertionError("Probabilistic agent produced an unexpected action.")
 
     assert MIN_DO_NOTHING < do_nothing_count < MAX_DO_NOTHING
-    assert MIN_NODE_APPLICATION_EXECUTE < node_application_execute_count < MAX_NODE_APPLICATION_EXECUTE
-    assert MIN_NODE_FILE_DELETE < node_file_delete_count < MAX_NODE_FILE_DELETE
+    assert MIN_node_application_execute < node_application_execute_count < MAX_node_application_execute
+    assert MIN_node_file_delete < node_file_delete_count < MAX_node_file_delete
