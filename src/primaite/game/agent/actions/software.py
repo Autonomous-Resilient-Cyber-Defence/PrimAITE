@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 
 from pydantic import ConfigDict, Field, field_validator, ValidationInfo
 
-from primaite.game.agent.actions.manager import AbstractAction, ActionManager
+from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
 
 __all__ = (
@@ -28,36 +28,31 @@ class ConfigureRansomwareScriptAction(AbstractAction, identifier="c2_server_rans
         """Configuration schema for ConfigureRansomwareScriptAction."""
 
         node_name: str
-        server_ip_address: Optional[str]
-        server_password: Optional[str]
-        payload: Optional[str]
+        server_ip_address: Optional[str] = None
+        server_password: Optional[str] = None
+        payload: Optional[str] = None
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
         if config.node_name is None:
             return ["do_nothing"]
-        return [
-            "network",
-            "node",
-            config.node_name,
-            "application",
-            "RansomwareScript",
-            "configure",
-            config.model_config,
-        ]
+        data = dict(
+            server_ip_address=config.server_ip_address,
+            server_password=config.server_password,
+            payload=config.payload,
+        )
+        return ["network", "node", config.node_name, "application", "RansomwareScript", "configure", data]
 
 
 class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):
     """Action which sets config parameters for a DoS bot on a node."""
 
-    config: "ConfigureDoSBotAction.ConfigSchema"
-
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Schema for options that can be passed to this action."""
 
-        node_name: str
         model_config = ConfigDict(extra="forbid")
+        node_name: str
         target_ip_address: Optional[str] = None
         target_port: Optional[str] = None
         payload: Optional[str] = None
@@ -66,21 +61,23 @@ class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):
         dos_intensity: Optional[float] = None
         max_sessions: Optional[int] = None
 
-    def __init__(self, manager: "ActionManager", **kwargs) -> None:
-        super().__init__(manager=manager)
-
-    def form_request(self, config: ConfigSchema) -> RequestFormat:
+    @classmethod
+    def form_request(config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
-        if config.node_name is None:
-            return ["do_nothing"]
-        self.ConfigSchema.model_validate(config)  # check that options adhere to schema
-        return ["network", "node", config.node_name, "application", "DoSBot", "configure", config]
+        data = dict(
+            target_ip_address=config.target_ip_address,
+            target_port=config.target_port,
+            payload=config.payload,
+            repeat=config.repeat,
+            port_scan_p_of_success=config.port_scan_p_of_success,
+            dos_intensity=config.dos_intensity,
+            max_sessions=config.max_sessions,
+        )
+        return ["network", "node", config.node_name, "application", "DoSBot", "configure", data]
 
 
 class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2_beacon"):
     """Action which configures a C2 Beacon based on the parameters given."""
-
-    config: "ConfigureC2BeaconAction.ConfigSchema"
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for ConfigureC2BeaconAction."""
@@ -91,6 +88,7 @@ class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2_beacon"):
         masquerade_protocol: str = Field(default="TCP")
         masquerade_port: str = Field(default="HTTP")
 
+        # TODO: this validator should not be needed anymore, test what happens if removed.
         @field_validator(
             "c2_server_ip_address",
             "keep_alive_frequency",
@@ -108,7 +106,13 @@ class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2_beacon"):
     @classmethod
     def form_request(self, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
-        return ["network", "node", config.node_name, "application", "C2Beacon", "configure", config]
+        data = dict(
+            c2_server_ip_address=config.c2_server_ip_address,
+            keep_alive_frequency=config.keep_alive_frequency,
+            masquerade_protocol=config.masquerade_protocol,
+            masquerade_port=config.masquerade_port,
+        )
+        return ["network", "node", config.node_name, "application", "C2Beacon", "configure", data]
 
 
 class NodeSendRemoteCommandAction(AbstractAction, identifier="node_send_remote_command"):
@@ -228,11 +232,13 @@ class ConfigureDatabaseClientAction(AbstractAction, identifier="configure_databa
         """Schema for options that can be passed to this action."""
 
         node_name: str
-        model_config = ConfigDict(extra="forbid")
+        server_ip_address: Optional[str] = None
+        server_password: Optional[str] = None
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
         if config.node_name is None:
             return ["do_nothing"]
-        return ["network", "node", config.node_name, "application", "DatabaseClient", "configure", config.model_config]
+        data = {"server_ip_address": config.server_ip_address, "server_password": config.server_password}
+        return ["network", "node", config.node_name, "application", "DatabaseClient", "configure", data]

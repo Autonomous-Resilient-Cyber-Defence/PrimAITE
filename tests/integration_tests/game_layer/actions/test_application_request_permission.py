@@ -33,22 +33,22 @@ def test_application_cannot_perform_actions_unless_running(game_and_agent_fixtur
     browser.close()
     assert browser.operating_state == ApplicationOperatingState.CLOSED
 
-    action = ("node_application_scan", {"node_id": 0, "application_id": 0})
+    action = ("node_application_scan", {"node_name": "client_1", "application_name": "WebBrowser"})
     agent.store_action(action)
     game.step()
     assert browser.operating_state == ApplicationOperatingState.CLOSED
 
-    action = ("node_application_close", {"node_id": 0, "application_id": 0})
+    action = ("node_application_close", {"node_name": "client_1", "application_name": "WebBrowser"})
     agent.store_action(action)
     game.step()
     assert browser.operating_state == ApplicationOperatingState.CLOSED
 
-    action = ("node_application_fix", {"node_id": 0, "application_id": 0})
+    action = ("node_application_fix", {"node_name": "client_1", "application_name": "WebBrowser"})
     agent.store_action(action)
     game.step()
     assert browser.operating_state == ApplicationOperatingState.CLOSED
 
-    action = ("node_application_execute", {"node_id": 0, "application_id": 0})
+    action = ("node_application_execute", {"node_name": "client_1", "application_name": "WebBrowser"})
     agent.store_action(action)
     game.step()
     assert browser.operating_state == ApplicationOperatingState.CLOSED

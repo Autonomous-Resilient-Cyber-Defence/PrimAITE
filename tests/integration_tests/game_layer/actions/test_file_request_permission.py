@@ -34,7 +34,7 @@ def test_create_file(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
 
     action = (
         "node_file_create",
-        {"node_id": 0, "folder_name": random_folder, "file_name": random_file},
+        {"node_name": "client_1", "folder_name": random_folder, "file_name": random_file},
     )
     agent.store_action(action)
     game.step()
@@ -52,7 +52,7 @@ def test_file_delete_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAge
 
     action = (
         "node_file_delete",
-        {"node_id": 0, "folder_id": 0, "file_id": 0},
+        {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"},
     )
     agent.store_action(action)
     game.step()
@@ -73,7 +73,7 @@ def test_file_scan_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent
 
     action = (
         "node_file_scan",
-        {"node_id": 0, "folder_id": 0, "file_id": 0},
+        {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"},
     )
     agent.store_action(action)
     game.step()
@@ -94,7 +94,7 @@ def test_file_repair_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAge
 
     action = (
         "node_file_repair",
-        {"node_id": 0, "folder_id": 0, "file_id": 0},
+        {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"},
     )
     agent.store_action(action)
     game.step()
@@ -114,7 +114,7 @@ def test_file_restore_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAg
 
     action = (
         "node_file_restore",
-        {"node_id": 0, "folder_id": 0, "file_id": 0},
+        {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"},
     )
     agent.store_action(action)
     game.step()
@@ -133,7 +133,7 @@ def test_file_corrupt_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAg
 
     action = (
         "node_file_corrupt",
-        {"node_id": 0, "folder_id": 0, "file_id": 0},
+        {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"},
     )
     agent.store_action(action)
     game.step()
@@ -151,7 +151,7 @@ def test_file_access_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAge
 
     action = (
         "node_file_access",
-        {"node_id": 0, "folder_name": file.folder_name, "file_name": file.name},
+        {"node_name": "client_1", "folder_name": file.folder_name, "file_name": file.name},
     )
     agent.store_action(action)
     game.step()

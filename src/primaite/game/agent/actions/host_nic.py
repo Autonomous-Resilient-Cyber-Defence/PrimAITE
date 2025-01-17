@@ -12,8 +12,8 @@ class HostNICAbstractAction(AbstractAction, ABC):
     """
     Abstract base class for NIC actions.
 
-    Any action which applies to a NIC and uses node_id and nic_id as its only two parameters can inherit from this base
-    class.
+    Any action which applies to a NIC and uses node_name and nic_num as its only two parameters can inherit from this
+    base class.
     """
 
     config: "HostNICAbstractAction.ConfigSchema"

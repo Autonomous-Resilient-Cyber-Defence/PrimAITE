@@ -16,7 +16,6 @@ __all__ = "ProbabilisticAgent"
 class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent"):
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
-    config: "ProbabilisticAgent.ConfigSchema" = Field(default_factory=lambda: ProbabilisticAgent.ConfigSchema())
     rng: Generator = np.random.default_rng(np.random.randint(0, 65535))
 
     class AgentSettingsSchema(AbstractScriptedAgent.AgentSettingsSchema):
@@ -51,6 +50,8 @@ class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent")
         agent_settings: "ProbabilisticAgent.AgentSettingsSchema" = Field(
             default_factory=lambda: ProbabilisticAgent.AgentSettingsSchema()
         )
+
+    config: "ProbabilisticAgent.ConfigSchema" = Field(default_factory=lambda: ProbabilisticAgent.ConfigSchema())
 
     @property
     def probabilities(self) -> Dict[str, int]:

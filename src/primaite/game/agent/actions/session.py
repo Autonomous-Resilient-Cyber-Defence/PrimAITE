@@ -55,7 +55,7 @@ class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, identifier="node_
             config.node_name,
             "service",
             "Terminal",
-            "ssh_to_remote",
+            "node_session_remote_login",
             config.username,
             config.password,
             config.remote_ip,

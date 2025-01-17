@@ -4,6 +4,8 @@ from typing import ClassVar, List, Optional, Union
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.port import Port
 
 __all__ = (
     "NodeOSScanAction",
@@ -92,7 +94,7 @@ class NodeNMAPAbstractAction(AbstractAction, identifier="node_nmap_abstract_acti
 
         target_ip_address: Union[str, List[str]]
         show: bool = False
-        node_name: str
+        source_node: str
 
     @classmethod
     @abstractmethod
@@ -107,18 +109,13 @@ class NodeNMAPPingScanAction(NodeNMAPAbstractAction, identifier="node_nmap_ping_
 
     config: "NodeNMAPPingScanAction.ConfigSchema"
 
-    class ConfigSchema(NodeNMAPAbstractAction.ConfigSchema):
-        """Configuration schema for NodeNMAPPingScanAction."""
-
-        pass
-
     @classmethod
-    def form_request(cls, config: ConfigSchema) -> List[str]:  # noqa
+    def form_request(cls, config: "NodeNMAPPingScanAction.ConfigSchema") -> List[str]:  # noqa
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return [
             "network",
             "node",
-            config.node_name,
+            config.source_node,
             "application",
             "NMAP",
             "ping_scan",
@@ -135,8 +132,8 @@ class NodeNMAPPortScanAction(NodeNMAPAbstractAction, identifier="node_nmap_port_
         """Configuration Schema for NodeNMAPPortScanAction."""
 
         source_node: str
-        target_protocol: Optional[Union[str, List[str]]] = (None,)
-        target_port: Optional[Union[str, List[str]]] = (None,)
+        target_protocol: Optional[Union[IPProtocol, List[IPProtocol]]] = None
+        target_port: Optional[Union[Port, List[Port]]] = None
         show: Optional[bool] = (False,)
 
     @classmethod
@@ -166,11 +163,11 @@ class NodeNetworkServiceReconAction(NodeNMAPAbstractAction, identifier="node_net
 
     config: "NodeNetworkServiceReconAction.ConfigSchema"
 
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(NodeNMAPAbstractAction.ConfigSchema):
         """Configuration schema for NodeNetworkServiceReconAction."""
 
-        target_protocol: Optional[Union[str, List[str]]] = (None,)
-        target_port: Optional[Union[str, List[str]]] = (None,)
+        target_protocol: Optional[Union[IPProtocol, List[IPProtocol]]] = None
+        target_port: Optional[Union[Port, List[Port]]] = None
         show: Optional[bool] = (False,)
 
     @classmethod

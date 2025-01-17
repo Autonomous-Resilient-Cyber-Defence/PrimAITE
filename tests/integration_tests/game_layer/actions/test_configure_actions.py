@@ -27,7 +27,6 @@ class TestConfigureDatabaseAction:
     def test_configure_ip_password(self, game_and_agent):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["configure_database_client"] = ConfigureDatabaseClientAction(agent.action_manager)
 
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
@@ -38,10 +37,8 @@ class TestConfigureDatabaseAction:
             "configure_database_client",
             {
                 "node_name": "client_1",
-                "model_config": {
-                    "server_ip_address": "192.168.1.99",
-                    "server_password": "admin123",
-                },
+                "server_ip_address": "192.168.1.99",
+                "server_password": "admin123",
             },
         )
         agent.store_action(action)
@@ -53,7 +50,6 @@ class TestConfigureDatabaseAction:
     def test_configure_ip(self, game_and_agent):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["configure_database_client"] = ConfigureDatabaseClientAction(agent.action_manager)
 
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
@@ -63,10 +59,8 @@ class TestConfigureDatabaseAction:
         action = (
             "configure_database_client",
             {
-                "node_id": 0,
-                "config": {
-                    "server_ip_address": "192.168.1.99",
-                },
+                "node_name": "client_1",
+                "server_ip_address": "192.168.1.99",
             },
         )
         agent.store_action(action)
@@ -78,7 +72,6 @@ class TestConfigureDatabaseAction:
     def test_configure_password(self, game_and_agent):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["configure_database_client"] = ConfigureDatabaseClientAction(agent.action_manager)
 
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
@@ -89,10 +82,8 @@ class TestConfigureDatabaseAction:
         action = (
             "configure_database_client",
             {
-                "node_id": 0,
-                "config": {
-                    "server_password": "admin123",
-                },
+                "node_name": "client_1",
+                "server_password": "admin123",
             },
         )
         agent.store_action(action)
@@ -120,9 +111,6 @@ class TestConfigureRansomwareScriptAction:
     def test_configure_ip_password(self, game_and_agent, config):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["c2_server_ransomware_configure"] = ConfigureRansomwareScriptAction(
-            agent.action_manager
-        )
 
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
@@ -135,7 +123,7 @@ class TestConfigureRansomwareScriptAction:
 
         action = (
             "c2_server_ransomware_configure",
-            {"node_id": 0, "config": config},
+            {"node_name": "client_1", **config},
         )
         agent.store_action(action)
         game.step()
@@ -151,9 +139,6 @@ class TestConfigureRansomwareScriptAction:
     def test_invalid_config(self, game_and_agent):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["c2_server_ransomware_configure"] = ConfigureRansomwareScriptAction(
-            agent.action_manager
-        )
 
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
@@ -162,7 +147,7 @@ class TestConfigureRansomwareScriptAction:
         action = (
             "c2_server_ransomware_configure",
             {
-                "node_id": 0,
+                "node_name": "client_1",
                 "config": {"server_password": "admin123", "bad_option": 70},
             },
         )
@@ -175,7 +160,6 @@ class TestConfigureDoSBot:
     def test_configure_dos_bot(self, game_and_agent):
         game, agent = game_and_agent
         agent: ControlledAgent
-        agent.action_manager.actions["configure_dos_bot"] = ConfigureDoSBotAction(agent.action_manager)
 
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
         client_1.software_manager.install(DoSBot)
@@ -184,16 +168,14 @@ class TestConfigureDoSBot:
         action = (
             "configure_dos_bot",
             {
-                "node_id": 0,
-                "config": {
-                    "target_ip_address": "192.168.1.99",
-                    "target_port": "POSTGRES_SERVER",
-                    "payload": "HACC",
-                    "repeat": False,
-                    "port_scan_p_of_success": 0.875,
-                    "dos_intensity": 0.75,
-                    "max_sessions": 50,
-                },
+                "node_name": "client_1",
+                "target_ip_address": "192.168.1.99",
+                "target_port": "POSTGRES_SERVER",
+                "payload": "HACC",
+                "repeat": False,
+                "port_scan_p_of_success": 0.875,
+                "dos_intensity": 0.75,
+                "max_sessions": 50,
             },
         )
         agent.store_action(action)

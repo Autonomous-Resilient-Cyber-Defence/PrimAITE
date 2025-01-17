@@ -92,7 +92,7 @@ class TestWebpageUnavailabilitySticky:
 
         # agent did a successful fetch
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="success", data={})
         browser_history.append({"outcome": 200})
@@ -115,7 +115,7 @@ class TestWebpageUnavailabilitySticky:
 
         # agent fails to fetch, get a -1.0 reward
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="failure", data={})
         browser_history.append({"outcome": 404})
@@ -127,7 +127,7 @@ class TestWebpageUnavailabilitySticky:
 
         # agent fails again to fetch, get a -1.0 reward again
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="failure", data={})
         browser_history.append({"outcome": 404})
@@ -153,7 +153,7 @@ class TestWebpageUnavailabilitySticky:
 
         # agent did a successful fetch
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="success", data={})
         browser_history.append({"outcome": 200})
@@ -175,7 +175,7 @@ class TestWebpageUnavailabilitySticky:
 
         # agent fails to fetch, get a -1.0 reward
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="failure", data={})
         browser_history.append({"outcome": 404})
@@ -187,7 +187,7 @@ class TestWebpageUnavailabilitySticky:
 
         # agent fails again to fetch, get a -1.0 reward again
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="failure", data={})
         browser_history.append({"outcome": 404})
@@ -217,7 +217,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # agent did a successful fetch
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
@@ -238,7 +238,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # agent fails to fetch, get a -1.0 reward
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="failure", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
@@ -249,7 +249,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # agent fails again to fetch, get a -1.0 reward again
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="failure", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
@@ -276,7 +276,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # agent did a successful fetch
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
@@ -297,7 +297,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # agent fails to fetch, get a -1.0 reward
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="failure", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
@@ -308,7 +308,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # agent fails again to fetch, get a -1.0 reward again
         action = "node_application_execute"
-        params = {"node_id": 0, "application_id": 0}
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="failure", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}

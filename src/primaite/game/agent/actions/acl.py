@@ -28,7 +28,7 @@ class ACLAddRuleAbstractAction(AbstractAction, ABC):
 
         src_ip: IPV4Address
         protocol_name: Union[IPProtocol, Literal["ALL"]]
-        permission: Literal["ALLOW", "DENY"]
+        permission: Literal["PERMIT", "DENY"]
         position: int
         dst_ip: Union[IPV4Address, Literal["ALL"]]
         src_port: Union[Port, Literal["ALL"]]
@@ -70,10 +70,10 @@ class RouterACLAddRuleAction(ACLAddRuleAbstractAction, identifier="router_acl_ad
             config.permission,
             config.protocol_name,
             str(config.src_ip),
-            config.src_wildcard,
+            str(config.src_wildcard),
             config.src_port,
             str(config.dst_ip),
-            config.dst_wildcard,
+            str(config.dst_wildcard),
             config.dst_port,
             config.position,
         ]
@@ -121,10 +121,10 @@ class FirewallACLAddRuleAction(ACLAddRuleAbstractAction, identifier="firewall_ac
             config.permission,
             config.protocol_name,
             str(config.src_ip),
-            config.src_wildcard,
+            str(config.src_wildcard),
             config.src_port,
             str(config.dst_ip),
-            config.dst_wildcard,
+            str(config.dst_wildcard),
             config.dst_port,
             config.position,
         ]

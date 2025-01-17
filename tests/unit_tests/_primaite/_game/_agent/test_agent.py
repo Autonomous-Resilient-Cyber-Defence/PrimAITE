@@ -39,6 +39,8 @@ def test_creating_agent_from_dict():
     }
     agent = RandomAgent(
         config={
+            "ref": "random_agent",
+            "team": "BLUE",
             "action_space": action_config,
             "observation_space": observation_config,
             "reward_function": reward_config,

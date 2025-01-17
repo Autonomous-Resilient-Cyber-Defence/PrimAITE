@@ -109,12 +109,12 @@ agents:
               position: 1
               permission: PERMIT
               src_ip: 192.168.0.10
-              dst_ip: 0.0.0.0
+              dst_ip: ALL
               src_port: 80
               dst_port: HTTP
               protocol_name: TCP
-              src_wildcard: 0
-              dst_wildcard: 0
+              src_wildcard: NONE
+              dst_wildcard: NONE
           2:
             action: firewall_acl_remove_rule
             options:
@@ -135,8 +135,8 @@ agents:
               src_port: ARP
               dst_port: DNS
               protocol_name: ICMP
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              src_wildcard: NONE
+              dst_wildcard: NONE
           4:
             action: firewall_acl_remove_rule
             options:
@@ -157,8 +157,8 @@ agents:
               src_port: HTTP
               dst_port: HTTP
               protocol_name: UDP
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              src_wildcard: NONE
+              dst_wildcard: NONE
           6:
             action: firewall_acl_remove_rule
             options:
@@ -179,8 +179,8 @@ agents:
               src_port: HTTP
               dst_port: HTTP
               protocol_name: TCP
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              src_wildcard: NONE
+              dst_wildcard: NONE
           8:
             action: firewall_acl_remove_rule
             options:
@@ -201,8 +201,8 @@ agents:
               src_port: POSTGRES_SERVER
               dst_port: POSTGRES_SERVER
               protocol_name: ICMP
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              src_wildcard: NONE
+              dst_wildcard: NONE
           10:
             action: firewall_acl_remove_rule
             options:
@@ -223,8 +223,8 @@ agents:
               src_port: NONE
               dst_port: NONE
               protocol_name: none
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              src_wildcard: NONE
+              dst_wildcard: NONE
           12:
             action: firewall_acl_remove_rule
             options:
@@ -237,17 +237,14 @@ agents:
             options:
               type: network_port_disable
               target_nodename: firewall
-              port_id: 3
+              port_num: 3
           14:
             action: network_port_enable
             options:
               type: network_port_enable
               target_nodename: firewall
-              port_id: 3
-    agent_settings:
-      start_step: 5
-      frequency: 4
-      variance: 3
+              port_num: 3
+
 
 
 

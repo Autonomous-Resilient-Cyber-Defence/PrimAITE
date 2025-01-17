@@ -179,7 +179,7 @@ class Terminal(Service):
                 return RequestResponse(status="failure", data={})
 
         rm.add_request(
-            "ssh_to_remote",
+            "node_session_remote_login",
             request_type=RequestType(func=_remote_login),
         )
 

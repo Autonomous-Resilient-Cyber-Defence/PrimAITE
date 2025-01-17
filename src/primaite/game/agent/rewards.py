@@ -51,7 +51,7 @@ class AbstractReward(BaseModel):
     class ConfigSchema(BaseModel, ABC):
         """Config schema for AbstractReward."""
 
-        type: str
+        type: str = ""
 
     _registry: ClassVar[Dict[str, Type["AbstractReward"]]] = {}
 
@@ -404,7 +404,7 @@ class ActionPenalty(AbstractReward, identifier="ACTION_PENALTY"):
         :rtype: float
         """
         if last_action_response.action == "do_nothing":
-            return self.do_nothing_penalty
+            return self.config.do_nothing_penalty
 
         else:
             return self.config.action_penalty

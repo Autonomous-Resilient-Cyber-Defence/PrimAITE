@@ -84,7 +84,7 @@ class ActionManager(BaseModel):
     def form_request(self, action_identifier: str, action_options: Dict) -> RequestFormat:
         """Take action in CAOS format and use the execution definition to change it into PrimAITE request format."""
         act_class = AbstractAction._registry[action_identifier]
-        config = act_class.ConfigSchema(type=action_identifier, **action_options)
+        config = act_class.ConfigSchema(**action_options)
         return act_class.form_request(config=config)
 
     @property

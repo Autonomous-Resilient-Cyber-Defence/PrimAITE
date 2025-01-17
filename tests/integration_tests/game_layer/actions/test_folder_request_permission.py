@@ -34,7 +34,7 @@ def test_create_folder(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
     action = (
         "node_folder_create",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "folder_name": random_folder,
         },
     )
@@ -62,8 +62,8 @@ def test_folder_scan_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAge
     action = (
         "node_folder_scan",
         {
-            "node_id": 0,  # client_1,
-            "folder_id": 0,  # downloads
+            "node_name": "client_1",  # client_1,
+            "folder_name": "downloads",  # downloads
         },
     )
     agent.store_action(action)
@@ -89,8 +89,8 @@ def test_folder_repair_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     action = (
         "node_folder_repair",
         {
-            "node_id": 0,  # client_1,
-            "folder_id": 0,  # downloads
+            "node_name": "client_1",  # client_1,
+            "folder_name": "downloads",  # downloads
         },
     )
     agent.store_action(action)
@@ -113,8 +113,8 @@ def test_folder_restore_action(game_and_agent_fixture: Tuple[PrimaiteGame, Proxy
     action = (
         "node_folder_restore",
         {
-            "node_id": 0,  # client_1,
-            "folder_id": 0,  # downloads
+            "node_name": "client_1",  # client_1,
+            "folder_name": "downloads",  # downloads
         },
     )
     agent.store_action(action)

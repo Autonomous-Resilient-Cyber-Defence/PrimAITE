@@ -58,9 +58,9 @@ class AbstractAgent(BaseModel, ABC):
 
         model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
         type: str
-        ref: str
+        ref: str = ""
         """name of the agent."""
-        team: Optional[Literal["BLUE", "GREEN", "RED"]]
+        team: Optional[Literal["BLUE", "GREEN", "RED"]] = None
         agent_settings: AbstractAgent.AgentSettingsSchema = Field(default=lambda: AbstractAgent.AgentSettingsSchema())
         action_space: ActionManager.ConfigSchema = Field(default_factory=lambda: ActionManager.ConfigSchema())
         observation_space: ObservationManager.ConfigSchema = Field(

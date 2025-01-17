@@ -38,7 +38,7 @@ def test_WebpageUnavailablePenalty(game_and_agent: tuple[PrimaiteGame, Controlle
     assert agent.reward_function.current_reward == 0.0
 
     # Check that successfully fetching the webpage yields a reward of 0.7
-    agent.store_action(("node_application_execute", {"node_id": 0, "application_id": 0}))
+    agent.store_action(("node_application_execute", {"node_name": "client_1", "application_name": "WebBrowser"}))
     game.step()
     assert agent.reward_function.current_reward == 0.7
 
@@ -50,7 +50,7 @@ def test_WebpageUnavailablePenalty(game_and_agent: tuple[PrimaiteGame, Controlle
         src_port=PORT_LOOKUP["HTTP"],
         dst_port=PORT_LOOKUP["HTTP"],
     )
-    agent.store_action(("node_application_execute", {"node_id": 0, "application_id": 0}))
+    agent.store_action(("node_application_execute", {"node_name": "client_1", "application_name": "WebBrowser"}))
     game.step()
     assert agent.reward_function.current_reward == -0.7
 
@@ -160,7 +160,7 @@ def test_action_penalty():
         last_action_response=AgentHistoryItem(
             timestep=0,
             action="node_application_execute",
-            parameters={"node_id": 0, "application_id": 1},
+            parameters={"node_name": "client", "application_name": "WebBrowser"},
             request=["execute"],
             response=RequestResponse.from_bool(True),
         ),
@@ -197,7 +197,7 @@ def test_action_penalty_e2e(game_and_agent: tuple[PrimaiteGame, ControlledAgent]
     game.step()
     assert agent.reward_function.current_reward == 0.125
 
-    action = ("node_file_scan", {"node_id": 0, "folder_id": 0, "file_id": 0})
+    action = ("node_file_scan", {"node_name": "client", "folder_name": "downloads", "file_name": "document.pdf"})
     agent.store_action(action)
     game.step()
     assert agent.reward_function.current_reward == -0.75

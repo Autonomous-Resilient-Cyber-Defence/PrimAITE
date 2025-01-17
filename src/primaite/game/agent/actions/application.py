@@ -19,7 +19,7 @@ class NodeApplicationAbstractAction(AbstractAction, ABC):
     """
     Base class for application actions.
 
-    Any action which applies to an application and uses node_id and application_id as its only two parameters can
+    Any action which applies to an application and uses node_name and application_name as its only two parameters can
     inherit from this base class.
     """
 

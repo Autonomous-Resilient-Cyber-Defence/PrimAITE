@@ -18,7 +18,7 @@ class AbstractAction(BaseModel, ABC):
         """Base configuration schema for Actions."""
 
         model_config = ConfigDict(extra="forbid")
-        type: str
+        type: str = ""
 
     _registry: ClassVar[Dict[str, Type[AbstractAction]]] = {}
 

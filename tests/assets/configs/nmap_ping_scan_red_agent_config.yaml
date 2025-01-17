@@ -28,7 +28,7 @@ agents:
         0:
           action: node_nmap_ping_scan
           options:
-            node_name: client_1
+            source_node: client_1
             target_ip_address: 192.168.1.0/24
             show: False
 

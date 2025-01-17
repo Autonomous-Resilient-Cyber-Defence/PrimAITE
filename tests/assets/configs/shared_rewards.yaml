@@ -519,82 +519,82 @@ agents:
             action: "host_nic_disable"
             options:
                 node_name: domain_controller
-                nic_id: 0
+                nic_num: 1
           63: # old action num: 39
             action: "host_nic_enable"
             options:
                 node_name: domain_controller
-                nic_id: 0
+                nic_num: 1
           64: # old action num: 40
             action: "host_nic_disable"
             options:
                 node_name: web_server
-                nic_id: 0
+                nic_num: 1
           65: # old action num: 41
             action: "host_nic_enable"
             options:
                 node_name: web_server
-                nic_id: 0
+                nic_num: 1
           66: # old action num: 42
             action: "host_nic_disable"
             options:
                 node_name: database_server
-                nic_id: 0
+                nic_num: 1
           67: # old action num: 43
             action: "host_nic_enable"
             options:
                 node_name: database_server
-                nic_id: 0
+                nic_num: 1
           68: # old action num: 44
             action: "host_nic_disable"
             options:
                 node_name: backup_server
-                nic_id: 0
+                nic_num: 1
           69: # old action num: 45
             action: "host_nic_enable"
             options:
                 node_name: backup_server
-                nic_id: 0
+                nic_num: 1
           70: # old action num: 46
             action: "host_nic_disable"
             options:
                 node_name: security_suite
-                nic_id: 0
+                nic_num: 1
           71: # old action num: 47
             action: "host_nic_enable"
             options:
                 node_name: security_suite
-                nic_id: 0
+                nic_num: 1
           72: # old action num: 48
             action: "host_nic_disable"
             options:
                 node_name: security_suite
-                nic_id: 1
+                nic_num: 2
           73: # old action num: 49
             action: "host_nic_enable"
             options:
                 node_name: security_suite
-                nic_id: 1
+                nic_num: 2
           74: # old action num: 50
             action: "host_nic_disable"
             options:
                 node_name: client_1
-                nic_id: 0
+                nic_num: 1
           75: # old action num: 51
             action: "host_nic_enable"
             options:
                 node_name: client_1
-                nic_id: 0
+                nic_num: 1
           76: # old action num: 52
             action: "host_nic_disable"
             options:
                 node_name: client_2
-                nic_id: 0
+                nic_num: 1
           77: # old action num: 53
             action: "host_nic_enable"
             options:
                 node_name: client_2
-                nic_id: 0
+                nic_num: 1
 
     reward_function:
       reward_components:

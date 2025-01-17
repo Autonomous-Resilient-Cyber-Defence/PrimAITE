@@ -43,34 +43,30 @@ agents:
           action: configure_database_client
           options:
             node_name: client_1
-            config:
-              server_ip_address: 10.0.0.5
+            server_ip_address: 10.0.0.5
         5:
           action: configure_database_client
           options:
             node_name: client_1
-            config:
-              server_password: correct_password
+            server_password: correct_password
         6:
           action: c2_server_ransomware_configure
           options:
             node_name: client_2
-            config:
-              server_ip_address: 10.0.0.5
-              server_password: correct_password
-              payload: ENCRYPT
+            server_ip_address: 10.0.0.5
+            server_password: correct_password
+            payload: ENCRYPT
         7:
           action: configure_dos_bot
           options:
             node_name: client_3
-            config:
-              target_ip_address: 10.0.0.5
-              target_port: POSTGRES_SERVER
-              payload: DELETE
-              repeat: true
-              port_scan_p_of_success: 1.0
-              dos_intensity: 1.0
-              max_sessions: 1000
+            target_ip_address: 10.0.0.5
+            target_port: POSTGRES_SERVER
+            payload: DELETE
+            repeat: true
+            port_scan_p_of_success: 1.0
+            dos_intensity: 1.0
+            max_sessions: 1000
         8:
           action: node_application_install
           options:

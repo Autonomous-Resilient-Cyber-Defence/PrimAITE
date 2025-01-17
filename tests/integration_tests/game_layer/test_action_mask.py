@@ -25,7 +25,7 @@ def test_mask_contents_correct():
         if act_type == "node_nic_enable":
             node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
-            nic_obj = node_obj.network_interface[act_params["nic_id"] + 1]
+            nic_obj = node_obj.network_interface[act_params["nic_num"]]
             assert nic_obj.enabled
             assert not mask[action_num]
             nic_obj.disable()
@@ -36,7 +36,7 @@ def test_mask_contents_correct():
         if act_type == "node_nic_disable":
             node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
-            nic_obj = node_obj.network_interface[act_params["nic_id"] + 1]
+            nic_obj = node_obj.network_interface[act_params["nic_num"]]
             assert nic_obj.enabled
             assert mask[action_num]
             nic_obj.disable()

@@ -39,10 +39,6 @@ agents:
             node_name: client_2
             application_name: WebBrowser
 
-    reward_function:
-      reward_components:
-        - type: DUMMY
-
     agent_settings:
       action_probabilities:
         0: 0.4

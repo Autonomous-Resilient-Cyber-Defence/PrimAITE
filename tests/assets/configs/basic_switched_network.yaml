@@ -51,9 +51,6 @@ agents:
         0: 0.4
         1: 0.6
 
-
-
-
   - ref: defender
     team: BLUE
     type: ProxyAgent

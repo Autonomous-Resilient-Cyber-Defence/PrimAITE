@@ -62,7 +62,7 @@ agents:
           action: node_application_execute
           options:
             node_name: client_1
-            application_id: WebBrowser
+            application_name: WebBrowser
 
     agent_settings:
       action_probabilities:

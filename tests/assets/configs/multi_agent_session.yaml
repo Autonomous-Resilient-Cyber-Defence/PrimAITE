@@ -469,52 +469,52 @@ agents:
           52: # old action num: 28
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 0
           53: # old action num: 29
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 1
           54: # old action num: 30
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 2
           55: # old action num: 31
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 3
           56: # old action num: 32
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 4
           57: # old action num: 33
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 5
           58: # old action num: 34
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 6
           59: # old action num: 35
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 7
           60: # old action num: 36
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 8
           61: # old action num: 37
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 9
           62: # old action num: 38
             action: "host_nic_disable"
@@ -983,52 +983,52 @@ agents:
           52: # old action num: 28
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 0
           53: # old action num: 29
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 1
           54: # old action num: 30
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 2
           55: # old action num: 31
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 3
           56: # old action num: 32
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 4
           57: # old action num: 33
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 5
           58: # old action num: 34
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 6
           59: # old action num: 35
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 7
           60: # old action num: 36
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 8
           61: # old action num: 37
             action: "router_acl_remove_rule"
             options:
-                target_router_hostname: router_1
+                target_router: router_1
                 position: 9
           62: # old action num: 38
             action: "host_nic_disable"

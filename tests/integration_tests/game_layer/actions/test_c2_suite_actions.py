@@ -47,7 +47,7 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
 
     action = (
         "node_application_install",
-        {"node_id": 1, "application_name": "C2Beacon"},
+        {"node_name": "server_1", "application_name": "C2Beacon"},
     )
     agent.store_action(action)
     game.step()
@@ -56,13 +56,11 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
     action = (
         "configure_c2_beacon",
         {
-            "node_id": 1,
-            "config": {
-                "c2_server_ip_address": "10.0.1.2",
-                "keep_alive_frequency": 5,
-                "masquerade_protocol": "TCP",
-                "masquerade_port": "HTTP",
-            },
+            "node_name": "server_1",
+            "c2_server_ip_address": "10.0.1.2",
+            "keep_alive_frequency": 5,
+            "masquerade_protocol": "TCP",
+            "masquerade_port": "HTTP",
         },
     )
     agent.store_action(action)
@@ -71,7 +69,7 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
 
     action = (
         "node_application_execute",
-        {"node_id": 1, "application_id": 0},
+        {"node_name": "server_1", "application_name": "C2Beacon"},
     )
     agent.store_action(action)
     game.step()
@@ -103,14 +101,12 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     # C2 Action 1: Installing the RansomwareScript & Database client via Terminal
 
     action = (
-        "C2_SERVER_TERMINAL_COMMAND",
+        "c2_server_terminal_command",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "ip_address": None,
-            "account": {
-                "username": "admin",
-                "password": "admin",
-            },
+            "username": "admin",
+            "password": "admin",
             "commands": [
                 ["software_manager", "application", "install", "RansomwareScript"],
                 ["software_manager", "application", "install", "DatabaseClient"],
@@ -124,7 +120,7 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     action = (
         "c2_server_ransomware_configure",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "config": {"server_ip_address": "10.0.2.3", "payload": "ENCRYPT"},
         },
     )
@@ -143,7 +139,7 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     action = (
         "c2_server_ransomware_launch",
         {
-            "node_id": 0,
+            "node_name": "client_1",
         },
     )
     agent.store_action(action)
@@ -183,15 +179,13 @@ def test_c2_server_data_exfiltration(game_and_agent_fixture: Tuple[PrimaiteGame,
     action = (
         "c2_server_data_exfiltrate",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "target_file_name": "database.db",
             "target_folder_name": "database",
             "exfiltration_folder_name": "spoils",
             "target_ip_address": "10.0.2.3",
-            "account": {
-                "username": "admin",
-                "password": "admin",
-            },
+            "username": "admin",
+            "password": "admin",
         },
     )
     agent.store_action(action)
