@@ -127,12 +127,12 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
             "position": 4,
             "permission": "DENY",
             "src_ip": "10.0.1.2",
-            "src_wildcard": 0,
-            "src_port": "HTTP",
+            "src_wildcard": "NONE",
+            "src_port": "ALL",
             "dst_ip": "10.0.2.3",
-            "dst_wildcard": 0,
-            "dst_port": "HTTP",
-            "protocol_name": "udp",
+            "dst_wildcard": "NONE",
+            "dst_port": "ALL",
+            "protocol_name": "icmp",
         },
     )
     agent.store_action(action)
@@ -155,7 +155,7 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
             "permission": "DENY",  # DENY
             "src_ip": "10.0.2.2",  # 10.0.2.2 (server_1)
             "src_wildcard": 0,
-            "source_port": "ALL",  # ALL
+            "src_port": "ALL",  # ALL
             "dst_ip": "10.0.2.3",  # 10.0.2.3 (server_2)
             "dst_wildcard": 0,
             "dst_port": "ALL",  # ALL
@@ -424,7 +424,7 @@ def test_network_router_port_disable_integration(game_and_agent: Tuple[PrimaiteG
         "network_port_disable",
         {
             "target_nodename": "router",  # router
-            "port_num": 2,  # port 1
+            "port_num": 1,  # port 1
         },
     )
     agent.store_action(action)
@@ -456,7 +456,7 @@ def test_network_router_port_enable_integration(game_and_agent: Tuple[PrimaiteGa
         "network_port_enable",
         {
             "target_nodename": "router",  # router
-            "port_num": 2,  # port 1
+            "port_num": 1,  # port 1
         },
     )
     agent.store_action(action)

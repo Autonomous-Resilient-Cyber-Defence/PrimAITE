@@ -110,9 +110,9 @@ agents:
               permission: PERMIT
               src_ip: 192.168.0.10
               dst_ip: ALL
-              src_port: 80
-              dst_port: HTTP
-              protocol_name: TCP
+              src_port: ALL
+              dst_port: ALL
+              protocol_name: ALL
               src_wildcard: NONE
               dst_wildcard: NONE
           2:
@@ -131,7 +131,7 @@ agents:
               position: 1
               permission: DENY
               src_ip: 192.168.0.10 # client 1
-              dest_ip: ALL
+              dst_ip: ALL
               src_port: ARP
               dst_port: DNS
               protocol_name: ICMP
@@ -153,7 +153,7 @@ agents:
               position: 1
               permission: DENY
               src_ip: 192.168.10.10 # dmz_server
-              dest_ip: 192.168.0.10 # client_1
+              dst_ip: 192.168.0.10 # client_1
               src_port: HTTP
               dst_port: HTTP
               protocol_name: UDP
@@ -175,7 +175,7 @@ agents:
               position: 2
               permission: DENY
               src_ip: 192.168.10.10 # dmz_server
-              dest_ip: 192.168.0.10 # client_1
+              dst_ip: 192.168.0.10 # client_1
               src_port: HTTP
               dst_port: HTTP
               protocol_name: TCP
@@ -197,7 +197,7 @@ agents:
               position: 10
               permission: DENY
               src_ip: 192.168.20.10 # external_computer
-              dest_ip: 192.168.10.10 # dmz
+              dst_ip: 192.168.10.10 # dmz
               src_port: POSTGRES_SERVER
               dst_port: POSTGRES_SERVER
               protocol_name: ICMP
@@ -219,7 +219,7 @@ agents:
               position: 1
               permission: DENY
               src_ip: 192.168.20.10 # external_computer
-              dest_ip: 192.168.0.10 # client_1
+              dst_ip: 192.168.0.10 # client_1
               src_port: NONE
               dst_port: NONE
               protocol_name: none

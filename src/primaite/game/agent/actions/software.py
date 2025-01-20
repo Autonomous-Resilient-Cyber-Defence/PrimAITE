@@ -84,6 +84,7 @@ class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):
             dos_intensity=config.dos_intensity,
             max_sessions=config.max_sessions,
         )
+        data = {k: v for k, v in data.items() if v is not None}
         return ["network", "node", config.node_name, "application", "DoSBot", "configure", data]
 
 

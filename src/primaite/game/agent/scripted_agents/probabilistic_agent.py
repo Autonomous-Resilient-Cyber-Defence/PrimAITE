@@ -16,7 +16,7 @@ __all__ = "ProbabilisticAgent"
 class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent"):
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
-    rng: Generator = np.random.default_rng(np.random.randint(0, 65535))
+    rng: Generator = Field(default_factory=lambda: np.random.default_rng(np.random.randint(0, 65535)))
 
     class AgentSettingsSchema(AbstractScriptedAgent.AgentSettingsSchema):
         """Schema for the `agent_settings` part of the agent config."""
