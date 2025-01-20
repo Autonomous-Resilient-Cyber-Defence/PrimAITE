@@ -17,20 +17,20 @@ class NetworkPortAbstractAction(AbstractAction, identifier="network_port_abstrac
         """Base configuration schema for NetworkPort actions."""
 
         target_nodename: str
-        port_id: int
+        port_num: int
         verb: ClassVar[str]
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        if config.target_nodename is None or config.port_id is None:
+        if config.target_nodename is None or config.port_num is None:
             return ["do_nothing"]
         return [
             "network",
             "node",
             config.target_nodename,
             "network_interface",
-            config.port_id,
+            config.port_num,
             config.verb,
         ]
 

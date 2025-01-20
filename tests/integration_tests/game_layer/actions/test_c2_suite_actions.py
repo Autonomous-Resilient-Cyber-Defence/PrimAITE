@@ -121,7 +121,8 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
         "c2_server_ransomware_configure",
         {
             "node_name": "client_1",
-            "config": {"server_ip_address": "10.0.2.3", "payload": "ENCRYPT"},
+            "server_ip_address": "10.0.2.3",
+            "payload": "ENCRYPT",
         },
     )
     agent.store_action(action)

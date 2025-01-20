@@ -62,7 +62,7 @@ class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):
         max_sessions: Optional[int] = None
 
     @classmethod
-    def form_request(config: ConfigSchema) -> RequestFormat:
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request that can be ingested by the simulation."""
         data = dict(
             target_ip_address=config.target_ip_address,

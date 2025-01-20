@@ -424,7 +424,7 @@ def test_network_router_port_disable_integration(game_and_agent: Tuple[PrimaiteG
         "network_port_disable",
         {
             "target_nodename": "router",  # router
-            "port_id": 1,  # port 1
+            "port_num": 2,  # port 1
         },
     )
     agent.store_action(action)
@@ -456,7 +456,7 @@ def test_network_router_port_enable_integration(game_and_agent: Tuple[PrimaiteGa
         "network_port_enable",
         {
             "target_nodename": "router",  # router
-            "port_id": 1,  # port 1
+            "port_num": 2,  # port 1
         },
     )
     agent.store_action(action)
