@@ -122,7 +122,7 @@ class TestConfigureRansomwareScriptAction:
         old_payload = ransomware_script.payload
 
         action = (
-            "c2_server_ransomware_configure",
+            "configure_ransomware_script",
             {"node_name": "client_1", **config},
         )
         agent.store_action(action)
@@ -145,7 +145,7 @@ class TestConfigureRansomwareScriptAction:
         client_1.software_manager.install(RansomwareScript)
         ransomware_script: RansomwareScript = client_1.software_manager.software["RansomwareScript"]
         action = (
-            "c2_server_ransomware_configure",
+            "configure_ransomware_script",
             {
                 "node_name": "client_1",
                 "config": {"server_password": "admin123", "bad_option": 70},

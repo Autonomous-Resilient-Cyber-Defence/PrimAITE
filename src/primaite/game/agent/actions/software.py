@@ -19,7 +19,7 @@ __all__ = (
 )
 
 
-class ConfigureRansomwareScriptAction(AbstractAction, identifier="c2_server_ransomware_configure"):
+class ConfigureRansomwareScriptAction(AbstractAction, identifier="configure_ransomware_script"):
     """Action which sets config parameters for a ransomware script on a node."""
 
     config: "ConfigureRansomwareScriptAction.ConfigSchema"
@@ -43,6 +43,17 @@ class ConfigureRansomwareScriptAction(AbstractAction, identifier="c2_server_rans
             payload=config.payload,
         )
         return ["network", "node", config.node_name, "application", "RansomwareScript", "configure", data]
+
+
+class RansomwareConfigureC2ServerAction(ConfigureRansomwareScriptAction, identifier="c2_server_ransomware_configure"):
+    """Action which causes a C2 server to send a command to set options on a ransomware script remotely."""
+
+    @classmethod
+    def form_request(cls, config: ConfigureRansomwareScriptAction.ConfigSchema) -> RequestFormat:
+        data = dict(
+            server_ip_address=config.server_ip_address, server_password=config.server_password, payload=config.payload
+        )
+        return ["network", "node", config.node_name, "application", "C2Server", "ransomware_configure", data]
 
 
 class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):

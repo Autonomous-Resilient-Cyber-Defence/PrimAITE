@@ -50,7 +50,7 @@ agents:
             node_name: client_1
             server_password: correct_password
         6:
-          action: c2_server_ransomware_configure
+          action: configure_ransomware_script
           options:
             node_name: client_2
             server_ip_address: 10.0.0.5
