@@ -22,8 +22,8 @@ options
 
 The configuration options are the attributes that fall under the options for an application or service.
 
-fix_duration
-""""""""""""
+fixing_duration
+"""""""""""""""
 
 Optional. Default value is ``2``.
 

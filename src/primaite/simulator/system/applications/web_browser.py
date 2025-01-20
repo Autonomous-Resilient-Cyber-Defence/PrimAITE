@@ -4,7 +4,7 @@ from ipaddress import IPv4Address
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from primaite import getLogger
 from primaite.interface.request import RequestResponse
@@ -30,7 +30,13 @@ class WebBrowser(Application, identifier="WebBrowser"):
     The application requests and loads web pages using its domain name and requesting IP addresses using DNS.
     """
 
-    target_url: Optional[str] = None
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for WebBrowser."""
+
+        type: str = "WebBrowser"
+        target_url: Optional[str] = None
+
+    config: "WebBrowser.ConfigSchema" = Field(default_factory=lambda: WebBrowser.ConfigSchema())
 
     domain_name_ip_address: Optional[IPv4Address] = None
     "The IP address of the domain name for the webpage."
@@ -86,7 +92,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
         :param: url: The address of the web page the browser requests
         :type: url: str
         """
-        url = url or self.target_url
+        url = url or self.config.target_url
         if not self._can_perform_action():
             return False
 

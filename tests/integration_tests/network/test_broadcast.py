@@ -3,6 +3,7 @@ from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, List, Tuple
 
 import pytest
+from pydantic import Field
 
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -14,8 +15,15 @@ from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class BroadcastTestService(Service):
+class BroadcastTestService(Service, identifier="BroadcastTestService"):
     """A service for sending broadcast and unicast messages over a network."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for BroadcastTestService."""
+
+        type: str = "BroadcastTestService"
+
+    config: "BroadcastTestService.ConfigSchema" = Field(default_factory=lambda: BroadcastTestService.ConfigSchema())
 
     def __init__(self, **kwargs):
         # Set default service properties for broadcasting
@@ -45,6 +53,13 @@ class BroadcastTestService(Service):
 
 class BroadcastTestClient(Application, identifier="BroadcastTestClient"):
     """A client application to receive broadcast and unicast messages."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for BroadcastTestClient."""
+
+        type: str = "BroadcastTestClient"
+
+    config: ConfigSchema = Field(default_factory=lambda: BroadcastTestClient.ConfigSchema())
 
     payloads_received: List = []
 

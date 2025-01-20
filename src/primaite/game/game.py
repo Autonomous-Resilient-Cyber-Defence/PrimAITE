@@ -44,7 +44,7 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from primaite.simulator.system.software import Software
-from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import IPProtocol
 from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
@@ -370,12 +370,12 @@ class PrimaiteGame:
 
                     if service_class is not None:
                         _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
-                        new_node.software_manager.install(service_class, **service_cfg.get("options", {}))
+                        new_node.software_manager.install(service_class)
                         new_service = new_node.software_manager.software[service_class.__name__]
 
                         # fixing duration for the service
-                        if "fix_duration" in service_cfg.get("options", {}):
-                            new_service.fixing_duration = service_cfg["options"]["fix_duration"]
+                        if "fixing_duration" in service_cfg.get("options", {}):
+                            new_service.config.fixing_duration = service_cfg["options"]["fixing_duration"]
 
                         _set_software_listen_on_ports(new_service, service_cfg)
                         # start the service
@@ -416,74 +416,20 @@ class PrimaiteGame:
                     application_type = application_cfg["type"]
 
                     if application_type in Application._registry:
-                        new_node.software_manager.install(Application._registry[application_type])
+                        application_class = Application._registry[application_type]
+                        application_options = application_cfg.get("options", {})
+                        application_options["type"] = application_type
+                        new_node.software_manager.install(application_class, software_config=application_options)
                         new_application = new_node.software_manager.software[application_type]  # grab the instance
 
-                        # fixing duration for the application
-                        if "fix_duration" in application_cfg.get("options", {}):
-                            new_application.fixing_duration = application_cfg["options"]["fix_duration"]
                     else:
                         msg = f"Configuration contains an invalid application type: {application_type}"
                         _LOGGER.error(msg)
                         raise ValueError(msg)
 
-                    _set_software_listen_on_ports(new_application, application_cfg)
-
                     # run the application
                     new_application.run()
 
-                    if application_type == "DataManipulationBot":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                server_ip_address=IPv4Address(opt.get("server_ip")),
-                                server_password=opt.get("server_password"),
-                                payload=opt.get("payload", "DELETE"),
-                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
-                                data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
-                            )
-                    elif application_type == "RansomwareScript":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                server_ip_address=IPv4Address(opt.get("server_ip")) if opt.get("server_ip") else None,
-                                server_password=opt.get("server_password"),
-                                payload=opt.get("payload", "ENCRYPT"),
-                            )
-                    elif application_type == "DatabaseClient":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                server_ip_address=IPv4Address(opt.get("db_server_ip")),
-                                server_password=opt.get("server_password"),
-                            )
-                    elif application_type == "WebBrowser":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.target_url = opt.get("target_url")
-                    elif application_type == "DoSBot":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                target_ip_address=IPv4Address(opt.get("target_ip_address")),
-                                target_port=PORT_LOOKUP[opt.get("target_port", "POSTGRES_SERVER")],
-                                payload=opt.get("payload"),
-                                repeat=bool(opt.get("repeat")),
-                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
-                                dos_intensity=float(opt.get("dos_intensity", "1.0")),
-                                max_sessions=int(opt.get("max_sessions", "1000")),
-                            )
-                    elif application_type == "C2Beacon":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                c2_server_ip_address=IPv4Address(opt.get("c2_server_ip_address")),
-                                keep_alive_frequency=(opt.get("keep_alive_frequency", 5)),
-                                masquerade_protocol=PROTOCOL_LOOKUP[
-                                    (opt.get("masquerade_protocol", PROTOCOL_LOOKUP["TCP"]))
-                                ],
-                                masquerade_port=PORT_LOOKUP[(opt.get("masquerade_port", PORT_LOOKUP["HTTP"]))],
-                            )
             if "network_interfaces" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))

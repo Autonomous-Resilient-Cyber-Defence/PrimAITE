@@ -232,7 +232,7 @@ def test_database_service_fix(uc2_network):
     assert db_service.health_state_actual == SoftwareHealthState.FIXING
 
     # apply timestep until the fix is applied
-    for i in range(db_service.fixing_duration + 1):
+    for i in range(db_service.config.fixing_duration + 1):
         uc2_network.apply_timestep(i)
 
     assert db_service.db_file.health_status == FileSystemItemHealthStatus.GOOD
@@ -266,7 +266,7 @@ def test_database_cannot_be_queried_while_fixing(uc2_network):
     assert db_connection.query(sql="SELECT") is False
 
     # apply timestep until the fix is applied
-    for i in range(db_service.fixing_duration + 1):
+    for i in range(db_service.config.fixing_duration + 1):
         uc2_network.apply_timestep(i)
 
     assert db_service.health_state_actual == SoftwareHealthState.GOOD
@@ -308,7 +308,7 @@ def test_database_can_create_connection_while_fixing(uc2_network):
     assert new_db_connection.query(sql="SELECT") is False  # still should fail to query because FIXING
 
     # apply timestep until the fix is applied
-    for i in range(db_service.fixing_duration + 1):
+    for i in range(db_service.config.fixing_duration + 1):
         uc2_network.apply_timestep(i)
 
     assert db_service.health_state_actual == SoftwareHealthState.GOOD

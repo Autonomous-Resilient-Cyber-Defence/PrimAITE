@@ -1,9 +1,11 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, ClassVar, Dict, Optional, Set, Type
+
+from pydantic import Field
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestPermissionValidator, RequestType
@@ -21,12 +23,19 @@ class ApplicationOperatingState(Enum):
     "The application is being installed or updated."
 
 
-class Application(IOSoftware):
+class Application(IOSoftware, ABC):
     """
     Represents an Application in the simulation environment.
 
     Applications are user-facing programs that may perform input/output operations.
     """
+
+    class ConfigSchema(IOSoftware.ConfigSchema, ABC):
+        """Config Schema for Application class."""
+
+        type: str
+
+    config: ConfigSchema = Field(default_factory=lambda: Application.ConfigSchema())
 
     operating_state: ApplicationOperatingState = ApplicationOperatingState.CLOSED
     "The current operating state of the Application."
@@ -49,7 +58,7 @@ class Application(IOSoftware):
         Register an application type.
 
         :param identifier: Uniquely specifies an application class by name. Used for finding items by config.
-        :type identifier: str
+        :type identifier: Optional[str]
         :raises ValueError: When attempting to register an application with a name that is already allocated.
         """
         super().__init_subclass__(**kwargs)
@@ -58,6 +67,21 @@ class Application(IOSoftware):
         if identifier in cls._registry:
             raise ValueError(f"Tried to define new application {identifier}, but this name is already reserved.")
         cls._registry[identifier] = cls
+
+    @classmethod
+    def from_config(cls, config: Dict) -> "Application":
+        """Create an application from a config dictionary.
+
+        :param config: dict of options for application components constructor
+        :type config: dict
+        :return: The application component.
+        :rtype: Application
+        """
+        if config["type"] not in cls._registry:
+            raise ValueError(f"Invalid Application type {config['type']}")
+        application_class = cls._registry[config["type"]]
+        application_object = application_class(config=application_class.ConfigSchema(**config))
+        return application_object
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

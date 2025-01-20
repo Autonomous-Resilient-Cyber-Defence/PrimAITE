@@ -29,7 +29,7 @@ def test_WebpageUnavailablePenalty(game_and_agent: tuple[PrimaiteGame, Controlle
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
     browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
     browser.run()
-    browser.target_url = "http://www.example.com"
+    browser.config.target_url = "http://www.example.com"
     agent.reward_function.register_component(comp, 0.7)
 
     # Check that before trying to fetch the webpage, the reward is 0.0

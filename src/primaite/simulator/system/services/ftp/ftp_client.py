@@ -2,6 +2,8 @@
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
@@ -9,19 +11,27 @@ from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
+from primaite.simulator.system.services.service import Service
 from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 
-class FTPClient(FTPServiceABC):
+class FTPClient(FTPServiceABC, identifier="FTPClient"):
     """
     A class for simulating an FTP client service.
 
-    This class inherits from the `Service` class and provides methods to emulate FTP
+    This class inherits from the `FTPServiceABC` class and provides methods to emulate FTP
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
+
+    config: "FTPClient.ConfigSchema" = Field(default_factory=lambda: FTPClient.ConfigSchema())
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for FTPClient."""
+
+        type: str = "FTPClient"
 
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPClient"

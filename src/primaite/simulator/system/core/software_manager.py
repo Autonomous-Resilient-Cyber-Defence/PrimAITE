@@ -106,7 +106,7 @@ class SoftwareManager:
                 return True
         return False
 
-    def install(self, software_class: Type[IOSoftware], **install_kwargs):
+    def install(self, software_class: Type[IOSoftware], software_config: Optional[IOSoftware.ConfigSchema] = None):
         """
         Install an Application or Service.
 
@@ -115,13 +115,22 @@ class SoftwareManager:
         if software_class in self._software_class_to_name_map:
             self.sys_log.warning(f"Cannot install {software_class} as it is already installed")
             return
-        software = software_class(
-            software_manager=self,
-            sys_log=self.sys_log,
-            file_system=self.file_system,
-            dns_server=self.dns_server,
-            **install_kwargs,
-        )
+        if software_config is None:
+            software = software_class(
+                software_manager=self,
+                sys_log=self.sys_log,
+                file_system=self.file_system,
+                dns_server=self.dns_server,
+            )
+        else:
+            software = software_class(
+                software_manager=self,
+                sys_log=self.sys_log,
+                file_system=self.file_system,
+                dns_server=self.dns_server,
+                config=software_config,
+            )
+
         software.parent = self.node
         if isinstance(software, Application):
             self.node.applications[software.uuid] = software
