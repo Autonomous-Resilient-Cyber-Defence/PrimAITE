@@ -3,6 +3,8 @@ import secrets
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional, Tuple, Union
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
@@ -14,13 +16,20 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class ICMP(Service):
+class ICMP(Service, identifier="ICMP"):
     """
     The Internet Control Message Protocol (ICMP) service.
 
     Enables the sending and receiving of ICMP messages such as echo requests and replies. This is typically used for
     network diagnostics, notably the ping command.
     """
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for ICMP."""
+
+        type: str = "ICMP"
+
+    config: "ICMP.ConfigSchema" = Field(default_factory=lambda: ICMP.ConfigSchema())
 
     request_replies: Dict = {}
 

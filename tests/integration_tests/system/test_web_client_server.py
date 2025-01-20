@@ -51,7 +51,7 @@ def test_web_page_get_users_page_request_with_domain_name(web_client_and_web_ser
     web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
     web_server_ip = server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address
-    web_browser_app.target_url = f"http://arcd.com/"
+    web_browser_app.config.target_url = f"http://arcd.com/"
     assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
 
     assert web_browser_app.get_webpage() is True
@@ -66,7 +66,7 @@ def test_web_page_get_users_page_request_with_ip_address(web_client_and_web_serv
     web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
     web_server_ip = server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address
-    web_browser_app.target_url = f"http://{web_server_ip}/"
+    web_browser_app.config.target_url = f"http://{web_server_ip}/"
     assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
 
     assert web_browser_app.get_webpage() is True
@@ -81,7 +81,7 @@ def test_web_page_request_from_shut_down_server(web_client_and_web_server):
     web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
     web_server_ip = server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address
-    web_browser_app.target_url = f"http://arcd.com/"
+    web_browser_app.config.target_url = f"http://arcd.com/"
     assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
 
     assert web_browser_app.get_webpage() is True
@@ -108,7 +108,7 @@ def test_web_page_request_from_closed_web_browser(web_client_and_web_server):
     web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
     assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
-    web_browser_app.target_url = f"http://arcd.com/"
+    web_browser_app.config.target_url = f"http://arcd.com/"
     assert web_browser_app.get_webpage() is True
 
     # latest response should have status code 200

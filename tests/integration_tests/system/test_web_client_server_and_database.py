@@ -74,7 +74,7 @@ def web_client_web_server_database(example_network) -> Tuple[Network, Computer, 
     # Install Web Browser on computer
     computer.software_manager.install(WebBrowser)
     web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
-    web_browser.target_url = "http://arcd.com/users/"
+    web_browser.config.target_url = "http://arcd.com/users/"
     web_browser.run()
 
     # Install DNS Client service on computer
@@ -131,7 +131,7 @@ def test_database_fix_disrupts_web_client(uc2_network):
 
     assert web_browser.get_webpage() is False
 
-    for i in range(database_service.fixing_duration + 1):
+    for i in range(database_service.config.fixing_duration + 1):
         uc2_network.apply_timestep(i)
 
     assert database_service.health_state_actual == SoftwareHealthState.GOOD

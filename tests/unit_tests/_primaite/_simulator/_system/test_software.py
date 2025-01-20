@@ -2,6 +2,7 @@
 from typing import Dict
 
 import pytest
+from pydantic import Field
 
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.service import Service
@@ -10,7 +11,14 @@ from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class TestSoftware(Service):
+class TestSoftware(Service, identifier="TestSoftware"):
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSChema for TestSoftware."""
+
+        type: str = "TestSoftware"
+
+    config: "TestSoftware.ConfigSchema" = Field(default_factory=lambda: TestSoftware.ConfigSchema())
+
     def describe_state(self) -> Dict:
         pass
 

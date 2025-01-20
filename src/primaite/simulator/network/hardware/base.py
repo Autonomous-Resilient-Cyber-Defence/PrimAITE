@@ -824,7 +824,7 @@ class User(SimComponent):
         return self.model_dump()
 
 
-class UserManager(Service):
+class UserManager(Service, identifier="UserManager"):
     """
     Manages users within the PrimAITE system, handling creation, authentication, and administration.
 
@@ -833,11 +833,18 @@ class UserManager(Service):
     :param disabled_admins: A dictionary of currently disabled admin users by their usernames
     """
 
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for UserManager."""
+
+        type: str = "UserManager"
+
+    config: "UserManager.ConfigSchema" = Field(default_factory=lambda: UserManager.ConfigSchema())
+
     users: Dict[str, User] = {}
 
     def __init__(self, **kwargs):
         """
-        Initializes a UserManager instanc.
+        Initializes a UserManager instance.
 
         :param username: The username for the default admin user
         :param password: The password for the default admin user
@@ -1130,12 +1137,19 @@ class RemoteUserSession(UserSession):
         return state
 
 
-class UserSessionManager(Service):
+class UserSessionManager(Service, identifier="UserSessionManager"):
     """
     Manages user sessions on a Node, including local and remote sessions.
 
     This class handles authentication, session management, and session timeouts for users interacting with the Node.
     """
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for UserSessionManager."""
+
+        type: str = "UserSessionManager"
+
+    config: "UserSessionManager.ConfigSchema" = Field(default_factory=lambda: UserSessionManager.ConfigSchema())
 
     local_session: Optional[UserSession] = None
     """The current local user session, if any."""

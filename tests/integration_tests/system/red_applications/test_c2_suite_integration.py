@@ -495,6 +495,12 @@ def test_c2_suite_yaml():
 
     computer_b: Computer = yaml_network.get_node_by_hostname("node_b")
     c2_beacon: C2Beacon = computer_b.software_manager.software.get("C2Beacon")
+    c2_beacon.configure(
+        c2_server_ip_address=c2_beacon.config.c2_server_ip_address,
+        keep_alive_frequency=c2_beacon.config.keep_alive_frequency,
+        masquerade_port=c2_beacon.config.masquerade_port,
+        masquerade_protocol=c2_beacon.config.masquerade_protocol,
+    )
 
     assert c2_server.operating_state == ApplicationOperatingState.RUNNING
 

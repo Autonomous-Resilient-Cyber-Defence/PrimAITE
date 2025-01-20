@@ -2,6 +2,8 @@
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
 from primaite.simulator.system.core.software_manager import SoftwareManager
@@ -12,9 +14,15 @@ from primaite.utils.validation.port import Port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class DNSClient(Service):
+class DNSClient(Service, identifier="DNSClient"):
     """Represents a DNS Client as a Service."""
 
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for DNSClient."""
+
+        type: str = "DNSClient"
+
+    config: "DNSClient.ConfigSchema" = Field(default_factory=lambda: DNSClient.ConfigSchema())
     dns_cache: Dict[str, IPv4Address] = {}
     "A dict of known mappings between domain/URLs names and IPv4 addresses."
     dns_server: Optional[IPv4Address] = None

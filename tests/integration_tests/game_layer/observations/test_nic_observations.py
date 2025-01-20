@@ -191,7 +191,7 @@ def test_nic_monitored_traffic(simulation):
 
     # send a database query
     browser: WebBrowser = pc.software_manager.software.get("WebBrowser")
-    browser.target_url = f"http://arcd.com/"
+    browser.config.target_url = f"http://arcd.com/"
     browser.get_webpage()
 
     traffic_obs = nic_obs.observe(simulation.describe_state()).get("TRAFFIC")

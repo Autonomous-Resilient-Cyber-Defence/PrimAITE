@@ -177,15 +177,21 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
+      - type: NMAP
+        options:
+          fixing_duration: 1
       - type: RansomwareScript
+        options:
+          fixing_duration: 1
       - type: WebBrowser
         options:
           target_url: http://arcd.com/users/
+          fixing_duration: 1
       - type: DatabaseClient
         options:
           db_server_ip: 192.168.1.10
           server_password: arcd
-          fix_duration: 1
+          fixing_duration: 1
       - type: DataManipulationBot
         options:
           port_scan_p_of_success: 0.8
@@ -193,30 +199,44 @@ simulation:
           payload: "DELETE"
           server_ip: 192.168.1.21
           server_password: arcd
+          fixing_duration: 1
       - type: DoSBot
         options:
           target_ip_address: 192.168.10.21
           payload: SPOOF DATA
           port_scan_p_of_success: 0.8
+          fixing_duration: 1
       services:
       - type: DNSClient
+        options:
+          dns_server: 192.168.1.10
+          fixing_duration: 3
       - type: DNSServer
         options:
+          fixing_duration: 3
           domain_mapping:
             arcd.com: 192.168.1.10
       - type: DatabaseService
         options:
-          fix_duration: 5
           backup_server_ip: 192.168.1.10
+          fixing_duration: 3
       - type: WebServer
+        options:
+          fixing_duration: 3
       - type: FTPClient
+        options:
+          fixing_duration: 3
       - type: FTPServer
         options:
           server_password: arcd
+          fixing_duration: 3
       - type: NTPClient
         options:
           ntp_server_ip: 192.168.1.10
+          fixing_duration: 3
       - type: NTPServer
+        options:
+          fixing_duration: 3
     - hostname: client_2
       type: computer
       ip_address: 192.168.10.22

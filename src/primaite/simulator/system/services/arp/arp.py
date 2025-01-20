@@ -5,6 +5,7 @@ from abc import abstractmethod
 from typing import Any, Dict, Optional, Union
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import Field
 
 from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.protocols.arp import ARPEntry, ARPPacket
@@ -14,13 +15,20 @@ from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class ARP(Service):
+class ARP(Service, identifier="ARP"):
     """
     The ARP (Address Resolution Protocol) Service.
 
     Manages ARP for resolving network layer addresses into link layer addresses. It maintains an ARP cache,
     sends ARP requests and replies, and processes incoming ARP packets.
     """
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for ARP."""
+
+        type: str = "ARP"
+
+    config: "ARP.ConfigSchema" = Field(default_factory=lambda: ARP.ConfigSchema())
 
     arp: Dict[IPV4Address, ARPEntry] = {}
 

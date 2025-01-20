@@ -7,7 +7,7 @@ from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
@@ -129,8 +129,15 @@ class RemoteTerminalConnection(TerminalClientConnection):
         return self.parent_terminal.send(payload=payload, session_id=self.ssh_session_id)
 
 
-class Terminal(Service):
+class Terminal(Service, identifier="Terminal"):
     """Class used to simulate a generic terminal service. Can be interacted with by other terminals via SSH."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for Terminal."""
+
+        type: str = "Terminal"
+
+    config: "Terminal.ConfigSchema" = Field(default_factory=lambda: Terminal.ConfigSchema())
 
     _client_connection_requests: Dict[str, Optional[Union[str, TerminalClientConnection]]] = {}
     """Dictionary of connect requests made to remote nodes."""

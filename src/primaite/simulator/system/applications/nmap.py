@@ -3,7 +3,7 @@ from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, Final, List, Optional, Set, Tuple, Union
 
 from prettytable import PrettyTable
-from pydantic import validate_call
+from pydantic import Field, validate_call
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
@@ -51,6 +51,13 @@ class NMAP(Application, identifier="NMAP"):
     NMAP is a network scanning tool used to discover hosts and services on a network. It provides functionalities such
     as ping scans to discover active hosts and port scans to detect open ports on those hosts.
     """
+
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for NMAP."""
+
+        type: str = "NMAP"
+
+    config: "NMAP.ConfigSchema" = Field(default_factory=lambda: NMAP.ConfigSchema())
 
     _active_port_scans: Dict[str, PortScanPayload] = {}
     _port_scan_responses: Dict[str, PortScanPayload] = {}

@@ -3,11 +3,14 @@ from enum import IntEnum
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
@@ -31,6 +34,20 @@ class DoSAttackStage(IntEnum):
 
 class DoSBot(DatabaseClient, identifier="DoSBot"):
     """A bot that simulates a Denial of Service attack."""
+
+    class ConfigSchema(DatabaseClient.ConfigSchema):
+        """ConfigSchema for DoSBot."""
+
+        type: str = "DoSBot"
+        target_ip_address: Optional[IPV4Address] = None
+        target_port: Port = PORT_LOOKUP["POSTGRES_SERVER"]
+        payload: Optional[str] = None
+        repeat: bool = False
+        port_scan_p_of_success: float = 0.1
+        dos_intensity: float = 1.0
+        max_sessions: int = 1000
+
+    config: "DoSBot.ConfigSchema" = Field(default_factory=lambda: DoSBot.ConfigSchema())
 
     target_ip_address: Optional[IPv4Address] = None
     """IP address of the target service."""
@@ -56,7 +73,13 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "DoSBot"
-        self.max_sessions = 1000  # override normal max sessions
+        self.target_ip_address = self.config.target_ip_address
+        self.target_port = self.config.target_port
+        self.payload = self.config.payload
+        self.repeat = self.config.repeat
+        self.port_scan_p_of_success = self.config.port_scan_p_of_success
+        self.dos_intensity = self.config.dos_intensity
+        self.max_sessions = self.config.max_sessions
 
     def _init_request_manager(self) -> RequestManager:
         """
