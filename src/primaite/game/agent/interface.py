@@ -155,7 +155,7 @@ class AbstractAgent(BaseModel, ABC):
 
     @classmethod
     def from_config(cls, config: Dict) -> AbstractAgent:
-        """Grab the relevatn agent class and construct an instance from a config dict."""
+        """Grab the relevant agent class and construct an instance from a config dict."""
         agent_type = config["type"]
         agent_class = cls._registry[agent_type]
         return agent_class(config=config)

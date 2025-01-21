@@ -36,7 +36,7 @@ class AgentLog:
         super().__init__()
         self.agent_name = agent_name if agent_name else "unnamed_agent"
         self.current_timestep: int = 0
-        self.current_episode: int = 0
+        self.current_episode: int = 1
         self.setup_logger()
 
     @property
