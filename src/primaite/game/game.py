@@ -258,6 +258,7 @@ class PrimaiteGame:
         net = sim.network
 
         simulation_config = cfg.get("simulation", {})
+        defaults_config = cfg.get("defaults", {})
         network_config = simulation_config.get("network", {})
         airspace_cfg = network_config.get("airspace", {})
         frequency_max_capacity_mbps_cfg = airspace_cfg.get("frequency_max_capacity_mbps", {})
@@ -338,6 +339,18 @@ class PrimaiteGame:
                 _LOGGER.error(msg)
                 raise ValueError(msg)
 
+            # TODO: handle simulation defaults more cleanly
+            if "node_start_up_duration" in defaults_config:
+                new_node.start_up_duration = defaults_config["node_startup_duration"]
+            if "node_shut_down_duration" in defaults_config:
+                new_node.shut_down_duration = defaults_config["node_shut_down_duration"]
+            if "node_scan_duration" in defaults_config:
+                new_node.node_scan_duration = defaults_config["node_scan_duration"]
+            if "folder_scan_duration" in defaults_config:
+                new_node.file_system._default_folder_scan_duration = defaults_config["folder_scan_duration"]
+            if "folder_restore_duration" in defaults_config:
+                new_node.file_system._default_folder_restore_duration = defaults_config["folder_restore_duration"]
+
             if "users" in node_cfg and new_node.software_manager.software.get("UserManager"):
                 user_manager: UserManager = new_node.software_manager.software["UserManager"]  # noqa
                 for user_cfg in node_cfg["users"]:
@@ -384,6 +397,15 @@ class PrimaiteGame:
                         msg = f"Configuration contains an invalid service type: {service_type}"
                         _LOGGER.error(msg)
                         raise ValueError(msg)
+
+                    # TODO: handle simulation defaults more cleanly
+                    if "service_fix_duration" in defaults_config:
+                        new_service.fixing_duration = defaults_config["service_fix_duration"]
+                    if "service_restart_duration" in defaults_config:
+                        new_service.restart_duration = defaults_config["service_restart_duration"]
+                    if "service_install_duration" in defaults_config:
+                        new_service.install_duration = defaults_config["service_install_duration"]
+
                     # service-dependent options
                     if service_type == "DNSClient":
                         if "options" in service_cfg:

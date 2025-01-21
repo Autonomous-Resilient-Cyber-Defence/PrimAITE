@@ -190,6 +190,8 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         if self.files:
             self.default_observation["FILES"] = {i + 1: f.default_observation for i, f in enumerate(self.files)}
 
+        self.cached_obs: Optional[ObsType] = self.default_observation
+
     def observe(self, state: Dict) -> ObsType:
         """
         Generate observation based on the current state of the simulation.
@@ -204,7 +206,10 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
             return self.default_observation
 
         if self.file_system_requires_scan:
-            health_status = folder_state["visible_status"]
+            if not folder_state["scanned_this_step"]:
+                health_status = self.cached_obs["health_status"]
+            else:
+                health_status = folder_state["visible_status"]
         else:
             health_status = folder_state["health_status"]
 

@@ -88,8 +88,8 @@ agents:
               wildcard_list:
                 - 0.0.0.1
               port_list:
-                - 80
-                - 5432
+                - HTTP
+                - POSTGRES_SERVER
               protocol_list:
                 - ICMP
                 - TCP

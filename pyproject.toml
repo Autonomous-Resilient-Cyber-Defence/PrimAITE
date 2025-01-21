@@ -7,7 +7,7 @@ name = "primaite"
 description = "PrimAITE (Primary-level AI Training Environment) is a simulation environment for training AI under the ARCD programme."
 authors = [{name="Defence Science and Technology Laboratory UK", email="oss@dstl.gov.uk"}]
 license = {file = "LICENSE"}
-requires-python = ">=3.9, <3.12"
+requires-python = ">=3.9, <3.13"
 dynamic = ["version", "readme"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -26,15 +26,15 @@ dependencies = [
     "gymnasium==0.28.1",
     "jupyterlab==3.6.1",
     "kaleido==0.2.1",
-    "matplotlib==3.7.1",
+    "matplotlib>=3.7.1",
     "networkx==3.1",
-    "numpy==1.23.5",
+    "numpy~=1.23",
     "platformdirs==3.5.1",
     "plotly==5.15.0",
     "polars==0.20.30",
     "prettytable==3.8.0",
-    "PyYAML==6.0",
-    "typer[all]==0.9.0",
+    "PyYAML>=6.0",
+    "typer[all]>=0.9",
     "pydantic==2.7.0",
     "ipywidgets",
     "deepdiff"
@@ -53,8 +53,8 @@ license-files = ["LICENSE"]
 [project.optional-dependencies]
 rl = [
     "ray[rllib] >= 2.20.0, <2.33",
-    "tensorflow==2.12.0",
-    "stable-baselines3[extra]==2.1.0",
+    "tensorflow~=2.12",
+    "stable-baselines3==2.1.0",
     "sb3-contrib==2.1.0",
 ]
 dev = [
@@ -69,7 +69,7 @@ dev = [
     "pytest-xdist==3.3.1",
     "pytest-cov==4.0.0",
     "pytest-flake8==1.1.1",
-    "setuptools==66",
+    "setuptools==75.6.0",
     "Sphinx==7.1.2",
     "sphinx-copybutton==0.5.2",
     "wheel==0.38.4",

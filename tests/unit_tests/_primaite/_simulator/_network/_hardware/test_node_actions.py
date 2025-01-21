@@ -70,13 +70,13 @@ def test_node_os_scan(node):
     # add folder and file to node
     folder: Folder = node.file_system.create_folder(folder_name="test_folder")
     folder.corrupt()
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.visible_health_status == FileSystemItemHealthStatus.NONE
 
     file: File = node.file_system.create_file(folder_name="test_folder", file_name="file.txt")
     file2: File = node.file_system.create_file(folder_name="test_folder", file_name="file2.txt")
     file.corrupt()
     file2.corrupt()
-    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file.visible_health_status == FileSystemItemHealthStatus.NONE
 
     # run os scan
     node.apply_request(["os", "scan"])

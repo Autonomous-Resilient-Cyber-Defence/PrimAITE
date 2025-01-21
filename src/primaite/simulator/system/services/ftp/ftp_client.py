@@ -118,6 +118,7 @@ class FTPClient(FTPServiceABC, identifier="FTPClient"):
         session_id: Optional[str] = None,
         is_reattempt: Optional[bool] = False,
     ) -> bool:
+        self._active = True
         """
         Connects the client to a given FTP server.
 
@@ -174,6 +175,7 @@ class FTPClient(FTPServiceABC, identifier="FTPClient"):
         :param: is_reattempt: Set to True if attempt to disconnect from FTP Server has been attempted. Default False.
         :type: is_reattempt: Optional[bool]
         """
+        self._active = True
         # send a disconnect request payload to FTP server
         payload: FTPPacket = FTPPacket(ftp_command=FTPCommand.QUIT)
         software_manager: SoftwareManager = self.software_manager
@@ -219,6 +221,7 @@ class FTPClient(FTPServiceABC, identifier="FTPClient"):
         :param: session_id: The id of the session
         :type: session_id: Optional[str]
         """
+        self._active = True
         # check if the file to transfer exists on the client
         file_to_transfer: File = self.file_system.get_file(folder_name=src_folder_name, file_name=src_file_name)
         if not file_to_transfer:
@@ -276,6 +279,7 @@ class FTPClient(FTPServiceABC, identifier="FTPClient"):
         :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port["FTP"].
         :type: dest_port: Optional[int]
         """
+        self._active = True
         # check if FTP is currently connected to IP
         self._connect_to_server(dest_ip_address=dest_ip_address, dest_port=dest_port)
 
@@ -327,6 +331,7 @@ class FTPClient(FTPServiceABC, identifier="FTPClient"):
         This helps prevent an FTP request loop - FTP client and servers can exist on
         the same node.
         """
+        self._active = True
         if not self._can_perform_action():
             return False
 

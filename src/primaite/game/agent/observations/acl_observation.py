@@ -24,8 +24,8 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
         """List of IP addresses."""
         wildcard_list: Optional[List[str]] = None
         """List of wildcard strings."""
-        port_list: Optional[List[int]] = None
-        """List of port numbers."""
+        port_list: Optional[List[str]] = None
+        """List of port names."""
         protocol_list: Optional[List[str]] = None
         """List of protocol names."""
         num_rules: Optional[int] = None
@@ -37,7 +37,7 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
         num_rules: int,
         ip_list: List[IPv4Address],
         wildcard_list: List[str],
-        port_list: List[int],
+        port_list: List[str],
         protocol_list: List[str],
     ) -> None:
         """
@@ -51,8 +51,8 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
         :type ip_list: List[IPv4Address]
         :param wildcard_list: List of wildcard strings.
         :type wildcard_list: List[str]
-        :param port_list: List of port numbers.
-        :type port_list: List[int]
+        :param port_list: List of port names.
+        :type port_list: List[str]
         :param protocol_list: List of protocol names.
         :type protocol_list: List[str]
         """
@@ -60,7 +60,7 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
         self.num_rules: int = num_rules
         self.ip_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(ip_list)}
         self.wildcard_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(wildcard_list)}
-        self.port_to_id: Dict[int, int] = {p: i + 2 for i, p in enumerate(port_list)}
+        self.port_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(port_list)}
         self.protocol_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(protocol_list)}
         self.default_observation: Dict = {
             i
