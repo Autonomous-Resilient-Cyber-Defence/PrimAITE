@@ -72,7 +72,6 @@ class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
         self.ports: List[PortObservation] = [
             PortObservation(where=self.where + ["NICs", port_num]) for port_num in (1, 2, 3)
         ]
-        # TODO: check what the port nums are for firewall.
 
         self.internal_inbound_acl = ACLObservation(
             where=self.where + ["internal_inbound_acl", "acl"],
