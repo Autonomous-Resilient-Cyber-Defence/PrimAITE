@@ -93,7 +93,7 @@ class AgentLog:
 
     def _write_to_terminal(self, msg: str, level: str, to_terminal: bool = False):
         if to_terminal or SIM_OUTPUT.write_agent_log_to_terminal:
-            print(f"{self.agent_name}: ({ self.timestep}) ({level}) {msg}")
+            print(f"{self.agent_name}: ({self.timestep}) ({level}) {msg}")
 
     def debug(self, msg: str, to_terminal: bool = False):
         """

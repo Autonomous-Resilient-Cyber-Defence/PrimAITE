@@ -52,12 +52,12 @@ def test_folder_scan_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAge
 
     folder = client_1.file_system.get_folder(folder_name="downloads")
     assert folder.health_status == FileSystemItemHealthStatus.GOOD
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.visible_health_status == FileSystemItemHealthStatus.NONE
 
     folder.corrupt()
 
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.visible_health_status == FileSystemItemHealthStatus.NONE
 
     action = (
         "node_folder_scan",

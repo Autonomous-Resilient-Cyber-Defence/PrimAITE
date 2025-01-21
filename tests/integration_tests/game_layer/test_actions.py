@@ -275,7 +275,7 @@ def test_node_file_scan_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAge
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
     file = client_1.file_system.get_file("downloads", "cat.png")
     assert file.health_status == FileSystemItemHealthStatus.GOOD
-    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file.visible_health_status == FileSystemItemHealthStatus.NONE
 
     # 2: perform a scan and make sure nothing has changed
     action = (

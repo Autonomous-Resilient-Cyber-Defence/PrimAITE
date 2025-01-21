@@ -22,12 +22,12 @@ def test_file_scan(file_system):
     file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
 
     assert file.health_status == FileSystemItemHealthStatus.GOOD
-    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file.visible_health_status == FileSystemItemHealthStatus.NONE
 
     file.corrupt()
 
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file.visible_health_status == FileSystemItemHealthStatus.NONE
 
     file.scan()
 

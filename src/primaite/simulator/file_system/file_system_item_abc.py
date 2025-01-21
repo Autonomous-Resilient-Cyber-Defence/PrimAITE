@@ -43,6 +43,9 @@ def convert_size(size_bytes: int) -> str:
 class FileSystemItemHealthStatus(Enum):
     """Status of the FileSystemItem."""
 
+    NONE = 0
+    """File system item health status is not known."""
+
     GOOD = 1
     """File/Folder is OK."""
 
@@ -72,7 +75,7 @@ class FileSystemItemABC(SimComponent):
     health_status: FileSystemItemHealthStatus = FileSystemItemHealthStatus.GOOD
     "Actual status of the current FileSystemItem"
 
-    visible_health_status: FileSystemItemHealthStatus = FileSystemItemHealthStatus.GOOD
+    visible_health_status: FileSystemItemHealthStatus = FileSystemItemHealthStatus.NONE
     "Visible status of the current FileSystemItem"
 
     previous_hash: Optional[str] = None

@@ -69,7 +69,7 @@ def test_file_scan_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent
 
     file.corrupt()
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file.visible_health_status == FileSystemItemHealthStatus.NONE
 
     action = (
         "node_file_scan",

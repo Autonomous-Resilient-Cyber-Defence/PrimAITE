@@ -163,7 +163,7 @@ def test_restore_backup_without_updating_scan(uc2_network):
 
     db_service.db_file.corrupt()  # corrupt the db
     assert db_service.db_file.health_status == FileSystemItemHealthStatus.CORRUPT  # db file is actually corrupt
-    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.GOOD  # not scanned yet
+    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.NONE  # not scanned yet
 
     db_service.db_file.scan()  # scan the db file
 
@@ -190,7 +190,7 @@ def test_restore_backup_after_deleting_file_without_updating_scan(uc2_network):
 
     db_service.db_file.corrupt()  # corrupt the db
     assert db_service.db_file.health_status == FileSystemItemHealthStatus.CORRUPT  # db file is actually corrupt
-    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.GOOD  # not scanned yet
+    assert db_service.db_file.visible_health_status == FileSystemItemHealthStatus.NONE  # not scanned yet
 
     db_service.db_file.scan()  # scan the db file
 
