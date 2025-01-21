@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import List, Literal, Union
+from typing import Literal, Union
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
@@ -59,7 +59,7 @@ class RouterACLAddRuleAction(ACLAddRuleAbstractAction, identifier="router_acl_ad
         target_router: str
 
     @classmethod
-    def form_request(cls, config: ConfigSchema) -> List[str]:
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return [
             "network",
@@ -143,7 +143,7 @@ class FirewallACLRemoveRuleAction(ACLRemoveRuleAbstractAction, identifier="firew
         firewall_port_direction: str
 
     @classmethod
-    def form_request(cls, config: ConfigSchema) -> List[str]:
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return [
             "network",

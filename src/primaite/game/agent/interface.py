@@ -132,7 +132,7 @@ class AbstractAgent(BaseModel, ABC):
         # then use a bespoke conversion to take 1-40 int back into CAOS action
         return ("do_nothing", {})
 
-    def format_request(self, action: Tuple[str, Dict], options: Dict[str, int]) -> List[str]:
+    def format_request(self, action: Tuple[str, Dict], options: Dict[str, int]) -> RequestFormat:
         # this will take something like APPLICATION.EXECUTE and add things like target_ip_address in simulator.
         # therefore the execution definition needs to be a mapping from CAOS into SIMULATOR
         """Format action into format expected by the simulator, and apply execution definition if applicable."""

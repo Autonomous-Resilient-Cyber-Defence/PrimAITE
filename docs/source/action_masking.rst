@@ -20,131 +20,120 @@ Masking Logic
 =============
 The following logic is applied:
 
-
-..only:: comment
-
-    TODO: update table
-
 +------------------------------------------+---------------------------------------------------------------------+
 | Action                                   | Action Mask Logic                                                   |
 +==========================================+=====================================================================+
-| **DONOTHING**                            | Always Possible.                                                    |
+| **do_nothing**                           | Always Possible.                                                    |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_SERVICE_SCAN**                    | Node is on. Service is running.                                     |
+| **node_service_scan**                    | Node is on. Service is running.                                     |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_SERVICE_STOP**                    | Node is on. Service is running.                                     |
+| **node_service_stop**                    | Node is on. Service is running.                                     |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_SERVICE_START**                   | Node is on. Service is stopped.                                     |
+| **node_service_start**                   | Node is on. Service is stopped.                                     |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_SERVICE_PAUSE**                   | Node is on. Service is running.                                     |
+| **node_service_pause**                   | Node is on. Service is running.                                     |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_SERVICE_RESUME**                  | Node is on. Service is paused.                                      |
+| **node_service_resume**                  | Node is on. Service is paused.                                      |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_SERVICE_RESTART**                 | Node is on. Service is running.                                     |
+| **node_service_restart**                 | Node is on. Service is running.                                     |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_SERVICE_DISABLE**                 | Node is on.                                                         |
+| **node_service_disable**                 | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_SERVICE_ENABLE**                  | Node is on. Service is disabled.                                    |
+| **node_service_enable**                  | Node is on. Service is disabled.                                    |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_SERVICE_FIX**                     | Node is on. Service is running.                                     |
+| **node_service_fix**                     | Node is on. Service is running.                                     |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_APPLICATION_EXECUTE**             | Node is on.                                                         |
+| **node_application_execute**             | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_APPLICATION_SCAN**                | Node is on. Application is running.                                 |
+| **node_application_scan**                | Node is on. Application is running.                                 |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_APPLICATION_CLOSE**               | Node is on. Application is running.                                 |
+| **node_application_close**               | Node is on. Application is running.                                 |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_APPLICATION_FIX**                 | Node is on. Application is running.                                 |
+| **node_application_fix**                 | Node is on. Application is running.                                 |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_APPLICATION_INSTALL**             | Node is on.                                                         |
+| **node_application_install**             | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_APPLICATION_REMOVE**              | Node is on.                                                         |
+| **node_application_remove**              | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FILE_SCAN**                       | Node is on. File exists. File not deleted.                          |
+| **node_file_scan**                       | Node is on. File exists. File not deleted.                          |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FILE_CREATE**                     | Node is on.                                                         |
+| **node_file_create**                     | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FILE_CHECKHASH**                  | Node is on. File exists. File not deleted.                          |
+| **node_file_checkhash**                  | Node is on. File exists. File not deleted.                          |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FILE_DELETE**                     | Node is on. File exists.                                            |
+| **node_file_delete**                     | Node is on. File exists.                                            |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FILE_REPAIR**                     | Node is on. File exists. File not deleted.                          |
+| **node_file_repair**                     | Node is on. File exists. File not deleted.                          |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FILE_RESTORE**                    | Node is on. File exists. File is deleted.                           |
+| **node_file_restore**                    | Node is on. File exists. File is deleted.                           |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FILE_CORRUPT**                    | Node is on. File exists. File not deleted.                          |
+| **node_file_corrupt**                    | Node is on. File exists. File not deleted.                          |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FILE_ACCESS**                     | Node is on. File exists. File not deleted.                          |
+| **node_file_access**                     | Node is on. File exists. File not deleted.                          |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FOLDER_CREATE**                   | Node is on.                                                         |
+| **node_folder_create**                   | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FOLDER_SCAN**                     | Node is on. Folder exists. Folder not deleted.                      |
+| **node_folder_scan**                     | Node is on. Folder exists. Folder not deleted.                      |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FOLDER_CHECKHASH**                | Node is on. Folder exists. Folder not deleted.                      |
+| **node_folder_checkhash**                | Node is on. Folder exists. Folder not deleted.                      |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FOLDER_REPAIR**                   | Node is on. Folder exists. Folder not deleted.                      |
+| **node_folder_repair**                   | Node is on. Folder exists. Folder not deleted.                      |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_FOLDER_RESTORE**                  | Node is on. Folder exists. Folder is deleted.                       |
+| **node_folder_restore**                  | Node is on. Folder exists. Folder is deleted.                       |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_OS_SCAN**                         | Node is on.                                                         |
+| **node_os_scan**                         | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **HOST_NIC_ENABLE**                      | NIC is disabled. Node is on.                                        |
+| **host_nic_enable**                      | NIC is disabled. Node is on.                                        |
 +------------------------------------------+---------------------------------------------------------------------+
-| **HOST_NIC_DISABLE**                     | NIC is enabled. Node is on.                                         |
+| **host_nic_disable**                     | NIC is enabled. Node is on.                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_SHUTDOWN**                        | Node is on.                                                         |
+| **node_shutdown**                        | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_STARTUP**                         | Node is off.                                                        |
+| **node_startup**                         | Node is off.                                                        |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_RESET**                           | Node is on.                                                         |
+| **node_reset**                           | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_NMAP_PING_SCAN**                  | Node is on.                                                         |
+| **node_nmap_ping_scan**                  | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_NMAP_PORT_SCAN**                  | Node is on.                                                         |
+| **node_nmap_port_scan**                  | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_NMAP_NETWORK_SERVICE_RECON**      | Node is on.                                                         |
+| **node_network_service_recon**           | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NETWORK_PORT_ENABLE**                  | Node is on. Router is on.                                           |
+| **network_port_enable**                  | Node is on. Router is on.                                           |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NETWORK_PORT_DISABLE**                 | Router is on.                                                       |
+| **network_port_disable**                 | Router is on.                                                       |
 +------------------------------------------+---------------------------------------------------------------------+
-| **ROUTER_ACL_ADDRULE**                   | Router is on.                                                       |
+| **router_acl_addrule**                   | Router is on.                                                       |
 +------------------------------------------+---------------------------------------------------------------------+
-| **ROUTER_ACL_REMOVERULE**                | Router is on.                                                       |
+| **router_acl_removerule**                | Router is on.                                                       |
 +------------------------------------------+---------------------------------------------------------------------+
-| **FIREWALL_ACL_ADDRULE**                 | Firewall is on.                                                     |
+| **firewall_acl_addrule**                 | Firewall is on.                                                     |
 +------------------------------------------+---------------------------------------------------------------------+
-| **FIREWALL_ACL_REMOVERULE**              | Firewall is on.                                                     |
+| **firewall_acl_removerule**              | Firewall is on.                                                     |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_NMAP_PING_SCAN**                  | Node is on.                                                         |
+| **configure_database_client**            | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_NMAP_PORT_SCAN**                  | Node is on.                                                         |
+| **configure_ransomware_script**          | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_NMAP_NETWORK_SERVICE_RECON**      | Node is on.                                                         |
+| **c2_server_ransomware_configure**       | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **CONFIGURE_DATABASE_CLIENT**            | Node is on.                                                         |
+| **configure_dos_bot**                    | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **c2_server_ransomware_configure**          | Node is on.                                                         |
+| **configure_c2_beacon**                  | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **configure_dos_bot**                     | Node is on.                                                         |
-+------------------------------------------+---------------------------------------------------------------------+
-| **CONFIGURE_C2_BEACON**                  | Node is on.                                                         |
-+------------------------------------------+---------------------------------------------------------------------+
-| **C2_SERVER_RANSOMWARE_LAUNCH**          | Node is on.                                                         |
-+------------------------------------------+---------------------------------------------------------------------+
-| **C2_SERVER_RANSOMWARE_CONFIGURE**       | Node is on.                                                         |
+| **c2_server_ransomware_launch**          | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
 | **c2_server_terminal_command**           | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **C2_SERVER_DATA_EXFILTRATE**            | Node is on.                                                         |
+| **c2_server_data_exfiltrate**            | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **node_account_change_password**        | Node is on.                                                         |
+| **node_account_change_password**         | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **node_session_remote_login**                        | Node is on.                                                         |
+| **node_session_remote_login**            | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **node_session_remote_logoff**               | Node is on.                                                         |
+| **node_session_remote_logoff**           | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
-| **NODE_SEND_REMOTE_COMMAND**             | Node is on.                                                         |
+| **node_send_remote_command**             | Node is on.                                                         |
 +------------------------------------------+---------------------------------------------------------------------+
 
 

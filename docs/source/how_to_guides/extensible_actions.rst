@@ -22,7 +22,7 @@ Custom actions within PrimAITE must be a sub-class of `AbstractAction`, and cont
 
 #. Unique Identifier
 
-#. `from_request` method.
+#. `form_request` method.
 
 
 ConfigSchema
@@ -61,7 +61,7 @@ When declaring a custom class, it must have a unique identifier string, that all
 The above action would fail pydantic validation as the identifier "node_folder_create" is already used by the `NodeFolderCreateAction`, and would create a duplicate listing within `AbstractAction._registry`.
 
 
-from_request method
+form_request method
 ###################
 
-PrimAITE actions need to be have a `from_request` method, which can be passed to the `RequestManager` for processing. This allows the custom action to be actioned within the simulation environment.
+PrimAITE actions need to have a `form_request` method, which can be passed to the `RequestManager` for processing. This allows the custom action to be actioned within the simulation environment.

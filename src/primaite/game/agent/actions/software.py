@@ -2,7 +2,7 @@
 
 from typing import List, Optional, Union
 
-from pydantic import ConfigDict, Field, field_validator, ValidationInfo
+from pydantic import ConfigDict, Field
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
@@ -99,21 +99,6 @@ class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2_beacon"):
         keep_alive_frequency: int = Field(default=5, ge=1)
         masquerade_protocol: str = Field(default="TCP")
         masquerade_port: str = Field(default="HTTP")
-
-        # TODO: this validator should not be needed anymore, test what happens if removed.
-        @field_validator(
-            "c2_server_ip_address",
-            "keep_alive_frequency",
-            "masquerade_protocol",
-            "masquerade_port",
-            mode="before",
-        )
-        @classmethod
-        def not_none(cls, v: str, info: ValidationInfo) -> int:
-            """If None is passed, use the default value instead."""
-            if v is None:
-                return cls.model_fields[info.field_name].default
-            return v
 
     @classmethod
     def form_request(self, config: ConfigSchema) -> RequestFormat:

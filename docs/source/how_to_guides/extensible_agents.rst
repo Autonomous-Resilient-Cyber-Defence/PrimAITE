@@ -66,7 +66,7 @@ The core features that should be implemented in any new agent are detailed below
 
 #. **Identifiers**:
 
-    All agent classes should have a ``identifier`` attribute, a unique kebab-case string, for when they are added to the base ``AbstractAgent`` registry. This is then specified in your configuration YAML, and used by PrimAITE to generate the correct Agent.
+    All agent classes should have an ``identifier`` attribute, a unique kebab-case string, for when they are added to the base ``AbstractAgent`` registry. This is then specified in your configuration YAML, and used by PrimAITE to generate the correct Agent.
 
 Changes to YAML file
 ====================

@@ -110,7 +110,7 @@ class NodeNMAPPingScanAction(NodeNMAPAbstractAction, identifier="node_nmap_ping_
     config: "NodeNMAPPingScanAction.ConfigSchema"
 
     @classmethod
-    def form_request(cls, config: "NodeNMAPPingScanAction.ConfigSchema") -> List[str]:  # noqa
+    def form_request(cls, config: "NodeNMAPPingScanAction.ConfigSchema") -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return [
             "network",
@@ -137,10 +137,7 @@ class NodeNMAPPortScanAction(NodeNMAPAbstractAction, identifier="node_nmap_port_
         show: Optional[bool] = (False,)
 
     @classmethod
-    def form_request(
-        cls,
-        config: ConfigSchema,
-    ) -> List[str]:  # noqa
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return [
             "network",
@@ -171,10 +168,7 @@ class NodeNetworkServiceReconAction(NodeNMAPAbstractAction, identifier="node_net
         show: Optional[bool] = (False,)
 
     @classmethod
-    def form_request(
-        cls,
-        config: ConfigSchema,
-    ) -> List[str]:  # noqa
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         return [
             "network",

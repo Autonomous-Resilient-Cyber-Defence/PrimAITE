@@ -18,7 +18,6 @@ from typing import Dict, Tuple
 from gymnasium import spaces
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-# from primaite.game.game import PrimaiteGame # TODO: Breaks things
 from primaite.game.agent.actions.abstract import AbstractAction
 from primaite.interface.request import RequestFormat
 
