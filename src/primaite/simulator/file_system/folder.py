@@ -387,8 +387,8 @@ class Folder(FileSystemItemABC):
 
         Return False if corruption is detected, otherwise True
         """
-        warnings.warn("NODE_FOLDER_CHECKHASH is currently not implemented.")
-        self.sys_log.error("NODE_FOLDER_CHECKHASH is currently not implemented.")
+        warnings.warn("node_folder_checkhash is currently not implemented.")
+        self.sys_log.error("node_folder_checkhash is currently not implemented.")
         return False
 
         if self.deleted:

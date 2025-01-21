@@ -3,6 +3,7 @@ from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
 from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
+from primaite.game.game import PrimaiteGame, PrimaiteGameOptions
 
 
 def test_probabilistic_agent():
@@ -16,69 +17,58 @@ def test_probabilistic_agent():
     """
     N_TRIALS = 10_000
     P_DO_NOTHING = 0.1
-    P_NODE_APPLICATION_EXECUTE = 0.3
-    P_NODE_FILE_DELETE = 0.6
+    P_node_application_execute = 0.3
+    P_node_file_delete = 0.6
     MIN_DO_NOTHING = 850
     MAX_DO_NOTHING = 1150
-    MIN_NODE_APPLICATION_EXECUTE = 2800
-    MAX_NODE_APPLICATION_EXECUTE = 3200
-    MIN_NODE_FILE_DELETE = 5750
-    MAX_NODE_FILE_DELETE = 6250
+    MIN_node_application_execute = 2800
+    MAX_node_application_execute = 3200
+    MIN_node_file_delete = 5750
+    MAX_node_file_delete = 6250
 
-    action_space = ActionManager(
-        actions=[
-            {"type": "DONOTHING"},
-            {"type": "NODE_APPLICATION_EXECUTE"},
-            {"type": "NODE_FILE_DELETE"},
-        ],
-        nodes=[
-            {
-                "node_name": "client_1",
-                "applications": [{"application_name": "WebBrowser"}],
-                "folders": [{"folder_name": "downloads", "files": [{"file_name": "cat.png"}]}],
+    action_space_cfg = {
+        "action_map": {
+            0: {"action": "do_nothing", "options": {}},
+            1: {
+                "action": "node_application_execute",
+                "options": {"node_name": "client_1", "application_name": "WebBrowser"},
             },
-        ],
-        max_folders_per_node=2,
-        max_files_per_folder=2,
-        max_services_per_node=2,
-        max_applications_per_node=2,
-        max_nics_per_node=2,
-        max_acl_rules=10,
-        protocols=["TCP", "UDP", "ICMP"],
-        ports=["HTTP", "DNS", "ARP"],
-        act_map={
-            0: {"action": "DONOTHING", "options": {}},
-            1: {"action": "NODE_APPLICATION_EXECUTE", "options": {"node_id": 0, "application_id": 0}},
-            2: {"action": "NODE_FILE_DELETE", "options": {"node_id": 0, "folder_id": 0, "file_id": 0}},
+            2: {
+                "action": "node_file_delete",
+                "options": {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"},
+            },
         },
-    )
-    observation_space = ObservationManager(NestedObservation(components={}))
-    reward_function = RewardFunction()
+    }
 
-    pa = ProbabilisticAgent(
-        agent_name="test_agent",
-        action_space=action_space,
-        observation_space=observation_space,
-        reward_function=reward_function,
-        settings={
-            "action_probabilities": {0: P_DO_NOTHING, 1: P_NODE_APPLICATION_EXECUTE, 2: P_NODE_FILE_DELETE},
+    game = PrimaiteGame()
+    game.options = PrimaiteGameOptions(ports=[], protocols=[])
+
+    pa_config = {
+        "type": "ProbabilisticAgent",
+        "ref": "ProbabilisticAgent",
+        "team": "BLUE",
+        "action_space": action_space_cfg,
+        "agent_settings": {
+            "action_probabilities": {0: P_DO_NOTHING, 1: P_node_application_execute, 2: P_node_file_delete},
         },
-    )
+    }
+
+    pa = ProbabilisticAgent.from_config(config=pa_config)
 
     do_nothing_count = 0
     node_application_execute_count = 0
     node_file_delete_count = 0
     for _ in range(N_TRIALS):
         a = pa.get_action(0)
-        if a == ("DONOTHING", {}):
+        if a == ("do_nothing", {}):
             do_nothing_count += 1
-        elif a == ("NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}):
+        elif a == ("node_application_execute", {"node_name": "client_1", "application_name": "WebBrowser"}):
             node_application_execute_count += 1
-        elif a == ("NODE_FILE_DELETE", {"node_id": 0, "folder_id": 0, "file_id": 0}):
+        elif a == ("node_file_delete", {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"}):
             node_file_delete_count += 1
         else:
             raise AssertionError("Probabilistic agent produced an unexpected action.")
 
     assert MIN_DO_NOTHING < do_nothing_count < MAX_DO_NOTHING
-    assert MIN_NODE_APPLICATION_EXECUTE < node_application_execute_count < MAX_NODE_APPLICATION_EXECUTE
-    assert MIN_NODE_FILE_DELETE < node_file_delete_count < MAX_NODE_FILE_DELETE
+    assert MIN_node_application_execute < node_application_execute_count < MAX_node_application_execute
+    assert MIN_node_file_delete < node_file_delete_count < MAX_node_file_delete

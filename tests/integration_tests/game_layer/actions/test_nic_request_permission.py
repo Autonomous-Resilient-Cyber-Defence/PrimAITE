@@ -29,10 +29,10 @@ def test_nic_cannot_be_turned_off_if_not_on(game_and_agent_fixture: Tuple[Primai
     assert nic.enabled is False
 
     action = (
-        "HOST_NIC_DISABLE",
+        "host_nic_disable",
         {
-            "node_id": 0,  # client_1
-            "nic_id": 0,  # the only nic (eth-1)
+            "node_name": "client_1",  # client_1
+            "nic_num": 1,  # the only nic (eth-1)
         },
     )
     agent.store_action(action)
@@ -50,10 +50,10 @@ def test_nic_cannot_be_turned_on_if_already_on(game_and_agent_fixture: Tuple[Pri
     assert nic.enabled
 
     action = (
-        "HOST_NIC_ENABLE",
+        "host_nic_enable",
         {
-            "node_id": 0,  # client_1
-            "nic_id": 0,  # the only nic (eth-1)
+            "node_name": "client_1",  # client_1
+            "nic_num": 1,  # the only nic (eth-1)
         },
     )
     agent.store_action(action)
@@ -71,10 +71,10 @@ def test_that_a_nic_can_be_enabled_and_disabled(game_and_agent_fixture: Tuple[Pr
     assert nic.enabled
 
     action = (
-        "HOST_NIC_DISABLE",
+        "host_nic_disable",
         {
-            "node_id": 0,  # client_1
-            "nic_id": 0,  # the only nic (eth-1)
+            "node_name": "client_1",  # client_1
+            "nic_num": 1,  # the only nic (eth-1)
         },
     )
     agent.store_action(action)
@@ -83,10 +83,10 @@ def test_that_a_nic_can_be_enabled_and_disabled(game_and_agent_fixture: Tuple[Pr
     assert nic.enabled is False
 
     action = (
-        "HOST_NIC_ENABLE",
+        "host_nic_enable",
         {
-            "node_id": 0,  # client_1
-            "nic_id": 0,  # the only nic (eth-1)
+            "node_name": "client_1",  # client_1
+            "nic_num": 1,  # the only nic (eth-1)
         },
     )
     agent.store_action(action)

@@ -18,80 +18,63 @@ agents:
     team: BLUE
     type: ProxyAgent
 
-    observation_space: null
+
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_INSTALL
-        - type: CONFIGURE_DATABASE_CLIENT
-        - type: CONFIGURE_DOSBOT
-        - type: CONFIGURE_RANSOMWARE_SCRIPT
-        - type: NODE_APPLICATION_REMOVE
       action_map:
         0:
-          action: DONOTHING
+          action: do_nothing
           options: {}
         1:
-          action: NODE_APPLICATION_INSTALL
+          action: node_application_install
           options:
-            node_id: 0
+            node_name: client_1
             application_name: DatabaseClient
         2:
-          action: NODE_APPLICATION_INSTALL
+          action: node_application_install
           options:
-            node_id: 1
+            node_name: client_2
             application_name: RansomwareScript
         3:
-          action: NODE_APPLICATION_INSTALL
+          action: node_application_install
           options:
-            node_id: 2
+            node_name: client_3
             application_name: DoSBot
         4:
-          action: CONFIGURE_DATABASE_CLIENT
+          action: configure_database_client
           options:
-            node_id: 0
-            config:
-              server_ip_address: 10.0.0.5
+            node_name: client_1
+            server_ip_address: 10.0.0.5
         5:
-          action: CONFIGURE_DATABASE_CLIENT
+          action: configure_database_client
           options:
-            node_id: 0
-            config:
-              server_password: correct_password
+            node_name: client_1
+            server_password: correct_password
         6:
-          action: CONFIGURE_RANSOMWARE_SCRIPT
+          action: configure_ransomware_script
           options:
-            node_id: 1
-            config:
-              server_ip_address: 10.0.0.5
-              server_password: correct_password
-              payload: ENCRYPT
+            node_name: client_2
+            server_ip_address: 10.0.0.5
+            server_password: correct_password
+            payload: ENCRYPT
         7:
-          action: CONFIGURE_DOSBOT
+          action: configure_dos_bot
           options:
-            node_id: 2
-            config:
-              target_ip_address: 10.0.0.5
-              target_port: POSTGRES_SERVER
-              payload: DELETE
-              repeat: true
-              port_scan_p_of_success: 1.0
-              dos_intensity: 1.0
-              max_sessions: 1000
+            node_name: client_3
+            target_ip_address: 10.0.0.5
+            target_port: POSTGRES_SERVER
+            payload: DELETE
+            repeat: true
+            port_scan_p_of_success: 1.0
+            dos_intensity: 1.0
+            max_sessions: 1000
         8:
-          action: NODE_APPLICATION_INSTALL
+          action: node_application_install
           options:
-            node_id: 1
+            node_name: client_2
             application_name: DatabaseClient
-      options:
-        nodes:
-          - node_name: client_1
-          - node_name: client_2
-          - node_name: client_3
-        ip_list: []
-    reward_function:
-      reward_components:
-        - type: DUMMY
+    agent_settings:
+      flatten_obs: True
+      action_masking: False
 
 simulation:
   network:

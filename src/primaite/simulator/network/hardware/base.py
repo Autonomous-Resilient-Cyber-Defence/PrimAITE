@@ -1559,7 +1559,7 @@ class Node(SimComponent):
     _identifier: ClassVar[str] = "unknown"
     """Identifier for this particular class, used for printing and logging. Each subclass redefines this."""
 
-    def __init_subclass__(cls, identifier: str = "default", **kwargs: Any) -> None:
+    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
         """
         Register a node type.
 
@@ -1567,10 +1567,10 @@ class Node(SimComponent):
         :type identifier: str
         :raises ValueError: When attempting to register an node with a name that is already allocated.
         """
-        if identifier == "default":
+        super().__init_subclass__(**kwargs)
+        if identifier is None:
             return
         identifier = identifier.lower()
-        super().__init_subclass__(**kwargs)
         if identifier in cls._registry:
             raise ValueError(f"Tried to define new node {identifier}, but this name is already reserved.")
         cls._registry[identifier] = cls

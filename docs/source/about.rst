@@ -184,7 +184,7 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
       - 192.168.1.5
       - ANY
       - ANY
-  All ACL rules are considered when applying an IER. Logic follows the order of rules, so a DENY or ALLOW for the same parameters will override an earlier entry.
+  All ACL rules are considered when applying an IER. Logic follows the order of rules, so a DENY or PERMIT for the same parameters will override an earlier entry.
   Observation Spaces
   ******************
   The observation space provides the blue agent with information about the current status of nodes and links.
@@ -331,7 +331,7 @@ Head over to the :ref:`getting-started` page to install and setup PrimAITE!
     * Dictionary item {... ,1: [x1, x2, x3, x4, x5, x6] ...}
     The placeholders inside the list under the key '1' mean the following:
       * [0, 2] - Action (0 = do nothing, 1 = create rule, 2 = delete rule)
-      * [0, 1] - Permission (0 = DENY, 1 = ALLOW)
+      * [0, 1] - Permission (0 = DENY, 1 = PERMIT)
       * [0, num nodes] - Source IP (0 = any, then 1 -> x resolving to IP addresses)
       * [0, num nodes] - Dest IP (0 = any, then 1 -> x resolving to IP addresses)
       * [0, num services] - Protocol (0 = any, then 1 -> x resolving to protocol)

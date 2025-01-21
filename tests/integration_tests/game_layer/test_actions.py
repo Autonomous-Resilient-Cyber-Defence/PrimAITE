@@ -32,10 +32,10 @@ FIREWALL_ACTIONS_NETWORK = TEST_ASSETS_ROOT / "configs/firewall_actions_network.
 
 
 def test_do_nothing_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
-    """Test that the DoNothingAction can form a request and that it is accepted by the simulation."""
+    """Test that the do_nothingAction can form a request and that it is accepted by the simulation."""
     game, agent = game_and_agent
 
-    action = ("DONOTHING", {})
+    action = ("do_nothing", {})
     agent.store_action(action)
     game.step()
 
@@ -56,7 +56,7 @@ def test_node_service_scan_integration(game_and_agent: Tuple[PrimaiteGame, Proxy
     assert svc.health_state_visible == SoftwareHealthState.UNUSED
 
     # 2: Scan and check that the visible state is now correct
-    action = ("NODE_SERVICE_SCAN", {"node_id": 1, "service_id": 0})
+    action = ("node_service_scan", {"node_name": "server_1", "service_name": "DNSServer"})
     agent.store_action(action)
     game.step()
     assert svc.health_state_actual == SoftwareHealthState.GOOD
@@ -67,7 +67,7 @@ def test_node_service_scan_integration(game_and_agent: Tuple[PrimaiteGame, Proxy
     assert svc.health_state_visible == SoftwareHealthState.GOOD
 
     # 4: Scan and check that the visible state is now correct
-    action = ("NODE_SERVICE_SCAN", {"node_id": 1, "service_id": 0})
+    action = ("node_service_scan", {"node_name": "server_1", "service_name": "DNSServer"})
     agent.store_action(action)
     game.step()
     assert svc.health_state_actual == SoftwareHealthState.COMPROMISED
@@ -88,7 +88,7 @@ def test_node_service_fix_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
     svc.health_state_actual = SoftwareHealthState.COMPROMISED
 
     # 2: Apply a patch action
-    action = ("NODE_SERVICE_FIX", {"node_id": 1, "service_id": 0})
+    action = ("node_service_fix", {"node_name": "server_1", "service_name": "DNSServer"})
     agent.store_action(action)
     game.step()
 
@@ -96,7 +96,7 @@ def test_node_service_fix_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
     assert svc.health_state_actual == SoftwareHealthState.FIXING
 
     # 4: perform a few do-nothing steps and check that the service is now in the good state
-    action = ("DONOTHING", {})
+    action = ("do_nothing", {})
     agent.store_action(action)
     game.step()
     assert svc.health_state_actual == SoftwareHealthState.GOOD
@@ -121,18 +121,18 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
 
     # 2: Add a rule to block client 1 from reaching server 2 on router
     action = (
-        "ROUTER_ACL_ADDRULE",
+        "router_acl_add_rule",
         {
             "target_router": "router",
-            "position": 4,  # 4th rule
-            "permission": 2,  # DENY
-            "source_ip_id": 3,  # 10.0.1.2 (client_1)
-            "dest_ip_id": 6,  # 10.0.2.3 (server_2)
-            "dest_port_id": 1,  # ALL
-            "source_port_id": 1,  # ALL
-            "protocol_id": 1,  # ALL
-            "source_wildcard_id": 0,
-            "dest_wildcard_id": 0,
+            "position": 4,
+            "permission": "DENY",
+            "src_ip": "10.0.1.2",
+            "src_wildcard": "NONE",
+            "src_port": "ALL",
+            "dst_ip": "10.0.2.3",
+            "dst_wildcard": "NONE",
+            "dst_port": "ALL",
+            "protocol_name": "icmp",
         },
     )
     agent.store_action(action)
@@ -148,24 +148,26 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
 
     # 4: Add a rule to block server_1 from reaching server_2 on router (this should not affect comms as they are on same subnet)
     action = (
-        "ROUTER_ACL_ADDRULE",
+        "router_acl_add_rule",
         {
             "target_router": "router",
             "position": 5,  # 5th rule
-            "permission": 2,  # DENY
-            "source_ip_id": 5,  # 10.0.2.2 (server_1)
-            "dest_ip_id": 6,  # 10.0.2.3 (server_2)
-            "dest_port_id": 1,  # ALL
-            "source_port_id": 1,  # ALL
-            "protocol_id": 1,  # ALL
-            "source_wildcard_id": 0,
-            "dest_wildcard_id": 0,
+            "permission": "DENY",  # DENY
+            "src_ip": "10.0.2.2",  # 10.0.2.2 (server_1)
+            "src_wildcard": 0,
+            "src_port": "ALL",  # ALL
+            "dst_ip": "10.0.2.3",  # 10.0.2.3 (server_2)
+            "dst_wildcard": 0,
+            "dst_port": "ALL",  # ALL
+            "protocol_name": "ALL",  # ALL
         },
     )
     agent.store_action(action)
+    print(agent.most_recent_action)
     game.step()
-
+    print(agent.most_recent_action)
     # 5: Check that the ACL now has 6 rules, but that server_1 can still ping server_2
+    print(router.acl.show())
     assert router.acl.num_rules == 6
     assert server_1.ping("10.0.2.3")  # Can ping server_2
 
@@ -186,7 +188,7 @@ def test_router_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, P
 
     # 2: Remove rule that allows HTTP traffic across the network
     action = (
-        "ROUTER_ACL_REMOVERULE",
+        "router_acl_remove_rule",
         {
             "target_router": "router",
             "position": 3,  # 4th rule
@@ -219,10 +221,10 @@ def test_host_nic_disable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
 
     # 2: Disable the NIC on client_1
     action = (
-        "HOST_NIC_DISABLE",
+        "host_nic_disable",
         {
-            "node_id": 0,  # client_1
-            "nic_id": 0,  # the only nic (eth-1)
+            "node_name": "client_1",  # client_1
+            "nic_num": 1,  # the only nic (eth-1)
         },
     )
     agent.store_action(action)
@@ -250,10 +252,10 @@ def test_host_nic_enable_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAg
 
     # 2: Use action to enable nic
     action = (
-        "HOST_NIC_ENABLE",
+        "host_nic_enable",
         {
-            "node_id": 0,  # client_1
-            "nic_id": 0,  # the only nic (eth-1)
+            "node_name": "client_1",  # client_1
+            "nic_num": 1,  # the only nic (eth-1)
         },
     )
     agent.store_action(action)
@@ -277,11 +279,11 @@ def test_node_file_scan_integration(game_and_agent: Tuple[PrimaiteGame, ProxyAge
 
     # 2: perform a scan and make sure nothing has changed
     action = (
-        "NODE_FILE_SCAN",
+        "node_file_scan",
         {
-            "node_id": 0,  # client_1,
-            "folder_id": 0,  # downloads,
-            "file_id": 0,  # cat.png
+            "node_name": "client_1",  # client_1,
+            "folder_name": "downloads",  # downloads,
+            "file_name": "cat.png",  # cat.png
         },
     )
     agent.store_action(action)
@@ -314,11 +316,11 @@ def test_node_file_delete_integration(game_and_agent: Tuple[PrimaiteGame, ProxyA
 
     # 2: delete the file
     action = (
-        "NODE_FILE_DELETE",
+        "node_file_delete",
         {
-            "node_id": 0,  # client_1
-            "folder_id": 0,  # downloads
-            "file_id": 0,  # cat.png
+            "node_name": "client_1",  # client_1
+            "folder_name": "downloads",  # downloads
+            "file_name": "cat.png",  # cat.png
         },
     )
     agent.store_action(action)
@@ -334,14 +336,15 @@ def test_node_file_create(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     """Test that a file is created."""
     game, agent = game_and_agent
 
-    client_1 = game.simulation.network.get_node_by_hostname("client_1")  #
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")
 
     action = (
-        "NODE_FILE_CREATE",
+        "node_file_create",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "folder_name": "test",
             "file_name": "file.txt",
+            "force": "False",
         },
     )
     agent.store_action(action)
@@ -357,9 +360,9 @@ def test_node_file_access(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     client_1 = game.simulation.network.get_node_by_hostname("client_1")  #
 
     action = (
-        "NODE_FILE_CREATE",
+        "node_file_create",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "folder_name": "test",
             "file_name": "file.txt",
         },
@@ -370,9 +373,9 @@ def test_node_file_access(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     assert client_1.file_system.get_file(folder_name="test", file_name="file.txt").num_access == 0
 
     action = (
-        "NODE_FILE_ACCESS",
+        "node_file_access",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "folder_name": "test",
             "file_name": "file.txt",
         },
@@ -390,9 +393,9 @@ def test_node_folder_create(game_and_agent: Tuple[PrimaiteGame, ProxyAgent]):
     client_1 = game.simulation.network.get_node_by_hostname("client_1")  #
 
     action = (
-        "NODE_FOLDER_CREATE",
+        "node_folder_create",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "folder_name": "test",
         },
     )
@@ -418,10 +421,10 @@ def test_network_router_port_disable_integration(game_and_agent: Tuple[PrimaiteG
 
     # 2: Disable the NIC on client_1
     action = (
-        "NETWORK_PORT_DISABLE",
+        "network_port_disable",
         {
             "target_nodename": "router",  # router
-            "port_id": 1,  # port 1
+            "port_num": 1,  # port 1
         },
     )
     agent.store_action(action)
@@ -450,10 +453,10 @@ def test_network_router_port_enable_integration(game_and_agent: Tuple[PrimaiteGa
 
     # 2: Use action to enable port
     action = (
-        "NETWORK_PORT_ENABLE",
+        "network_port_enable",
         {
             "target_nodename": "router",  # router
-            "port_id": 1,  # port 1
+            "port_num": 1,  # port 1
         },
     )
     agent.store_action(action)
@@ -480,7 +483,10 @@ def test_node_application_scan_integration(game_and_agent: Tuple[PrimaiteGame, P
     assert browser.health_state_visible == SoftwareHealthState.UNUSED
 
     # 2: Scan and check that the visible state is now correct
-    action = ("NODE_APPLICATION_SCAN", {"node_id": 0, "application_id": 0})
+    action = (
+        "node_application_scan",
+        {"node_name": "client_1", "application_name": "WebBrowser"},
+    )
     agent.store_action(action)
     game.step()
     assert browser.health_state_actual == SoftwareHealthState.GOOD
@@ -491,7 +497,10 @@ def test_node_application_scan_integration(game_and_agent: Tuple[PrimaiteGame, P
     assert browser.health_state_visible == SoftwareHealthState.GOOD
 
     # 4: Scan and check that the visible state is now correct
-    action = ("NODE_APPLICATION_SCAN", {"node_id": 0, "application_id": 0})
+    action = (
+        "node_application_scan",
+        {"node_name": "client_1", "application_name": "WebBrowser"},
+    )
     agent.store_action(action)
     game.step()
     assert browser.health_state_actual == SoftwareHealthState.COMPROMISED
@@ -512,7 +521,10 @@ def test_node_application_fix_integration(game_and_agent: Tuple[PrimaiteGame, Pr
     browser.health_state_actual = SoftwareHealthState.COMPROMISED
 
     # 2: Apply a fix action
-    action = ("NODE_APPLICATION_FIX", {"node_id": 0, "application_id": 0})
+    action = (
+        "node_application_fix",
+        {"node_name": "client_1", "application_name": "WebBrowser"},
+    )
     agent.store_action(action)
     game.step()
 
@@ -520,7 +532,7 @@ def test_node_application_fix_integration(game_and_agent: Tuple[PrimaiteGame, Pr
     assert browser.health_state_actual == SoftwareHealthState.FIXING
 
     # 4: perform a few do-nothing steps and check that the application is now in the good state
-    action = ("DONOTHING", {})
+    action = ("do_nothing", {})
     agent.store_action(action)
     game.step()
     assert browser.health_state_actual == SoftwareHealthState.GOOD
@@ -538,7 +550,10 @@ def test_node_application_close_integration(game_and_agent: Tuple[PrimaiteGame, 
     assert browser.operating_state == ApplicationOperatingState.RUNNING
 
     # 2: Apply a close action
-    action = ("NODE_APPLICATION_CLOSE", {"node_id": 0, "application_id": 0})
+    action = (
+        "node_application_close",
+        {"node_name": "client_1", "application_name": "WebBrowser"},
+    )
     agent.store_action(action)
     game.step()
 
@@ -549,7 +564,7 @@ def test_node_application_install_and_uninstall_integration(game_and_agent: Tupl
     """Test that the NodeApplicationInstallAction and NodeApplicationRemoveAction can form a request and that
     it is accepted by the simulation.
 
-    When you initiate a install action, the Application will be installed and configured on the node.
+    When you initiate an install action, the Application will be installed and configured on the node.
     The remove action will uninstall the application from the node."""
     game, agent = game_and_agent
 
@@ -557,13 +572,19 @@ def test_node_application_install_and_uninstall_integration(game_and_agent: Tupl
 
     assert client_1.software_manager.software.get("DoSBot") is None
 
-    action = ("NODE_APPLICATION_INSTALL", {"node_id": 0, "application_name": "DoSBot"})
+    action = (
+        "node_application_install",
+        {"node_name": "client_1", "application_name": "DoSBot"},
+    )
     agent.store_action(action)
     game.step()
 
     assert client_1.software_manager.software.get("DoSBot") is not None
 
-    action = ("NODE_APPLICATION_REMOVE", {"node_id": 0, "application_name": "DoSBot"})
+    action = (
+        "node_application_remove",
+        {"node_name": "client_1", "application_name": "DoSBot"},
+    )
     agent.store_action(action)
     game.step()
 
@@ -656,9 +677,9 @@ def test_firewall_acl_add_remove_rule_integration():
     assert firewall.external_outbound_acl.acl[1].action.name == "DENY"
     assert firewall.external_outbound_acl.acl[1].src_ip_address == IPv4Address("192.168.20.10")
     assert firewall.external_outbound_acl.acl[1].dst_ip_address == IPv4Address("192.168.0.10")
-    assert firewall.external_outbound_acl.acl[1].dst_port is None
-    assert firewall.external_outbound_acl.acl[1].src_port is None
-    assert firewall.external_outbound_acl.acl[1].protocol is None
+    assert firewall.external_outbound_acl.acl[1].dst_port == PORT_LOOKUP["NONE"]
+    assert firewall.external_outbound_acl.acl[1].src_port == PORT_LOOKUP["NONE"]
+    assert firewall.external_outbound_acl.acl[1].protocol == PROTOCOL_LOOKUP["NONE"]
 
     env.step(12)  # Remove ACL rule from External Outbound
     assert firewall.external_outbound_acl.num_rules == 1

@@ -3,24 +3,9 @@ reds: &reds
     team: RED
     type: RedDatabaseCorruptingAgent
 
-    observation_space: null
-
-    action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
-      options:
-        nodes:
-        - node_name: client
-          applications:
-            - application_name: DataManipulationBot
-
-    reward_function:
-      reward_components:
-        - type: DUMMY
-
     agent_settings:
-      start_settings:
-        start_step: 3
-        frequency: 2
-        variance: 1
+      possible_start_nodes: [client_1]
+      target_application: DataManipulationBot
+      start_step: 3
+      frequency: 2
+      variance: 1

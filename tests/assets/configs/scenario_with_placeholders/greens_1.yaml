@@ -6,25 +6,17 @@ agents: &greens
       action_probabilities:
         0: 0.2
         1: 0.8
-    observation_space: null
+
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
-      options:
-        nodes:
-        - node_name: client
-          applications:
-            - application_name: DatabaseClient
       action_map:
         0:
-          action: DONOTHING
+          action: do_nothing
           options: {}
         1:
-          action: NODE_APPLICATION_EXECUTE
+          action: node_application_execute
           options:
-            node_id: 0
-            application_id: 0
+            node_name: client
+            application_name: DatabaseClient
 
     reward_function:
       reward_components:

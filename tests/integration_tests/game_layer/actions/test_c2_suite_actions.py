@@ -46,23 +46,21 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
     server_1: Server = game.simulation.network.get_node_by_hostname("server_1")
 
     action = (
-        "NODE_APPLICATION_INSTALL",
-        {"node_id": 1, "application_name": "C2Beacon"},
+        "node_application_install",
+        {"node_name": "server_1", "application_name": "C2Beacon"},
     )
     agent.store_action(action)
     game.step()
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "CONFIGURE_C2_BEACON",
+        "configure_c2_beacon",
         {
-            "node_id": 1,
-            "config": {
-                "c2_server_ip_address": "10.0.1.2",
-                "keep_alive_frequency": 5,
-                "masquerade_protocol": "TCP",
-                "masquerade_port": "HTTP",
-            },
+            "node_name": "server_1",
+            "c2_server_ip_address": "10.0.1.2",
+            "keep_alive_frequency": 5,
+            "masquerade_protocol": "TCP",
+            "masquerade_port": "HTTP",
         },
     )
     agent.store_action(action)
@@ -70,8 +68,8 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "NODE_APPLICATION_EXECUTE",
-        {"node_id": 1, "application_id": 0},
+        "node_application_execute",
+        {"node_name": "server_1", "application_name": "C2Beacon"},
     )
     agent.store_action(action)
     game.step()
@@ -103,14 +101,12 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     # C2 Action 1: Installing the RansomwareScript & Database client via Terminal
 
     action = (
-        "C2_SERVER_TERMINAL_COMMAND",
+        "c2_server_terminal_command",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "ip_address": None,
-            "account": {
-                "username": "admin",
-                "password": "admin",
-            },
+            "username": "admin",
+            "password": "admin",
             "commands": [
                 ["software_manager", "application", "install", "RansomwareScript"],
                 ["software_manager", "application", "install", "DatabaseClient"],
@@ -122,10 +118,11 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "C2_SERVER_RANSOMWARE_CONFIGURE",
+        "c2_server_ransomware_configure",
         {
-            "node_id": 0,
-            "config": {"server_ip_address": "10.0.2.3", "payload": "ENCRYPT"},
+            "node_name": "client_1",
+            "server_ip_address": "10.0.2.3",
+            "payload": "ENCRYPT",
         },
     )
     agent.store_action(action)
@@ -134,16 +131,16 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
 
     # Stepping a few timesteps to allow for the RansowmareScript to finish installing.
 
-    action = ("DONOTHING", {})
+    action = ("do_nothing", {})
     agent.store_action(action)
     game.step()
     game.step()
     game.step()
 
     action = (
-        "C2_SERVER_RANSOMWARE_LAUNCH",
+        "c2_server_ransomware_launch",
         {
-            "node_id": 0,
+            "node_name": "client_1",
         },
     )
     agent.store_action(action)
@@ -181,17 +178,15 @@ def test_c2_server_data_exfiltration(game_and_agent_fixture: Tuple[PrimaiteGame,
     # C2 Action: Data exfiltrate.
 
     action = (
-        "C2_SERVER_DATA_EXFILTRATE",
+        "c2_server_data_exfiltrate",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "target_file_name": "database.db",
             "target_folder_name": "database",
             "exfiltration_folder_name": "spoils",
             "target_ip_address": "10.0.2.3",
-            "account": {
-                "username": "admin",
-                "password": "admin",
-            },
+            "username": "admin",
+            "password": "admin",
         },
     )
     agent.store_action(action)

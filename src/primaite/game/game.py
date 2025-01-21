@@ -7,14 +7,8 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from primaite import DEFAULT_BANDWIDTH, getLogger
-from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
-from primaite.game.agent.observations.observation_manager import ObservationManager
-from primaite.game.agent.rewards import RewardFunction, SharedReward
-from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
-from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
-from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
-from primaite.game.agent.scripted_agents.tap001 import TAP001
+from primaite.game.agent.interface import AbstractAgent, ProxyAgent
+from primaite.game.agent.rewards import SharedReward
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.creation import NetworkNodeAdder
@@ -477,76 +471,10 @@ class PrimaiteGame:
         agents_cfg = cfg.get("agents", [])
 
         for agent_cfg in agents_cfg:
-            agent_ref = agent_cfg["ref"]  # noqa: F841
-            agent_type = agent_cfg["type"]
-            action_space_cfg = agent_cfg["action_space"]
-            observation_space_cfg = agent_cfg["observation_space"]
-            reward_function_cfg = agent_cfg["reward_function"]
-
-            # CREATE OBSERVATION SPACE
-            obs_space = ObservationManager.from_config(observation_space_cfg)
-
-            # CREATE ACTION SPACE
-            action_space = ActionManager.from_config(game, action_space_cfg)
-
-            # CREATE REWARD FUNCTION
-            reward_function = RewardFunction.from_config(reward_function_cfg)
-
-            # CREATE AGENT
-            if agent_type == "ProbabilisticAgent":
-                # TODO: implement non-random agents and fix this parsing
-                settings = agent_cfg.get("agent_settings", {})
-                new_agent = ProbabilisticAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    settings=settings,
-                )
-            elif agent_type == "PeriodicAgent":
-                settings = PeriodicAgent.Settings(**agent_cfg.get("settings", {}))
-                new_agent = PeriodicAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    settings=settings,
-                )
-
-            elif agent_type == "ProxyAgent":
-                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-                new_agent = ProxyAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    agent_settings=agent_settings,
-                )
-                game.rl_agents[agent_cfg["ref"]] = new_agent
-            elif agent_type == "RedDatabaseCorruptingAgent":
-                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-
-                new_agent = DataManipulationAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    agent_settings=agent_settings,
-                )
-            elif agent_type == "TAP001":
-                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-                new_agent = TAP001(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    agent_settings=agent_settings,
-                )
-            else:
-                msg = f"Configuration error: {agent_type} is not a valid agent type."
-                _LOGGER.error(msg)
-                raise ValueError(msg)
+            new_agent = AbstractAgent.from_config(agent_cfg)
             game.agents[agent_cfg["ref"]] = new_agent
+            if isinstance(new_agent, ProxyAgent):
+                game.rl_agents[agent_cfg["ref"]] = new_agent
 
         # Validate that if any agents are sharing rewards, they aren't forming an infinite loop.
         game.setup_reward_sharing()

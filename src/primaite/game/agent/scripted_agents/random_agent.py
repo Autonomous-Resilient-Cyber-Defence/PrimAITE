@@ -1,20 +1,27 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import random
-from typing import Dict, Optional, Tuple
+from functools import cached_property
+from typing import Dict, List, Tuple
 
 from gymnasium.core import ObsType
-from pydantic import BaseModel
+from pydantic import computed_field, Field, model_validator
 
-from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractScriptedAgent
-from primaite.game.agent.observations.observation_manager import ObservationManager
-from primaite.game.agent.rewards import RewardFunction
+
+__all__ = ("RandomAgent", "PeriodicAgent")
 
 
-class RandomAgent(AbstractScriptedAgent):
+class RandomAgent(AbstractScriptedAgent, identifier="RandomAgent"):
     """Agent that ignores its observation and acts completely at random."""
 
-    def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
+    config: "RandomAgent.ConfigSchema" = Field(default_factory=lambda: RandomAgent.ConfigSchema())
+
+    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+        """Configuration Schema for Random Agents."""
+
+        type: str = "RandomAgent"
+
+    def get_action(self) -> Tuple[str, Dict]:
         """Sample the action space randomly.
 
         :param obs: Current observation for this agent, not used in RandomAgent
@@ -27,41 +34,60 @@ class RandomAgent(AbstractScriptedAgent):
         return self.action_manager.get_action(self.action_manager.space.sample())
 
 
-class PeriodicAgent(AbstractScriptedAgent):
+class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
     """Agent that does nothing most of the time, but executes application at regular intervals (with variance)."""
 
-    class Settings(BaseModel):
-        """Configuration values for when an agent starts performing actions."""
+    config: "PeriodicAgent.ConfigSchema" = Field(default_factory=lambda: PeriodicAgent.ConfigSchema())
 
-        start_step: int = 20
-        "The timestep at which an agent begins performing it's actions."
-        start_variance: int = 5
-        "Deviation around the start step."
+    class AgentSettingsSchema(AbstractScriptedAgent.AgentSettingsSchema):
+        """Schema for the `agent_settings` part of the agent config."""
+
+        start_step: int = 5
+        "The timestep at which an agent begins performing it's actions"
         frequency: int = 5
-        "The number of timesteps to wait between performing actions."
+        "The number of timesteps to wait between performing actions"
         variance: int = 0
-        "The amount the frequency can randomly change to."
-        max_executions: int = 999999
-        "Maximum number of times the agent can execute its action."
+        "The amount the frequency can randomly change to"
+        possible_start_nodes: List[str]
+        target_application: str
 
-    def __init__(
-        self,
-        agent_name: str,
-        action_space: ActionManager,
-        observation_space: ObservationManager,
-        reward_function: RewardFunction,
-        settings: Optional[Settings] = None,
-    ) -> None:
-        """Initialise PeriodicAgent."""
-        super().__init__(
-            agent_name=agent_name,
-            action_space=action_space,
-            observation_space=observation_space,
-            reward_function=reward_function,
+        @model_validator(mode="after")
+        def check_variance_lt_frequency(self) -> "PeriodicAgent.ConfigSchema":
+            """
+            Make sure variance is equal to or lower than frequency.
+
+            This is because the calculation for the next execution time is now + (frequency +- variance).
+            If variance were greater than frequency, sometimes the bracketed term would be negative
+            and the attack would never happen again.
+            """
+            if self.variance >= self.frequency:
+                raise ValueError(
+                    f"Agent start settings error: variance must be lower than frequency "
+                    f"{self.variance=}, {self.frequency=}"
+                )
+            return self
+
+    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+        """Configuration Schema for Periodic Agent."""
+
+        type: str = "PeriodicAgent"
+        """Name of the agent."""
+        agent_settings: "PeriodicAgent.AgentSettingsSchema" = Field(
+            default_factory=lambda: PeriodicAgent.AgentSettingsSchema()
         )
-        self.settings = settings or PeriodicAgent.Settings()
-        self._set_next_execution_timestep(timestep=self.settings.start_step, variance=self.settings.start_variance)
-        self.num_executions = 0
+
+    max_executions: int = 999999
+    "Maximum number of times the agent can execute its action."
+    num_executions: int = 0
+    """Number of times the agent has executed an action."""
+    next_execution_timestep: int = 0
+    """Timestep of the next action execution by the agent."""
+
+    @computed_field
+    @cached_property
+    def start_node(self) -> str:
+        """On instantiation, randomly select a start node."""
+        return random.choice(self.config.agent_settings.possible_start_nodes)
 
     def _set_next_execution_timestep(self, timestep: int, variance: int) -> None:
         """Set the next execution timestep with a configured random variance.
@@ -76,9 +102,14 @@ class PeriodicAgent(AbstractScriptedAgent):
 
     def get_action(self, obs: ObsType, timestep: int) -> Tuple[str, Dict]:
         """Do nothing, unless the current timestep is the next execution timestep, in which case do the action."""
-        if timestep == self.next_execution_timestep and self.num_executions < self.settings.max_executions:
+        if timestep == self.next_execution_timestep and self.num_executions < self.max_executions:
             self.num_executions += 1
-            self._set_next_execution_timestep(timestep + self.settings.frequency, self.settings.variance)
-            return "NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}
+            self._set_next_execution_timestep(
+                timestep + self.config.agent_settings.frequency, self.config.agent_settings.variance
+            )
+            return "node_application_execute", {
+                "node_name": self.start_node,
+                "application_name": self.config.agent_settings.target_application,
+            }
 
-        return "DONOTHING", {}
+        return "do_nothing", {}

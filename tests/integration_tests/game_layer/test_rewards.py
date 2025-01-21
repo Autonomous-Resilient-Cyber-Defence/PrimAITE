@@ -33,12 +33,12 @@ def test_WebpageUnavailablePenalty(game_and_agent: tuple[PrimaiteGame, Controlle
     agent.reward_function.register_component(comp, 0.7)
 
     # Check that before trying to fetch the webpage, the reward is 0.0
-    agent.store_action(("DONOTHING", {}))
+    agent.store_action(("do_nothing", {}))
     game.step()
     assert agent.reward_function.current_reward == 0.0
 
     # Check that successfully fetching the webpage yields a reward of 0.7
-    agent.store_action(("NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}))
+    agent.store_action(("node_application_execute", {"node_name": "client_1", "application_name": "WebBrowser"}))
     game.step()
     assert agent.reward_function.current_reward == 0.7
 
@@ -50,7 +50,7 @@ def test_WebpageUnavailablePenalty(game_and_agent: tuple[PrimaiteGame, Controlle
         src_port=PORT_LOOKUP["HTTP"],
         dst_port=PORT_LOOKUP["HTTP"],
     )
-    agent.store_action(("NODE_APPLICATION_EXECUTE", {"node_id": 0, "application_id": 0}))
+    agent.store_action(("node_application_execute", {"node_name": "client_1", "application_name": "WebBrowser"}))
     game.step()
     assert agent.reward_function.current_reward == -0.7
 
@@ -83,7 +83,7 @@ def test_uc2_rewards(game_and_agent: tuple[PrimaiteGame, ControlledAgent]):
     response = game.simulation.apply_request(request)
     state = game.get_sim_state()
     ahi = AgentHistoryItem(
-        timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=request, response=response
+        timestep=0, action="node_application_execute", parameters={}, request=request, response=response
     )
     reward_value = comp.calculate(state, last_action_response=ahi)
     assert reward_value == 1.0
@@ -94,7 +94,7 @@ def test_uc2_rewards(game_and_agent: tuple[PrimaiteGame, ControlledAgent]):
     response = game.simulation.apply_request(request)
     state = game.get_sim_state()
     ahi = AgentHistoryItem(
-        timestep=0, action="NODE_APPLICATION_EXECUTE", parameters={}, request=request, response=response
+        timestep=0, action="node_application_execute", parameters={}, request=request, response=response
     )
     reward_value = comp.calculate(
         state,
@@ -154,13 +154,13 @@ def test_action_penalty():
     # Penalty = ActionPenalty(action_penalty=-0.75, do_nothing_penalty=0.125)
     Penalty = ActionPenalty(config=schema)
 
-    # Assert that penalty is applied if action isn't DONOTHING
+    # Assert that penalty is applied if action isn't do_nothing
     reward_value = Penalty.calculate(
         state={},
         last_action_response=AgentHistoryItem(
             timestep=0,
-            action="NODE_APPLICATION_EXECUTE",
-            parameters={"node_id": 0, "application_id": 1},
+            action="node_application_execute",
+            parameters={"node_name": "client", "application_name": "WebBrowser"},
             request=["execute"],
             response=RequestResponse.from_bool(True),
         ),
@@ -168,12 +168,12 @@ def test_action_penalty():
 
     assert reward_value == -0.75
 
-    # Assert that no penalty applied for a DONOTHING action
+    # Assert that no penalty applied for a do_nothing action
     reward_value = Penalty.calculate(
         state={},
         last_action_response=AgentHistoryItem(
             timestep=0,
-            action="DONOTHING",
+            action="do_nothing",
             parameters={},
             request=["do_nothing"],
             response=RequestResponse.from_bool(True),
@@ -192,12 +192,12 @@ def test_action_penalty_e2e(game_and_agent: tuple[PrimaiteGame, ControlledAgent]
 
     agent.reward_function.register_component(comp, 1.0)
 
-    action = ("DONOTHING", {})
+    action = ("do_nothing", {})
     agent.store_action(action)
     game.step()
     assert agent.reward_function.current_reward == 0.125
 
-    action = ("NODE_FILE_SCAN", {"node_id": 0, "folder_id": 0, "file_id": 0})
+    action = ("node_file_scan", {"node_name": "client", "folder_name": "downloads", "file_name": "document.pdf"})
     agent.store_action(action)
     game.step()
     assert agent.reward_function.current_reward == -0.75

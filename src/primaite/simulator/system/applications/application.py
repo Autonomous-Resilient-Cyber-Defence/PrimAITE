@@ -61,9 +61,9 @@ class Application(IOSoftware, ABC):
         :type identifier: Optional[str]
         :raises ValueError: When attempting to register an application with a name that is already allocated.
         """
+        super().__init_subclass__(**kwargs)
         if identifier is None:
             return
-        super().__init_subclass__(**kwargs)
         if identifier in cls._registry:
             raise ValueError(f"Tried to define new application {identifier}, but this name is already reserved.")
         cls._registry[identifier] = cls

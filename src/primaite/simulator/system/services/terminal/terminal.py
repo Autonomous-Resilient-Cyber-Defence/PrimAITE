@@ -186,7 +186,7 @@ class Terminal(Service, identifier="Terminal"):
                 return RequestResponse(status="failure", data={})
 
         rm.add_request(
-            "ssh_to_remote",
+            "node_session_remote_login",
             request_type=RequestType(func=_remote_login),
         )
 
@@ -286,7 +286,6 @@ class Terminal(Service, identifier="Terminal"):
         :param password: Password for login.
         :return: boolean, True if successful, else False
         """
-        # TODO: Un-comment this when UserSessionManager is merged.
         connection_uuid = self.parent.user_session_manager.local_login(username=username, password=password)
         if connection_uuid:
             self.sys_log.info(f"{self.name}: Login request authorised, connection uuid: {connection_uuid}")
@@ -413,7 +412,6 @@ class Terminal(Service, identifier="Terminal"):
         if isinstance(payload, SSHPacket):
             if payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST:
                 # validate & add connection
-                # TODO: uncomment this as part of 2781
                 username = payload.user_account.username
                 password = payload.user_account.password
                 connection_id = self.parent.user_session_manager.remote_login(

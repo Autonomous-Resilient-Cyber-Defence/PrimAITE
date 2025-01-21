@@ -27,40 +27,21 @@ agents:
   - ref: client_2_green_user
     team: GREEN
     type: ProbabilisticAgent
-    observation_space: null
+
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
       action_map:
         0:
-          action: DONOTHING
+          action: do_nothing
           options: {}
         1:
-          action: NODE_APPLICATION_EXECUTE
+          action: node_application_execute
           options:
-            node_id: 0
-            application_id: 0
-      options:
-        nodes:
-        - node_name: client_2
-          applications:
-            - application_name: WebBrowser
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-        max_applications_per_node: 1
-
-    reward_function:
-      reward_components:
-        - type: DUMMY
-
+            node_name: client_2
+            application_name: WebBrowser
     agent_settings:
-      start_settings:
-        start_step: 5
-        frequency: 4
-        variance: 3
-
+      action_probabilities:
+        0: 0.4
+        1: 0.6
 
 
   - ref: defender
@@ -119,28 +100,10 @@ agents:
             options: {}
 
     action_space:
-      action_list:
-        - type: DONOTHING
-
       action_map:
           0:
-            action: DONOTHING
+            action: do_nothing
             options: {}
-      options:
-        nodes:
-        - node_name: switch
-        - node_name: client_1
-        - node_name: client_2
-        - node_name: client_3
-        max_folders_per_node: 2
-        max_files_per_folder: 2
-        max_services_per_node: 2
-        max_nics_per_node: 8
-        max_acl_rules: 10
-        ip_list:
-          - 192.168.10.21
-          - 192.168.10.22
-          - 192.168.10.23
 
     reward_function:
       reward_components:

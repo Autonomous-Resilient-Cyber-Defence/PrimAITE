@@ -30,7 +30,7 @@ the structure:
 from abc import ABC, abstractmethod
 from typing import Any, Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Type, TYPE_CHECKING, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing_extensions import Never
 
 from primaite import getLogger
@@ -48,21 +48,17 @@ class AbstractReward(BaseModel):
 
     config: "AbstractReward.ConfigSchema"
 
-    # def __init__(self, schema_name, **kwargs):
-    #     super.__init__(self, **kwargs)
-    #     # Create ConfigSchema class
-    #     self.config_class = type(schema_name, (BaseModel, ABC), **kwargs)
-    #     self.config = self.config_class()
-
     class ConfigSchema(BaseModel, ABC):
         """Config schema for AbstractReward."""
 
-        type: str
+        type: str = ""
 
     _registry: ClassVar[Dict[str, Type["AbstractReward"]]] = {}
 
-    def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
+    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
+        if identifier is None:
+            return
         if identifier in cls._registry:
             raise ValueError(f"Duplicate reward {identifier}")
         cls._registry[identifier] = cls
@@ -381,14 +377,19 @@ class SharedReward(AbstractReward, identifier="SHARED_REWARD"):
 
 
 class ActionPenalty(AbstractReward, identifier="ACTION_PENALTY"):
-    """Apply a negative reward when taking any action except DONOTHING."""
+    """Apply a negative reward when taking any action except do_nothing."""
 
     config: "ActionPenalty.ConfigSchema"
 
     class ConfigSchema(AbstractReward.ConfigSchema):
-        """Config schema for ActionPenalty."""
+        """Config schema for ActionPenalty.
 
-        type: str = "ACTION_PENALTY"
+        :param action_penalty: Reward to give agents for taking any action except do_nothing
+        :type action_penalty: float
+        :param do_nothing_penalty: Reward to give agent for taking the do_nothing action
+        :type do_nothing_penalty: float
+        """
+
         action_penalty: float = -1.0
         do_nothing_penalty: float = 0.0
 
@@ -402,21 +403,81 @@ class ActionPenalty(AbstractReward, identifier="ACTION_PENALTY"):
         :return: Reward value
         :rtype: float
         """
-        if last_action_response.action == "DONOTHING":
+        if last_action_response.action == "do_nothing":
             return self.config.do_nothing_penalty
+
         else:
             return self.config.action_penalty
 
 
-class RewardFunction:
+class _SingleComponentConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: str
+    options: AbstractReward.ConfigSchema
+    weight: float = 1.0
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_obs_options_type(cls, data: Any) -> Any:
+        """
+        When constructing the model from a dict, resolve the correct reward class based on `type` field.
+
+        Workaround: The `options` field is statically typed as AbstractReward. Therefore, it falls over when
+        passing in data that adheres to a subclass schema rather than the plain AbstractReward schema. There is
+        a way to do this properly using discriminated union, but most advice on the internet assumes that the full
+        list of types between which to discriminate is known ahead-of-time. That is not the case for us, because of
+        our plugin architecture.
+
+        We may be able to revisit and implement a better solution when needed using the following resources as
+        research starting points:
+        https://docs.pydantic.dev/latest/concepts/unions/#discriminated-unions
+        https://github.com/pydantic/pydantic/issues/7366
+        https://github.com/pydantic/pydantic/issues/7462
+        https://github.com/pydantic/pydantic/pull/7983
+        """
+        if not isinstance(data, dict):
+            return data
+
+        assert "type" in data, ValueError('Reward component definition is missing the "type" key.')
+        rew_type = data["type"]
+        rew_class = AbstractReward._registry[rew_type]
+
+        # if no options are passed in, try to create a default schema. Only works if there are no mandatory fields.
+        if "options" not in data:
+            data["options"] = rew_class.ConfigSchema()
+
+        # if options are passed as a dict, validate against schema
+        elif isinstance(data["options"], dict):
+            data["options"] = rew_class.ConfigSchema(**data["options"])
+
+        return data
+
+
+class RewardFunction(BaseModel):
     """Manages the reward function for the agent."""
 
-    def __init__(self):
-        """Initialise the reward function object."""
-        self.reward_components: List[Tuple[AbstractReward, float]] = []
-        "attribute reward_components keeps track of reward components and the weights assigned to each."
-        self.current_reward: float = 0.0
-        self.total_reward: float = 0.0
+    model_config = ConfigDict(extra="forbid")
+
+    class ConfigSchema(BaseModel):
+        """Config Schema for RewardFunction."""
+
+        model_config = ConfigDict(extra="forbid")
+
+        reward_components: Iterable[_SingleComponentConfig] = []
+
+    config: ConfigSchema = Field(default_factory=lambda: RewardFunction.ConfigSchema())
+
+    reward_components: List[Tuple[AbstractReward, float]] = []
+
+    current_reward: float = 0.0
+    total_reward: float = 0.0
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        for rew_config in self.config.reward_components:
+            rew_class = AbstractReward._registry[rew_config.type]
+            rew_instance = rew_class(config=rew_config.options)
+            self.register_component(component=rew_instance, weight=rew_config.weight)
 
     def register_component(self, component: AbstractReward, weight: float = 1.0) -> None:
         """Add a reward component to the reward function.

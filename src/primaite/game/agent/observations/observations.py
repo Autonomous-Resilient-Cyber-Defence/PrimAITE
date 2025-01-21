@@ -31,7 +31,7 @@ class AbstractObservation(ABC):
         """Initialise an observation. This method must be overwritten."""
         self.default_observation: ObsType
 
-    def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
+    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
         """
         Register an observation type.
 
@@ -40,6 +40,8 @@ class AbstractObservation(ABC):
         :raises ValueError: When attempting to create a component with a name that is already in use.
         """
         super().__init_subclass__(**kwargs)
+        if identifier is None:
+            return
         if identifier in cls._registry:
             raise ValueError(f"Duplicate observation component type {identifier}")
         cls._registry[identifier] = cls

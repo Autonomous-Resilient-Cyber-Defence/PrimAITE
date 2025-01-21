@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import pytest
 import yaml
@@ -11,6 +11,7 @@ from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractAgent
 from primaite.game.agent.observations.observation_manager import NestedObservation, ObservationManager
 from primaite.game.agent.rewards import RewardFunction
+from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
 from primaite.game.game import PrimaiteGame
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.container import Network
@@ -279,23 +280,16 @@ def example_network() -> Network:
     return network
 
 
-class ControlledAgent(AbstractAgent):
+class ControlledAgent(AbstractAgent, identifier="ControlledAgent"):
     """Agent that can be controlled by the tests."""
 
-    def __init__(
-        self,
-        agent_name: str,
-        action_space: ActionManager,
-        observation_space: ObservationManager,
-        reward_function: RewardFunction,
-    ) -> None:
-        super().__init__(
-            agent_name=agent_name,
-            action_space=action_space,
-            observation_space=observation_space,
-            reward_function=reward_function,
-        )
-        self.most_recent_action: Tuple[str, Dict]
+    config: "ControlledAgent.ConfigSchema" = Field(default_factory=lambda: ControlledAgent.ConfigSchema())
+    most_recent_action: Optional[Tuple[str, Dict]] = None
+
+    class ConfigSchema(AbstractAgent.ConfigSchema):
+        """Configuration Schema for Abstract Agent used in tests."""
+
+        type: str = "ControlledAgent"
 
     def get_action(self, obs: None, timestep: int = 0) -> Tuple[str, Dict]:
         """Return the agent's most recent action, formatted in CAOS format."""
@@ -390,6 +384,7 @@ def install_stuff_to_sim(sim: Simulation):
     # 5: Assert that the simulation starts off in the state that we expect
     assert len(sim.network.nodes) == 6
     assert len(sim.network.links) == 5
+
     # 5.1: Assert the router is correctly configured
     r = sim.network.router_nodes[0]
     for i, acl_rule in enumerate(r.acl.acl):
@@ -433,97 +428,13 @@ def game_and_agent():
     sim = game.simulation
     install_stuff_to_sim(sim)
 
-    actions = [
-        {"type": "DONOTHING"},
-        {"type": "NODE_SERVICE_SCAN"},
-        {"type": "NODE_SERVICE_STOP"},
-        {"type": "NODE_SERVICE_START"},
-        {"type": "NODE_SERVICE_PAUSE"},
-        {"type": "NODE_SERVICE_RESUME"},
-        {"type": "NODE_SERVICE_RESTART"},
-        {"type": "NODE_SERVICE_DISABLE"},
-        {"type": "NODE_SERVICE_ENABLE"},
-        {"type": "NODE_SERVICE_FIX"},
-        {"type": "NODE_APPLICATION_EXECUTE"},
-        {"type": "NODE_APPLICATION_SCAN"},
-        {"type": "NODE_APPLICATION_CLOSE"},
-        {"type": "NODE_APPLICATION_FIX"},
-        {"type": "NODE_APPLICATION_INSTALL"},
-        {"type": "NODE_APPLICATION_REMOVE"},
-        {"type": "NODE_FILE_CREATE"},
-        {"type": "NODE_FILE_SCAN"},
-        {"type": "NODE_FILE_CHECKHASH"},
-        {"type": "NODE_FILE_DELETE"},
-        {"type": "NODE_FILE_REPAIR"},
-        {"type": "NODE_FILE_RESTORE"},
-        {"type": "NODE_FILE_CORRUPT"},
-        {"type": "NODE_FILE_ACCESS"},
-        {"type": "NODE_FOLDER_CREATE"},
-        {"type": "NODE_FOLDER_SCAN"},
-        {"type": "NODE_FOLDER_CHECKHASH"},
-        {"type": "NODE_FOLDER_REPAIR"},
-        {"type": "NODE_FOLDER_RESTORE"},
-        {"type": "NODE_OS_SCAN"},
-        {"type": "NODE_SHUTDOWN"},
-        {"type": "NODE_STARTUP"},
-        {"type": "NODE_RESET"},
-        {"type": "ROUTER_ACL_ADDRULE"},
-        {"type": "ROUTER_ACL_REMOVERULE"},
-        {"type": "HOST_NIC_ENABLE"},
-        {"type": "HOST_NIC_DISABLE"},
-        {"type": "NETWORK_PORT_ENABLE"},
-        {"type": "NETWORK_PORT_DISABLE"},
-        {"type": "CONFIGURE_C2_BEACON"},
-        {"type": "C2_SERVER_RANSOMWARE_LAUNCH"},
-        {"type": "C2_SERVER_RANSOMWARE_CONFIGURE"},
-        {"type": "C2_SERVER_TERMINAL_COMMAND"},
-        {"type": "C2_SERVER_DATA_EXFILTRATE"},
-        {"type": "NODE_ACCOUNTS_CHANGE_PASSWORD"},
-        {"type": "SSH_TO_REMOTE"},
-        {"type": "SESSIONS_REMOTE_LOGOFF"},
-        {"type": "NODE_SEND_REMOTE_COMMAND"},
-    ]
+    config = {
+        "type": "ControlledAgent",
+        "ref": "test_agent",
+        "team": "BLUE",
+    }
 
-    action_space = ActionManager(
-        actions=actions,  # ALL POSSIBLE ACTIONS
-        nodes=[
-            {
-                "node_name": "client_1",
-                "applications": [
-                    {"application_name": "WebBrowser"},
-                    {"application_name": "DoSBot"},
-                    {"application_name": "C2Server"},
-                ],
-                "folders": [{"folder_name": "downloads", "files": [{"file_name": "cat.png"}]}],
-            },
-            {
-                "node_name": "server_1",
-                "services": [{"service_name": "DNSServer"}],
-                "applications": [{"application_name": "C2Beacon"}],
-            },
-            {"node_name": "server_2", "services": [{"service_name": "WebServer"}]},
-            {"node_name": "router"},
-        ],
-        max_folders_per_node=2,
-        max_files_per_folder=2,
-        max_services_per_node=2,
-        max_applications_per_node=3,
-        max_nics_per_node=2,
-        max_acl_rules=10,
-        protocols=["TCP", "UDP", "ICMP"],
-        ports=["HTTP", "DNS", "ARP"],
-        ip_list=["10.0.1.1", "10.0.1.2", "10.0.2.1", "10.0.2.2", "10.0.2.3"],
-        act_map={},
-    )
-    observation_space = ObservationManager(NestedObservation(components={}))
-    reward_function = RewardFunction()
-
-    test_agent = ControlledAgent(
-        agent_name="test_agent",
-        action_space=action_space,
-        observation_space=observation_space,
-        reward_function=reward_function,
-    )
+    test_agent = ControlledAgent(config=config)
 
     game.agents["test_agent"] = test_agent
 

@@ -113,18 +113,6 @@ If not using the data manipulation bot manually, it needs to be used with a data
                   folders: {}
 
           action_space:
-            action_list:
-              - type: DONOTHING
-              - type: NODE_APPLICATION_EXECUTE
-            options:
-              nodes:
-              - node_name: client_1
-                applications:
-                  - application_ref: data_manipulation_bot
-              max_folders_per_node: 1
-              max_files_per_folder: 1
-              max_services_per_node: 1
-
           reward_function:
             reward_components:
               - type: DUMMY
