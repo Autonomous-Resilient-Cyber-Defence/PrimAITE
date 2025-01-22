@@ -195,74 +195,99 @@ def example_network() -> Network:
     network = Network()
 
     # Router 1
+
+    router_1_cfg = {"hostname":"router_1", "type":"router"}
+
     # router_1 = Router(hostname="router_1", start_up_duration=0)
-    router_1 = Router(hostname="router_1", start_up_duration=0)
+    router_1 = Router.from_config(config=router_1_cfg)
     router_1.power_on()
     router_1.configure_port(port=1, ip_address="192.168.1.1", subnet_mask="255.255.255.0")
     router_1.configure_port(port=2, ip_address="192.168.10.1", subnet_mask="255.255.255.0")
 
     # Switch 1
-    # switch_1_config = Switch.ConfigSchema()
-    switch_1 = Switch(hostname="switch_1", num_ports=8, start_up_duration=0)
+
+    switch_1_cfg = {"hostname": "switch_1", "type": "switch"}
+
+    switch_1 = Switch.from_config(config=switch_1_cfg)
+
+    # switch_1 = Switch(hostname="switch_1", num_ports=8, start_up_duration=0)
     switch_1.power_on()
 
     network.connect(endpoint_a=router_1.network_interface[1], endpoint_b=switch_1.network_interface[8])
     router_1.enable_port(1)
 
     # Switch 2
-    # switch_2_config = Switch.ConfigSchema()
-    switch_2 = Switch(hostname="switch_2", num_ports=8, start_up_duration=0)
+    switch_2_config = {"hostname": "switch_2", "type": "switch", "num_ports": 8}
+    # switch_2 = Switch(hostname="switch_2", num_ports=8, start_up_duration=0)
+    switch_2 = Switch.from_config(config=switch_2_config)
     switch_2.power_on()
     network.connect(endpoint_a=router_1.network_interface[2], endpoint_b=switch_2.network_interface[8])
     router_1.enable_port(2)
 
-    # Client 1
-    client_1 = Computer(
-        hostname="client_1",
-        ip_address="192.168.10.21",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.10.1",
-        start_up_duration=0,
-    )
+    # # Client 1
+
+    client_1_cfg = {"type": "computer",
+                    "hostname": "client_1",
+                    "ip_address": "192.168.10.21",
+                    "subnet_mask": "255.255.255.0",
+                    "default_gateway": "192.168.10.1",
+                    "start_up_duration": 0}
+
+    client_1=Computer.from_config(config=client_1_cfg)
+
     client_1.power_on()
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
 
-    # Client 2
-    client_2 = Computer(
-        hostname="client_2",
-        ip_address="192.168.10.22",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.10.1",
-        start_up_duration=0,
-    )
+    # # Client 2
+
+    client_2_cfg = {"type": "computer",
+                    "hostname": "client_2",
+                    "ip_address": "192.168.10.22",
+                    "subnet_mask": "255.255.255.0",
+                    "default_gateway": "192.168.10.1",
+                    "start_up_duration": 0,
+                    }
+
+    client_2 = Computer.from_config(config=client_2_cfg)
+
     client_2.power_on()
     network.connect(endpoint_b=client_2.network_interface[1], endpoint_a=switch_2.network_interface[2])
 
-    # Server 1
-    server_1 = Server(
-        hostname="server_1",
-        ip_address="192.168.1.10",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    # # Server 1
+
+    server_1_cfg = {"type": "server",
+                    "hostname": "server_1",
+                    "ip_address":"192.168.1.10",
+                    "subnet_mask":"255.255.255.0",
+                    "default_gateway":"192.168.1.1",
+                    "start_up_duration":0,
+                    }
+
+    server_1 = Server.from_config(config=server_1_cfg)
+
     server_1.power_on()
     network.connect(endpoint_b=server_1.network_interface[1], endpoint_a=switch_1.network_interface[1])
 
-    # DServer 2
-    server_2 = Server(
-        hostname="server_2",
-        ip_address="192.168.1.14",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    # # DServer 2
+
+    server_2_cfg = {"type": "server",
+                    "hostname": "server_2",
+                    "ip_address":"192.168.1.14",
+                    "subnet_mask":"255.255.255.0",
+                    "default_gateway":"192.168.1.1",
+                    "start_up_duration":0,
+    }
+
+    server_2 = Server.from_config(config=server_2_cfg)
+
     server_2.power_on()
     network.connect(endpoint_b=server_2.network_interface[1], endpoint_a=switch_1.network_interface[2])
 
     router_1.acl.add_rule(action=ACLAction.PERMIT, position=1)
 
     assert all(link.is_up for link in network.links.values())
+
+    client_1.software_manager.show()
 
     return network
 

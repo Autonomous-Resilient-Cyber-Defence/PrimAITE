@@ -333,10 +333,13 @@ class HostNode(Node, identifier="HostNode"):
         """Configuration Schema for HostNode class."""
 
         hostname: str = "HostNode"
+        ip_address: IPV4Address = "192.168.0.1"
+        subnet_mask: IPV4Address = "255.255.255.0"
+        default_gateway: IPV4Address = "192.168.10.1"
 
-    def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))
+        self.connect_nic(NIC(ip_address=kwargs["config"].ip_address, subnet_mask=kwargs["config"].subnet_mask))
 
     @property
     def nmap(self) -> Optional[NMAP]:

@@ -431,7 +431,7 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         self.enabled = True
         self._connected_node.sys_log.info(f"Network Interface {self} enabled")
         self.pcap = PacketCapture(
-            hostname=self._connected_node.hostname, port_num=self.port_num, port_name=self.port_name
+            hostname=self._connected_node.config.hostname, port_num=self.port_num, port_name=self.port_name
         )
         if self._connected_link:
             self._connected_link.endpoint_up()
@@ -1515,14 +1515,16 @@ class Node(SimComponent, ABC):
     _identifier: ClassVar[str] = "unknown"
     """Identifier for this particular class, used for printing and logging. Each subclass redefines this."""
 
-    config: Node.ConfigSchema = Field(default_factory=lambda: Node.ConfigSchema())
+    config: Node.ConfigSchema
+    """Configuration items within Node"""
 
     class ConfigSchema(BaseModel, ABC):
         """Configuration Schema for Node based classes."""
 
         model_config = ConfigDict(arbitrary_types_allowed=True)
         """Configure pydantic to allow arbitrary types and to let the instance have attributes not present in the model."""
-        hostname: str
+
+        hostname: str = "default"
         "The node hostname on the network."
 
         revealed_to_red: bool = False
@@ -1551,6 +1553,7 @@ class Node(SimComponent, ABC):
 
         red_scan_countdown: int = 0
         "Time steps until reveal to red scan is complete."
+
 
     @classmethod
     def from_config(cls, config: Dict) -> "Node":
@@ -1586,11 +1589,11 @@ class Node(SimComponent, ABC):
         provided.
         """
         if not kwargs.get("sys_log"):
-            kwargs["sys_log"] = SysLog(kwargs["hostname"])
+            kwargs["sys_log"] = SysLog(kwargs["config"].hostname)
         if not kwargs.get("session_manager"):
             kwargs["session_manager"] = SessionManager(sys_log=kwargs.get("sys_log"))
         if not kwargs.get("root"):
-            kwargs["root"] = SIM_OUTPUT.path / kwargs["hostname"]
+            kwargs["root"] = SIM_OUTPUT.path / kwargs["config"].hostname
         if not kwargs.get("file_system"):
             kwargs["file_system"] = FileSystem(sys_log=kwargs["sys_log"], sim_root=kwargs["root"] / "fs")
         if not kwargs.get("software_manager"):
@@ -1601,10 +1604,12 @@ class Node(SimComponent, ABC):
                 file_system=kwargs.get("file_system"),
                 dns_server=kwargs.get("dns_server"),
             )
+
         super().__init__(**kwargs)
         self._install_system_software()
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
+        self.power_on()
 
     @property
     def user_manager(self) -> Optional[UserManager]:
@@ -1856,7 +1861,7 @@ class Node(SimComponent, ABC):
         state = super().describe_state()
         state.update(
             {
-                "hostname": self.hostname,
+                "hostname": self.config.hostname,
                 "operating_state": self.operating_state.value,
                 "NICs": {
                     eth_num: network_interface.describe_state()

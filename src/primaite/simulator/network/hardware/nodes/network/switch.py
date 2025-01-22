@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import ClassVar, Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import Field
@@ -102,7 +102,7 @@ class Switch(NetworkNode, identifier="switch"):
     mac_address_table: Dict[str, SwitchPort] = {}
     "A MAC address table mapping destination MAC addresses to corresponding SwitchPorts."
 
-    config: "Switch.ConfigSchema" = Field(default_factory=lambda: Switch.ConfigSchema())
+    config: "Switch.ConfigSchema"
 
     class ConfigSchema(NetworkNode.ConfigSchema):
         """Configuration Schema for Switch nodes within PrimAITE."""
@@ -113,7 +113,7 @@ class Switch(NetworkNode, identifier="switch"):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        for i in range(1, self.config.num_ports + 1):
+        for i in range(1, kwargs["config"].num_ports + 1):
             self.connect_nic(SwitchPort())
 
     def _install_system_software(self):

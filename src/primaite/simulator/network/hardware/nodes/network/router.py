@@ -1212,21 +1212,34 @@ class Router(NetworkNode, identifier="router"):
     network_interface: Dict[int, RouterInterface] = {}
     "The Router Interfaces on the node by port id."
 
-    config: "Router.ConfigSchema" = Field(default_factory=lambda: Router.ConfigSchema())
+    sys_log: SysLog = None
+
+    acl: AccessControlList = None
+
+    route_table: RouteTable = None
+
+    config: "Router.ConfigSchema"
 
     class ConfigSchema(NetworkNode.ConfigSchema):
         """Configuration Schema for Router Objects."""
 
         num_ports: int = 5
+        """Number of ports available for this Router. Default is 5"""
+
         hostname: str = "Router"
-        ports: list = []
-        sys_log: SysLog = SysLog(hostname)
-        acl: AccessControlList = AccessControlList(sys_log=sys_log, implicit_action=ACLAction.DENY, name=hostname)
-        route_table: RouteTable = RouteTable(sys_log=sys_log)
+
+        ports: Dict[Union[int, str], Dict] = {}
+
 
     def __init__(self, **kwargs):
-        super().__init__(hostname=self.config.hostname, num_ports=self.config.num_ports, **kwargs)
-        self.session_manager = RouterSessionManager(sys_log=self.config.sys_log)
+        if not kwargs.get("sys_log"):
+            kwargs["sys_log"] = SysLog(kwargs["config"].hostname)
+        if not kwargs.get("acl"):
+            kwargs["acl"] = AccessControlList(sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=kwargs["config"].hostname)
+        if not kwargs.get("route_table"):
+            kwargs["route_table"] = RouteTable(sys_log=kwargs["sys_log"])
+        super().__init__(**kwargs)
+        self.session_manager = RouterSessionManager(sys_log=self.sys_log)
         self.session_manager.node = self
         self.software_manager.session_manager = self.session_manager
         self.session_manager.software_manager = self.software_manager
@@ -1234,8 +1247,10 @@ class Router(NetworkNode, identifier="router"):
             network_interface = RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
             self.connect_nic(network_interface)
             self.network_interface[i] = network_interface
-        self.operating_state = NodeOperatingState.ON
+
         self._set_default_acl()
+
+
 
     def _install_system_software(self):
         """
@@ -1260,10 +1275,10 @@ class Router(NetworkNode, identifier="router"):
         Initializes the router's ACL (Access Control List) with default rules, permitting essential protocols like ARP
         and ICMP, which are necessary for basic network operations and diagnostics.
         """
-        self.config.acl.add_rule(
+        self.acl.add_rule(
             action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
         )
-        self.config.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
+        self.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
 
     def setup_for_episode(self, episode: int):
         """
@@ -1287,7 +1302,7 @@ class Router(NetworkNode, identifier="router"):
         More information in user guide and docstring for SimComponent._init_request_manager.
         """
         rm = super()._init_request_manager()
-        rm.add_request("acl", RequestType(func=self.config.acl._request_manager))
+        rm.add_request("acl", RequestType(func=self.acl._request_manager))
         return rm
 
     def ip_is_router_interface(self, ip_address: IPv4Address, enabled_only: bool = False) -> bool:
@@ -1341,7 +1356,7 @@ class Router(NetworkNode, identifier="router"):
         """
         state = super().describe_state()
         state["num_ports"] = self.config.num_ports
-        state["acl"] = self.config.acl.describe_state()
+        state["acl"] = self.acl.describe_state()
         return state
 
     def check_send_frame_to_session_manager(self, frame: Frame) -> bool:
@@ -1562,7 +1577,7 @@ class Router(NetworkNode, identifier="router"):
         print(table)
 
     def setup_router(self, cfg: dict) -> Router:
-        """ TODO: This is the extra bit of Router's from_config metho. Needs sorting."""
+        """TODO: This is the extra bit of Router's from_config metho. Needs sorting."""
         if "ports" in cfg:
             for port_num, port_cfg in cfg["ports"].items():
                 self.configure_port(
@@ -1594,5 +1609,100 @@ class Router(NetworkNode, identifier="router"):
         if "default_route" in cfg:
             next_hop_ip_address = cfg["default_route"].get("next_hop_ip_address", None)
             if next_hop_ip_address:
-                self.config.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
+                self.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
         return self
+
+
+    @classmethod
+    def from_config(cls, config: dict, **kwargs) -> "Router":
+        """Create a router based on a config dict.
+
+        Schema:
+          - hostname (str): unique name for this router.
+          - num_ports (int, optional): Number of network ports on the router. 8 by default
+          - ports (dict): Dict with integers from 1 - num_ports as keys. The values should be another dict specifying
+                ip_address and subnet_mask assigned to that ports (as strings)
+          - acl (dict): Dict with integers from 1 - max_acl_rules as keys. The key defines the position within the ACL
+                where the rule will be added (lower number is resolved first). The values should describe valid ACL
+                Rules as:
+              - action (str): either PERMIT or DENY
+              - src_port (str, optional): the named port such as HTTP, HTTPS, or POSTGRES_SERVER
+              - dst_port (str, optional): the named port such as HTTP, HTTPS, or POSTGRES_SERVER
+              - protocol (str, optional): the named IP protocol such as ICMP, TCP, or UDP
+              - src_ip_address (str, optional): IP address octet written in base 10
+              - dst_ip_address (str, optional): IP address octet written in base 10
+          - routes (list[dict]): List of route dicts with values:
+            - address (str): The destination address of the route.
+            - subnet_mask (str): The subnet mask of the route.
+            - next_hop_ip_address (str): The next hop IP for the route.
+            - metric (int): The metric of the route. Optional.
+          - default_route:
+            - next_hop_ip_address (str): The next hop IP for the route.
+
+        Example config:
+        ```
+        {
+            'hostname': 'router_1',
+            'num_ports': 5,
+            'ports': {
+                1: {
+                    'ip_address' : '192.168.1.1',
+                    'subnet_mask' : '255.255.255.0',
+                },
+                2: {
+                    'ip_address' : '192.168.0.1',
+                    'subnet_mask' : '255.255.255.252',
+                }
+            },
+            'acl' : {
+                21: {'action': 'PERMIT', 'src_port': 'HTTP', dst_port: 'HTTP'},
+                22: {'action': 'PERMIT', 'src_port': 'ARP', 'dst_port': 'ARP'},
+                23: {'action': 'PERMIT', 'protocol': 'ICMP'},
+            },
+            'routes' : [
+                {'address': '192.168.0.0', 'subnet_mask': '255.255.255.0', 'next_hop_ip_address': '192.168.1.2'}
+            ],
+            'default_route': {'next_hop_ip_address': '192.168.0.2'}
+        }
+        ```
+
+        :param cfg: Router config adhering to schema described in main docstring body
+        :type cfg: dict
+        :return: Configured router.
+        :rtype: Router
+        """
+        router = Router(config=Router.ConfigSchema(**config)
+        )
+        if "ports" in config:
+            for port_num, port_cfg in config["ports"].items():
+                router.configure_port(
+                    port=port_num,
+                    ip_address=port_cfg["ip_address"],
+                    subnet_mask=IPv4Address(port_cfg.get("subnet_mask", "255.255.255.0")),
+                )
+        if "acl" in config:
+            for r_num, r_cfg in config["acl"].items():
+                router.acl.add_rule(
+                    action=ACLAction[r_cfg["action"]],
+                    src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
+                    dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
+                    protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
+                    src_ip_address=r_cfg.get("src_ip"),
+                    src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
+                    dst_ip_address=r_cfg.get("dst_ip"),
+                    dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
+                    position=r_num,
+                )
+        if "routes" in config:
+            for route in config.get("routes"):
+                router.route_table.add_route(
+                    address=IPv4Address(route.get("address")),
+                    subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),
+                    next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
+                    metric=float(route.get("metric", 0)),
+                )
+        if "default_route" in config:
+            next_hop_ip_address = config["default_route"].get("next_hop_ip_address", None)
+            if next_hop_ip_address:
+                router.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
+        return router

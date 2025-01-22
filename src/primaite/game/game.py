@@ -271,12 +271,13 @@ class PrimaiteGame:
 
         for node_cfg in nodes_cfg:
             n_type = node_cfg["type"]
-            node_config: dict = node_cfg["config"]
+            # node_config: dict = node_cfg["config"]
+            print(f"{n_type}:{node_cfg}")
 
             new_node = None
             if n_type in Node._registry:
                 # simplify down Node creation:
-                new_node = Node._registry["n_type"].from_config(config=node_config)
+                new_node = Node._registry[n_type].from_config(config=node_cfg)
             else:
                 msg = f"invalid node type {n_type} in config"
                 _LOGGER.error(msg)
@@ -313,7 +314,7 @@ class PrimaiteGame:
                         service_class = SERVICE_TYPES_MAPPING[service_type]
 
                     if service_class is not None:
-                        _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
+                        _LOGGER.debug(f"installing {service_type} on node {new_node.config.hostname}")
                         new_node.software_manager.install(service_class, **service_cfg.get("options", {}))
                         new_service = new_node.software_manager.software[service_class.__name__]
 

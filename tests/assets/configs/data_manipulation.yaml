@@ -187,7 +187,7 @@ agents:
               num_files: 1
               num_nics: 2
               include_num_access: false
-              include_nmne: true
+              include_nmne: true 
               monitored_traffic:
                 icmp:
                     - NONE

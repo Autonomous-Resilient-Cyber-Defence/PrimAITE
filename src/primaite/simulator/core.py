@@ -3,7 +3,7 @@
 """Core of the PrimAITE Simulator."""
 import warnings
 from abc import abstractmethod
-from typing import Callable, Dict, Iterable, List, Literal, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Literal, Optional, Tuple, Union
 from uuid import uuid4
 
 from prettytable import PrettyTable
