@@ -68,6 +68,10 @@ class AbstractAgent(BaseModel, ABC):
         )
         reward_function: RewardFunction.ConfigSchema = Field(default_factory=lambda: RewardFunction.ConfigSchema())
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.logger: AgentLog = AgentLog(agent_name=self.config.ref)
+
     config: "AbstractAgent.ConfigSchema" = Field(default_factory=lambda: AbstractAgent.ConfigSchema())
 
     logger: AgentLog = AgentLog(agent_name="Abstract_Agent")
@@ -81,6 +85,7 @@ class AbstractAgent(BaseModel, ABC):
 
     def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
+        print("cls identifier:", identifier)
         if identifier is None:
             return
         if identifier in cls._registry:
@@ -157,6 +162,8 @@ class AbstractAgent(BaseModel, ABC):
     def from_config(cls, config: Dict) -> AbstractAgent:
         """Grab the relevant agent class and construct an instance from a config dict."""
         agent_type = config["type"]
+        print("agent_type:", agent_type)
+        print("cls._registry:", cls._registry)
         agent_class = cls._registry[agent_type]
         return agent_class(config=config)
 
