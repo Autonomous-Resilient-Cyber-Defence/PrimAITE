@@ -126,16 +126,16 @@ class WirelessRouter(Router, identifier="wireless_router"):
 
     config: "WirelessRouter.ConfigSchema" = Field(default_factory=lambda: WirelessRouter.ConfigSchema())
 
-    class ConfigSchema(Router.ConfigSChema):
+    class ConfigSchema(Router.ConfigSchema):
         """Configuration Schema for WirelessRouter nodes within PrimAITE."""
 
         hostname: str = "WirelessRouter"
 
-    def __init__(self, hostname: str, airspace: AirSpace, **kwargs):
-        super().__init__(hostname=hostname, num_ports=0, airspace=airspace, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(hostname=kwargs["config"].hostname, num_ports=0, airspace=kwargs["config"].airspace, **kwargs)
 
         self.connect_nic(
-            WirelessAccessPoint(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", airspace=airspace)
+            WirelessAccessPoint(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", airspace=kwargs["config"].airspace)
         )
 
         self.connect_nic(RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0"))

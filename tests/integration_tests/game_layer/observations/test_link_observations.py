@@ -56,12 +56,12 @@ def test_link_observation():
     """Check the shape and contents of the link observation."""
     net = Network()
     sim = Simulation(network=net)
-    switch = Switch(hostname="switch", num_ports=5, operating_state=NodeOperatingState.ON)
-    computer_1 = Computer(
-        hostname="computer_1", ip_address="10.0.0.1", subnet_mask="255.255.255.0", start_up_duration=0
+    switch: Switch = Switch.from_config(config={"type":"switch", "hostname":"switch", "num_ports":5, "operating_state":NodeOperatingState.ON})
+    computer_1: Computer = Computer.from_config(config={"type": "computer",
+        "hostname":"computer_1", "ip_address":"10.0.0.1", "subnet_mask":"255.255.255.0", "start_up_duration":0}
     )
-    computer_2 = Computer(
-        hostname="computer_2", ip_address="10.0.0.2", subnet_mask="255.255.255.0", start_up_duration=0
+    computer_2: Computer = Computer.from_config(config={"type":"computer",
+        "hostname":"computer_2", "ip_address":"10.0.0.2", "subnet_mask":"255.255.255.0", "start_up_duration":0}
     )
     computer_1.power_on()
     computer_2.power_on()

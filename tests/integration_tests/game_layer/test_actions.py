@@ -17,6 +17,7 @@ from typing import Tuple
 import pytest
 import yaml
 
+from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteGymEnv

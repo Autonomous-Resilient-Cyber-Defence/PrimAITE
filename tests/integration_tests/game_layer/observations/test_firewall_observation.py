@@ -25,7 +25,8 @@ def check_default_rules(acl_obs):
 def test_firewall_observation():
     """Test adding/removing acl rules and enabling/disabling ports."""
     net = Network()
-    firewall = Firewall(hostname="firewall", operating_state=NodeOperatingState.ON)
+    firewall_cfg = {"type": "firewall", "hostname": "firewall", "opertating_state": NodeOperatingState.ON}
+    firewall = Firewall.from_config(config=firewall_cfg)
     firewall_observation = FirewallObservation(
         where=[],
         num_rules=7,
@@ -116,7 +117,7 @@ def test_firewall_observation():
     assert all(observation["PORTS"][i]["operating_status"] == 2 for i in range(1, 4))
 
     # connect a switch to the firewall and check that only the correct port is updated
-    switch = Switch(hostname="switch", num_ports=1, operating_state=NodeOperatingState.ON)
+    switch: Switch = Switch.from_config(config={"type": "switch", "hostname":"switch", "num_ports":1, "operating_state":NodeOperatingState.ON})
     link = net.connect(firewall.network_interface[1], switch.network_interface[1])
     assert firewall.network_interface[1].enabled
     observation = firewall_observation.observe(firewall.describe_state())
