@@ -32,11 +32,11 @@ def test_file_observation(simulation):
     assert dog_file_obs.space["health_status"] == spaces.Discrete(6)
 
     observation_state = dog_file_obs.observe(simulation.describe_state())
-    assert observation_state.get("health_status") == 1  # good initial
+    assert observation_state.get("health_status") == 0  # initially unset
 
     file.corrupt()
     observation_state = dog_file_obs.observe(simulation.describe_state())
-    assert observation_state.get("health_status") == 1  # scan file so this changes
+    assert observation_state.get("health_status") == 0  # still default unset value because no scan happened
 
     file.scan()
     file.apply_timestep(0)  # apply time step
@@ -63,11 +63,11 @@ def test_folder_observation(simulation):
 
     observation_state = root_folder_obs.observe(simulation.describe_state())
     assert observation_state.get("FILES") is not None
-    assert observation_state.get("health_status") == 1
+    assert observation_state.get("health_status") == 0  # initially unset
 
     file.corrupt()  # corrupt just the file
     observation_state = root_folder_obs.observe(simulation.describe_state())
-    assert observation_state.get("health_status") == 1  # scan folder to change this
+    assert observation_state.get("health_status") == 0  # still unset as no scan occurred yet
 
     folder.scan()
     for i in range(folder.scan_duration + 1):

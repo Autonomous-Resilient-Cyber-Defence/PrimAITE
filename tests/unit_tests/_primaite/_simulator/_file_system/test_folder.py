@@ -44,25 +44,25 @@ def test_folder_scan(file_system):
     file2: File = folder.get_file_by_id(file_uuid=list(folder.files)[0])
 
     assert folder.health_status == FileSystemItemHealthStatus.GOOD
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.visible_health_status == FileSystemItemHealthStatus.NONE
+    assert file1.visible_health_status == FileSystemItemHealthStatus.NONE
+    assert file2.visible_health_status == FileSystemItemHealthStatus.NONE
 
     folder.corrupt()
 
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.visible_health_status == FileSystemItemHealthStatus.NONE
+    assert file1.visible_health_status == FileSystemItemHealthStatus.NONE
+    assert file2.visible_health_status == FileSystemItemHealthStatus.NONE
 
     folder.scan()
 
     folder.apply_timestep(timestep=0)
 
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.visible_health_status == FileSystemItemHealthStatus.NONE
+    assert file1.visible_health_status == FileSystemItemHealthStatus.NONE
+    assert file2.visible_health_status == FileSystemItemHealthStatus.NONE
 
     folder.apply_timestep(timestep=1)
     folder.apply_timestep(timestep=2)
@@ -120,7 +120,7 @@ def test_folder_corrupt_repair(file_system):
     assert file.health_status == FileSystemItemHealthStatus.GOOD
 
 
-@pytest.mark.skip(reason="NODE_FILE_CHECKHASH not implemented")
+@pytest.mark.skip(reason="node_file_checkhash not implemented")
 def test_simulated_folder_check_hash(file_system):
     folder: Folder = file_system.create_folder(folder_name="test_folder")
     file_system.create_file(file_name="test_file.txt", folder_name="test_folder")

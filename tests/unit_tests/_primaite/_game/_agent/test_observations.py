@@ -69,8 +69,8 @@ class TestFileSystemRequiresScan:
               wildcard_list:
                 - 0.0.0.1
               port_list:
-                - 80
-                - 5432
+                - HTTP
+                - POSTGRES_SERVER
               protocol_list:
                 - ICMP
                 - TCP
@@ -98,7 +98,7 @@ class TestFileSystemRequiresScan:
         """
 
         cfg = yaml.safe_load(obs_cfg_yaml)
-        manager = ObservationManager.from_config(cfg)
+        manager = ObservationManager(config=cfg)
 
         hosts: List[HostObservation] = manager.obs.components["NODES"].hosts
         for i, host in enumerate(hosts):
@@ -119,14 +119,20 @@ class TestFileSystemRequiresScan:
         assert obs_not_requiring_scan.observe(file_state)["health_status"] == 3
 
     def test_folder_require_scan(self):
-        folder_state = {"health_status": 3, "visible_status": 1}
+        folder_state = {"health_status": 3, "visible_status": 1, "scanned_this_step": False}
 
         obs_requiring_scan = FolderObservation(
             [], files=[], num_files=0, include_num_access=False, file_system_requires_scan=True
         )
-        assert obs_requiring_scan.observe(folder_state)["health_status"] == 1
+        assert obs_requiring_scan.observe(folder_state)["health_status"] == 0
 
         obs_not_requiring_scan = FolderObservation(
             [], files=[], num_files=0, include_num_access=False, file_system_requires_scan=False
         )
         assert obs_not_requiring_scan.observe(folder_state)["health_status"] == 3
+
+        folder_state = {"health_status": 3, "visible_status": 1, "scanned_this_step": True}
+        obs_requiring_scan = FolderObservation(
+            [], files=[], num_files=0, include_num_access=False, file_system_requires_scan=True
+        )
+        assert obs_requiring_scan.observe(folder_state)["health_status"] == 1

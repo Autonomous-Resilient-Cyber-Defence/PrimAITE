@@ -81,7 +81,7 @@ class TestWebpageUnavailabilitySticky:
         reward = WebpageUnavailablePenalty(config=schema)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "do_nothing", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
@@ -91,8 +91,8 @@ class TestWebpageUnavailabilitySticky:
         assert reward.calculate(state, last_action_response) == 0
 
         # agent did a successful fetch
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="success", data={})
         browser_history.append({"outcome": 200})
@@ -104,7 +104,7 @@ class TestWebpageUnavailabilitySticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is not sticky, it goes back to 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "do_nothing", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
@@ -114,8 +114,8 @@ class TestWebpageUnavailabilitySticky:
         assert reward.calculate(state, last_action_response) == 0.0
 
         # agent fails to fetch, get a -1.0 reward
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="failure", data={})
         browser_history.append({"outcome": 404})
@@ -126,8 +126,8 @@ class TestWebpageUnavailabilitySticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
         # agent fails again to fetch, get a -1.0 reward again
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="failure", data={})
         browser_history.append({"outcome": 404})
@@ -142,7 +142,7 @@ class TestWebpageUnavailabilitySticky:
         reward = WebpageUnavailablePenalty(config=schema)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "do_nothing", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         browser_history = []
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
@@ -152,8 +152,8 @@ class TestWebpageUnavailabilitySticky:
         assert reward.calculate(state, last_action_response) == 0
 
         # agent did a successful fetch
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="success", data={})
         browser_history.append({"outcome": 200})
@@ -165,7 +165,7 @@ class TestWebpageUnavailabilitySticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is sticky, it stays at 1.0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "do_nothing", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"WebBrowser": {"history": browser_history}}}}}}
         last_action_response = AgentHistoryItem(
@@ -174,8 +174,8 @@ class TestWebpageUnavailabilitySticky:
         assert reward.calculate(state, last_action_response) == 1.0
 
         # agent fails to fetch, get a -1.0 reward
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="failure", data={})
         browser_history.append({"outcome": 404})
@@ -186,8 +186,8 @@ class TestWebpageUnavailabilitySticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
         # agent fails again to fetch, get a -1.0 reward again
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "WebBrowser"}
         request = ["network", "node", "computer", "application", "WebBrowser", "execute"]
         response = RequestResponse(status="failure", data={})
         browser_history.append({"outcome": 404})
@@ -207,7 +207,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
         reward = GreenAdminDatabaseUnreachablePenalty(config=schema)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "do_nothing", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(
@@ -216,8 +216,8 @@ class TestGreenAdminDatabaseUnreachableSticky:
         assert reward.calculate(state, last_action_response) == 0
 
         # agent did a successful fetch
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
@@ -228,7 +228,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is not sticky, it goes back to 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "do_nothing", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(
@@ -237,8 +237,8 @@ class TestGreenAdminDatabaseUnreachableSticky:
         assert reward.calculate(state, last_action_response) == 0.0
 
         # agent fails to fetch, get a -1.0 reward
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="failure", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
@@ -248,8 +248,8 @@ class TestGreenAdminDatabaseUnreachableSticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
         # agent fails again to fetch, get a -1.0 reward again
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="failure", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
@@ -266,7 +266,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
         reward = GreenAdminDatabaseUnreachablePenalty(config=schema)
 
         # no response codes yet, reward is 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "do_nothing", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(
@@ -275,8 +275,8 @@ class TestGreenAdminDatabaseUnreachableSticky:
         assert reward.calculate(state, last_action_response) == 0
 
         # agent did a successful fetch
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
@@ -287,7 +287,7 @@ class TestGreenAdminDatabaseUnreachableSticky:
 
         # THE IMPORTANT BIT
         # agent did nothing, because reward is not sticky, it goes back to 0
-        action, params, request = "DO_NOTHING", {}, ["DONOTHING"]
+        action, params, request = "do_nothing", {}, ["do_nothing"]
         response = RequestResponse(status="success", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
         last_action_response = AgentHistoryItem(
@@ -296,8 +296,8 @@ class TestGreenAdminDatabaseUnreachableSticky:
         assert reward.calculate(state, last_action_response) == 1.0
 
         # agent fails to fetch, get a -1.0 reward
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="failure", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}
@@ -307,8 +307,8 @@ class TestGreenAdminDatabaseUnreachableSticky:
         assert reward.calculate(state, last_action_response) == -1.0
 
         # agent fails again to fetch, get a -1.0 reward again
-        action = "NODE_APPLICATION_EXECUTE"
-        params = {"node_id": 0, "application_id": 0}
+        action = "node_application_execute"
+        params = {"node_name": "computer", "application_name": "DatabaseClient"}
         request = ["network", "node", "computer", "application", "DatabaseClient", "execute"]
         response = RequestResponse(status="failure", data={})
         state = {"network": {"nodes": {"computer": {"applications": {"DatabaseClient": {}}}}}}

@@ -22,12 +22,12 @@ def test_file_scan(file_system):
     file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
 
     assert file.health_status == FileSystemItemHealthStatus.GOOD
-    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file.visible_health_status == FileSystemItemHealthStatus.NONE
 
     file.corrupt()
 
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file.visible_health_status == FileSystemItemHealthStatus.NONE
 
     file.scan()
 
@@ -46,7 +46,7 @@ def test_file_reveal_to_red_scan(file_system):
     assert file.revealed_to_red is True
 
 
-@pytest.mark.skip(reason="NODE_FILE_CHECKHASH not implemented")
+@pytest.mark.skip(reason="node_file_checkhash not implemented")
 def test_simulated_file_check_hash(file_system):
     file: File = file_system.create_file(file_name="test_file.txt", folder_name="test_folder")
 

@@ -7,7 +7,7 @@ from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
@@ -129,8 +129,15 @@ class RemoteTerminalConnection(TerminalClientConnection):
         return self.parent_terminal.send(payload=payload, session_id=self.ssh_session_id)
 
 
-class Terminal(Service):
+class Terminal(Service, identifier="Terminal"):
     """Class used to simulate a generic terminal service. Can be interacted with by other terminals via SSH."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for Terminal."""
+
+        type: str = "Terminal"
+
+    config: "Terminal.ConfigSchema" = Field(default_factory=lambda: Terminal.ConfigSchema())
 
     _client_connection_requests: Dict[str, Optional[Union[str, TerminalClientConnection]]] = {}
     """Dictionary of connect requests made to remote nodes."""
@@ -179,7 +186,7 @@ class Terminal(Service):
                 return RequestResponse(status="failure", data={})
 
         rm.add_request(
-            "ssh_to_remote",
+            "node_session_remote_login",
             request_type=RequestType(func=_remote_login),
         )
 
@@ -279,7 +286,6 @@ class Terminal(Service):
         :param password: Password for login.
         :return: boolean, True if successful, else False
         """
-        # TODO: Un-comment this when UserSessionManager is merged.
         connection_uuid = self.parent.user_session_manager.local_login(username=username, password=password)
         if connection_uuid:
             self.sys_log.info(f"{self.name}: Login request authorised, connection uuid: {connection_uuid}")
@@ -406,7 +412,6 @@ class Terminal(Service):
         if isinstance(payload, SSHPacket):
             if payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST:
                 # validate & add connection
-                # TODO: uncomment this as part of 2781
                 username = payload.user_account.username
                 password = payload.user_account.password
                 connection_id = self.parent.user_session_manager.remote_login(

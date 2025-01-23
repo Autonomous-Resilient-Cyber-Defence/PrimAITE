@@ -24,7 +24,7 @@ def test_file_scan_request(populated_file_system):
 
     file.corrupt()
     assert file.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert file.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert file.visible_health_status == FileSystemItemHealthStatus.NONE
 
     fs.apply_request(request=["folder", folder.name, "file", file.name, "scan"])
 
@@ -32,7 +32,7 @@ def test_file_scan_request(populated_file_system):
     assert file.visible_health_status == FileSystemItemHealthStatus.CORRUPT
 
 
-@pytest.mark.skip(reason="NODE_FILE_CHECKHASH not implemented")
+@pytest.mark.skip(reason="node_file_checkhash not implemented")
 def test_file_checkhash_request(populated_file_system):
     """Test that an agent can request a file hash check."""
     fs, folder, file = populated_file_system
@@ -94,7 +94,7 @@ def test_deleted_file_cannot_be_interacted_with(populated_file_system):
     assert fs.get_file(folder_name=folder.name, file_name=file.name).health_status == FileSystemItemHealthStatus.CORRUPT
     assert (
         fs.get_file(folder_name=folder.name, file_name=file.name).visible_health_status
-        == FileSystemItemHealthStatus.GOOD
+        == FileSystemItemHealthStatus.NONE
     )
 
     fs.apply_request(request=["delete", "file", folder.name, file.name])

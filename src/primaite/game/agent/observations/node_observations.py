@@ -56,7 +56,7 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         """List of IP addresses for encoding ACLs."""
         wildcard_list: Optional[List[str]] = None
         """List of IP wildcards for encoding ACLs."""
-        port_list: Optional[List[int]] = None
+        port_list: Optional[List[str]] = None
         """List of ports for encoding ACLs."""
         protocol_list: Optional[List[str]] = None
         """List of protocols for encoding ACLs."""

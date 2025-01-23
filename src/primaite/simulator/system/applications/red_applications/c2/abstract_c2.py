@@ -2,9 +2,9 @@
 from abc import abstractmethod
 from enum import Enum
 from ipaddress import IPv4Address
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Set, Union
 
-from pydantic import BaseModel, Field, validate_call
+from pydantic import Field, validate_call
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.file_system.file_system import FileSystem, Folder
@@ -45,10 +45,10 @@ class C2Payload(Enum):
     """C2 Input Command payload. Used by the C2 Server to send a command to the c2 beacon."""
 
     OUTPUT = "output_command"
-    """C2 Output Command. Used by the C2 Beacon to send the results of a Input command to the c2 server."""
+    """C2 Output Command. Used by the C2 Beacon to send the results of an Input command to the c2 server."""
 
 
-class AbstractC2(Application, identifier="AbstractC2"):
+class AbstractC2(Application):
     """
     An abstract command and control (c2) application.
 
@@ -60,8 +60,24 @@ class AbstractC2(Application, identifier="AbstractC2"):
 
     Defaults to masquerading as HTTP (Port 80) via TCP.
 
-    Please refer to the Command-&-Control notebook for an in-depth example of the C2 Suite.
+    Please refer to the Command-and-Control notebook for an in-depth example of the C2 Suite.
     """
+
+    class ConfigSchema(Application.ConfigSchema):
+        """Configuration for AbstractC2."""
+
+        keep_alive_frequency: int = Field(default=5, ge=1)
+        """The frequency at which ``Keep Alive`` packets are sent to the C2 Server from the C2 Beacon."""
+
+        masquerade_protocol: IPProtocol = Field(default=PROTOCOL_LOOKUP["TCP"])
+        """The currently chosen protocol that the C2 traffic is masquerading as. Defaults as TCP."""
+
+        masquerade_port: Port = Field(default=PORT_LOOKUP["HTTP"])
+        """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
+
+        listen_on_ports: Set[Port] = {PORT_LOOKUP["HTTP"], PORT_LOOKUP["FTP"], PORT_LOOKUP["DNS"]}
+
+    config: ConfigSchema = Field(default_factory=lambda: AbstractC2.ConfigSchema())
 
     c2_connection_active: bool = False
     """Indicates if the c2 server and c2 beacon are currently connected."""
@@ -75,19 +91,6 @@ class AbstractC2(Application, identifier="AbstractC2"):
     keep_alive_inactivity: int = 0
     """Indicates how many timesteps since the last time the c2 application received a keep alive."""
 
-    class _C2Opts(BaseModel):
-        """A Pydantic Schema for the different C2 configuration options."""
-
-        keep_alive_frequency: int = Field(default=5, ge=1)
-        """The frequency at which ``Keep Alive`` packets are sent to the C2 Server from the C2 Beacon."""
-
-        masquerade_protocol: IPProtocol = Field(default=PROTOCOL_LOOKUP["TCP"])
-        """The currently chosen protocol that the C2 traffic is masquerading as. Defaults as TCP."""
-
-        masquerade_port: Port = Field(default=PORT_LOOKUP["HTTP"])
-        """The currently chosen port that the C2 traffic is masquerading as. Defaults at HTTP."""
-
-    c2_config: _C2Opts = _C2Opts()
     """
     Holds the current configuration settings of the C2 Suite.
 
@@ -99,6 +102,12 @@ class AbstractC2(Application, identifier="AbstractC2"):
     If the C2 Beacon is reconfigured then a new keep alive is set which causes the
     C2 beacon to reconfigure it's configuration settings.
     """
+
+    def __init__(self, **kwargs):
+        """Initialise the C2 applications to by default listen for HTTP traffic."""
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
+        super().__init__(**kwargs)
 
     def _craft_packet(
         self, c2_payload: C2Payload, c2_command: Optional[C2Command] = None, command_options: Optional[Dict] = {}
@@ -118,13 +127,13 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :type c2_command: C2Command.
         :param command_options: The relevant C2 Beacon parameters.F
         :type command_options: Dict
-        :return: Returns the construct C2Packet
+        :return: Returns the constructed C2Packet
         :rtype: C2Packet
         """
         constructed_packet = C2Packet(
-            masquerade_protocol=self.c2_config.masquerade_protocol,
-            masquerade_port=self.c2_config.masquerade_port,
-            keep_alive_frequency=self.c2_config.keep_alive_frequency,
+            masquerade_protocol=self.config.masquerade_protocol,
+            masquerade_port=self.config.masquerade_port,
+            keep_alive_frequency=self.config.keep_alive_frequency,
             payload_type=c2_payload,
             command=c2_command,
             payload=command_options,
@@ -139,13 +148,6 @@ class AbstractC2(Application, identifier="AbstractC2"):
         :rtype: Dict
         """
         return super().describe_state()
-
-    def __init__(self, **kwargs):
-        """Initialise the C2 applications to by default listen for HTTP traffic."""
-        kwargs["listen_on_ports"] = {PORT_LOOKUP["HTTP"], PORT_LOOKUP["FTP"], PORT_LOOKUP["DNS"]}
-        kwargs["port"] = PORT_LOOKUP["NONE"]
-        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
-        super().__init__(**kwargs)
 
     @property
     def _host_ftp_client(self) -> Optional[FTPClient]:
@@ -330,8 +332,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
         if self.send(
             payload=keep_alive_packet,
             dest_ip_address=self.c2_remote_connection,
-            dest_port=self.c2_config.masquerade_port,
-            ip_protocol=self.c2_config.masquerade_protocol,
+            dest_port=self.config.masquerade_port,
+            ip_protocol=self.config.masquerade_protocol,
             session_id=session_id,
         ):
             # Setting the keep_alive_sent guard condition to True. This is used to prevent packet storms.
@@ -340,8 +342,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
             self.sys_log.info(f"{self.name}: Keep Alive sent to {self.c2_remote_connection}")
             self.sys_log.debug(
                 f"{self.name}: Keep Alive sent to {self.c2_remote_connection} "
-                f"Masquerade Port: {self.c2_config.masquerade_port} "
-                f"Masquerade Protocol: {self.c2_config.masquerade_protocol} "
+                f"Masquerade Port: {self.config.masquerade_port} "
+                f"Masquerade Protocol: {self.config.masquerade_protocol} "
             )
             return True
         else:
@@ -376,15 +378,15 @@ class AbstractC2(Application, identifier="AbstractC2"):
 
         # Updating the C2 Configuration attribute.
 
-        self.c2_config.masquerade_port = payload.masquerade_port
-        self.c2_config.masquerade_protocol = payload.masquerade_protocol
-        self.c2_config.keep_alive_frequency = payload.keep_alive_frequency
+        self.config.masquerade_port = payload.masquerade_port
+        self.config.masquerade_protocol = payload.masquerade_protocol
+        self.config.keep_alive_frequency = payload.keep_alive_frequency
 
         self.sys_log.debug(
             f"{self.name}: C2 Config Resolved Config from Keep Alive:"
-            f"Masquerade Port: {self.c2_config.masquerade_port}"
-            f"Masquerade Protocol: {self.c2_config.masquerade_protocol}"
-            f"Keep Alive Frequency: {self.c2_config.keep_alive_frequency}"
+            f"Masquerade Port: {self.config.masquerade_port}"
+            f"Masquerade Protocol: {self.config.masquerade_protocol}"
+            f"Keep Alive Frequency: {self.config.keep_alive_frequency}"
         )
 
         # This statement is intended to catch on the C2 Application that is listening for connection.
@@ -410,8 +412,8 @@ class AbstractC2(Application, identifier="AbstractC2"):
         self.keep_alive_inactivity = 0
         self.keep_alive_frequency = 5
         self.c2_remote_connection = None
-        self.c2_config.masquerade_port = PORT_LOOKUP["HTTP"]
-        self.c2_config.masquerade_protocol = PROTOCOL_LOOKUP["TCP"]
+        self.config.masquerade_port = PORT_LOOKUP["HTTP"]
+        self.config.masquerade_protocol = PROTOCOL_LOOKUP["TCP"]
 
     @abstractmethod
     def _confirm_remote_connection(self, timestep: int) -> bool:

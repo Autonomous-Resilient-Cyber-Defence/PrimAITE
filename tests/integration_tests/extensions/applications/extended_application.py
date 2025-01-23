@@ -4,7 +4,7 @@ from ipaddress import IPv4Address
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from primaite import getLogger
 from primaite.interface.request import RequestResponse
@@ -31,6 +31,14 @@ class ExtendedApplication(Application, identifier="ExtendedApplication"):
     The application requests and loads web pages using its domain name and requesting IP addresses using DNS.
     """
 
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for ExtendedApplication."""
+
+        type: str = "ExtendedApplication"
+        target_url: Optional[str] = None
+
+    config: "ExtendedApplication.ConfigSchema" = Field(default_factory=lambda: ExtendedApplication.ConfigSchema())
+
     target_url: Optional[str] = None
 
     domain_name_ip_address: Optional[IPv4Address] = None
@@ -50,6 +58,7 @@ class ExtendedApplication(Application, identifier="ExtendedApplication"):
             kwargs["port"] = PORT_LOOKUP["HTTP"]
 
         super().__init__(**kwargs)
+        self.target_url = self.config.target_url
         self.run()
 
     def _init_request_manager(self) -> RequestManager:

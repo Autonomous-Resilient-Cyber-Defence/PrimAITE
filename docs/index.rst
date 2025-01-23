@@ -70,7 +70,7 @@ PrimAITE incorporates the following features:
 
 - Architected with a separate Simulation layer and Game layer. This separation of concerns defines a clear path towards transfer learning with environments of differing fidelity;
 - Ability to reconfigure an RL reward function based on (a) the ability to counter the modelled adversarial cyber-attack, and (b) the ability to ensure success for green agents;
-- Access Control List (ACL) functions for network devices (routers and firewalls), following standard ACL rule format (e.g., DENY / ALLOW, source / destination IP addresses, protocol and port);
+- Access Control List (ACL) functions for network devices (routers and firewalls), following standard ACL rule format (e.g., DENY / PERMIT, source / destination IP addresses, protocol and port);
 - Application of traffic to the links of the system laydown adheres to the ACL rulesets and routing tables contained within each network device;
 - Provides RL environments adherent to the Farama Foundation Gymnasium (Previously OpenAI Gym) API, allowing integration with any compliant RL Agent frameworks;
 - Provides RL environments adherent to Ray RLlib environment specifications for single-agent and multi-agent scenarios;

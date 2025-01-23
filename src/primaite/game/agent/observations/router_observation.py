@@ -33,13 +33,13 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         """List of IP addresses for encoding ACLs."""
         wildcard_list: Optional[List[str]] = None
         """List of IP wildcards for encoding ACLs."""
-        port_list: Optional[List[int]] = None
+        port_list: Optional[List[str]] = None
         """List of ports for encoding ACLs."""
         protocol_list: Optional[List[str]] = None
         """List of protocols for encoding ACLs."""
         num_rules: Optional[int] = None
         """Number of rules ACL rules to show."""
-        include_users: Optional[bool] = True
+        include_users: Optional[bool] = None
         """If True, report user session information."""
 
     def __init__(
@@ -84,6 +84,8 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         }
         if self.ports:
             self.default_observation["PORTS"] = {i + 1: p.default_observation for i, p in enumerate(self.ports)}
+        if self.include_users:
+            self.default_observation["users"] = {"local_login": 0, "remote_sessions": 0}
 
     def observe(self, state: Dict) -> ObsType:
         """
@@ -98,16 +100,21 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         if router_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
 
-        obs = {}
-        obs["ACL"] = self.acl.observe(state)
-        if self.ports:
-            obs["PORTS"] = {i + 1: p.observe(state) for i, p in enumerate(self.ports)}
-        if self.include_users:
-            sess = router_state["services"]["UserSessionManager"]
-            obs["users"] = {
-                "local_login": 1 if sess["current_local_user"] else 0,
-                "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),
-            }
+        is_on = router_state["operating_state"] == 1
+        if not is_on:
+            obs = {**self.default_observation}
+
+        else:
+            obs = {}
+            obs["ACL"] = self.acl.observe(state)
+            if self.ports:
+                obs["PORTS"] = {i + 1: p.observe(state) for i, p in enumerate(self.ports)}
+            if self.include_users:
+                sess = router_state["services"]["UserSessionManager"]
+                obs["users"] = {
+                    "local_login": 1 if sess["current_local_user"] else 0,
+                    "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),
+                }
         return obs
 
     @property
@@ -121,6 +128,10 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         shape = {"ACL": self.acl.space}
         if self.ports:
             shape["PORTS"] = spaces.Dict({i + 1: p.space for i, p in enumerate(self.ports)})
+        if self.include_users:
+            shape["users"] = spaces.Dict(
+                {"local_login": spaces.Discrete(2), "remote_sessions": spaces.Discrete(self.max_users + 1)}
+            )
         return spaces.Dict(shape)
 
     @classmethod

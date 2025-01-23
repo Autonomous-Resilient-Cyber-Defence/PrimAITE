@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from abc import ABC, abstractmethod
 from ipaddress import IPv4Address
-from typing import Any, ClassVar, Dict, Literal, Type
+from typing import Any, ClassVar, Dict, Literal, Optional, Type
 
 from pydantic import BaseModel, model_validator
 
@@ -49,7 +49,7 @@ class NetworkNodeAdder(BaseModel):
 
     _registry: ClassVar[Dict[str, Type["NetworkNodeAdder"]]] = {}
 
-    def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
+    def __init_subclass__(cls, identifier: Optional[str], **kwargs: Any) -> None:
         """
         Register a network node adder class.
 
@@ -58,6 +58,8 @@ class NetworkNodeAdder(BaseModel):
         :raises ValueError: When attempting to register a name that is already reserved.
         """
         super().__init_subclass__(**kwargs)
+        if identifier is None:
+            return
         if identifier in cls._registry:
             raise ValueError(f"Duplicate node adder {identifier}")
         cls._registry[identifier] = cls

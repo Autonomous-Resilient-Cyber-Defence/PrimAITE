@@ -54,65 +54,46 @@ agents:
                 - server:eth-1<->switch_1:eth-2
 
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_SHUTDOWN
-        - type: NODE_STARTUP
-        - type: HOST_NIC_ENABLE
-        - type: HOST_NIC_DISABLE
       action_map:
         0:
-          action: DONOTHING
+          action: do_nothing
           options: {}
         1:
-          action: NODE_SHUTDOWN
+          action: node_shutdown
           options:
-            node_id: 0
+            node_name: client
         2:
-          action: NODE_SHUTDOWN
+          action: node_shutdown
           options:
-            node_id: 1
+            node_name: server
         3:
-          action: NODE_STARTUP
+          action: node_startup
           options:
-            node_id: 0
+            node_name: client
         4:
-          action: NODE_STARTUP
+          action: node_startup
           options:
-            node_id: 1
+            node_name: server
         5:
-          action: HOST_NIC_DISABLE
+          action: host_nic_disable
           options:
-            node_id: 0
-            nic_id: 0
+            node_name: client
+            nic_num: 1
         6:
-          action: HOST_NIC_DISABLE
+          action: host_nic_disable
           options:
-            node_id: 1
-            nic_id: 0
+            node_name: server
+            nic_num: 1
         7:
-          action: HOST_NIC_ENABLE
+          action: host_nic_enable
           options:
-            node_id: 0
-            nic_id: 0
+            node_name: client
+            nic_num: 1
         8:
-          action: HOST_NIC_ENABLE
+          action: host_nic_enable
           options:
-            node_id: 1
-            nic_id: 0
-      options:
-        nodes:
-        - node_name: client
-        - node_name: server
-
-        max_folders_per_node: 0
-        max_files_per_folder: 0
-        max_services_per_node: 0
-        max_nics_per_node: 1
-        max_acl_rules: 0
-        ip_list:
-          - 192.168.1.2
-          - 192.168.1.3
+            node_name: server
+            nic_num: 1
 
     reward_function:
       reward_components:

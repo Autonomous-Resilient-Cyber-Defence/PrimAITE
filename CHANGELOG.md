@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] = TBC
+
+### Added
+
+### Changed
+-   Agents now follow a common configuration format, simplifying the configuration of agents and their extensibilty.
+-   Actions within PrimAITE are now extensible, allowing for plugin support.
+-   Added a config schema to `ObservationManager`, `ActionManager`, and `RewardFunction`.
+-   Streamlined the way agents are created from config
+-   Agent config no longer requires a dummy action space if the action space is empty, the same applies for observation space and reward function
+-   Actions now support a config schema, to allow yaml data validation and default parameter values
+-   Action parameters are no longer defined through IDs, instead meaningful data is provided directly in the action map
+-   Test and example YAMLs have been updated to match the new agent and action schemas, such as:
+    -   Removed empty action spaces, observation spaces, or reward spaces for agent which didn't use them
+    -   Relabeled action parameters to match the new action config schemas, and updated the values to no longer rely on indices
+    -   Removed action space options which were previously used for assigning meaning to action space IDs
+-   Updated tests that don't use YAMLs to still use the new action and agent schemas
+
 ## [3.3.0] - 2024-09-04
 
 ### Added

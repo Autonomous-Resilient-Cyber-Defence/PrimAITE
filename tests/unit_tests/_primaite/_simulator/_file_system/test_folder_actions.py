@@ -29,18 +29,18 @@ def test_folder_scan_request(populated_file_system):
 
     folder.corrupt()
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.visible_health_status == FileSystemItemHealthStatus.NONE
+    assert file1.visible_health_status == FileSystemItemHealthStatus.NONE
+    assert file2.visible_health_status == FileSystemItemHealthStatus.NONE
 
     fs.apply_request(request=["folder", folder.name, "scan"])
 
     folder.apply_timestep(timestep=0)
 
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file1.visible_health_status == FileSystemItemHealthStatus.GOOD
-    assert file2.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.visible_health_status == FileSystemItemHealthStatus.NONE
+    assert file1.visible_health_status == FileSystemItemHealthStatus.NONE
+    assert file2.visible_health_status == FileSystemItemHealthStatus.NONE
 
     folder.apply_timestep(timestep=1)
     folder.apply_timestep(timestep=2)
@@ -51,7 +51,7 @@ def test_folder_scan_request(populated_file_system):
     assert file2.visible_health_status == FileSystemItemHealthStatus.CORRUPT
 
 
-@pytest.mark.skip(reason="NODE_FOLDER_CHECKHASH not implemented")
+@pytest.mark.skip(reason="node_folder_checkhash not implemented")
 def test_folder_checkhash_request(populated_file_system):
     """Test that an agent can request a folder hash check."""
     fs, folder, file = populated_file_system

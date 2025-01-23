@@ -36,9 +36,9 @@ def test_remote_login(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
     server_1_usm.add_user("user123", "password", is_admin=True)
 
     action = (
-        "SSH_TO_REMOTE",
+        "node_session_remote_login",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "username": "user123",
             "password": "password",
             "remote_ip": str(server_1.network_interface[1].ip_address),
@@ -68,9 +68,9 @@ def test_remote_login_wrong_password(game_and_agent_fixture: Tuple[PrimaiteGame,
     server_1_usm.add_user("user123", "password", is_admin=True)
 
     action = (
-        "SSH_TO_REMOTE",
+        "node_session_remote_login",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "username": "user123",
             "password": "wrong_password",
             "remote_ip": str(server_1.network_interface[1].ip_address),
@@ -100,12 +100,13 @@ def test_remote_login_change_password(game_and_agent_fixture: Tuple[PrimaiteGame
     server_1_um.add_user("user123", "password", is_admin=True)
 
     action = (
-        "NODE_ACCOUNTS_CHANGE_PASSWORD",
+        "node_account_change_password",
         {
-            "node_id": 1,  # server_1
+            "node_name": "server_1",  # server_1
             "username": "user123",
             "current_password": "password",
             "new_password": "different_password",
+            "remote_ip": str(server_1.network_interface[1].ip_address),
         },
     )
     agent.store_action(action)
@@ -126,9 +127,9 @@ def test_change_password_logs_out_user(game_and_agent_fixture: Tuple[PrimaiteGam
 
     # Log in remotely
     action = (
-        "SSH_TO_REMOTE",
+        "node_session_remote_login",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "username": "user123",
             "password": "password",
             "remote_ip": str(server_1.network_interface[1].ip_address),
@@ -139,12 +140,13 @@ def test_change_password_logs_out_user(game_and_agent_fixture: Tuple[PrimaiteGam
 
     # Change password
     action = (
-        "NODE_ACCOUNTS_CHANGE_PASSWORD",
+        "node_account_change_password",
         {
-            "node_id": 1,  # server_1
+            "node_name": "server_1",  # server_1
             "username": "user123",
             "current_password": "password",
             "new_password": "different_password",
+            "remote_ip": str(server_1.network_interface[1].ip_address),
         },
     )
     agent.store_action(action)
@@ -152,9 +154,9 @@ def test_change_password_logs_out_user(game_and_agent_fixture: Tuple[PrimaiteGam
 
     # Assert that the user cannot execute an action
     action = (
-        "NODE_SEND_REMOTE_COMMAND",
+        "node_send_remote_command",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "remote_ip": str(server_1.network_interface[1].ip_address),
             "command": ["file_system", "create", "file", "folder123", "doggo.pdf", False],
         },

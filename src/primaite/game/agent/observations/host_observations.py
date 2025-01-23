@@ -54,7 +54,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         """
         If True, files and folders must be scanned to update the health state. If False, true state is always shown.
         """
-        include_users: Optional[bool] = True
+        include_users: Optional[bool] = None
         """If True, report user session information."""
 
     def __init__(
@@ -191,25 +191,31 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         if node_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
 
-        obs = {}
+        is_on = node_state["operating_state"] == 1
+        if not is_on:
+            obs = {**self.default_observation}
+
+        else:
+            obs = {}
+            if self.services:
+                obs["SERVICES"] = {i + 1: service.observe(state) for i, service in enumerate(self.services)}
+            if self.applications:
+                obs["APPLICATIONS"] = {i + 1: app.observe(state) for i, app in enumerate(self.applications)}
+            if self.folders:
+                obs["FOLDERS"] = {i + 1: folder.observe(state) for i, folder in enumerate(self.folders)}
+            if self.nics:
+                obs["NICS"] = {i + 1: nic.observe(state) for i, nic in enumerate(self.nics)}
+            if self.include_num_access:
+                obs["num_file_creations"] = node_state["file_system"]["num_file_creations"]
+                obs["num_file_deletions"] = node_state["file_system"]["num_file_deletions"]
+            if self.include_users:
+                sess = node_state["services"]["UserSessionManager"]
+                obs["users"] = {
+                    "local_login": 1 if sess["current_local_user"] else 0,
+                    "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),
+                }
+
         obs["operating_status"] = node_state["operating_state"]
-        if self.services:
-            obs["SERVICES"] = {i + 1: service.observe(state) for i, service in enumerate(self.services)}
-        if self.applications:
-            obs["APPLICATIONS"] = {i + 1: app.observe(state) for i, app in enumerate(self.applications)}
-        if self.folders:
-            obs["FOLDERS"] = {i + 1: folder.observe(state) for i, folder in enumerate(self.folders)}
-        if self.nics:
-            obs["NICS"] = {i + 1: nic.observe(state) for i, nic in enumerate(self.nics)}
-        if self.include_num_access:
-            obs["num_file_creations"] = node_state["file_system"]["num_file_creations"]
-            obs["num_file_deletions"] = node_state["file_system"]["num_file_deletions"]
-        if self.include_users:
-            sess = node_state["services"]["UserSessionManager"]
-            obs["users"] = {
-                "local_login": 1 if sess["current_local_user"] else 0,
-                "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),
-            }
         return obs
 
     @property

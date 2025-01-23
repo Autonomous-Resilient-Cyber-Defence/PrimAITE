@@ -3,6 +3,8 @@ from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.simulator.network.protocols.http import (
     HttpRequestMethod,
@@ -19,8 +21,15 @@ from primaite.utils.validation.port import Port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class WebServer(Service):
+class WebServer(Service, identifier="WebServer"):
     """Class used to represent a Web Server Service in simulation."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for WebServer."""
+
+        type: str = "WebServer"
+
+    config: "WebServer.ConfigSchema" = Field(default_factory=lambda: WebServer.ConfigSchema())
 
     response_codes_this_timestep: List[HttpStatusCode] = []
 

@@ -23,19 +23,6 @@ Agents can be scripted (deterministic and stochastic), or controlled by a reinfo
             observation_space:
                 type: UC2GreenObservation
             action_space:
-                action_list:
-                - type: DONOTHING
-                - type: NODE_APPLICATION_EXECUTE
-            options:
-                nodes:
-                - node_name: client_2
-                  applications:
-                    - application_name: WebBrowser
-                max_folders_per_node: 1
-                max_files_per_folder: 1
-                max_services_per_node: 1
-                max_applications_per_node: 1
-
             reward_function:
                 reward_components:
                 - type: DUMMY
@@ -91,10 +78,6 @@ For more information see :py:mod:`primaite.game.agent.observations`
 
 The action space is configured to be made up of individual action types. Once configured, the agent can select an action type and some optional action parameters at every step. For example: The ``NODE_SERVICE_SCAN`` action takes the parameters ``node_id`` and ``service_id``.
 
-``action_list``
-^^^^^^^^^^^^^^^
-
-A list of action modules. The options are listed in the :py:mod:`primaite.game.agent.actions.ActionManager.act_class_identifiers` module.
 
 ``action_map``
 ^^^^^^^^^^^^^^

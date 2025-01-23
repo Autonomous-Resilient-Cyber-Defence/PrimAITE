@@ -7,14 +7,8 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from primaite import DEFAULT_BANDWIDTH, getLogger
-from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
-from primaite.game.agent.observations.observation_manager import ObservationManager
-from primaite.game.agent.rewards import RewardFunction, SharedReward
-from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
-from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
-from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
-from primaite.game.agent.scripted_agents.tap001 import TAP001
+from primaite.game.agent.interface import AbstractAgent, ProxyAgent
+from primaite.game.agent.rewards import SharedReward
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.creation import NetworkNodeAdder
@@ -44,7 +38,7 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from primaite.simulator.system.software import Software
-from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.ip_protocol import IPProtocol
 from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
@@ -258,6 +252,7 @@ class PrimaiteGame:
         net = sim.network
 
         simulation_config = cfg.get("simulation", {})
+        defaults_config = cfg.get("defaults", {})
         network_config = simulation_config.get("network", {})
         airspace_cfg = network_config.get("airspace", {})
         frequency_max_capacity_mbps_cfg = airspace_cfg.get("frequency_max_capacity_mbps", {})
@@ -282,6 +277,18 @@ class PrimaiteGame:
                 msg = f"invalid node type {n_type} in config"
                 _LOGGER.error(msg)
                 raise ValueError(msg)
+
+            # TODO: handle simulation defaults more cleanly
+            if "node_start_up_duration" in defaults_config:
+                new_node.start_up_duration = defaults_config["node_startup_duration"]
+            if "node_shut_down_duration" in defaults_config:
+                new_node.shut_down_duration = defaults_config["node_shut_down_duration"]
+            if "node_scan_duration" in defaults_config:
+                new_node.node_scan_duration = defaults_config["node_scan_duration"]
+            if "folder_scan_duration" in defaults_config:
+                new_node.file_system._default_folder_scan_duration = defaults_config["folder_scan_duration"]
+            if "folder_restore_duration" in defaults_config:
+                new_node.file_system._default_folder_restore_duration = defaults_config["folder_restore_duration"]
 
             if "users" in node_cfg and new_node.software_manager.software.get("UserManager"):
                 user_manager: UserManager = new_node.software_manager.software["UserManager"]  # noqa
@@ -315,12 +322,12 @@ class PrimaiteGame:
 
                     if service_class is not None:
                         _LOGGER.debug(f"installing {service_type} on node {new_node.config.hostname}")
-                        new_node.software_manager.install(service_class, **service_cfg.get("options", {}))
+                        new_node.software_manager.install(service_class)
                         new_service = new_node.software_manager.software[service_class.__name__]
 
                         # fixing duration for the service
-                        if "fix_duration" in service_cfg.get("options", {}):
-                            new_service.fixing_duration = service_cfg["options"]["fix_duration"]
+                        if "fixing_duration" in service_cfg.get("options", {}):
+                            new_service.config.fixing_duration = service_cfg["options"]["fixing_duration"]
 
                         _set_software_listen_on_ports(new_service, service_cfg)
                         # start the service
@@ -329,6 +336,15 @@ class PrimaiteGame:
                         msg = f"Configuration contains an invalid service type: {service_type}"
                         _LOGGER.error(msg)
                         raise ValueError(msg)
+
+                    # TODO: handle simulation defaults more cleanly
+                    if "service_fix_duration" in defaults_config:
+                        new_service.fixing_duration = defaults_config["service_fix_duration"]
+                    if "service_restart_duration" in defaults_config:
+                        new_service.restart_duration = defaults_config["service_restart_duration"]
+                    if "service_install_duration" in defaults_config:
+                        new_service.install_duration = defaults_config["service_install_duration"]
+
                     # service-dependent options
                     if service_type == "DNSClient":
                         if "options" in service_cfg:
@@ -361,74 +377,20 @@ class PrimaiteGame:
                     application_type = application_cfg["type"]
 
                     if application_type in Application._registry:
-                        new_node.software_manager.install(Application._registry[application_type])
+                        application_class = Application._registry[application_type]
+                        application_options = application_cfg.get("options", {})
+                        application_options["type"] = application_type
+                        new_node.software_manager.install(application_class, software_config=application_options)
                         new_application = new_node.software_manager.software[application_type]  # grab the instance
 
-                        # fixing duration for the application
-                        if "fix_duration" in application_cfg.get("options", {}):
-                            new_application.fixing_duration = application_cfg["options"]["fix_duration"]
                     else:
                         msg = f"Configuration contains an invalid application type: {application_type}"
                         _LOGGER.error(msg)
                         raise ValueError(msg)
 
-                    _set_software_listen_on_ports(new_application, application_cfg)
-
                     # run the application
                     new_application.run()
 
-                    if application_type == "DataManipulationBot":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                server_ip_address=IPv4Address(opt.get("server_ip")),
-                                server_password=opt.get("server_password"),
-                                payload=opt.get("payload", "DELETE"),
-                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
-                                data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
-                            )
-                    elif application_type == "RansomwareScript":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                server_ip_address=IPv4Address(opt.get("server_ip")) if opt.get("server_ip") else None,
-                                server_password=opt.get("server_password"),
-                                payload=opt.get("payload", "ENCRYPT"),
-                            )
-                    elif application_type == "DatabaseClient":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                server_ip_address=IPv4Address(opt.get("db_server_ip")),
-                                server_password=opt.get("server_password"),
-                            )
-                    elif application_type == "WebBrowser":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.target_url = opt.get("target_url")
-                    elif application_type == "DoSBot":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                target_ip_address=IPv4Address(opt.get("target_ip_address")),
-                                target_port=PORT_LOOKUP[opt.get("target_port", "POSTGRES_SERVER")],
-                                payload=opt.get("payload"),
-                                repeat=bool(opt.get("repeat")),
-                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
-                                dos_intensity=float(opt.get("dos_intensity", "1.0")),
-                                max_sessions=int(opt.get("max_sessions", "1000")),
-                            )
-                    elif application_type == "C2Beacon":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                c2_server_ip_address=IPv4Address(opt.get("c2_server_ip_address")),
-                                keep_alive_frequency=(opt.get("keep_alive_frequency", 5)),
-                                masquerade_protocol=PROTOCOL_LOOKUP[
-                                    (opt.get("masquerade_protocol", PROTOCOL_LOOKUP["TCP"]))
-                                ],
-                                masquerade_port=PORT_LOOKUP[(opt.get("masquerade_port", PORT_LOOKUP["HTTP"]))],
-                            )
             if "network_interfaces" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
@@ -470,76 +432,10 @@ class PrimaiteGame:
         agents_cfg = cfg.get("agents", [])
 
         for agent_cfg in agents_cfg:
-            agent_ref = agent_cfg["ref"]  # noqa: F841
-            agent_type = agent_cfg["type"]
-            action_space_cfg = agent_cfg["action_space"]
-            observation_space_cfg = agent_cfg["observation_space"]
-            reward_function_cfg = agent_cfg["reward_function"]
-
-            # CREATE OBSERVATION SPACE
-            obs_space = ObservationManager.from_config(observation_space_cfg)
-
-            # CREATE ACTION SPACE
-            action_space = ActionManager.from_config(game, action_space_cfg)
-
-            # CREATE REWARD FUNCTION
-            reward_function = RewardFunction.from_config(reward_function_cfg)
-
-            # CREATE AGENT
-            if agent_type == "ProbabilisticAgent":
-                # TODO: implement non-random agents and fix this parsing
-                settings = agent_cfg.get("agent_settings", {})
-                new_agent = ProbabilisticAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    settings=settings,
-                )
-            elif agent_type == "PeriodicAgent":
-                settings = PeriodicAgent.Settings(**agent_cfg.get("settings", {}))
-                new_agent = PeriodicAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    settings=settings,
-                )
-
-            elif agent_type == "ProxyAgent":
-                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-                new_agent = ProxyAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    agent_settings=agent_settings,
-                )
-                game.rl_agents[agent_cfg["ref"]] = new_agent
-            elif agent_type == "RedDatabaseCorruptingAgent":
-                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-
-                new_agent = DataManipulationAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    agent_settings=agent_settings,
-                )
-            elif agent_type == "TAP001":
-                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-                new_agent = TAP001(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    agent_settings=agent_settings,
-                )
-            else:
-                msg = f"Configuration error: {agent_type} is not a valid agent type."
-                _LOGGER.error(msg)
-                raise ValueError(msg)
+            new_agent = AbstractAgent.from_config(agent_cfg)
             game.agents[agent_cfg["ref"]] = new_agent
+            if isinstance(new_agent, ProxyAgent):
+                game.rl_agents[agent_cfg["ref"]] = new_agent
 
         # Validate that if any agents are sharing rewards, they aren't forming an infinite loop.
         game.setup_reward_sharing()

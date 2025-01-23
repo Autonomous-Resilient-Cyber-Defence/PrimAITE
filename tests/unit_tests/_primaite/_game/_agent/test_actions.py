@@ -2,10 +2,11 @@
 from unittest.mock import Mock
 
 import pytest
+from pydantic import ValidationError
 
-from primaite.game.agent.actions import (
-    ActionManager,
-    DoNothingAction,
+from primaite.game.agent.actions import ActionManager
+from primaite.game.agent.actions.manager import DoNothingAction
+from primaite.game.agent.actions.service import (
     NodeServiceDisableAction,
     NodeServiceEnableAction,
     NodeServicePauseAction,
@@ -18,13 +19,8 @@ from primaite.game.agent.actions import (
 
 
 def test_do_nothing_action_form_request():
-    """Test that the DoNothingAction can form a request and that it is correct."""
-    manager = Mock()
-
-    action = DoNothingAction(manager=manager)
-
-    request = action.form_request()
-
+    """Test that the do_nothingAction can form a request and that it is correct."""
+    request = DoNothingAction.form_request(DoNothingAction.ConfigSchema())
     assert request == ["do_nothing"]
 
 
@@ -42,7 +38,7 @@ def test_do_nothing_action_form_request():
     ],
 )  # flake8: noqa
 @pytest.mark.parametrize(
-    "node_name, service_name, expect_to_do_nothing",
+    "node_name, service_name, expect_failure",
     [
         ("pc_1", "chrome", False),
         (None, "chrome", True),
@@ -50,42 +46,15 @@ def test_do_nothing_action_form_request():
         (None, None, True),
     ],
 )  # flake8: noqa
-def test_service_action_form_request(node_name, service_name, expect_to_do_nothing, action_class, action_verb):
+def test_service_action_form_request(node_name, service_name, expect_failure, action_class, action_verb):
     """Test that the ServiceScanAction can form a request and that it is correct."""
-    manager: ActionManager = Mock()
-    manager.get_node_name_by_idx.return_value = node_name
-    manager.get_service_name_by_idx.return_value = service_name
-
-    action = action_class(manager=manager, num_nodes=1, num_services=1)
-
-    request = action.form_request(node_id=0, service_id=0)
-
-    if expect_to_do_nothing:
-        assert request == ["do_nothing"]
+    if expect_failure:
+        with pytest.raises(ValidationError):
+            request = action_class.form_request(
+                config=action_class.ConfigSchema(node_name=node_name, service_name=service_name)
+            )
     else:
+        request = action_class.form_request(
+            config=action_class.ConfigSchema(node_name=node_name, service_name=service_name)
+        )
         assert request == ["network", "node", node_name, "service", service_name, action_verb]
-
-
-@pytest.mark.parametrize(
-    "node_name, service_name, expect_to_do_nothing",
-    [
-        ("pc_1", "chrome", False),
-        (None, "chrome", True),
-        ("pc_1", None, True),
-        (None, None, True),
-    ],
-)  # flake8: noqa
-def test_service_scan_form_request(node_name, service_name, expect_to_do_nothing):
-    """Test that the ServiceScanAction can form a request and that it is correct."""
-    manager: ActionManager = Mock()
-    manager.get_node_name_by_idx.return_value = node_name
-    manager.get_service_name_by_idx.return_value = service_name
-
-    action = NodeServiceScanAction(manager=manager, num_nodes=1, num_services=1)
-
-    request = action.form_request(node_id=0, service_id=0)
-
-    if expect_to_do_nothing:
-        assert request == ["do_nothing"]
-    else:
-        assert request == ["network", "node", node_name, "service", service_name, "scan"]

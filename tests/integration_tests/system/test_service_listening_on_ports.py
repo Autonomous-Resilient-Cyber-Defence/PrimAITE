@@ -14,7 +14,14 @@ from primaite.utils.validation.port import PORT_LOOKUP
 from tests import TEST_ASSETS_ROOT
 
 
-class _DatabaseListener(Service):
+class _DatabaseListener(Service, identifier="_DatabaseListener"):
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for _DatabaseListener."""
+
+        type: str = "_DatabaseListener"
+        listen_on_ports: Set[int] = {PORT_LOOKUP["POSTGRES_SERVER"]}
+
+    config: "_DatabaseListener.ConfigSchema" = Field(default_factory=lambda: _DatabaseListener.ConfigSchema())
     name: str = "DatabaseListener"
     protocol: str = PROTOCOL_LOOKUP["TCP"]
     port: int = PORT_LOOKUP["NONE"]
