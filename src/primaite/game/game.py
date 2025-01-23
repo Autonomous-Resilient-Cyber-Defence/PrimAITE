@@ -266,8 +266,6 @@ class PrimaiteGame:
 
         for node_cfg in nodes_cfg:
             n_type = node_cfg["type"]
-            # node_config: dict = node_cfg["config"]
-            print(f"{n_type}:{node_cfg}")
 
             new_node = None
             if n_type in Node._registry:

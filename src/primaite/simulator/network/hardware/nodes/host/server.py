@@ -51,4 +51,4 @@ class Printer(HostNode, identifier="printer"):
     class ConfigSchema(HostNode.ConfigSchema):
         """Configuration Schema for Printer class."""
 
-        hostname: ClassVar[str] = "printer"
+        hostname: str = "printer"

@@ -572,13 +572,6 @@ class Firewall(Router, identifier="firewall"):
     @classmethod
     def from_config(cls, config: dict) -> "Firewall":
         """Create a firewall based on a config dict."""
-        # firewall = Firewall(
-        #     hostname=config["hostname"],
-        #     operating_state=NodeOperatingState.ON
-        #     if not (p := config.get("operating_state"))
-        #     else NodeOperatingState[p.upper()],
-        # )
-
         firewall = Firewall(config = cls.ConfigSchema(**config))
 
         if "ports" in config:

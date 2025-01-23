@@ -1212,11 +1212,11 @@ class Router(NetworkNode, identifier="router"):
     network_interface: Dict[int, RouterInterface] = {}
     "The Router Interfaces on the node by port id."
 
-    sys_log: SysLog = None
+    sys_log: SysLog
 
-    acl: AccessControlList = None
+    acl: AccessControlList
 
-    route_table: RouteTable = None
+    route_table: RouteTable
 
     config: "Router.ConfigSchema"
 
@@ -1249,8 +1249,6 @@ class Router(NetworkNode, identifier="router"):
             self.network_interface[i] = network_interface
 
         self._set_default_acl()
-
-
 
     def _install_system_software(self):
         """
@@ -1403,7 +1401,7 @@ class Router(NetworkNode, identifier="router"):
             return
 
         # Check if it's permitted
-        permitted, rule = self.config.acl.is_permitted(frame)
+        permitted, rule = self.acl.is_permitted(frame)
 
         if not permitted:
             at_port = self._get_port_of_nic(from_network_interface)
@@ -1575,43 +1573,6 @@ class Router(NetworkNode, identifier="router"):
                 ]
             )
         print(table)
-
-    def setup_router(self, cfg: dict) -> Router:
-        """TODO: This is the extra bit of Router's from_config metho. Needs sorting."""
-        if "ports" in cfg:
-            for port_num, port_cfg in cfg["ports"].items():
-                self.configure_port(
-                    port=port_num,
-                    ip_address=port_cfg["ip_address"],
-                    subnet_mask=IPv4Address(port_cfg.get("subnet_mask", "255.255.255.0")),
-                )
-        if "acl" in cfg:
-            for r_num, r_cfg in cfg["acl"].items():
-                self.config.acl.add_rule(
-                    action=ACLAction[r_cfg["action"]],
-                    src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
-                    dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
-                    protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
-                    src_ip_address=r_cfg.get("src_ip"),
-                    src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
-                    dst_ip_address=r_cfg.get("dst_ip"),
-                    dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
-                    position=r_num,
-                )
-        if "routes" in cfg:
-            for route in cfg.get("routes"):
-                self.config.route_table.add_route(
-                    address=IPv4Address(route.get("address")),
-                    subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),
-                    next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
-                    metric=float(route.get("metric", 0)),
-                )
-        if "default_route" in cfg:
-            next_hop_ip_address = cfg["default_route"].get("next_hop_ip_address", None)
-            if next_hop_ip_address:
-                self.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
-        return self
-
 
     @classmethod
     def from_config(cls, config: dict, **kwargs) -> "Router":
