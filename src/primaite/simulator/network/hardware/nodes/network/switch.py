@@ -129,7 +129,7 @@ class Switch(NetworkNode, identifier="switch"):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.hostname} Switch Ports"
+        table.title = f"{self.config.hostname} Switch Ports"
         for port_num, port in self.network_interface.items():
             table.add_row([port_num, port.mac_address, port.speed, "Enabled" if port.enabled else "Disabled"])
         print(table)

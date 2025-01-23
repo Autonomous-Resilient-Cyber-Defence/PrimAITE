@@ -36,7 +36,6 @@ class NodeAbstractAction(AbstractAction, identifier="node_abstract"):
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        print(config)
         return ["network", "node", config.node_name, config.verb]
 
 

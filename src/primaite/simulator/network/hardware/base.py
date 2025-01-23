@@ -1979,7 +1979,7 @@ class Node(SimComponent, ABC):
         else:
             if self.operating_state == NodeOperatingState.SHUTTING_DOWN:
                 self.operating_state = NodeOperatingState.OFF
-                self.sys_log.info(f"{self.hostname}: Turned off")
+                self.sys_log.info(f"{self.config.hostname}: Turned off")
                 self._shut_down_actions()
 
                 # if resetting turn back on

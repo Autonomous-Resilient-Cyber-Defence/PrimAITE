@@ -12,8 +12,16 @@ from tests.conftest import DummyApplication, DummyService
 
 @pytest.fixture
 def node() -> Node:
-    return Computer(hostname="test", ip_address="192.168.1.2", subnet_mask="255.255.255.0")
+    computer_cfg = {"type": "computer",
+                    "hostname": "test",
+                    "ip_address": "192.168.1.2",
+                    "subnet_mask": "255.255.255.0",
+                    "shut_down_duration": 3,
+                    "operating_state": "OFF",
+                    }
+    computer = Computer.from_config(config=computer_cfg)
 
+    return computer
 
 def test_node_startup(node):
     assert node.operating_state == NodeOperatingState.OFF
@@ -166,7 +174,7 @@ def test_node_is_on_validator(node):
     """Test that the node is on validator."""
     node.power_on()
 
-    for i in range(node.start_up_duration + 1):
+    for i in range(node.config.start_up_duration + 1):
         node.apply_timestep(i)
 
     validator = Node._NodeIsOnValidator(node=node)
@@ -174,7 +182,7 @@ def test_node_is_on_validator(node):
     assert validator(request=[], context={})
 
     node.power_off()
-    for i in range(node.shut_down_duration + 1):
+    for i in range(node.config.shut_down_duration + 1):
         node.apply_timestep(i)
 
     assert validator(request=[], context={}) is False
@@ -184,7 +192,7 @@ def test_node_is_off_validator(node):
     """Test that the node is on validator."""
     node.power_on()
 
-    for i in range(node.start_up_duration + 1):
+    for i in range(node.config.start_up_duration + 1):
         node.apply_timestep(i)
 
     validator = Node._NodeIsOffValidator(node=node)
@@ -192,7 +200,7 @@ def test_node_is_off_validator(node):
     assert validator(request=[], context={}) is False
 
     node.power_off()
-    for i in range(node.shut_down_duration + 1):
+    for i in range(node.config.shut_down_duration + 1):
         node.apply_timestep(i)
 
     assert validator(request=[], context={})

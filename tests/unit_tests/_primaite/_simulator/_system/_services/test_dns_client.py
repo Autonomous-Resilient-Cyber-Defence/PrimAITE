@@ -14,13 +14,21 @@ from primaite.utils.validation.port import PORT_LOOKUP
 
 @pytest.fixture(scope="function")
 def dns_client() -> Computer:
-    node = Computer(
-        hostname="dns_client",
-        ip_address="192.168.1.11",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        dns_server=IPv4Address("192.168.1.10"),
-    )
+
+    node_cfg = {"type": "computer",
+                "hostname": "dns_client",
+                "ip_address": "192.168.1.11",
+                "subnet_mask": "255.255.255.0",
+                "default_gateway": "192.168.1.1",
+                "dns_server": IPv4Address("192.168.1.10")}
+    node = Computer.from_config(config=node_cfg)
+    # node = Computer(
+    #     hostname="dns_client",
+    #     ip_address="192.168.1.11",
+    #     subnet_mask="255.255.255.0",
+    #     default_gateway="192.168.1.1",
+    #     dns_server=IPv4Address("192.168.1.10"),
+    # )
     return node
 
 
