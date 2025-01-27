@@ -16,7 +16,9 @@ from primaite.utils.validation.port import PORT_LOOKUP
 def test_router_observation():
     """Test adding/removing acl rules and enabling/disabling ports."""
     net = Network()
-    router = Router.from_config(config={"type": "router", "hostname":"router", "num_ports":5, "operating_state":NodeOperatingState.ON})
+    router = Router.from_config(
+        config={"type": "router", "hostname": "router", "num_ports": 5, "operating_state": NodeOperatingState.ON}
+    )
 
     ports = [PortObservation(where=["NICs", i]) for i in range(1, 6)]
     acl = ACLObservation(
@@ -89,7 +91,9 @@ def test_router_observation():
     assert all(observed_output["PORTS"][i]["operating_status"] == 2 for i in range(1, 6))
 
     # connect a switch to the router and check that only the correct port is updated
-    switch: Switch = Switch.from_config(config={"type": "switch", "hostname":"switch", "num_ports":1, "operating_state":NodeOperatingState.ON})
+    switch: Switch = Switch.from_config(
+        config={"type": "switch", "hostname": "switch", "num_ports": 1, "operating_state": NodeOperatingState.ON}
+    )
     link = net.connect(router.network_interface[1], switch.network_interface[1])
     assert router.network_interface[1].enabled
     observed_output = router_observation.observe(router.describe_state())

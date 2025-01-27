@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from typing import ClassVar, Dict, Optional
+from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import Field
@@ -89,11 +89,7 @@ class SwitchPort(WiredNetworkInterface):
 
 
 class Switch(NetworkNode, identifier="switch"):
-    """
-    A class representing a Layer 2 network switch.
-
-    :ivar num_ports: The number of ports on the switch. Default is 24.
-    """
+    """A class representing a Layer 2 network switch."""
 
     network_interfaces: Dict[str, SwitchPort] = {}
     "The SwitchPorts on the Switch."
@@ -102,7 +98,7 @@ class Switch(NetworkNode, identifier="switch"):
     mac_address_table: Dict[str, SwitchPort] = {}
     "A MAC address table mapping destination MAC addresses to corresponding SwitchPorts."
 
-    config: "Switch.ConfigSchema"
+    config: "Switch.ConfigSchema" = Field(default_factory=lambda: Switch.ConfigSchema())
 
     class ConfigSchema(NetworkNode.ConfigSchema):
         """Configuration Schema for Switch nodes within PrimAITE."""

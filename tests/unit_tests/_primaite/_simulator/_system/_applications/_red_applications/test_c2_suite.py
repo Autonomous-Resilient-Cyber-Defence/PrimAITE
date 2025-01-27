@@ -16,23 +16,25 @@ def basic_c2_network() -> Network:
     network = Network()
 
     # Creating two generic nodes for the C2 Server and the C2 Beacon.
-    computer_a_cfg = {"type": "computer",
-                      "hostname": "computer_a",
-                      "ip_address": "192.168.0.1",
-                      "subnet_mask": "255.255.255.252",
-                      "start_up_duration": 0}
-    computer_a = Computer.from_config(config = computer_a_cfg)
+    computer_a_cfg = {
+        "type": "computer",
+        "hostname": "computer_a",
+        "ip_address": "192.168.0.1",
+        "subnet_mask": "255.255.255.252",
+        "start_up_duration": 0,
+    }
+    computer_a = Computer.from_config(config=computer_a_cfg)
 
     computer_a.power_on()
     computer_a.software_manager.install(software_class=C2Server)
 
-
-    computer_b_cfg = {"type": "computer",
-                      "hostname": "computer_b",
-                      "ip_address": "192.168.0.2",
-                      "subnet_mask": "255.255.255.252",
-                      "start_up_duration": 0,
-                      }
+    computer_b_cfg = {
+        "type": "computer",
+        "hostname": "computer_b",
+        "ip_address": "192.168.0.2",
+        "subnet_mask": "255.255.255.252",
+        "start_up_duration": 0,
+    }
 
     computer_b = Computer.from_config(config=computer_b_cfg)
 

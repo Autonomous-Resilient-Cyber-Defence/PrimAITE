@@ -1218,7 +1218,7 @@ class Router(NetworkNode, identifier="router"):
 
     route_table: RouteTable
 
-    config: "Router.ConfigSchema"
+    config: "Router.ConfigSchema" = Field(default_factory=lambda: Router.ConfigSchema())
 
     class ConfigSchema(NetworkNode.ConfigSchema):
         """Configuration Schema for Router Objects."""
@@ -1230,12 +1230,13 @@ class Router(NetworkNode, identifier="router"):
 
         ports: Dict[Union[int, str], Dict] = {}
 
-
     def __init__(self, **kwargs):
         if not kwargs.get("sys_log"):
             kwargs["sys_log"] = SysLog(kwargs["config"].hostname)
         if not kwargs.get("acl"):
-            kwargs["acl"] = AccessControlList(sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=kwargs["config"].hostname)
+            kwargs["acl"] = AccessControlList(
+                sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=kwargs["config"].hostname
+            )
         if not kwargs.get("route_table"):
             kwargs["route_table"] = RouteTable(sys_log=kwargs["sys_log"])
         super().__init__(**kwargs)
@@ -1632,8 +1633,7 @@ class Router(NetworkNode, identifier="router"):
         :return: Configured router.
         :rtype: Router
         """
-        router = Router(config=Router.ConfigSchema(**config)
-        )
+        router = Router(config=Router.ConfigSchema(**config))
         if "ports" in config:
             for port_num, port_cfg in config["ports"].items():
                 router.configure_port(

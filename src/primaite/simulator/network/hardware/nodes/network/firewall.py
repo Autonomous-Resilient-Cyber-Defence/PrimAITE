@@ -108,7 +108,6 @@ class Firewall(Router, identifier="firewall"):
 
         hostname: str = "firewall"
         num_ports: int = 0
-        operating_state: NodeOperatingState = NodeOperatingState.ON
 
     def __init__(self, **kwargs):
         if not kwargs.get("sys_log"):
@@ -242,7 +241,7 @@ class Firewall(Router, identifier="firewall"):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.hostname} Network Interfaces"
+        table.title = f"{self.config.hostname} Network Interfaces"
         ports = {"External": self.external_port, "Internal": self.internal_port, "DMZ": self.dmz_port}
         for port, network_interface in ports.items():
             table.add_row(
@@ -572,7 +571,7 @@ class Firewall(Router, identifier="firewall"):
     @classmethod
     def from_config(cls, config: dict) -> "Firewall":
         """Create a firewall based on a config dict."""
-        firewall = Firewall(config = cls.ConfigSchema(**config))
+        firewall = Firewall(config=cls.ConfigSchema(**config))
 
         if "ports" in config:
             internal_port = config["ports"]["internal_port"]

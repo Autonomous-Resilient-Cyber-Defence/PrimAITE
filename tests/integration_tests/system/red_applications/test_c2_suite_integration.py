@@ -34,54 +34,64 @@ def basic_network() -> Network:
 
     # Creating two generic nodes for the C2 Server and the C2 Beacon.
 
-    node_a_cfg = {"type": "computer",
-                  "hostname": "node_a",
-                  "ip_address": "192.168.0.2",
-                  "subnet_mask": "255.255.255.252",
-                  "default_gateway": "192.168.0.1",
-                  "start_up_duration": 0}
-    
+    node_a_cfg = {
+        "type": "computer",
+        "hostname": "node_a",
+        "ip_address": "192.168.0.2",
+        "subnet_mask": "255.255.255.252",
+        "default_gateway": "192.168.0.1",
+        "start_up_duration": 0,
+    }
+
     node_a: Computer = Computer.from_config(config=node_a_cfg)
     node_a.power_on()
     node_a.software_manager.get_open_ports()
     node_a.software_manager.install(software_class=C2Server)
 
-    node_b_cfg = {"type": "computer",
-                  "hostname": "node_b",
-                  "ip_address": "192.168.255.2",
-                  "subnet_mask": "255.255.255.248",
-                  "default_gateway": "192.168.255.1",
-                  "start_up_duration": 0}
-    
+    node_b_cfg = {
+        "type": "computer",
+        "hostname": "node_b",
+        "ip_address": "192.168.255.2",
+        "subnet_mask": "255.255.255.248",
+        "default_gateway": "192.168.255.1",
+        "start_up_duration": 0,
+    }
+
     node_b: Computer = Computer.from_config(config=node_b_cfg)
     node_b.power_on()
     node_b.software_manager.install(software_class=C2Beacon)
 
     # Creating a generic computer for testing remote terminal connections.
-    node_c_cfg = {"type": "computer",
-                  "hostname": "node_c",
-                  "ip_address": "192.168.255.3",
-                  "subnet_mask": "255.255.255.248",
-                  "default_gateway": "192.168.255.1",
-                  "start_up_duration": 0}
-    
+    node_c_cfg = {
+        "type": "computer",
+        "hostname": "node_c",
+        "ip_address": "192.168.255.3",
+        "subnet_mask": "255.255.255.248",
+        "default_gateway": "192.168.255.1",
+        "start_up_duration": 0,
+    }
+
     node_c: Computer = Computer.from_config(config=node_c_cfg)
     node_c.power_on()
 
     # Creating a router to sit between node 1 and node 2.
-    router = Router.from_config(config={"type":"router", "hostname":"router", "num_ports":3, "start_up_duration":0})
+    router = Router.from_config(config={"type": "router", "hostname": "router", "num_ports": 3, "start_up_duration": 0})
     # Default allow all.
     router.acl.add_rule(action=ACLAction.PERMIT)
     router.power_on()
     # Creating switches for each client.
-    switch_1 = Switch.from_config(config={"type":"switch", "hostname":"switch_1", "num_ports":6, "start_up_duration":0})
+    switch_1 = Switch.from_config(
+        config={"type": "switch", "hostname": "switch_1", "num_ports": 6, "start_up_duration": 0}
+    )
     switch_1.power_on()
 
     # Connecting the switches to the router.
     router.configure_port(port=1, ip_address="192.168.0.1", subnet_mask="255.255.255.252")
     network.connect(endpoint_a=router.network_interface[1], endpoint_b=switch_1.network_interface[6])
 
-    switch_2 = Switch.from_config(config={"type":"switch", "hostname":"switch_2", "num_ports":6, "start_up_duration":0})
+    switch_2 = Switch.from_config(
+        config={"type": "switch", "hostname": "switch_2", "num_ports": 6, "start_up_duration": 0}
+    )
     switch_2.power_on()
 
     network.connect(endpoint_a=router.network_interface[2], endpoint_b=switch_2.network_interface[6])

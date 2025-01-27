@@ -196,7 +196,13 @@ class Network(SimComponent):
                             if port.ip_address != IPv4Address("127.0.0.1"):
                                 port_str = port.port_name if port.port_name else port.port_num
                                 table.add_row(
-                                    [node.config.hostname, port_str, port.ip_address, port.subnet_mask, node.default_gateway]
+                                    [
+                                        node.config.hostname,
+                                        port_str,
+                                        port.ip_address,
+                                        port.subnet_mask,
+                                        node.default_gateway,
+                                    ]
                                 )
             print(table)
 
@@ -288,7 +294,9 @@ class Network(SimComponent):
         node.parent = self
         self._nx_graph.add_node(node.config.hostname)
         _LOGGER.debug(f"Added node {node.uuid} to Network {self.uuid}")
-        self._node_request_manager.add_request(name=node.config.hostname, request_type=RequestType(func=node._request_manager))
+        self._node_request_manager.add_request(
+            name=node.config.hostname, request_type=RequestType(func=node._request_manager)
+        )
 
     def get_node_by_hostname(self, hostname: str) -> Optional[Node]:
         """

@@ -35,7 +35,7 @@ def test_node_startup_shutdown(game_and_agent_fixture: Tuple[PrimaiteGame, Proxy
 
     assert client_1.operating_state == NodeOperatingState.SHUTTING_DOWN
 
-    for i in range(client_1.shut_down_duration + 1):
+    for i in range(client_1.config.shut_down_duration + 1):
         action = ("do_nothing", {})
         agent.store_action(action)
         game.step()
@@ -49,7 +49,7 @@ def test_node_startup_shutdown(game_and_agent_fixture: Tuple[PrimaiteGame, Proxy
 
     assert client_1.operating_state == NodeOperatingState.BOOTING
 
-    for i in range(client_1.start_up_duration + 1):
+    for i in range(client_1.config.start_up_duration + 1):
         action = ("do_nothing", {})
         agent.store_action(action)
         game.step()
@@ -79,7 +79,7 @@ def test_node_cannot_be_shut_down_if_node_is_already_off(game_and_agent_fixture:
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
     client_1.power_off()
 
-    for i in range(client_1.shut_down_duration + 1):
+    for i in range(client_1.config.shut_down_duration + 1):
         action = ("do_nothing", {})
         agent.store_action(action)
         game.step()

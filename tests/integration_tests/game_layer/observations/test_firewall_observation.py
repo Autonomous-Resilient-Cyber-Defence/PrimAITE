@@ -117,7 +117,9 @@ def test_firewall_observation():
     assert all(observation["PORTS"][i]["operating_status"] == 2 for i in range(1, 4))
 
     # connect a switch to the firewall and check that only the correct port is updated
-    switch: Switch = Switch.from_config(config={"type": "switch", "hostname":"switch", "num_ports":1, "operating_state":NodeOperatingState.ON})
+    switch: Switch = Switch.from_config(
+        config={"type": "switch", "hostname": "switch", "num_ports": 1, "operating_state": NodeOperatingState.ON}
+    )
     link = net.connect(firewall.network_interface[1], switch.network_interface[1])
     assert firewall.network_interface[1].enabled
     observation = firewall_observation.observe(firewall.describe_state())

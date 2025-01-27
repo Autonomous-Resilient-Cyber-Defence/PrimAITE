@@ -1529,22 +1529,21 @@ class Node(SimComponent, ABC):
     _identifier: ClassVar[str] = "unknown"
     """Identifier for this particular class, used for printing and logging. Each subclass redefines this."""
 
-    config: Node.ConfigSchema
+    config: Node.ConfigSchema = Field(default_factory=lambda: Node.ConfigSchema())
     """Configuration items within Node"""
 
     class ConfigSchema(BaseModel, ABC):
         """Configuration Schema for Node based classes."""
 
         model_config = ConfigDict(arbitrary_types_allowed=True)
-        """Configure pydantic to allow arbitrary types and to let the instance have attributes not present in the model."""
-
+        """Configure pydantic to allow arbitrary types, let the instance have attributes not present in the model."""
         hostname: str = "default"
         "The node hostname on the network."
 
         revealed_to_red: bool = False
         "Informs whether the node has been revealed to a red agent."
 
-        start_up_duration: int = 0
+        start_up_duration: int = 3
         "Time steps needed for the node to start up."
 
         start_up_countdown: int = 0
@@ -1617,12 +1616,10 @@ class Node(SimComponent, ABC):
                 file_system=kwargs.get("file_system"),
                 dns_server=kwargs.get("dns_server"),
             )
-
         super().__init__(**kwargs)
         self._install_system_software()
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
-        self.power_on()
 
     @property
     def user_manager(self) -> Optional[UserManager]:
@@ -1713,7 +1710,7 @@ class Node(SimComponent, ABC):
         @property
         def fail_message(self) -> str:
             """Message that is reported when a request is rejected by this validator."""
-            return f"Cannot perform request on node '{self.node.hostname}' because it is not powered on."
+            return f"Cannot perform request on node '{self.node.config.hostname}' because it is not powered on."
 
     class _NodeIsOffValidator(RequestPermissionValidator):
         """
@@ -1732,7 +1729,7 @@ class Node(SimComponent, ABC):
         @property
         def fail_message(self) -> str:
             """Message that is reported when a request is rejected by this validator."""
-            return f"Cannot perform request on node '{self.node.hostname}' because it is not turned off."
+            return f"Cannot perform request on node '{self.node.config.hostname}' because it is not turned off."
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -1900,7 +1897,7 @@ class Node(SimComponent, ABC):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.hostname} Open Ports"
+        table.title = f"{self.config.hostname} Open Ports"
         for port in self.software_manager.get_open_ports():
             if port > 0:
                 table.add_row([port])
@@ -1927,7 +1924,7 @@ class Node(SimComponent, ABC):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.hostname} Network Interface Cards"
+        table.title = f"{self.config.hostname} Network Interface Cards"
         for port, network_interface in self.network_interface.items():
             ip_address = ""
             if hasattr(network_interface, "ip_address"):
@@ -1967,7 +1964,7 @@ class Node(SimComponent, ABC):
         else:
             if self.operating_state == NodeOperatingState.BOOTING:
                 self.operating_state = NodeOperatingState.ON
-                self.sys_log.info(f"{self.hostname}: Turned on")
+                self.sys_log.info(f"{self.config.hostname}: Turned on")
                 for network_interface in self.network_interfaces.values():
                     network_interface.enable()
 

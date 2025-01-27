@@ -119,13 +119,13 @@ def application_class():
 
 @pytest.fixture(scope="function")
 def file_system() -> FileSystem:
-    # computer = Computer(hostname="fs_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
-    computer_cfg = {"type": "computer",
-                    "hostname": "fs_node", 
-                    "ip_address": "192.168.1.2",
-                    "subnet_mask": "255.255.255.0",
-                    "start_up_duration": 0,
-                    }
+    computer_cfg = {
+        "type": "computer",
+        "hostname": "fs_node",
+        "ip_address": "192.168.1.2",
+        "subnet_mask": "255.255.255.0",
+        "start_up_duration": 0,
+    }
     computer = Computer.from_config(config=computer_cfg)
     computer.power_on()
     return computer.file_system
@@ -136,23 +136,29 @@ def client_server() -> Tuple[Computer, Server]:
     network = Network()
 
     # Create Computer
-    computer = Computer(
-        hostname="computer",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    computer_cfg = {
+        "type": "computer",
+        "hostname": "computer",
+        "ip_address": "192.168.1.2",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
+
+    computer: Computer = Computer.from_config(config=computer_cfg)
     computer.power_on()
 
     # Create Server
-    server = Server(
-        hostname="server",
-        ip_address="192.168.1.3",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    server_cfg = {
+        "type": "server",
+        "hostname": "server",
+        "ip_address": "192.168.1.3",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
+
+    server: Server = Server.from_config(config=server_cfg)
     server.power_on()
 
     # Connect Computer and Server
@@ -169,26 +175,33 @@ def client_switch_server() -> Tuple[Computer, Switch, Server]:
     network = Network()
 
     # Create Computer
-    computer = Computer(
-        hostname="computer",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    computer_cfg = {
+        "type": "computer",
+        "hostname": "computer",
+        "ip_address": "192.168.1.2",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
+
+    computer: Computer = Computer.from_config(config=computer_cfg)
     computer.power_on()
 
     # Create Server
-    server = Server(
-        hostname="server",
-        ip_address="192.168.1.3",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    server_cfg = {
+        "type": "server",
+        "hostname": "server",
+        "ip_address": "192.168.1.3",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
+
+    server: Server = Server.from_config(config=server_cfg)
     server.power_on()
 
-    switch = Switch(hostname="switch", start_up_duration=0)
+    # Create Switch
+    switch: Switch = Switch.from_config(config={"type": "switch", "hostname": "switch", "start_up_duration": 0})
     switch.power_on()
 
     network.connect(endpoint_a=computer.network_interface[1], endpoint_b=switch.network_interface[1])
@@ -219,7 +232,7 @@ def example_network() -> Network:
 
     # Router 1
 
-    router_1_cfg = {"hostname": "router_1", "type": "router"}
+    router_1_cfg = {"hostname": "router_1", "type": "router", "start_up_duration":0}
 
     # router_1 = Router(hostname="router_1", start_up_duration=0)
     router_1 = Router.from_config(config=router_1_cfg)
@@ -229,7 +242,7 @@ def example_network() -> Network:
 
     # Switch 1
 
-    switch_1_cfg = {"hostname": "switch_1", "type": "switch"}
+    switch_1_cfg = {"hostname": "switch_1", "type": "switch", "start_up_duration": 0}
 
     switch_1 = Switch.from_config(config=switch_1_cfg)
 
@@ -240,7 +253,7 @@ def example_network() -> Network:
     router_1.enable_port(1)
 
     # Switch 2
-    switch_2_config = {"hostname": "switch_2", "type": "switch", "num_ports": 8}
+    switch_2_config = {"hostname": "switch_2", "type": "switch", "num_ports": 8, "start_up_duration":0}
     # switch_2 = Switch(hostname="switch_2", num_ports=8, start_up_duration=0)
     switch_2 = Switch.from_config(config=switch_2_config)
     switch_2.power_on()
@@ -348,28 +361,34 @@ def install_stuff_to_sim(sim: Simulation):
 
     # 1: Set up network hardware
     # 1.1: Configure the router
-    router = Router.from_config(config={"type":"router", "hostname":"router", "num_ports":3, "start_up_duration":0})
+    router = Router.from_config(config={"type": "router", "hostname": "router", "num_ports": 3, "start_up_duration": 0})
     router.power_on()
     router.configure_port(port=1, ip_address="10.0.1.1", subnet_mask="255.255.255.0")
     router.configure_port(port=2, ip_address="10.0.2.1", subnet_mask="255.255.255.0")
 
     # 1.2: Create and connect switches
-    switch_1 = Switch.from_config(config={"type":"switch", "hostname":"switch_1", "num_ports":6, "start_up_duration":0})
+    switch_1 = Switch.from_config(
+        config={"type": "switch", "hostname": "switch_1", "num_ports": 6, "start_up_duration": 0}
+    )
     switch_1.power_on()
     network.connect(endpoint_a=router.network_interface[1], endpoint_b=switch_1.network_interface[6])
     router.enable_port(1)
-    switch_2 = Switch.from_config(config={"type":"switch", "hostname":"switch_2", "num_ports":6, "start_up_duration":0})
+    switch_2 = Switch.from_config(
+        config={"type": "switch", "hostname": "switch_2", "num_ports": 6, "start_up_duration": 0}
+    )
     switch_2.power_on()
     network.connect(endpoint_a=router.network_interface[2], endpoint_b=switch_2.network_interface[6])
     router.enable_port(2)
 
     # 1.3: Create and connect computer
-    client_1_cfg = {"type": "computer",
-                    "hostname": "client_1",
-                    "ip_address":"10.0.1.2",
-                    "subnet_mask":"255.255.255.0",
-                    "default_gateway": "10.0.1.1",
-                    "start_up_duration":0}
+    client_1_cfg = {
+        "type": "computer",
+        "hostname": "client_1",
+        "ip_address": "10.0.1.2",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "10.0.1.1",
+        "start_up_duration": 0,
+    }
     client_1: Computer = Computer.from_config(config=client_1_cfg)
     client_1.power_on()
     network.connect(
@@ -378,24 +397,26 @@ def install_stuff_to_sim(sim: Simulation):
     )
 
     # 1.4: Create and connect servers
-    server_1_cfg = {"type": "server",
-                    "hostname":"server_1", 
-                    "ip_address": "10.0.2.2",
-                    "subnet_mask":"255.255.255.0",
-                    "default_gateway":"10.0.2.1",
-                    "start_up_duration": 0}
-
+    server_1_cfg = {
+        "type": "server",
+        "hostname": "server_1",
+        "ip_address": "10.0.2.2",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "10.0.2.1",
+        "start_up_duration": 0,
+    }
 
     server_1: Server = Server.from_config(config=server_1_cfg)
     server_1.power_on()
     network.connect(endpoint_a=server_1.network_interface[1], endpoint_b=switch_2.network_interface[1])
-    server_2_cfg = {"type": "server",
-                    "hostname":"server_2", 
-                    "ip_address": "10.0.2.3",
-                    "subnet_mask":"255.255.255.0",
-                    "default_gateway":"10.0.2.1",
-                    "start_up_duration": 0}
-
+    server_2_cfg = {
+        "type": "server",
+        "hostname": "server_2",
+        "ip_address": "10.0.2.3",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "10.0.2.1",
+        "start_up_duration": 0,
+    }
 
     server_2: Server = Server.from_config(config=server_2_cfg)
     server_2.power_on()

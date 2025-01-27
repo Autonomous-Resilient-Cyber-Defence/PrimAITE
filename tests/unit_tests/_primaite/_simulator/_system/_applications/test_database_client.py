@@ -17,14 +17,28 @@ from primaite.simulator.system.services.database.database_service import Databas
 def database_client_on_computer() -> Tuple[DatabaseClient, Computer]:
     network = Network()
 
-    db_server: Server = Server.from_config(config={"type": "server", "hostname":"db_server", "ip_address":"192.168.0.1", "subnet_mask":"255.255.255.0", "start_up_duration":0})
+    db_server: Server = Server.from_config(
+        config={
+            "type": "server",
+            "hostname": "db_server",
+            "ip_address": "192.168.0.1",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     db_server.power_on()
     db_server.software_manager.install(DatabaseService)
     db_server.software_manager.software["DatabaseService"].start()
 
-    db_client: Computer = Computer.from_config(config = {"type":"computer",
-        "hostname":"db_client", "ip_address":"192.168.0.2", "subnet_mask":"255.255.255.0", "start_up_duration":0
-    })
+    db_client: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "db_client",
+            "ip_address": "192.168.0.2",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     db_client.power_on()
     db_client.software_manager.install(DatabaseClient)
 

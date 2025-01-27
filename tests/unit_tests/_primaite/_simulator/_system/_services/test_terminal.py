@@ -29,8 +29,8 @@ from primaite.utils.validation.port import PORT_LOOKUP
 
 @pytest.fixture(scope="function")
 def terminal_on_computer() -> Tuple[Terminal, Computer]:
-    computer: Computer = Computer(
-        hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0
+    computer: Computer = Computer.from_config(config={"type":"computer",
+        "hostname":"node_a", "ip_address":"192.168.0.10", "subnet_mask":"255.255.255.0", "start_up_duration":0}
     )
     computer.power_on()
     terminal: Terminal = computer.software_manager.software.get("Terminal")
@@ -41,11 +41,19 @@ def terminal_on_computer() -> Tuple[Terminal, Computer]:
 @pytest.fixture(scope="function")
 def basic_network() -> Network:
     network = Network()
-    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a = Computer.from_config(config={"type":"computer",
+                                          "hostname":"node_a",
+                                          "ip_address":"192.168.0.10",
+                                          "subnet_mask":"255.255.255.0",
+                                          "start_up_duration":0})
     node_a.power_on()
     node_a.software_manager.get_open_ports()
 
-    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b = Computer.from_config(config={"type":"computer",
+                                          "hostname":"node_b",
+                                          "ip_address":"192.168.0.11",
+                                          "subnet_mask":"255.255.255.0",
+                                          "start_up_duration":0})
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
@@ -57,18 +65,20 @@ def wireless_wan_network():
     network = Network()
 
     # Configure PC A
-    pc_a = Computer(
-        hostname="pc_a",
-        ip_address="192.168.0.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.0.1",
-        start_up_duration=0,
-    )
+    pc_a_cfg = {"type": "computer",
+                "hostname":"pc_a",
+                "ip_address":"192.168.0.2",
+                "subnet_mask":"255.255.255.0",
+                "default_gateway":"192.168.0.1",
+                "start_up_duration":0,      
+    }      
+
+    pc_a = Computer.from_config(config=pc_a_cfg)
     pc_a.power_on()
     network.add_node(pc_a)
 
     # Configure Router 1
-    router_1 = WirelessRouter(hostname="router_1", start_up_duration=0, airspace=network.airspace)
+    router_1 = WirelessRouter.from_config(config={"type":"wireless_router", "hostname":"router_1", "start_up_duration":0, "airspace":network.airspace})
     router_1.power_on()
     network.add_node(router_1)
 
@@ -88,18 +98,21 @@ def wireless_wan_network():
     )
 
     # Configure PC B
-    pc_b = Computer(
-        hostname="pc_b",
-        ip_address="192.168.2.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.2.1",
-        start_up_duration=0,
-    )
+
+    pc_b_cfg = {"type": "computer",
+                "hostname":"pc_b",
+                "ip_address":"192.168.2.2",
+                "subnet_mask":"255.255.255.0",
+                "default_gateway":"192.168.2.1",
+                "start_up_duration":0,      
+    }    
+
+    pc_b = Computer.from_config(config=pc_b_cfg)
     pc_b.power_on()
     network.add_node(pc_b)
 
     # Configure Router 2
-    router_2 = WirelessRouter(hostname="router_2", start_up_duration=0, airspace=network.airspace)
+    router_2 = WirelessRouter.from_config(config={"type":"wireless_router", "hostname":"router_2", "start_up_duration":0, "airspace":network.airspace})
     router_2.power_on()
     network.add_node(router_2)
 
@@ -131,7 +144,7 @@ def game_and_agent_fixture(game_and_agent):
     game, agent = game_and_agent
 
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
-    client_1.start_up_duration = 3
+    client_1.config.start_up_duration = 3
 
     return game, agent
 
@@ -143,7 +156,11 @@ def test_terminal_creation(terminal_on_computer):
 
 def test_terminal_install_default():
     """Terminal should be auto installed onto Nodes"""
-    computer = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    computer: Computer = Computer.from_config(config={"type":"computer",
+                                                      "hostname":"node_a",
+                                                       "ip_address":"192.168.0.10",
+                                                       "subnet_mask":"255.255.255.0",
+                                                       "start_up_duration":0})
     computer.power_on()
 
     assert computer.software_manager.software.get("Terminal")
@@ -151,7 +168,7 @@ def test_terminal_install_default():
 
 def test_terminal_not_on_switch():
     """Ensure terminal does not auto-install to switch"""
-    test_switch = Switch(hostname="Test")
+    test_switch = Switch.from_config(config={"type":"switch", "hostname":"Test"})
 
     assert not test_switch.software_manager.software.get("Terminal")
 
@@ -356,8 +373,6 @@ def test_multiple_remote_terminals_same_node(basic_network):
     # Spam login requests to node.
     for attempt in range(3):
         remote_connection = terminal_a.login(username="admin", password="admin", ip_address="192.168.0.11")
-
-    terminal_a.show()
 
     assert len(terminal_a._connections) == 3
 

@@ -94,7 +94,7 @@ def test_web_page_request_from_shut_down_server(web_client_and_web_server):
 
     server.power_off()
 
-    for i in range(server.shut_down_duration + 1):
+    for i in range(server.config.shut_down_duration + 1):
         server.apply_timestep(timestep=i)
 
     # node should be off

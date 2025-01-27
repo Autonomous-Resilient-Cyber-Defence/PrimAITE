@@ -46,7 +46,7 @@ class Router(NetworkNode, identifier="router"):
 
         num_ports: int = 5
 
-        hostname: ClassVar[str] = "Router"
+        hostname: str = "Router"
 
         ports: list = []
 

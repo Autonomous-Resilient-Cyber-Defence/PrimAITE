@@ -122,7 +122,6 @@ class WirelessRouter(Router, identifier="wireless_router"):
 
     network_interfaces: Dict[str, Union[RouterInterface, WirelessAccessPoint]] = {}
     network_interface: Dict[int, Union[RouterInterface, WirelessAccessPoint]] = {}
-    airspace: AirSpace
 
     config: "WirelessRouter.ConfigSchema" = Field(default_factory=lambda: WirelessRouter.ConfigSchema())
 
@@ -130,12 +129,15 @@ class WirelessRouter(Router, identifier="wireless_router"):
         """Configuration Schema for WirelessRouter nodes within PrimAITE."""
 
         hostname: str = "WirelessRouter"
+        airspace: Optional[AirSpace] = None
 
     def __init__(self, **kwargs):
-        super().__init__(hostname=kwargs["config"].hostname, num_ports=0, airspace=kwargs["config"].airspace, **kwargs)
+        super().__init__(**kwargs)
 
         self.connect_nic(
-            WirelessAccessPoint(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", airspace=kwargs["config"].airspace)
+            WirelessAccessPoint(
+                ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", airspace=kwargs["config"].airspace
+            )
         )
 
         self.connect_nic(RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0"))
@@ -233,7 +235,7 @@ class WirelessRouter(Router, identifier="wireless_router"):
         )
 
     @classmethod
-    def from_config(cls, cfg: Dict, **kwargs) -> "WirelessRouter":
+    def from_config(cls, config: Dict, **kwargs) -> "WirelessRouter":
         """Generate the wireless router from config.
 
         Schema:
@@ -261,21 +263,21 @@ class WirelessRouter(Router, identifier="wireless_router"):
         :rtype: WirelessRouter
         """
         operating_state = (
-            NodeOperatingState.ON if not (p := cfg.get("operating_state")) else NodeOperatingState[p.upper()]
+            NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
         )
-        router = cls(hostname=cfg["hostname"], operating_state=operating_state, airspace=kwargs["airspace"])
-        if "router_interface" in cfg:
-            ip_address = cfg["router_interface"]["ip_address"]
-            subnet_mask = cfg["router_interface"]["subnet_mask"]
+        router = cls(config=cls.ConfigSchema(**config))
+        if "router_interface" in config:
+            ip_address = config["router_interface"]["ip_address"]
+            subnet_mask = config["router_interface"]["subnet_mask"]
             router.configure_router_interface(ip_address=ip_address, subnet_mask=subnet_mask)
-        if "wireless_access_point" in cfg:
-            ip_address = cfg["wireless_access_point"]["ip_address"]
-            subnet_mask = cfg["wireless_access_point"]["subnet_mask"]
-            frequency = AirSpaceFrequency._registry[cfg["wireless_access_point"]["frequency"]]
+        if "wireless_access_point" in config:
+            ip_address = config["wireless_access_point"]["ip_address"]
+            subnet_mask = config["wireless_access_point"]["subnet_mask"]
+            frequency = AirSpaceFrequency._registry[config["wireless_access_point"]["frequency"]]
             router.configure_wireless_access_point(ip_address=ip_address, subnet_mask=subnet_mask, frequency=frequency)
 
-        if "acl" in cfg:
-            for r_num, r_cfg in cfg["acl"].items():
+        if "acl" in config:
+            for r_num, r_cfg in config["acl"].items():
                 router.acl.add_rule(
                     action=ACLAction[r_cfg["action"]],
                     src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
@@ -287,8 +289,8 @@ class WirelessRouter(Router, identifier="wireless_router"):
                     dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                     position=r_num,
                 )
-        if "routes" in cfg:
-            for route in cfg.get("routes"):
+        if "routes" in config:
+            for route in config.get("routes"):
                 router.route_table.add_route(
                     address=IPv4Address(route.get("address")),
                     subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),

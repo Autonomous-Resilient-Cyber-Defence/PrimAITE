@@ -320,7 +320,7 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
         self.enabled = True
         self._connected_node.sys_log.info(f"Network Interface {self} enabled")
         self.pcap = PacketCapture(
-            hostname=self._connected_node.hostname, port_num=self.port_num, port_name=self.port_name
+            hostname=self._connected_node.config.hostname, port_num=self.port_num, port_name=self.port_name
         )
         self.airspace.add_wireless_interface(self)
 

@@ -7,10 +7,7 @@ from primaite.simulator.network.hardware.nodes.host.computer import Computer
 
 @pytest.fixture
 def node() -> Node:
-    computer_cfg = {"type": "computer",
-                    "hostname": "test",
-                    "ip_address": "192.168.1.2",
-                    "subnet_mask": "255.255.255.0"}
+    computer_cfg = {"type": "computer", "hostname": "test", "ip_address": "192.168.1.2", "subnet_mask": "255.255.255.0"}
     computer = Computer.from_config(config=computer_cfg)
 
     return computer

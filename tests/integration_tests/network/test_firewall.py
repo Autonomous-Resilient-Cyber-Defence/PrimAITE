@@ -41,7 +41,9 @@ def dmz_external_internal_network() -> Network:
     """
     network = Network()
 
-    firewall_node: Firewall = Firewall(hostname="firewall_1", start_up_duration=0)
+    firewall_node: Firewall = Firewall.from_config(
+        config={"type": "firewall", "hostname": "firewall_1", "start_up_duration": 0}
+    )
     firewall_node.power_on()
     # configure firewall ports
     firewall_node.configure_external_port(

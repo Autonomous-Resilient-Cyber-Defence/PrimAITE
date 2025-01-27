@@ -12,8 +12,15 @@ from primaite.utils.validation.port import PORT_LOOKUP
 
 @pytest.fixture(scope="function")
 def web_browser() -> WebBrowser:
-    computer_cfg = {"type": "computer", "hostname": "web_client", "ip_address": "192.168.1.11", "subnet_mask": "255.255.255.0", "default_gateway": "192.168.1.1", "start_up_duration": 0}
-    
+    computer_cfg = {
+        "type": "computer",
+        "hostname": "web_client",
+        "ip_address": "192.168.1.11",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
+
     computer: Computer = Computer.from_config(config=computer_cfg)
 
     computer.power_on()
@@ -25,8 +32,15 @@ def web_browser() -> WebBrowser:
 
 
 def test_create_web_client():
-    computer_cfg = {"type": "computer", "hostname": "web_client", "ip_address": "192.168.1.11", "subnet_mask": "255.255.255.0", "default_gateway": "192.168.1.1", "start_up_duration": 0}
-    
+    computer_cfg = {
+        "type": "computer",
+        "hostname": "web_client",
+        "ip_address": "192.168.1.11",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
+
     computer: Computer = Computer.from_config(config=computer_cfg)
 
     computer.power_on()

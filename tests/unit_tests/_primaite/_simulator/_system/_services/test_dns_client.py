@@ -14,21 +14,15 @@ from primaite.utils.validation.port import PORT_LOOKUP
 
 @pytest.fixture(scope="function")
 def dns_client() -> Computer:
-
-    node_cfg = {"type": "computer",
-                "hostname": "dns_client",
-                "ip_address": "192.168.1.11",
-                "subnet_mask": "255.255.255.0",
-                "default_gateway": "192.168.1.1",
-                "dns_server": IPv4Address("192.168.1.10")}
+    node_cfg = {
+        "type": "computer",
+        "hostname": "dns_client",
+        "ip_address": "192.168.1.11",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "dns_server": IPv4Address("192.168.1.10"),
+    }
     node = Computer.from_config(config=node_cfg)
-    # node = Computer(
-    #     hostname="dns_client",
-    #     ip_address="192.168.1.11",
-    #     subnet_mask="255.255.255.0",
-    #     default_gateway="192.168.1.1",
-    #     dns_server=IPv4Address("192.168.1.10"),
-    # )
     return node
 
 
@@ -69,7 +63,7 @@ def test_dns_client_check_domain_exists_when_not_running(dns_client):
 
     dns_client.power_off()
 
-    for i in range(dns_client.shut_down_duration + 1):
+    for i in range(dns_client.config.shut_down_duration + 1):
         dns_client.apply_timestep(timestep=i)
 
     assert dns_client.operating_state is NodeOperatingState.OFF

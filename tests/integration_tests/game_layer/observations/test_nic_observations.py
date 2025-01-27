@@ -163,7 +163,9 @@ def test_nic_monitored_traffic(simulation):
     pc2: Computer = simulation.network.get_node_by_hostname("client_2")
 
     nic_obs = NICObservation(
-        where=["network", "nodes", pc.config.hostname, "NICs", 1], include_nmne=False, monitored_traffic=monitored_traffic
+        where=["network", "nodes", pc.config.hostname, "NICs", 1],
+        include_nmne=False,
+        monitored_traffic=monitored_traffic,
     )
 
     simulation.pre_timestep(0)  # apply timestep to whole sim

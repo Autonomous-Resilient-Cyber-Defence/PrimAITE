@@ -16,12 +16,14 @@ from primaite.utils.validation.port import PORT_LOOKUP
 
 @pytest.fixture(scope="function")
 def dns_server() -> Node:
-    node_cfg = {"type": "server",
-                "hostname": "dns_server",
-                "ip_address": "192.168.1.10",
-                "subnet_mask":"255.255.255.0",
-                "default_gateway": "192.168.1.1",
-                "start_up_duration":0}
+    node_cfg = {
+        "type": "server",
+        "hostname": "dns_server",
+        "ip_address": "192.168.1.10",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
     node = Server.from_config(config=node_cfg)
     node.power_on()
     node.software_manager.install(software_class=DNSServer)
@@ -55,12 +57,13 @@ def test_dns_server_receive(dns_server):
     # register the web server in the domain controller
     dns_server_service.dns_register(domain_name="real-domain.com", domain_ip_address=IPv4Address("192.168.1.12"))
 
-    client_cfg = {"type": "computer",
-                  "hostname": "client",
-                  "ip_address": "192.168.1.11",
-                  "subnet_mask": "255.255.255.0",
-                  "start_up_duration": 0,
-                  }
+    client_cfg = {
+        "type": "computer",
+        "hostname": "client",
+        "ip_address": "192.168.1.11",
+        "subnet_mask": "255.255.255.0",
+        "start_up_duration": 0,
+    }
     client = Computer.from_config(config=client_cfg)
     client.power_on()
     client.dns_server = IPv4Address("192.168.1.10")
