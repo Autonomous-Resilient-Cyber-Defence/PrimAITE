@@ -1211,32 +1211,22 @@ class Router(NetworkNode, identifier="router"):
     "The Router Interfaces on the node."
     network_interface: Dict[int, RouterInterface] = {}
     "The Router Interfaces on the node by port id."
-
-    sys_log: SysLog
-
     acl: AccessControlList
-
     route_table: RouteTable
 
-    config: "Router.ConfigSchema" = Field(default_factory=lambda: Router.ConfigSchema())
+    config: "Router.ConfigSchema"
 
     class ConfigSchema(NetworkNode.ConfigSchema):
-        """Configuration Schema for Router Objects."""
+        
+        hostname: str = "router"
+        num_ports: int
 
-        num_ports: int = 5
-        """Number of ports available for this Router. Default is 5"""
-
-        hostname: str = "Router"
-
-        ports: Dict[Union[int, str], Dict] = {}
 
     def __init__(self, **kwargs):
         if not kwargs.get("sys_log"):
             kwargs["sys_log"] = SysLog(kwargs["config"].hostname)
         if not kwargs.get("acl"):
-            kwargs["acl"] = AccessControlList(
-                sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=kwargs["config"].hostname
-            )
+            kwargs["acl"] = AccessControlList(sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=kwargs["config"].hostname)
         if not kwargs.get("route_table"):
             kwargs["route_table"] = RouteTable(sys_log=kwargs["sys_log"])
         super().__init__(**kwargs)
@@ -1562,7 +1552,7 @@ class Router(NetworkNode, identifier="router"):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.hostname} Network Interfaces"
+        table.title = f"{self.config.hostname} Network Interfaces"
         for port, network_interface in self.network_interface.items():
             table.add_row(
                 [
@@ -1666,4 +1656,5 @@ class Router(NetworkNode, identifier="router"):
             next_hop_ip_address = config["default_route"].get("next_hop_ip_address", None)
             if next_hop_ip_address:
                 router.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
+        router.operating_state = NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
         return router

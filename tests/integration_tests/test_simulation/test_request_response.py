@@ -140,9 +140,9 @@ class TestDataManipulationGreenRequests:
         client_1 = net.get_node_by_hostname("client_1")
         client_2 = net.get_node_by_hostname("client_2")
 
-        client_1.shut_down_duration = 0
+        client_1.config.shut_down_duration = 0
         client_1.power_off()
-        client_2.shut_down_duration = 0
+        client_2.config.shut_down_duration = 0
         client_2.power_off()
 
         client_1_browser_execute_off = net.apply_request(["node", "client_1", "application", "WebBrowser", "execute"])

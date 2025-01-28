@@ -141,6 +141,7 @@ class Firewall(Router, identifier="firewall"):
 
         self.external_outbound_acl.sys_log = kwargs["sys_log"]
         self.external_outbound_acl.name = f"{kwargs['config'].hostname} - External Outbound"
+        self.power_on()
 
     def _init_request_manager(self) -> RequestManager:
         """

@@ -338,7 +338,7 @@ def test_database_client_cannot_query_offline_database_server(uc2_network):
     assert db_connection.query("INSERT") is True
     db_server.power_off()
 
-    for i in range(db_server.shut_down_duration + 1):
+    for i in range(db_server.config.shut_down_duration + 1):
         uc2_network.apply_timestep(timestep=i)
 
     assert db_server.operating_state is NodeOperatingState.OFF

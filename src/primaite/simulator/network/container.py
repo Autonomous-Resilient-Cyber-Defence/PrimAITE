@@ -201,7 +201,7 @@ class Network(SimComponent):
                                         port_str,
                                         port.ip_address,
                                         port.subnet_mask,
-                                        node.default_gateway,
+                                        node.config.default_gateway,
                                     ]
                                 )
             print(table)

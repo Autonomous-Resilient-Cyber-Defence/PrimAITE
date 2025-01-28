@@ -41,7 +41,7 @@ def test_multi_nic():
     """Tests that Computers with multiple NICs can ping each other and the data go across the correct links."""
     network = Network()
 
-    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a = Computer(config=dict(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0))
     node_a.power_on()
 
     node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)

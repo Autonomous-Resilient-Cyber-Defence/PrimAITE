@@ -40,42 +40,42 @@ def client_server_routed() -> Network:
     network = Network()
 
     # Router 1
-    router_1 = Router(hostname="router_1", num_ports=3)
+    router_1 = Router(config=dict(hostname="router_1", num_ports=3))
     router_1.power_on()
     router_1.configure_port(port=1, ip_address="192.168.1.1", subnet_mask="255.255.255.0")
     router_1.configure_port(port=2, ip_address="192.168.2.1", subnet_mask="255.255.255.0")
 
     # Switch 1
-    switch_1 = Switch(hostname="switch_1", num_ports=6)
+    switch_1 = Switch(config=dict(hostname="switch_1", num_ports=6))
     switch_1.power_on()
     network.connect(endpoint_a=router_1.network_interface[1], endpoint_b=switch_1.network_interface[6])
     router_1.enable_port(1)
 
     # Switch 2
-    switch_2 = Switch(hostname="switch_2", num_ports=6)
+    switch_2 = Switch(config=dict(hostname="switch_2", num_ports=6))
     switch_2.power_on()
     network.connect(endpoint_a=router_1.network_interface[2], endpoint_b=switch_2.network_interface[6])
     router_1.enable_port(2)
 
     # Client 1
-    client_1 = Computer(
+    client_1 = Computer(config=dict(
         hostname="client_1",
         ip_address="192.168.2.2",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.2.1",
         start_up_duration=0,
-    )
+    ))
     client_1.power_on()
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
 
     # Server 1
-    server_1 = Server(
+    server_1 = Server(config=dict(
         hostname="server_1",
         ip_address="192.168.1.2",
         subnet_mask="255.255.255.0",
         default_gateway="192.168.1.1",
         start_up_duration=0,
-    )
+    ))
     server_1.power_on()
     network.connect(endpoint_b=server_1.network_interface[1], endpoint_a=switch_1.network_interface[1])
 

@@ -278,11 +278,11 @@ class PrimaiteGame:
 
             # TODO: handle simulation defaults more cleanly
             if "node_start_up_duration" in defaults_config:
-                new_node.start_up_duration = defaults_config["node_startup_duration"]
+                new_node.config.start_up_duration = defaults_config["node_startup_duration"]
             if "node_shut_down_duration" in defaults_config:
-                new_node.shut_down_duration = defaults_config["node_shut_down_duration"]
+                new_node.config.shut_down_duration = defaults_config["node_shut_down_duration"]
             if "node_scan_duration" in defaults_config:
-                new_node.node_scan_duration = defaults_config["node_scan_duration"]
+                new_node.config.node_scan_duration = defaults_config["node_scan_duration"]
             if "folder_scan_duration" in defaults_config:
                 new_node.file_system._default_folder_scan_duration = defaults_config["folder_scan_duration"]
             if "folder_restore_duration" in defaults_config:
@@ -337,7 +337,7 @@ class PrimaiteGame:
 
                     # TODO: handle simulation defaults more cleanly
                     if "service_fix_duration" in defaults_config:
-                        new_service.fixing_duration = defaults_config["service_fix_duration"]
+                        new_service.config.fixing_duration = defaults_config["service_fix_duration"]
                     if "service_restart_duration" in defaults_config:
                         new_service.restart_duration = defaults_config["service_restart_duration"]
                     if "service_install_duration" in defaults_config:
@@ -394,8 +394,8 @@ class PrimaiteGame:
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
 
             # temporarily set to 0 so all nodes are initially on
-            new_node.start_up_duration = 0
-            new_node.shut_down_duration = 0
+            new_node.config.start_up_duration = 0
+            new_node.config.shut_down_duration = 0
 
             net.add_node(new_node)
             # run through the power on step if the node is to be turned on at the start
@@ -403,8 +403,8 @@ class PrimaiteGame:
                 new_node.power_on()
 
             # set start up and shut down duration
-            new_node.start_up_duration = int(node_cfg.get("start_up_duration", 3))
-            new_node.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
+            new_node.config.start_up_duration = int(node_cfg.get("start_up_duration", 3))
+            new_node.config.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
 
         # 1.1 Create Node Sets
         for node_set_cfg in node_sets_cfg:

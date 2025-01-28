@@ -1493,17 +1493,12 @@ class Node(SimComponent, ABC):
     :param hostname: The node hostname on the network.
     :param operating_state: The node operating state, either ON or OFF.
     """
-
-    default_gateway: Optional[IPV4Address] = None
-    "The default gateway IP address for forwarding network traffic to other networks."
     operating_state: NodeOperatingState = NodeOperatingState.OFF
     "The hardware state of the node."
     network_interfaces: Dict[str, NetworkInterface] = {}
     "The Network Interfaces on the node."
     network_interface: Dict[int, NetworkInterface] = {}
     "The Network Interfaces on the node by port id."
-    dns_server: Optional[IPv4Address] = None
-    "List of IP addresses of DNS servers used for name resolution."
     accounts: Dict[str, Account] = {}
     "All accounts on the node."
     applications: Dict[str, Application] = {}
@@ -1567,6 +1562,16 @@ class Node(SimComponent, ABC):
         red_scan_countdown: int = 0
         "Time steps until reveal to red scan is complete."
 
+        dns_server: Optional[IPv4Address] = None
+        "List of IP addresses of DNS servers used for name resolution."
+
+        default_gateway: Optional[IPV4Address] = None
+        "The default gateway IP address for forwarding network traffic to other networks."
+
+    @property
+    def dns_server(self) -> Optional[IPv4Address]:
+        return self.config.dns_server
+
     @classmethod
     def from_config(cls, config: Dict) -> "Node":
         """Create Node object from a given configuration dictionary."""
@@ -1615,7 +1620,7 @@ class Node(SimComponent, ABC):
                 sys_log=kwargs.get("sys_log"),
                 session_manager=kwargs.get("session_manager"),
                 file_system=kwargs.get("file_system"),
-                dns_server=kwargs.get("dns_server"),
+                dns_server=kwargs["config"].dns_server,
             )
         super().__init__(**kwargs)
         self._install_system_software()
