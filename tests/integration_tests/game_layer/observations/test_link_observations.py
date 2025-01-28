@@ -57,7 +57,7 @@ def test_link_observation():
     net = Network()
     sim = Simulation(network=net)
     switch: Switch = Switch.from_config(
-        config={"type": "switch", "hostname": "switch", "num_ports": 5, "operating_state": NodeOperatingState.ON}
+        config={"type": "switch", "hostname": "switch", "num_ports": 5, "operating_state": "ON"}
     )
     computer_1: Computer = Computer.from_config(
         config={

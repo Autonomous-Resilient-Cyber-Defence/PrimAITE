@@ -1574,6 +1574,7 @@ class Node(SimComponent, ABC):
             msg = f"Configuration contains an invalid Node type: {config['type']}"
             return ValueError(msg)
         obj = cls(config=cls.ConfigSchema(**config))
+        obj.operating_state = NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
         return obj
 
     def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:

@@ -17,7 +17,7 @@ def test_router_observation():
     """Test adding/removing acl rules and enabling/disabling ports."""
     net = Network()
     router = Router.from_config(
-        config={"type": "router", "hostname": "router", "num_ports": 5, "operating_state": NodeOperatingState.ON}
+        config={"type": "router", "hostname": "router", "num_ports": 5, "operating_state": "ON"}
     )
 
     ports = [PortObservation(where=["NICs", i]) for i in range(1, 6)]
@@ -92,7 +92,7 @@ def test_router_observation():
 
     # connect a switch to the router and check that only the correct port is updated
     switch: Switch = Switch.from_config(
-        config={"type": "switch", "hostname": "switch", "num_ports": 1, "operating_state": NodeOperatingState.ON}
+        config={"type": "switch", "hostname": "switch", "num_ports": 1, "operating_state": "ON"}
     )
     link = net.connect(router.network_interface[1], switch.network_interface[1])
     assert router.network_interface[1].enabled
