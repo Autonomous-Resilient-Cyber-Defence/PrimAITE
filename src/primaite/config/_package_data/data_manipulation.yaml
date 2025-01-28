@@ -81,7 +81,7 @@ agents:
           action: node_application_execute
           options:
             node_name: client_1
-            application_name: WebBrowser
+            application_name: DatabaseClient
 
     reward_function:
       reward_components:
