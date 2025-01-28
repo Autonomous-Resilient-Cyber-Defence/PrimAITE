@@ -6,7 +6,6 @@ from prettytable import MARKDOWN, PrettyTable
 from pydantic import Field, validate_call
 
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import (
     AccessControlList,
     ACLAction,
@@ -268,23 +267,15 @@ class Firewall(Router, identifier="firewall"):
         :param dmz: If True, shows ACL rules for DMZ interfaces.
         :param markdown: If True, formats the output in Markdown, enhancing readability in Markdown-compatible viewers.
         """
-        print(f"{self.hostname} Firewall Rules")
-        print()
         if external:
             self.external_inbound_acl.show(markdown)
-            print()
             self.external_outbound_acl.show(markdown)
-            print()
         if internal:
             self.internal_inbound_acl.show(markdown)
-            print()
             self.internal_outbound_acl.show(markdown)
-            print()
         if dmz:
             self.dmz_inbound_acl.show(markdown)
-            print()
             self.dmz_outbound_acl.show(markdown)
-            print()
 
     def receive_frame(self, frame: Frame, from_network_interface: RouterInterface):
         """

@@ -44,10 +44,12 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
 
         start_step: int = 5
         "The timestep at which an agent begins performing it's actions"
+        start_variance: int = 0
         frequency: int = 5
         "The number of timesteps to wait between performing actions"
         variance: int = 0
         "The amount the frequency can randomly change to"
+        max_executions: int = 999999
         possible_start_nodes: List[str]
         target_application: str
 
@@ -76,8 +78,6 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
             default_factory=lambda: PeriodicAgent.AgentSettingsSchema()
         )
 
-    max_executions: int = 999999
-    "Maximum number of times the agent can execute its action."
     num_executions: int = 0
     """Number of times the agent has executed an action."""
     next_execution_timestep: int = 0
@@ -102,7 +102,7 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
 
     def get_action(self, obs: ObsType, timestep: int) -> Tuple[str, Dict]:
         """Do nothing, unless the current timestep is the next execution timestep, in which case do the action."""
-        if timestep == self.next_execution_timestep and self.num_executions < self.max_executions:
+        if timestep == self.next_execution_timestep and self.num_executions < self.config.agent_settings.max_executions:
             self.num_executions += 1
             self._set_next_execution_timestep(
                 timestep + self.config.agent_settings.frequency, self.config.agent_settings.variance

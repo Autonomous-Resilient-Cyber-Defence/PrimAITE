@@ -26,7 +26,7 @@ class ACLAddRuleAbstractAction(AbstractAction, ABC):
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration Schema base for ACL add rule abstract actions."""
 
-        src_ip: IPV4Address
+        src_ip: Union[IPV4Address, Literal["ALL"]]
         protocol_name: Union[IPProtocol, Literal["ALL"]]
         permission: Literal["PERMIT", "DENY"]
         position: int
