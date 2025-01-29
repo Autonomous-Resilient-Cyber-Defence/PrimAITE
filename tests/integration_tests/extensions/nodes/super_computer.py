@@ -36,8 +36,8 @@ class SuperComputer(HostNode, identifier="supercomputer"):
 
     SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "FTPClient": FTPClient}
 
-    def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
+    def __init__(self, **kwargs):
         print("--- Extended Component: SuperComputer ---")
-        super().__init__(ip_address=ip_address, subnet_mask=subnet_mask, **kwargs)
+        super().__init__(**kwargs)
 
     pass

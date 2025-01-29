@@ -17,10 +17,12 @@ def node() -> Node:
         "hostname": "test",
         "ip_address": "192.168.1.2",
         "subnet_mask": "255.255.255.0",
+        "operating_state": "OFF",
     }
     computer = Computer.from_config(config=computer_cfg)
 
     return computer
+
 
 def test_node_startup(node):
     assert node.operating_state == NodeOperatingState.OFF

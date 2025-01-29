@@ -16,7 +16,7 @@ def test_wireless_link_loading(wireless_wan_network):
     # Configure Router 2 ACLs
     router_2.acl.add_rule(action=ACLAction.PERMIT, position=1)
 
-    airspace = router_1.airspace
+    airspace = router_1.config.airspace
 
     client.software_manager.install(FTPClient)
     ftp_client: FTPClient = client.software_manager.software.get("FTPClient")

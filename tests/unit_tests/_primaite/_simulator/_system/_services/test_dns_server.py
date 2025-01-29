@@ -66,7 +66,7 @@ def test_dns_server_receive(dns_server):
     }
     client = Computer.from_config(config=client_cfg)
     client.power_on()
-    client.dns_server = IPv4Address("192.168.1.10")
+    client.config.dns_server = IPv4Address("192.168.1.10")
     network = Network()
     network.connect(dns_server.network_interface[1], client.network_interface[1])
     dns_client: DNSClient = client.software_manager.software["DNSClient"]  # noqa

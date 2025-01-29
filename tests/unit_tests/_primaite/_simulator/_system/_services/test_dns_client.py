@@ -36,6 +36,16 @@ def test_create_dns_client(dns_client):
 
 def test_dns_client_add_domain_to_cache_when_not_running(dns_client):
     dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
+
+    # shutdown the dns_client
+    dns_client.power_off()
+
+    # wait for dns_client to turn off
+    idx = 0
+    while dns_client.operating_state == NodeOperatingState.SHUTTING_DOWN:
+        dns_client.apply_timestep(idx)
+        idx += 1
+
     assert dns_client.operating_state is NodeOperatingState.OFF
     assert dns_client_service.operating_state is ServiceOperatingState.STOPPED
 

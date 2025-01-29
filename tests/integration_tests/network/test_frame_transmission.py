@@ -10,25 +10,31 @@ def test_node_to_node_ping():
     """Tests two Computers are able to ping each other."""
     network = Network()
 
-    client_1 = Computer(
-        hostname="client_1",
-        ip_address="192.168.1.10",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
+    client_1: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "client_1",
+            "ip_address": "192.168.1.10",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.1.1",
+            "start_up_duration": 0,
+        }
     )
     client_1.power_on()
 
-    server_1 = Server(
-        hostname="server_1",
-        ip_address="192.168.1.11",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
+    server_1: Server = Server.from_config(
+        config={
+            "type": "server",
+            "hostname": "server_1",
+            "ip_address": "192.168.1.11",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.1.1",
+            "start_up_duration": 0,
+        }
     )
     server_1.power_on()
 
-    switch_1 = Switch(hostname="switch_1", start_up_duration=0)
+    switch_1: Switch = Switch.from_config(config={"type": "switch", "hostname": "switch_1", "start_up_duration": 0})
     switch_1.power_on()
 
     network.connect(endpoint_a=client_1.network_interface[1], endpoint_b=switch_1.network_interface[1])
@@ -41,14 +47,38 @@ def test_multi_nic():
     """Tests that Computers with multiple NICs can ping each other and the data go across the correct links."""
     network = Network()
 
-    node_a = Computer(config=dict(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0))
+    node_a: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "node_a",
+            "ip_address": "192.168.0.10",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     node_a.power_on()
 
-    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "node_b",
+            "ip_address": "192.168.0.11",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     node_b.power_on()
     node_b.connect_nic(NIC(ip_address="10.0.0.12", subnet_mask="255.0.0.0"))
 
-    node_c = Computer(hostname="node_c", ip_address="10.0.0.13", subnet_mask="255.0.0.0", start_up_duration=0)
+    node_c: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "node_c",
+            "ip_address": "10.0.0.13",
+            "subnet_mask": "255.0.0.0",
+            "start_up_duration": 0,
+        }
+    )
     node_c.power_on()
 
     network.connect(node_a.network_interface[1], node_b.network_interface[1])

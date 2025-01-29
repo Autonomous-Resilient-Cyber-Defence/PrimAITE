@@ -83,12 +83,15 @@ def dmz_external_internal_network() -> Network:
     )
 
     # external node
-    external_node = Computer(
-        hostname="external_node",
-        ip_address="192.168.10.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.10.1",
-        start_up_duration=0,
+    external_node: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "external_node",
+            "ip_address": "192.168.10.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.10.1",
+            "start_up_duration": 0,
+        }
     )
     external_node.power_on()
     external_node.software_manager.install(NTPServer)
@@ -98,12 +101,15 @@ def dmz_external_internal_network() -> Network:
     network.connect(endpoint_b=external_node.network_interface[1], endpoint_a=firewall_node.external_port)
 
     # internal node
-    internal_node = Computer(
-        hostname="internal_node",
-        ip_address="192.168.0.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.0.1",
-        start_up_duration=0,
+    internal_node: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "internal_node",
+            "ip_address": "192.168.0.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.0.1",
+            "start_up_duration": 0,
+        }
     )
     internal_node.power_on()
     internal_node.software_manager.install(NTPClient)
@@ -114,12 +120,15 @@ def dmz_external_internal_network() -> Network:
     network.connect(endpoint_b=internal_node.network_interface[1], endpoint_a=firewall_node.internal_port)
 
     # dmz node
-    dmz_node = Computer(
-        hostname="dmz_node",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
+    dmz_node: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "dmz_node",
+            "ip_address": "192.168.1.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.1.1",
+            "start_up_duration": 0,
+        }
     )
     dmz_node.power_on()
     dmz_ntp_client: NTPClient = dmz_node.software_manager.software["NTPClient"]
@@ -157,9 +166,9 @@ def test_nodes_can_ping_default_gateway(dmz_external_internal_network):
     internal_node = dmz_external_internal_network.get_node_by_hostname("internal_node")
     dmz_node = dmz_external_internal_network.get_node_by_hostname("dmz_node")
 
-    assert internal_node.ping(internal_node.default_gateway)  # default gateway internal
-    assert dmz_node.ping(dmz_node.default_gateway)  # default gateway dmz
-    assert external_node.ping(external_node.default_gateway)  # default gateway external
+    assert internal_node.ping(internal_node.config.default_gateway)  # default gateway internal
+    assert dmz_node.ping(dmz_node.config.default_gateway)  # default gateway dmz
+    assert external_node.ping(external_node.config.default_gateway)  # default gateway external
 
 
 def test_nodes_can_ping_default_gateway_on_another_subnet(dmz_external_internal_network):
@@ -173,14 +182,14 @@ def test_nodes_can_ping_default_gateway_on_another_subnet(dmz_external_internal_
     internal_node = dmz_external_internal_network.get_node_by_hostname("internal_node")
     dmz_node = dmz_external_internal_network.get_node_by_hostname("dmz_node")
 
-    assert internal_node.ping(external_node.default_gateway)  # internal node to external default gateway
-    assert internal_node.ping(dmz_node.default_gateway)  # internal node to dmz default gateway
+    assert internal_node.ping(external_node.config.default_gateway)  # internal node to external default gateway
+    assert internal_node.ping(dmz_node.config.default_gateway)  # internal node to dmz default gateway
 
-    assert dmz_node.ping(internal_node.default_gateway)  # dmz node to internal default gateway
-    assert dmz_node.ping(external_node.default_gateway)  # dmz node to external default gateway
+    assert dmz_node.ping(internal_node.config.default_gateway)  # dmz node to internal default gateway
+    assert dmz_node.ping(external_node.config.default_gateway)  # dmz node to external default gateway
 
-    assert external_node.ping(external_node.default_gateway)  # external node to internal default gateway
-    assert external_node.ping(dmz_node.default_gateway)  # external node to dmz default gateway
+    assert external_node.ping(external_node.config.default_gateway)  # external node to internal default gateway
+    assert external_node.ping(dmz_node.config.default_gateway)  # external node to dmz default gateway
 
 
 def test_nodes_can_ping_each_other(dmz_external_internal_network):

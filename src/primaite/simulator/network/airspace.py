@@ -178,7 +178,7 @@ class AirSpace(BaseModel):
             status = "Enabled" if interface.enabled else "Disabled"
             table.add_row(
                 [
-                    interface._connected_node.hostname,  # noqa
+                    interface._connected_node.config.hostname,  # noqa
                     interface.mac_address,
                     interface.ip_address if hasattr(interface, "ip_address") else None,
                     interface.subnet_mask if hasattr(interface, "subnet_mask") else None,

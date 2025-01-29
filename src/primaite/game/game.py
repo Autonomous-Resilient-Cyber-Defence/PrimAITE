@@ -269,7 +269,8 @@ class PrimaiteGame:
 
             new_node = None
             if n_type in Node._registry:
-                # simplify down Node creation:
+                if n_type == "wireless_router":
+                    node_cfg["airspace"] = net.airspace
                 new_node = Node._registry[n_type].from_config(config=node_cfg)
             else:
                 msg = f"invalid node type {n_type} in config"

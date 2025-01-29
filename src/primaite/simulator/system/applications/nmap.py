@@ -208,7 +208,7 @@ class NMAP(Application, identifier="NMAP"):
         if show:
             table = PrettyTable(["IP Address", "Can Ping"])
             table.align = "l"
-            table.title = f"{self.software_manager.node.hostname} NMAP Ping Scan"
+            table.title = f"{self.software_manager.node.config.hostname} NMAP Ping Scan"
 
         ip_addresses = self._explode_ip_address_network_array(target_ip_address)
 
@@ -367,7 +367,7 @@ class NMAP(Application, identifier="NMAP"):
         if show:
             table = PrettyTable(["IP Address", "Port", "Protocol"])
             table.align = "l"
-            table.title = f"{self.software_manager.node.hostname} NMAP Port Scan ({scan_type})"
+            table.title = f"{self.software_manager.node.config.hostname} NMAP Port Scan ({scan_type})"
         self.sys_log.info(f"{self.name}: Starting port scan")
         for ip_address in ip_addresses:
             # Prevent port scan on this node

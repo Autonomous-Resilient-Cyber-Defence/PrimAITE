@@ -7,7 +7,7 @@ from ipaddress import IPv4Address, IPv4Network
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import Field, validate_call
+from pydantic import validate_call
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
@@ -1217,16 +1217,18 @@ class Router(NetworkNode, identifier="router"):
     config: "Router.ConfigSchema"
 
     class ConfigSchema(NetworkNode.ConfigSchema):
-        
-        hostname: str = "router"
-        num_ports: int
+        """Configuration Schema for Routers."""
 
+        hostname: str = "router"
+        num_ports: int = 5
 
     def __init__(self, **kwargs):
         if not kwargs.get("sys_log"):
             kwargs["sys_log"] = SysLog(kwargs["config"].hostname)
         if not kwargs.get("acl"):
-            kwargs["acl"] = AccessControlList(sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=kwargs["config"].hostname)
+            kwargs["acl"] = AccessControlList(
+                sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=kwargs["config"].hostname
+            )
         if not kwargs.get("route_table"):
             kwargs["route_table"] = RouteTable(sys_log=kwargs["sys_log"])
         super().__init__(**kwargs)
@@ -1656,5 +1658,7 @@ class Router(NetworkNode, identifier="router"):
             next_hop_ip_address = config["default_route"].get("next_hop_ip_address", None)
             if next_hop_ip_address:
                 router.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
-        router.operating_state = NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
+        router.operating_state = (
+            NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
+        )
         return router

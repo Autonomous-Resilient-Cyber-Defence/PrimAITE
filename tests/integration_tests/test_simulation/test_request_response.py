@@ -111,7 +111,7 @@ def test_request_fails_if_node_off(example_network, node_request):
     """Test that requests succeed when the node is on, and fail if the node is off."""
     net = example_network
     client_1: HostNode = net.get_node_by_hostname("client_1")
-    client_1.shut_down_duration = 0
+    client_1.config.shut_down_duration = 0
 
     assert client_1.operating_state == NodeOperatingState.ON
     resp_1 = net.apply_request(node_request)

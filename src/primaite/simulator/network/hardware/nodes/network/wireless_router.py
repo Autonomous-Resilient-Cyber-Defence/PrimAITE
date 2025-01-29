@@ -129,7 +129,7 @@ class WirelessRouter(Router, identifier="wireless_router"):
         """Configuration Schema for WirelessRouter nodes within PrimAITE."""
 
         hostname: str = "WirelessRouter"
-        airspace: Optional[AirSpace] = None
+        airspace: AirSpace
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -262,9 +262,6 @@ class WirelessRouter(Router, identifier="wireless_router"):
         :return: WirelessRouter instance.
         :rtype: WirelessRouter
         """
-        operating_state = (
-            NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
-        )
         router = cls(config=cls.ConfigSchema(**config))
         if "router_interface" in config:
             ip_address = config["router_interface"]["ip_address"]
@@ -297,4 +294,7 @@ class WirelessRouter(Router, identifier="wireless_router"):
                     next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
                     metric=float(route.get("metric", 0)),
                 )
+        router.operating_state = (
+            NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
+        )
         return router
