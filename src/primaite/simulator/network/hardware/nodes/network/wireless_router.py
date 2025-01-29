@@ -263,6 +263,9 @@ class WirelessRouter(Router, identifier="wireless_router"):
         :rtype: WirelessRouter
         """
         router = cls(config=cls.ConfigSchema(**config))
+        router.operating_state = (
+            NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
+        )
         if "router_interface" in config:
             ip_address = config["router_interface"]["ip_address"]
             subnet_mask = config["router_interface"]["subnet_mask"]
@@ -294,7 +297,4 @@ class WirelessRouter(Router, identifier="wireless_router"):
                     next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
                     metric=float(route.get("metric", 0)),
                 )
-        router.operating_state = (
-            NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
-        )
         return router
