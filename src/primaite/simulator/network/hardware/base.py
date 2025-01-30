@@ -1532,6 +1532,7 @@ class Node(SimComponent, ABC):
 
         model_config = ConfigDict(arbitrary_types_allowed=True)
         """Configure pydantic to allow arbitrary types, let the instance have attributes not present in the model."""
+
         hostname: str = "default"
         "The node hostname on the network."
 
@@ -1568,6 +1569,8 @@ class Node(SimComponent, ABC):
         default_gateway: Optional[IPV4Address] = None
         "The default gateway IP address for forwarding network traffic to other networks."
 
+        operating_state: Any = None
+
     @property
     def dns_server(self) -> Optional[IPv4Address]:
         return self.config.dns_server
@@ -1579,7 +1582,6 @@ class Node(SimComponent, ABC):
             msg = f"Configuration contains an invalid Node type: {config['type']}"
             return ValueError(msg)
         obj = cls(config=cls.ConfigSchema(**config))
-        obj.operating_state = NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
         return obj
 
     def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
@@ -1623,6 +1625,7 @@ class Node(SimComponent, ABC):
                 dns_server=kwargs["config"].dns_server,
             )
         super().__init__(**kwargs)
+        self.operating_state = NodeOperatingState.ON if not (p := kwargs["config"].operating_state) else NodeOperatingState[p.upper()]
         self._install_system_software()
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
