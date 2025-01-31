@@ -41,7 +41,6 @@ class DNSClient(Service, identifier="DNSClient"):
         # TCP for now
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
-        self.dns_server = self.config.dns_server
         self.start()
 
     @property
