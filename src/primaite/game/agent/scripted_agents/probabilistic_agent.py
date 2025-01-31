@@ -13,7 +13,7 @@ from primaite.game.agent.interface import AbstractScriptedAgent
 __all__ = "ProbabilisticAgent"
 
 
-class ProbabilisticAgent(AbstractScriptedAgent, identifier="ProbabilisticAgent"):
+class ProbabilisticAgent(AbstractScriptedAgent, discriminator="ProbabilisticAgent"):
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
     rng: Generator = Field(default_factory=lambda: np.random.default_rng(np.random.randint(0, 65535)))

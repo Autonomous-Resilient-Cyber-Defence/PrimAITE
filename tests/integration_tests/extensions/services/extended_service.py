@@ -19,7 +19,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class ExtendedService(Service, identifier="ExtendedService"):
+class ExtendedService(Service, discriminator="ExtendedService"):
     """
     A copy of DatabaseService that uses the extension framework instead of being part of PrimAITE.
 

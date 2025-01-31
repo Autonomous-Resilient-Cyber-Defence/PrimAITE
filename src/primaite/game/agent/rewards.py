@@ -55,13 +55,13 @@ class AbstractReward(BaseModel):
 
     _registry: ClassVar[Dict[str, Type["AbstractReward"]]] = {}
 
-    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
-        if identifier is None:
+        if discriminator is None:
             return
-        if identifier in cls._registry:
-            raise ValueError(f"Duplicate reward {identifier}")
-        cls._registry[identifier] = cls
+        if discriminator in cls._registry:
+            raise ValueError(f"Duplicate reward {discriminator}")
+        cls._registry[discriminator] = cls
 
     @classmethod
     def from_config(cls, config: Dict) -> "AbstractReward":
@@ -92,7 +92,7 @@ class AbstractReward(BaseModel):
         return 0.0
 
 
-class DummyReward(AbstractReward, identifier="DUMMY"):
+class DummyReward(AbstractReward, discriminator="DUMMY"):
     """Dummy reward function component which always returns 0.0."""
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
@@ -108,7 +108,7 @@ class DummyReward(AbstractReward, identifier="DUMMY"):
         return 0.0
 
 
-class DatabaseFileIntegrity(AbstractReward, identifier="DATABASE_FILE_INTEGRITY"):
+class DatabaseFileIntegrity(AbstractReward, discriminator="DATABASE_FILE_INTEGRITY"):
     """Reward function component which rewards the agent for maintaining the integrity of a database file."""
 
     config: "DatabaseFileIntegrity.ConfigSchema"
@@ -161,7 +161,7 @@ class DatabaseFileIntegrity(AbstractReward, identifier="DATABASE_FILE_INTEGRITY"
             return 0
 
 
-class WebServer404Penalty(AbstractReward, identifier="WEB_SERVER_404_PENALTY"):
+class WebServer404Penalty(AbstractReward, discriminator="WEB_SERVER_404_PENALTY"):
     """Reward function component which penalises the agent when the web server returns a 404 error."""
 
     config: "WebServer404Penalty.ConfigSchema"
@@ -215,7 +215,7 @@ class WebServer404Penalty(AbstractReward, identifier="WEB_SERVER_404_PENALTY"):
         return self.reward
 
 
-class WebpageUnavailablePenalty(AbstractReward, identifier="WEBPAGE_UNAVAILABLE_PENALTY"):
+class WebpageUnavailablePenalty(AbstractReward, discriminator="WEBPAGE_UNAVAILABLE_PENALTY"):
     """Penalises the agent when the web browser fails to fetch a webpage."""
 
     config: "WebpageUnavailablePenalty.ConfigSchema"
@@ -289,7 +289,7 @@ class WebpageUnavailablePenalty(AbstractReward, identifier="WEBPAGE_UNAVAILABLE_
         return self.reward
 
 
-class GreenAdminDatabaseUnreachablePenalty(AbstractReward, identifier="GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY"):
+class GreenAdminDatabaseUnreachablePenalty(AbstractReward, discriminator="GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY"):
     """Penalises the agent when the green db clients fail to connect to the database."""
 
     config: "GreenAdminDatabaseUnreachablePenalty.ConfigSchema"
@@ -339,7 +339,7 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward, identifier="GREEN_ADM
         return self.reward
 
 
-class SharedReward(AbstractReward, identifier="SHARED_REWARD"):
+class SharedReward(AbstractReward, discriminator="SHARED_REWARD"):
     """Adds another agent's reward to the overall reward."""
 
     config: "SharedReward.ConfigSchema"
@@ -376,7 +376,7 @@ class SharedReward(AbstractReward, identifier="SHARED_REWARD"):
         return self.callback(self.config.agent_name)
 
 
-class ActionPenalty(AbstractReward, identifier="ACTION_PENALTY"):
+class ActionPenalty(AbstractReward, discriminator="ACTION_PENALTY"):
     """Apply a negative reward when taking any action except do_nothing."""
 
     config: "ActionPenalty.ConfigSchema"

@@ -12,7 +12,7 @@ from primaite.utils.validation.port import is_valid_port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class FTPServer(FTPServiceABC, identifier="FTPServer"):
+class FTPServer(FTPServiceABC, discriminator="FTPServer"):
     """
     A class for simulating an FTP server service.
 

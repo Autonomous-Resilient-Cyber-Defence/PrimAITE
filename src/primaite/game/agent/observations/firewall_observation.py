@@ -18,7 +18,7 @@ from primaite.utils.validation.port import Port
 _LOGGER = getLogger(__name__)
 
 
-class FirewallObservation(AbstractObservation, identifier="FIREWALL"):
+class FirewallObservation(AbstractObservation, discriminator="FIREWALL"):
     """Firewall observation, provides status information about a firewall within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):

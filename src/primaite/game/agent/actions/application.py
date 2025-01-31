@@ -45,7 +45,7 @@ class NodeApplicationAbstractAction(AbstractAction, ABC):
         ]
 
 
-class NodeApplicationExecuteAction(NodeApplicationAbstractAction, identifier="node_application_execute"):
+class NodeApplicationExecuteAction(NodeApplicationAbstractAction, discriminator="node_application_execute"):
     """Action which executes an application."""
 
     config: "NodeApplicationExecuteAction.ConfigSchema"
@@ -56,7 +56,7 @@ class NodeApplicationExecuteAction(NodeApplicationAbstractAction, identifier="no
         verb: str = "execute"
 
 
-class NodeApplicationScanAction(NodeApplicationAbstractAction, identifier="node_application_scan"):
+class NodeApplicationScanAction(NodeApplicationAbstractAction, discriminator="node_application_scan"):
     """Action which scans an application."""
 
     config: "NodeApplicationScanAction.ConfigSchema"
@@ -67,7 +67,7 @@ class NodeApplicationScanAction(NodeApplicationAbstractAction, identifier="node_
         verb: str = "scan"
 
 
-class NodeApplicationCloseAction(NodeApplicationAbstractAction, identifier="node_application_close"):
+class NodeApplicationCloseAction(NodeApplicationAbstractAction, discriminator="node_application_close"):
     """Action which closes an application."""
 
     config: "NodeApplicationCloseAction.ConfigSchema"
@@ -78,7 +78,7 @@ class NodeApplicationCloseAction(NodeApplicationAbstractAction, identifier="node
         verb: str = "close"
 
 
-class NodeApplicationFixAction(NodeApplicationAbstractAction, identifier="node_application_fix"):
+class NodeApplicationFixAction(NodeApplicationAbstractAction, discriminator="node_application_fix"):
     """Action which fixes an application."""
 
     config: "NodeApplicationFixAction.ConfigSchema"
@@ -89,7 +89,7 @@ class NodeApplicationFixAction(NodeApplicationAbstractAction, identifier="node_a
         verb: str = "fix"
 
 
-class NodeApplicationInstallAction(NodeApplicationAbstractAction, identifier="node_application_install"):
+class NodeApplicationInstallAction(NodeApplicationAbstractAction, discriminator="node_application_install"):
     """Action which installs an application."""
 
     config: "NodeApplicationInstallAction.ConfigSchema"
@@ -113,7 +113,7 @@ class NodeApplicationInstallAction(NodeApplicationAbstractAction, identifier="no
         ]
 
 
-class NodeApplicationRemoveAction(NodeApplicationAbstractAction, identifier="node_application_remove"):
+class NodeApplicationRemoveAction(NodeApplicationAbstractAction, discriminator="node_application_remove"):
     """Action which removes/uninstalls an application."""
 
     config: "NodeApplicationRemoveAction.ConfigSchema"

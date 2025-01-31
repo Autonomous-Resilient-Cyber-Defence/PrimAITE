@@ -44,7 +44,7 @@ class PortScanPayload(SimComponent):
         return state
 
 
-class NMAP(Application, identifier="NMAP"):
+class NMAP(Application, discriminator="NMAP"):
     """
     A class representing the NMAP application for network scanning.
 

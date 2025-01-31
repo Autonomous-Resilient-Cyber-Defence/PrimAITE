@@ -18,7 +18,7 @@ from primaite.utils.validation.port import Port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class FTPClient(FTPServiceABC, identifier="FTPClient"):
+class FTPClient(FTPServiceABC, discriminator="FTPClient"):
     """
     A class for simulating an FTP client service.
 

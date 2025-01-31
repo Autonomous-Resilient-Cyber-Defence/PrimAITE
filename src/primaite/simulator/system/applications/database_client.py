@@ -61,7 +61,7 @@ class DatabaseClientConnection(BaseModel):
         return str(self)
 
 
-class DatabaseClient(Application, identifier="DatabaseClient"):
+class DatabaseClient(Application, discriminator="DatabaseClient"):
     """
     A DatabaseClient application.
 

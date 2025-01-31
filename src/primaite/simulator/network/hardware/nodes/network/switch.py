@@ -87,7 +87,7 @@ class SwitchPort(WiredNetworkInterface):
         return False
 
 
-class Switch(NetworkNode, identifier="switch"):
+class Switch(NetworkNode, discriminator="switch"):
     """
     A class representing a Layer 2 network switch.
 

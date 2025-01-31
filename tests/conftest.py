@@ -39,7 +39,7 @@ ACTION_SPACE_NODE_ACTION_VALUES = 1
 _LOGGER = getLogger(__name__)
 
 
-class DummyService(Service, identifier="DummyService"):
+class DummyService(Service, discriminator="DummyService"):
     """Test Service class"""
 
     class ConfigSchema(Service.ConfigSchema):
@@ -62,7 +62,7 @@ class DummyService(Service, identifier="DummyService"):
         pass
 
 
-class DummyApplication(Application, identifier="DummyApplication"):
+class DummyApplication(Application, discriminator="DummyApplication"):
     """Test Application class"""
 
     class ConfigSchema(Application.ConfigSchema):
@@ -280,7 +280,7 @@ def example_network() -> Network:
     return network
 
 
-class ControlledAgent(AbstractAgent, identifier="ControlledAgent"):
+class ControlledAgent(AbstractAgent, discriminator="ControlledAgent"):
     """Agent that can be controlled by the tests."""
 
     config: "ControlledAgent.ConfigSchema" = Field(default_factory=lambda: ControlledAgent.ConfigSchema())

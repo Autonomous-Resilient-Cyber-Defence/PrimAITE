@@ -18,7 +18,7 @@ from primaite.utils.validation.port import Port
 _LOGGER = getLogger(__name__)
 
 
-class HostObservation(AbstractObservation, identifier="HOST"):
+class HostObservation(AbstractObservation, discriminator="HOST"):
     """Host observation, provides status information about a host within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):

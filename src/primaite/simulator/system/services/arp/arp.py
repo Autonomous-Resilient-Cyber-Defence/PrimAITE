@@ -15,7 +15,7 @@ from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class ARP(Service, identifier="ARP"):
+class ARP(Service, discriminator="ARP"):
     """
     The ARP (Address Resolution Protocol) Service.
 

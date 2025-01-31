@@ -17,7 +17,7 @@ from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 
-class C2Beacon(AbstractC2, identifier="C2Beacon"):
+class C2Beacon(AbstractC2, discriminator="C2Beacon"):
     """
     C2 Beacon Application.
 

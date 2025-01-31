@@ -11,7 +11,7 @@ from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class TestSoftware(Service, identifier="TestSoftware"):
+class TestSoftware(Service, discriminator="TestSoftware"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSChema for TestSoftware."""
 

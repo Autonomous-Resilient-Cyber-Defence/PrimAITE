@@ -14,7 +14,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 from tests import TEST_ASSETS_ROOT
 
 
-class _DatabaseListener(Service, identifier="_DatabaseListener"):
+class _DatabaseListener(Service, discriminator="_DatabaseListener"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for _DatabaseListener."""
 

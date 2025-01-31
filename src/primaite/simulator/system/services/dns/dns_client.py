@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 _LOGGER = getLogger(__name__)
 
 
-class DNSClient(Service, identifier="DNSClient"):
+class DNSClient(Service, discriminator="DNSClient"):
     """Represents a DNS Client as a Service."""
 
     class ConfigSchema(Service.ConfigSchema):

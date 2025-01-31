@@ -13,7 +13,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class NTPServer(Service, identifier="NTPServer"):
+class NTPServer(Service, discriminator="NTPServer"):
     """Represents a NTP server as a service."""
 
     class ConfigSchema(Service.ConfigSchema):

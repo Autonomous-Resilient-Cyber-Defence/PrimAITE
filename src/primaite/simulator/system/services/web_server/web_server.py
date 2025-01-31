@@ -21,7 +21,7 @@ from primaite.utils.validation.port import Port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class WebServer(Service, identifier="WebServer"):
+class WebServer(Service, discriminator="WebServer"):
     """Class used to represent a Web Server Service in simulation."""
 
     class ConfigSchema(Service.ConfigSchema):

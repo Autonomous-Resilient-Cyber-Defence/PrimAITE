@@ -8,7 +8,7 @@ from primaite.interface.request import RequestFormat
 __all__ = ("NetworkPortEnableAction", "NetworkPortDisableAction")
 
 
-class NetworkPortAbstractAction(AbstractAction, identifier="network_port_abstract"):
+class NetworkPortAbstractAction(AbstractAction, discriminator="network_port_abstract"):
     """Base class for Network port actions."""
 
     config: "NetworkPortAbstractAction.ConfigSchema"
@@ -35,7 +35,7 @@ class NetworkPortAbstractAction(AbstractAction, identifier="network_port_abstrac
         ]
 
 
-class NetworkPortEnableAction(NetworkPortAbstractAction, identifier="network_port_enable"):
+class NetworkPortEnableAction(NetworkPortAbstractAction, discriminator="network_port_enable"):
     """Action which enables are port on a router or a firewall."""
 
     config: "NetworkPortEnableAction.ConfigSchema"
@@ -46,7 +46,7 @@ class NetworkPortEnableAction(NetworkPortAbstractAction, identifier="network_por
         verb: ClassVar[str] = "enable"
 
 
-class NetworkPortDisableAction(NetworkPortAbstractAction, identifier="network_port_disable"):
+class NetworkPortDisableAction(NetworkPortAbstractAction, discriminator="network_port_disable"):
     """Action which disables are port on a router or a firewall."""
 
     config: "NetworkPortDisableAction.ConfigSchema"

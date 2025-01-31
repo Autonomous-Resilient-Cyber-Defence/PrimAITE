@@ -15,7 +15,7 @@ from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class BroadcastTestService(Service, identifier="BroadcastTestService"):
+class BroadcastTestService(Service, discriminator="BroadcastTestService"):
     """A service for sending broadcast and unicast messages over a network."""
 
     class ConfigSchema(Service.ConfigSchema):
@@ -51,7 +51,7 @@ class BroadcastTestService(Service, identifier="BroadcastTestService"):
         )
 
 
-class BroadcastTestClient(Application, identifier="BroadcastTestClient"):
+class BroadcastTestClient(Application, discriminator="BroadcastTestClient"):
     """A client application to receive broadcast and unicast messages."""
 
     class ConfigSchema(Service.ConfigSchema):

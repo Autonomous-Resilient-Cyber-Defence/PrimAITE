@@ -824,7 +824,7 @@ class User(SimComponent):
         return self.model_dump()
 
 
-class UserManager(Service, identifier="UserManager"):
+class UserManager(Service, discriminator="UserManager"):
     """
     Manages users within the PrimAITE system, handling creation, authentication, and administration.
 
@@ -1137,7 +1137,7 @@ class RemoteUserSession(UserSession):
         return state
 
 
-class UserSessionManager(Service, identifier="UserSessionManager"):
+class UserSessionManager(Service, discriminator="UserSessionManager"):
     """
     Manages user sessions on a Node, including local and remote sessions.
 
@@ -1483,7 +1483,7 @@ class UserSessionManager(Service, identifier="UserSessionManager"):
         return self.local_session is not None
 
 
-class Node(SimComponent):
+class Node(SimComponent, ABC):
     """
     A basic Node class that represents a node on the network.
 
@@ -1556,25 +1556,26 @@ class Node(SimComponent):
     _registry: ClassVar[Dict[str, Type["Node"]]] = {}
     """Registry of application types. Automatically populated when subclasses are defined."""
 
-    _identifier: ClassVar[str] = "unknown"
-    """Identifier for this particular class, used for printing and logging. Each subclass redefines this."""
+    # TODO: this should not be set for abstract classes.
+    _discriminator: ClassVar[str]
+    """discriminator for this particular class, used for printing and logging. Each subclass redefines this."""
 
-    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
         """
         Register a node type.
 
-        :param identifier: Uniquely specifies an node class by name. Used for finding items by config.
-        :type identifier: str
+        :param discriminator: Uniquely specifies an node class by name. Used for finding items by config.
+        :type discriminator: str
         :raises ValueError: When attempting to register an node with a name that is already allocated.
         """
         super().__init_subclass__(**kwargs)
-        if identifier is None:
+        if discriminator is None:
             return
-        identifier = identifier.lower()
-        if identifier in cls._registry:
-            raise ValueError(f"Tried to define new node {identifier}, but this name is already reserved.")
-        cls._registry[identifier] = cls
-        cls._identifier = identifier
+        discriminator = discriminator.lower()
+        if discriminator in cls._registry:
+            raise ValueError(f"Tried to define new node {discriminator}, but this name is already reserved.")
+        cls._registry[discriminator] = cls
+        cls._discriminator = discriminator
 
     def __init__(self, **kwargs):
         """

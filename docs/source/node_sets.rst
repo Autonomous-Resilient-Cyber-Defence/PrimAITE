@@ -82,7 +82,7 @@ Here is an example of creating a custom node adder, DataCenterAdder:
 
 .. code-block:: python
 
-    class DataCenterAdder(NetworkNodeAdder, identifier="data_center"):
+    class DataCenterAdder(NetworkNodeAdder, discriminator="data_center"):
         class ConfigSchema(NetworkNodeAdder.ConfigSchema):
             type: Literal["data_center"] = "data_center"
             num_servers: int

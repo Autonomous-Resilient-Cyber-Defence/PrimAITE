@@ -180,7 +180,7 @@ class Network(SimComponent):
             table.align = "l"
             table.title = "Nodes"
             for node in self.nodes.values():
-                table.add_row((node.hostname, type(node)._identifier, node.operating_state.name))
+                table.add_row((node.hostname, type(node)._discriminator, node.operating_state.name))
             print(table)
 
         if ip_addresses:

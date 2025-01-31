@@ -6,7 +6,7 @@ from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.utils.validation.ipv4_address import IPV4Address
 
 
-class SuperComputer(HostNode, identifier="supercomputer"):
+class SuperComputer(HostNode, discriminator="supercomputer"):
     """
     A basic Computer class.
 

@@ -11,7 +11,7 @@ from primaite.game.agent.interface import AbstractScriptedAgent
 __all__ = ("RandomAgent", "PeriodicAgent")
 
 
-class RandomAgent(AbstractScriptedAgent, identifier="RandomAgent"):
+class RandomAgent(AbstractScriptedAgent, discriminator="RandomAgent"):
     """Agent that ignores its observation and acts completely at random."""
 
     config: "RandomAgent.ConfigSchema" = Field(default_factory=lambda: RandomAgent.ConfigSchema())
@@ -34,7 +34,7 @@ class RandomAgent(AbstractScriptedAgent, identifier="RandomAgent"):
         return self.action_manager.get_action(self.action_manager.space.sample())
 
 
-class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
+class PeriodicAgent(AbstractScriptedAgent, discriminator="PeriodicAgent"):
     """Agent that does nothing most of the time, but executes application at regular intervals (with variance)."""
 
     config: "PeriodicAgent.ConfigSchema" = Field(default_factory=lambda: PeriodicAgent.ConfigSchema())

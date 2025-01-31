@@ -32,7 +32,7 @@ class DoSAttackStage(IntEnum):
     "Attack is completed."
 
 
-class DoSBot(DatabaseClient, identifier="DoSBot"):
+class DoSBot(DatabaseClient, discriminator="DoSBot"):
     """A bot that simulates a Denial of Service attack."""
 
     class ConfigSchema(DatabaseClient.ConfigSchema):

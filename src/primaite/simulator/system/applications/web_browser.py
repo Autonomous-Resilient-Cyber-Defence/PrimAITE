@@ -23,7 +23,7 @@ from primaite.utils.validation.port import Port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class WebBrowser(Application, identifier="WebBrowser"):
+class WebBrowser(Application, discriminator="WebBrowser"):
     """
     Represents a web browser in the simulation environment.
 

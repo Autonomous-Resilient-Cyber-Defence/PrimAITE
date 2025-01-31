@@ -47,7 +47,7 @@ class NodeFolderAbstractAction(AbstractAction, ABC):
         ]
 
 
-class NodeFolderScanAction(NodeFolderAbstractAction, identifier="node_folder_scan"):
+class NodeFolderScanAction(NodeFolderAbstractAction, discriminator="node_folder_scan"):
     """Action which scans a folder."""
 
     config: "NodeFolderScanAction.ConfigSchema"
@@ -58,7 +58,7 @@ class NodeFolderScanAction(NodeFolderAbstractAction, identifier="node_folder_sca
         verb: ClassVar[str] = "scan"
 
 
-class NodeFolderCheckhashAction(NodeFolderAbstractAction, identifier="node_folder_checkhash"):
+class NodeFolderCheckhashAction(NodeFolderAbstractAction, discriminator="node_folder_checkhash"):
     """Action which checks the hash of a folder."""
 
     config: "NodeFolderCheckhashAction.ConfigSchema"
@@ -69,7 +69,7 @@ class NodeFolderCheckhashAction(NodeFolderAbstractAction, identifier="node_folde
         verb: ClassVar[str] = "checkhash"
 
 
-class NodeFolderRepairAction(NodeFolderAbstractAction, identifier="node_folder_repair"):
+class NodeFolderRepairAction(NodeFolderAbstractAction, discriminator="node_folder_repair"):
     """Action which repairs a folder."""
 
     config: "NodeFolderRepairAction.ConfigSchema"
@@ -80,7 +80,7 @@ class NodeFolderRepairAction(NodeFolderAbstractAction, identifier="node_folder_r
         verb: ClassVar[str] = "repair"
 
 
-class NodeFolderRestoreAction(NodeFolderAbstractAction, identifier="node_folder_restore"):
+class NodeFolderRestoreAction(NodeFolderAbstractAction, discriminator="node_folder_restore"):
     """Action which restores a folder."""
 
     config: "NodeFolderRestoreAction.ConfigSchema"
@@ -91,7 +91,7 @@ class NodeFolderRestoreAction(NodeFolderAbstractAction, identifier="node_folder_
         verb: ClassVar[str] = "restore"
 
 
-class NodeFolderCreateAction(NodeFolderAbstractAction, identifier="node_folder_create"):
+class NodeFolderCreateAction(NodeFolderAbstractAction, discriminator="node_folder_create"):
     """Action which creates a new folder."""
 
     config: "NodeFolderCreateAction.ConfigSchema"

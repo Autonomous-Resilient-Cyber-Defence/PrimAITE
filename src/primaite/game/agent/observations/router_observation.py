@@ -18,7 +18,7 @@ from primaite.utils.validation.port import Port
 _LOGGER = getLogger(__name__)
 
 
-class RouterObservation(AbstractObservation, identifier="ROUTER"):
+class RouterObservation(AbstractObservation, discriminator="ROUTER"):
     """Router observation, provides status information about a router within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):

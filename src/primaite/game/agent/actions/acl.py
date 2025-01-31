@@ -37,7 +37,7 @@ class ACLAddRuleAbstractAction(AbstractAction, ABC):
         dst_wildcard: Union[IPV4Address, Literal["NONE"]]
 
 
-class ACLRemoveRuleAbstractAction(AbstractAction, identifier="acl_remove_rule_abstract_action"):
+class ACLRemoveRuleAbstractAction(AbstractAction, discriminator="acl_remove_rule_abstract_action"):
     """Base abstract class for ACL remove rule actions."""
 
     config: ConfigSchema = "ACLRemoveRuleAbstractAction.ConfigSchema"
@@ -48,7 +48,7 @@ class ACLRemoveRuleAbstractAction(AbstractAction, identifier="acl_remove_rule_ab
         position: int
 
 
-class RouterACLAddRuleAction(ACLAddRuleAbstractAction, identifier="router_acl_add_rule"):
+class RouterACLAddRuleAction(ACLAddRuleAbstractAction, discriminator="router_acl_add_rule"):
     """Action which adds a rule to a router's ACL."""
 
     config: "RouterACLAddRuleAction.ConfigSchema"
@@ -79,7 +79,7 @@ class RouterACLAddRuleAction(ACLAddRuleAbstractAction, identifier="router_acl_ad
         ]
 
 
-class RouterACLRemoveRuleAction(ACLRemoveRuleAbstractAction, identifier="router_acl_remove_rule"):
+class RouterACLRemoveRuleAction(ACLRemoveRuleAbstractAction, discriminator="router_acl_remove_rule"):
     """Action which removes a rule from a router's ACL."""
 
     config: "RouterACLRemoveRuleAction.ConfigSchema"
@@ -95,7 +95,7 @@ class RouterACLRemoveRuleAction(ACLRemoveRuleAbstractAction, identifier="router_
         return ["network", "node", config.target_router, "acl", "remove_rule", config.position]
 
 
-class FirewallACLAddRuleAction(ACLAddRuleAbstractAction, identifier="firewall_acl_add_rule"):
+class FirewallACLAddRuleAction(ACLAddRuleAbstractAction, discriminator="firewall_acl_add_rule"):
     """Action which adds a rule to a firewall port's ACL."""
 
     config: "FirewallACLAddRuleAction.ConfigSchema"
@@ -130,7 +130,7 @@ class FirewallACLAddRuleAction(ACLAddRuleAbstractAction, identifier="firewall_ac
         ]
 
 
-class FirewallACLRemoveRuleAction(ACLRemoveRuleAbstractAction, identifier="firewall_acl_remove_rule"):
+class FirewallACLRemoveRuleAction(ACLRemoveRuleAbstractAction, discriminator="firewall_acl_remove_rule"):
     """Action which removes a rule from a firewall port's ACL."""
 
     config: "FirewallACLRemoveRuleAction.ConfigSchema"

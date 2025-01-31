@@ -5,14 +5,14 @@ from primaite.simulator.system.applications.application import Application
 
 
 def test_adding_to_app_registry():
-    class temp_application(Application, identifier="temp_app"):
+    class temp_application(Application, discriminator="temp_app"):
         pass
 
     assert Application._registry["temp_app"] is temp_application
 
     with pytest.raises(ValueError):
 
-        class another_application(Application, identifier="temp_app"):
+        class another_application(Application, discriminator="temp_app"):
             pass
 
     # This is kinda evil...

@@ -16,7 +16,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class ICMP(Service, identifier="ICMP"):
+class ICMP(Service, discriminator="ICMP"):
     """
     The Internet Control Message Protocol (ICMP) service.
 

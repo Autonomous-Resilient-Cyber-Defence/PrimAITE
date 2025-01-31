@@ -52,7 +52,7 @@ class NodeFileAbstractAction(AbstractAction, ABC):
         ]
 
 
-class NodeFileCreateAction(NodeFileAbstractAction, identifier="node_file_create"):
+class NodeFileCreateAction(NodeFileAbstractAction, discriminator="node_file_create"):
     """Action which creates a new file in a given folder."""
 
     config: "NodeFileCreateAction.ConfigSchema"
@@ -81,7 +81,7 @@ class NodeFileCreateAction(NodeFileAbstractAction, identifier="node_file_create"
         ]
 
 
-class NodeFileScanAction(NodeFileAbstractAction, identifier="node_file_scan"):
+class NodeFileScanAction(NodeFileAbstractAction, discriminator="node_file_scan"):
     """Action which scans a file."""
 
     config: "NodeFileScanAction.ConfigSchema"
@@ -92,7 +92,7 @@ class NodeFileScanAction(NodeFileAbstractAction, identifier="node_file_scan"):
         verb: ClassVar[str] = "scan"
 
 
-class NodeFileDeleteAction(NodeFileAbstractAction, identifier="node_file_delete"):
+class NodeFileDeleteAction(NodeFileAbstractAction, discriminator="node_file_delete"):
     """Action which deletes a file."""
 
     config: "NodeFileDeleteAction.ConfigSchema"
@@ -119,7 +119,7 @@ class NodeFileDeleteAction(NodeFileAbstractAction, identifier="node_file_delete"
         ]
 
 
-class NodeFileRestoreAction(NodeFileAbstractAction, identifier="node_file_restore"):
+class NodeFileRestoreAction(NodeFileAbstractAction, discriminator="node_file_restore"):
     """Action which restores a file."""
 
     config: "NodeFileRestoreAction.ConfigSchema"
@@ -130,7 +130,7 @@ class NodeFileRestoreAction(NodeFileAbstractAction, identifier="node_file_restor
         verb: ClassVar[str] = "restore"
 
 
-class NodeFileCorruptAction(NodeFileAbstractAction, identifier="node_file_corrupt"):
+class NodeFileCorruptAction(NodeFileAbstractAction, discriminator="node_file_corrupt"):
     """Action which corrupts a file."""
 
     config: "NodeFileCorruptAction.ConfigSchema"
@@ -141,7 +141,7 @@ class NodeFileCorruptAction(NodeFileAbstractAction, identifier="node_file_corrup
         verb: ClassVar[str] = "corrupt"
 
 
-class NodeFileAccessAction(NodeFileAbstractAction, identifier="node_file_access"):
+class NodeFileAccessAction(NodeFileAbstractAction, discriminator="node_file_access"):
     """Action which increases a file's access count."""
 
     config: "NodeFileAccessAction.ConfigSchema"
@@ -167,7 +167,7 @@ class NodeFileAccessAction(NodeFileAbstractAction, identifier="node_file_access"
         ]
 
 
-class NodeFileCheckhashAction(NodeFileAbstractAction, identifier="node_file_checkhash"):
+class NodeFileCheckhashAction(NodeFileAbstractAction, discriminator="node_file_checkhash"):
     """Action which checks the hash of a file."""
 
     config: "NodeFileCheckhashAction.ConfigSchema"
@@ -178,7 +178,7 @@ class NodeFileCheckhashAction(NodeFileAbstractAction, identifier="node_file_chec
         verb: ClassVar[str] = "checkhash"
 
 
-class NodeFileRepairAction(NodeFileAbstractAction, identifier="node_file_repair"):
+class NodeFileRepairAction(NodeFileAbstractAction, discriminator="node_file_repair"):
     """Action which repairs a file."""
 
     config: "NodeFileRepairAction.ConfigSchema"

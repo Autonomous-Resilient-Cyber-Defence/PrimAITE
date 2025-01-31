@@ -24,7 +24,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class ExtendedApplication(Application, identifier="ExtendedApplication"):
+class ExtendedApplication(Application, discriminator="ExtendedApplication"):
     """
     Clone of web browser that uses the extension framework instead of being part of PrimAITE directly.
 

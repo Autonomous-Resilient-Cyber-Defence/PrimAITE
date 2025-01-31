@@ -17,7 +17,7 @@ Reward classes are inherited from AbstractReward (a sub-class of Pydantic's Base
 Within the reward class there is a ConfigSchema class responsible for ensuring the config file data
 is in the correct format. This also means there is little (if no) requirement for and `__init__`
 method. The `.from_config` method is no longer required as it's inherited from `AbstractReward`.
-Each class requires an identifier string which is used by the ConfigSchema class to verify that it
+Each class requires an discriminator string which is used by the ConfigSchema class to verify that it
 hasn't previously been added to the registry.
 
 Inheriting from `BaseModel` removes the need for an `__init__` method but means that object
@@ -28,7 +28,7 @@ To add a new reward class follow the example below. Note that the type attribute
 
 .. code-block:: Python
 
-class DatabaseFileIntegrity(AbstractReward, identifier="DATABASE_FILE_INTEGRITY"):
+class DatabaseFileIntegrity(AbstractReward, discriminator="DATABASE_FILE_INTEGRITY"):
     """Reward function component which rewards the agent for maintaining the integrity of a database file."""
 
     config: "DatabaseFileIntegrity.ConfigSchema"

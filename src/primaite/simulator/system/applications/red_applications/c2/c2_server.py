@@ -16,7 +16,7 @@ from primaite.simulator.system.applications.red_applications.c2 import (
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 
 
-class C2Server(AbstractC2, identifier="C2Server"):
+class C2Server(AbstractC2, discriminator="C2Server"):
     """
     C2 Server Application.
 

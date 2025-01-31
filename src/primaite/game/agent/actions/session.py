@@ -11,7 +11,7 @@ __all__ = (
 )
 
 
-class NodeSessionAbstractAction(AbstractAction, identifier="node_session_abstract"):
+class NodeSessionAbstractAction(AbstractAction, discriminator="node_session_abstract"):
     """Base class for NodeSession actions."""
 
     config: "NodeSessionAbstractAction.ConfigSchema"
@@ -33,7 +33,7 @@ class NodeSessionAbstractAction(AbstractAction, identifier="node_session_abstrac
         pass
 
 
-class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, identifier="node_session_remote_login"):
+class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, discriminator="node_session_remote_login"):
     """Action which performs a remote session login."""
 
     config: "NodeSessionsRemoteLoginAction.ConfigSchema"
@@ -62,7 +62,7 @@ class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, identifier="node_
         ]
 
 
-class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, identifier="node_session_remote_logoff"):
+class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, discriminator="node_session_remote_logoff"):
     """Action which performs a remote session logout."""
 
     config: "NodeSessionsRemoteLogoutAction.ConfigSchema"
@@ -80,7 +80,7 @@ class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, identifier="node
         return ["network", "node", config.node_name, "service", "Terminal", config.verb, config.remote_ip]
 
 
-class NodeAccountChangePasswordAction(NodeSessionAbstractAction, identifier="node_account_change_password"):
+class NodeAccountChangePasswordAction(NodeSessionAbstractAction, discriminator="node_account_change_password"):
     """Action which changes the password for a user."""
 
     config: "NodeAccountChangePasswordAction.ConfigSchema"

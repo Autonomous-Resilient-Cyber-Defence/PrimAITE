@@ -129,7 +129,7 @@ class RemoteTerminalConnection(TerminalClientConnection):
         return self.parent_terminal.send(payload=payload, session_id=self.ssh_session_id)
 
 
-class Terminal(Service, identifier="Terminal"):
+class Terminal(Service, discriminator="Terminal"):
     """Class used to simulate a generic terminal service. Can be interacted with by other terminals via SSH."""
 
     class ConfigSchema(Service.ConfigSchema):

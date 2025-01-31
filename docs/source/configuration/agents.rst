@@ -103,7 +103,7 @@ Similar to action space, this is defined as a list of components from the :py:mo
 
 ``reward_components``
 ^^^^^^^^^^^^^^^^^^^^^
-
+TODO: update description
 A list of reward types from :py:mod:`primaite.game.agent.rewards.RewardFunction.rew_class_identifiers`
 
 e.g.

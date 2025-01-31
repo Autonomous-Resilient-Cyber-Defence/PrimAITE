@@ -24,7 +24,7 @@ from primaite.interface.request import RequestFormat
 __all__ = ("DoNothingAction", "ActionManager")
 
 
-class DoNothingAction(AbstractAction, identifier="do_nothing"):
+class DoNothingAction(AbstractAction, discriminator="do_nothing"):
     """Do Nothing Action."""
 
     class ConfigSchema(AbstractAction.ConfigSchema):

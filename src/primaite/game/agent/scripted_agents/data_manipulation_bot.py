@@ -9,7 +9,7 @@ from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 __all__ = "DataManipulationAgent"
 
 
-class DataManipulationAgent(PeriodicAgent, identifier="RedDatabaseCorruptingAgent"):
+class DataManipulationAgent(PeriodicAgent, discriminator="RedDatabaseCorruptingAgent"):
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""
 
     class AgentSettingsSchema(PeriodicAgent.AgentSettingsSchema):

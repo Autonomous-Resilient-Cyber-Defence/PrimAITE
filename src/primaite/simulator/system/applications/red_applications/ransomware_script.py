@@ -14,7 +14,7 @@ from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class RansomwareScript(Application, identifier="RansomwareScript"):
+class RansomwareScript(Application, discriminator="RansomwareScript"):
     """Ransomware Kill Chain - Designed to be used by the TAP001 Agent on the example layout Network.
 
     :ivar payload: The attack stage query payload. (Default ENCRYPT)

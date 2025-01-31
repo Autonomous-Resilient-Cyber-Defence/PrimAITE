@@ -19,7 +19,7 @@ from primaite.utils.validation.port import Port
 _LOGGER = getLogger(__name__)
 
 
-class NodesObservation(AbstractObservation, identifier="NODES"):
+class NodesObservation(AbstractObservation, discriminator="NODES"):
     """Nodes observation, provides status information about nodes within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
