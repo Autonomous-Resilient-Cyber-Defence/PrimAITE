@@ -39,3 +39,12 @@ will automatically check and convert the input value to an instance of IPv4Addre
 any Pydantic model uses it. This ensures that any field marked with this type is not just
 an IPv4Address in form, but also valid according to the rules defined in ipv4_validator.
 """
+
+
+def str_ip(value: Any) -> str:
+    """Make sure it's a valid IP, but represent it as a string."""
+    # TODO: this is a bit of a hack, we should change RequestResponse to be able to handle IPV4Address objects
+    return str(IPV4Address(value))
+
+
+StrIP: Final[Annotated] = Annotated[str, BeforeValidator(str_ip)]

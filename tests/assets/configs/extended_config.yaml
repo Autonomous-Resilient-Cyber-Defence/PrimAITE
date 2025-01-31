@@ -771,8 +771,6 @@ simulation:
         options:
           backup_server_ip: 192.168.1.16
       - type: ExtendedService
-        options:
-          backup_server_ip: 192.168.1.16
 
     - hostname: client_2
       type: computer

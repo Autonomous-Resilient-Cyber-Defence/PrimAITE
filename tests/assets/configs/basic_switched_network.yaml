@@ -178,8 +178,6 @@ simulation:
           backup_server_ip: 192.168.1.10
       - type: WebServer
       - type: FTPServer
-        options:
-          server_password: arcd
       - type: NTPClient
         options:
           ntp_server_ip: 192.168.1.10
