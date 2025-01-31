@@ -13,6 +13,7 @@ from primaite.game.agent.observations.host_observations import HostObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.observations.router_observation import RouterObservation
 from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.ipv4_address import StrIP
 from primaite.utils.validation.port import Port
 
 _LOGGER = getLogger(__name__)
@@ -52,13 +53,13 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         """If True, report user session information."""
         num_ports: Optional[int] = None
         """Number of ports."""
-        ip_list: Optional[List[str]] = None
+        ip_list: Optional[List[StrIP]] = None
         """List of IP addresses for encoding ACLs."""
         wildcard_list: Optional[List[str]] = None
         """List of IP wildcards for encoding ACLs."""
-        port_list: Optional[List[str]] = None
+        port_list: Optional[List[Port]] = None
         """List of ports for encoding ACLs."""
-        protocol_list: Optional[List[str]] = None
+        protocol_list: Optional[List[IPProtocol]] = None
         """List of protocols for encoding ACLs."""
         num_rules: Optional[int] = None
         """Number of rules ACL rules to show."""

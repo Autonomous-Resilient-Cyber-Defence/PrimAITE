@@ -6,6 +6,9 @@ from pydantic import ConfigDict, Field
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.ipv4_address import StrIP
+from primaite.utils.validation.port import Port
 
 __all__ = (
     "ConfigureRansomwareScriptAction",
@@ -64,8 +67,8 @@ class ConfigureDoSBotAction(AbstractAction, identifier="configure_dos_bot"):
 
         model_config = ConfigDict(extra="forbid")
         node_name: str
-        target_ip_address: Optional[str] = None
-        target_port: Optional[str] = None
+        target_ip_address: Optional[StrIP] = None
+        target_port: Optional[Port] = None
         payload: Optional[str] = None
         repeat: Optional[bool] = None
         port_scan_p_of_success: Optional[float] = None
@@ -95,10 +98,10 @@ class ConfigureC2BeaconAction(AbstractAction, identifier="configure_c2_beacon"):
         """Configuration schema for ConfigureC2BeaconAction."""
 
         node_name: str
-        c2_server_ip_address: str
+        c2_server_ip_address: StrIP
         keep_alive_frequency: int = Field(default=5, ge=1)
-        masquerade_protocol: str = Field(default="TCP")
-        masquerade_port: str = Field(default="HTTP")
+        masquerade_protocol: IPProtocol = Field(default="tcp")
+        masquerade_port: Port = Field(default=80)
 
     @classmethod
     def form_request(self, config: ConfigSchema) -> RequestFormat:
@@ -121,7 +124,7 @@ class NodeSendRemoteCommandAction(AbstractAction, identifier="node_send_remote_c
         """Configuration schema for NodeSendRemoteCommandAction."""
 
         node_name: str
-        remote_ip: str
+        remote_ip: StrIP
         command: RequestFormat
 
     @classmethod
@@ -149,7 +152,7 @@ class TerminalC2ServerAction(AbstractAction, identifier="c2_server_terminal_comm
 
         node_name: str
         commands: Union[List[RequestFormat], RequestFormat]
-        ip_address: Optional[str]
+        ip_address: Optional[StrIP]
         username: Optional[str]
         password: Optional[str]
 
@@ -198,7 +201,7 @@ class ExfiltrationC2ServerAction(AbstractAction, identifier="c2_server_data_exfi
         node_name: str
         username: Optional[str]
         password: Optional[str]
-        target_ip_address: str
+        target_ip_address: StrIP
         target_file_name: str
         target_folder_name: str
         exfiltration_folder_name: Optional[str]
@@ -229,7 +232,7 @@ class ConfigureDatabaseClientAction(AbstractAction, identifier="configure_databa
         """Schema for options that can be passed to this action."""
 
         node_name: str
-        server_ip_address: Optional[str] = None
+        server_ip_address: Optional[StrIP] = None
         server_password: Optional[str] = None
 
     @classmethod
