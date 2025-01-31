@@ -54,7 +54,11 @@ class DatabaseService(Service, identifier="DatabaseService"):
         super().__init__(**kwargs)
         self._create_db_file()
         self.backup_server_ip = self.config.backup_server_ip
-        self.password = self.config.db_password
+
+    @property
+    def password(self) -> Optional[str]:
+        """Convenience property for accessing the password."""
+        return self.config.db_password
 
     def install(self):
         """

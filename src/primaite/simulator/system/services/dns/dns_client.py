@@ -44,6 +44,11 @@ class DNSClient(Service, identifier="DNSClient"):
         self.dns_server = self.config.dns_server
         self.start()
 
+    @property
+    def dns_server(self) -> Optional[IPV4Address]:
+        """Convenience property for accessing the dns server configuration."""
+        return self.config.dns_server
+
     def describe_state(self) -> Dict:
         """
         Describes the current state of the software.
@@ -179,4 +184,4 @@ class DNSClient(Service, identifier="DNSClient"):
         """Set the DNS server to be the node's DNS server unless a different one was already provided."""
         self.parent: Node
         if self.parent and not self.dns_server:
-            self.dns_server = self.parent.dns_server
+            self.config.dns_server = self.parent.dns_server
