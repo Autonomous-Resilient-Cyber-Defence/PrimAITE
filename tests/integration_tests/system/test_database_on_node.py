@@ -62,7 +62,7 @@ def peer_to_peer_secure_db(peer_to_peer) -> Tuple[Computer, Computer]:
 
     database_service: DatabaseService = node_b.software_manager.software["DatabaseService"]  # noqa
     database_service.stop()
-    database_service.password = "12345"
+    database_service.config.db_password = "12345"
     database_service.start()
     return node_a, node_b
 

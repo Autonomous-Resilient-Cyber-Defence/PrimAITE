@@ -1564,7 +1564,7 @@ class Node(SimComponent, ABC):
         "Time steps until reveal to red scan is complete."
 
         dns_server: Optional[IPv4Address] = None
-        "List of IP addresses of DNS servers used for name resolution."
+        "List of IP addresses of DNS servers used for name resolution." 
 
         default_gateway: Optional[IPV4Address] = None
         "The default gateway IP address for forwarding network traffic to other networks."

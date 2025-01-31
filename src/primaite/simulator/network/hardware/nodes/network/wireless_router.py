@@ -130,6 +130,7 @@ class WirelessRouter(Router, identifier="wireless_router"):
 
         hostname: str = "WirelessRouter"
         airspace: AirSpace
+        num_ports: int = 0
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
