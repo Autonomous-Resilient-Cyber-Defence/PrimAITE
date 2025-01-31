@@ -35,9 +35,6 @@ class DatabaseService(Service, identifier="DatabaseService"):
 
     config: "DatabaseService.ConfigSchema" = Field(default_factory=lambda: DatabaseService.ConfigSchema())
 
-    password: Optional[str] = None
-    """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
-
     backup_server_ip: IPv4Address = None
     """IP address of the backup server."""
 
@@ -59,6 +56,10 @@ class DatabaseService(Service, identifier="DatabaseService"):
     def password(self) -> Optional[str]:
         """Convenience property for accessing the password."""
         return self.config.db_password
+
+    @password.setter
+    def password(self, val: str) -> None:
+        self.config.db_password = val
 
     def install(self):
         """

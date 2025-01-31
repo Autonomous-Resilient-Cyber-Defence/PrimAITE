@@ -406,32 +406,6 @@ class PrimaiteGame:
                     if "service_install_duration" in defaults_config:
                         new_service.install_duration = defaults_config["service_install_duration"]
 
-                    # service-dependent options
-                    if service_type == "DNSClient":
-                        if "options" in service_cfg:
-                            opt = service_cfg["options"]
-                            if "dns_server" in opt:
-                                new_service.dns_server = IPv4Address(opt["dns_server"])
-                    if service_type == "DNSServer":
-                        if "options" in service_cfg:
-                            opt = service_cfg["options"]
-                            if "domain_mapping" in opt:
-                                for domain, ip in opt["domain_mapping"].items():
-                                    new_service.dns_register(domain, IPv4Address(ip))
-                    if service_type == "DatabaseService":
-                        if "options" in service_cfg:
-                            opt = service_cfg["options"]
-                            new_service.password = opt.get("db_password", None)
-                            if "backup_server_ip" in opt:
-                                new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
-                    if service_type == "FTPServer":
-                        if "options" in service_cfg:
-                            opt = service_cfg["options"]
-                            new_service.server_password = opt.get("server_password")
-                    if service_type == "NTPClient":
-                        if "options" in service_cfg:
-                            opt = service_cfg["options"]
-                            new_service.ntp_server = IPv4Address(opt.get("ntp_server_ip"))
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
                     new_application = None

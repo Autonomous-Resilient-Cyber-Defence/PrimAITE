@@ -30,8 +30,6 @@ class DNSClient(Service, identifier="DNSClient"):
     config: "DNSClient.ConfigSchema" = Field(default_factory=lambda: DNSClient.ConfigSchema())
     dns_cache: Dict[str, IPv4Address] = {}
     "A dict of known mappings between domain/URLs names and IPv4 addresses."
-    dns_server: Optional[IPv4Address] = None
-    "The DNS Server the client sends requests to."
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DNSClient"
@@ -42,11 +40,6 @@ class DNSClient(Service, identifier="DNSClient"):
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self.start()
-
-    @property
-    def dns_server(self) -> Optional[IPV4Address]:
-        """Convenience property for accessing the dns server configuration."""
-        return self.config.dns_server
 
     def describe_state(self) -> Dict:
         """
@@ -60,6 +53,15 @@ class DNSClient(Service, identifier="DNSClient"):
         """
         state = super().describe_state()
         return state
+
+    @property
+    def dns_server(self) -> Optional[IPV4Address]:
+        """Convenience property for accessing the dns server configuration."""
+        return self.config.dns_server
+
+    @dns_server.setter
+    def dns_server(self, val: IPV4Address) -> None:
+        self.config.dns_server = val
 
     def add_domain_to_cache(self, domain_name: str, ip_address: IPv4Address) -> bool:
         """
