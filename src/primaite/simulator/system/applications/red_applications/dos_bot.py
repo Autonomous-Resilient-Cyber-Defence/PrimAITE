@@ -10,8 +10,8 @@ from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.system.applications.database_client import DatabaseClient
-from primaite.utils.validation.ipv4_address import IPV4Address
-from primaite.utils.validation.port import Port, PORT_LOOKUP
+from primaite.utils.validation.ipv4_address import ipv4_validator, IPV4Address
+from primaite.utils.validation.port import Port, PORT_LOOKUP, port_validator
 
 _LOGGER = getLogger(__name__)
 
@@ -106,9 +106,9 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
             :rtype: RequestResponse
             """
             if "target_ip_address" in request[-1]:
-                request[-1]["target_ip_address"] = IPv4Address(request[-1]["target_ip_address"])
+                request[-1]["target_ip_address"] = ipv4_validator(request[-1]["target_ip_address"])
             if "target_port" in request[-1]:
-                request[-1]["target_port"] = PORT_LOOKUP[request[-1]["target_port"]]
+                request[-1]["target_port"] = port_validator(request[-1]["target_port"])
             return RequestResponse.from_bool(self.configure(**request[-1]))
 
         rm.add_request("configure", request_type=RequestType(func=_configure))

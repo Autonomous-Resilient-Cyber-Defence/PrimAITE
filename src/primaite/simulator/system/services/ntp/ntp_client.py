@@ -9,6 +9,7 @@ from primaite import getLogger
 from primaite.simulator.network.protocols.ntp import NTPPacket
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
@@ -21,6 +22,7 @@ class NTPClient(Service, identifier="NTPClient"):
         """ConfigSchema for NTPClient."""
 
         type: str = "NTPClient"
+        ntp_server_ip: Optional[IPV4Address] = None
 
     config: "NTPClient.ConfigSchema" = Field(default_factory=lambda: NTPClient.ConfigSchema())
 
@@ -33,6 +35,7 @@ class NTPClient(Service, identifier="NTPClient"):
         kwargs["port"] = PORT_LOOKUP["NTP"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["UDP"]
         super().__init__(**kwargs)
+        self.ntp_server = self.config.ntp_server_ip
         self.start()
 
     def configure(self, ntp_server_ip_address: IPv4Address) -> None:

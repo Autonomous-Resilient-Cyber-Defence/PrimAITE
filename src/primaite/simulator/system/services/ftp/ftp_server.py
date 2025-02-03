@@ -6,7 +6,6 @@ from pydantic import Field
 from primaite import getLogger
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
-from primaite.simulator.system.services.service import Service
 from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import is_valid_port, PORT_LOOKUP
 
@@ -22,14 +21,13 @@ class FTPServer(FTPServiceABC, identifier="FTPServer"):
     """
 
     config: "FTPServer.ConfigSchema" = Field(default_factory=lambda: FTPServer.ConfigSchema())
-
     server_password: Optional[str] = None
-    """Password needed to connect to FTP server. Default is None."""
 
-    class ConfigSchema(Service.ConfigSchema):
+    class ConfigSchema(FTPServiceABC.ConfigSchema):
         """ConfigSchema for FTPServer."""
 
         type: str = "FTPServer"
+        server_password: Optional[str] = None
 
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPServer"
@@ -37,6 +35,7 @@ class FTPServer(FTPServiceABC, identifier="FTPServer"):
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self.start()
+        self.server_password = self.config.server_password
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
         """

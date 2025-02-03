@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from ipaddress import IPv4Address
 from typing import Any, ClassVar, Dict, Literal, Optional, Type
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
@@ -44,6 +44,7 @@ class NetworkNodeAdder(BaseModel):
         by the from_config method to select the correct node adder at runtime.
         """
 
+        model_config = ConfigDict(extra="forbid")
         type: str
         """Uniquely identifies the node adder class to use for adding nodes to network."""
 

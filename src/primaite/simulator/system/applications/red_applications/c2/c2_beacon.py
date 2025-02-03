@@ -127,8 +127,8 @@ class C2Beacon(AbstractC2, identifier="C2Beacon"):
                 self.configure(
                     c2_server_ip_address=c2_remote_ip,
                     keep_alive_frequency=frequency,
-                    masquerade_protocol=PROTOCOL_LOOKUP[protocol],
-                    masquerade_port=PORT_LOOKUP[port],
+                    masquerade_protocol=protocol,
+                    masquerade_port=port,
                 )
             )
 

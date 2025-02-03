@@ -31,11 +31,9 @@ class DatabaseService(Service, identifier="DatabaseService"):
 
         type: str = "DatabaseService"
         backup_server_ip: Optional[IPv4Address] = None
+        db_password: Optional[str] = None
 
     config: "DatabaseService.ConfigSchema" = Field(default_factory=lambda: DatabaseService.ConfigSchema())
-
-    password: Optional[str] = None
-    """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
 
     backup_server_ip: IPv4Address = None
     """IP address of the backup server."""
@@ -53,6 +51,15 @@ class DatabaseService(Service, identifier="DatabaseService"):
         super().__init__(**kwargs)
         self._create_db_file()
         self.backup_server_ip = self.config.backup_server_ip
+
+    @property
+    def password(self) -> Optional[str]:
+        """Convenience property for accessing the password."""
+        return self.config.db_password
+
+    @password.setter
+    def password(self, val: str) -> None:
+        self.config.db_password = val
 
     def install(self):
         """
