@@ -43,7 +43,6 @@ class FTPServer(FTPServiceABC, identifier="FTPServer"):
         """Convenience method for accessing FTP server password."""
         return self.config.server_password
 
-
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
         """
         Process the command in the FTP Packet.

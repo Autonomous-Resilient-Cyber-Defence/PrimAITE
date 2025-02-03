@@ -1493,6 +1493,7 @@ class Node(SimComponent, ABC):
     :param hostname: The node hostname on the network.
     :param operating_state: The node operating state, either ON or OFF.
     """
+
     operating_state: NodeOperatingState = NodeOperatingState.OFF
     "The hardware state of the node."
     network_interfaces: Dict[str, NetworkInterface] = {}
@@ -1564,7 +1565,7 @@ class Node(SimComponent, ABC):
         "Time steps until reveal to red scan is complete."
 
         dns_server: Optional[IPv4Address] = None
-        "List of IP addresses of DNS servers used for name resolution." 
+        "List of IP addresses of DNS servers used for name resolution."
 
         default_gateway: Optional[IPV4Address] = None
         "The default gateway IP address for forwarding network traffic to other networks."
@@ -1573,6 +1574,7 @@ class Node(SimComponent, ABC):
 
     @property
     def dns_server(self) -> Optional[IPv4Address]:
+        """Convenience method to access the dns_server IP."""
         return self.config.dns_server
 
     @classmethod
@@ -1625,7 +1627,9 @@ class Node(SimComponent, ABC):
                 dns_server=kwargs["config"].dns_server,
             )
         super().__init__(**kwargs)
-        self.operating_state = NodeOperatingState.ON if not (p := kwargs["config"].operating_state) else NodeOperatingState[p.upper()]
+        self.operating_state = (
+            NodeOperatingState.ON if not (p := kwargs["config"].operating_state) else NodeOperatingState[p.upper()]
+        )
         self._install_system_software()
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager

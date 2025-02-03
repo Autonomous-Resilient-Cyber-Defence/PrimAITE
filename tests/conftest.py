@@ -232,7 +232,7 @@ def example_network() -> Network:
 
     # Router 1
 
-    router_1_cfg = {"hostname": "router_1", "type": "router", "start_up_duration":0}
+    router_1_cfg = {"hostname": "router_1", "type": "router", "start_up_duration": 0}
 
     # router_1 = Router(hostname="router_1", start_up_duration=0)
     router_1 = Router.from_config(config=router_1_cfg)
@@ -253,7 +253,7 @@ def example_network() -> Network:
     router_1.enable_port(1)
 
     # Switch 2
-    switch_2_config = {"hostname": "switch_2", "type": "switch", "num_ports": 8, "start_up_duration":0}
+    switch_2_config = {"hostname": "switch_2", "type": "switch", "num_ports": 8, "start_up_duration": 0}
     # switch_2 = Switch(hostname="switch_2", num_ports=8, start_up_duration=0)
     switch_2 = Switch.from_config(config=switch_2_config)
     switch_2.power_on()
@@ -387,7 +387,7 @@ def install_stuff_to_sim(sim: Simulation):
         "ip_address": "10.0.1.2",
         "subnet_mask": "255.255.255.0",
         "default_gateway": "10.0.1.1",
-        "start_up_duration":0,
+        "start_up_duration": 0,
     }
     client_1: Computer = Computer.from_config(config=client_1_cfg)
     client_1.power_on()

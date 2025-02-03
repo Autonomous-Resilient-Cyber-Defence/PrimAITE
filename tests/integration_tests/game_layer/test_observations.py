@@ -8,10 +8,9 @@ from primaite.simulator.sim_container import Simulation
 
 def test_file_observation():
     sim = Simulation()
-    pc: Computer = Computer.from_config(config={"type":"computer",
-                                                "hostname":"beep",
-                                                "ip_address":"123.123.123.123",
-                                                "subnet_mask":"255.255.255.0"})
+    pc: Computer = Computer.from_config(
+        config={"type": "computer", "hostname": "beep", "ip_address": "123.123.123.123", "subnet_mask": "255.255.255.0"}
+    )
     sim.network.add_node(pc)
     f = pc.file_system.create_file(file_name="dog.png")
 

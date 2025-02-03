@@ -55,7 +55,10 @@ class HostARP(ARP):
 
         :return: The NIC associated with the default gateway if it exists in the ARP cache; otherwise, None.
         """
-        if self.software_manager.node.config.default_gateway and self.software_manager.node.has_enabled_network_interface:
+        if (
+            self.software_manager.node.config.default_gateway
+            and self.software_manager.node.has_enabled_network_interface
+        ):
             return self.get_arp_cache_network_interface(self.software_manager.node.config.default_gateway)
 
     def _get_arp_cache_mac_address(

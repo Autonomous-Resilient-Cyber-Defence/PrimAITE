@@ -29,7 +29,6 @@ class NTPClient(Service, identifier="NTPClient"):
 
     config: "NTPClient.ConfigSchema" = Field(default_factory=lambda: NTPClient.ConfigSchema())
 
-
     time: Optional[datetime] = None
 
     def __init__(self, **kwargs):

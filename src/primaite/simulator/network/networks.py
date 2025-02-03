@@ -58,24 +58,28 @@ def client_server_routed() -> Network:
     router_1.enable_port(2)
 
     # Client 1
-    client_1 = Computer(config=dict(
-        hostname="client_1",
-        ip_address="192.168.2.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.2.1",
-        start_up_duration=0,
-    ))
+    client_1 = Computer(
+        config=dict(
+            hostname="client_1",
+            ip_address="192.168.2.2",
+            subnet_mask="255.255.255.0",
+            default_gateway="192.168.2.1",
+            start_up_duration=0,
+        )
+    )
     client_1.power_on()
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
 
     # Server 1
-    server_1 = Server(config=dict(
-        hostname="server_1",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    ))
+    server_1 = Server(
+        config=dict(
+            hostname="server_1",
+            ip_address="192.168.1.2",
+            subnet_mask="255.255.255.0",
+            default_gateway="192.168.1.1",
+            start_up_duration=0,
+        )
+    )
     server_1.power_on()
     network.connect(endpoint_b=server_1.network_interface[1], endpoint_a=switch_1.network_interface[1])
 
