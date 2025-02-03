@@ -48,8 +48,6 @@ class Router(NetworkNode, identifier="router"):
 
         hostname: str = "Router"
 
-        ports: list = []
-
 
 
 Changes to YAML file.
