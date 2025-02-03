@@ -52,6 +52,7 @@ class DataManipulationBot(Application, identifier="DataManipulationBot"):
         payload: str = "DELETE"
         port_scan_p_of_success: float = 0.1
         data_manipulation_p_of_success: float = 0.1
+        repeat: bool = True
 
     config: "DataManipulationBot.ConfigSchema" = Field(default_factory=lambda: DataManipulationBot.ConfigSchema())
 
@@ -76,6 +77,7 @@ class DataManipulationBot(Application, identifier="DataManipulationBot"):
         self.payload = self.config.payload
         self.port_scan_p_of_success = self.config.port_scan_p_of_success
         self.data_manipulation_p_of_success = self.config.data_manipulation_p_of_success
+        self.repeat = self.config.repeat
 
     def describe_state(self) -> Dict:
         """
