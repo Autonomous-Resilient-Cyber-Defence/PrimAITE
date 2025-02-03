@@ -36,6 +36,7 @@ class DNSServer(Service, identifier="DNSServer"):
         # TCP for now
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
+        self.dns_table = self.config.domain_mapping
         self.start()
 
     def describe_state(self) -> Dict:

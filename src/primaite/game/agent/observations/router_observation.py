@@ -11,6 +11,9 @@ from primaite.game.agent.observations.acl_observation import ACLObservation
 from primaite.game.agent.observations.nic_observations import PortObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.ipv4_address import StrIP
+from primaite.utils.validation.port import Port
 
 _LOGGER = getLogger(__name__)
 
@@ -29,13 +32,13 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         """Number of port observations configured for this router."""
         acl: Optional[ACLObservation.ConfigSchema] = None
         """Configuration of ACL observation on this router."""
-        ip_list: Optional[List[str]] = None
+        ip_list: Optional[List[StrIP]] = None
         """List of IP addresses for encoding ACLs."""
         wildcard_list: Optional[List[str]] = None
         """List of IP wildcards for encoding ACLs."""
-        port_list: Optional[List[str]] = None
+        port_list: Optional[List[Port]] = None
         """List of ports for encoding ACLs."""
-        protocol_list: Optional[List[str]] = None
+        protocol_list: Optional[List[IPProtocol]] = None
         """List of protocols for encoding ACLs."""
         num_rules: Optional[int] = None
         """Number of rules ACL rules to show."""

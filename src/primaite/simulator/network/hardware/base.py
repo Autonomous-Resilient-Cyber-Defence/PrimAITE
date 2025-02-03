@@ -2096,14 +2096,17 @@ class Node(SimComponent, ABC):
 
     def power_on(self) -> bool:
         """Power on the Node, enabling its NICs if it is in the OFF state."""
+        print("HI")
         if self.config.start_up_duration <= 0:
             self.operating_state = NodeOperatingState.ON
+            print(f"Powering On: f{self.config.hostname}")
             self._start_up_actions()
             self.sys_log.info("Power on")
             for network_interface in self.network_interfaces.values():
                 network_interface.enable()
             return True
         if self.operating_state == NodeOperatingState.OFF:
+            print("OOOOOOOOOOOOOOOOOOH")
             self.operating_state = NodeOperatingState.BOOTING
             self.config.start_up_countdown = self.config.start_up_duration
             return True
@@ -2250,6 +2253,8 @@ class Node(SimComponent, ABC):
 
         # Turn on all the applications in the node
         for app_id in self.applications:
+            print(app_id)
+            print(f"Starting application:{self.applications[app_id].config.type}")
             self.applications[app_id].run()
 
         # Turn off all processes in the node

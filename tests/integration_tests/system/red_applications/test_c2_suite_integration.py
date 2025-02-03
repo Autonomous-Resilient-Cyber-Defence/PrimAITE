@@ -185,8 +185,8 @@ def test_c2_suite_configure_request(basic_network):
     c2_beacon_config = {
         "c2_server_ip_address": "192.168.0.2",
         "keep_alive_frequency": 5,
-        "masquerade_protocol": "TCP",
-        "masquerade_port": "HTTP",
+        "masquerade_protocol": "tcp",
+        "masquerade_port": 80,
     }
 
     network.apply_request(["node", "node_b", "application", "C2Beacon", "configure", c2_beacon_config])

@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Removed action space options which were previously used for assigning meaning to action space IDs
 -   Updated tests that don't use YAMLs to still use the new action and agent schemas
 
+### Fixed
+-   DNS client no longer fails to check its cache if a DNS server address is missing.
+-   DNS client now correctly inherits the node's DNS address configuration setting.
+
+
 ## [3.3.0] - 2024-09-04
 
 ### Added

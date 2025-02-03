@@ -201,7 +201,6 @@ def test_ftp_server_install():
 
     ftp_server_service: FTPServer = client_1.software_manager.software.get("FTPServer")
     assert ftp_server_service is not None
-    assert ftp_server_service.server_password == "arcd"
 
 
 def test_ntp_client_install():

@@ -1,7 +1,6 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from ipaddress import IPv4Address
 from typing import Dict, List, Optional
 
 from gymnasium import spaces
@@ -10,6 +9,9 @@ from gymnasium.core import ObsType
 from primaite import getLogger
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.ipv4_address import StrIP
+from primaite.utils.validation.port import Port
 
 _LOGGER = getLogger(__name__)
 
@@ -20,13 +22,13 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
     class ConfigSchema(AbstractObservation.ConfigSchema):
         """Configuration schema for ACLObservation."""
 
-        ip_list: Optional[List[IPv4Address]] = None
+        ip_list: Optional[List[StrIP]] = None
         """List of IP addresses."""
         wildcard_list: Optional[List[str]] = None
         """List of wildcard strings."""
-        port_list: Optional[List[str]] = None
+        port_list: Optional[List[Port]] = None
         """List of port names."""
-        protocol_list: Optional[List[str]] = None
+        protocol_list: Optional[List[IPProtocol]] = None
         """List of protocol names."""
         num_rules: Optional[int] = None
         """Number of ACL rules."""
@@ -35,10 +37,10 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
         self,
         where: WhereType,
         num_rules: int,
-        ip_list: List[IPv4Address],
+        ip_list: List[StrIP],
         wildcard_list: List[str],
-        port_list: List[str],
-        protocol_list: List[str],
+        port_list: List[Port],
+        protocol_list: List[IPProtocol],
     ) -> None:
         """
         Initialise an ACL observation instance.
@@ -48,13 +50,13 @@ class ACLObservation(AbstractObservation, identifier="ACL"):
         :param num_rules: Number of ACL rules.
         :type num_rules: int
         :param ip_list: List of IP addresses.
-        :type ip_list: List[IPv4Address]
+        :type ip_list: List[StrIP]
         :param wildcard_list: List of wildcard strings.
         :type wildcard_list: List[str]
         :param port_list: List of port names.
-        :type port_list: List[str]
+        :type port_list: List[Port]
         :param protocol_list: List of protocol names.
-        :type protocol_list: List[str]
+        :type protocol_list: List[IPProtocol]
         """
         self.where = where
         self.num_rules: int = num_rules

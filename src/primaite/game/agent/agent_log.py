@@ -65,8 +65,9 @@ class AgentLog:
         The logger is set to the DEBUG level, and is equipped with a handler that writes to a file and filters out
         JSON-like messages.
         """
-        if not SIM_OUTPUT.save_agent_logs:
-            return
+        # TODO: uncomment this once we figure out why it's broken
+        # if not SIM_OUTPUT.save_agent_logs:
+        #     return
 
         log_path = self._get_log_path()
         file_handler = logging.FileHandler(filename=log_path)

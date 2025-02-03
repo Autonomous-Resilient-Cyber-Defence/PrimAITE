@@ -83,6 +83,12 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
     next_execution_timestep: int = 0
     """Timestep of the next action execution by the agent."""
 
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._set_next_execution_timestep(
+            timestep=self.config.agent_settings.start_step, variance=self.config.agent_settings.start_variance
+        )
+
     @computed_field
     @cached_property
     def start_node(self) -> str:

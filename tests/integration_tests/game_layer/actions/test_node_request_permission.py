@@ -25,6 +25,7 @@ def test_node_startup_shutdown(game_and_agent_fixture: Tuple[PrimaiteGame, Proxy
     game, agent = game_and_agent_fixture
 
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
+    client_1.config.shut_down_duration = 3
 
     assert client_1.operating_state == NodeOperatingState.ON
 
@@ -41,6 +42,8 @@ def test_node_startup_shutdown(game_and_agent_fixture: Tuple[PrimaiteGame, Proxy
         game.step()
 
     assert client_1.operating_state == NodeOperatingState.OFF
+
+    client_1.config.start_up_duration = 3
 
     # turn it on
     action = ("node_startup", {"node_name": "client_1"})

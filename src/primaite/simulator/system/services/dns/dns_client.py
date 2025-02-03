@@ -1,6 +1,6 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
-from typing import Dict, Optional
+from typing import Dict, Optional, TYPE_CHECKING
 
 from pydantic import Field
 
@@ -9,7 +9,11 @@ from primaite.simulator.network.protocols.dns import DNSPacket, DNSRequest
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service
 from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import Port, PORT_LOOKUP
+
+if TYPE_CHECKING:
+    from primaite.simulator.network.hardware.base import Node
 
 _LOGGER = getLogger(__name__)
 
@@ -21,6 +25,7 @@ class DNSClient(Service, identifier="DNSClient"):
         """ConfigSchema for DNSClient."""
 
         type: str = "DNSClient"
+        dns_server: Optional[IPV4Address] = None
 
         dns_server: Optional[IPv4Address] = None
         "The DNS Server the client sends requests to."
@@ -28,7 +33,6 @@ class DNSClient(Service, identifier="DNSClient"):
     config: "DNSClient.ConfigSchema" = Field(default_factory=lambda: DNSClient.ConfigSchema())
     dns_cache: Dict[str, IPv4Address] = {}
     "A dict of known mappings between domain/URLs names and IPv4 addresses."
-
 
     def __init__(self, **kwargs):
         kwargs["name"] = "DNSClient"
@@ -52,6 +56,15 @@ class DNSClient(Service, identifier="DNSClient"):
         """
         state = super().describe_state()
         return state
+
+    @property
+    def dns_server(self) -> Optional[IPV4Address]:
+        """Convenience property for accessing the dns server configuration."""
+        return self.config.dns_server
+
+    @dns_server.setter
+    def dns_server(self, val: IPV4Address) -> None:
+        self.config.dns_server = val
 
     def add_domain_to_cache(self, domain_name: str, ip_address: IPv4Address) -> bool:
         """
@@ -81,6 +94,14 @@ class DNSClient(Service, identifier="DNSClient"):
         if not self._can_perform_action():
             return False
 
+        # check if the domain is already in the DNS cache
+        if target_domain in self.dns_cache:
+            self.sys_log.info(
+                f"{self.name}: Domain lookup for {target_domain} successful,"
+                f"resolves to {self.dns_cache[target_domain]}"
+            )
+            return True
+
         # check if DNS server is configured
         if self.dns_server is None:
             self.sys_log.warning(f"{self.name}: DNS Server is not configured")
@@ -89,31 +110,23 @@ class DNSClient(Service, identifier="DNSClient"):
         # check if the target domain is in the client's DNS cache
         payload = DNSPacket(dns_request=DNSRequest(domain_name_request=target_domain))
 
-        # check if the domain is already in the DNS cache
-        if target_domain in self.dns_cache:
-            self.sys_log.info(
-                f"{self.name}: Domain lookup for {target_domain} successful,"
-                f"resolves to {self.dns_cache[target_domain]}"
-            )
-            return True
+        # return False if already reattempted
+        if is_reattempt:
+            self.sys_log.warning(f"{self.name}: Domain lookup for {target_domain} failed")
+            return False
         else:
-            # return False if already reattempted
-            if is_reattempt:
-                self.sys_log.warning(f"{self.name}: Domain lookup for {target_domain} failed")
-                return False
-            else:
-                # send a request to check if domain name exists in the DNS Server
-                software_manager: SoftwareManager = self.software_manager
-                software_manager.send_payload_to_session_manager(
-                    payload=payload, dest_ip_address=self.dns_server, dest_port=PORT_LOOKUP["DNS"]
-                )
+            # send a request to check if domain name exists in the DNS Server
+            software_manager: SoftwareManager = self.software_manager
+            software_manager.send_payload_to_session_manager(
+                payload=payload, dest_ip_address=self.dns_server, dest_port=PORT_LOOKUP["DNS"]
+            )
 
-                # recursively re-call the function passing is_reattempt=True
-                return self.check_domain_exists(
-                    target_domain=target_domain,
-                    session_id=session_id,
-                    is_reattempt=True,
-                )
+            # recursively re-call the function passing is_reattempt=True
+            return self.check_domain_exists(
+                target_domain=target_domain,
+                session_id=session_id,
+                is_reattempt=True,
+            )
 
     def send(
         self,
@@ -170,3 +183,9 @@ class DNSClient(Service, identifier="DNSClient"):
 
         self.sys_log.warning(f"Failed to resolve domain name {payload.dns_request.domain_name_request}")
         return False
+
+    def install(self) -> None:
+        """Set the DNS server to be the node's DNS server unless a different one was already provided."""
+        self.parent: Node
+        if self.parent and not self.dns_server:
+            self.config.dns_server = self.parent.dns_server

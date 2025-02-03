@@ -387,6 +387,7 @@ def install_stuff_to_sim(sim: Simulation):
         "ip_address": "10.0.1.2",
         "subnet_mask": "255.255.255.0",
         "default_gateway": "10.0.1.1",
+        "start_up_duration":0,
     }
     client_1: Computer = Computer.from_config(config=client_1_cfg)
     client_1.power_on()

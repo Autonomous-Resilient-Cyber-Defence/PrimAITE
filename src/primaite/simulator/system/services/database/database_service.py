@@ -53,6 +53,15 @@ class DatabaseService(Service, identifier="DatabaseService"):
         self._create_db_file()
         self.backup_server_ip = self.config.backup_server_ip
 
+    @property
+    def password(self) -> Optional[str]:
+        """Convenience property for accessing the password."""
+        return self.config.db_password
+
+    @password.setter
+    def password(self, val: str) -> None:
+        self.config.db_password = val
+
     def install(self):
         """
         Perform first-time setup of the DatabaseService.
