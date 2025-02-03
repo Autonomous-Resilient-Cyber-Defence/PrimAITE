@@ -33,7 +33,7 @@ class ARP(Service, discriminator="arp"):
     arp: Dict[IPV4Address, ARPEntry] = {}
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "ARP"
+        kwargs["name"] = "arp"
         kwargs["port"] = PORT_LOOKUP["ARP"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["UDP"]
         super().__init__(**kwargs)

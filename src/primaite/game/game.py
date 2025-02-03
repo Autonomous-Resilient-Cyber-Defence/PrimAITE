@@ -384,7 +384,7 @@ class PrimaiteGame:
                     if service_class is not None:
                         _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
                         new_node.software_manager.install(service_class, software_config=service_cfg.get("options", {}))
-                        new_service = new_node.software_manager.software[service_class.__name__]
+                        new_service = new_node.software_manager.software[service_type]
 
                         # fixing duration for the service
                         if "fixing_duration" in service_cfg.get("options", {}):
