@@ -18,14 +18,14 @@ def dns_client_and_dns_server(client_server) -> Tuple[DNSClient, Computer, DNSSe
 
     # Install DNS Client on computer
     computer.software_manager.install(DNSClient)
-    dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
+    dns_client: DNSClient = computer.software_manager.software.get("dns-client")
     dns_client.start()
     # set server as DNS Server
     dns_client.dns_server = IPv4Address(server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address)
 
     # Install DNS Server on server
     server.software_manager.install(DNSServer)
-    dns_server: DNSServer = server.software_manager.software.get("DNSServer")
+    dns_server: DNSServer = server.software_manager.software.get("dns-server")
     dns_server.start()
     # register arcd.com as a domain
     dns_server.dns_register(

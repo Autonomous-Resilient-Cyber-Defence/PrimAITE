@@ -617,10 +617,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 192.168.1.1
             dns_server: 8.8.8.2
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
-              - type: WebBrowser
+              - type: web-browser
                 options:
                   target_url: http://sometech.ai
 
@@ -631,10 +631,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 192.168.1.1
             dns_server: 8.8.8.2
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
-              - type: WebBrowser
+              - type: web-browser
                 options:
                   target_url: http://sometech.ai
 
@@ -700,7 +700,7 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 8.8.8.1
             services:
               - ref: dns_server
-                type: DNSServer
+                type: dns-server
                 options:
                   domain_mapping:
                     sometech.ai: 94.10.180.6
@@ -794,9 +794,9 @@ Each node is configured to ensure it meets the specific security and operational
             dns_server: 8.8.8.2
             services:
               - ref: web_server
-                type: WebServer
+                type: web-server
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
 
@@ -903,10 +903,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 10.10.1.1
             dns_server: 8.8.8.2
             services:
-              - type: DatabaseService
+              - type: database-service
                 options:
                   backup_server_ip: 10.10.1.12 # The some_tech_storage_srv server
-              - type: FTPClient
+              - type: ftp-client
 
           - hostname: some_tech_storage_srv
             type: server
@@ -915,7 +915,7 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 10.10.1.1
             dns_server: 8.8.8.2
             services:
-              - type: FTPServer
+              - type: ftp-server
 
           - hostname: some_tech_hr_1
             type: computer
@@ -924,10 +924,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 10.10.3.1
             dns_server: 8.8.8.2
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
-              - type: WebBrowser
+              - type: web-browser
                 options:
                   target_url: http://sometech.ai
 
@@ -938,10 +938,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 10.10.2.1
             dns_server: 8.8.8.2
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
-              - type: WebBrowser
+              - type: web-browser
                 options:
                   target_url: http://sometech.ai
 
@@ -952,10 +952,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 10.10.2.1
             dns_server: 8.8.8.2
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
-              - type: WebBrowser
+              - type: web-browser
                 options:
                   target_url: http://sometech.ai
 

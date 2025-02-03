@@ -31,10 +31,10 @@ class TestConfigureDatabaseAction:
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
         client_1.software_manager.install(DatabaseClient)
-        db_client: DatabaseClient = client_1.software_manager.software["DatabaseClient"]
+        db_client: DatabaseClient = client_1.software_manager.software["database-client"]
 
         action = (
-            "configure_database_client",
+            "configure-database-client",
             {
                 "node_name": "client_1",
                 "server_ip_address": "192.168.1.99",
@@ -54,10 +54,10 @@ class TestConfigureDatabaseAction:
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
         client_1.software_manager.install(DatabaseClient)
-        db_client: DatabaseClient = client_1.software_manager.software["DatabaseClient"]
+        db_client: DatabaseClient = client_1.software_manager.software["database-client"]
 
         action = (
-            "configure_database_client",
+            "configure-database-client",
             {
                 "node_name": "client_1",
                 "server_ip_address": "192.168.1.99",
@@ -76,11 +76,11 @@ class TestConfigureDatabaseAction:
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
         client_1.software_manager.install(DatabaseClient)
-        db_client: DatabaseClient = client_1.software_manager.software["DatabaseClient"]
+        db_client: DatabaseClient = client_1.software_manager.software["database-client"]
         old_ip = db_client.server_ip_address
 
         action = (
-            "configure_database_client",
+            "configure-database-client",
             {
                 "node_name": "client_1",
                 "server_password": "admin123",
@@ -115,14 +115,14 @@ class TestConfigureRansomwareScriptAction:
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
         client_1.software_manager.install(RansomwareScript)
-        ransomware_script: RansomwareScript = client_1.software_manager.software["RansomwareScript"]
+        ransomware_script: RansomwareScript = client_1.software_manager.software["ransomware-script"]
 
         old_ip = ransomware_script.server_ip_address
         old_pw = ransomware_script.server_password
         old_payload = ransomware_script.payload
 
         action = (
-            "configure_ransomware_script",
+            "configure-ransomware-script",
             {"node_name": "client_1", **config},
         )
         agent.store_action(action)
@@ -143,9 +143,9 @@ class TestConfigureRansomwareScriptAction:
         # make sure there is a database client on this node
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
         client_1.software_manager.install(RansomwareScript)
-        ransomware_script: RansomwareScript = client_1.software_manager.software["RansomwareScript"]
+        ransomware_script: RansomwareScript = client_1.software_manager.software["ransomware-script"]
         action = (
-            "configure_ransomware_script",
+            "configure-ransomware-script",
             {
                 "node_name": "client_1",
                 "config": {"server_password": "admin123", "bad_option": 70},
@@ -163,10 +163,10 @@ class TestConfigureDoSBot:
 
         client_1 = game.simulation.network.get_node_by_hostname("client_1")
         client_1.software_manager.install(DoSBot)
-        dos_bot: DoSBot = client_1.software_manager.software["DoSBot"]
+        dos_bot: DoSBot = client_1.software_manager.software["dos-bot"]
 
         action = (
-            "configure_dos_bot",
+            "configure-dos-bot",
             {
                 "node_name": "client_1",
                 "target_ip_address": "192.168.1.99",
@@ -196,11 +196,11 @@ class TestConfigureYAML:
 
         # make sure there's no db client on the node yet
         client_1 = env.game.simulation.network.get_node_by_hostname("client_1")
-        assert client_1.software_manager.software.get("DatabaseClient") is None
+        assert client_1.software_manager.software.get("database-client") is None
 
         # take the install action, check that the db gets installed, step to get it to finish installing
         env.step(1)
-        db_client: DatabaseClient = client_1.software_manager.software.get("DatabaseClient")
+        db_client: DatabaseClient = client_1.software_manager.software.get("database-client")
         assert isinstance(db_client, DatabaseClient)
         assert db_client.operating_state == ApplicationOperatingState.INSTALLING
         env.step(0)
@@ -224,11 +224,11 @@ class TestConfigureYAML:
     def test_c2_server_ransomware_configure(self):
         env = PrimaiteGymEnv(env_config=APP_CONFIG_YAML)
         client_2 = env.game.simulation.network.get_node_by_hostname("client_2")
-        assert client_2.software_manager.software.get("RansomwareScript") is None
+        assert client_2.software_manager.software.get("ransomware-script") is None
 
         # install ransomware script
         env.step(2)
-        ransom = client_2.software_manager.software.get("RansomwareScript")
+        ransom = client_2.software_manager.software.get("ransomware-script")
         assert isinstance(ransom, RansomwareScript)
         assert ransom.operating_state == ApplicationOperatingState.INSTALLING
         env.step(0)
@@ -250,17 +250,17 @@ class TestConfigureYAML:
         assert ransom.attack()
 
         db_server = env.game.simulation.network.get_node_by_hostname("server_1")
-        db_service: DatabaseService = db_server.software_manager.software.get("DatabaseService")
+        db_service: DatabaseService = db_server.software_manager.software.get("database-service")
         assert db_service.db_file.health_status == FileSystemItemHealthStatus.CORRUPT
 
     def test_configure_dos_bot(self):
         env = PrimaiteGymEnv(env_config=APP_CONFIG_YAML)
         client_3 = env.game.simulation.network.get_node_by_hostname("client_3")
-        assert client_3.software_manager.software.get("DoSBot") is None
+        assert client_3.software_manager.software.get("dos-bot") is None
 
         # install DoSBot
         env.step(3)
-        bot = client_3.software_manager.software.get("DoSBot")
+        bot = client_3.software_manager.software.get("dos-bot")
         assert isinstance(bot, DoSBot)
         assert bot.operating_state == ApplicationOperatingState.INSTALLING
         env.step(0)

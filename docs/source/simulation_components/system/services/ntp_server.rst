@@ -73,7 +73,7 @@ Via Configuration
                 ...
                 services:
                     - ref: ntp_server
-                    type: NTPServer
+                    type: ntp-server
 
 
 ``Common Attributes``

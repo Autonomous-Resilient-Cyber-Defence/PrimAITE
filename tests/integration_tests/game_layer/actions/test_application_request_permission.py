@@ -28,27 +28,27 @@ def test_application_cannot_perform_actions_unless_running(game_and_agent_fixtur
     game, agent = game_and_agent_fixture
 
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
-    browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
+    browser: WebBrowser = client_1.software_manager.software.get("web-browser")
 
     browser.close()
     assert browser.operating_state == ApplicationOperatingState.CLOSED
 
-    action = ("node_application_scan", {"node_name": "client_1", "application_name": "WebBrowser"})
+    action = ("node-application-scan", {"node_name": "client_1", "application_name": "web-browser"})
     agent.store_action(action)
     game.step()
     assert browser.operating_state == ApplicationOperatingState.CLOSED
 
-    action = ("node_application_close", {"node_name": "client_1", "application_name": "WebBrowser"})
+    action = ("node-application-close", {"node_name": "client_1", "application_name": "web-browser"})
     agent.store_action(action)
     game.step()
     assert browser.operating_state == ApplicationOperatingState.CLOSED
 
-    action = ("node_application_fix", {"node_name": "client_1", "application_name": "WebBrowser"})
+    action = ("node-application-fix", {"node_name": "client_1", "application_name": "web-browser"})
     agent.store_action(action)
     game.step()
     assert browser.operating_state == ApplicationOperatingState.CLOSED
 
-    action = ("node_application_execute", {"node_name": "client_1", "application_name": "WebBrowser"})
+    action = ("node-application-execute", {"node_name": "client_1", "application_name": "web-browser"})
     agent.store_action(action)
     game.step()
     assert browser.operating_state == ApplicationOperatingState.CLOSED

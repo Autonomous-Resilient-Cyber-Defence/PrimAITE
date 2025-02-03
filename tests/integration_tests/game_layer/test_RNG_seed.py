@@ -24,12 +24,12 @@ def test_rng_seed_set(create_env):
     env.reset(seed=3)
     for i in range(100):
         env.step(0)
-    a = [item.timestep for item in env.game.agents["client_2_green_user"].history if item.action != "do_nothing"]
+    a = [item.timestep for item in env.game.agents["client_2_green_user"].history if item.action != "do-nothing"]
 
     env.reset(seed=3)
     for i in range(100):
         env.step(0)
-    b = [item.timestep for item in env.game.agents["client_2_green_user"].history if item.action != "do_nothing"]
+    b = [item.timestep for item in env.game.agents["client_2_green_user"].history if item.action != "do-nothing"]
 
     assert a == b
 
@@ -40,11 +40,11 @@ def test_rng_seed_unset(create_env):
     env.reset()
     for i in range(100):
         env.step(0)
-    a = [item.timestep for item in env.game.agents["client_2_green_user"].history if item.action != "do_nothing"]
+    a = [item.timestep for item in env.game.agents["client_2_green_user"].history if item.action != "do-nothing"]
 
     env.reset()
     for i in range(100):
         env.step(0)
-    b = [item.timestep for item in env.game.agents["client_2_green_user"].history if item.action != "do_nothing"]
+    b = [item.timestep for item in env.game.agents["client_2_green_user"].history if item.action != "do-nothing"]
 
     assert a != b

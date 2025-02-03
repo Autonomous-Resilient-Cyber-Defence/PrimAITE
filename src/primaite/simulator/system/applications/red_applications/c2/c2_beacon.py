@@ -17,7 +17,7 @@ from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 
-class C2Beacon(AbstractC2, discriminator="C2Beacon"):
+class C2Beacon(AbstractC2, discriminator="c2-beacon"):
     """
     C2 Beacon Application.
 
@@ -39,7 +39,7 @@ class C2Beacon(AbstractC2, discriminator="C2Beacon"):
     class ConfigSchema(AbstractC2.ConfigSchema):
         """ConfigSchema for C2Beacon."""
 
-        type: str = "C2Beacon"
+        type: str = "c2-beacon"
         c2_server_ip_address: Optional[IPV4Address] = None
         keep_alive_frequency: int = 5
         masquerade_protocol: IPProtocol = PROTOCOL_LOOKUP["TCP"]
@@ -54,13 +54,13 @@ class C2Beacon(AbstractC2, discriminator="C2Beacon"):
     "The currently in use terminal session."
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "C2Beacon"
+        kwargs["name"] = "c2-beacon"
         super().__init__(**kwargs)
 
     @property
     def _host_terminal(self) -> Optional[Terminal]:
-        """Return the Terminal that is installed on the same machine as the C2 Beacon."""
-        host_terminal: Terminal = self.software_manager.software.get("Terminal")
+        """Return the terminal that is installed on the same machine as the C2 Beacon."""
+        host_terminal: Terminal = self.software_manager.software.get("terminal")
         if host_terminal is None:
             self.sys_log.warning(f"{self.__class__.__name__} cannot find a terminal on its host.")
         return host_terminal
@@ -68,7 +68,7 @@ class C2Beacon(AbstractC2, discriminator="C2Beacon"):
     @property
     def _host_ransomware_script(self) -> RansomwareScript:
         """Return the RansomwareScript that is installed on the same machine as the C2 Beacon."""
-        ransomware_script: RansomwareScript = self.software_manager.software.get("RansomwareScript")
+        ransomware_script: RansomwareScript = self.software_manager.software.get("ransomware-script")
         if ransomware_script is None:
             self.sys_log.warning(f"{self.__class__.__name__} cannot find installed ransomware on its host.")
         return ransomware_script
@@ -300,7 +300,7 @@ class C2Beacon(AbstractC2, discriminator="C2Beacon"):
 
         :payload C2Packet: The incoming INPUT command.
         :type Masquerade Packet: C2Packet.
-        :return: Returns the Request Response returned by the Terminal execute method.
+        :return: Returns the Request Response returned by the terminal execute method.
         :rtype: Request Response
         """
         command_opts = RansomwareOpts.model_validate(payload.payload)
@@ -324,7 +324,7 @@ class C2Beacon(AbstractC2, discriminator="C2Beacon"):
 
         :payload C2Packet: The incoming INPUT command.
         :type Masquerade Packet: C2Packet.
-        :return: Returns the Request Response returned by the Terminal execute method.
+        :return: Returns the Request Response returned by the terminal execute method.
         :rtype: Request Response
         """
         if self._host_ransomware_script is None:
@@ -351,7 +351,7 @@ class C2Beacon(AbstractC2, discriminator="C2Beacon"):
 
         :payload C2Packet: The incoming INPUT command.
         :type Masquerade Packet: C2Packet.
-        :return: Returns a tuple containing Request Response returned by the Terminal execute method.
+        :return: Returns a tuple containing Request Response returned by the terminal execute method.
         :rtype: Request Response
         """
         if self._host_ftp_server is None:
@@ -372,7 +372,7 @@ class C2Beacon(AbstractC2, discriminator="C2Beacon"):
             )
 
         # Using the terminal to start the FTP Client on the remote machine.
-        self.terminal_session.execute(command=["service", "start", "FTPClient"])
+        self.terminal_session.execute(command=["service", "start", "ftp-client"])
 
         # Need to supply to the FTP Client the C2 Beacon's host IP.
         host_network_interfaces = self.software_manager.node.network_interfaces
@@ -430,7 +430,7 @@ class C2Beacon(AbstractC2, discriminator="C2Beacon"):
 
         # Using the terminal to send the target data back to the C2 Beacon.
         exfil_response: RequestResponse = RequestResponse.from_bool(
-            self.terminal_session.execute(command=["service", "FTPClient", "send", ftp_opts])
+            self.terminal_session.execute(command=["service", "ftp-client", "send", ftp_opts])
         )
 
         # Validating that we successfully received the target data.
@@ -472,14 +472,14 @@ class C2Beacon(AbstractC2, discriminator="C2Beacon"):
 
     def _command_terminal(self, payload: C2Packet) -> RequestResponse:
         """
-        C2 Command: Terminal.
+        C2 Command: terminal.
 
         Creates a request that executes a terminal command.
         This request is then sent to the terminal service in order to be executed.
 
         :payload C2Packet: The incoming INPUT command.
         :type Masquerade Packet: C2Packet.
-        :return: Returns the Request Response returned by the Terminal execute method.
+        :return: Returns the Request Response returned by the terminal execute method.
         :rtype: Request Response
         """
         command_opts = TerminalOpts.model_validate(payload.payload)

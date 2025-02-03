@@ -31,11 +31,11 @@ def peer_to_peer() -> Tuple[Computer, Computer]:
     assert node_a.ping("192.168.0.11")
 
     node_a.software_manager.install(DatabaseClient)
-    node_a.software_manager.software["DatabaseClient"].configure(server_ip_address=IPv4Address("192.168.0.11"))
-    node_a.software_manager.software["DatabaseClient"].run()
+    node_a.software_manager.software["database-client"].configure(server_ip_address=IPv4Address("192.168.0.11"))
+    node_a.software_manager.software["database-client"].run()
 
     node_b.software_manager.install(DatabaseService)
-    database_service: DatabaseService = node_b.software_manager.software["DatabaseService"]  # noqa
+    database_service: DatabaseService = node_b.software_manager.software["database-service"]  # noqa
     database_service.start()
     return node_a, node_b
 
@@ -44,7 +44,7 @@ def peer_to_peer() -> Tuple[Computer, Computer]:
 def peer_to_peer_secure_db(peer_to_peer) -> Tuple[Computer, Computer]:
     node_a, node_b = peer_to_peer
 
-    database_service: DatabaseService = node_b.software_manager.software["DatabaseService"]  # noqa
+    database_service: DatabaseService = node_b.software_manager.software["database-service"]  # noqa
     database_service.stop()
     database_service.password = "12345"
     database_service.start()
@@ -54,9 +54,9 @@ def peer_to_peer_secure_db(peer_to_peer) -> Tuple[Computer, Computer]:
 def test_database_client_server_connection(peer_to_peer):
     node_a, node_b = peer_to_peer
 
-    db_client: DatabaseClient = node_a.software_manager.software["DatabaseClient"]
+    db_client: DatabaseClient = node_a.software_manager.software["database-client"]
 
-    db_service: DatabaseService = node_b.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = node_b.software_manager.software["database-service"]
 
     db_client.connect()
 
@@ -71,9 +71,9 @@ def test_database_client_server_connection(peer_to_peer):
 def test_database_client_server_correct_password(peer_to_peer_secure_db):
     node_a, node_b = peer_to_peer_secure_db
 
-    db_client: DatabaseClient = node_a.software_manager.software["DatabaseClient"]
+    db_client: DatabaseClient = node_a.software_manager.software["database-client"]
 
-    db_service: DatabaseService = node_b.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = node_b.software_manager.software["database-service"]
 
     db_client.configure(server_ip_address=IPv4Address("192.168.0.11"), server_password="12345")
     db_client.connect()
@@ -84,9 +84,9 @@ def test_database_client_server_correct_password(peer_to_peer_secure_db):
 def test_database_client_server_incorrect_password(peer_to_peer_secure_db):
     node_a, node_b = peer_to_peer_secure_db
 
-    db_client: DatabaseClient = node_a.software_manager.software["DatabaseClient"]
+    db_client: DatabaseClient = node_a.software_manager.software["database-client"]
 
-    db_service: DatabaseService = node_b.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = node_b.software_manager.software["database-service"]
 
     # should fail
     db_client.connect()
@@ -102,7 +102,7 @@ def test_database_client_server_incorrect_password(peer_to_peer_secure_db):
 def test_database_client_native_connection_query(uc2_network):
     """Tests DB query across the network returns HTTP status 200 and date."""
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
-    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    db_client: DatabaseClient = web_server.software_manager.software["database-client"]
     db_client.connect()
     assert db_client.query(sql="SELECT")
     assert db_client.query(sql="INSERT")
@@ -111,7 +111,7 @@ def test_database_client_native_connection_query(uc2_network):
 def test_database_client_connection_query(uc2_network):
     """Tests DB query across the network returns HTTP status 200 and date."""
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
-    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    db_client: DatabaseClient = web_server.software_manager.software["database-client"]
 
     db_connection: DatabaseClientConnection = db_client.get_new_connection()
 
@@ -122,13 +122,13 @@ def test_database_client_connection_query(uc2_network):
 def test_create_database_backup(uc2_network):
     """Run the backup_database method and check if the FTP server has the relevant file."""
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = db_server.software_manager.software["database-service"]
 
     # back up should be created
     assert db_service.backup_database() is True
 
     backup_server: Server = uc2_network.get_node_by_hostname("backup_server")
-    ftp_server: FTPServer = backup_server.software_manager.software["FTPServer"]
+    ftp_server: FTPServer = backup_server.software_manager.software["ftp-server"]
 
     # backup file should exist in the backup server
     assert ftp_server.file_system.get_file(folder_name=db_service.uuid, file_name="database.db") is not None
@@ -137,7 +137,7 @@ def test_create_database_backup(uc2_network):
 def test_restore_backup(uc2_network):
     """Run the restore_backup method and check if the backup is properly restored."""
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = db_server.software_manager.software["database-service"]
 
     # create a back up
     assert db_service.backup_database() is True
@@ -156,7 +156,7 @@ def test_restore_backup(uc2_network):
 def test_restore_backup_without_updating_scan(uc2_network):
     """Same test as restore backup but the file is previously seen as corrupted."""
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = db_server.software_manager.software["database-service"]
 
     # create a back up
     assert db_service.backup_database() is True
@@ -184,7 +184,7 @@ def test_restore_backup_without_updating_scan(uc2_network):
 def test_restore_backup_after_deleting_file_without_updating_scan(uc2_network):
     """Same test as restore backup but the file is previously seen as corrupted."""
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = db_server.software_manager.software["database-service"]
 
     assert db_service.backup_database() is True
 
@@ -217,7 +217,7 @@ def test_restore_backup_after_deleting_file_without_updating_scan(uc2_network):
 def test_database_service_fix(uc2_network):
     """Test that the software fix applies to database service."""
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = db_server.software_manager.software["database-service"]
 
     assert db_service.backup_database() is True
 
@@ -242,10 +242,10 @@ def test_database_service_fix(uc2_network):
 def test_database_cannot_be_queried_while_fixing(uc2_network):
     """Tests that the database service cannot be queried if the service is being fixed."""
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = db_server.software_manager.software["database-service"]
 
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
-    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    db_client: DatabaseClient = web_server.software_manager.software["database-client"]
 
     db_connection: DatabaseClientConnection = db_client.get_new_connection()
 
@@ -279,10 +279,10 @@ def test_database_cannot_be_queried_while_fixing(uc2_network):
 def test_database_can_create_connection_while_fixing(uc2_network):
     """Tests that connections cannot be created while the database is being fixed."""
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]
+    db_service: DatabaseService = db_server.software_manager.software["database-service"]
 
     client_2: Server = uc2_network.get_node_by_hostname("client_2")
-    db_client: DatabaseClient = client_2.software_manager.software["DatabaseClient"]
+    db_client: DatabaseClient = client_2.software_manager.software["database-client"]
 
     db_connection: DatabaseClientConnection = db_client.get_new_connection()
 
@@ -321,13 +321,13 @@ def test_database_can_create_connection_while_fixing(uc2_network):
 def test_database_client_cannot_query_offline_database_server(uc2_network):
     """Tests DB query across the network returns HTTP status 404 when db server is offline."""
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = db_server.software_manager.software.get("DatabaseService")
+    db_service: DatabaseService = db_server.software_manager.software.get("database-service")
 
     assert db_server.operating_state is NodeOperatingState.ON
     assert db_service.operating_state is ServiceOperatingState.RUNNING
 
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
-    db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
+    db_client: DatabaseClient = web_server.software_manager.software.get("database-client")
     db_client.connect()
     assert len(db_client.client_connections)
 
@@ -351,8 +351,8 @@ def test_database_client_cannot_query_offline_database_server(uc2_network):
 def test_database_client_uninstall_terminates_connections(peer_to_peer):
     node_a, node_b = peer_to_peer
 
-    db_client: DatabaseClient = node_a.software_manager.software["DatabaseClient"]
-    db_service: DatabaseService = node_b.software_manager.software["DatabaseService"]  # noqa
+    db_client: DatabaseClient = node_a.software_manager.software["database-client"]
+    db_service: DatabaseService = node_b.software_manager.software["database-service"]  # noqa
 
     db_connection: DatabaseClientConnection = db_client.get_new_connection()
 
@@ -366,7 +366,7 @@ def test_database_client_uninstall_terminates_connections(peer_to_peer):
     assert db_connection.query("SELECT")
 
     # Perform the DatabaseClient uninstall
-    node_a.software_manager.uninstall("DatabaseClient")
+    node_a.software_manager.uninstall("database-client")
 
     # Check that all connection counters are updated accordingly and client connection can no longer query the database
     assert len(db_service.connections) == 0
@@ -381,8 +381,8 @@ def test_database_client_uninstall_terminates_connections(peer_to_peer):
 def test_database_service_can_terminate_connection(peer_to_peer):
     node_a, node_b = peer_to_peer
 
-    db_client: DatabaseClient = node_a.software_manager.software["DatabaseClient"]
-    db_service: DatabaseService = node_b.software_manager.software["DatabaseService"]  # noqa
+    db_client: DatabaseClient = node_a.software_manager.software["database-client"]
+    db_service: DatabaseService = node_b.software_manager.software["database-service"]  # noqa
 
     db_connection: DatabaseClientConnection = db_client.get_new_connection()
 
@@ -418,7 +418,7 @@ def test_client_connection_terminate_does_not_terminate_another_clients_connecti
     db_server.power_on()
 
     db_server.software_manager.install(DatabaseService)
-    db_service: DatabaseService = db_server.software_manager.software["DatabaseService"]  # noqa
+    db_service: DatabaseService = db_server.software_manager.software["database-service"]  # noqa
     db_service.start()
 
     client_a = Computer(
@@ -427,8 +427,8 @@ def test_client_connection_terminate_does_not_terminate_another_clients_connecti
     client_a.power_on()
 
     client_a.software_manager.install(DatabaseClient)
-    client_a.software_manager.software["DatabaseClient"].configure(server_ip_address=IPv4Address("192.168.0.11"))
-    client_a.software_manager.software["DatabaseClient"].run()
+    client_a.software_manager.software["database-client"].configure(server_ip_address=IPv4Address("192.168.0.11"))
+    client_a.software_manager.software["database-client"].run()
 
     client_b = Computer(
         hostname="client_b", ip_address="192.168.0.13", subnet_mask="255.255.255.0", start_up_duration=0
@@ -436,8 +436,8 @@ def test_client_connection_terminate_does_not_terminate_another_clients_connecti
     client_b.power_on()
 
     client_b.software_manager.install(DatabaseClient)
-    client_b.software_manager.software["DatabaseClient"].configure(server_ip_address=IPv4Address("192.168.0.11"))
-    client_b.software_manager.software["DatabaseClient"].run()
+    client_b.software_manager.software["database-client"].configure(server_ip_address=IPv4Address("192.168.0.11"))
+    client_b.software_manager.software["database-client"].run()
 
     switch = Switch(hostname="switch", start_up_duration=0, num_ports=3)
     switch.power_on()
@@ -446,13 +446,13 @@ def test_client_connection_terminate_does_not_terminate_another_clients_connecti
     network.connect(endpoint_a=switch.network_interface[2], endpoint_b=client_a.network_interface[1])
     network.connect(endpoint_a=switch.network_interface[3], endpoint_b=client_b.network_interface[1])
 
-    db_client_a: DatabaseClient = client_a.software_manager.software["DatabaseClient"]  # noqa
+    db_client_a: DatabaseClient = client_a.software_manager.software["database-client"]  # noqa
     db_connection_a = db_client_a.get_new_connection()
 
     assert db_connection_a.query("SELECT")
     assert len(db_service.connections) == 1
 
-    db_client_b: DatabaseClient = client_b.software_manager.software["DatabaseClient"]  # noqa
+    db_client_b: DatabaseClient = client_b.software_manager.software["database-client"]  # noqa
     db_connection_b = db_client_b.get_new_connection()
 
     assert db_connection_b.query("SELECT")
@@ -467,4 +467,4 @@ def test_client_connection_terminate_does_not_terminate_another_clients_connecti
 def test_database_server_install_ftp_client():
     server = Server(hostname="db_server", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
     server.software_manager.install(DatabaseService)
-    assert server.software_manager.software.get("FTPClient")
+    assert server.software_manager.software.get("ftp-client")

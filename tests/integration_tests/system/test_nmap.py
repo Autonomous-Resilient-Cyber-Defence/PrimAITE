@@ -15,7 +15,7 @@ def test_ping_scan_all_on(example_network):
     network = example_network
 
     client_1 = network.get_node_by_hostname("client_1")
-    client_1_nmap: NMAP = client_1.software_manager.software["NMAP"]  # noqa
+    client_1_nmap: NMAP = client_1.software_manager.software["nmap"]  # noqa
 
     expected_result = [IPv4Address("192.168.1.10"), IPv4Address("192.168.1.14")]
     actual_result = client_1_nmap.ping_scan(target_ip_address=["192.168.1.10", "192.168.1.14"])
@@ -27,7 +27,7 @@ def test_ping_scan_all_on_full_network(example_network):
     network = example_network
 
     client_1 = network.get_node_by_hostname("client_1")
-    client_1_nmap: NMAP = client_1.software_manager.software["NMAP"]  # noqa
+    client_1_nmap: NMAP = client_1.software_manager.software["nmap"]  # noqa
 
     expected_result = [IPv4Address("192.168.1.1"), IPv4Address("192.168.1.10"), IPv4Address("192.168.1.14")]
     actual_result = client_1_nmap.ping_scan(target_ip_address=IPv4Network("192.168.1.0/24"))
@@ -39,7 +39,7 @@ def test_ping_scan_some_on(example_network):
     network = example_network
 
     client_1 = network.get_node_by_hostname("client_1")
-    client_1_nmap: NMAP = client_1.software_manager.software["NMAP"]  # noqa
+    client_1_nmap: NMAP = client_1.software_manager.software["nmap"]  # noqa
 
     network.get_node_by_hostname("server_2").power_off()
 
@@ -53,7 +53,7 @@ def test_ping_scan_all_off(example_network):
     network = example_network
 
     client_1 = network.get_node_by_hostname("client_1")
-    client_1_nmap: NMAP = client_1.software_manager.software["NMAP"]  # noqa
+    client_1_nmap: NMAP = client_1.software_manager.software["nmap"]  # noqa
 
     network.get_node_by_hostname("server_1").power_off()
     network.get_node_by_hostname("server_2").power_off()
@@ -68,7 +68,7 @@ def test_port_scan_one_node_one_port(example_network):
     network = example_network
 
     client_1 = network.get_node_by_hostname("client_1")
-    client_1_nmap: NMAP = client_1.software_manager.software["NMAP"]  # noqa
+    client_1_nmap: NMAP = client_1.software_manager.software["nmap"]  # noqa
 
     client_2 = network.get_node_by_hostname("client_2")
 
@@ -99,7 +99,7 @@ def test_port_scan_full_subnet_all_ports_and_protocols(example_network):
     network = example_network
 
     client_1 = network.get_node_by_hostname("client_1")
-    client_1_nmap: NMAP = client_1.software_manager.software["NMAP"]  # noqa
+    client_1_nmap: NMAP = client_1.software_manager.software["nmap"]  # noqa
 
     actual_result = client_1_nmap.port_scan(
         target_ip_address=IPv4Network("192.168.10.0/24"),
@@ -127,7 +127,7 @@ def test_network_service_recon_all_ports_and_protocols(example_network):
     network = example_network
 
     client_1 = network.get_node_by_hostname("client_1")
-    client_1_nmap: NMAP = client_1.software_manager.software["NMAP"]  # noqa
+    client_1_nmap: NMAP = client_1.software_manager.software["nmap"]  # noqa
 
     actual_result = client_1_nmap.network_service_recon(
         target_ip_address=IPv4Network("192.168.10.0/24"),

@@ -43,23 +43,23 @@ def simulation(example_network) -> Simulation:
     computer: Computer = example_network.get_node_by_hostname("client_1")
     server: Server = example_network.get_node_by_hostname("server_1")
 
-    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+    web_browser: WebBrowser = computer.software_manager.software.get("web-browser")
     web_browser.run()
 
     # Install DNS Client service on computer
     computer.software_manager.install(DNSClient)
-    dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
+    dns_client: DNSClient = computer.software_manager.software.get("dns-client")
     # set dns server
     dns_client.dns_server = server.network_interface[1].ip_address
 
     # Install Web Server service on server
     server.software_manager.install(WebServer)
-    web_server_service: WebServer = server.software_manager.software.get("WebServer")
+    web_server_service: WebServer = server.software_manager.software.get("web-server")
     web_server_service.start()
 
     # Install DNS Server service on server
     server.software_manager.install(DNSServer)
-    dns_server: DNSServer = server.software_manager.software.get("DNSServer")
+    dns_server: DNSServer = server.software_manager.software.get("dns-server")
     # register arcd.com to DNS
     dns_server.dns_register(
         domain_name="arcd.com",
@@ -190,7 +190,7 @@ def test_nic_monitored_traffic(simulation):
     assert traffic_obs["tcp"][53]["outbound"] == 0
 
     # send a database query
-    browser: WebBrowser = pc.software_manager.software.get("WebBrowser")
+    browser: WebBrowser = pc.software_manager.software.get("web-browser")
     browser.config.target_url = f"http://arcd.com/"
     browser.get_webpage()
 

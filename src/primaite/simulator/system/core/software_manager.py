@@ -60,12 +60,12 @@ class SoftwareManager:
     @property
     def arp(self) -> "ARP":
         """Provides access to the ARP service instance, if installed."""
-        return self.software.get("ARP")  # noqa
+        return self.software.get("arp")  # noqa
 
     @property
     def icmp(self) -> "ICMP":
         """Provides access to the ICMP service instance, if installed."""
-        return self.software.get("ICMP")  # noqa
+        return self.software.get("icmp")  # noqa
 
     def get_open_ports(self) -> List[Port]:
         """
@@ -243,7 +243,7 @@ class SoftwareManager:
         :param session: The transport session the payload originates from.
         """
         if payload.__class__.__name__ == "PortScanPayload":
-            self.software.get("NMAP").receive(payload=payload, session_id=session_id)
+            self.software.get("nmap").receive(payload=payload, session_id=session_id)
             return
         main_receiver = self.port_protocol_mapping.get((port, protocol), None)
         if main_receiver:

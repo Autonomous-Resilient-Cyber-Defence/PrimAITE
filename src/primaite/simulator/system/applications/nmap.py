@@ -44,7 +44,7 @@ class PortScanPayload(SimComponent):
         return state
 
 
-class NMAP(Application, discriminator="NMAP"):
+class NMAP(Application, discriminator="nmap"):
     """
     A class representing the NMAP application for network scanning.
 
@@ -55,7 +55,7 @@ class NMAP(Application, discriminator="NMAP"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for NMAP."""
 
-        type: str = "NMAP"
+        type: str = "nmap"
 
     config: "NMAP.ConfigSchema" = Field(default_factory=lambda: NMAP.ConfigSchema())
 

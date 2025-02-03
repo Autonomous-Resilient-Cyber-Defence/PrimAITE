@@ -12,7 +12,7 @@ from primaite.utils.validation.ip_protocol import IPProtocol
 from primaite.utils.validation.port import Port
 
 
-class NICObservation(AbstractObservation, discriminator="NETWORK_INTERFACE"):
+class NICObservation(AbstractObservation, discriminator="network-interface"):
     """Status information about a network interface within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -227,7 +227,7 @@ class NICObservation(AbstractObservation, discriminator="NETWORK_INTERFACE"):
         )
 
 
-class PortObservation(AbstractObservation, discriminator="PORT"):
+class PortObservation(AbstractObservation, discriminator="port"):
     """Port observation, provides status information about a network port within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):

@@ -90,7 +90,7 @@ def dmz_external_internal_network() -> Network:
     )
     external_node.power_on()
     external_node.software_manager.install(NTPServer)
-    ntp_service: NTPServer = external_node.software_manager.software["NTPServer"]
+    ntp_service: NTPServer = external_node.software_manager.software["ntp-server"]
     ntp_service.start()
     # connect external node to firewall node
     network.connect(endpoint_b=external_node.network_interface[1], endpoint_a=firewall_node.external_port)
@@ -105,7 +105,7 @@ def dmz_external_internal_network() -> Network:
     )
     internal_node.power_on()
     internal_node.software_manager.install(NTPClient)
-    internal_ntp_client: NTPClient = internal_node.software_manager.software["NTPClient"]
+    internal_ntp_client: NTPClient = internal_node.software_manager.software["ntp-client"]
     internal_ntp_client.configure(external_node.network_interface[1].ip_address)
     internal_ntp_client.start()
     # connect external node to firewall node
@@ -120,7 +120,7 @@ def dmz_external_internal_network() -> Network:
         start_up_duration=0,
     )
     dmz_node.power_on()
-    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["NTPClient"]
+    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["ntp-client"]
     dmz_ntp_client.configure(external_node.network_interface[1].ip_address)
     dmz_ntp_client.start()
     # connect external node to firewall node
@@ -214,8 +214,8 @@ def test_service_blocked(dmz_external_internal_network):
     firewall = dmz_external_internal_network.get_node_by_hostname("firewall_1")
     internal_node = dmz_external_internal_network.get_node_by_hostname("internal_node")
     dmz_node = dmz_external_internal_network.get_node_by_hostname("dmz_node")
-    internal_ntp_client: NTPClient = internal_node.software_manager.software["NTPClient"]
-    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["NTPClient"]
+    internal_ntp_client: NTPClient = internal_node.software_manager.software["ntp-client"]
+    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["ntp-client"]
 
     assert not internal_ntp_client.time
 
@@ -261,8 +261,8 @@ def test_service_allowed_with_rule(dmz_external_internal_network):
     firewall = dmz_external_internal_network.get_node_by_hostname("firewall_1")
     internal_node = dmz_external_internal_network.get_node_by_hostname("internal_node")
     dmz_node = dmz_external_internal_network.get_node_by_hostname("dmz_node")
-    internal_ntp_client: NTPClient = internal_node.software_manager.software["NTPClient"]
-    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["NTPClient"]
+    internal_ntp_client: NTPClient = internal_node.software_manager.software["ntp-client"]
+    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["ntp-client"]
 
     assert not internal_ntp_client.time
 

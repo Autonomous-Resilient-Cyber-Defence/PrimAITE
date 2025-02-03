@@ -24,7 +24,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class ExtendedApplication(Application, discriminator="ExtendedApplication"):
+class ExtendedApplication(Application, discriminator="extended-application"):
     """
     Clone of web browser that uses the extension framework instead of being part of PrimAITE directly.
 
@@ -34,7 +34,7 @@ class ExtendedApplication(Application, discriminator="ExtendedApplication"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for ExtendedApplication."""
 
-        type: str = "ExtendedApplication"
+        type: str = "extended-application"
         target_url: Optional[str] = None
 
     config: "ExtendedApplication.ConfigSchema" = Field(default_factory=lambda: ExtendedApplication.ConfigSchema())
@@ -51,7 +51,7 @@ class ExtendedApplication(Application, discriminator="ExtendedApplication"):
     """Keep a log of visited websites and information about the visit, such as response code."""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "ExtendedApplication"
+        kwargs["name"] = "extended-application"
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         # default for web is port 80
         if kwargs.get("port") is None:
@@ -112,7 +112,7 @@ class ExtendedApplication(Application, discriminator="ExtendedApplication"):
             return False
 
         # get the IP address of the domain name via DNS
-        dns_client: DNSClient = self.software_manager.software.get("DNSClient")
+        dns_client: DNSClient = self.software_manager.software.get("dns-client")
         domain_exists = dns_client.check_domain_exists(target_domain=parsed_url.hostname)
 
         # if domain does not exist, the request fails

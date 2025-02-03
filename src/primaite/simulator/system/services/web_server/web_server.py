@@ -21,15 +21,15 @@ from primaite.utils.validation.port import Port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class WebServer(Service, discriminator="WebServer"):
+class WebServer(Service, discriminator="web-server"):
     """Class used to represent a Web Server Service in simulation."""
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for WebServer."""
 
-        type: str = "WebServer"
+        type: str = "web-server"
 
-    config: "WebServer.ConfigSchema" = Field(default_factory=lambda: WebServer.ConfigSchema())
+    config: ConfigSchema = Field(default_factory=lambda: WebServer.ConfigSchema())
 
     response_codes_this_timestep: List[HttpStatusCode] = []
 
@@ -57,7 +57,7 @@ class WebServer(Service, discriminator="WebServer"):
         return super().pre_timestep(timestep)
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "WebServer"
+        kwargs["name"] = "web-server"
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         # default for web is port 80
         if kwargs.get("port") is None:
@@ -146,7 +146,7 @@ class WebServer(Service, discriminator="WebServer"):
 
     def _establish_db_connection(self) -> None:
         """Establish a connection to db."""
-        db_client = self.software_manager.software.get("DatabaseClient")
+        db_client = self.software_manager.software.get("database-client")
         self.db_connection: DatabaseClientConnection = db_client.get_new_connection()
 
     def send(

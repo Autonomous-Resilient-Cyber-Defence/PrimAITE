@@ -34,7 +34,7 @@ class SuperComputer(HostNode, discriminator="supercomputer"):
         * Web Browser
     """
 
-    SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "FTPClient": FTPClient}
+    SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "ftp-client": FTPClient}
 
     def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
         print("--- Extended Component: SuperComputer ---")

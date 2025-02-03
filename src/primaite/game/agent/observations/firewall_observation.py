@@ -18,7 +18,7 @@ from primaite.utils.validation.port import Port
 _LOGGER = getLogger(__name__)
 
 
-class FirewallObservation(AbstractObservation, discriminator="FIREWALL"):
+class FirewallObservation(AbstractObservation, discriminator="firewall"):
     """Firewall observation, provides status information about a firewall within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -181,7 +181,7 @@ class FirewallObservation(AbstractObservation, discriminator="FIREWALL"):
                 },
             }
             if self.include_users:
-                sess = firewall_state["services"]["UserSessionManager"]
+                sess = firewall_state["services"]["user-session-manager"]
                 obs["users"] = {
                     "local_login": 1 if sess["current_local_user"] else 0,
                     "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),

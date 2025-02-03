@@ -19,11 +19,11 @@ def test_wireless_link_loading(wireless_wan_network):
     airspace = router_1.airspace
 
     client.software_manager.install(FTPClient)
-    ftp_client: FTPClient = client.software_manager.software.get("FTPClient")
+    ftp_client: FTPClient = client.software_manager.software.get("ftp-client")
     ftp_client.start()
 
     server.software_manager.install(FTPServer)
-    ftp_server: FTPServer = server.software_manager.software.get("FTPServer")
+    ftp_server: FTPServer = server.software_manager.software.get("ftp-server")
     ftp_server.start()
 
     client.file_system.create_file(file_name="mixtape", size=10 * 10**6, file_type=FileType.MP3, folder_name="music")

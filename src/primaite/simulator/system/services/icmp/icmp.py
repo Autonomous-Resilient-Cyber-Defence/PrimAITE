@@ -16,7 +16,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class ICMP(Service, discriminator="ICMP"):
+class ICMP(Service, discriminator="icmp"):
     """
     The Internet Control Message Protocol (ICMP) service.
 
@@ -27,14 +27,14 @@ class ICMP(Service, discriminator="ICMP"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for ICMP."""
 
-        type: str = "ICMP"
+        type: str = "icmp"
 
     config: "ICMP.ConfigSchema" = Field(default_factory=lambda: ICMP.ConfigSchema())
 
     request_replies: Dict = {}
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "ICMP"
+        kwargs["name"] = "icmp"
         kwargs["port"] = PORT_LOOKUP["NONE"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["ICMP"]
         super().__init__(**kwargs)

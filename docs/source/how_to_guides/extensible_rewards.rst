@@ -28,7 +28,7 @@ To add a new reward class follow the example below. Note that the type attribute
 
 .. code-block:: Python
 
-class DatabaseFileIntegrity(AbstractReward, discriminator="DATABASE_FILE_INTEGRITY"):
+class DatabaseFileIntegrity(AbstractReward, discriminator="database-file-integrity"):
     """Reward function component which rewards the agent for maintaining the integrity of a database file."""
 
     config: "DatabaseFileIntegrity.ConfigSchema"
@@ -38,7 +38,7 @@ class DatabaseFileIntegrity(AbstractReward, discriminator="DATABASE_FILE_INTEGRI
     class ConfigSchema(AbstractReward.ConfigSchema):
         """ConfigSchema for DatabaseFileIntegrity."""
 
-        type: str = "DATABASE_FILE_INTEGRITY"
+        type: str = "database-file-integrity"
         node_hostname: str
         folder_name: str
         file_name: str

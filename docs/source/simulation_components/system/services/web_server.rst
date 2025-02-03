@@ -73,7 +73,7 @@ Via Configuration
                 ...
                 services:
                     - ref: web_server
-                    type: WebServer
+                    type: web-server
 
 
 ``Common Attributes``

@@ -19,7 +19,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class DatabaseService(Service, discriminator="DatabaseService"):
+class DatabaseService(Service, discriminator="database-service"):
     """
     A class for simulating a generic SQL Server service.
 
@@ -29,11 +29,11 @@ class DatabaseService(Service, discriminator="DatabaseService"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for DatabaseService."""
 
-        type: str = "DatabaseService"
+        type: str = "database-service"
         backup_server_ip: Optional[IPv4Address] = None
         db_password: Optional[str] = None
 
-    config: "DatabaseService.ConfigSchema" = Field(default_factory=lambda: DatabaseService.ConfigSchema())
+    config: ConfigSchema = Field(default_factory=lambda: DatabaseService.ConfigSchema())
 
     backup_server_ip: IPv4Address = None
     """IP address of the backup server."""
@@ -45,7 +45,7 @@ class DatabaseService(Service, discriminator="DatabaseService"):
     """File name of latest backup."""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DatabaseService"
+        kwargs["name"] = "database-service"
         kwargs["port"] = PORT_LOOKUP["POSTGRES_SERVER"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
@@ -69,7 +69,7 @@ class DatabaseService(Service, discriminator="DatabaseService"):
         """
         super().install()
 
-        if not self.parent.software_manager.software.get("FTPClient"):
+        if not self.parent.software_manager.software.get("ftp-client"):
             self.parent.sys_log.info(f"{self.name}: Installing FTPClient to enable database backups")
             self.parent.software_manager.install(FTPClient)
 
@@ -93,7 +93,7 @@ class DatabaseService(Service, discriminator="DatabaseService"):
             return False
 
         software_manager: SoftwareManager = self.software_manager
-        ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
+        ftp_client_service: FTPClient = software_manager.software.get("ftp-client")
 
         if not ftp_client_service:
             self.sys_log.error(
@@ -127,7 +127,7 @@ class DatabaseService(Service, discriminator="DatabaseService"):
             return False
 
         software_manager: SoftwareManager = self.software_manager
-        ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
+        ftp_client_service: FTPClient = software_manager.software.get("ftp-client")
 
         if not ftp_client_service:
             self.sys_log.error(

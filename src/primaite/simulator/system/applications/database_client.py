@@ -61,7 +61,7 @@ class DatabaseClientConnection(BaseModel):
         return str(self)
 
 
-class DatabaseClient(Application, discriminator="DatabaseClient"):
+class DatabaseClient(Application, discriminator="database-client"):
     """
     A DatabaseClient application.
 
@@ -72,7 +72,7 @@ class DatabaseClient(Application, discriminator="DatabaseClient"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for DatabaseClient."""
 
-        type: str = "DatabaseClient"
+        type: str = "database-client"
         db_server_ip: Optional[IPV4Address] = None
         server_password: Optional[str] = None
 
@@ -97,7 +97,7 @@ class DatabaseClient(Application, discriminator="DatabaseClient"):
     """Native Client Connection for using the client directly (similar to psql in a terminal)."""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DatabaseClient"
+        kwargs["name"] = "database-client"
         kwargs["port"] = PORT_LOOKUP["POSTGRES_SERVER"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)

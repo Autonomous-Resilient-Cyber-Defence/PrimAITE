@@ -51,10 +51,10 @@ Request responses
 When the simulator receives a request, it returns a response with a success status. The possible statuses are:
 
 * **success**: The request was received and successfully executed.
-    * For example, the agent tries to add an ACL rule and specifies correct parameters, and the ACL rule is added successfully.
+    * For example, the agent tries to add an acl rule and specifies correct parameters, and the acl rule is added successfully.
 
 * **failure**: The request was received, but it could not be executed, or it failed while executing.
-    * For example, the agent tries to execute the ``WebBrowser`` application, but the webpage wasn't retrieved because the DNS server is not setup on the node.
+    * For example, the agent tries to execute the ``web-browser`` application, but the webpage wasn't retrieved because the DNS server is not setup on the node.
 
 * **unreachable**: The request was sent to a simulation component that does not exist.
     * For example, the agent tries to scan a file that has not been created yet.

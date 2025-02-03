@@ -51,11 +51,11 @@ The core features that should be implemented in any new agent are detailed below
 		  action_space:
 			action_map:
 				0:
-					action: do_nothing
+					action: do-nothing
 					options: {}
 		  reward_function:
 		  	reward_components:
-				- type: DUMMY
+				- type: dummy
 
 		  agent_settings:
 			start_step: 25

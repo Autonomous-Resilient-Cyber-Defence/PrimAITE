@@ -14,22 +14,22 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class DNSServer(Service, discriminator="DNSServer"):
+class DNSServer(Service, discriminator="dns-server"):
     """Represents a DNS Server as a Service."""
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for DNSServer."""
 
-        type: str = "DNSServer"
+        type: str = "dns-server"
         domain_mapping: dict = {}
 
-    config: "DNSServer.ConfigSchema" = Field(default_factory=lambda: DNSServer.ConfigSchema())
+    config: ConfigSchema = Field(default_factory=lambda: DNSServer.ConfigSchema())
 
     dns_table: Dict[str, IPv4Address] = {}
     "A dict of mappings between domain names and IPv4 addresses."
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DNSServer"
+        kwargs["name"] = "dns-server"
         kwargs["port"] = PORT_LOOKUP["DNS"]
         # DNS uses UDP by default
         # it switches to TCP when the bytes exceed 512 (or 4096) bytes

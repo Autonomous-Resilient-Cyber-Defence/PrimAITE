@@ -18,7 +18,7 @@ from primaite.utils.validation.port import Port
 _LOGGER = getLogger(__name__)
 
 
-class RouterObservation(AbstractObservation, discriminator="ROUTER"):
+class RouterObservation(AbstractObservation, discriminator="router"):
     """Router observation, provides status information about a router within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -113,7 +113,7 @@ class RouterObservation(AbstractObservation, discriminator="ROUTER"):
             if self.ports:
                 obs["PORTS"] = {i + 1: p.observe(state) for i, p in enumerate(self.ports)}
             if self.include_users:
-                sess = router_state["services"]["UserSessionManager"]
+                sess = router_state["services"]["user-session-manager"]
                 obs["users"] = {
                     "local_login": 1 if sess["current_local_user"] else 0,
                     "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),

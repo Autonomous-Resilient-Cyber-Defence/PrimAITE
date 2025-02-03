@@ -13,7 +13,7 @@ from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_ST
 _LOGGER = getLogger(__name__)
 
 
-class LinkObservation(AbstractObservation, discriminator="LINK"):
+class LinkObservation(AbstractObservation, discriminator="link"):
     """Link observation, providing information about a specific link within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -90,7 +90,7 @@ class LinkObservation(AbstractObservation, discriminator="LINK"):
         return cls(where=where)
 
 
-class LinksObservation(AbstractObservation, discriminator="LINKS"):
+class LinksObservation(AbstractObservation, discriminator="links"):
     """Collection of link observations representing multiple links within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):

@@ -16,7 +16,7 @@ from primaite.simulator.system.applications.red_applications.c2 import (
 from primaite.simulator.system.applications.red_applications.c2.abstract_c2 import AbstractC2, C2Command, C2Payload
 
 
-class C2Server(AbstractC2, discriminator="C2Server"):
+class C2Server(AbstractC2, discriminator="c2-server"):
     """
     C2 Server Application.
 
@@ -37,7 +37,7 @@ class C2Server(AbstractC2, discriminator="C2Server"):
     class ConfigSchema(AbstractC2.ConfigSchema):
         """ConfigSchema for C2Server."""
 
-        type: str = "C2Server"
+        type: str = "c2-server"
 
     config: ConfigSchema = Field(default_factory=lambda: C2Server.ConfigSchema())
 
@@ -125,7 +125,7 @@ class C2Server(AbstractC2, discriminator="C2Server"):
         return rm
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "C2Server"
+        kwargs["name"] = "c2-server"
         super().__init__(**kwargs)
         self.run()
 

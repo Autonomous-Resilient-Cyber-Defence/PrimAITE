@@ -26,12 +26,12 @@ agents:
 
   - ref: defender
     team: BLUE
-    type: ProxyAgent
+    type: proxy-agent
     observation_space:
-      type: CUSTOM
+      type: custom
       options:
         components:
-          - type: NODES
+          - type: nodes
             label: NODES
             options:
               routers: []
@@ -46,7 +46,7 @@ agents:
               include_num_access: false
               include_nmne: true
 
-          - type: LINKS
+          - type: links
             label: LINKS
             options:
               link_references:
@@ -56,48 +56,48 @@ agents:
     action_space:
       action_map:
         0:
-          action: do_nothing
+          action: do-nothing
           options: {}
         1:
-          action: node_shutdown
+          action: node-shutdown
           options:
             node_name: client_1
         2:
-          action: node_shutdown
+          action: node-shutdown
           options:
             node_name: server
         3:
-          action: node_startup
+          action: node-startup
           options:
             node_name: client_1
         4:
-          action: node_startup
+          action: node-startup
           options:
             node_name: server
         5:
-          action: host_nic_disable
+          action: host-nic-disable
           options:
             node_name: client_1
             nic_num: 1
         6:
-          action: host_nic_disable
+          action: host-nic-disable
           options:
             node_name: server
             nic_num: 1
         7:
-          action: host_nic_enable
+          action: host-nic-enable
           options:
             node_name: client_1
             nic_num: 1
         8:
-          action: host_nic_enable
+          action: host-nic-enable
           options:
             node_name: server
             nic_num: 1
 
     reward_function:
       reward_components:
-        - type: DATABASE_FILE_INTEGRITY
+        - type: database-file-integrity
           weight: 0.40
           options:
             node_hostname: database_server
@@ -121,10 +121,10 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       applications:
-        - type: DatabaseClient
+        - type: database-client
           options:
             db_server_ip: 192.168.1.3
-        - type: DataManipulationBot
+        - type: data-manipulation-bot
           options:
             server_ip: 192.168.1.3
             payload: "DELETE"
@@ -139,7 +139,7 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       services:
-        - type: DatabaseService
+        - type: database-service
 
     links:
     - endpoint_a_hostname: client

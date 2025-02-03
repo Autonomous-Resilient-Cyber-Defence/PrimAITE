@@ -21,7 +21,7 @@ def populated_node(application_class) -> Tuple[Application, Computer]:
     computer.power_on()
     computer.software_manager.install(application_class)
 
-    app = computer.software_manager.software.get("DummyApplication")
+    app = computer.software_manager.software.get("dummy-application")
     app.run()
 
     return app, computer
@@ -39,7 +39,7 @@ def test_application_on_offline_node(application_class):
     )
     computer.software_manager.install(application_class)
 
-    app: Application = computer.software_manager.software.get("DummyApplication")
+    app: Application = computer.software_manager.software.get("dummy-application")
 
     computer.power_off()
 

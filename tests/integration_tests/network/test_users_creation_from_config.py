@@ -15,7 +15,7 @@ def test_users_from_config():
 
     client_1 = network.get_node_by_hostname("client_1")
 
-    user_manager: UserManager = client_1.software_manager.software["UserManager"]
+    user_manager: UserManager = client_1.software_manager.software["user-manager"]
 
     assert len(user_manager.users) == 3
 

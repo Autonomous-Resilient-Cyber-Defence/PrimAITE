@@ -19,7 +19,7 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class ExtendedService(Service, discriminator="ExtendedService"):
+class ExtendedService(Service, discriminator="extended-service"):
     """
     A copy of DatabaseService that uses the extension framework instead of being part of PrimAITE.
 
@@ -29,7 +29,7 @@ class ExtendedService(Service, discriminator="ExtendedService"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for ExtendedService."""
 
-        type: str = "ExtendedService"
+        type: str = "extended-service"
 
     config: "ExtendedService.ConfigSchema" = Field(default_factory=lambda: ExtendedService.ConfigSchema())
 
@@ -46,7 +46,7 @@ class ExtendedService(Service, discriminator="ExtendedService"):
     """File name of latest backup."""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "ExtendedService"
+        kwargs["name"] = "extended-service"
         kwargs["port"] = PORT_LOOKUP["POSTGRES_SERVER"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
@@ -65,7 +65,7 @@ class ExtendedService(Service, discriminator="ExtendedService"):
         """
         super().install()
 
-        if not self.parent.software_manager.software.get("FTPClient"):
+        if not self.parent.software_manager.software.get("ftp-client"):
             self.parent.sys_log.info(f"{self.name}: Installing FTPClient to enable database backups")
             self.parent.software_manager.install(FTPClient)
 
@@ -89,7 +89,7 @@ class ExtendedService(Service, discriminator="ExtendedService"):
             return False
 
         software_manager: SoftwareManager = self.software_manager
-        ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
+        ftp_client_service: FTPClient = software_manager.software.get("ftp-client")
 
         if not ftp_client_service:
             self.sys_log.error(
@@ -124,7 +124,7 @@ class ExtendedService(Service, discriminator="ExtendedService"):
             return False
 
         software_manager: SoftwareManager = self.software_manager
-        ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
+        ftp_client_service: FTPClient = software_manager.software.get("ftp-client")
 
         if not ftp_client_service:
             self.sys_log.error(

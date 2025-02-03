@@ -15,13 +15,13 @@ from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class BroadcastTestService(Service, discriminator="BroadcastTestService"):
+class BroadcastTestService(Service, discriminator="broadcast-test-service"):
     """A service for sending broadcast and unicast messages over a network."""
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for BroadcastTestService."""
 
-        type: str = "BroadcastTestService"
+        type: str = "broadcast-test-service"
 
     config: "BroadcastTestService.ConfigSchema" = Field(default_factory=lambda: BroadcastTestService.ConfigSchema())
 
@@ -51,13 +51,13 @@ class BroadcastTestService(Service, discriminator="BroadcastTestService"):
         )
 
 
-class BroadcastTestClient(Application, discriminator="BroadcastTestClient"):
+class BroadcastTestClient(Application, discriminator="broadcast-test-client"):
     """A client application to receive broadcast and unicast messages."""
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for BroadcastTestClient."""
 
-        type: str = "BroadcastTestClient"
+        type: str = "broadcast-test-client"
 
     config: ConfigSchema = Field(default_factory=lambda: BroadcastTestClient.ConfigSchema())
 
@@ -65,7 +65,7 @@ class BroadcastTestClient(Application, discriminator="BroadcastTestClient"):
 
     def __init__(self, **kwargs):
         # Set default client properties
-        kwargs["name"] = "BroadcastTestClient"
+        kwargs["name"] = "broadcast-test-client"
         kwargs["port"] = PORT_LOOKUP["HTTP"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
@@ -93,7 +93,7 @@ def broadcast_network() -> Network:
     )
     client_1.power_on()
     client_1.software_manager.install(BroadcastTestClient)
-    application_1 = client_1.software_manager.software["BroadcastTestClient"]
+    application_1 = client_1.software_manager.software["broadcast-test-client"]
     application_1.run()
 
     client_2 = Computer(
@@ -105,7 +105,7 @@ def broadcast_network() -> Network:
     )
     client_2.power_on()
     client_2.software_manager.install(BroadcastTestClient)
-    application_2 = client_2.software_manager.software["BroadcastTestClient"]
+    application_2 = client_2.software_manager.software["broadcast-test-client"]
     application_2.run()
 
     server_1 = Server(
@@ -136,13 +136,13 @@ def broadcast_service_and_clients(
     broadcast_network,
 ) -> Tuple[BroadcastTestService, BroadcastTestClient, BroadcastTestClient]:
     client_1: BroadcastTestClient = broadcast_network.get_node_by_hostname("client_1").software_manager.software[
-        "BroadcastTestClient"
+        "broadcast-test-client"
     ]
     client_2: BroadcastTestClient = broadcast_network.get_node_by_hostname("client_2").software_manager.software[
-        "BroadcastTestClient"
+        "broadcast-test-client"
     ]
     service: BroadcastTestService = broadcast_network.get_node_by_hostname("server_1").software_manager.software[
-        "BroadcastService"
+        "broadcast-service"
     ]
 
     return service, client_1, client_2

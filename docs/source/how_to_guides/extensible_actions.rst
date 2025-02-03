@@ -38,7 +38,7 @@ When declaring a custom class, it must have a unique discriminator string, that 
 
 .. code:: Python
 
-    class CreateDirectoryAction(AbstractAction, discriminator="node_folder_create")
+    class CreateDirectoryAction(AbstractAction, discriminator="node-folder-create")
 
         config: CreateDirectoryAction.ConfigSchema
 
@@ -58,7 +58,7 @@ When declaring a custom class, it must have a unique discriminator string, that 
                     config.directory_name,
                 ]
 
-The above action would fail pydantic validation as the discriminator "node_folder_create" is already used by the `NodeFolderCreateAction`, and would create a duplicate listing within `AbstractAction._registry`.
+The above action would fail pydantic validation as the discriminator "node-folder-create" is already used by the `NodeFolderCreateAction`, and would create a duplicate listing within `AbstractAction._registry`.
 
 
 form_request method

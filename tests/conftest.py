@@ -39,21 +39,21 @@ ACTION_SPACE_NODE_ACTION_VALUES = 1
 _LOGGER = getLogger(__name__)
 
 
-class DummyService(Service, discriminator="DummyService"):
+class DummyService(Service, discriminator="dummy-service"):
     """Test Service class"""
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for DummyService."""
 
-        type: str = "DummyService"
+        type: str = "dummy-service"
 
-    config: "DummyService.ConfigSchema" = Field(default_factory=lambda: DummyService.ConfigSchema())
+    config: ConfigSchema = Field(default_factory=lambda: DummyService.ConfigSchema())
 
     def describe_state(self) -> Dict:
         return super().describe_state()
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DummyService"
+        kwargs["name"] = "dummy-service"
         kwargs["port"] = PORT_LOOKUP["HTTP"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
@@ -62,18 +62,18 @@ class DummyService(Service, discriminator="DummyService"):
         pass
 
 
-class DummyApplication(Application, discriminator="DummyApplication"):
+class DummyApplication(Application, discriminator="dummy-application"):
     """Test Application class"""
 
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for DummyApplication."""
 
-        type: str = "DummyApplication"
+        type: str = "dummy-application"
 
-    config: "DummyApplication.ConfigSchema" = Field(default_factory=lambda: DummyApplication.ConfigSchema())
+    config: ConfigSchema = Field(default_factory=lambda: DummyApplication.ConfigSchema())
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DummyApplication"
+        kwargs["name"] = "dummy-application"
         kwargs["port"] = PORT_LOOKUP["HTTP"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
@@ -93,7 +93,7 @@ def uc2_network() -> Network:
 @pytest.fixture(scope="function")
 def service(file_system) -> DummyService:
     return DummyService(
-        name="DummyService", port=PORT_LOOKUP["ARP"], file_system=file_system, sys_log=SysLog(hostname="dummy_service")
+        name="dummy-service", port=PORT_LOOKUP["ARP"], file_system=file_system, sys_log=SysLog(hostname="dummy_service")
     )
 
 
@@ -105,7 +105,7 @@ def service_class():
 @pytest.fixture(scope="function")
 def application(file_system) -> DummyApplication:
     return DummyApplication(
-        name="DummyApplication",
+        name="dummy-application",
         port=PORT_LOOKUP["ARP"],
         file_system=file_system,
         sys_log=SysLog(hostname="dummy_application"),
@@ -280,16 +280,17 @@ def example_network() -> Network:
     return network
 
 
-class ControlledAgent(AbstractAgent, discriminator="ControlledAgent"):
+class ControlledAgent(AbstractAgent, discriminator="controlled-agent"):
     """Agent that can be controlled by the tests."""
 
-    config: "ControlledAgent.ConfigSchema" = Field(default_factory=lambda: ControlledAgent.ConfigSchema())
     most_recent_action: Optional[Tuple[str, Dict]] = None
 
     class ConfigSchema(AbstractAgent.ConfigSchema):
         """Configuration Schema for Abstract Agent used in tests."""
 
-        type: str = "ControlledAgent"
+        type: str = "controlled-agent"
+
+    config: ConfigSchema = Field(default_factory=lambda: ControlledAgent.ConfigSchema())
 
     def get_action(self, obs: None, timestep: int = 0) -> Tuple[str, Dict]:
         """Return the agent's most recent action, formatted in CAOS format."""
@@ -358,7 +359,7 @@ def install_stuff_to_sim(sim: Simulation):
     server_2.power_on()
     network.connect(endpoint_a=server_2.network_interface[1], endpoint_b=switch_2.network_interface[2])
 
-    # 2: Configure base ACL
+    # 2: Configure base acl
     router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22)
     router.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
     router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["DNS"], dst_port=PORT_LOOKUP["DNS"], position=1)
@@ -366,17 +367,17 @@ def install_stuff_to_sim(sim: Simulation):
 
     # 3: Install server software
     server_1.software_manager.install(DNSServer)
-    dns_service: DNSServer = server_1.software_manager.software.get("DNSServer")  # noqa
+    dns_service: DNSServer = server_1.software_manager.software.get("dns-server")  # noqa
     dns_service.dns_register("www.example.com", server_2.network_interface[1].ip_address)
     server_2.software_manager.install(WebServer)
 
     # 3.1: Ensure that the dns clients are configured correctly
-    client_1.software_manager.software.get("DNSClient").dns_server = server_1.network_interface[1].ip_address
-    server_2.software_manager.software.get("DNSClient").dns_server = server_1.network_interface[1].ip_address
+    client_1.software_manager.software.get("dns-client").dns_server = server_1.network_interface[1].ip_address
+    server_2.software_manager.software.get("dns-client").dns_server = server_1.network_interface[1].ip_address
 
     # 4: Check that client came pre-installed with web browser and dns client
-    assert isinstance(client_1.software_manager.software.get("WebBrowser"), WebBrowser)
-    assert isinstance(client_1.software_manager.software.get("DNSClient"), DNSClient)
+    assert isinstance(client_1.software_manager.software.get("web-browser"), WebBrowser)
+    assert isinstance(client_1.software_manager.software.get("dns-client"), DNSClient)
 
     # 4.1: Create a file on the computer
     client_1.file_system.create_file("cat.png", 300, folder_name="downloads")
@@ -403,19 +404,19 @@ def install_stuff_to_sim(sim: Simulation):
 
     # 5.2: Assert the client is correctly configured
     c: Computer = [node for node in sim.network.nodes.values() if node.hostname == "client_1"][0]
-    assert c.software_manager.software.get("WebBrowser") is not None
-    assert c.software_manager.software.get("DNSClient") is not None
+    assert c.software_manager.software.get("web-browser") is not None
+    assert c.software_manager.software.get("dns-client") is not None
     assert str(c.network_interface[1].ip_address) == "10.0.1.2"
 
     # 5.3: Assert that server_1 is correctly configured
     s1: Server = [node for node in sim.network.nodes.values() if node.hostname == "server_1"][0]
     assert str(s1.network_interface[1].ip_address) == "10.0.2.2"
-    assert s1.software_manager.software.get("DNSServer") is not None
+    assert s1.software_manager.software.get("dns-server") is not None
 
     # 5.4: Assert that server_2 is correctly configured
     s2: Server = [node for node in sim.network.nodes.values() if node.hostname == "server_2"][0]
     assert str(s2.network_interface[1].ip_address) == "10.0.2.3"
-    assert s2.software_manager.software.get("WebServer") is not None
+    assert s2.software_manager.software.get("web-server") is not None
 
     # 6: Return the simulation
     return sim
@@ -429,7 +430,7 @@ def game_and_agent():
     install_stuff_to_sim(sim)
 
     config = {
-        "type": "ControlledAgent",
+        "type": "controlled-agent",
         "ref": "test_agent",
         "team": "BLUE",
     }

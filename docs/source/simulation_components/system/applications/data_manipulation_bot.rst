@@ -95,7 +95,7 @@ If not using the data manipulation bot manually, it needs to be used with a data
       agents:
         - ref: data_manipulation_red_bot
           team: RED
-          type: RedDatabaseCorruptingAgent
+          type: red-database-corrupting-agent
 
           observation_space:
             type: UC2RedObservation
@@ -115,7 +115,7 @@ If not using the data manipulation bot manually, it needs to be used with a data
           action_space:
           reward_function:
             reward_components:
-              - type: DUMMY
+              - type: dummy
 
           agent_settings:
             start_settings:
@@ -132,14 +132,14 @@ If not using the data manipulation bot manually, it needs to be used with a data
           # ... additional configuration here
           applications:
           - ref: data_manipulation_bot
-            type: DataManipulationBot
+            type: data-manipulation-bot
             options:
               port_scan_p_of_success: 0.1
               data_manipulation_p_of_success: 0.1
               payload: "DELETE"
               server_ip: 192.168.1.14
           - ref: web_server_database_client
-            type: DatabaseClient
+            type: database-client
             options:
               db_server_ip: 192.168.1.14
 

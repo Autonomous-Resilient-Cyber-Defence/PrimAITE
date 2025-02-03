@@ -130,7 +130,7 @@ class AbstractAgent(BaseModel, ABC):
         """
         # in RL agent, this method will send CAOS observation to RL agent, then receive a int 0-39,
         # then use a bespoke conversion to take 1-40 int back into CAOS action
-        return ("do_nothing", {})
+        return ("do-nothing", {})
 
     def format_request(self, action: Tuple[str, Dict], options: Dict[str, int]) -> RequestFormat:
         # this will take something like APPLICATION.EXECUTE and add things like target_ip_address in simulator.
@@ -161,7 +161,7 @@ class AbstractAgent(BaseModel, ABC):
         return agent_class(config=config)
 
 
-class AbstractScriptedAgent(AbstractAgent, discriminator="AbstractScriptedAgent"):
+class AbstractScriptedAgent(AbstractAgent, discriminator="abstract-scripted-agent"):
     """Base class for actors which generate their own behaviour."""
 
     config: "AbstractScriptedAgent.ConfigSchema" = Field(default_factory=lambda: AbstractScriptedAgent.ConfigSchema())
@@ -177,7 +177,7 @@ class AbstractScriptedAgent(AbstractAgent, discriminator="AbstractScriptedAgent"
         return super().get_action(obs=obs, timestep=timestep)
 
 
-class ProxyAgent(AbstractAgent, discriminator="ProxyAgent"):
+class ProxyAgent(AbstractAgent, discriminator="proxy-agent"):
     """Agent that sends observations to an RL model and receives actions from that model."""
 
     config: "ProxyAgent.ConfigSchema" = Field(default_factory=lambda: ProxyAgent.ConfigSchema())

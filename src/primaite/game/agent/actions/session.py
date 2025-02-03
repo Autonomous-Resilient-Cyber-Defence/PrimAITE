@@ -11,7 +11,7 @@ __all__ = (
 )
 
 
-class NodeSessionAbstractAction(AbstractAction, discriminator="node_session_abstract"):
+class NodeSessionAbstractAction(AbstractAction, discriminator="node-session-abstract"):
     """Base class for NodeSession actions."""
 
     config: "NodeSessionAbstractAction.ConfigSchema"
@@ -33,7 +33,7 @@ class NodeSessionAbstractAction(AbstractAction, discriminator="node_session_abst
         pass
 
 
-class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, discriminator="node_session_remote_login"):
+class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, discriminator="node-session-remote-login"):
     """Action which performs a remote session login."""
 
     config: "NodeSessionsRemoteLoginAction.ConfigSchema"
@@ -48,21 +48,21 @@ class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, discriminator="no
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.node_name is None or config.remote_ip is None:
-            return ["do_nothing"]
+            return ["do-nothing"]
         return [
             "network",
             "node",
             config.node_name,
             "service",
-            "Terminal",
-            "node_session_remote_login",
+            "terminal",
+            "node-session-remote-login",
             config.username,
             config.password,
             config.remote_ip,
         ]
 
 
-class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, discriminator="node_session_remote_logoff"):
+class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, discriminator="node-session-remote-logoff"):
     """Action which performs a remote session logout."""
 
     config: "NodeSessionsRemoteLogoutAction.ConfigSchema"
@@ -76,11 +76,11 @@ class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, discriminator="n
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.node_name is None or config.remote_ip is None:
-            return ["do_nothing"]
-        return ["network", "node", config.node_name, "service", "Terminal", config.verb, config.remote_ip]
+            return ["do-nothing"]
+        return ["network", "node", config.node_name, "service", "terminal", config.verb, config.remote_ip]
 
 
-class NodeAccountChangePasswordAction(NodeSessionAbstractAction, discriminator="node_account_change_password"):
+class NodeAccountChangePasswordAction(NodeSessionAbstractAction, discriminator="node-account-change-password"):
     """Action which changes the password for a user."""
 
     config: "NodeAccountChangePasswordAction.ConfigSchema"
@@ -100,7 +100,7 @@ class NodeAccountChangePasswordAction(NodeSessionAbstractAction, discriminator="
             "node",
             config.node_name,
             "service",
-            "UserManager",
+            "user-manager",
             "change_password",
             config.username,
             config.current_password,

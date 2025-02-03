@@ -28,13 +28,13 @@ def test_probabilistic_agent():
 
     action_space_cfg = {
         "action_map": {
-            0: {"action": "do_nothing", "options": {}},
+            0: {"action": "do-nothing", "options": {}},
             1: {
-                "action": "node_application_execute",
-                "options": {"node_name": "client_1", "application_name": "WebBrowser"},
+                "action": "node-application-execute",
+                "options": {"node_name": "client_1", "application_name": "web-browser"},
             },
             2: {
-                "action": "node_file_delete",
+                "action": "node-file-delete",
                 "options": {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"},
             },
         },
@@ -44,8 +44,8 @@ def test_probabilistic_agent():
     game.options = PrimaiteGameOptions(ports=[], protocols=[])
 
     pa_config = {
-        "type": "ProbabilisticAgent",
-        "ref": "ProbabilisticAgent",
+        "type": "probabilistic-agent",
+        "ref": "probabilistic-agent",
         "team": "BLUE",
         "action_space": action_space_cfg,
         "agent_settings": {
@@ -60,11 +60,11 @@ def test_probabilistic_agent():
     node_file_delete_count = 0
     for _ in range(N_TRIALS):
         a = pa.get_action(0)
-        if a == ("do_nothing", {}):
+        if a == ("do-nothing", {}):
             do_nothing_count += 1
-        elif a == ("node_application_execute", {"node_name": "client_1", "application_name": "WebBrowser"}):
+        elif a == ("node-application-execute", {"node_name": "client_1", "application_name": "web-browser"}):
             node_application_execute_count += 1
-        elif a == ("node_file_delete", {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"}):
+        elif a == ("node-file-delete", {"node_name": "client_1", "folder_name": "downloads", "file_name": "cat.png"}):
             node_file_delete_count += 1
         else:
             raise AssertionError("Probabilistic agent produced an unexpected action.")

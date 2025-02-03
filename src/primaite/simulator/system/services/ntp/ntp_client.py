@@ -15,23 +15,23 @@ from primaite.utils.validation.port import Port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class NTPClient(Service, discriminator="NTPClient"):
+class NTPClient(Service, discriminator="ntp-client"):
     """Represents a NTP client as a service."""
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for NTPClient."""
 
-        type: str = "NTPClient"
+        type: str = "ntp-client"
         ntp_server_ip: Optional[IPV4Address] = None
 
-    config: "NTPClient.ConfigSchema" = Field(default_factory=lambda: NTPClient.ConfigSchema())
+    config: ConfigSchema = Field(default_factory=lambda: NTPClient.ConfigSchema())
 
     ntp_server: Optional[IPv4Address] = None
     "The NTP server the client sends requests to."
     time: Optional[datetime] = None
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "NTPClient"
+        kwargs["name"] = "ntp-client"
         kwargs["port"] = PORT_LOOKUP["NTP"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["UDP"]
         super().__init__(**kwargs)

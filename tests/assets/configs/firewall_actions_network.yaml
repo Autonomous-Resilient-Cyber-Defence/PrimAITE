@@ -51,13 +51,13 @@ game:
 agents:
   - ref: defender
     team: BLUE
-    type: ProxyAgent
+    type: proxy-agent
 
     observation_space:
-      type: CUSTOM
+      type: custom
       options:
         components:
-          - type: NODES
+          - type: nodes
             label: NODES
             options:
               hosts:
@@ -85,24 +85,24 @@ agents:
                 - UDP
               num_rules: 10
 
-          - type: LINKS
+          - type: links
             label: LINKS
             options:
               link_references:
                 - client_1:eth-1<->switch_1:eth-1
-          - type: "NONE"
+          - type: "none"
             label: ICS
             options: {}
 
     action_space:
       action_map:
           0:
-            action: do_nothing
+            action: do-nothing
             options: {}
           1:
-            action: firewall_acl_add_rule
+            action: firewall-acl-add-rule
             options:
-              type: firewall_acl_add_rule
+              type: firewall-acl-add-rule
               target_firewall_nodename: firewall
               firewall_port_name: internal
               firewall_port_direction: inbound
@@ -116,14 +116,14 @@ agents:
               src_wildcard: NONE
               dst_wildcard: NONE
           2:
-            action: firewall_acl_remove_rule
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: internal
               firewall_port_direction: inbound
               position: 1
           3:
-            action: firewall_acl_add_rule
+            action: firewall-acl-add-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: internal
@@ -134,18 +134,18 @@ agents:
               dst_ip: ALL
               src_port: ARP
               dst_port: DNS
-              protocol_name: ICMP
+              protocol_name: icmp
               src_wildcard: NONE
               dst_wildcard: NONE
           4:
-            action: firewall_acl_remove_rule
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: internal
               firewall_port_direction: outbound
               position: 1
           5:
-            action: firewall_acl_add_rule
+            action: firewall-acl-add-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
@@ -160,14 +160,14 @@ agents:
               src_wildcard: NONE
               dst_wildcard: NONE
           6:
-            action: firewall_acl_remove_rule
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
               firewall_port_direction: inbound
               position: 1
           7:
-            action: firewall_acl_add_rule
+            action: firewall-acl-add-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
@@ -182,14 +182,14 @@ agents:
               src_wildcard: NONE
               dst_wildcard: NONE
           8:
-            action: firewall_acl_remove_rule
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
               firewall_port_direction: outbound
               position: 2
           9:
-            action: firewall_acl_add_rule
+            action: firewall-acl-add-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
@@ -200,18 +200,18 @@ agents:
               dst_ip: 192.168.10.10 # dmz
               src_port: POSTGRES_SERVER
               dst_port: POSTGRES_SERVER
-              protocol_name: ICMP
+              protocol_name: icmp
               src_wildcard: NONE
               dst_wildcard: NONE
           10:
-            action: firewall_acl_remove_rule
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
               firewall_port_direction: inbound
               position: 10
           11:
-            action: firewall_acl_add_rule
+            action: firewall-acl-add-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
@@ -220,28 +220,28 @@ agents:
               permission: DENY
               src_ip: 192.168.20.10 # external_computer
               dst_ip: 192.168.0.10 # client_1
-              src_port: NONE
-              dst_port: NONE
-              protocol_name: none
+              src_port: ALL
+              dst_port: ALL
+              protocol_name: NONE
               src_wildcard: NONE
               dst_wildcard: NONE
           12:
-            action: firewall_acl_remove_rule
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
               firewall_port_direction: outbound
               position: 1
           13:
-            action: network_port_disable
+            action: network-port-disable
             options:
-              type: network_port_disable
+              type: network-port-disable
               target_nodename: firewall
               port_num: 3
           14:
-            action: network_port_enable
+            action: network-port-enable
             options:
-              type: network_port_enable
+              type: network-port-enable
               target_nodename: firewall
               port_num: 3
 
@@ -401,7 +401,7 @@ simulation:
         start_up_duration: 0
         shut_down_duration: 0
         services:
-          - type: DNSServer
+          - type: dns-server
     links:
       - endpoint_a_hostname: client_1
         endpoint_a_port: 1

@@ -22,7 +22,7 @@ class NetworkNodeAdder(BaseModel):
 
     Here is a template that users can use to define custom node adders:
     ```
-    class YourNodeAdder(NetworkNodeAdder, discriminator="your_name"):
+    class YourNodeAdder(NetworkNodeAdder, discriminator="your-name"):
         class ConfigSchema(NetworkNodeAdder.ConfigSchema):
             property_1 : str
             property_2 : int
@@ -99,13 +99,13 @@ class NetworkNodeAdder(BaseModel):
         adder_class.add_nodes_to_net(config=adder_class.ConfigSchema(**config), network=network)
 
 
-class OfficeLANAdder(NetworkNodeAdder, discriminator="office_lan"):
+class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
     """Creates an office LAN."""
 
     class ConfigSchema(NetworkNodeAdder.ConfigSchema):
         """Configuration schema for OfficeLANAdder."""
 
-        type: Literal["office_lan"] = "office_lan"
+        type: Literal["office-lan"] = "office-lan"
         lan_name: str
         """Name of lan used for generating hostnames for new nodes."""
         subnet_base: int

@@ -11,7 +11,7 @@ from pydantic import BaseModel, computed_field, ConfigDict, Field, model_validat
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 
 
-class NestedObservation(AbstractObservation, discriminator="CUSTOM"):
+class NestedObservation(AbstractObservation, discriminator="custom"):
     """Observation type that allows combining other observations into a gymnasium.spaces.Dict space."""
 
     class NestedObservationItem(BaseModel):
@@ -48,7 +48,7 @@ class NestedObservation(AbstractObservation, discriminator="CUSTOM"):
     def __init__(self, components: Dict[str, AbstractObservation]) -> None:
         """Initialise nested observation."""
         self.components: Dict[str, AbstractObservation] = components
-        """Maps label: observation object"""
+        """Maps label observation object"""
 
         self.default_observation = {label: obs.default_observation for label, obs in self.components.items()}
         """Default observation is just the default observations of constituents."""
@@ -84,7 +84,7 @@ class NestedObservation(AbstractObservation, discriminator="CUSTOM"):
 
         ```yaml
             observation_space:
-            - type: CUSTOM
+            - type: custom
                 options:
                 components:
 
@@ -119,7 +119,7 @@ class NestedObservation(AbstractObservation, discriminator="CUSTOM"):
         return cls(components=instances)
 
 
-class NullObservation(AbstractObservation, discriminator="NONE"):
+class NullObservation(AbstractObservation, discriminator="none"):
     """Empty observation that acts as a placeholder."""
 
     def __init__(self) -> None:
@@ -157,7 +157,7 @@ class ObservationManager(BaseModel):
         """Config Schema for Observation Manager."""
 
         model_config = ConfigDict(extra="forbid")
-        type: str = "NONE"
+        type: str = "none"
         """discriminator name for the top-level observation."""
         options: AbstractObservation.ConfigSchema = Field(
             default_factory=lambda: NullObservation.ConfigSchema(), validate_default=True
@@ -187,7 +187,7 @@ class ObservationManager(BaseModel):
                 return data
 
             # (TODO: duplicate default definition between here and the actual model)
-            obs_type = data["type"] if "type" in data else "NONE"
+            obs_type = data["type"] if "type" in data else "none"
             obs_class = AbstractObservation._registry[obs_type]
 
             # if no options are passed in, try to create a default schema. Only works if there are no mandatory fields

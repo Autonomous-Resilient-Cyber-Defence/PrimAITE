@@ -57,13 +57,13 @@ def test_node_os_scan(node):
 
     # add services to node
     node.software_manager.install(DummyService)
-    service = node.software_manager.software.get("DummyService")
+    service = node.software_manager.software.get("dummy-service")
     service.set_health_state(SoftwareHealthState.COMPROMISED)
     assert service.health_state_visible == SoftwareHealthState.UNUSED
 
     # add application to node
     node.software_manager.install(DummyApplication)
-    application = node.software_manager.software.get("DummyApplication")
+    application = node.software_manager.software.get("dummy-application")
     application.set_health_state(SoftwareHealthState.COMPROMISED)
     assert application.health_state_visible == SoftwareHealthState.UNUSED
 
@@ -103,12 +103,12 @@ def test_node_red_scan(node):
 
     # add services to node
     node.software_manager.install(DummyService)
-    service = node.software_manager.software.get("DummyService")
+    service = node.software_manager.software.get("dummy-service")
     assert service.revealed_to_red is False
 
     # add application to node
     node.software_manager.install(DummyApplication)
-    application = node.software_manager.software.get("DummyApplication")
+    application = node.software_manager.software.get("dummy-application")
     application.set_health_state(SoftwareHealthState.COMPROMISED)
     assert application.revealed_to_red is False
 

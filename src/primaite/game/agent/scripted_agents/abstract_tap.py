@@ -13,7 +13,7 @@ from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 __all__ = "AbstractTAPAgent"
 
 
-class AbstractTAPAgent(PeriodicAgent, discriminator="AbstractTAP"):
+class AbstractTAPAgent(PeriodicAgent, discriminator="abstract-tap"):
     """Base class for TAP agents to inherit from."""
 
     config: "AbstractTAPAgent.ConfigSchema" = Field(default_factory=lambda: AbstractTAPAgent.ConfigSchema())
@@ -27,7 +27,7 @@ class AbstractTAPAgent(PeriodicAgent, discriminator="AbstractTAP"):
     class ConfigSchema(PeriodicAgent.ConfigSchema):
         """Configuration schema for Abstract TAP agents."""
 
-        type: str = "AbstractTAP"
+        type: str = "abstract-tap"
         agent_settings: AbstractTAPAgent.AgentSettingsSchema = Field(
             default_factory=lambda: AbstractTAPAgent.AgentSettingsSchema()
         )

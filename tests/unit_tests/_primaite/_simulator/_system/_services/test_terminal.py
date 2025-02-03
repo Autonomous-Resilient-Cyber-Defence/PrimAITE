@@ -18,7 +18,7 @@ from primaite.simulator.network.protocols.ssh import (
     SSHTransportMessage,
     SSHUserCredentials,
 )
-from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
+from primaite.simulator.system.applications.red_applications.ransomware_script import ransomware_script
 from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.service import ServiceOperatingState
 from primaite.simulator.system.services.terminal.terminal import RemoteTerminalConnection, Terminal
@@ -33,7 +33,7 @@ def terminal_on_computer() -> Tuple[Terminal, Computer]:
         hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0
     )
     computer.power_on()
-    terminal: Terminal = computer.software_manager.software.get("Terminal")
+    terminal: Terminal = computer.software_manager.software.get("terminal")
 
     return terminal, computer
 
@@ -82,7 +82,7 @@ def wireless_wan_network():
     )
     router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
 
-    # add ACL rule to allow SSH traffic
+    # add acl rule to allow SSH traffic
     router_1.acl.add_rule(
         action=ACLAction.PERMIT, src_port=PORT_LOOKUP["SSH"], dst_port=PORT_LOOKUP["SSH"], position=21
     )
@@ -142,25 +142,25 @@ def test_terminal_creation(terminal_on_computer):
 
 
 def test_terminal_install_default():
-    """Terminal should be auto installed onto Nodes"""
+    """terminal should be auto installed onto Nodes"""
     computer = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
     computer.power_on()
 
-    assert computer.software_manager.software.get("Terminal")
+    assert computer.software_manager.software.get("terminal")
 
 
 def test_terminal_not_on_switch():
     """Ensure terminal does not auto-install to switch"""
     test_switch = Switch(hostname="Test")
 
-    assert not test_switch.software_manager.software.get("Terminal")
+    assert not test_switch.software_manager.software.get("terminal")
 
 
 def test_terminal_send(basic_network):
-    """Test that Terminal can send valid commands."""
+    """Test that terminal can send valid commands."""
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
-    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = computer_a.software_manager.software.get("terminal")
     computer_b: Computer = network.get_node_by_hostname("node_b")
 
     payload: SSHPacket = SSHPacket(
@@ -178,7 +178,7 @@ def test_terminal_receive(basic_network):
     """Test that terminal can receive and process commands"""
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
-    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = computer_a.software_manager.software.get("terminal")
     computer_b: Computer = network.get_node_by_hostname("node_b")
     folder_name = "Downloads"
 
@@ -199,14 +199,14 @@ def test_terminal_receive(basic_network):
 
 
 def test_terminal_install(basic_network):
-    """Test that Terminal can successfully process an INSTALL request"""
+    """Test that terminal can successfully process an INSTALL request"""
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
-    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = computer_a.software_manager.software.get("terminal")
     computer_b: Computer = network.get_node_by_hostname("node_b")
 
     payload: SSHPacket = SSHPacket(
-        payload=["software_manager", "application", "install", "RansomwareScript"],
+        payload=["software_manager", "application", "install", "ransomware-script"],
         transport_message=SSHTransportMessage.SSH_MSG_SERVICE_REQUEST,
         connection_message=SSHConnectionMessage.SSH_MSG_CHANNEL_OPEN,
     )
@@ -215,16 +215,16 @@ def test_terminal_install(basic_network):
         username="admin", password="admin", ip_address="192.168.0.11"
     )
 
-    term_a_on_node_b.execute(["software_manager", "application", "install", "RansomwareScript"])
+    term_a_on_node_b.execute(["software_manager", "application", "install", "ransomware-script"])
 
-    assert computer_b.software_manager.software.get("RansomwareScript")
+    assert computer_b.software_manager.software.get("ransomware-script")
 
 
 def test_terminal_fail_when_closed(basic_network):
-    """Ensure Terminal won't attempt to send/receive when off"""
+    """Ensure terminal won't attempt to send/receive when off"""
     network: Network = basic_network
     computer: Computer = network.get_node_by_hostname("node_a")
-    terminal: Terminal = computer.software_manager.software.get("Terminal")
+    terminal: Terminal = computer.software_manager.software.get("terminal")
     computer_b: Computer = network.get_node_by_hostname("node_b")
 
     terminal.operating_state = ServiceOperatingState.STOPPED
@@ -233,12 +233,12 @@ def test_terminal_fail_when_closed(basic_network):
 
 
 def test_terminal_disconnect(basic_network):
-    """Test Terminal disconnects"""
+    """Test terminal disconnects"""
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
-    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = computer_a.software_manager.software.get("terminal")
     computer_b: Computer = network.get_node_by_hostname("node_b")
-    terminal_b: Terminal = computer_b.software_manager.software.get("Terminal")
+    terminal_b: Terminal = computer_b.software_manager.software.get("terminal")
 
     assert len(terminal_b._connections) == 0
 
@@ -256,10 +256,10 @@ def test_terminal_disconnect(basic_network):
 
 
 def test_terminal_ignores_when_off(basic_network):
-    """Terminal should ignore commands when not running"""
+    """terminal should ignore commands when not running"""
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
-    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = computer_a.software_manager.software.get("terminal")
 
     computer_b: Computer = network.get_node_by_hostname("node_b")
 
@@ -269,14 +269,14 @@ def test_terminal_ignores_when_off(basic_network):
 
     terminal_a.operating_state = ServiceOperatingState.STOPPED
 
-    assert not term_a_on_term_b.execute(["software_manager", "application", "install", "RansomwareScript"])
+    assert not term_a_on_term_b.execute(["software_manager", "application", "install", "ransomware-script"])
 
 
 def test_computer_remote_login_to_router(wireless_wan_network):
     """Test to confirm that a computer can SSH into a router."""
     pc_a, _, router_1, _ = wireless_wan_network
 
-    pc_a_terminal: Terminal = pc_a.software_manager.software.get("Terminal")
+    pc_a_terminal: Terminal = pc_a.software_manager.software.get("terminal")
 
     assert len(pc_a_terminal._connections) == 0
 
@@ -284,18 +284,18 @@ def test_computer_remote_login_to_router(wireless_wan_network):
 
     assert len(pc_a_terminal._connections) == 1
 
-    payload = ["software_manager", "application", "install", "RansomwareScript"]
+    payload = ["software_manager", "application", "install", "ransomware-script"]
 
     pc_a_on_router_1.execute(payload)
 
-    assert router_1.software_manager.software.get("RansomwareScript")
+    assert router_1.software_manager.software.get("ransomware-script")
 
 
 def test_router_remote_login_to_computer(wireless_wan_network):
     """Test to confirm that a router can ssh into a computer."""
     pc_a, _, router_1, _ = wireless_wan_network
 
-    router_1_terminal: Terminal = router_1.software_manager.software.get("Terminal")
+    router_1_terminal: Terminal = router_1.software_manager.software.get("terminal")
 
     assert len(router_1_terminal._connections) == 0
 
@@ -303,21 +303,21 @@ def test_router_remote_login_to_computer(wireless_wan_network):
 
     assert len(router_1_terminal._connections) == 1
 
-    payload = ["software_manager", "application", "install", "RansomwareScript"]
+    payload = ["software_manager", "application", "install", "ransomware-script"]
 
     router_1_on_pc_a.execute(payload)
 
-    assert pc_a.software_manager.software.get("RansomwareScript")
+    assert pc_a.software_manager.software.get("ransomware-script")
 
 
 def test_router_blocks_SSH_traffic(wireless_wan_network):
-    """Test to check that router will block SSH traffic if no ACL rule."""
+    """Test to check that router will block SSH traffic if no acl rule."""
     pc_a, _, router_1, _ = wireless_wan_network
 
     # Remove rule that allows SSH traffic.
     router_1.acl.remove_rule(position=21)
 
-    pc_a_terminal: Terminal = pc_a.software_manager.software.get("Terminal")
+    pc_a_terminal: Terminal = pc_a.software_manager.software.get("terminal")
 
     assert len(pc_a_terminal._connections) == 0
 
@@ -330,8 +330,8 @@ def test_SSH_across_network(wireless_wan_network):
     """Test to show ability to SSH across a network."""
     pc_a, pc_b, router_1, router_2 = wireless_wan_network
 
-    terminal_a: Terminal = pc_a.software_manager.software.get("Terminal")
-    terminal_b: Terminal = pc_b.software_manager.software.get("Terminal")
+    terminal_a: Terminal = pc_a.software_manager.software.get("terminal")
+    terminal_b: Terminal = pc_b.software_manager.software.get("terminal")
 
     router_2.acl.add_rule(
         action=ACLAction.PERMIT, src_port=PORT_LOOKUP["SSH"], dst_port=PORT_LOOKUP["SSH"], position=21
@@ -348,7 +348,7 @@ def test_multiple_remote_terminals_same_node(basic_network):
     """Test to check that multiple remote terminals can be spawned by one node."""
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
-    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = computer_a.software_manager.software.get("terminal")
     computer_b: Computer = network.get_node_by_hostname("node_b")
 
     assert len(terminal_a._connections) == 0
@@ -366,10 +366,10 @@ def test_terminal_rejects_commands_if_disconnect(basic_network):
     """Test to check terminal will ignore commands from disconnected connections"""
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
-    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = computer_a.software_manager.software.get("terminal")
     computer_b: Computer = network.get_node_by_hostname("node_b")
 
-    terminal_b: Terminal = computer_b.software_manager.software.get("Terminal")
+    terminal_b: Terminal = computer_b.software_manager.software.get("terminal")
 
     remote_connection = terminal_a.login(username="admin", password="admin", ip_address="192.168.0.11")
 
@@ -381,9 +381,9 @@ def test_terminal_rejects_commands_if_disconnect(basic_network):
     assert len(terminal_a._connections) == 0
     assert len(terminal_b._connections) == 0
 
-    assert remote_connection.execute(["software_manager", "application", "install", "RansomwareScript"]) is False
+    assert remote_connection.execute(["software_manager", "application", "install", "ransomware-script"]) is False
 
-    assert not computer_b.software_manager.software.get("RansomwareScript")
+    assert not computer_b.software_manager.software.get("ransomware-script")
 
     assert remote_connection.is_active is False
 
@@ -392,9 +392,9 @@ def test_terminal_connection_timeout(basic_network):
     """Test that terminal_connections are affected by UserSession timeout."""
     network: Network = basic_network
     computer_a: Computer = network.get_node_by_hostname("node_a")
-    terminal_a: Terminal = computer_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = computer_a.software_manager.software.get("terminal")
     computer_b: Computer = network.get_node_by_hostname("node_b")
-    terminal_b: Terminal = computer_b.software_manager.software.get("Terminal")
+    terminal_b: Terminal = computer_b.software_manager.software.get("terminal")
 
     remote_connection = terminal_a.login(username="admin", password="admin", ip_address="192.168.0.11")
 

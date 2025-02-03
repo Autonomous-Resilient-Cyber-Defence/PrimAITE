@@ -11,7 +11,7 @@ def database_server() -> Node:
     node = Computer(hostname="db_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
     node.power_on()
     node.software_manager.install(DatabaseService)
-    node.software_manager.software.get("DatabaseService").start()
+    node.software_manager.software.get("database-service").start()
     return node
 
 

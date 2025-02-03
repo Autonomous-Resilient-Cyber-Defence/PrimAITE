@@ -262,7 +262,7 @@ class NIC(IPWiredNetworkInterface):
         return f"Port {self.port_name if self.port_name else self.port_num}: {self.mac_address}/{self.ip_address}"
 
 
-class HostNode(Node, discriminator="HostNode"):
+class HostNode(Node, discriminator="host-node"):
     """
     Represents a host node in the network.
 
@@ -309,14 +309,14 @@ class HostNode(Node, discriminator="HostNode"):
 
     SYSTEM_SOFTWARE: ClassVar[Dict] = {
         "HostARP": HostARP,
-        "ICMP": ICMP,
-        "DNSClient": DNSClient,
-        "NTPClient": NTPClient,
-        "WebBrowser": WebBrowser,
-        "NMAP": NMAP,
-        "UserSessionManager": UserSessionManager,
-        "UserManager": UserManager,
-        "Terminal": Terminal,
+        "icmp": ICMP,
+        "dns-client": DNSClient,
+        "ntp-client": NTPClient,
+        "web-browser": WebBrowser,
+        "nmap": NMAP,
+        "user-session-manager": UserSessionManager,
+        "user-manager": UserManager,
+        "terminal": Terminal,
     }
     """List of system software that is automatically installed on nodes."""
 
@@ -337,7 +337,7 @@ class HostNode(Node, discriminator="HostNode"):
         :return: NMAP application installed on the Node.
         :rtype: Optional[NMAP]
         """
-        return self.software_manager.software.get("NMAP")
+        return self.software_manager.software.get("nmap")
 
     @property
     def arp(self) -> Optional[ARP]:
@@ -347,7 +347,7 @@ class HostNode(Node, discriminator="HostNode"):
         :return: ARP Cache for given HostNode
         :rtype: Optional[ARP]
         """
-        return self.software_manager.software.get("ARP")
+        return self.software_manager.software.get("arp")
 
     def default_gateway_hello(self):
         """
@@ -379,8 +379,8 @@ class HostNode(Node, discriminator="HostNode"):
             dst_port = frame.udp.dst_port
 
         can_accept_nmap = False
-        if self.software_manager.software.get("NMAP"):
-            if self.software_manager.software["NMAP"].operating_state == ApplicationOperatingState.RUNNING:
+        if self.software_manager.software.get("nmap"):
+            if self.software_manager.software["nmap"].operating_state == ApplicationOperatingState.RUNNING:
                 can_accept_nmap = True
 
         accept_nmap = can_accept_nmap and frame.payload.__class__.__name__ == "PortScanPayload"

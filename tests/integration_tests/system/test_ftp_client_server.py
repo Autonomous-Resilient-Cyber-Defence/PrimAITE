@@ -17,12 +17,12 @@ def ftp_client_and_ftp_server(client_server) -> Tuple[FTPClient, Computer, FTPSe
 
     # Install FTP Client service on computer
     computer.software_manager.install(FTPClient)
-    ftp_client: FTPClient = computer.software_manager.software.get("FTPClient")
+    ftp_client: FTPClient = computer.software_manager.software.get("ftp-client")
     ftp_client.start()
 
     # Install FTP Server service on server
     server.software_manager.install(FTPServer)
-    ftp_server: FTPServer = server.software_manager.software.get("FTPServer")
+    ftp_server: FTPServer = server.software_manager.software.get("ftp-server")
     ftp_server.start()
 
     return ftp_client, computer, ftp_server, server

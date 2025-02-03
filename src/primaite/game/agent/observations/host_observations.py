@@ -18,7 +18,7 @@ from primaite.utils.validation.port import Port
 _LOGGER = getLogger(__name__)
 
 
-class HostObservation(AbstractObservation, discriminator="HOST"):
+class HostObservation(AbstractObservation, discriminator="host"):
     """Host observation, provides status information about a host within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -209,7 +209,7 @@ class HostObservation(AbstractObservation, discriminator="HOST"):
                 obs["num_file_creations"] = node_state["file_system"]["num_file_creations"]
                 obs["num_file_deletions"] = node_state["file_system"]["num_file_deletions"]
             if self.include_users:
-                sess = node_state["services"]["UserSessionManager"]
+                sess = node_state["services"]["user-session-manager"]
                 obs["users"] = {
                     "local_login": 1 if sess["current_local_user"] else 0,
                     "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),

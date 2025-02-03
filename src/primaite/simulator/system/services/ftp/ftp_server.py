@@ -12,7 +12,7 @@ from primaite.utils.validation.port import is_valid_port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class FTPServer(FTPServiceABC, discriminator="FTPServer"):
+class FTPServer(FTPServiceABC, discriminator="ftp-server"):
     """
     A class for simulating an FTP server service.
 
@@ -20,17 +20,18 @@ class FTPServer(FTPServiceABC, discriminator="FTPServer"):
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
 
-    config: "FTPServer.ConfigSchema" = Field(default_factory=lambda: FTPServer.ConfigSchema())
     server_password: Optional[str] = None
 
     class ConfigSchema(FTPServiceABC.ConfigSchema):
         """ConfigSchema for FTPServer."""
 
-        type: str = "FTPServer"
+        type: str = "ftp-server"
         server_password: Optional[str] = None
 
+    config: ConfigSchema = Field(default_factory=lambda: FTPServer.ConfigSchema())
+
     def __init__(self, **kwargs):
-        kwargs["name"] = "FTPServer"
+        kwargs["name"] = "ftp-server"
         kwargs["port"] = PORT_LOOKUP["FTP"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)

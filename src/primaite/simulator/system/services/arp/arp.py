@@ -15,7 +15,7 @@ from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class ARP(Service, discriminator="ARP"):
+class ARP(Service, discriminator="arp"):
     """
     The ARP (Address Resolution Protocol) Service.
 
@@ -26,7 +26,7 @@ class ARP(Service, discriminator="ARP"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for ARP."""
 
-        type: str = "ARP"
+        type: str = "arp"
 
     config: "ARP.ConfigSchema" = Field(default_factory=lambda: ARP.ConfigSchema())
 

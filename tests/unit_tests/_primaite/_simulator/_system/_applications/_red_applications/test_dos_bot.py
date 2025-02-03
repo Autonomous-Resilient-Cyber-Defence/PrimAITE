@@ -18,7 +18,7 @@ def dos_bot() -> DoSBot:
     computer.power_on()
     computer.software_manager.install(DoSBot)
 
-    dos_bot: DoSBot = computer.software_manager.software.get("DoSBot")
+    dos_bot: DoSBot = computer.software_manager.software.get("dos-bot")
     dos_bot.configure(target_ip_address=IPv4Address("192.168.0.1"))
     return dos_bot
 

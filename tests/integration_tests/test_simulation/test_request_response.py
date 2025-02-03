@@ -48,13 +48,13 @@ def test_successful_application_requests(example_network):
 
     client_1 = net.get_node_by_hostname("client_1")
     client_1.software_manager.install(DummyApplication)
-    client_1.software_manager.software.get("DummyApplication").run()
+    client_1.software_manager.software.get("dummy-application").run()
 
-    resp_1 = net.apply_request(["node", "client_1", "application", "DummyApplication", "scan"])
+    resp_1 = net.apply_request(["node", "client_1", "application", "dummy-application", "scan"])
     assert resp_1 == RequestResponse(status="success", data={})
-    resp_2 = net.apply_request(["node", "client_1", "application", "DummyApplication", "fix"])
+    resp_2 = net.apply_request(["node", "client_1", "application", "dummy-application", "fix"])
     assert resp_2 == RequestResponse(status="success", data={})
-    resp_3 = net.apply_request(["node", "client_1", "application", "DummyApplication", "compromise"])
+    resp_3 = net.apply_request(["node", "client_1", "application", "dummy-application", "compromise"])
     assert resp_3 == RequestResponse(status="success", data={})
 
 
@@ -77,7 +77,7 @@ def test_successful_service_requests(example_network):
         "scan",
         "fix",
     ]:
-        resp_1 = net.apply_request(["node", "server_1", "service", "DummyService", verb])
+        resp_1 = net.apply_request(["node", "server_1", "service", "dummy-service", verb])
         assert resp_1 == RequestResponse(status="success", data={})
         server_1.apply_timestep(timestep=1)
         server_1.apply_timestep(timestep=1)
@@ -93,7 +93,7 @@ def test_non_existent_requests(example_network):
     net = example_network
     resp_1 = net.apply_request(["fake"])
     assert resp_1.status == "unreachable"
-    resp_2 = net.apply_request(["network", "node", "client_39", "application", "WebBrowser", "execute"])
+    resp_2 = net.apply_request(["network", "node", "client_39", "application", "web-browser", "execute"])
     assert resp_2.status == "unreachable"
 
 
@@ -102,8 +102,8 @@ def test_non_existent_requests(example_network):
     [
         ["node", "client_1", "file_system", "folder", "root", "scan"],
         ["node", "client_1", "os", "scan"],
-        ["node", "client_1", "service", "DNSClient", "stop"],
-        ["node", "client_1", "application", "WebBrowser", "scan"],
+        ["node", "client_1", "service", "dns-client", "stop"],
+        ["node", "client_1", "application", "web-browser", "scan"],
         ["node", "client_1", "network_interface", 1, "disable"],
     ],
 )
@@ -128,10 +128,14 @@ class TestDataManipulationGreenRequests:
         """Test that green requests succeed when the node is on and fail if the node is off."""
         net: Network = uc2_network
 
-        client_1_browser_execute = net.apply_request(["node", "client_1", "application", "WebBrowser", "execute"])
-        client_1_db_client_execute = net.apply_request(["node", "client_1", "application", "DatabaseClient", "execute"])
-        client_2_browser_execute = net.apply_request(["node", "client_2", "application", "WebBrowser", "execute"])
-        client_2_db_client_execute = net.apply_request(["node", "client_2", "application", "DatabaseClient", "execute"])
+        client_1_browser_execute = net.apply_request(["node", "client_1", "application", "web-browser", "execute"])
+        client_1_db_client_execute = net.apply_request(
+            ["node", "client_1", "application", "database-client", "execute"]
+        )
+        client_2_browser_execute = net.apply_request(["node", "client_2", "application", "web-browser", "execute"])
+        client_2_db_client_execute = net.apply_request(
+            ["node", "client_2", "application", "database-client", "execute"]
+        )
         assert client_1_browser_execute.status == "success"
         assert client_1_db_client_execute.status == "success"
         assert client_2_browser_execute.status == "success"
@@ -145,13 +149,13 @@ class TestDataManipulationGreenRequests:
         client_2.shut_down_duration = 0
         client_2.power_off()
 
-        client_1_browser_execute_off = net.apply_request(["node", "client_1", "application", "WebBrowser", "execute"])
+        client_1_browser_execute_off = net.apply_request(["node", "client_1", "application", "web-browser", "execute"])
         client_1_db_client_execute_off = net.apply_request(
-            ["node", "client_1", "application", "DatabaseClient", "execute"]
+            ["node", "client_1", "application", "database-client", "execute"]
         )
-        client_2_browser_execute_off = net.apply_request(["node", "client_2", "application", "WebBrowser", "execute"])
+        client_2_browser_execute_off = net.apply_request(["node", "client_2", "application", "web-browser", "execute"])
         client_2_db_client_execute_off = net.apply_request(
-            ["node", "client_2", "application", "DatabaseClient", "execute"]
+            ["node", "client_2", "application", "database-client", "execute"]
         )
         assert client_1_browser_execute_off.status == "failure"
         assert client_1_db_client_execute_off.status == "failure"
@@ -166,26 +170,34 @@ class TestDataManipulationGreenRequests:
         client_1: HostNode = net.get_node_by_hostname("client_1")
         client_2: HostNode = net.get_node_by_hostname("client_2")
 
-        client_1_browser_execute = net.apply_request(["node", "client_1", "application", "WebBrowser", "execute"])
-        client_2_browser_execute = net.apply_request(["node", "client_2", "application", "WebBrowser", "execute"])
+        client_1_browser_execute = net.apply_request(["node", "client_1", "application", "web-browser", "execute"])
+        client_2_browser_execute = net.apply_request(["node", "client_2", "application", "web-browser", "execute"])
         assert client_1_browser_execute.status == "success"
         assert client_2_browser_execute.status == "success"
 
         router.acl.add_rule(ACLAction.DENY, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=3)
-        client_1_browser_execute = net.apply_request(["node", "client_1", "application", "WebBrowser", "execute"])
-        client_2_browser_execute = net.apply_request(["node", "client_2", "application", "WebBrowser", "execute"])
+        client_1_browser_execute = net.apply_request(["node", "client_1", "application", "web-browser", "execute"])
+        client_2_browser_execute = net.apply_request(["node", "client_2", "application", "web-browser", "execute"])
         assert client_1_browser_execute.status == "failure"
         assert client_2_browser_execute.status == "failure"
 
-        client_1_db_client_execute = net.apply_request(["node", "client_1", "application", "DatabaseClient", "execute"])
-        client_2_db_client_execute = net.apply_request(["node", "client_2", "application", "DatabaseClient", "execute"])
+        client_1_db_client_execute = net.apply_request(
+            ["node", "client_1", "application", "database-client", "execute"]
+        )
+        client_2_db_client_execute = net.apply_request(
+            ["node", "client_2", "application", "database-client", "execute"]
+        )
         assert client_1_db_client_execute.status == "success"
         assert client_2_db_client_execute.status == "success"
 
         router.acl.add_rule(
             ACLAction.DENY, src_port=PORT_LOOKUP["POSTGRES_SERVER"], dst_port=PORT_LOOKUP["POSTGRES_SERVER"]
         )
-        client_1_db_client_execute = net.apply_request(["node", "client_1", "application", "DatabaseClient", "execute"])
-        client_2_db_client_execute = net.apply_request(["node", "client_2", "application", "DatabaseClient", "execute"])
+        client_1_db_client_execute = net.apply_request(
+            ["node", "client_1", "application", "database-client", "execute"]
+        )
+        client_2_db_client_execute = net.apply_request(
+            ["node", "client_2", "application", "database-client", "execute"]
+        )
         assert client_1_db_client_execute.status == "failure"
         assert client_2_db_client_execute.status == "failure"

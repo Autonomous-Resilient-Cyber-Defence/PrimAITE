@@ -33,6 +33,6 @@ class Computer(HostNode, discriminator="computer"):
         * Web Browser
     """
 
-    SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "FTPClient": FTPClient}
+    SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "ftp-client": FTPClient}
 
     pass

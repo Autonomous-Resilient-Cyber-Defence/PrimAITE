@@ -8,7 +8,7 @@ from primaite.interface.request import RequestFormat
 __all__ = ("NetworkPortEnableAction", "NetworkPortDisableAction")
 
 
-class NetworkPortAbstractAction(AbstractAction, discriminator="network_port_abstract"):
+class NetworkPortAbstractAction(AbstractAction, discriminator="network-port-abstract"):
     """Base class for Network port actions."""
 
     config: "NetworkPortAbstractAction.ConfigSchema"
@@ -24,7 +24,7 @@ class NetworkPortAbstractAction(AbstractAction, discriminator="network_port_abst
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.target_nodename is None or config.port_num is None:
-            return ["do_nothing"]
+            return ["do-nothing"]
         return [
             "network",
             "node",
@@ -35,7 +35,7 @@ class NetworkPortAbstractAction(AbstractAction, discriminator="network_port_abst
         ]
 
 
-class NetworkPortEnableAction(NetworkPortAbstractAction, discriminator="network_port_enable"):
+class NetworkPortEnableAction(NetworkPortAbstractAction, discriminator="network-port-enable"):
     """Action which enables are port on a router or a firewall."""
 
     config: "NetworkPortEnableAction.ConfigSchema"
@@ -46,7 +46,7 @@ class NetworkPortEnableAction(NetworkPortAbstractAction, discriminator="network_
         verb: ClassVar[str] = "enable"
 
 
-class NetworkPortDisableAction(NetworkPortAbstractAction, discriminator="network_port_disable"):
+class NetworkPortDisableAction(NetworkPortAbstractAction, discriminator="network-port-disable"):
     """Action which disables are port on a router or a firewall."""
 
     config: "NetworkPortDisableAction.ConfigSchema"

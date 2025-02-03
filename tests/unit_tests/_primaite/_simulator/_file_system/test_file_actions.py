@@ -32,7 +32,7 @@ def test_file_scan_request(populated_file_system):
     assert file.visible_health_status == FileSystemItemHealthStatus.CORRUPT
 
 
-@pytest.mark.skip(reason="node_file_checkhash not implemented")
+@pytest.mark.skip(reason="node-file-checkhash not implemented")
 def test_file_checkhash_request(populated_file_system):
     """Test that an agent can request a file hash check."""
     fs, folder, file = populated_file_system

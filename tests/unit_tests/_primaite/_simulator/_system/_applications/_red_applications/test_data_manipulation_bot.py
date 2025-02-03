@@ -20,13 +20,13 @@ def dm_client() -> Node:
 
 @pytest.fixture
 def dm_bot(dm_client) -> DataManipulationBot:
-    return dm_client.software_manager.software.get("DataManipulationBot")
+    return dm_client.software_manager.software.get("data-manipulation-bot")
 
 
 def test_create_dm_bot(dm_client):
-    data_manipulation_bot: DataManipulationBot = dm_client.software_manager.software.get("DataManipulationBot")
+    data_manipulation_bot: DataManipulationBot = dm_client.software_manager.software.get("data-manipulation-bot")
 
-    assert data_manipulation_bot.name == "DataManipulationBot"
+    assert data_manipulation_bot.name == "data-manipulation-bot"
     assert data_manipulation_bot.port == PORT_LOOKUP["NONE"]
     assert data_manipulation_bot.protocol == PROTOCOL_LOOKUP["NONE"]
     assert data_manipulation_bot.payload == "DELETE"
@@ -75,8 +75,8 @@ def test_dm_bot_perform_data_manipulation_success(dm_bot):
 
 
 def test_dm_bot_fails_without_db_client(dm_client):
-    dm_client.software_manager.uninstall("DatabaseClient")
-    dm_bot = dm_client.software_manager.software.get("DataManipulationBot")
+    dm_client.software_manager.uninstall("database-client")
+    dm_bot = dm_client.software_manager.software.get("data-manipulation-bot")
     assert dm_bot._host_db_client is None
     dm_bot.attack_stage = DataManipulationAttackStage.PORT_SCAN
     dm_bot._perform_data_manipulation(p_of_success=1.0)

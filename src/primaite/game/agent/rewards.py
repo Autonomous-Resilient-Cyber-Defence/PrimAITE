@@ -12,7 +12,7 @@ the structure:
 ```yaml
     reward_function:
         reward_components:
-            - type: DATABASE_FILE_INTEGRITY
+            - type: database-file-integrity
             weight: 0.5
             options:
                 node_name: database_server
@@ -20,7 +20,7 @@ the structure:
                 file_name: database.db
 
 
-            - type: WEB_SERVER_404_PENALTY
+            - type: web-server-404-penalty
             weight: 0.5
             options:
                 node_name: web_server
@@ -92,7 +92,7 @@ class AbstractReward(BaseModel):
         return 0.0
 
 
-class DummyReward(AbstractReward, discriminator="DUMMY"):
+class DummyReward(AbstractReward, discriminator="dummy"):
     """Dummy reward function component which always returns 0.0."""
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
@@ -108,7 +108,7 @@ class DummyReward(AbstractReward, discriminator="DUMMY"):
         return 0.0
 
 
-class DatabaseFileIntegrity(AbstractReward, discriminator="DATABASE_FILE_INTEGRITY"):
+class DatabaseFileIntegrity(AbstractReward, discriminator="database-file-integrity"):
     """Reward function component which rewards the agent for maintaining the integrity of a database file."""
 
     config: "DatabaseFileIntegrity.ConfigSchema"
@@ -118,7 +118,7 @@ class DatabaseFileIntegrity(AbstractReward, discriminator="DATABASE_FILE_INTEGRI
     class ConfigSchema(AbstractReward.ConfigSchema):
         """ConfigSchema for DatabaseFileIntegrity."""
 
-        type: str = "DATABASE_FILE_INTEGRITY"
+        type: str = "database-file-integrity"
         node_hostname: str
         folder_name: str
         file_name: str
@@ -161,7 +161,7 @@ class DatabaseFileIntegrity(AbstractReward, discriminator="DATABASE_FILE_INTEGRI
             return 0
 
 
-class WebServer404Penalty(AbstractReward, discriminator="WEB_SERVER_404_PENALTY"):
+class WebServer404Penalty(AbstractReward, discriminator="web-server-404-penalty"):
     """Reward function component which penalises the agent when the web server returns a 404 error."""
 
     config: "WebServer404Penalty.ConfigSchema"
@@ -171,7 +171,7 @@ class WebServer404Penalty(AbstractReward, discriminator="WEB_SERVER_404_PENALTY"
     class ConfigSchema(AbstractReward.ConfigSchema):
         """ConfigSchema for WebServer404Penalty."""
 
-        type: str = "WEB_SERVER_404_PENALTY"
+        type: str = "web-server-404-penalty"
         node_hostname: str
         service_name: str
         sticky: bool = True
@@ -215,7 +215,7 @@ class WebServer404Penalty(AbstractReward, discriminator="WEB_SERVER_404_PENALTY"
         return self.reward
 
 
-class WebpageUnavailablePenalty(AbstractReward, discriminator="WEBPAGE_UNAVAILABLE_PENALTY"):
+class WebpageUnavailablePenalty(AbstractReward, discriminator="webpage-unavailable-penalty"):
     """Penalises the agent when the web browser fails to fetch a webpage."""
 
     config: "WebpageUnavailablePenalty.ConfigSchema"
@@ -225,7 +225,7 @@ class WebpageUnavailablePenalty(AbstractReward, discriminator="WEBPAGE_UNAVAILAB
     class ConfigSchema(AbstractReward.ConfigSchema):
         """ConfigSchema for WebpageUnavailablePenalty."""
 
-        type: str = "WEBPAGE_UNAVAILABLE_PENALTY"
+        type: str = "webpage-unavailable-penalty"
         node_hostname: str = ""
         sticky: bool = True
 
@@ -248,7 +248,7 @@ class WebpageUnavailablePenalty(AbstractReward, discriminator="WEBPAGE_UNAVAILAB
             "nodes",
             self.config.node_hostname,
             "applications",
-            "WebBrowser",
+            "web-browser",
         ]
         web_browser_state = access_from_nested_dict(state, self.location_in_state)
 
@@ -261,7 +261,7 @@ class WebpageUnavailablePenalty(AbstractReward, discriminator="WEBPAGE_UNAVAILAB
             "node",
             self.config.node_hostname,
             "application",
-            "WebBrowser",
+            "web-browser",
             "execute",
         ]
 
@@ -289,7 +289,7 @@ class WebpageUnavailablePenalty(AbstractReward, discriminator="WEBPAGE_UNAVAILAB
         return self.reward
 
 
-class GreenAdminDatabaseUnreachablePenalty(AbstractReward, discriminator="GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY"):
+class GreenAdminDatabaseUnreachablePenalty(AbstractReward, discriminator="green-admin-database-unreachable-penalty"):
     """Penalises the agent when the green db clients fail to connect to the database."""
 
     config: "GreenAdminDatabaseUnreachablePenalty.ConfigSchema"
@@ -298,7 +298,7 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward, discriminator="GREEN_
     class ConfigSchema(AbstractReward.ConfigSchema):
         """ConfigSchema for GreenAdminDatabaseUnreachablePenalty."""
 
-        type: str = "GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY"
+        type: str = "green-admin-database-unreachable-penalty"
         node_hostname: str
         sticky: bool = True
 
@@ -322,7 +322,7 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward, discriminator="GREEN_
             "node",
             self.config.node_hostname,
             "application",
-            "DatabaseClient",
+            "database-client",
             "execute",
         ]
 
@@ -339,7 +339,7 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward, discriminator="GREEN_
         return self.reward
 
 
-class SharedReward(AbstractReward, discriminator="SHARED_REWARD"):
+class SharedReward(AbstractReward, discriminator="shared-reward"):
     """Adds another agent's reward to the overall reward."""
 
     config: "SharedReward.ConfigSchema"
@@ -347,7 +347,7 @@ class SharedReward(AbstractReward, discriminator="SHARED_REWARD"):
     class ConfigSchema(AbstractReward.ConfigSchema):
         """Config schema for SharedReward."""
 
-        type: str = "SHARED_REWARD"
+        type: str = "shared-reward"
         agent_name: str
 
     def default_callback(agent_name: str) -> Never:
@@ -376,17 +376,17 @@ class SharedReward(AbstractReward, discriminator="SHARED_REWARD"):
         return self.callback(self.config.agent_name)
 
 
-class ActionPenalty(AbstractReward, discriminator="ACTION_PENALTY"):
-    """Apply a negative reward when taking any action except do_nothing."""
+class ActionPenalty(AbstractReward, discriminator="action-penalty"):
+    """Apply a negative reward when taking any action except do-nothing."""
 
     config: "ActionPenalty.ConfigSchema"
 
     class ConfigSchema(AbstractReward.ConfigSchema):
         """Config schema for ActionPenalty.
 
-        :param action_penalty: Reward to give agents for taking any action except do_nothing
+        :param action_penalty: Reward to give agents for taking any action except do-nothing
         :type action_penalty: float
-        :param do_nothing_penalty: Reward to give agent for taking the do_nothing action
+        :param do_nothing_penalty: Reward to give agent for taking the do-nothing action
         :type do_nothing_penalty: float
         """
 
@@ -403,7 +403,7 @@ class ActionPenalty(AbstractReward, discriminator="ACTION_PENALTY"):
         :return: Reward value
         :rtype: float
         """
-        if last_action_response.action == "do_nothing":
+        if last_action_response.action == "do-nothing":
             return self.config.do_nothing_penalty
 
         else:

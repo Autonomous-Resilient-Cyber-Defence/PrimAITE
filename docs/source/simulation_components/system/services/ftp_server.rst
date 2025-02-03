@@ -74,7 +74,7 @@ Via Configuration
                 ...
                 services:
                     - ref: ftp_server
-                    type: FTPServer
+                    type: ftp-server
                     options:
                         server_password: test
 

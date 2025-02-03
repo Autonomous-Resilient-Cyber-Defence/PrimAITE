@@ -824,7 +824,7 @@ class User(SimComponent):
         return self.model_dump()
 
 
-class UserManager(Service, discriminator="UserManager"):
+class UserManager(Service, discriminator="user-manager"):
     """
     Manages users within the PrimAITE system, handling creation, authentication, and administration.
 
@@ -836,7 +836,7 @@ class UserManager(Service, discriminator="UserManager"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for UserManager."""
 
-        type: str = "UserManager"
+        type: str = "user-manager"
 
     config: "UserManager.ConfigSchema" = Field(default_factory=lambda: UserManager.ConfigSchema())
 
@@ -849,7 +849,7 @@ class UserManager(Service, discriminator="UserManager"):
         :param username: The username for the default admin user
         :param password: The password for the default admin user
         """
-        kwargs["name"] = "UserManager"
+        kwargs["name"] = "user-manager"
         kwargs["port"] = PORT_LOOKUP["NONE"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
@@ -1037,7 +1037,7 @@ class UserManager(Service, discriminator="UserManager"):
 
     @property
     def _user_session_manager(self) -> "UserSessionManager":
-        return self.software_manager.software["UserSessionManager"]  # noqa
+        return self.software_manager.software["user-session-manager"]  # noqa
 
 
 class UserSession(SimComponent):
@@ -1137,7 +1137,7 @@ class RemoteUserSession(UserSession):
         return state
 
 
-class UserSessionManager(Service, discriminator="UserSessionManager"):
+class UserSessionManager(Service, discriminator="user-session-manager"):
     """
     Manages user sessions on a Node, including local and remote sessions.
 
@@ -1147,7 +1147,7 @@ class UserSessionManager(Service, discriminator="UserSessionManager"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for UserSessionManager."""
 
-        type: str = "UserSessionManager"
+        type: str = "user-session-manager"
 
     config: "UserSessionManager.ConfigSchema" = Field(default_factory=lambda: UserSessionManager.ConfigSchema())
 
@@ -1179,7 +1179,7 @@ class UserSessionManager(Service, discriminator="UserSessionManager"):
         :param username: The username for the default admin user
         :param password: The password for the default admin user
         """
-        kwargs["name"] = "UserSessionManager"
+        kwargs["name"] = "user-session-manager"
         kwargs["port"] = PORT_LOOKUP["NONE"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
@@ -1289,7 +1289,7 @@ class UserSessionManager(Service, discriminator="UserSessionManager"):
 
         :return: The UserManager instance.
         """
-        return self.software_manager.software["UserManager"]  # noqa
+        return self.software_manager.software["user-manager"]  # noqa
 
     def pre_timestep(self, timestep: int) -> None:
         """Apply any pre-timestep logic that helps make sure we have the correct observations."""
@@ -1608,17 +1608,17 @@ class Node(SimComponent, ABC):
     @property
     def user_manager(self) -> Optional[UserManager]:
         """The Nodes User Manager."""
-        return self.software_manager.software.get("UserManager")  # noqa
+        return self.software_manager.software.get("user-manager")  # noqa
 
     @property
     def user_session_manager(self) -> Optional[UserSessionManager]:
         """The Nodes User Session Manager."""
-        return self.software_manager.software.get("UserSessionManager")  # noqa
+        return self.software_manager.software.get("user-session-manager")  # noqa
 
     @property
     def terminal(self) -> Optional[Terminal]:
-        """The Nodes Terminal."""
-        return self.software_manager.software.get("Terminal")
+        """The Node's Terminal."""
+        return self.software_manager.software.get("terminal")
 
     def local_login(self, username: str, password: str) -> Optional[str]:
         """
