@@ -31,13 +31,13 @@ class ExtendedService(Service, identifier="ExtendedService"):
 
         type: str = "ExtendedService"
 
+        backup_server_ip: IPv4Address = None
+        """IP address of the backup server."""
+
     config: "ExtendedService.ConfigSchema" = Field(default_factory=lambda: ExtendedService.ConfigSchema())
 
     password: Optional[str] = None
     """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
-
-    backup_server_ip: IPv4Address = None
-    """IP address of the backup server."""
 
     latest_backup_directory: str = None
     """Directory of latest backup."""

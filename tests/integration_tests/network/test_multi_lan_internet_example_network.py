@@ -1,6 +1,7 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
+from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.networks import multi_lan_internet_network_example
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.web_browser import WebBrowser

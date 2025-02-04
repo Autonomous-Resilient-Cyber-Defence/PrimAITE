@@ -25,7 +25,8 @@ def router_with_acl_rules():
 
     :return: A configured Router object with ACL rules.
     """
-    router = Router("Router")
+    router_cfg = {"hostname": "router_1", "type": "router"}
+    router = Router.from_config(config=router_cfg)
     acl = router.acl
     # Add rules here as needed
     acl.add_rule(
@@ -62,7 +63,8 @@ def router_with_wildcard_acl():
 
     :return: A Router object with configured ACL rules, including rules with wildcard masking.
     """
-    router = Router("Router")
+    router_cfg = {"hostname": "router_1", "type": "router"}
+    router = Router.from_config(config=router_cfg)
     acl = router.acl
     # Rule to permit traffic from a specific source IP and port to a specific destination IP and port
     acl.add_rule(
@@ -243,7 +245,8 @@ def test_ip_traffic_from_specific_subnet():
         - Traffic from outside the 192.168.1.0/24 subnet is denied.
     """
 
-    router = Router("Router")
+    router_cfg = {"hostname": "router_1", "type": "router"}
+    router = Router.from_config(config=router_cfg)
     acl = router.acl
     # Add rules here as needed
     acl.add_rule(

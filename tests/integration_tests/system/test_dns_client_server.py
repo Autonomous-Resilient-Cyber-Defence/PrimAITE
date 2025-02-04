@@ -72,7 +72,7 @@ def test_dns_client_requests_offline_dns_server(dns_client_and_dns_server):
 
     server.power_off()
 
-    for i in range(server.shut_down_duration + 1):
+    for i in range(server.config.shut_down_duration + 1):
         server.apply_timestep(timestep=i)
 
     assert server.operating_state == NodeOperatingState.OFF

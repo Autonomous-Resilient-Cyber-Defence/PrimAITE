@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Relabeled action parameters to match the new action config schemas, and updated the values to no longer rely on indices
     -   Removed action space options which were previously used for assigning meaning to action space IDs
 -   Updated tests that don't use YAMLs to still use the new action and agent schemas
+-   Nodes now use a config schema and are extensible, allowing for plugin support.
+-   Node tests have been updated to use the new node config schemas when not using YAML files.
 
 ### Fixed
 -   DNS client no longer fails to check its cache if a DNS server address is missing.

@@ -24,7 +24,7 @@ def test_file_observation(simulation):
     file = pc.file_system.create_file(file_name="dog.png")
 
     dog_file_obs = FileObservation(
-        where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"],
+        where=["network", "nodes", pc.config.hostname, "file_system", "folders", "root", "files", "dog.png"],
         include_num_access=False,
         file_system_requires_scan=True,
     )
@@ -52,7 +52,7 @@ def test_folder_observation(simulation):
     file = pc.file_system.create_file(file_name="dog.png", folder_name="test_folder")
 
     root_folder_obs = FolderObservation(
-        where=["network", "nodes", pc.hostname, "file_system", "folders", "test_folder"],
+        where=["network", "nodes", pc.config.hostname, "file_system", "folders", "test_folder"],
         include_num_access=False,
         file_system_requires_scan=True,
         num_files=1,

@@ -6,7 +6,6 @@ from prettytable import MARKDOWN, PrettyTable
 from pydantic import Field, validate_call
 
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import (
     AccessControlList,
     ACLAction,
@@ -99,11 +98,21 @@ class Firewall(Router, identifier="firewall"):
     )
     """Access Control List for managing traffic leaving towards an external network."""
 
-    def __init__(self, hostname: str, **kwargs):
-        if not kwargs.get("sys_log"):
-            kwargs["sys_log"] = SysLog(hostname)
+    _identifier: str = "firewall"
 
-        super().__init__(hostname=hostname, num_ports=0, **kwargs)
+    class ConfigSchema(Router.ConfigSchema):
+        """Configuration Schema for Firewall 'Nodes' within PrimAITE."""
+
+        hostname: str = "firewall"
+        num_ports: int = 0
+
+    config: ConfigSchema = Field(default_factory=lambda: Firewall.ConfigSchema())
+
+    def __init__(self, **kwargs):
+        if not kwargs.get("sys_log"):
+            kwargs["sys_log"] = SysLog(kwargs["config"].hostname)
+
+        super().__init__(**kwargs)
 
         self.connect_nic(
             RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", port_name="external")
@@ -116,22 +125,23 @@ class Firewall(Router, identifier="firewall"):
         )
         # Update ACL objects with firewall's hostname and syslog to allow accurate logging
         self.internal_inbound_acl.sys_log = kwargs["sys_log"]
-        self.internal_inbound_acl.name = f"{hostname} - Internal Inbound"
+        self.internal_inbound_acl.name = f"{kwargs['config'].hostname} - Internal Inbound"
 
         self.internal_outbound_acl.sys_log = kwargs["sys_log"]
-        self.internal_outbound_acl.name = f"{hostname} - Internal Outbound"
+        self.internal_outbound_acl.name = f"{kwargs['config'].hostname} - Internal Outbound"
 
         self.dmz_inbound_acl.sys_log = kwargs["sys_log"]
-        self.dmz_inbound_acl.name = f"{hostname} - DMZ Inbound"
+        self.dmz_inbound_acl.name = f"{kwargs['config'].hostname} - DMZ Inbound"
 
         self.dmz_outbound_acl.sys_log = kwargs["sys_log"]
-        self.dmz_outbound_acl.name = f"{hostname} - DMZ Outbound"
+        self.dmz_outbound_acl.name = f"{kwargs['config'].hostname} - DMZ Outbound"
 
         self.external_inbound_acl.sys_log = kwargs["sys_log"]
-        self.external_inbound_acl.name = f"{hostname} - External Inbound"
+        self.external_inbound_acl.name = f"{kwargs['config'].hostname} - External Inbound"
 
         self.external_outbound_acl.sys_log = kwargs["sys_log"]
-        self.external_outbound_acl.name = f"{hostname} - External Outbound"
+        self.external_outbound_acl.name = f"{kwargs['config'].hostname} - External Outbound"
+        self.power_on()
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -231,7 +241,7 @@ class Firewall(Router, identifier="firewall"):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.hostname} Network Interfaces"
+        table.title = f"{self.config.hostname} Network Interfaces"
         ports = {"External": self.external_port, "Internal": self.internal_port, "DMZ": self.dmz_port}
         for port, network_interface in ports.items():
             table.add_row(
@@ -551,18 +561,14 @@ class Firewall(Router, identifier="firewall"):
         self.dmz_port.enable()
 
     @classmethod
-    def from_config(cls, cfg: dict) -> "Firewall":
+    def from_config(cls, config: dict) -> "Firewall":
         """Create a firewall based on a config dict."""
-        firewall = Firewall(
-            hostname=cfg["hostname"],
-            operating_state=NodeOperatingState.ON
-            if not (p := cfg.get("operating_state"))
-            else NodeOperatingState[p.upper()],
-        )
-        if "ports" in cfg:
-            internal_port = cfg["ports"]["internal_port"]
-            external_port = cfg["ports"]["external_port"]
-            dmz_port = cfg["ports"].get("dmz_port")
+        firewall = Firewall(config=cls.ConfigSchema(**config))
+
+        if "ports" in config:
+            internal_port = config["ports"]["internal_port"]
+            external_port = config["ports"]["external_port"]
+            dmz_port = config["ports"].get("dmz_port")
 
             # configure internal port
             firewall.configure_internal_port(
@@ -582,10 +588,10 @@ class Firewall(Router, identifier="firewall"):
                     ip_address=IPV4Address(dmz_port.get("ip_address")),
                     subnet_mask=IPV4Address(dmz_port.get("subnet_mask", "255.255.255.0")),
                 )
-        if "acl" in cfg:
+        if "acl" in config:
             # acl rules for internal_inbound_acl
-            if cfg["acl"]["internal_inbound_acl"]:
-                for r_num, r_cfg in cfg["acl"]["internal_inbound_acl"].items():
+            if config["acl"]["internal_inbound_acl"]:
+                for r_num, r_cfg in config["acl"]["internal_inbound_acl"].items():
                     firewall.internal_inbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
                         src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
@@ -599,8 +605,8 @@ class Firewall(Router, identifier="firewall"):
                     )
 
             # acl rules for internal_outbound_acl
-            if cfg["acl"]["internal_outbound_acl"]:
-                for r_num, r_cfg in cfg["acl"]["internal_outbound_acl"].items():
+            if config["acl"]["internal_outbound_acl"]:
+                for r_num, r_cfg in config["acl"]["internal_outbound_acl"].items():
                     firewall.internal_outbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
                         src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
@@ -614,8 +620,8 @@ class Firewall(Router, identifier="firewall"):
                     )
 
             # acl rules for dmz_inbound_acl
-            if cfg["acl"]["dmz_inbound_acl"]:
-                for r_num, r_cfg in cfg["acl"]["dmz_inbound_acl"].items():
+            if config["acl"]["dmz_inbound_acl"]:
+                for r_num, r_cfg in config["acl"]["dmz_inbound_acl"].items():
                     firewall.dmz_inbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
                         src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
@@ -629,8 +635,8 @@ class Firewall(Router, identifier="firewall"):
                     )
 
             # acl rules for dmz_outbound_acl
-            if cfg["acl"]["dmz_outbound_acl"]:
-                for r_num, r_cfg in cfg["acl"]["dmz_outbound_acl"].items():
+            if config["acl"]["dmz_outbound_acl"]:
+                for r_num, r_cfg in config["acl"]["dmz_outbound_acl"].items():
                     firewall.dmz_outbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
                         src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
@@ -644,8 +650,8 @@ class Firewall(Router, identifier="firewall"):
                     )
 
             # acl rules for external_inbound_acl
-            if cfg["acl"].get("external_inbound_acl"):
-                for r_num, r_cfg in cfg["acl"]["external_inbound_acl"].items():
+            if config["acl"].get("external_inbound_acl"):
+                for r_num, r_cfg in config["acl"]["external_inbound_acl"].items():
                     firewall.external_inbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
                         src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
@@ -659,8 +665,8 @@ class Firewall(Router, identifier="firewall"):
                     )
 
             # acl rules for external_outbound_acl
-            if cfg["acl"].get("external_outbound_acl"):
-                for r_num, r_cfg in cfg["acl"]["external_outbound_acl"].items():
+            if config["acl"].get("external_outbound_acl"):
+                for r_num, r_cfg in config["acl"]["external_outbound_acl"].items():
                     firewall.external_outbound_acl.add_rule(
                         action=ACLAction[r_cfg["action"]],
                         src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
@@ -673,16 +679,16 @@ class Firewall(Router, identifier="firewall"):
                         position=r_num,
                     )
 
-        if "routes" in cfg:
-            for route in cfg.get("routes"):
+        if "routes" in config:
+            for route in config.get("routes"):
                 firewall.route_table.add_route(
                     address=IPv4Address(route.get("address")),
                     subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),
                     next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
                     metric=float(route.get("metric", 0)),
                 )
-        if "default_route" in cfg:
-            next_hop_ip_address = cfg["default_route"].get("next_hop_ip_address", None)
+        if "default_route" in config:
+            next_hop_ip_address = config["default_route"].get("next_hop_ip_address", None)
             if next_hop_ip_address:
                 firewall.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
 

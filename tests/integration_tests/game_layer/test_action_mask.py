@@ -2,6 +2,7 @@
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
+from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.system.services.service import ServiceOperatingState
 from tests.conftest import TEST_ASSETS_ROOT
 

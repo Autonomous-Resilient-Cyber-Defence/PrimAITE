@@ -7,7 +7,8 @@ from primaite.simulator.network.hardware.nodes.network.switch import Switch
 
 @pytest.fixture(scope="function")
 def switch() -> Switch:
-    switch: Switch = Switch(hostname="switch_1", num_ports=8, start_up_duration=0)
+    switch_cfg = {"type": "switch", "hostname": "switch_1", "num_ports": 8, "start_up_duration": 0}
+    switch: Switch = Switch.from_config(config=switch_cfg)
     switch.power_on()
     switch.show()
     return switch

@@ -50,9 +50,9 @@ def test_wireless_router_from_config():
         },
     }
 
-    rt = Router.from_config(cfg=cfg)
+    rt = Router.from_config(config=cfg)
 
-    assert rt.num_ports == 6
+    assert rt.config.num_ports == 6
 
     assert rt.network_interface[1].ip_address == IPv4Address("192.168.1.1")
     assert rt.network_interface[1].subnet_mask == IPv4Address("255.255.255.0")

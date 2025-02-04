@@ -9,7 +9,6 @@ from primaite import getLogger
 from primaite.simulator.network.protocols.ntp import NTPPacket
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
-from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
@@ -22,12 +21,12 @@ class NTPClient(Service, identifier="NTPClient"):
         """ConfigSchema for NTPClient."""
 
         type: str = "NTPClient"
-        ntp_server_ip: Optional[IPV4Address] = None
 
-    config: "NTPClient.ConfigSchema" = Field(default_factory=lambda: NTPClient.ConfigSchema())
+        ntp_server_ip: Optional[IPv4Address] = None
+        "The NTP server the client sends requests to."
 
-    ntp_server: Optional[IPv4Address] = None
-    "The NTP server the client sends requests to."
+    config: ConfigSchema = Field(default_factory=lambda: NTPClient.ConfigSchema())
+
     time: Optional[datetime] = None
 
     def __init__(self, **kwargs):
@@ -45,8 +44,8 @@ class NTPClient(Service, identifier="NTPClient"):
         :param ntp_server_ip_address: IPv4 address of NTP server.
         :param ntp_client_ip_Address: IPv4 address of NTP client.
         """
-        self.ntp_server = ntp_server_ip_address
-        self.sys_log.info(f"{self.name}: ntp_server: {self.ntp_server}")
+        self.config.ntp_server_ip = ntp_server_ip_address
+        self.sys_log.info(f"{self.name}: ntp_server: {self.config.ntp_server_ip}")
 
     def describe_state(self) -> Dict:
         """
@@ -108,10 +107,10 @@ class NTPClient(Service, identifier="NTPClient"):
 
     def request_time(self) -> None:
         """Send request to ntp_server."""
-        if self.ntp_server:
+        if self.config.ntp_server_ip:
             self.software_manager.session_manager.receive_payload_from_software_manager(
                 payload=NTPPacket(),
-                dst_ip_address=self.ntp_server,
+                dst_ip_address=self.config.ntp_server_ip,
                 src_port=self.port,
                 dst_port=self.port,
                 ip_protocol=self.protocol,

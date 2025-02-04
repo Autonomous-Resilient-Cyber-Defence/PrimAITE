@@ -1,6 +1,8 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import ClassVar, Dict
 
+from pydantic import Field
+
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 
@@ -34,5 +36,12 @@ class Computer(HostNode, identifier="computer"):
     """
 
     SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "FTPClient": FTPClient}
+
+    class ConfigSchema(HostNode.ConfigSchema):
+        """Configuration Schema for Computer class."""
+
+        hostname: str = "Computer"
+
+    config: ConfigSchema = Field(default_factory=lambda: Computer.ConfigSchema())
 
     pass
