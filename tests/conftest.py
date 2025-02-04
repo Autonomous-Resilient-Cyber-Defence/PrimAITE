@@ -246,7 +246,6 @@ def example_network() -> Network:
 
     switch_1 = Switch.from_config(config=switch_1_cfg)
 
-    # switch_1 = Switch(hostname="switch_1", num_ports=8, start_up_duration=0)
     switch_1.power_on()
 
     network.connect(endpoint_a=router_1.network_interface[1], endpoint_b=switch_1.network_interface[8])
@@ -254,7 +253,6 @@ def example_network() -> Network:
 
     # Switch 2
     switch_2_config = {"hostname": "switch_2", "type": "switch", "num_ports": 8, "start_up_duration": 0}
-    # switch_2 = Switch(hostname="switch_2", num_ports=8, start_up_duration=0)
     switch_2 = Switch.from_config(config=switch_2_config)
     switch_2.power_on()
     network.connect(endpoint_a=router_1.network_interface[2], endpoint_b=switch_2.network_interface[8])
