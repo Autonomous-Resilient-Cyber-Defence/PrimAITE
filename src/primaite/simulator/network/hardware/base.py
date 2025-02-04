@@ -2250,8 +2250,6 @@ class Node(SimComponent, ABC):
 
         # Turn on all the applications in the node
         for app_id in self.applications:
-            print(app_id)
-            print(f"Starting application:{self.applications[app_id].config.type}")
             self.applications[app_id].run()
 
     def _install_system_software(self) -> None:
