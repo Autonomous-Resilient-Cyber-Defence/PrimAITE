@@ -2242,10 +2242,6 @@ class Node(SimComponent, ABC):
         for app_id in self.applications:
             self.applications[app_id].close()
 
-        # Turn off all processes in the node
-        # for process_id in self.processes:
-        #     self.processes[process_id]
-
     def _start_up_actions(self):
         """Actions to perform when the node is starting up."""
         # Turn on all the services in the node
@@ -2257,10 +2253,6 @@ class Node(SimComponent, ABC):
             print(app_id)
             print(f"Starting application:{self.applications[app_id].config.type}")
             self.applications[app_id].run()
-
-        # Turn off all processes in the node
-        # for process_id in self.processes:
-        #     self.processes[process_id]
 
     def _install_system_software(self) -> None:
         """Preinstall required software."""

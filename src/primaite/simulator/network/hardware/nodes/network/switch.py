@@ -109,7 +109,7 @@ class Switch(NetworkNode, identifier="switch"):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        for i in range(1, kwargs["config"].num_ports + 1):
+        for i in range(1, self.config.num_ports + 1):
             self.connect_nic(SwitchPort())
 
     def _install_system_software(self):
