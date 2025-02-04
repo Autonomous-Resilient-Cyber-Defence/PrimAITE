@@ -26,6 +26,7 @@ class DNSClient(Service, discriminator="dns-client"):
 
         type: str = "dns-client"
         dns_server: Optional[IPV4Address] = None
+        "The DNS Server the client sends requests to."
 
     config: ConfigSchema = Field(default_factory=lambda: DNSClient.ConfigSchema())
     dns_cache: Dict[str, IPv4Address] = {}

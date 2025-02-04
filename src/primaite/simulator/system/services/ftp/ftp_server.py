@@ -20,8 +20,6 @@ class FTPServer(FTPServiceABC, discriminator="ftp-server"):
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
 
-    server_password: Optional[str] = None
-
     class ConfigSchema(FTPServiceABC.ConfigSchema):
         """ConfigSchema for FTPServer."""
 
@@ -29,6 +27,7 @@ class FTPServer(FTPServiceABC, discriminator="ftp-server"):
         server_password: Optional[str] = None
 
     config: ConfigSchema = Field(default_factory=lambda: FTPServer.ConfigSchema())
+    server_password: Optional[str] = None
 
     def __init__(self, **kwargs):
         kwargs["name"] = "ftp-server"

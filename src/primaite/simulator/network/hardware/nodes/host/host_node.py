@@ -330,14 +330,14 @@ class HostNode(Node, discriminator="host-node"):
     network_interface: Dict[int, NIC] = {}
     "The NICs on the node by port id."
 
-    config: HostNode.ConfigSchema = Field(default_factory=lambda: HostNode.ConfigSchema())
-
     class ConfigSchema(Node.ConfigSchema):
         """Configuration Schema for HostNode class."""
 
         hostname: str = "HostNode"
         subnet_mask: IPV4Address = "255.255.255.0"
         ip_address: IPV4Address
+
+    config: ConfigSchema = Field(default_factory=lambda: HostNode.ConfigSchema())
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

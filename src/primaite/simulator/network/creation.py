@@ -167,7 +167,6 @@ class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
         # Optionally include a router in the LAN
         if config.include_router:
             default_gateway = IPv4Address(f"192.168.{config.subnet_base}.1")
-            # router = Router(hostname=f"router_{config.lan_name}", start_up_duration=0)
             router = Router.from_config(
                 config={"hostname": f"router_{config.lan_name}", "type": "router", "start_up_duration": 0}
             )
@@ -230,7 +229,7 @@ class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
                 "type": "computer",
                 "hostname": f"pc_{i}_{config.lan_name}",
                 "ip_address": f"192.168.{config.subnet_base}.{i+config.pcs_ip_block_start-1}",
-                "default_gateway": "192.168.10.1",
+                "default_gateway": default_gateway,
                 "start_up_duration": 0,
             }
             pc = Computer.from_config(config=pc_cfg)

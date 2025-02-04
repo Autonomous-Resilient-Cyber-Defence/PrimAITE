@@ -1526,16 +1526,13 @@ class Node(SimComponent, ABC):
     _discriminator: ClassVar[str]
     """discriminator for this particular class, used for printing and logging. Each subclass redefines this."""
 
-    config: Node.ConfigSchema = Field(default_factory=lambda: Node.ConfigSchema())
-    """Configuration items within Node"""
-
     class ConfigSchema(BaseModel, ABC):
         """Configuration Schema for Node based classes."""
 
         model_config = ConfigDict(arbitrary_types_allowed=True)
         """Configure pydantic to allow arbitrary types, let the instance have attributes not present in the model."""
 
-        hostname: str = "default"
+        hostname: str
         "The node hostname on the network."
 
         revealed_to_red: bool = False
@@ -1572,6 +1569,9 @@ class Node(SimComponent, ABC):
         "The default gateway IP address for forwarding network traffic to other networks."
 
         operating_state: Any = None
+
+    config: ConfigSchema = Field(default_factory=lambda: Node.ConfigSchema())
+    """Configuration items within Node"""
 
     @property
     def dns_server(self) -> Optional[IPv4Address]:
@@ -2243,10 +2243,6 @@ class Node(SimComponent, ABC):
         for app_id in self.applications:
             self.applications[app_id].close()
 
-        # Turn off all processes in the node
-        # for process_id in self.processes:
-        #     self.processes[process_id]
-
     def _start_up_actions(self):
         """Actions to perform when the node is starting up."""
         # Turn on all the services in the node
@@ -2255,13 +2251,7 @@ class Node(SimComponent, ABC):
 
         # Turn on all the applications in the node
         for app_id in self.applications:
-            print(app_id)
-            print(f"Starting application:{self.applications[app_id].config.type}")
             self.applications[app_id].run()
-
-        # Turn off all processes in the node
-        # for process_id in self.processes:
-        #     self.processes[process_id]
 
     def _install_system_software(self) -> None:
         """Preinstall required software."""

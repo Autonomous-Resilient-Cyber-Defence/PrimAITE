@@ -123,14 +123,14 @@ class WirelessRouter(Router, discriminator="wireless-router"):
     network_interfaces: Dict[str, Union[RouterInterface, WirelessAccessPoint]] = {}
     network_interface: Dict[int, Union[RouterInterface, WirelessAccessPoint]] = {}
 
-    config: "WirelessRouter.ConfigSchema" = Field(default_factory=lambda: WirelessRouter.ConfigSchema())
-
     class ConfigSchema(Router.ConfigSchema):
         """Configuration Schema for WirelessRouter nodes within PrimAITE."""
 
         hostname: str = "WirelessRouter"
         airspace: AirSpace
         num_ports: int = 0
+
+    config: ConfigSchema = Field(default_factory=lambda: WirelessRouter.ConfigSchema())
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

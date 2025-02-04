@@ -23,6 +23,7 @@ class NTPClient(Service, discriminator="ntp-client"):
 
         type: str = "ntp-client"
         ntp_server_ip: Optional[IPV4Address] = None
+        "The NTP server the client sends requests to."
 
     config: ConfigSchema = Field(default_factory=lambda: NTPClient.ConfigSchema())
 
