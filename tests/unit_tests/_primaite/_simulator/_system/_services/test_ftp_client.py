@@ -16,13 +16,15 @@ from primaite.utils.validation.port import PORT_LOOKUP
 
 @pytest.fixture(scope="function")
 def ftp_client() -> Node:
-    node = Computer(
-        hostname="ftp_client",
-        ip_address="192.168.1.11",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    node_cfg = {
+        "type": "computer",
+        "hostname": "ftp_client",
+        "ip_address": "192.168.1.11",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
+    node = Computer.from_config(config=node_cfg)
     node.power_on()
     return node
 
@@ -94,7 +96,7 @@ def test_offline_ftp_client_receives_request(ftp_client):
     ftp_client_service: FTPClient = ftp_client.software_manager.software.get("ftp-client")
     ftp_client.power_off()
 
-    for i in range(ftp_client.shut_down_duration + 1):
+    for i in range(ftp_client.config.shut_down_duration + 1):
         ftp_client.apply_timestep(timestep=i)
 
     assert ftp_client.operating_state is NodeOperatingState.OFF

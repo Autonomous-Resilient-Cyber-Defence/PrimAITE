@@ -32,6 +32,7 @@ class DatabaseService(Service, discriminator="database-service"):
         type: str = "database-service"
         backup_server_ip: Optional[IPv4Address] = None
         db_password: Optional[str] = None
+        """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
 
     config: ConfigSchema = Field(default_factory=lambda: DatabaseService.ConfigSchema())
 
@@ -224,7 +225,7 @@ class DatabaseService(Service, discriminator="database-service"):
                 SoftwareHealthState.FIXING,
                 SoftwareHealthState.COMPROMISED,
             ]:
-                if self.password == password:
+                if self.config.db_password == password:
                     status_code = 200  # ok
                     connection_id = self._generate_connection_id()
                     # try to create connection

@@ -26,8 +26,6 @@ class NTPClient(Service, discriminator="ntp-client"):
 
     config: ConfigSchema = Field(default_factory=lambda: NTPClient.ConfigSchema())
 
-    ntp_server: Optional[IPv4Address] = None
-    "The NTP server the client sends requests to."
     time: Optional[datetime] = None
 
     def __init__(self, **kwargs):
@@ -45,8 +43,8 @@ class NTPClient(Service, discriminator="ntp-client"):
         :param ntp_server_ip_address: IPv4 address of NTP server.
         :param ntp_client_ip_Address: IPv4 address of NTP client.
         """
-        self.ntp_server = ntp_server_ip_address
-        self.sys_log.info(f"{self.name}: ntp_server: {self.ntp_server}")
+        self.config.ntp_server_ip = ntp_server_ip_address
+        self.sys_log.info(f"{self.name}: ntp_server: {self.config.ntp_server_ip}")
 
     def describe_state(self) -> Dict:
         """
@@ -108,10 +106,10 @@ class NTPClient(Service, discriminator="ntp-client"):
 
     def request_time(self) -> None:
         """Send request to ntp_server."""
-        if self.ntp_server:
+        if self.config.ntp_server_ip:
             self.software_manager.session_manager.receive_payload_from_software_manager(
                 payload=NTPPacket(),
-                dst_ip_address=self.ntp_server,
+                dst_ip_address=self.config.ntp_server_ip,
                 src_port=self.port,
                 dst_port=self.port,
                 ip_protocol=self.protocol,

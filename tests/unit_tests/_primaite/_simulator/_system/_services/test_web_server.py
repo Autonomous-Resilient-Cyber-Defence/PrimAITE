@@ -16,13 +16,15 @@ from primaite.utils.validation.port import PORT_LOOKUP
 
 @pytest.fixture(scope="function")
 def web_server() -> Server:
-    node = Server(
-        hostname="web_server",
-        ip_address="192.168.1.10",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    node_cfg = {
+        "type": "server",
+        "hostname": "web_server",
+        "ip_address": "192.168.1.10",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
+    node = Server.from_config(config=node_cfg)
     node.power_on()
     node.software_manager.install(WebServer)
     node.software_manager.software.get("web-server").start()

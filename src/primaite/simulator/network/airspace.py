@@ -178,7 +178,7 @@ class AirSpace(BaseModel):
             status = "Enabled" if interface.enabled else "Disabled"
             table.add_row(
                 [
-                    interface._connected_node.hostname,  # noqa
+                    interface._connected_node.config.hostname,  # noqa
                     interface.mac_address,
                     interface.ip_address if hasattr(interface, "ip_address") else None,
                     interface.subnet_mask if hasattr(interface, "subnet_mask") else None,
@@ -320,7 +320,7 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
         self.enabled = True
         self._connected_node.sys_log.info(f"Network Interface {self} enabled")
         self.pcap = PacketCapture(
-            hostname=self._connected_node.hostname, port_num=self.port_num, port_name=self.port_name
+            hostname=self._connected_node.config.hostname, port_num=self.port_num, port_name=self.port_name
         )
         self.airspace.add_wireless_interface(self)
 

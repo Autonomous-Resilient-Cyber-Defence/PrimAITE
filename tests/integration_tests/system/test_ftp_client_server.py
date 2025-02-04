@@ -87,7 +87,7 @@ def test_ftp_client_tries_to_connect_to_offline_server(ftp_client_and_ftp_server
 
     server.power_off()
 
-    for i in range(server.shut_down_duration + 1):
+    for i in range(server.config.shut_down_duration + 1):
         server.apply_timestep(timestep=i)
 
     assert ftp_client.operating_state == ServiceOperatingState.RUNNING

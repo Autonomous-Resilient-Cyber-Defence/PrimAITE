@@ -14,13 +14,15 @@ from primaite.utils.validation.port import PORT_LOOKUP
 
 @pytest.fixture(scope="function")
 def ftp_server() -> Node:
-    node = Server(
-        hostname="ftp_server",
-        ip_address="192.168.1.10",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    node_cfg = {
+        "type": "server",
+        "hostname": "ftp_server",
+        "ip_address": "192.168.1.10",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
+    node = Server.from_config(config=node_cfg)
     node.power_on()
     node.software_manager.install(software_class=FTPServer)
     return node

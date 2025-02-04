@@ -1,4 +1,7 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+
+from pydantic import Field
+
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 
 
@@ -30,8 +33,22 @@ class Server(HostNode, discriminator="server"):
         * Web Browser
     """
 
+    config: "Server.ConfigSchema" = Field(default_factory=lambda: Server.ConfigSchema())
+
+    class ConfigSchema(HostNode.ConfigSchema):
+        """Configuration Schema for Server class."""
+
+        hostname: str = "server"
+
 
 class Printer(HostNode, discriminator="printer"):
     """Printer? I don't even know her!."""
 
     # TODO: Implement printer-specific behaviour
+
+    config: "Printer.ConfigSchema" = Field(default_factory=lambda: Printer.ConfigSchema())
+
+    class ConfigSchema(HostNode.ConfigSchema):
+        """Configuration Schema for Printer class."""
+
+        hostname: str = "printer"

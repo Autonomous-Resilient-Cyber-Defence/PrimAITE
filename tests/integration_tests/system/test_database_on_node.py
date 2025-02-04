@@ -20,11 +20,27 @@ from primaite.simulator.system.software import SoftwareHealthState
 @pytest.fixture(scope="function")
 def peer_to_peer() -> Tuple[Computer, Computer]:
     network = Network()
-    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "node_a",
+            "ip_address": "192.168.0.10",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     node_a.power_on()
     node_a.software_manager.get_open_ports()
 
-    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "node_b",
+            "ip_address": "192.168.0.11",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
@@ -46,7 +62,7 @@ def peer_to_peer_secure_db(peer_to_peer) -> Tuple[Computer, Computer]:
 
     database_service: DatabaseService = node_b.software_manager.software["database-service"]  # noqa
     database_service.stop()
-    database_service.password = "12345"
+    database_service.config.db_password = "12345"
     database_service.start()
     return node_a, node_b
 
@@ -338,7 +354,7 @@ def test_database_client_cannot_query_offline_database_server(uc2_network):
     assert db_connection.query("INSERT") is True
     db_server.power_off()
 
-    for i in range(db_server.shut_down_duration + 1):
+    for i in range(db_server.config.shut_down_duration + 1):
         uc2_network.apply_timestep(timestep=i)
 
     assert db_server.operating_state is NodeOperatingState.OFF
@@ -412,8 +428,14 @@ def test_database_service_can_terminate_connection(peer_to_peer):
 def test_client_connection_terminate_does_not_terminate_another_clients_connection():
     network = Network()
 
-    db_server = Server(
-        hostname="db_client", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0
+    db_server: Server = Server.from_config(
+        config={
+            "type": "server",
+            "hostname": "db_client",
+            "ip_address": "192.168.0.11",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
     )
     db_server.power_on()
 
@@ -421,8 +443,14 @@ def test_client_connection_terminate_does_not_terminate_another_clients_connecti
     db_service: DatabaseService = db_server.software_manager.software["database-service"]  # noqa
     db_service.start()
 
-    client_a = Computer(
-        hostname="client_a", ip_address="192.168.0.12", subnet_mask="255.255.255.0", start_up_duration=0
+    client_a = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "client_a",
+            "ip_address": "192.168.0.12",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
     )
     client_a.power_on()
 
@@ -430,8 +458,14 @@ def test_client_connection_terminate_does_not_terminate_another_clients_connecti
     client_a.software_manager.software["database-client"].configure(server_ip_address=IPv4Address("192.168.0.11"))
     client_a.software_manager.software["database-client"].run()
 
-    client_b = Computer(
-        hostname="client_b", ip_address="192.168.0.13", subnet_mask="255.255.255.0", start_up_duration=0
+    client_b = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "client_b",
+            "ip_address": "192.168.0.13",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
     )
     client_b.power_on()
 
@@ -439,7 +473,7 @@ def test_client_connection_terminate_does_not_terminate_another_clients_connecti
     client_b.software_manager.software["database-client"].configure(server_ip_address=IPv4Address("192.168.0.11"))
     client_b.software_manager.software["database-client"].run()
 
-    switch = Switch(hostname="switch", start_up_duration=0, num_ports=3)
+    switch = Switch.from_config(config={"type": "switch", "hostname": "switch", "start_up_duration": 0, "num_ports": 3})
     switch.power_on()
 
     network.connect(endpoint_a=switch.network_interface[1], endpoint_b=db_server.network_interface[1])
@@ -465,6 +499,14 @@ def test_client_connection_terminate_does_not_terminate_another_clients_connecti
 
 
 def test_database_server_install_ftp_client():
-    server = Server(hostname="db_server", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
+    server: Server = Server.from_config(
+        config={
+            "type": "server",
+            "hostname": "db_server",
+            "ip_address": "192.168.1.2",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     server.software_manager.install(DatabaseService)
     assert server.software_manager.software.get("ftp-client")

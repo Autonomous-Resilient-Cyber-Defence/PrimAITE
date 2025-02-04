@@ -12,6 +12,7 @@ from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
+from primaite.simulator.network.networks import arcd_uc2_network
 from primaite.simulator.network.protocols.ssh import (
     SSHConnectionMessage,
     SSHPacket,
@@ -29,8 +30,14 @@ from primaite.utils.validation.port import PORT_LOOKUP
 
 @pytest.fixture(scope="function")
 def terminal_on_computer() -> Tuple[Terminal, Computer]:
-    computer: Computer = Computer(
-        hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0
+    computer: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "node_a",
+            "ip_address": "192.168.0.10",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
     )
     computer.power_on()
     terminal: Terminal = computer.software_manager.software.get("terminal")
@@ -41,11 +48,27 @@ def terminal_on_computer() -> Tuple[Terminal, Computer]:
 @pytest.fixture(scope="function")
 def basic_network() -> Network:
     network = Network()
-    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "node_a",
+            "ip_address": "192.168.0.10",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     node_a.power_on()
     node_a.software_manager.get_open_ports()
 
-    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "node_b",
+            "ip_address": "192.168.0.11",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
@@ -57,18 +80,23 @@ def wireless_wan_network():
     network = Network()
 
     # Configure PC A
-    pc_a = Computer(
-        hostname="pc_a",
-        ip_address="192.168.0.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.0.1",
-        start_up_duration=0,
-    )
+    pc_a_cfg = {
+        "type": "computer",
+        "hostname": "pc_a",
+        "ip_address": "192.168.0.2",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.0.1",
+        "start_up_duration": 0,
+    }
+
+    pc_a = Computer.from_config(config=pc_a_cfg)
     pc_a.power_on()
     network.add_node(pc_a)
 
     # Configure Router 1
-    router_1 = WirelessRouter(hostname="router_1", start_up_duration=0, airspace=network.airspace)
+    router_1 = WirelessRouter.from_config(
+        config={"type": "wireless_router", "hostname": "router_1", "start_up_duration": 0, "airspace": network.airspace}
+    )
     router_1.power_on()
     network.add_node(router_1)
 
@@ -88,41 +116,30 @@ def wireless_wan_network():
     )
 
     # Configure PC B
-    pc_b = Computer(
-        hostname="pc_b",
-        ip_address="192.168.2.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.2.1",
-        start_up_duration=0,
-    )
+
+    pc_b_cfg = {
+        "type": "computer",
+        "hostname": "pc_b",
+        "ip_address": "192.168.2.2",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.2.1",
+        "start_up_duration": 0,
+    }
+
+    pc_b = Computer.from_config(config=pc_b_cfg)
     pc_b.power_on()
     network.add_node(pc_b)
-
-    # Configure Router 2
-    router_2 = WirelessRouter(hostname="router_2", start_up_duration=0, airspace=network.airspace)
-    router_2.power_on()
-    network.add_node(router_2)
-
-    # Configure the connection between PC B and Router 2 port 2
-    router_2.configure_router_interface("192.168.2.1", "255.255.255.0")
-    network.connect(pc_b.network_interface[1], router_2.network_interface[2])
 
     # Configure Router 2 ACLs
 
     # Configure the wireless connection between Router 1 port 1 and Router 2 port 1
     router_1.configure_wireless_access_point("192.168.1.1", "255.255.255.0")
-    router_2.configure_wireless_access_point("192.168.1.2", "255.255.255.0")
 
     router_1.route_table.add_route(
         address="192.168.2.0", subnet_mask="255.255.255.0", next_hop_ip_address="192.168.1.2"
     )
 
-    # Configure Route from Router 2 to PC A subnet
-    router_2.route_table.add_route(
-        address="192.168.0.2", subnet_mask="255.255.255.0", next_hop_ip_address="192.168.1.1"
-    )
-
-    return pc_a, pc_b, router_1, router_2
+    return network
 
 
 @pytest.fixture
@@ -131,7 +148,7 @@ def game_and_agent_fixture(game_and_agent):
     game, agent = game_and_agent
 
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
-    client_1.start_up_duration = 3
+    client_1.config.start_up_duration = 3
 
     return game, agent
 
@@ -142,8 +159,16 @@ def test_terminal_creation(terminal_on_computer):
 
 
 def test_terminal_install_default():
-    """terminal should be auto installed onto Nodes"""
-    computer = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    """Terminal should be auto installed onto Nodes"""
+    computer: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "node_a",
+            "ip_address": "192.168.0.10",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     computer.power_on()
 
     assert computer.software_manager.software.get("terminal")
@@ -151,7 +176,7 @@ def test_terminal_install_default():
 
 def test_terminal_not_on_switch():
     """Ensure terminal does not auto-install to switch"""
-    test_switch = Switch(hostname="Test")
+    test_switch = Switch.from_config(config={"type": "switch", "hostname": "Test"})
 
     assert not test_switch.software_manager.software.get("terminal")
 
@@ -274,7 +299,10 @@ def test_terminal_ignores_when_off(basic_network):
 
 def test_computer_remote_login_to_router(wireless_wan_network):
     """Test to confirm that a computer can SSH into a router."""
-    pc_a, _, router_1, _ = wireless_wan_network
+
+    pc_a = wireless_wan_network.get_node_by_hostname("pc_a")
+
+    router_1 = wireless_wan_network.get_node_by_hostname("router_1")
 
     pc_a_terminal: Terminal = pc_a.software_manager.software.get("terminal")
 
@@ -293,7 +321,9 @@ def test_computer_remote_login_to_router(wireless_wan_network):
 
 def test_router_remote_login_to_computer(wireless_wan_network):
     """Test to confirm that a router can ssh into a computer."""
-    pc_a, _, router_1, _ = wireless_wan_network
+    pc_a = wireless_wan_network.get_node_by_hostname("pc_a")
+
+    router_1 = wireless_wan_network.get_node_by_hostname("router_1")
 
     router_1_terminal: Terminal = router_1.software_manager.software.get("terminal")
 
@@ -311,8 +341,10 @@ def test_router_remote_login_to_computer(wireless_wan_network):
 
 
 def test_router_blocks_SSH_traffic(wireless_wan_network):
-    """Test to check that router will block SSH traffic if no acl rule."""
-    pc_a, _, router_1, _ = wireless_wan_network
+    """Test to check that router will block SSH traffic if no ACL rule."""
+    pc_a = wireless_wan_network.get_node_by_hostname("pc_a")
+
+    router_1 = wireless_wan_network.get_node_by_hostname("router_1")
 
     # Remove rule that allows SSH traffic.
     router_1.acl.remove_rule(position=21)
@@ -326,20 +358,22 @@ def test_router_blocks_SSH_traffic(wireless_wan_network):
     assert len(pc_a_terminal._connections) == 0
 
 
-def test_SSH_across_network(wireless_wan_network):
+def test_SSH_across_network():
     """Test to show ability to SSH across a network."""
-    pc_a, pc_b, router_1, router_2 = wireless_wan_network
+    network: Network = arcd_uc2_network()
+    pc_a = network.get_node_by_hostname("client_1")
+    router_1 = network.get_node_by_hostname("router_1")
 
-    terminal_a: Terminal = pc_a.software_manager.software.get("terminal")
-    terminal_b: Terminal = pc_b.software_manager.software.get("terminal")
+    terminal_a: Terminal = pc_a.software_manager.software.get("Terminal")
 
-    router_2.acl.add_rule(
+    router_1.acl.add_rule(
         action=ACLAction.PERMIT, src_port=PORT_LOOKUP["SSH"], dst_port=PORT_LOOKUP["SSH"], position=21
     )
 
     assert len(terminal_a._connections) == 0
 
-    terminal_b_on_terminal_a = terminal_b.login(username="admin", password="admin", ip_address="192.168.0.2")
+    # Login to the Domain Controller
+    terminal_a.login(username="admin", password="admin", ip_address="192.168.1.10")
 
     assert len(terminal_a._connections) == 1
 
@@ -356,8 +390,6 @@ def test_multiple_remote_terminals_same_node(basic_network):
     # Spam login requests to node.
     for attempt in range(3):
         remote_connection = terminal_a.login(username="admin", password="admin", ip_address="192.168.0.11")
-
-    terminal_a.show()
 
     assert len(terminal_a._connections) == 3
 

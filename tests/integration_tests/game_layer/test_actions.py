@@ -21,6 +21,7 @@ from primaite.game.agent.interface import ProxyAgent
 from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
+from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.software import SoftwareHealthState

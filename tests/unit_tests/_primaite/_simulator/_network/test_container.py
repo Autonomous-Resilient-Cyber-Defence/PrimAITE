@@ -61,12 +61,12 @@ def test_apply_timestep_to_nodes(network):
     client_1.power_off()
     assert client_1.operating_state is NodeOperatingState.SHUTTING_DOWN
 
-    for i in range(client_1.shut_down_duration + 1):
+    for i in range(client_1.config.shut_down_duration + 1):
         network.apply_timestep(timestep=i)
 
     assert client_1.operating_state is NodeOperatingState.OFF
 
-    network.apply_timestep(client_1.shut_down_duration + 2)
+    network.apply_timestep(client_1.config.shut_down_duration + 2)
     assert client_1.operating_state is NodeOperatingState.OFF
 
 
@@ -74,7 +74,16 @@ def test_removing_node_that_does_not_exist(network):
     """Node that does not exist on network should not affect existing nodes."""
     assert len(network.nodes) is 7
 
-    network.remove_node(Computer(hostname="new_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0"))
+    network.remove_node(
+        Computer.from_config(
+            config={
+                "type": "computer",
+                "hostname": "new_node",
+                "ip_address": "192.168.1.2",
+                "subnet_mask": "255.255.255.0",
+            }
+        )
+    )
     assert len(network.nodes) is 7
 
 

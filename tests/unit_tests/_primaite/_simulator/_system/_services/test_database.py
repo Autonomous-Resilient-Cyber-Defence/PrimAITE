@@ -8,7 +8,15 @@ from primaite.simulator.system.services.database.database_service import Databas
 
 @pytest.fixture(scope="function")
 def database_server() -> Node:
-    node = Computer(hostname="db_node", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_cfg = {
+        "type": "computer",
+        "hostname": "db_node",
+        "ip_address": "192.168.1.2",
+        "subnet_mask": "255.255.255.0",
+        "start_up_duration": 0,
+    }
+
+    node = Computer.from_config(config=node_cfg)
     node.power_on()
     node.software_manager.install(DatabaseService)
     node.software_manager.software.get("database-service").start()

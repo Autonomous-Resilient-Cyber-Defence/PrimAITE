@@ -13,13 +13,15 @@ from primaite.simulator.system.services.service import Service, ServiceOperating
 def populated_node(
     service_class,
 ) -> Tuple[Server, Service]:
-    server = Server(
-        hostname="server",
-        ip_address="192.168.0.1",
-        subnet_mask="255.255.255.0",
-        start_up_duration=0,
-        shut_down_duration=0,
-    )
+    server_cfg = {
+        "type": "server",
+        "hostname": "server",
+        "ip_address": "192.168.0.1",
+        "subnet_mask": "255.255.255.0",
+        "start_up_duration": 0,
+        "shut_down_duration": 0,
+    }
+    server: Server = Server.from_config(config=server_cfg)
     server.power_on()
     server.software_manager.install(service_class)
 
@@ -31,14 +33,16 @@ def populated_node(
 
 def test_service_on_offline_node(service_class):
     """Test to check that the service cannot be interacted with when node it is on is off."""
-    computer: Computer = Computer(
-        hostname="test_computer",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-        shut_down_duration=0,
-    )
+    computer_cfg = {
+        "type": "computer",
+        "hostname": "test_computer",
+        "ip_address": "192.168.1.2",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+        "shut_down_duration": 0,
+    }
+    computer: Computer = Computer.from_config(config=computer_cfg)
     computer.power_on()
     computer.software_manager.install(service_class)
 

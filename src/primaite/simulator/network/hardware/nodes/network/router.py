@@ -1207,7 +1207,6 @@ class Router(NetworkNode, discriminator="router"):
         "Terminal": Terminal,
     }
 
-    num_ports: int
     network_interfaces: Dict[str, RouterInterface] = {}
     "The Router Interfaces on the node."
     network_interface: Dict[int, RouterInterface] = {}
@@ -1215,19 +1214,29 @@ class Router(NetworkNode, discriminator="router"):
     acl: AccessControlList
     route_table: RouteTable
 
-    def __init__(self, hostname: str, num_ports: int = 5, **kwargs):
+    config: "Router.ConfigSchema"
+
+    class ConfigSchema(NetworkNode.ConfigSchema):
+        """Configuration Schema for Routers."""
+
+        hostname: str = "router"
+        num_ports: int = 5
+
+    def __init__(self, **kwargs):
         if not kwargs.get("sys_log"):
-            kwargs["sys_log"] = SysLog(hostname)
+            kwargs["sys_log"] = SysLog(kwargs["config"].hostname)
         if not kwargs.get("acl"):
-            kwargs["acl"] = AccessControlList(sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=hostname)
+            kwargs["acl"] = AccessControlList(
+                sys_log=kwargs["sys_log"], implicit_action=ACLAction.DENY, name=kwargs["config"].hostname
+            )
         if not kwargs.get("route_table"):
             kwargs["route_table"] = RouteTable(sys_log=kwargs["sys_log"])
-        super().__init__(hostname=hostname, num_ports=num_ports, **kwargs)
+        super().__init__(**kwargs)
         self.session_manager = RouterSessionManager(sys_log=self.sys_log)
         self.session_manager.node = self
         self.software_manager.session_manager = self.session_manager
         self.session_manager.software_manager = self.software_manager
-        for i in range(1, self.num_ports + 1):
+        for i in range(1, self.config.num_ports + 1):
             network_interface = RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0")
             self.connect_nic(network_interface)
             self.network_interface[i] = network_interface
@@ -1337,7 +1346,7 @@ class Router(NetworkNode, discriminator="router"):
         :return: A dictionary representing the current state.
         """
         state = super().describe_state()
-        state["num_ports"] = self.num_ports
+        state["num_ports"] = self.config.num_ports
         state["acl"] = self.acl.describe_state()
         return state
 
@@ -1545,7 +1554,7 @@ class Router(NetworkNode, discriminator="router"):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.hostname} Network Interfaces"
+        table.title = f"{self.config.hostname} Network Interfaces"
         for port, network_interface in self.network_interface.items():
             table.add_row(
                 [
@@ -1559,7 +1568,7 @@ class Router(NetworkNode, discriminator="router"):
         print(table)
 
     @classmethod
-    def from_config(cls, cfg: dict, **kwargs) -> "Router":
+    def from_config(cls, config: dict, **kwargs) -> "Router":
         """Create a router based on a config dict.
 
         Schema:
@@ -1616,22 +1625,16 @@ class Router(NetworkNode, discriminator="router"):
         :return: Configured router.
         :rtype: Router
         """
-        router = Router(
-            hostname=cfg["hostname"],
-            num_ports=int(cfg.get("num_ports", "5")),
-            operating_state=NodeOperatingState.ON
-            if not (p := cfg.get("operating_state"))
-            else NodeOperatingState[p.upper()],
-        )
-        if "ports" in cfg:
-            for port_num, port_cfg in cfg["ports"].items():
+        router = Router(config=Router.ConfigSchema(**config))
+        if "ports" in config:
+            for port_num, port_cfg in config["ports"].items():
                 router.configure_port(
                     port=port_num,
                     ip_address=port_cfg["ip_address"],
                     subnet_mask=IPv4Address(port_cfg.get("subnet_mask", "255.255.255.0")),
                 )
-        if "acl" in cfg:
-            for r_num, r_cfg in cfg["acl"].items():
+        if "acl" in config:
+            for r_num, r_cfg in config["acl"].items():
                 router.acl.add_rule(
                     action=ACLAction[r_cfg["action"]],
                     src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
@@ -1643,16 +1646,19 @@ class Router(NetworkNode, discriminator="router"):
                     dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                     position=r_num,
                 )
-        if "routes" in cfg:
-            for route in cfg.get("routes"):
+        if "routes" in config:
+            for route in config.get("routes"):
                 router.route_table.add_route(
                     address=IPv4Address(route.get("address")),
                     subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),
                     next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
                     metric=float(route.get("metric", 0)),
                 )
-        if "default_route" in cfg:
-            next_hop_ip_address = cfg["default_route"].get("next_hop_ip_address", None)
+        if "default_route" in config:
+            next_hop_ip_address = config["default_route"].get("next_hop_ip_address", None)
             if next_hop_ip_address:
                 router.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
+        router.operating_state = (
+            NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
+        )
         return router

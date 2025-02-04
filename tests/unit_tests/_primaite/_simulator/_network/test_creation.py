@@ -19,7 +19,7 @@ def _assert_valid_creation(net: Network, lan_name, subnet_base, pcs_ip_block_sta
     num_routers = 1 if include_router else 0
     total_nodes = num_pcs + num_switches + num_routers
 
-    assert all((n.hostname.endswith(lan_name) for n in net.nodes.values()))
+    assert all((n.config.hostname.endswith(lan_name) for n in net.nodes.values()))
     assert len(net.computer_nodes) == num_pcs
     assert len(net.switch_nodes) == num_switches
     assert len(net.router_nodes) == num_routers

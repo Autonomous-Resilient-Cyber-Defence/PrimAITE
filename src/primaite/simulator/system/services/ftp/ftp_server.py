@@ -36,7 +36,11 @@ class FTPServer(FTPServiceABC, discriminator="ftp-server"):
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self.start()
-        self.server_password = self.config.server_password
+
+    @property
+    def server_password(self) -> Optional[str]:
+        """Convenience method for accessing FTP server password."""
+        return self.config.server_password
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
         """

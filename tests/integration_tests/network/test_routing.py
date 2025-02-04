@@ -15,25 +15,31 @@ from primaite.utils.validation.port import PORT_LOOKUP
 @pytest.fixture(scope="function")
 def pc_a_pc_b_router_1() -> Tuple[Computer, Computer, Router]:
     network = Network()
-    pc_a = Computer(
-        hostname="pc_a",
-        ip_address="192.168.0.10",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.0.1",
-        start_up_duration=0,
+    pc_a = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "pc_a",
+            "ip_address": "192.168.0.10",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.0.1",
+            "start_up_duration": 0,
+        }
     )
     pc_a.power_on()
 
-    pc_b = Computer(
-        hostname="pc_b",
-        ip_address="192.168.1.10",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
+    pc_b = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "pc_b",
+            "ip_address": "192.168.1.10",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.1.1",
+            "start_up_duration": 0,
+        }
     )
     pc_b.power_on()
 
-    router_1 = Router(hostname="router_1", start_up_duration=0)
+    router_1 = Router.from_config(config={"type": "router", "hostname": "router_1", "start_up_duration": 0})
     router_1.power_on()
 
     router_1.configure_port(1, "192.168.0.1", "255.255.255.0")
@@ -52,18 +58,21 @@ def multi_hop_network() -> Network:
     network = Network()
 
     # Configure PC A
-    pc_a = Computer(
-        hostname="pc_a",
-        ip_address="192.168.0.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.0.1",
-        start_up_duration=0,
+    pc_a: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "pc_a",
+            "ip_address": "192.168.0.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.0.1",
+            "start_up_duration": 0,
+        }
     )
     pc_a.power_on()
     network.add_node(pc_a)
 
     # Configure Router 1
-    router_1 = Router(hostname="router_1", start_up_duration=0)
+    router_1: Router = Router.from_config(config={"type": "router", "hostname": "router_1", "start_up_duration": 0})
     router_1.power_on()
     network.add_node(router_1)
 
@@ -79,18 +88,21 @@ def multi_hop_network() -> Network:
     router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
 
     # Configure PC B
-    pc_b = Computer(
-        hostname="pc_b",
-        ip_address="192.168.2.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.2.1",
-        start_up_duration=0,
+    pc_b: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "pc_b",
+            "ip_address": "192.168.2.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.2.1",
+            "start_up_duration": 0,
+        }
     )
     pc_b.power_on()
     network.add_node(pc_b)
 
     # Configure Router 2
-    router_2 = Router(hostname="router_2", start_up_duration=0)
+    router_2: Router = Router.from_config(config={"type": "router", "hostname": "router_2", "start_up_duration": 0})
     router_2.power_on()
     network.add_node(router_2)
 
@@ -113,13 +125,13 @@ def multi_hop_network() -> Network:
 def test_ping_default_gateway(pc_a_pc_b_router_1):
     pc_a, pc_b, router_1 = pc_a_pc_b_router_1
 
-    assert pc_a.ping(pc_a.default_gateway)
+    assert pc_a.ping(pc_a.config.default_gateway)
 
 
 def test_ping_other_router_port(pc_a_pc_b_router_1):
     pc_a, pc_b, router_1 = pc_a_pc_b_router_1
 
-    assert pc_a.ping(pc_b.default_gateway)
+    assert pc_a.ping(pc_b.config.default_gateway)
 
 
 def test_host_on_other_subnet(pc_a_pc_b_router_1):

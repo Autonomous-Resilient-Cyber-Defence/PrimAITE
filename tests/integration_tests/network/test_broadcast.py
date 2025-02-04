@@ -84,44 +84,55 @@ class BroadcastTestClient(Application, discriminator="broadcast-test-client"):
 def broadcast_network() -> Network:
     network = Network()
 
-    client_1 = Computer(
-        hostname="client_1",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    client_1_cfg = {
+        "type": "computer",
+        "hostname": "client_1",
+        "ip_address": "192.168.1.2",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
+
+    client_1: Computer = Computer.from_config(config=client_1_cfg)
     client_1.power_on()
     client_1.software_manager.install(BroadcastTestClient)
     application_1 = client_1.software_manager.software["broadcast-test-client"]
     application_1.run()
+    client_2_cfg = {
+        "type": "computer",
+        "hostname": "client_2",
+        "ip_address": "192.168.1.3",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
 
-    client_2 = Computer(
-        hostname="client_2",
-        ip_address="192.168.1.3",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    client_2: Computer = Computer.from_config(config=client_2_cfg)
     client_2.power_on()
     client_2.software_manager.install(BroadcastTestClient)
     application_2 = client_2.software_manager.software["broadcast-test-client"]
     application_2.run()
 
-    server_1 = Server(
-        hostname="server_1",
-        ip_address="192.168.1.1",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-    )
+    server_1_cfg = {
+        "type": "server",
+        "hostname": "server_1",
+        "ip_address": "192.168.1.1",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "start_up_duration": 0,
+    }
+
+    server_1: Server = Server.from_config(config=server_1_cfg)
+
     server_1.power_on()
 
     server_1.software_manager.install(BroadcastTestService)
     service: BroadcastTestService = server_1.software_manager.software["BroadcastService"]
     service.start()
 
-    switch_1 = Switch(hostname="switch_1", num_ports=6, start_up_duration=0)
+    switch_1: Switch = Switch.from_config(
+        config={"type": "switch", "hostname": "switch_1", "num_ports": 6, "start_up_duration": 0}
+    )
     switch_1.power_on()
 
     network.connect(endpoint_a=client_1.network_interface[1], endpoint_b=switch_1.network_interface[1])

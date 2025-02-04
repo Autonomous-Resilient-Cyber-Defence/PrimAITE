@@ -140,6 +140,7 @@ class SoftwareManager:
         elif isinstance(software, Service):
             self.node.services[software.uuid] = software
             self.node._service_request_manager.add_request(software.name, RequestType(func=software._request_manager))
+            software.start()
         software.install()
         software.software_manager = self
         self.software[software.name] = software

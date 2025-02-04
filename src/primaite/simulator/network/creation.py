@@ -154,7 +154,9 @@ class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
 
         # Create a core switch if more than one edge switch is needed
         if num_of_switches > 1:
-            core_switch = Switch(hostname=f"switch_core_{config.lan_name}", start_up_duration=0)
+            core_switch = Switch.from_config(
+                config={"type": "switch", "hostname": f"switch_core_{config.lan_name}", "start_up_duration": 0}
+            )
             core_switch.power_on()
             network.add_node(core_switch)
             core_switch_port = 1
@@ -165,7 +167,10 @@ class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
         # Optionally include a router in the LAN
         if config.include_router:
             default_gateway = IPv4Address(f"192.168.{config.subnet_base}.1")
-            router = Router(hostname=f"router_{config.lan_name}", start_up_duration=0)
+            # router = Router(hostname=f"router_{config.lan_name}", start_up_duration=0)
+            router = Router.from_config(
+                config={"hostname": f"router_{config.lan_name}", "type": "router", "start_up_duration": 0}
+            )
             router.power_on()
             router.acl.add_rule(
                 action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
@@ -178,7 +183,9 @@ class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
         # Initialise the first edge switch and connect to the router or core switch
         switch_port = 0
         switch_n = 1
-        switch = Switch(hostname=f"switch_edge_{switch_n}_{config.lan_name}", start_up_duration=0)
+        switch = Switch.from_config(
+            config={"type": "switch", "hostname": f"switch_edge_{switch_n}_{config.lan_name}", "start_up_duration": 0}
+        )
         switch.power_on()
         network.add_node(switch)
         if num_of_switches > 1:
@@ -196,7 +203,13 @@ class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
             if switch_port == effective_network_interface:
                 switch_n += 1
                 switch_port = 0
-                switch = Switch(hostname=f"switch_edge_{switch_n}_{config.lan_name}", start_up_duration=0)
+                switch = Switch.from_config(
+                    config={
+                        "type": "switch",
+                        "hostname": f"switch_edge_{switch_n}_{config.lan_name}",
+                        "start_up_duration": 0,
+                    }
+                )
                 switch.power_on()
                 network.add_node(switch)
                 # Connect the new switch to the router or core switch
@@ -213,13 +226,14 @@ class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
                     )
 
             # Create and add a PC to the network
-            pc = Computer(
-                hostname=f"pc_{i}_{config.lan_name}",
-                ip_address=f"192.168.{config.subnet_base}.{i+config.pcs_ip_block_start-1}",
-                subnet_mask="255.255.255.0",
-                default_gateway=default_gateway,
-                start_up_duration=0,
-            )
+            pc_cfg = {
+                "type": "computer",
+                "hostname": f"pc_{i}_{config.lan_name}",
+                "ip_address": f"192.168.{config.subnet_base}.{i+config.pcs_ip_block_start-1}",
+                "default_gateway": "192.168.10.1",
+                "start_up_duration": 0,
+            }
+            pc = Computer.from_config(config=pc_cfg)
             pc.power_on()
             network.add_node(pc)
 

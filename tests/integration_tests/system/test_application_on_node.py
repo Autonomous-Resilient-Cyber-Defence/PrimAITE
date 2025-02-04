@@ -10,13 +10,16 @@ from primaite.simulator.system.applications.application import Application, Appl
 
 @pytest.fixture(scope="function")
 def populated_node(application_class) -> Tuple[Application, Computer]:
-    computer: Computer = Computer(
-        hostname="test_computer",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-        shut_down_duration=0,
+    computer: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "test_computer",
+            "ip_address": "192.168.1.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.1.1",
+            "start_up_duration": 0,
+            "shut_down_duration": 0,
+        }
     )
     computer.power_on()
     computer.software_manager.install(application_class)
@@ -29,13 +32,16 @@ def populated_node(application_class) -> Tuple[Application, Computer]:
 
 def test_application_on_offline_node(application_class):
     """Test to check that the application cannot be interacted with when node it is on is off."""
-    computer: Computer = Computer(
-        hostname="test_computer",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
-        shut_down_duration=0,
+    computer: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "test_computer",
+            "ip_address": "192.168.1.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.1.1",
+            "start_up_duration": 0,
+            "shut_down_duration": 0,
+        }
     )
     computer.software_manager.install(application_class)
 

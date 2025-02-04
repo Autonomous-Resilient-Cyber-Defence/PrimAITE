@@ -12,9 +12,15 @@ from primaite.utils.validation.port import PORT_LOOKUP
 
 @pytest.fixture(scope="function")
 def dos_bot() -> DoSBot:
-    computer = Computer(
-        hostname="compromised_pc", ip_address="192.168.0.1", subnet_mask="255.255.255.0", start_up_duration=0
-    )
+    computer_cfg = {
+        "type": "computer",
+        "hostname": "compromised_pc",
+        "ip_address": "192.168.0.1",
+        "subnet_mask": "255.255.255.0",
+        "start_up_duration": 0,
+    }
+    computer: Computer = Computer.from_config(config=computer_cfg)
+
     computer.power_on()
     computer.software_manager.install(DoSBot)
 
@@ -34,7 +40,7 @@ def test_dos_bot_cannot_run_when_node_offline(dos_bot):
 
     dos_bot_node.power_off()
 
-    for i in range(dos_bot_node.shut_down_duration + 1):
+    for i in range(dos_bot_node.config.shut_down_duration + 1):
         dos_bot_node.apply_timestep(timestep=i)
 
     assert dos_bot_node.operating_state is NodeOperatingState.OFF

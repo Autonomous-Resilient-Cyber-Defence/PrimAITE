@@ -2,6 +2,7 @@
 import yaml
 
 from primaite.game.game import PrimaiteGame
+from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from tests import TEST_ASSETS_ROOT
 
 
