@@ -33,12 +33,12 @@ class Server(HostNode, identifier="server"):
         * Web Browser
     """
 
-    config: "Server.ConfigSchema" = Field(default_factory=lambda: Server.ConfigSchema())
-
     class ConfigSchema(HostNode.ConfigSchema):
         """Configuration Schema for Server class."""
 
         hostname: str = "server"
+
+    config: ConfigSchema = Field(default_factory=lambda: Server.ConfigSchema())
 
 
 class Printer(HostNode, identifier="printer"):
@@ -46,9 +46,9 @@ class Printer(HostNode, identifier="printer"):
 
     # TODO: Implement printer-specific behaviour
 
-    config: "Printer.ConfigSchema" = Field(default_factory=lambda: Printer.ConfigSchema())
-
     class ConfigSchema(HostNode.ConfigSchema):
         """Configuration Schema for Printer class."""
 
         hostname: str = "printer"
+
+    config: ConfigSchema = Field(default_factory=lambda: Printer.ConfigSchema())

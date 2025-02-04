@@ -25,12 +25,12 @@ class DNSClient(Service, identifier="DNSClient"):
         """ConfigSchema for DNSClient."""
 
         type: str = "DNSClient"
-        dns_server: Optional[IPV4Address] = None
 
         dns_server: Optional[IPv4Address] = None
         "The DNS Server the client sends requests to."
 
-    config: "DNSClient.ConfigSchema" = Field(default_factory=lambda: DNSClient.ConfigSchema())
+    config: ConfigSchema = Field(default_factory=lambda: DNSClient.ConfigSchema())
+
     dns_cache: Dict[str, IPv4Address] = {}
     "A dict of known mappings between domain/URLs names and IPv4 addresses."
 

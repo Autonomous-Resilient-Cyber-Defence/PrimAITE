@@ -100,13 +100,13 @@ class Firewall(Router, identifier="firewall"):
 
     _identifier: str = "firewall"
 
-    config: "Firewall.ConfigSchema" = Field(default_factory=lambda: Firewall.ConfigSchema())
-
     class ConfigSchema(Router.ConfigSchema):
         """Configuration Schema for Firewall 'Nodes' within PrimAITE."""
 
         hostname: str = "firewall"
         num_ports: int = 0
+
+    config: ConfigSchema = Field(default_factory=lambda: Firewall.ConfigSchema())
 
     def __init__(self, **kwargs):
         if not kwargs.get("sys_log"):

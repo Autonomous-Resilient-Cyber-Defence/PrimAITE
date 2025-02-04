@@ -1525,16 +1525,13 @@ class Node(SimComponent, ABC):
     _identifier: ClassVar[str] = "unknown"
     """Identifier for this particular class, used for printing and logging. Each subclass redefines this."""
 
-    config: Node.ConfigSchema = Field(default_factory=lambda: Node.ConfigSchema())
-    """Configuration items within Node"""
-
     class ConfigSchema(BaseModel, ABC):
         """Configuration Schema for Node based classes."""
 
         model_config = ConfigDict(arbitrary_types_allowed=True)
         """Configure pydantic to allow arbitrary types, let the instance have attributes not present in the model."""
 
-        hostname: str = "default"
+        hostname: str
         "The node hostname on the network."
 
         revealed_to_red: bool = False
@@ -1571,6 +1568,9 @@ class Node(SimComponent, ABC):
         "The default gateway IP address for forwarding network traffic to other networks."
 
         operating_state: Any = None
+
+    config: ConfigSchema = Field(default_factory=lambda: Node.ConfigSchema())
+    """Configuration items within Node"""
 
     @property
     def dns_server(self) -> Optional[IPv4Address]:

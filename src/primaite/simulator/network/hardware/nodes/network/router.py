@@ -7,7 +7,7 @@ from ipaddress import IPv4Address, IPv4Network
 from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import validate_call
+from pydantic import Field, validate_call
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
@@ -1201,6 +1201,14 @@ class Router(NetworkNode, identifier="router"):
         RouteTable, RouterARP, and RouterICMP services.
     """
 
+    class ConfigSchema(NetworkNode.ConfigSchema):
+        """Configuration Schema for Routers."""
+
+        hostname: str = "router"
+        num_ports: int = 5
+
+    config: ConfigSchema = Field(default_factory=lambda: Router.ConfigSchema())
+
     SYSTEM_SOFTWARE: ClassVar[Dict] = {
         "UserSessionManager": UserSessionManager,
         "UserManager": UserManager,
@@ -1213,14 +1221,6 @@ class Router(NetworkNode, identifier="router"):
     "The Router Interfaces on the node by port id."
     acl: AccessControlList
     route_table: RouteTable
-
-    config: "Router.ConfigSchema"
-
-    class ConfigSchema(NetworkNode.ConfigSchema):
-        """Configuration Schema for Routers."""
-
-        hostname: str = "router"
-        num_ports: int = 5
 
     def __init__(self, **kwargs):
         if not kwargs.get("sys_log"):

@@ -37,11 +37,11 @@ class Computer(HostNode, identifier="computer"):
 
     SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "FTPClient": FTPClient}
 
-    config: "Computer.ConfigSchema" = Field(default_factory=lambda: Computer.ConfigSchema())
-
     class ConfigSchema(HostNode.ConfigSchema):
         """Configuration Schema for Computer class."""
 
         hostname: str = "Computer"
+
+    config: ConfigSchema = Field(default_factory=lambda: Computer.ConfigSchema())
 
     pass

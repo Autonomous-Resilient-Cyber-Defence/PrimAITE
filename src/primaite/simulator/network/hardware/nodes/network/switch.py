@@ -98,14 +98,14 @@ class Switch(NetworkNode, identifier="switch"):
     mac_address_table: Dict[str, SwitchPort] = {}
     "A MAC address table mapping destination MAC addresses to corresponding SwitchPorts."
 
-    config: "Switch.ConfigSchema" = Field(default_factory=lambda: Switch.ConfigSchema())
-
     class ConfigSchema(NetworkNode.ConfigSchema):
         """Configuration Schema for Switch nodes within PrimAITE."""
 
         hostname: str = "Switch"
         num_ports: int = 24
         "The number of ports on the switch. Default is 24."
+
+    config: ConfigSchema = Field(default_factory=lambda: Switch.ConfigSchema())
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

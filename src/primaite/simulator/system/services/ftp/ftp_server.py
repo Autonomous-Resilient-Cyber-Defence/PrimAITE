@@ -20,16 +20,15 @@ class FTPServer(FTPServiceABC, identifier="FTPServer"):
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
 
-    config: "FTPServer.ConfigSchema" = Field(default_factory=lambda: FTPServer.ConfigSchema())
-
     class ConfigSchema(FTPServiceABC.ConfigSchema):
         """ConfigSchema for FTPServer."""
 
         type: str = "FTPServer"
-        server_password: Optional[str] = None
 
         server_password: Optional[str] = None
         """Password needed to connect to FTP server. Default is None."""
+
+    config: ConfigSchema = Field(default_factory=lambda: FTPServer.ConfigSchema())
 
     def __init__(self, **kwargs):
         kwargs["name"] = "FTPServer"
