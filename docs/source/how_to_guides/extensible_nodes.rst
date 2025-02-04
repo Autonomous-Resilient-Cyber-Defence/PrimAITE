@@ -18,8 +18,7 @@ Node classes all inherit from the base Node Class, though new classes should inh
 
 The use of an `__init__` method is not necessary, as configurable variables for the class should be specified within the `config` of the class, and passed at run time via your YAML configuration using the `from_config` method.
 
-
-An example of how additional Node classes is below, taken from `router.py` withing PrimAITE.
+An example of how additional Node classes is below, taken from `router.py` within PrimAITE.
 
 .. code-block:: Python
 
