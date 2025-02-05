@@ -1197,7 +1197,7 @@ class UserSessionManager(Service, identifier="UserSessionManager"):
             """Request should take the form [username, password, remote_ip_address]."""
             username, password, remote_ip_address = request
             response = RequestResponse.from_bool(self.remote_login(username, password, remote_ip_address))
-            response.data = {"remote_hostname": self.parent.hostname, "username": username}
+            response.data = {"remote_hostname": self.parent.config.hostname, "username": username}
             return response
 
         rm.add_request("remote_login", RequestType(func=_remote_login))
@@ -1230,7 +1230,7 @@ class UserSessionManager(Service, identifier="UserSessionManager"):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.parent.hostname} User Sessions"
+        table.title = f"{self.parent.config.hostname} User Sessions"
 
         def _add_session_to_table(user_session: UserSession):
             """
@@ -1627,9 +1627,7 @@ class Node(SimComponent, ABC):
                 dns_server=kwargs["config"].dns_server,
             )
         super().__init__(**kwargs)
-        self.operating_state = (
-            NodeOperatingState.ON if not (p := kwargs["config"].operating_state) else NodeOperatingState[p.upper()]
-        )
+        self.operating_state = NodeOperatingState.ON if not (p := kwargs["config"].operating_state) else p
         self._install_system_software()
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
