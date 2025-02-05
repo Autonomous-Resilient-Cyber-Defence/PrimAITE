@@ -102,8 +102,7 @@ simulation:
         subnet_mask: 255.255.255.252
         default_gateway: 8.8.8.1
         services:
-          - ref: dns_server
-            type: dns-server
+          - type: dns-server
             options:
               domain_mapping:
                 sometech.ai: 94.10.180.6
@@ -196,8 +195,7 @@ simulation:
         default_gateway: 94.10.180.5
         dns_server: 8.8.8.2
         services:
-          - ref: web_server
-            type: web-server
+          - type: web-server
         applications:
           - type: database-client
             options:

@@ -1,7 +1,7 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Dict, Literal, Optional
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import Field
@@ -101,6 +101,7 @@ class Switch(NetworkNode, discriminator="switch"):
     class ConfigSchema(NetworkNode.ConfigSchema):
         """Configuration Schema for Switch nodes within PrimAITE."""
 
+        type: Literal["switch"] = "switch"
         hostname: str = "Switch"
         num_ports: int = 24
         "The number of ports on the switch. Default is 24."

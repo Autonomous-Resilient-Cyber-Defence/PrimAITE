@@ -1529,8 +1529,10 @@ class Node(SimComponent, ABC):
     class ConfigSchema(BaseModel, ABC):
         """Configuration Schema for Node based classes."""
 
-        model_config = ConfigDict(arbitrary_types_allowed=True)
+        model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
         """Configure pydantic to allow arbitrary types, let the instance have attributes not present in the model."""
+
+        type: str
 
         hostname: str
         "The node hostname on the network."
@@ -1569,6 +1571,8 @@ class Node(SimComponent, ABC):
         "The default gateway IP address for forwarding network traffic to other networks."
 
         operating_state: Any = None
+
+        users: Any = None  # Temporary to appease "extra=forbid"
 
     config: ConfigSchema = Field(default_factory=lambda: Node.ConfigSchema())
     """Configuration items within Node"""

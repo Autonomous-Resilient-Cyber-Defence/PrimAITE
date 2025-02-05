@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-from typing import ClassVar, Dict
+from typing import ClassVar, Dict, Literal
 
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode, NIC
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
@@ -33,6 +33,9 @@ class SuperComputer(HostNode, discriminator="supercomputer"):
     * Applications:
         * Web Browser
     """
+
+    class ConfigSchema(HostNode.ConfigSchema):
+        type: Literal["supercomputer"] = "supercomputer"
 
     SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "ftp-client": FTPClient}
 

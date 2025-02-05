@@ -4,7 +4,7 @@ from __future__ import annotations
 import secrets
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
-from typing import Any, ClassVar, Dict, List, Optional, Tuple, Union
+from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple, Union
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import Field, validate_call
@@ -1204,8 +1204,13 @@ class Router(NetworkNode, discriminator="router"):
     class ConfigSchema(NetworkNode.ConfigSchema):
         """Configuration Schema for Routers."""
 
+        type: Literal["router"] = "router"
         hostname: str = "router"
         num_ports: int = 5
+        acl: Any = None  # temporarily unset to appease extra="forbid"
+        routes: Any = None  # temporarily unset to appease extra="forbid"
+        ports: Any = None  # temporarily unset to appease extra="forbid"
+        default_route: Any = None  # temporarily unset to appease extra="forbid"
 
     config: ConfigSchema = Field(default_factory=lambda: Router.ConfigSchema())
 
@@ -1625,16 +1630,20 @@ class Router(NetworkNode, discriminator="router"):
         :return: Configured router.
         :rtype: Router
         """
+        ports = config.pop("ports", None)
+        acl = config.pop("acl", None)
+        routes = config.pop("routes", None)
+        default_route = config.pop("default_route", None)
         router = Router(config=Router.ConfigSchema(**config))
-        if "ports" in config:
-            for port_num, port_cfg in config["ports"].items():
+        if ports:
+            for port_num, port_cfg in ports.items():
                 router.configure_port(
                     port=port_num,
                     ip_address=port_cfg["ip_address"],
                     subnet_mask=IPv4Address(port_cfg.get("subnet_mask", "255.255.255.0")),
                 )
-        if "acl" in config:
-            for r_num, r_cfg in config["acl"].items():
+        if acl:
+            for r_num, r_cfg in acl.items():
                 router.acl.add_rule(
                     action=ACLAction[r_cfg["action"]],
                     src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
@@ -1646,16 +1655,16 @@ class Router(NetworkNode, discriminator="router"):
                     dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                     position=r_num,
                 )
-        if "routes" in config:
-            for route in config.get("routes"):
+        if routes:
+            for route in routes:
                 router.route_table.add_route(
                     address=IPv4Address(route.get("address")),
                     subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),
                     next_hop_ip_address=IPv4Address(route.get("next_hop_ip_address")),
                     metric=float(route.get("metric", 0)),
                 )
-        if "default_route" in config:
-            next_hop_ip_address = config["default_route"].get("next_hop_ip_address", None)
+        if default_route:
+            next_hop_ip_address = default_route.get("next_hop_ip_address", None)
             if next_hop_ip_address:
                 router.route_table.set_default_route_next_hop_ip_address(next_hop_ip_address)
         router.operating_state = (

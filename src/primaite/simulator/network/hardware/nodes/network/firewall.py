@@ -1,6 +1,6 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
-from typing import Dict, Final, Union
+from typing import Dict, Final, Literal, Union
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import Field, validate_call
@@ -103,6 +103,7 @@ class Firewall(Router, discriminator="firewall"):
     class ConfigSchema(Router.ConfigSchema):
         """Configuration Schema for Firewall 'Nodes' within PrimAITE."""
 
+        type: Literal["firewall"] = "firewall"
         hostname: str = "firewall"
         num_ports: int = 0
 
