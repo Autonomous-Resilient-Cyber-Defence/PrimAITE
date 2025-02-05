@@ -271,7 +271,7 @@ class PrimaiteGame:
             if n_type in Node._registry:
                 n_class = Node._registry[n_type]
                 if issubclass(n_class, WirelessRouter):
-                    new_node = n_class(config=n_class.ConfigSchema(**node_cfg), airspace=net.airspace)
+                    new_node = n_class.from_config(config=node_cfg, airspace=net.airspace)
                 else:
                     new_node = Node._registry[n_type].from_config(config=node_cfg)
             else:
