@@ -404,7 +404,6 @@ class PrimaiteGame:
         agents_cfg = cfg.get("agents", [])
 
         for agent_cfg in agents_cfg:
-
             new_agent = AbstractAgent.from_config(agent_cfg)
             game.agents[agent_cfg["ref"]] = new_agent
             if isinstance(new_agent, ProxyAgent):
