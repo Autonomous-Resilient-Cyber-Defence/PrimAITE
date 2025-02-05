@@ -29,7 +29,7 @@ def dns_client() -> Computer:
 def test_create_dns_client(dns_client):
     assert dns_client is not None
     dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
-    assert dns_client_service.name is "dns-client"
+    assert dns_client_service.name == "dns-client"
     assert dns_client_service.port is PORT_LOOKUP["DNS"]
     assert dns_client_service.protocol is PROTOCOL_LOOKUP["TCP"]
 

@@ -31,7 +31,7 @@ def ftp_server() -> Node:
 def test_create_ftp_server(ftp_server):
     assert ftp_server is not None
     ftp_server_service: FTPServer = ftp_server.software_manager.software.get("ftp-server")
-    assert ftp_server_service.name is "ftp-server"
+    assert ftp_server_service.name == "ftp-server"
     assert ftp_server_service.port is PORT_LOOKUP["FTP"]
     assert ftp_server_service.protocol is PROTOCOL_LOOKUP["TCP"]
 

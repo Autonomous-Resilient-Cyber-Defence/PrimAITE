@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import ClassVar, List, Optional, Union
 
 from primaite.game.agent.actions.manager import AbstractAction
@@ -18,16 +18,14 @@ __all__ = (
 )
 
 
-class NodeAbstractAction(AbstractAction, discriminator="node-abstract"):
+class NodeAbstractAction(AbstractAction, ABC):
     """
     Abstract base class for node actions.
 
     Any action which applies to a node and uses node_name as its only parameter can inherit from this base class.
     """
 
-    config: "NodeAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base Configuration schema for Node actions."""
 
         node_name: str
@@ -83,12 +81,10 @@ class NodeResetAction(NodeAbstractAction, discriminator="node-reset"):
         verb: ClassVar[str] = "reset"
 
 
-class NodeNMAPAbstractAction(AbstractAction, discriminator="node-nmap-abstract-action"):
+class NodeNMAPAbstractAction(AbstractAction, ABC):
     """Base class for NodeNMAP actions."""
 
-    config: "NodeNMAPAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base Configuration Schema for NodeNMAP actions."""
 
         target_ip_address: Union[str, List[str]]

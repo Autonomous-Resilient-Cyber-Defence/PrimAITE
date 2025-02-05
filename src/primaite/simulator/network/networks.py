@@ -170,13 +170,13 @@ def arcd_uc2_network() -> Network:
     client_1.power_on()
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
     client_1.software_manager.install(DatabaseClient)
-    db_client_1: DatabaseClient = client_1.software_manager.software.get("DatabaseClient")
+    db_client_1: DatabaseClient = client_1.software_manager.software.get("database-client")
     db_client_1.configure(server_ip_address=IPv4Address("192.168.1.14"))
     db_client_1.run()
     web_browser_1 = client_1.software_manager.software.get("web-browser")
     web_browser_1.target_url = "http://arcd.com/users/"
     client_1.software_manager.install(DataManipulationBot)
-    db_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
+    db_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("data-manipulation-bot")
     db_manipulation_bot.configure(
         server_ip_address=IPv4Address("192.168.1.14"),
         payload="DELETE",

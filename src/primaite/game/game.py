@@ -288,8 +288,8 @@ class PrimaiteGame:
             if "folder_restore_duration" in defaults_config:
                 new_node.file_system._default_folder_restore_duration = defaults_config["folder_restore_duration"]
 
-            if "users" in node_cfg and new_node.software_manager.software.get("UserManager"):
-                user_manager: UserManager = new_node.software_manager.software["UserManager"]  # noqa
+            if "users" in node_cfg and new_node.software_manager.software.get("user-manager"):
+                user_manager: UserManager = new_node.software_manager.software["user-manager"]  # noqa
                 for user_cfg in node_cfg["users"]:
                     user_manager.add_user(**user_cfg, bypass_can_perform_action=True)
 

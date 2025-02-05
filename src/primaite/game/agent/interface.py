@@ -68,7 +68,7 @@ class AbstractAgent(BaseModel, ABC):
         )
         reward_function: RewardFunction.ConfigSchema = Field(default_factory=lambda: RewardFunction.ConfigSchema())
 
-    config: "AbstractAgent.ConfigSchema" = Field(default_factory=lambda: AbstractAgent.ConfigSchema())
+    config: ConfigSchema = Field(default_factory=lambda: AbstractAgent.ConfigSchema())
 
     logger: AgentLog = AgentLog(agent_name="Abstract_Agent")
     history: List[AgentHistoryItem] = []
@@ -161,15 +161,15 @@ class AbstractAgent(BaseModel, ABC):
         return agent_class(config=config)
 
 
-class AbstractScriptedAgent(AbstractAgent, discriminator="abstract-scripted-agent"):
+class AbstractScriptedAgent(AbstractAgent, ABC):
     """Base class for actors which generate their own behaviour."""
 
-    config: "AbstractScriptedAgent.ConfigSchema" = Field(default_factory=lambda: AbstractScriptedAgent.ConfigSchema())
-
-    class ConfigSchema(AbstractAgent.ConfigSchema):
+    class ConfigSchema(AbstractAgent.ConfigSchema, ABC):
         """Configuration Schema for AbstractScriptedAgents."""
 
         type: str = "AbstractScriptedAgent"
+
+    config: ConfigSchema = Field(default_factory=lambda: AbstractScriptedAgent.ConfigSchema())
 
     @abstractmethod
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:

@@ -12,8 +12,6 @@ from primaite.interface.request import RequestFormat
 class AbstractAction(BaseModel, ABC):
     """Base class for actions."""
 
-    config: "AbstractAction.ConfigSchema"
-
     class ConfigSchema(BaseModel, ABC):
         """Base configuration schema for Actions."""
 

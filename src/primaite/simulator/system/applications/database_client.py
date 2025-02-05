@@ -37,7 +37,7 @@ class DatabaseClientConnection(BaseModel):
     @property
     def client(self) -> Optional[DatabaseClient]:
         """The DatabaseClient that holds this connection."""
-        return self.parent_node.software_manager.software.get("DatabaseClient")
+        return self.parent_node.software_manager.software.get("database-client")
 
     def query(self, sql: str) -> bool:
         """

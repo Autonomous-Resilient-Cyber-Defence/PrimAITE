@@ -43,15 +43,15 @@ _LOGGER = getLogger(__name__)
 WhereType = Optional[Iterable[Union[str, int]]]
 
 
-class AbstractReward(BaseModel):
+class AbstractReward(BaseModel, ABC):
     """Base class for reward function components."""
-
-    config: "AbstractReward.ConfigSchema"
 
     class ConfigSchema(BaseModel, ABC):
         """Config schema for AbstractReward."""
 
         type: str = ""
+
+    config: ConfigSchema
 
     _registry: ClassVar[Dict[str, Type["AbstractReward"]]] = {}
 

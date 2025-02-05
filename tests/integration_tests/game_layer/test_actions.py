@@ -678,8 +678,8 @@ def test_firewall_acl_add_remove_rule_integration():
     assert firewall.external_outbound_acl.acl[1].action.name == "DENY"
     assert firewall.external_outbound_acl.acl[1].src_ip_address == IPv4Address("192.168.20.10")
     assert firewall.external_outbound_acl.acl[1].dst_ip_address == IPv4Address("192.168.0.10")
-    assert firewall.external_outbound_acl.acl[1].dst_port == PORT_LOOKUP["NONE"]
-    assert firewall.external_outbound_acl.acl[1].src_port == PORT_LOOKUP["NONE"]
+    assert firewall.external_outbound_acl.acl[1].dst_port is None
+    assert firewall.external_outbound_acl.acl[1].src_port is None
     assert firewall.external_outbound_acl.acl[1].protocol == PROTOCOL_LOOKUP["NONE"]
 
     env.step(12)  # Remove ACL rule from External Outbound

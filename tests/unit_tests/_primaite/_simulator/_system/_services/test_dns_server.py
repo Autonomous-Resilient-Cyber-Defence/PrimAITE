@@ -33,7 +33,7 @@ def dns_server() -> Node:
 def test_create_dns_server(dns_server):
     assert dns_server is not None
     dns_server_service: DNSServer = dns_server.software_manager.software.get("dns-server")
-    assert dns_server_service.name is "dns-server"
+    assert dns_server_service.name == "dns-server"
     assert dns_server_service.port is PORT_LOOKUP["DNS"]
     assert dns_server_service.protocol is PROTOCOL_LOOKUP["TCP"]
 

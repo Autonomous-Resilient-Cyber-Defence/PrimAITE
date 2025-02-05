@@ -70,7 +70,7 @@ class NMAP(Application, discriminator="nmap"):
     }
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "NMAP"
+        kwargs["name"] = "nmap"
         kwargs["port"] = PORT_LOOKUP["NONE"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)

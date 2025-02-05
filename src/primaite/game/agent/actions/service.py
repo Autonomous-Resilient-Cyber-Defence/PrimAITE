@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+from abc import ABC
 from typing import ClassVar
 
 from primaite.game.agent.actions.manager import AbstractAction
@@ -17,15 +18,13 @@ __all__ = (
 )
 
 
-class NodeServiceAbstractAction(AbstractAction, discriminator="node-service-abstract"):
+class NodeServiceAbstractAction(AbstractAction, ABC):
     """Abstract Action for Node Service related actions.
 
     Any actions which use node_name and service_name can inherit from this class.
     """
 
-    config: "NodeServiceAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         node_name: str
         service_name: str
         verb: ClassVar[str]

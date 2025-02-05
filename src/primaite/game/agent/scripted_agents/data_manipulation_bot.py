@@ -6,8 +6,6 @@ from pydantic import Field
 
 from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 
-__all__ = "DataManipulationAgent"
-
 
 class DataManipulationAgent(PeriodicAgent, discriminator="red-database-corrupting-agent"):
     """Agent that uses a DataManipulationBot to perform an SQL injection attack."""

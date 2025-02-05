@@ -24,9 +24,7 @@ class NodeFileAbstractAction(AbstractAction, ABC):
     only three parameters can inherit from this base class.
     """
 
-    config: "NodeFileAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Configuration Schema for NodeFileAbstractAction."""
 
         node_name: str

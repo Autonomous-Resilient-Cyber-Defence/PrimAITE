@@ -16,9 +16,7 @@ class HostNICAbstractAction(AbstractAction, ABC):
     base class.
     """
 
-    config: "HostNICAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base Configuration schema for HostNIC actions."""
 
         node_name: str

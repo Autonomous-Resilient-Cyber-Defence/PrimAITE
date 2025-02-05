@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
@@ -11,12 +11,10 @@ __all__ = (
 )
 
 
-class NodeSessionAbstractAction(AbstractAction, discriminator="node-session-abstract"):
+class NodeSessionAbstractAction(AbstractAction, ABC):
     """Base class for NodeSession actions."""
 
-    config: "NodeSessionAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base configuration schema for NodeSessionAbstractActions."""
 
         node_name: str

@@ -22,7 +22,7 @@ class _DatabaseListener(Service, discriminator="database-listener"):
         listen_on_ports: Set[int] = {PORT_LOOKUP["POSTGRES_SERVER"]}
 
     config: "_DatabaseListener.ConfigSchema" = Field(default_factory=lambda: _DatabaseListener.ConfigSchema())
-    name: str = "DatabaseListener"
+    name: str = "database-listener"
     protocol: str = PROTOCOL_LOOKUP["TCP"]
     port: int = PORT_LOOKUP["NONE"]
     listen_on_ports: Set[int] = {PORT_LOOKUP["POSTGRES_SERVER"]}
@@ -45,7 +45,7 @@ def test_http_listener(client_server):
     server_db.start()
 
     server.software_manager.install(_DatabaseListener)
-    server_db_listener: _DatabaseListener = server.software_manager.software["DatabaseListener"]
+    server_db_listener: _DatabaseListener = server.software_manager.software["database-listener"]
     server_db_listener.start()
 
     computer.software_manager.install(DatabaseClient)

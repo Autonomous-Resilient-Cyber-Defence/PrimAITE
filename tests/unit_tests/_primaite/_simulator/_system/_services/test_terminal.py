@@ -364,7 +364,7 @@ def test_SSH_across_network():
     pc_a = network.get_node_by_hostname("client_1")
     router_1 = network.get_node_by_hostname("router_1")
 
-    terminal_a: Terminal = pc_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = pc_a.software_manager.software.get("terminal")
 
     router_1.acl.add_rule(
         action=ACLAction.PERMIT, src_port=PORT_LOOKUP["SSH"], dst_port=PORT_LOOKUP["SSH"], position=21

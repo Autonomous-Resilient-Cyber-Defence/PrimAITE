@@ -27,7 +27,7 @@ class BroadcastTestService(Service, discriminator="broadcast-test-service"):
 
     def __init__(self, **kwargs):
         # Set default service properties for broadcasting
-        kwargs["name"] = "BroadcastService"
+        kwargs["name"] = "broadcast-test-service"
         kwargs["port"] = PORT_LOOKUP["HTTP"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
@@ -127,7 +127,7 @@ def broadcast_network() -> Network:
     server_1.power_on()
 
     server_1.software_manager.install(BroadcastTestService)
-    service: BroadcastTestService = server_1.software_manager.software["BroadcastService"]
+    service: BroadcastTestService = server_1.software_manager.software["broadcast-test-service"]
     service.start()
 
     switch_1: Switch = Switch.from_config(
@@ -153,7 +153,7 @@ def broadcast_service_and_clients(
         "broadcast-test-client"
     ]
     service: BroadcastTestService = broadcast_network.get_node_by_hostname("server_1").software_manager.software[
-        "broadcast-service"
+        "broadcast-test-service"
     ]
 
     return service, client_1, client_2

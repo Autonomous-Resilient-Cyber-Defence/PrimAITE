@@ -21,9 +21,7 @@ __all__ = (
 class ACLAddRuleAbstractAction(AbstractAction, ABC):
     """Base abstract class for ACL add rule actions."""
 
-    config: ConfigSchema = "ACLAddRuleAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Configuration Schema base for ACL add rule abstract actions."""
 
         src_ip: Union[IPV4Address, Literal["ALL"]]
@@ -37,12 +35,10 @@ class ACLAddRuleAbstractAction(AbstractAction, ABC):
         dst_wildcard: Union[IPV4Address, Literal["NONE"]]
 
 
-class ACLRemoveRuleAbstractAction(AbstractAction, discriminator="acl-remove-rule-abstract-action"):
+class ACLRemoveRuleAbstractAction(AbstractAction, ABC):
     """Base abstract class for acl remove rule actions."""
 
-    config: ConfigSchema = "ACLRemoveRuleAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Configuration Schema base for ACL remove rule abstract actions."""
 
         position: int

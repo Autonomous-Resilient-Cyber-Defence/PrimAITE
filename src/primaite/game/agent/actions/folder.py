@@ -22,9 +22,7 @@ class NodeFolderAbstractAction(AbstractAction, ABC):
     this base class.
     """
 
-    config: "NodeFolderAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base configuration schema for NodeFolder actions."""
 
         node_name: str

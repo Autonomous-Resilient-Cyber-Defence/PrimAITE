@@ -34,9 +34,9 @@ def web_server() -> Server:
 def test_create_web_server(web_server):
     assert web_server is not None
     web_server_service: WebServer = web_server.software_manager.software.get("web-server")
-    assert web_server_service.name is "web-server"
-    assert web_server_service.port is PORT_LOOKUP["HTTP"]
-    assert web_server_service.protocol is PROTOCOL_LOOKUP["TCP"]
+    assert web_server_service.name == "web-server"
+    assert web_server_service.port == PORT_LOOKUP["HTTP"]
+    assert web_server_service.protocol == PROTOCOL_LOOKUP["TCP"]
 
 
 def test_handling_get_request_not_found_path(web_server):

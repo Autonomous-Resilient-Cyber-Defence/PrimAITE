@@ -1,5 +1,6 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
+from abc import ABC
 from typing import ClassVar
 
 from primaite.game.agent.actions.manager import AbstractAction
@@ -8,12 +9,10 @@ from primaite.interface.request import RequestFormat
 __all__ = ("NetworkPortEnableAction", "NetworkPortDisableAction")
 
 
-class NetworkPortAbstractAction(AbstractAction, discriminator="network-port-abstract"):
+class NetworkPortAbstractAction(AbstractAction, ABC):
     """Base class for Network port actions."""
 
-    config: "NetworkPortAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base configuration schema for NetworkPort actions."""
 
         target_nodename: str

@@ -32,7 +32,7 @@ def ftp_client() -> Node:
 def test_create_ftp_client(ftp_client):
     assert ftp_client is not None
     ftp_client_service: FTPClient = ftp_client.software_manager.software.get("ftp-client")
-    assert ftp_client_service.name is "ftp-client"
+    assert ftp_client_service.name == "ftp-client"
     assert ftp_client_service.port is PORT_LOOKUP["FTP"]
     assert ftp_client_service.protocol is PROTOCOL_LOOKUP["TCP"]
 

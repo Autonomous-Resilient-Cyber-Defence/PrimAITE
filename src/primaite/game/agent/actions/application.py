@@ -23,9 +23,7 @@ class NodeApplicationAbstractAction(AbstractAction, ABC):
     inherit from this base class.
     """
 
-    config: "NodeApplicationAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base Configuration schema for Node Application actions."""
 
         node_name: str

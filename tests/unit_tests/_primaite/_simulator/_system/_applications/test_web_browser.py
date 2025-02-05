@@ -46,7 +46,7 @@ def test_create_web_client():
     computer.power_on()
     # Web Browser should be pre-installed in computer
     web_browser: WebBrowser = computer.software_manager.software.get("web-browser")
-    assert web_browser.name is "web-browser"
+    assert web_browser.name == "web-browser"
     assert web_browser.port is PORT_LOOKUP["HTTP"]
     assert web_browser.protocol is PROTOCOL_LOOKUP["TCP"]
 
